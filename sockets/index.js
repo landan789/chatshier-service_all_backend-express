@@ -477,7 +477,7 @@ function init(server) {
             pushAndEmit(replyMsgObj, null, channelId, receiverId, 0);
             event.reply({
               "type": "template",
-              "altText": "888",
+              "altText": "問卷調查",
               "template": {
                 "type": 'carousel',
                 "columns": [{
@@ -673,12 +673,12 @@ function init(server) {
               _title = title[n-1];
               _answer = msg;
               updateInfo[ _title ] = _answer;
-              for (let i in chatData) {
-                if ( isSameUser(chatData[i].Profile, receiverId, channelId) ) {
-                  newDBRef.child(i).child("Profile").update(updateInfo);
-                  break;
-                }
-              }
+              // for (let i in chatData) {
+              //   if ( isSameUser(chatData[i].Profile, receiverId, channelId) ) {
+              //     newDBRef.child(i).child("Profile").update(updateInfo);
+              //     break;
+              //   }
+              // }
               replyMsgObj.message = '客戶點選' + msg;
               pushAndEmit(replyMsgObj, null, channelId, receiverId, 0);
             }
@@ -704,7 +704,7 @@ function init(server) {
               }
               event.reply({
                 "type": "template",
-                "altText": "888",
+                "altText": "問卷調查",
                 "template": {
                   type: 'carousel',
                   "columns": [
@@ -759,7 +759,7 @@ function init(server) {
 
             event.reply({
               "type": "template",
-              "altText": "888",
+              "altText": "預約DEMO",
               "template": {
                 type: 'carousel',
                 "columns": columns
@@ -792,7 +792,7 @@ function init(server) {
                 pushAndEmit(replyMsgObj, null, channelId, receiverId, 0);
                 event.reply({
                   "type": "template",
-                  "altText": "888",
+                  "altText": "預約DEMO",
                   "template": {
                     "type": 'carousel',
                     "columns": [
