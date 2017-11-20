@@ -17,6 +17,7 @@ var chats = require('../models/chats');
 var keywords = require('../models/keywords');
 var tags = require('../models/tags');
 var users = require('../models/users');
+var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var messageHandle = require('../message_handle');
 function init(server) {
@@ -419,6 +420,9 @@ function init(server) {
           }
           if( appointmentReply(msgObj.message)!==-1 ) {
             console.log("appointment bot replyed!");
+          }
+          if( apiai(msgObj.message)!==-1 ) {
+            console.log("api.ai bot replyed!");
           }
           // else {
           //   console.log("no auto reply bot work! wait for agent reply");
@@ -877,6 +881,20 @@ function init(server) {
             }
           }
           else return -1;
+        }
+        function apiai(msg) {
+          console.log(885);
+          apiModel.process(msg, function(replyMessage, replyTemplate) {
+            console.log("replyMessage = "+replyMessage);
+            console.log(replyTemplate);
+            if( replyMessage!=="-1" ) {
+              replyMsgObj.name = "api.ai";
+              replyMsgObj.message = replyMessage;
+              pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+              send_to_Line("/template "+replyTemplate, receiverId, channelId);
+            }
+            else return -1;
+          });
         }
       });
     } // end of bot_on_message
