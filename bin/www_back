@@ -252,7 +252,7 @@ function bot_on_message(event) {
       //       emitIO_and_pushDB(msgObj, pictureUrl, channelId, receiverId, 0);
       //       event.reply({
       //         "type": "template",
-      //         "altText": "Welcome Template",
+      //         "altText": "888",
       //         "template": {
       //           "type": 'carousel',
       //           "columns": [
@@ -523,7 +523,7 @@ function bot_on_message(event) {
           }
         );
       }
-      else if( msg=='旅遊' ) {
+    VV  else if( msg=='旅遊' ) {
         replyMsgObj.message = '查看國內外的旅遊資訊';
         event.reply({
           "type": "template",
@@ -544,11 +544,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='國外旅遊' ) {
+    VV  else if( msg=='國外旅遊' ) {
         replyMsgObj.message = '國外旅遊資訊介紹。';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             type: 'carousel',
             "columns": [{
@@ -587,11 +587,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='國內旅遊' ) {
+    VV  else if( msg=='國內旅遊' ) {
         replyMsgObj.message = '國內旅遊資訊介紹。';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -618,7 +618,7 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( isPlace(msg) ) {
+    VV  else if( isPlace(msg) ) {
         let title="";
         let uri="";
         if( msg=='斯洛維尼亞' ) {
@@ -679,7 +679,7 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='Demo' ) {
+    V else if( msg=='Demo' ) {
         replyMsgObj.message = 'Demo列表';
         event.reply({
           "type": "template",
@@ -708,11 +708,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='Tini小精靈' ) {
+    V  else if( msg=='Tini小精靈' ) {
         replyMsgObj.message = 'Tini小精靈列表';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             type: 'carousel',
             "columns": [
@@ -786,62 +786,6 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='董事長遊台灣菜單' ) {
-        replyMsgObj.message = "董事長遊台灣列表";
-        event.reply({
-          "type": "template",
-          "altText": "Welcome Template",
-          "template": {
-            type: 'carousel',
-            "columns": [
-              {
-                "thumbnailImageUrl": 'https://7-t.imgbox.com/zLJGgNrj.jpg',
-                "title": '董事長遊台灣',
-                "text": '常見問題/旅遊菜單/回饋問卷',
-                "actions": [
-                  {
-                    "type": "message",
-                    "label": '常見問題',
-                    "text": "常見問題"
-                  },
-                  {
-                    "type": "message",
-                    "label": '旅遊菜單',
-                    "text": "旅遊"
-                  },
-                  {
-                    "type": "message",
-                    "label": '回饋問卷',
-                    "text": "回饋問卷"
-                  }
-                ]
-              },
-              {
-                "thumbnailImageUrl": 'https://8-t.imgbox.com/cEoYf9AJ.jpg',
-                "title": '董事長遊台灣',
-                "text": '旅遊預約/公司資訊',
-                "actions": [
-                  {
-                    "type": "message",
-                    "label": '旅遊預約',
-                    "text": "旅遊預約"
-                  },
-                  {
-                    "type": "message",
-                    "label": '公司資訊',
-                    "text": "公司資訊"
-                  },
-                  {
-                    "type": "message",
-                    "label": '-',
-                    "text": " "
-                  }
-                ]
-              }
-            ]
-          }
-        });
-      }
       else if( msg=='公司資訊' ) {
         replyMsgObj.message = '希羅亞旅行社股份有限公司\n地址:\n台灣台北市大安區\n復興南路一段137號7樓之7\n'
         +'服務時間:\n週一～週五 09:00-18:30\n電話:02-27217300\n傳真:02-27217179\n信箱:service@taiwanday.com\n'
@@ -851,7 +795,7 @@ function bot_on_message(event) {
           text: replyMsgObj.message
         });
       }
-      else if( msg=='回饋問卷' ) {
+    V  else if( msg=='回饋問卷' ) {
         replyMsgObj.message = '問卷發送';
         event.reply({
           "type": "template",
@@ -874,7 +818,7 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='常見問題' ) {
+    V  else if( msg=='常見問題' ) {
         replyMsgObj.message = '常見問題列表';
         event.reply({
           "type": "template",
@@ -898,11 +842,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='菜單功能' ) {
+    VV  else if( msg=='餐廳訂位' ) {
         replyMsgObj.message = '菜單功能列表';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": "buttons",
             "thumbnailImageUrl": "https://0-t.imgbox.com/Mim9D7AP.jpg",
@@ -923,12 +867,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='餐廳菜單' ) {
+    VV  else if( msg=='餐廳菜單' ) {
         replyMsgObj.message = '餐廳菜單列表';
         // let greet_msg = '餐廳菜單';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": "buttons",
             "thumbnailImageUrl": "https://0-t.imgbox.com/JJO1jat5.jpg",
@@ -955,11 +899,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='燒煲定食' ) {
+    VV  else if( msg=='燒煲定食' ) {
         replyMsgObj.message = '燒煲定食列表';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [
@@ -1026,11 +970,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='海陸烤炸定食' ) {
+    VV  else if( msg=='海陸烤炸定食' ) {
         replyMsgObj.message = '海陸烤炸定食列表';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1082,11 +1026,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='炸豬排定食' ) {
+    VV  else if( msg=='炸豬排定食' ) {
         replyMsgObj.message = '炸豬排定食列表';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1120,11 +1064,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='購物車功能' ) {
+    VV  else if( msg=='購物車功能' ) {
         replyMsgObj.message = '已接收顯示購物車功能' + "女裝  " + "男裝  ";
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": "buttons",
             "text": '你想找哪一類的衣服呢？',
@@ -1141,12 +1085,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='女裝' ) {
+    VV  else if( msg=='女裝' ) {
         replyMsgObj.message = '已接收顯示女裝' + "女裝POLO衫  " + "女裝T恤(長袖/七分袖)";
         // let greet_msg = '你想找哪一類的衣服呢？';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": "buttons",
             "thumbnailImageUrl": "https://3-t.imgbox.com/ZnXsAKmo.jpg",
@@ -1164,12 +1108,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='男裝' ) {
+    VV  else if( msg=='男裝' ) {
         replyMsgObj.message = '已接收顯示男裝' + "男裝POLO衫  " + "男裝牛仔褲  ";
         // let greet_msg = '你想找哪一類的衣服呢？';
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": "buttons",
             "thumbnailImageUrl": "https://0-t.imgbox.com/urSn5N9M.jpg",
@@ -1187,11 +1131,11 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='女裝POLO衫' ) {
+    VV  else if( msg=='女裝POLO衫' ) {
         replyMsgObj.message = '已接收顯示女裝POLO衫' + "彈性網眼POLO衫(女)" + "寬版開領POLO衫(女)" + "羅紋POLO衫(短袖)(女)";
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1225,12 +1169,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='女裝T恤(長袖/七分袖)' ) {
+    VV  else if( msg=='女裝T恤(長袖/七分袖)' ) {
         replyMsgObj.message = '已接收女裝T恤' + "一字領上衣T恤(女)" + "SUPIMA COTTON 圓領T恤(7分袖)(女)"
          + "SUPIMA COTTON 圓領T恤(長袖)(女)";
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1264,12 +1208,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='男裝POLO衫' ) {
+    VV  else if( msg=='男裝POLO衫' ) {
         replyMsgObj.message = '已接收顯示男裝POLO衫' + "DRY 網眼條紋POLO衫(短袖)(男)" + "DRY EX POLO衫(短袖)(男)"
          + "DRY 舒適襯衫領POLO衫(短袖)(鈕釦領)(男)";
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1303,12 +1247,12 @@ function bot_on_message(event) {
           }
         });
       }
-      else if( msg=='男裝牛仔褲' ) {
+    VV  else if( msg=='男裝牛仔褲' ) {
         replyMsgObj.message = '已接收顯示男裝牛仔褲' + "Slim Fit 束口牛仔褲(男)" + "Regular Fit 刷破牛仔褲(男)"
          + "MIRACLE AIR REGULAR FIT 牛仔褲(男)";
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1360,7 +1304,7 @@ function bot_on_message(event) {
         emitIO_and_pushDB(replyMsgObj, null, channelId, receiverId, 0);
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1587,7 +1531,7 @@ function bot_on_message(event) {
           }
           event.reply({
             "type": "template",
-            "altText": "Welcome Template",
+            "altText": "888",
             "template": {
               type: 'carousel',
               "columns": [
@@ -1659,7 +1603,7 @@ function bot_on_message(event) {
         emitIO_and_pushDB(replyMsgObj, null, channelId, receiverId, 0);
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "旅遊預約",
           "template": {
             "type": 'carousel',
             "columns": [{
@@ -1782,7 +1726,7 @@ function bot_on_message(event) {
 
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             type: 'carousel',
             "columns": columns
@@ -1815,7 +1759,7 @@ function bot_on_message(event) {
             emitIO_and_pushDB(replyMsgObj, null, channelId, receiverId, 0);
             event.reply({
               "type": "template",
-              "altText": "Welcome Template",
+              "altText": "888",
               "template": {
                 "type": 'carousel',
                 "columns": [
@@ -2134,9 +2078,9 @@ function bot_on_message(event) {
           }
           columns.push(_col);
         }
-        event.reply({
+        console.log({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             "type": 'carousel',
             "columns": columns
@@ -2164,7 +2108,7 @@ function bot_on_message(event) {
         }
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             'type': 'carousel',
             "columns": columns
@@ -2199,7 +2143,7 @@ function bot_on_message(event) {
         ];
         event.reply({
           "type": "template",
-          "altText": "Welcome Template",
+          "altText": "888",
           "template": {
             'type': 'carousel',
             "columns": columns
