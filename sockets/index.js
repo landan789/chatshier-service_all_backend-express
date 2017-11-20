@@ -2,6 +2,7 @@ var app = require('../app');
 var moment = require('moment');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
+var fb_bot = {};
 var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
 var admin = require("firebase-admin"); //firebase admin SDK
 var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
