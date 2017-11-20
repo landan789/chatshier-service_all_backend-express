@@ -26,6 +26,9 @@
           <li>
             <a class="nav-link" href="/calendar">| <i class="fa  fa-calendar fa-fw"></i> 行事曆</a>
           </li>
+          <li>
+            <a class="nav-link" href="/ticket">| <i class="fa  fa-list-ul fa-fw"></i> 待辦事項</a>
+          </li>
           <li id="nav_message">
             <a href="#">| <i class="fa fa-commenting fa-fw"></i> 訊息</a>
           </li>
@@ -140,16 +143,24 @@
             </div>
           </div>
         </div>
+
         <div id="infoPanel" class="colume">
           <div class="card text-center">
+            <ul class="nav nav-pills">
+              <li class="active"><a id="showProfile">用戶資料</a></li>
+              <li><a id="showTodo">待辦事項</a></li>
+            </ul>
+
             <div id="infoCanvas"></div>
           </div>
         </div>
+
       </div>
     </div>
     <% include ../views/partials/firebase_disable.ejs %>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>

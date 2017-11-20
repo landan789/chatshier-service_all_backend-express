@@ -1002,3 +1002,8 @@ img[alt="無法顯示相片"]{
   color: #ff0000;
   background-color: #ffff00 !important;
 }
+
+.nav-pills>li>a {
+  color: #009900;
+  cursor: pointer;
+}

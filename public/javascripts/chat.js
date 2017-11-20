@@ -35,8 +35,11 @@ var TagsData; //data of user info tags
 var internalTagsData;
 var agentIdToName;
 // selectors
+var $infoPanel = $('#infoPanel');
 var messageInput = $('#message'); // 訊息欄
 var canvas = $("#canvas"); // 聊天室空間
+var showProfile = $("#showProfile");
+var showTodo = $("#showTodo");
 var infoCanvas = $("#infoCanvas"); // 個人資料空間
 var error = $('.error');
 var messageMemo = $('#messageMemo');
@@ -45,10 +48,12 @@ var ocClickShow = $('.on-click-show');
 var openChatAppItem = $('.chat-app-item[open="true"]');
 var searchBox = $('#searchBox');
 var addTicketModal = $('#addTicketModal');
+
 $(document).ready(function() {
   // start the loading works
   if(window.location.pathname === '/chat') {
     socket.emit("get tags from chat");
+    $infoPanel.hide();
     testOverview();
     setInterval(testOverview, 60000);
     let timer_1 = setInterval(function() {
@@ -1414,6 +1419,7 @@ function displayClientInternal(data, roomId) {
 } // end of displayClientInternal
 function clickUserTablink() {
   $('#send-message').show();
+  $infoPanel.show();
   let userId = $(this).attr('name'); // ID
   let channelId = $(this).attr('rel'); // channelId
   loadTable(userId);
@@ -1878,12 +1884,8 @@ function testOverview(){
       database.ref('message-overview/' + userId + '/' + overview[i][1]).update({
         taskStatus: '歷史'
       });
-
-
-
-
-
-    }else {console.log(overview[i][1],' not matched');//沒有要發送的
+    }else {
+    console.log(overview[i][1],' not matched');//沒有要發送的
   }
 }
 loadOverviewReply();
@@ -1908,6 +1910,22 @@ function loadOverviewReply(userId){
       }
     }, 1000);
   });
+
+  showTodo.click(function() {
+    $('.nav li.active').removeClass('active');
+    $(this).parent().addClass('active');
+    $("#infoCanvas #profile").hide();
+    $("#infoCanvas #todo").show();
+  });
+
+  showProfile.click(function() {
+    $('.nav li.active').removeClass('active');
+    $(this).parent().addClass('active');
+    $("#infoCanvas #profile").show();
+    $("#infoCanvas #todo").hide();    
+  });
+
+
   var chanId1;
   var chanId2;
   database.ref('users'+ userId).on('value', snap =>{
