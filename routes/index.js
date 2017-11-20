@@ -30,7 +30,7 @@ router.get('/ticket', function(req, res, next) {
   res.render('ticket', { title: '待辦事項' });
 });
 router.get('/tform', function(req, res, next) {
-  res.render('ticketForm', { title: '待辦事項' });
+  res.render('ticketForm', { title: '新增待辦事項' });
 });
 //authentication
 router.get('/login', function(req, res, next) {
