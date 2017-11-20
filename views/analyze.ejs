@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
     <%# 自己的code%>
     <link rel="stylesheet" href="stylesheets/main.css" />
-    <link rel="stylesheet" href="stylesheets/message_add_friend_reply.css" />
+    <link rel="stylesheet" href="stylesheets/analyze.css" />
     <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
   </head>
   <body>
@@ -19,28 +19,22 @@
         </div>
         <ul class="nav navbar-top-links navbar-left">
           <li>
-            <a class="nav-link" href="/chat">| <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
+            <a href="/chat">| <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
           </li>
-          <li>
-            <a class="nav-link" href="/calendar">| <i class="fa  fa-calendar fa-fw"></i> 行事曆</a>
+          <li id="nav_message">
+            <a href="#">| <i class="fa fa-commenting fa-fw"></i> 訊息</a>
           </li>
-          <li>
-            <a class="nav-link" href="/ticket">| <i class="fa  fa-list-ul fa-fw"></i> 待辦事項</a>
-          </li>
-          <li id="nav-message">
-            <a class="nav-link" href="#">| <i class="fa fa-commenting fa-fw"></i> 訊息</a>
-          </li>
-          <li class="sub-tag" style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_overview"> 總覽</a>
+          <!-- <li class="sub-tag" style="display:none; font-size: 12px; line-height: auto;">
+            <a href="/message_overview"> 總覽</a>
+          </li> -->
+          <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
+            <a href="/message_autoreply"> 自動回覆</a>
           </li>
           <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_autoreply"> 自動回覆</a>
+            <a href="/message_keywordsreply"> 關鍵字回覆</a>
           </li>
           <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_keywordsreply"> 關鍵字回覆</a>
-          </li>
-          <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_add_friend_reply"> 加好友回覆</a>
+            <a href="/message_add_friend_reply"> 加好友回覆</a>
           </li>
         </ul>
         <ul class="nav navbar-top-links navbar-right">
@@ -58,33 +52,59 @@
       </nav>
     </div>
     <div id="home">
-      <h3> 加好友回覆</h3>
-      <p>新增、編輯、測試傳送到LINE@的訊息</p>
-      <table id="MsgCanvas"></table>
-      <table>
-        <td style="padding:5% 5% 5% 15%">
-          <p id="error" style="color:red;display:none;">已經達到訊息則數上限</p>
-          <p>一次可傳送五則訊息，請選擇訊息種類</p>
-          <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">文字</button>
-          <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">貼圖</button>
-          <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">圖片</button>
-          <!-- <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">Coupon</button> -->
-          <!-- <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">投票</button> -->
-          <!-- <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">宣傳</button> -->
-          <!-- <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">調查</button> -->
-        </td>
-      </table>
-      <button id="save"  style="padding:1%; width: 15%; float:left; margin-left:40%; margin-top:1%">儲存</button>
+      <h3> 分析頁面</h3>
+      <div class="row" id="time-container">
+        <div class="col-sm-3">
+          <p>請選擇時段，無選擇代表全選</p>
+        </div>
+        <div class="col-sm-3">
+          <p>從: </p>
+          <input type="date" class="select-time" id="start"/>
+        </div>
+        <div class="col-sm-3">
+          <p>至: </p>
+          <input type="date" class="select-time" id="end"/>
+        </div>
+        <div class="col-sm-2" id="error-message" hidden>
+          <p>開始時段須比結束時段早</p>
+        </div>
+      </div>
+      <div class="row" id="btn-container">
+        <div class="col-sm-2">
+          <button class="btn btn-info" id="view-month" disabled>以月份為最小單位</button>
+        </div>
+        <div class="col-sm-2">
+          <button class="btn btn-info" id="view-date" disabled>以一日為最小單位</button>
+        </div>
+        <div class="col-sm-2">
+          <button class="btn btn-info" id="view-hour" disabled>以小時為最小單位</button>
+        </div>
+        <div class="col-sm-2">
+          <button class="btn btn-info" id="view-time" disabled>只顯示小時</button>
+        </div>
+        <div class="col-sm-2">
+          <button class="btn btn-info" id="view-cloud" disabled>文字雲</button>
+        </div>
+      </div>
+      <div class="container" id="chart-container">
+        <div id="chartdiv">
+        </div>
+      </div>
     </div>
     <% include ../views/partials/firebase_disable.ejs %>
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="bendors/wordcloud/wordfreq.worker.js"></script>
+    <script src="bendors/wordcloud/wordcloud2.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="javascripts/firebaseAuth.js"></script>
     <script src="javascripts/navigation.js"></script>
-    <script src="javascripts/message_add_friend_reply.js"></script>
+    <script src="javascripts/analyze.js"></script>
     <script src="javascripts/partials/firebase-disable.js"></script>
   </body>
 </html>

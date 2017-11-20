@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $('.sub-tag').hide();
-  // $(document).on('mouseover', '#nav_message', subMessage); //Message 導覽標籤 sub-tags
-  $(document).on('click', '#nav_message', subMessage); //Message 導覽標籤 sub-tags
+  // $(document).on('mouseover', '#nav-message', subMessage); //Message 導覽標籤 sub-tags
+  $(document).on('click', '#nav-message', subMessage); //Message 導覽標籤 sub-tags
 });
 function subMessage() {
   if ($('.sub-tag').is(':visible')) {

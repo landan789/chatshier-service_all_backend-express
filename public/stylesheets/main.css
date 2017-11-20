@@ -6,10 +6,6 @@
   margin-bottom:0;
   background-color:#00c300;
 }
-.nav-link {
-  color: white;
-  text-decoration: none;
-}
 .sub-tag{
   font-size: 12px;
   line-height: auto;
@@ -23,7 +19,7 @@
     background-color: #77ff77;
     border-color: #77ff77;
 }
-a[href="/"],#nav_message a[href="#"],.dropdown a[href="#"],a[href="/chat"],a[href="/message_overview"],a[href="/message_autoreply"],a[href="/message_keywordsreply"],a[href="/message_add_friend_reply"]
+a[href="/"], .dropdown a[href="#"], .nav-link
 {
     color: white;
     text-decoration: none;

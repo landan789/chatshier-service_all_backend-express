@@ -21,7 +21,7 @@ router.get('/message_add_friend_reply', function(req, res, next) {
   res.render('message_add_friend_reply', { title: '加好友問候' });
 });
 router.get('/message_overview', function(req, res, next) {
-  res.render('message_overview', { title: '加好友問候' });
+  res.render('message_overview', { title: '訊息群發' });
 });
 router.get('/calendar', function(req, res, next) {
   res.render('calendar', { title: '行事曆' });
@@ -38,6 +38,9 @@ router.get('/login', function(req, res, next) {
 });
 router.get('/signup', function(req, res, next) {
   res.render('signup', { title: '註冊' });
+});
+router.get('/analyze', function(req, res, next) {
+  res.render('analyze', { title: '分析' });
 });
 
 module.exports = router;
