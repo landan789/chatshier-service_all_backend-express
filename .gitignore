@@ -2,3 +2,4 @@
 /config/firebase-adminsdk.json
 /config/firebaseAdminDatabaseUrl.js
 /public/config/firebaseConfig.js
+/npm-debug.log

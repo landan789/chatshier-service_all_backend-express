@@ -21,7 +21,16 @@ router.get('/message_add_friend_reply', function(req, res, next) {
   res.render('message_add_friend_reply', { title: '加好友問候' });
 });
 router.get('/message_overview', function(req, res, next) {
-  res.render('message_overview', { title: '加好友問候' });
+  res.render('message_overview', { title: '訊息群發' });
+});
+router.get('/calendar', function(req, res, next) {
+  res.render('calendar', { title: '行事曆' });
+});
+router.get('/ticket', function(req, res, next) {
+  res.render('ticket', { title: '待辦事項' });
+});
+router.get('/tform', function(req, res, next) {
+  res.render('ticketForm', { title: '新增待辦事項' });
 });
 //authentication
 router.get('/login', function(req, res, next) {
