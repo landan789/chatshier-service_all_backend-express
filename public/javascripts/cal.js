@@ -72,17 +72,19 @@ var loadCalTable = setInterval(function() { //loop until loading is done
             nowEventId = "invalid";
             let convert_start = convertTime(start._d);
             let convert_end = convertTime(end._d);
+            $('#modalTitle').html('新增事件');
 
-            $('#keyId').text('');
-            $('#title').val('');
-            $('#startDate').val(convert_start.date); // 日期input設定
-            $('#startTime').val(convert_start.time); // 時間input設定
-            $('#endDate').val(convert_end.date);
-            $('#endTime').val(convert_end.time);
-            $('#description').val('');
-            $('#allday').prop('checked', false);
+            $('#keyId').text('').prop('disabled', false);
+            $('#title').val('').prop('disabled', false);
+            $('#startDate').val(convert_start.date).prop('disabled', false); // 日期input設定
+            $('#startTime').val(convert_start.time).prop('disabled', false); // 時間input設定
+            $('#endDate').val(convert_end.date).prop('disabled', false);
+            $('#endTime').val(convert_end.time).prop('disabled', false);
+            $('#description').val('').prop('disabled', false);
+            $('#allday').prop('checked', false).prop('disabled', false);
 
             // 隱藏錯誤訊息
+            $('#start-time-error-msg').hide();
             $('#cal-error-msg').hide();
             $('#tim-error-msg').hide();
             // 新增視窗
@@ -99,6 +101,7 @@ var loadCalTable = setInterval(function() { //loop until loading is done
         eventClick: function(event, jsEvent, view) { //更改事件
             nowEventId = event._id;
 
+            $('#modalTitle').html('檢視事件');
             // 資料的值放進對應的input
             $('#keyId').text(event.keyId);
             $('#title').val(event.title);
@@ -109,7 +112,7 @@ var loadCalTable = setInterval(function() { //loop until loading is done
             $('#endDate').val(end.date);
             $('#endTime').val(end.time);
             $('#description').val(event.description);
-            $('#allday').prop('checked', event.allDay);
+            $('#allday').prop('checked', event.allDay).prop('disabled', true);
 
             // 隱藏錯誤訊息
             $('#cal-error-msg').hide();
@@ -163,7 +166,17 @@ function set_cal() { //確定新增或更改事件
         flag = false;
     } else $('#cal-error-msg').hide();
 
-    if (Date.parse(end_date) <= Date.parse(start_date)) {
+    // start time error
+    let current_date = new Date();
+    if(Date.parse(start_date) < Date.parse(current_date)) {
+        $('#start-time-error-msg').addClass('font-red').show();
+        flag = false;
+    } else {
+        $('#start-time-error-msg').hide();
+    }
+
+    // End time earlier than Start time error
+    if (Date.parse(end_date) < Date.parse(start_date)) {
         $('#tim-error-msg').show();
         flag = false;
     } else $('#tim-error-msg').hide();
@@ -202,12 +215,12 @@ function del_cal() { //確定刪除事件
     $('#myModal').modal('hide');
 }
 
-function del_cal() { //確定刪除事件
-    calendar.fullCalendar('removeEvents', nowEventId);
-    let keyId = $('#keyId').text();
-    database.ref('cal-events/' + userId + '/' + keyId).remove();
-    $('#myModal').modal('hide');
-}
+// function del_cal() { //確定刪除事件
+//     calendar.fullCalendar('removeEvents', nowEventId);
+//     let keyId = $('#keyId').text();
+//     database.ref('cal-events/' + userId + '/' + keyId).remove();
+//     $('#myModal').modal('hide');
+// }
 
 function reminder() { //事件開始時提醒
     //console.log('Check the reminder...');

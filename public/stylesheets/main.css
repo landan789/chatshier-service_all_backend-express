@@ -6,6 +6,10 @@
   margin-bottom:0;
   background-color:#00c300;
 }
+.nav-link {
+  color: white;
+  text-decoration: none;
+}
 .sub-tag{
   font-size: 12px;
   line-height: auto;
