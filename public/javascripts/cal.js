@@ -157,6 +157,7 @@ function set_cal() { //確定新增或更改事件
     let title = $('#title').val();
     let start_date = $('#startDate').val() + "T" + $('#startTime').val(); //把user輸入的日期和時間串起來
     let end_date = $('#endDate').val() + "T" + $('#endTime').val();
+
     let description = $('#description').val();
     let allDay = $('#allday').prop('checked');
 
@@ -176,7 +177,7 @@ function set_cal() { //確定新增或更改事件
     }
 
     // End time earlier than Start time error
-    if (Date.parse(end_date) < Date.parse(start_date)) {
+    if (Date.parse(end_date) <= Date.parse(start_date)) {
         $('#tim-error-msg').show();
         flag = false;
     } else $('#tim-error-msg').hide();
@@ -184,8 +185,12 @@ function set_cal() { //確定新增或更改事件
     if (!flag) return;
 
     if (allDay) {
+        start_date = $('#startDate').val() + "T00:00"; //把user輸入的日期和時間串起來
+        end_date = $('#endDate').val() + "T23:59";
         start_date = ISODateString(start_date);
         end_date = ISOEndDate(end_date);
+        // console.log(start_date);
+        // console.log(end_date);
     }
     let obj = {
         title: title,
@@ -196,6 +201,7 @@ function set_cal() { //確定新增或更改事件
         remind: false
     };
     if (!keyId) { //新增事件
+        // console.log(obj);
         let key = database.ref('cal-events/' + userId).push(obj).key;
         obj.keyId = key;
         calendar.fullCalendar('renderEvent', obj, true); // make the event "stick"
@@ -238,7 +244,11 @@ socket.on('pop up reminder', (title) => { //接收WWW的訊息 前端pop up提�
 });
 
 function ISOEndDate(d) {
+    // console.log('iso end');
+    // console.log(d);
   d = new Date(d);
+    // console.log(d);
+
   if( d.getHours()==0 && d.getMinutes()==0 ) {
     return ISODateString( d );
   }
