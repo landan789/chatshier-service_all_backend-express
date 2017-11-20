@@ -118,7 +118,7 @@ function init(server) {
         var message;
         let nowTime = Date.now();
         //====send to fb or line====//
-        if(chanId === 'FB_room'){
+        if(chanId === 'FB'){
           send_to_FB(msg, agent_sendTo_receiver);
         }
         else {
