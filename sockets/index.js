@@ -131,7 +131,7 @@ function init(server) {
           time: nowTime,
           message: "undefined_message"
         };
-        if(chanId === 'FB_room'){
+        if(chanId === 'FB'){
           //------FACEBOOK-------
           if (msg.startsWith('/image')){
             // msgObj.message = data.msg+'"/>';
