@@ -99,7 +99,7 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
                     totalChat: 1,
                     avgChat: 1,
                     unRead: 1,
-                    photo: pictureUrl? pictureUrl : obj.prof_pic
+                    photo: pictureUrl? pictureUrl : (obj.prof_pic ? obj.prof_pic : "")
                 },
                 Messages: [obj]
           };
