@@ -356,7 +356,7 @@ apiaiReply.process = function( inputMessage, callback ) {
     else {
       // console.log("action = ");
       // console.log(action);
-      callback(-1, null);
+      callback("-1", null);
     }
 
   });
