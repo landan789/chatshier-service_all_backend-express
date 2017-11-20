@@ -30,5 +30,8 @@ router.get('/login', function(req, res, next) {
 router.get('/signup', function(req, res, next) {
   res.render('signup', { title: '註冊' });
 });
+router.get('/analyze', function(req, res, next) {
+  res.render('analyze', { title: '註冊' });
+});
 
 module.exports = router;

@@ -334,6 +334,25 @@ function init(server) {
         tags.update(updateObj);
       });
       /*===設定end===*/
+
+      /*===分析start===*/
+      socket.on('request message time', () => {
+        chats.get( (data) => {
+          let msgTimeData = [];
+          for(let prop in data) {
+            let msg = data[prop].Messages;
+            for( let i=0 ;i<msg.length; i++ ) {
+              msgTimeData.push({
+                "time": msg[i].time,
+                "message": msg[i].message
+              });
+            }
+          }
+          socket.emit('response message time', msgTimeData);
+        });
+      });
+      /*===分析end===*/
+
       // 新使用者
       socket.on('new user', (data, callback) => {
         if (data in users) {
