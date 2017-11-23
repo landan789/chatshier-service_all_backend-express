@@ -17,7 +17,6 @@ $(document).ready(function() {
   $('#prof-channelAccessToken_2').text('');
   setTimeout(loadProf, 1000);
   $(document).on('click', '#prof-edit', profEdit); //打開modal
-  $(document).on('click', '#prof-submit-action', profSubmitAction); //完成編輯-action
   $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
   $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic
   $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
@@ -255,30 +254,6 @@ $(document).ready(function() {
     $('#basicModal').modal('hide');
   }
 
-  function profSubmitAction() {
-    let userId = auth.currentUser.uid;
-    let name = $('#prof-edit-name').val();
-    let nickname = $('#prof-edit-nickname').val();
-    let dob = $('#prof-edit-dob').val();
-    let email = $('#prof-edit-email').val();
-    let gender = $('#prof-edit-gender').val();
-    let phone = $('#prof-edit-phone').val();
-    // console.log(id);
-    // database.ref('users/' + userId).remove();
-    database.ref('users/' + userId).update({
-      name: name,
-      nickname: nickname,
-      dob: dob,
-      email: email,
-      gender: gender,
-      phone: phone,
-    });
-    $('#error-message').hide();
-    profClear();
-    loadProf();
-    $('#accountModal').modal('hide');
-  }
-
   function profSubmitProfile() {
     let userId = auth.currentUser.uid;
     let name1 = $('#prof-edit-name1').val();
@@ -417,7 +392,7 @@ $(document).ready(function() {
     if( confirm("確認新建內部聊天室?") ) {
       let roomName = $('#create-internal-room-name').val();
       let description = $('#create-internal-description').val();
-      let photo = $('#create-internal-photo').val();
+      let photo = $('.input-file').val();
       let owner = $('#create-internal-owner').val();
       let agent = $('#create-internal-agents').attr('rel');
 
@@ -437,5 +412,37 @@ $(document).ready(function() {
         $('.modal#create-internal-room').modal('toggle');
       }
     }
+  }
+});
+
+let btnFileChoose = $('button#create-internal-photo');
+let btnFileReset = btnFileChoose.parents('.input-file').find('button.btn-file-reset');
+let inputFileGhost = btnFileChoose.parents('.input-file').find('input.input-file-ghost');
+let inputFileText = btnFileChoose.parents('.input-file').find('input.input-file-text');
+inputFileGhost.change(function(){
+  inputFileText.val((inputFileGhost.val()).split('\\').pop());
+});
+btnFileChoose.click(function(){
+  inputFileGhost.click();
+});
+btnFileReset.click(function(){
+  inputFileGhost.val(null);
+  inputFileText.val('');
+});
+
+inputFileGhost.on('change', function() {
+  console.log("url");
+  if(0 < this.files.length) {
+    var file = this.files[0];
+    var self = this;
+    var storageRef = firebase.storage().ref();
+    var fileRef = storageRef.child(file.lastModified + '_' + file.name);
+    fileRef.put(file).then(function(snapshot) {
+      var url = snapshot.a.downloadURLs[0];
+      var type = $(self).data('type');
+      $('.input-file').val(url);
+      $('.input-file').attr('rel', type);
+      console.log(url);
+    });
   }
 });
