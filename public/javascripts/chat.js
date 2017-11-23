@@ -56,77 +56,19 @@ $(document).ready(function() {
     $infoPanel.hide();
     testOverview();
     setInterval(testOverview, 60000);
-    let timer_1 = setInterval(function() {
-      if(!auth.currentUser) {
-        return;
-      } else {
-        clearInterval(timer_1);
-        userId = auth.currentUser.uid;
-        loadOverviewReply(userId);
-        database.ref('users/' + userId).once('value', snap => {
-          let data = snap.val();
-          let name1 = data.name1;
-          let name2 = data.name2;
-          let fbName = data.fbName;
-          let id1 = data.chanId_1;
-          let id2 = data.chanId_2;
-          let secret1 = data.chanSecret_1;
-          let secret2 = data.chanSecret_2;
-          let token1 = data.chanAT_1;
-          let token2 = data.chanAT_2;
-          let fbPageId = data.fbPageId;
-          let fbAppId = data.fbAppId;
-          let fbAppSecret = data.fbAppSecret;
-          let fbValidToken = data.fbValidToken;
-          let fbPageToken = data.fbPageToken;
-          if((!name1 || !id1 || !secret1 || !token1) && (!name2 || !id2 || !secret2 || !token2) && (!fbName || !fbPageId || !fbAppId || !fbAppSecret || !fbValidToken || !fbPageToken)) {
-            error.append('您還沒有做聊天設定，請至Settings做設定。').show();
-            setTimeout(() => {
-              error.text('').hide();
-            }, 10000)
-          } else {
-            $('#line1 p').text(name1);
-            $('#line2 p').text(name2);
-            $('#fbname p').text(fbName);
-            socket.emit('update bot', {
-              line_1: {
-                channelId: id1,
-                channelSecret: secret1,
-                channelAccessToken: token1
-              },
-              line_2: {
-                channelId: id2,
-                channelSecret: secret2,
-                channelAccessToken: token2
-              },
-              fb: {
-                pageID: fbPageId,
-                appID: fbAppId,
-                appSecret: fbAppSecret,
-                validationToken: fbValidToken,
-                pageToken: fbPageToken
-              },
-            });
-            if((!name1 || !id1 || !secret1 || !token1) || (!name2 || !id2 || !secret2 || !token2) || (!fbName || !fbPageId || !fbAppId || !fbAppSecret || !fbValidToken || !fbPageToken)) {
-              error.append('您其中一個群組還沒有做聊天設定，如有需要請至Settings做設定。').show();
-              setTimeout(() => {
-                error.text('').hide();
-              }, 10000);
-            }
-          }
-        });
-        agentName();
-        socket.emit('request channels', userId);
-      }
-    }, 10);
+    auth.onAuthStateChanged(currentUser => {
+      userId = currentUser.uid;
+      loadOverviewReply(userId);
+      agentName(userId);
+      socket.emit('request channels', userId);
+      socket.emit('develop update bot', userId);    //should only for developer
+      socket.emit('get internal chat from back', { id: userId });
+    });
   }
   $(document).on('click', '#signoutBtn', logout); // 登出
   $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
   $(document).on('click', '.topright', clickSpan);
   $(document).on('change', '.multiSelectContainer', multiselectChange);
-  $(document).on('click', '#upImg', upImg); // 傳圖
-  $(document).on('click', '#upVid', upVid); // 傳影
-  $(document).on('click', '#upAud', upAud); // 傳音
   $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
   $(document).on('click', '.ticketContent', moreInfo);
   $(document).on('click', '.edit', showInput);
@@ -136,10 +78,6 @@ $(document).ready(function() {
   });
   $(document).on('click', '.dropdown-menu', function(event) {
     event.stopPropagation();
-  });
-  $(document).on('click', '.filterArea h4', function() {
-    $(this).siblings().toggle(200, 'easeInOutCubic');
-    $(this).children('i').toggle();
   });
   $(document).on('click', '.userInfoTd[modify="true"] p#tdInner', function() {
     let val = $(this).text(); //抓目前的DATA
@@ -484,18 +422,25 @@ $(document).ready(function() {
     $('#form-uid').val(realId);
   });
   // Socket
-  socket.on('response line channel', (data) => {
-    if(data.chanId_1 === '' && data.chanId_2 === '') {
+  socket.on('response channel', (data) => {
+    if(data.chanId_1 === '' && data.chanId_2 === '' && data.fbPageId === '') {
       error.text('群組名稱沒有設定，請於設定頁面更改。').show();
-    } else {
-      $('#Line_1').attr('rel', data.chanId_1);
-      $('#Line_2').attr('rel', data.chanId_2);
+    }
+    else {
+      socket.emit('get json from back', [data.chanId_1, data.chanId_2, data.fbPageId]);
+      if( !data.name1 || !data.name2 || !data.fbName ) {
+        error.append('您至少其中一個群組還沒有做聊天設定，如有需要請至Settings做設定。').show();
+      }
+      $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
+      $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
+      $('.chat-app-item#FB').attr('rel', data.fbPageId);
+      $('#line1 p').text(data.name1);
+      $('#line2 p').text(data.name2);
+      $('#fbname p').text(data.fbName);
       room_list.push(data.chanId_1);
       room_list.push(data.chanId_2);
-      socket.emit('get json from back');
-      socket.emit('get internal chat from back', {
-        id: userId
-      });
+      room_list.push(data.fbPageId);
+
     }
   });
   socket.on('push json to front', (data) => {
@@ -540,8 +485,10 @@ $(document).ready(function() {
     else msgContent.prepend(NO_HISTORY_MSG);
   });
   socket.on('new message', (data) => {
-    if(!data.channelId) data.channelId = "FB";
-
+    if(!data.channelId) {
+      console.log("data miss channelId");
+      return;
+    }
     let $room = $('.chat-app-item[rel="'+data.channelId+'"]');
     if( $room.length!=0 ) {
       displayMessage(data, data.channelId); //update 聊天室
@@ -561,17 +508,8 @@ $(document).ready(function() {
   socket.on('new user profile', function(data) {
     userProfiles[data.userId] = data;
   });
-  socket.on('reply keywords to front', function(data) {
-    socket.emit('send message', data);
-  });
-  socket.on('autoreply to front', function(data){ //呼叫後端寄出訊息
-    socket.emit('send message', data);
-    console.log('socket emit send message from js');
-  });
   socket.on("push tags to chat", data => {
     TagsData = data;
-    initialFilterWay();
-    initialFilterSilder();
   });
 }); //document ready close
 function cancelSubmit() {
@@ -921,45 +859,6 @@ function cancelSubmit() {
   $(this).siblings('[type="text"]').hide();
   $(this).siblings('.myText').show();
 } // end of cancelSubmit
-function loadKeywordsReply(userId) {
-  database.ref('message-keywordsreply/' + userId).once('value', snap => {
-    let dataArray = snap.val();
-    setTimeout(function() {
-      for(var i in dataArray) {
-        socket.emit('update keywords', {
-          message: dataArray[i].taskMainK,
-          reply: dataArray[i].taskText
-        });
-        for(var n = 0; n < dataArray[i].taskSubK.length; n++) {
-          socket.emit('update subKeywords', {
-            message: dataArray[i].taskSubK[n],
-            reply: dataArray[i].taskText
-          });
-        }
-      }
-    }, 1000);
-  });
-} // end of loadKeywordsReply
-
-function loadAutoReply(userId){
-  database.ref('message-autoreply/' + userId).once('value', snap => {
-    let dataArray = snap.val();
-    setTimeout(function(){
-    for (var i in dataArray){
-
-    socket.emit('update autoreply', { //將資料庫資料傳入後端
-      taskName: dataArray[i].taskName,
-      taskStart: dataArray[i].taskStart,
-      taskEnd: dataArray[i].taskEnd,
-      taskText: dataArray[i].taskText
-    });
-
-   }
-}, 1000);
-
-  });
-  console.log('autoreply sent to back');
-}//end of loading autoreply
 
 function submitAdd() {
   let name = $('#form-name').val();
@@ -1221,9 +1120,6 @@ function updateStatus() {
 function pushMsg(data) {
   let historyMsg = data.Messages;
   let profile = data.Profile;
-  // console.log(historyMsg, profile);
-  let line1id = $('#Line_1').attr('rel') === undefined ? 'unassigned' : $('#Line_1').attr('rel');
-  let line2id = $('#Line_2').attr('rel') === undefined ? 'unassigned' : $('#Line_2').attr('rel');
   let historyMsgStr = "";
   if(data.position !== 0) {
     historyMsgStr += LOADING_MSG_AND_ICON; //history message string head
@@ -1247,7 +1143,7 @@ function pushMsg(data) {
   let msgTime = '<div style="float:right;font-size:8px; font-weight:normal">' + toTimeStrMinusQuo(lastMsg.time) + '</div>';
 
   if(typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") { // VIP優先放進 VIP欄位
-    if(profile.channelId !== 'unassigned' && (profile.channelId === "FB" || profile.channelId === line1id || profile.channelId === line2id)){
+    if( room_list.indexOf(profile.channelId)!= -1 ){
       if(profile.unRead > 0) {
         $('#vip_list').prepend("<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img_holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg_holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
       } else {
@@ -1255,7 +1151,7 @@ function pushMsg(data) {
       }
     }
   }
-  else if(profile.channelId === "FB" || profile.channelId === room_list[0] || profile.channelId === room_list[1] ) {
+  else if( room_list.indexOf(profile.channelId)!= -1 ) {
     if(profile.unRead > 0) {
       $('#clients').append("<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img_holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg_holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
     } else {
@@ -1263,7 +1159,7 @@ function pushMsg(data) {
     }
   }
   // 依照不同的channel ID做分類
-  if(profile.channelId !== 'unassigned' && (profile.channelId === "FB" || profile.channelId === line1id || profile.channelId === line2id)){
+  if(room_list.indexOf(profile.channelId)!= -1){
     canvas.append( //push string into canvas
       '<div id="' + profile.userId + '" rel="' + profile.channelId + '" class="tabcontent">' + '<span class="topright">x&nbsp;&nbsp;&nbsp</span>' + "<div id='" + profile.userId + "-content' rel='" + profile.channelId + "' class='messagePanel' data-position='" + data.position + "'>" + historyMsgStr + "</div>" + "</div>"
     ); // close append
@@ -1315,29 +1211,13 @@ function pushInternalMsg(data) {
   name_list.push("internal" + profile.roomId); //make a name list of all chated user
   userProfiles[profile.roomId] = profile;
 } // end of pushInternalMsg
-function agentName() {
-  console.log("userId = " + userId);
-  agentId = userId;
-  //enter agent name
-  database.ref('users/' + userId).once('value', snap => {
-    let profInfo = snap.val();
-    let profId = Object.keys(profInfo);
-    person = profInfo.nickname; //從DB獲取agent的nickname person 在 document ready下面宣告
-    if(person) {
-      socket.emit('new user', person, (data) => {
-        if(!data) {
-          alert('username is already taken');
-          person = prompt("Please enter your name"); //update new username
-          database.ref('users/' + userId).update({
-            nickname: person
-          });
-        }
-      });
-    } else {
-      person = prompt("Please enter your name"); //if username not exist,update username
-      database.ref('users/' + userId).update({
-        nickname: person
-      });
+function agentName(id) {
+  agentId = id;
+  socket.emit('new user', agentId, function(hasNickName) {
+    if( !hasNickName ) {
+      //enter agent name
+      let person = prompt("Please enter your name");
+      socket.emit('new nickname', agentId, person);
     }
   });
 } // end of agentName
@@ -1647,158 +1527,15 @@ function submitMsg(e) {
     console.log('either room id or channel id is undefined');
   }
 } // end of submitMsg
-function initialFilterSilder() {
-  $('.filterSlider').slider({
-    orientation: "vertical",
-    range: true,
-    min: 0,
-    step: 1,
-    values: [-100, 100]
-  }).each(function() {
-    let id = $(this).attr('id');
-    $(this).slider("option", "max", filterDataBasic[id].length - 1);
-    let count = $(this).slider("option", "max") - $(this).slider("option", "min");
-    for(let i in filterDataBasic[id]) {
-      var el = $('<label>' + filterDataBasic[id][i] + '</label>').css('top', 100 - (i / count * 100) + '%');
-      $(this).append(el);
-    }
-  });
-  $('.filterSlider#age').slider("option", "change", function(event, ui) {
-    let data = filterDataBasic["age"];
-    let values = $(this).slider("values");
-    let str = "";
-    let min = 0;
-    let max = 999;
-    if(values[1] - values[0] === data.length - 1) str = "全選";
-    else if(values[1] === values[0]) str = "未篩選";
-    else {
-      str = data[values[0]] + "~" + data[values[1]];
-      min = parseInt(data[values[0]]);
-      if(data[values[1]].indexOf('up') === -1) max = parseInt(data[values[1]]);
-    }
-    $(this).parent().parent().find('.multi-selectSelectedText').text(str).attr('min', min).attr('max', max);
-  });
-
-  function toTimeStamp(str) {
-    if(str.indexOf('up') != -1) return 9999999999999;
-    else if(str.indexOf('<') != -1) return -99999;
-    let num = parseInt(str);
-    let unit = str.substr(str.indexOf(' ') + 1);
-    if(unit === 'min') return num * 1000 * 60;
-    else if(unit === 'hr') return num * 1000 * 60 * 60;
-    else if(unit === 'day') return num * 1000 * 60 * 60 * 24;
-    else if(unit === 'week') return num * 1000 * 60 * 60 * 24 * 7;
-    else if(unit === 'month') return num * 1000 * 60 * 60 * 24 * 30;
-    else if(unit === 'year') return num * 1000 * 60 * 60 * 24 * 365;
-  }
-  $('.filterSlider#recent').slider("option", "change", function(event, ui) {
-    let data = filterDataBasic["recent"];
-    let values = $(this).slider("values");
-    let str = "";
-    let min = -99999;
-    let max = 9999999999999;
-    if(values[1] - values[0] === data.length - 1) str = "全選";
-    else if(values[1] === values[0]) str = "未篩選";
-    else {
-      str = data[values[0]] + "~" + data[values[1]];
-      min = toTimeStamp(data[values[0]]);
-      max = toTimeStamp(data[values[1]]);
-    }
-    $(this).parent().parent().find('.multi-selectSelectedText').text(str).attr('min', min).attr('max', max);
-  });
-  $('.filterSlider#first').slider("option", "change", function(event, ui) {
-    let data = filterDataBasic["first"];
-    let values = $(this).slider("values");
-    let str = "";
-    let min = -99999;
-    let max = 9999999999999;
-    if(values[1] - values[0] === data.length - 1) str = "全選";
-    else if(values[1] === values[0]) str = "未篩選";
-    else {
-      str = data[values[0]] + "~" + data[values[1]];
-      min = toTimeStamp(data[values[0]]);
-      max = toTimeStamp(data[values[1]]);
-    }
-    $(this).parent().parent().find('.multi-selectSelectedText').text(str).attr('min', min).attr('max', max);
-  });
-} // end of initialFilterSilder
-function initialFilterWay() {
-  if(!TagsData) return;
-  TagsData.map(function(ele) {
-    if(ele.type.indexOf('select') != -1) {
-      filterDataCustomer[ele.name] = ele.set;
-    }
-  });
-  for(let way in filterDataCustomer) {
-    if(way != 'VIP等級') {
-      filterDataCustomer[way].map(function(option) {
-        $('.filterSelect#' + way).append('<li><input type="checkbox" value="' + option + '" checked>' + option + '</li>');
-      });
-    }
-  }
-} // end of initialFilterWay
-function upImg() {
-  var imgAtt = '/image ' + $('#attImgFill').val();
-  let sendObj = {
-    id: "",
-    msg: imgAtt,
-    msgtime: Date.now(),
-    room: $(this).parent().parent().parent().parent().siblings('#user').find('#selected').attr('rel'),
-    channelId: $(this).parent().parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel')
-  };
-  sendObj.id = $("#user-rooms option:selected").val();
-  if(sendObj.room !== undefined && sendObj.room !== '' && sendObj.channelId !== undefined && sendObj.channelId !== '') {
-    socket.emit('send message', sendObj); //socket.emit
-  } else {
-    console.log('room ID or channel ID is undefined, please select a room');
-  }
-  $('#attImgFill').val('');
-} // end of upImg
-function upVid() {
-  var vidAtt = '/video ' + $('#attVidFill').val();
-  let sendObj = {
-    id: "",
-    msg: vidAtt,
-    msgtime: Date.now(),
-    room: $(this).parent().parent().parent().parent().siblings('#user').find('#selected').attr('rel'),
-    channelId: $(this).parent().parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel')
-  };
-  sendObj.id = $("#user-rooms option:selected").val();
-  if(sendObj.room !== undefined && sendObj.room !== '' && sendObj.channelId !== undefined && sendObj.channelId !== '') {
-    socket.emit('send message', sendObj); //socket.emit
-  } else {
-    console.log('room ID or channel ID is undefined, please select a room');
-  }
-  $('#attVidFill').val('');
-} // end of upVid
-function upAud() {
-  var audAtt = '/audio ' + $('#attAudFill').val();
-  let sendObj = {
-    id: "",
-    msg: audAtt,
-    msgtime: Date.now(),
-    room: $(this).parent().parent().parent().parent().siblings('#user').find('#selected').attr('rel'),
-    channelId: $(this).parent().parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel')
-  };
-  sendObj.id = $("#user-rooms option:selected").val();
-  if(sendObj.room !== undefined && sendObj.room !== '' && sendObj.channelId !== undefined && sendObj.channelId !== '') {
-    socket.emit('send message', sendObj); //socket.emit
-  } else {
-    console.log('room ID or channel ID is undefined, please select a room');
-  }
-  $('#attAudFill').val('');
-} // end of upAud
 function pushInfo(data) {
   let profile = data.Profile;
-  let line1id = $('#Line_1').attr('rel') === undefined ? 'unassigned' : $('#Line_1').attr('rel');
-  let line2id = $('#Line_2').attr('rel') === undefined ? 'unassigned' : $('#Line_2').attr('rel');
   for(let i in profile.email) {
     socket.emit('get ticket', {
       email: profile.email[i],
       id: profile.userId
     });
   }
-  if(profile.channelId !== 'unassigned' && (profile.channelId === "FB" || profile.channelId === line1id || profile.channelId === line2id)){
+  if( room_list.indexOf(profile.channelId)!= -1 ){
     infoCanvas.append('<div class="card-group" id="' + profile.userId + '-info" rel="' + profile.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photoContainer'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"></th>' + '<th><a id="' + profile.userId + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
   }
 } // end of pushInfo
@@ -1922,7 +1659,7 @@ function loadOverviewReply(userId){
     $('.nav li.active').removeClass('active');
     $(this).parent().addClass('active');
     $("#infoCanvas #profile").show();
-    $("#infoCanvas #todo").hide();    
+    $("#infoCanvas #todo").hide();
   });
 
 
