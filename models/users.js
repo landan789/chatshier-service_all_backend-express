@@ -12,4 +12,7 @@ usersModel.getUser = (userId,callback) => {
         callback(Data);
     });
 }
+usersModel.updateUser = (userId, obj) => {
+    admin.database().ref('users/' + userId).update(obj);
+}
 module.exports = usersModel;
