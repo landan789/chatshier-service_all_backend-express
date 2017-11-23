@@ -76,9 +76,12 @@ function init(server) {
     //==============FACEBOOK MESSAGE END==============
     app.post('/linehook1', function() {
       linebotParser[0](arguments[0], arguments[1], arguments[2]);
+      console.log(channelIds);
     });
     app.post('/linehook2', function() {
+      console.log("HOHO");
       linebotParser[1](arguments[0], arguments[1], arguments[2]);
+      console.log(channelIds);
     });
     io.on('connection', function (socket) {
       console.log('connected');
@@ -91,22 +94,47 @@ function init(server) {
         });
       });
       // 2.更新群組
-      socket.on('update bot', (data) => {
-        update_line_bot(data);
+      // SERVER上線後，不應有這步驟，否則只要有agent未填setting的channel，整台server的line_bot, fb_bot就會變空
+      // 但for developer，此步驟可讓npm重開機時，不用再去setting提交channel config
+      socket.on('develop update bot', (userId) => {
+        users.getUser(userId, chatInfo => {
+          let data = {
+            line_1: {
+              channelId: chatInfo.chanId_1,
+              channelSecret: chatInfo.chanSecret_1,
+              channelAccessToken: chatInfo.chanAT_1
+            },
+            line_2: {
+              channelId: chatInfo.chanId_2,
+              channelSecret: chatInfo.chanSecret_2,
+              channelAccessToken: chatInfo.chanAT_2
+            },
+            fb: {
+              pageID: chatInfo.fbPageId,
+              appID: chatInfo.fbAppId,
+              appSecret: chatInfo.fbAppSecret,
+              validationToken: chatInfo.fbValidToken,
+              pageToken: chatInfo.fbPageToken
+            }
+          };
+          update_line_bot(data);
+        });
       });
       // 3.更新群組頻道
       socket.on('request channels', (userId)=> {
         users.getUser(userId, chatInfo => {
           utility.updateChannel(chatInfo, (channelObj) => {
-            socket.emit('response line channel', channelObj);
+            socket.emit('response channel', channelObj);
           });
         });
       });
       // 4.撈出歷史訊息
-      socket.on('get json from back', () => {
+      socket.on('get json from back', (channelIdArr) => {
         chats.get(function(chatData){
-          messageHandle.loadChatHistory(chatData, sendData => {
-            socket.emit('push json to front', sendData);
+          messageHandle.filterUser(channelIdArr, chatData, function(filterData) {
+            messageHandle.loadChatHistory(filterData, sendData => {
+              socket.emit('push json to front', sendData);
+            });
           });
         });
       });
@@ -119,7 +147,7 @@ function init(server) {
         var message;
         let nowTime = Date.now();
         //====send to fb or line====//
-        if(chanId === 'FB'){
+        if(chanId == channelIds[2]){
           send_to_FB(msg, agent_sendTo_receiver);
         }
         else {
@@ -132,56 +160,31 @@ function init(server) {
           time: nowTime,
           message: "undefined_message"
         };
-        if(chanId === 'FB'){
-          //------FACEBOOK-------
-          if (msg.startsWith('/image')){
-            // msgObj.message = data.msg+'"/>';
+        let channelId = -1;
+        if( channelIds.indexOf(chanId) !== -1 ) channelId = chanId;
+        if (msg.startsWith('/image')) {
+          msgObj.message = '傳圖檔給客戶';
+        }
+        else if (msg.startsWith('/audio')) {
+          msgObj.message = '傳音檔給客戶';
+        }
+        else if (msg.startsWith('/video')) {
+          msgObj.message = '傳影檔給客戶';
+        }
+        else if ( utility.isUrl(msg) ) {
+          let urlStr = '<a href=';
+          if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
+            urlStr += '"http://';
           }
-          else if (msg.startsWith('/video')){
-            // msgObj.message = data.msg+ '" type="video/mp4"></video>';
-          }
-          else if (msg.startsWith('/audio')){
-            // msgObj.message = data.msg+ '" type="audio/mpeg"></audio>';
-          }
-          else {
-            msgObj.message = data.msg;
-          }
-          messageHandle.toDB(msgObj, null, 'FB', agent_sendTo_receiver, 0, profile => {
-
-          });
-          messageHandle.toFront(msgObj, null, 'FB', agent_sendTo_receiver, 0, data => {
-
-          });
-          pushAndEmit(msgObj, null, 'FB', agent_sendTo_receiver, 0);
+          msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
+        }
+        else if (msg.includes('/sticker')) {
+          msgObj.message = 'Send sticker to user';
         }
         else {
-          // -----LINE-----
-          let channelId = -1;
-          if( channelIds.indexOf(chanId) !== -1 ) channelId = chanId;
-          if (msg.includes('/image')) {
-            msgObj.message = '傳圖檔給客戶';
-          }
-          else if (msg.includes('/audio')) {
-            msgObj.message = '傳音檔給客戶';
-          }
-          else if (msg.includes('/video')) {
-            msgObj.message = '傳影檔給客戶';
-          }
-          else if ( utility.isUrl(msg) ) {
-            let urlStr = '<a href=';
-            if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
-              urlStr += '"http://';
-            }
-            msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-          }
-          else if (msg.includes('/sticker')) {
-            msgObj.message = 'Send sticker to user';
-          }
-          else {
-            msgObj.message = msg;
-          }
-          pushAndEmit(msgObj, null, channelId, agent_sendTo_receiver, 0);
+          msgObj.message = msg;
         }
+        pushAndEmit(msgObj, null, channelId, agent_sendTo_receiver, 0);
       }); //sent message
       // 更新客戶資料
       socket.on('update profile', (data, callback) => {
@@ -324,6 +327,10 @@ function init(server) {
       });
       /*===訊息end===*/
       /*===設定start===*/
+      // 更改channel設定
+      socket.on('update bot', (data) => {
+        update_line_bot(data);
+      });
       // going to tags page
       socket.on('get tags from tags', () => {
         tags.get(function(tagsData){
@@ -356,23 +363,29 @@ function init(server) {
       /*===分析end===*/
 
       // 新使用者
-      socket.on('new user', (data, callback) => {
-        if (data in users) {
-          callback(false);
-        }
-        else {
-          callback(true);
-          socket.nickname = data;
-          users[socket.nickname] = socket;
-        }
+      socket.on('new user', (id, hasNickName) => {
+        users.getUser(id, (data) => {
+          if( data.nickname ) {
+            socket.nickname = data.nickname;
+            hasNickName(true);
+          }
+          else {
+            hasNickName(false);
+          }
+        });
       });
-      socket.on('disconnect', (data) => {
-        if (!socket.nickname) return;
-        delete users[socket.nickname];
-      });
+      socket.on('new nickname', (id, nick) => {
+        users.updateUser(id, {nickname: nick} );
+      })
+      // socket.on('disconnect', (data) => {
+      //   if (!socket.nickname) return;
+      //   delete users[socket.nickname];
+      // });
     });
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead){
+
+      console.log("4444"+channelId);
       messageHandle.toDB(obj, pictureUrl, channelId, receiverId, unRead, profile => {
         io.sockets.emit('new user profile', profile);
       });
@@ -383,6 +396,7 @@ function init(server) {
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
       let channelId = this.options.channelId; // line群組ID
+      console.log(390+channelId);
       let message_type = event.message.type; // line訊息類別 text, location, image, video...
       let receiverId = event.source.userId; // line客戶ID
       let nowTime = Date.now(); // 現在時間
@@ -404,6 +418,8 @@ function init(server) {
       };
         //  ===================  訊息類別 ==================== //
         utility.lineMsgType(event, message_type, (msgData) => {
+
+          console.log(413+channelId);
           msgObj.message = msgData;
           pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
 
@@ -931,7 +947,7 @@ function init(server) {
         }) ) {
           fb_bot = MessengerPlatform.create(chanInfo.fb);
         }
-        channelIds[2] = chanInfo.fb.pageId;
+        channelIds[2] = chanInfo.fb.pageID;
       }
     } // end of update_line_bot
     function send_to_FB(msg, receiver) {
@@ -1033,31 +1049,25 @@ function init(server) {
       });
     }
     function loadFbProfile(obj, psid) {
-      fb_bot.webhook('/webhook');
+      console.log(1048);
+      console.log(obj);
+      // fb_bot.webhook('/webhook');
       fb_bot.getProfile(psid).then(function(data) {
-        var count_unread_toFront;
-        var fb_user_name = data.first_name + ' ' + data.last_name;
-        var fb_user_profilePic = data.profile_pic;
-        var fb_user_locale = data.locale;
-        var fb_user_gender = data.gender;
         utility.fbMsgType(obj.message, (fbMsg) => {
-          obj.message = fbMsg;
+          var fb_user_name = data.first_name + ' ' + data.last_name;
+          var fb_user_profilePic = data.profile_pic;
+          let msgObj = {
+            message: fbMsg,
+            name: fb_user_name,
+            owner: "user",
+            time: Date.now()
+          };
+          let prof = {
+            "locale": data.locale,
+            "gender": data.gender
+          };
+          pushAndEmit(msgObj, fb_user_profilePic, channelIds[2], obj.sender.id, 1);
         });
-        chats.get(function(chatData){
-          for (let prop in chatData) {
-            if ( utility.isSameUser(chatData[prop].Profile, obj.sender.id, 'fb') ) {
-              count_unread_toFront = chatData[prop].Profile.unRead;
-              count_unread_toFront++;
-            }
-          } //for let prop in chatData
-        });
-        obj.id = obj.sender.id;
-        obj.owner = obj.recipient.id;
-        obj.name = fb_user_name;
-        obj.time = obj.timestamp;
-        obj.channelId = 'FB';
-        obj.pictureUrl = fb_user_profilePic;
-        pushAndEmit(obj, fb_user_profilePic, 'FB', obj.sender.id, 1);
       }).catch(function(error) {
         console.log('error: loadFbProfile');
         console.log(error);
