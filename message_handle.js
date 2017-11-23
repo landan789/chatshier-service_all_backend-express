@@ -7,6 +7,18 @@ messageHandle.toDB = (obj, pictureUrl, channelId, receiverId, unRead, callback) 
 messageHandle.toFront = (obj, pictureUrl, channelId, receiverId, unRead, callback) => {
     send_to_frontSocket(obj, pictureUrl, channelId, receiverId, unRead, callback);
 }
+messageHandle.filterUser = (channelIdArr, chatData, callback) => {
+  let newData = {};
+  for( let i in chatData ) {
+    let profile = chatData[i].Profile;
+    if( !profile ) continue;
+    let chanId = profile.channelId;
+    if( channelIdArr.indexOf(chanId)!=-1 ) {
+      newData[i] = chatData[i];
+    }
+  }
+  callback(newData);
+}
 messageHandle.loadChatHistory = (chatData,callback) => {
     let sendData = [];
     for( let i in chatData ) {
@@ -67,6 +79,8 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
     let flag = true;
     let count_unread = unRead;    //0 or 1
     chats.get(function(chatData){
+      console.log("chats. get");
+      console.log(channelId);
         for( let prop in chatData ) {
           let data = chatData[prop];
           if( utility.isSameUser(data.Profile, receiverId, channelId) ) {
@@ -87,7 +101,7 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
                 Profile: {
                     nickname: obj.name,
                     userId: receiverId ? receiverId : obj.id,
-                    channelId: channelId ? channelId : 'FB',
+                    channelId: channelId ? channelId : 'unassigned',
                     locale: obj.locale ? obj.locale : "",
                     gender: obj.gend ? obj.gend : "",
                     age: -1,
