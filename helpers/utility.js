@@ -118,8 +118,11 @@ utility.updateChannel = (chatInfo,callback) => {
         }
     } else {
         channelObj = {
+            name1: '',
             chanId_1: '',
+            name2: '',
             chanId_2: '',
+            fbName: '',
             fbPageId: ''
         }
     }

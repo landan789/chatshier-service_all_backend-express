@@ -81,7 +81,7 @@ $(document).ready(function() {
   function loadChannelInfo(userId) {
     socket.emit('request channels', userId);
   }
-  socket.on('response line channel', (data) => {
+  socket.on('response channel', (data) => {
     console.log(data);
     if( data.name1 && data.chanId_1 ) {
       channelInfo.push({
