@@ -70,10 +70,9 @@
       <div class="col-md-2 left margin-top-twenty">
         <ul class="nav nav-pills nav-stacked">
           <li class="active"><a data-toggle="pill" href="#menu0">基本設定</a></li>
-          <li><a data-toggle="pill" href="#menu1">用戶資料</a></li>
           <li><a data-toggle="pill" href="#menu2">聊天室帳號</a></li>
           <li><a data-toggle="pill" href="#menu3">標籤</a></li>
-          <li><a data-toggle="modal" href="#create-internal-room">新建內部聊天室</a></li>
+          <li><a data-toggle="pill" href="#create-internal-room">新建內部聊天室</a></li>
         </ul>
       </div>
       <div class="tab-content">
@@ -99,51 +98,6 @@
                       <tr>
                         <td>Logo: </td>
                         <td id="prof-logo"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="menu1" class="tab-pane fade">
-          <h3>用戶資料
-            <button type="button" class="btn btn-default" id="prof-edit" data-toggle="modal" data-target="#accountModal">
-              <span class="fa fa-pencil-square-o"></span>編輯
-            </button>
-          </h3>
-          <div class="col-md-8 col-lg-8 panel-info prof-wid">
-            <div class="panel-heading">
-              <h3 class="panel-title"></h3>
-            </div>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-md-12 col-lg-12 ">
-                  <table class="table table-user-information">
-                    <tbody>
-                      <tr>
-                        <td>姓名: </td>
-                        <td id="prof-name"></td>
-                      <tr>
-                        <td>綽號: </td>
-                        <td id="prof-nickname"></td>
-                      </tr>
-                      <tr>
-                        <td>生日: </td>
-                        <td id="prof-dob"></td>
-                      </tr>
-                      <tr>
-                        <td>電子郵件: </td>
-                        <td id="prof-email"></td>
-                      </tr>
-                      <tr>
-                        <td>性別: </td>
-                        <td id="prof-gender"></td>
-                      </tr>
-                      <tr>
-                        <td>手機: </td>
-                        <td id="prof-phone"></td>
                       </tr>
                     </tbody>
                   </table>
@@ -292,6 +246,74 @@
                         <button type="button" class="btn btn-default all-cancel bold-word">取消</button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="create-internal-room" class="tab-pane fade">
+          <h3>新建內部聊天室
+          </h3>
+          <div class="col-md-8 col-lg-8 panel-info prof-wid">
+            <div class="float-down">
+              <div class="col-md-11 col-lg-11 panel-info prof-wid padding-zero">
+                <div class="panel-heading">
+                  <h3 class="panel-title"></h3>
+                </div>
+                <div class="panel-body">
+                  <form method="POST" action="/foo-route">
+                    <div class="form-group">
+                      <label for="create-internal-room-name" class="col-2 col-form-label">群組名稱: </label>
+                      <div class="col-4">
+                        <input class="form-control" type="tel" value="" id="create-internal-room-name">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-internal-photo" class="col-2 col-form-label">群組圖片(URL): </label>
+                      <div class="col-4">
+                        <div class="input-group input-file">
+                          <span class="input-group-btn">
+                            <button id="create-internal-photo" class="btn btn-default btn-file-choose" type="button">上傳圖片</button>
+                          </span>
+                          <input type="file" class='input-file-ghost' style='visibility:hidden; height:0'>
+                          <input type="input" class="form-control input-file-text" placeholder='Choose a file...' disabled/>
+                          <span class="input-group-btn">
+                            <button class="btn btn-warning btn-file-reset" type="button">重設</button>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-internal-description" class="col-2 col-form-label">簡易描述: </label>
+                      <div class="col-4">
+                        <input class="form-control" type="tel" value="" id="create-internal-description">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-internal-owner" class="col-2 col-form-label">老大: </label>
+                      <div class="col-4">
+                        <select id="create-internal-owner">
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-internal-agents" class="col-2 col-form-label">成員: </label>
+                      <div class="col-4">
+                        <button type="button" data-toggle="dropdown" aria-expanded="false">
+                          <span class="multi-select-text" id="create-internal-agents" rel="">
+                            未選擇
+                          </span>
+                          <b class="caret"></b>
+                        </button>
+                        <ul class="multi-select-container dropdown-menu" rel="create-internal-agents">
+                        </ul>
+                      </div>
+                    </div>
+                  </form>
+                  <div class="panel-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="prof-submit-create-internal-room">確認</button>
                   </div>
                 </div>
               </div>
@@ -534,65 +556,7 @@
           </div>
         </div>
         <!-- Create Internal Room Modal -->
-        <div class="modal fade" id="create-internal-room" tabindex="-1" role="dialog" aria-labelledby="profModalTitle" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="profModalTitle"></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body">
-                <form method="POST" action="/foo-route">
-                  <div class="form-group">
-                    <label for="create-internal-room-name" class="col-2 col-form-label">群組名稱: </label>
-                    <div class="col-4">
-                      <input class="form-control" type="tel" value="" id="create-internal-room-name">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="create-internal-photo" class="col-2 col-form-label">群組圖片(URL): </label>
-                    <div class="col-4">
-                      <input class="form-control" type="tel" value="" id="create-internal-photo">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="create-internal-description" class="col-2 col-form-label">簡易描述: </label>
-                    <div class="col-4">
-                      <input class="form-control" type="tel" value="" id="create-internal-description">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="create-internal-owner" class="col-2 col-form-label">老大: </label>
-                    <div class="col-4">
-                      <select id="create-internal-owner">
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="create-internal-agents" class="col-2 col-form-label">成員: </label>
-                    <div class="col-4">
-                      <button type="button" data-toggle="dropdown" aria-expanded="false">
-                        <span class="multi-select-text" id="create-internal-agents" rel="">
-                          未選擇
-                        </span>
-                        <b class="caret"></b>
-                      </button>
-                      <ul class="multi-select-container dropdown-menu" rel="create-internal-agents">
-                      </ul>
-                    </div>
-                  </div>
 
-                </form>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="prof-submit-create-internal-room">確認</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       <% include ../views/partials/firebase_disable.ejs %>
     </div>
