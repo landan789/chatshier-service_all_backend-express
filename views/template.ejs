@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
+    <%# 自己的code%>
+    <link rel="stylesheet" href="stylesheets/main.css" />
+    <link rel="stylesheet" href="stylesheets/template.css" />
+    <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
+  </head>
+  <body>
+    <% include ../views/partials/wrapper.ejs %>
+    <div id="home">
+      <h3> 自訂Line Template</h3>
+      <button type="button" class="btn btn-default" id="new-template" data-toggle="modal" data-target="#template-modal">新增template</button>
+
+
+      <div class="modal fade" id="template-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form method="POST" action="/foo-route" id="template-form">
+                <!-- 編號 -->
+                <div class="form-group" hidden>
+                  <label for="template-id" class="col-2 col-form-label">ID</label>
+                  <span id="template-id"></span>
+                </div>
+                <!-- Keyword -->
+                <div class="form-group">
+                  <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong>
+                    <div class="col-4">
+                      <input class="form-control" type="text" value="" id="template-keyword">
+                    </div>
+                  </label>
+                </div>
+                <!-- Type -->
+                <div class="form-group">
+                  <label class="col-2 col-form-label"><strong>類型:</strong>
+                    <div class="col-4">
+                      <select class="form-control" id="template-type">
+                        <option disabled selected value> -- 請選擇 -- </option>
+                        <option value="buttons">按鈕</option>
+                        <option value="confirm">是非題</option>
+                        <option value="carousel">多欄</option>
+                        <!-- <option value="image_carousel">圖片多欄</option> -->
+                      </select>
+                    </div>
+                  </label>
+                </div>
+                <!-- AltText -->
+                <div class="form-group view-confirm view-button view-carousel">
+                  <label class="col-2 col-form-label"><strong>電腦版替代文字:</strong>
+                    <div class="col-4">
+                      <input class="form-control" type="text" value="" id="template-altText">
+                    </div>
+                  </label>
+                </div>
+                <div class="view-button view-carousel">
+                  <div class="form-group view-carousel">
+                    <!-- <strong class="column-indicator">第一欄</strong> -->
+                    <ul class="nav nav-pills">
+                      <li class="active"><a data-toggle="pill" href="#template-column-1">第一欄</a></li>
+                      <li><a data-toggle="pill" href="#template-column-2">第二欄</a></li>
+                      <li><a data-toggle="pill" href="#template-column-3">第三欄</a></li>
+                    </ul>
+                  </div>
+                  <div class="tab-content">
+                    <% for(let i=0; i<10; i++) {%>
+                      <div id="template-column-<%= i %>" class="tab-pane fade">
+                        <div class="form-group">
+                          <label class="col-2 col-form-label"><strong>標題:</strong>
+                            <div class="col-4">
+                              <input class="form-control" type="text" value="" id="column-title'">
+                            </div>
+                          </label>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-2 col-form-label"><strong>說明文字:</strong>
+                            <div class="col-4">
+                              <input class="form-control" type="text" value="" id="column-text'">
+                            </div>
+                          </label>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-2 col-form-label"><strong>圖片:</strong>
+                            <div class="col-4">
+                              <input class="hidden" type="text" value="" id="column-thumbnailImageUrl" >
+                              <img src id="preview-thumbnailImageUrl"></img>
+                            </div>
+                          </label>
+                        </div>
+                        <div class="form-group">
+                          <label class="col-2 col-form-label"><strong>選項:</strong>
+                            <div class="col-4">
+                              <div class="action">
+                                <p>label: </p>
+                                <input class="form-control" type="text" value="" id="action-label'">
+                                <p>text: </p>
+                                <input class="form-control" type="text" value="" id="template-text'">
+                              </div>
+                              <div class="action">
+                                <p>label: </p>
+                                <input class="form-control" type="text" value="" id="action-label'">
+                                <p>text: </p>
+                                <input class="form-control" type="text" value="" id="template-text'">
+                              </div>
+                              <div class="action">
+                                <p>label: </p>
+                                <input class="form-control" type="text" value="" id="action-label'">
+                                <p>text: </p>
+                                <input class="form-control" type="text" value="" id="template-text'">
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                      <% } %>
+
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary" id="prof-submit-basic">確認</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+    </div>
+    <% include ../views/partials/firebase_disable.ejs %>
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="config/firebaseConfig.js"></script>
+    <script src="javascripts/firebaseAuth.js"></script>
+    <script src="javascripts/navigation.js"></script>
+    <script src="javascripts/template.js"></script>
+    <script src="javascripts/partials/firebase-disable.js"></script>
+  </body>
+</html>

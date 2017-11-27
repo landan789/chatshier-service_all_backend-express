@@ -42,5 +42,8 @@ router.get('/signup', function(req, res, next) {
 router.get('/analyze', function(req, res, next) {
   res.render('analyze', { title: '分析' });
 });
+router.get('/template', function(req, res, next) {
+  res.render('template', { title: '自訂Line Template' });
+});
 
 module.exports = router;

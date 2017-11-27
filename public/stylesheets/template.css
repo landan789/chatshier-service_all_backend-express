@@ -1,0 +1,14 @@
+label {
+  width: 100%;
+}
+label *:not(strong) {
+  font-weight: normal;
+}
+.action p {
+  display: inline-block;
+}
+.action input {
+  display: inline-block;
+  width: 40%;
+  margin-right: 10px;
+}
