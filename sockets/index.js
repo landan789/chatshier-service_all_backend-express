@@ -340,7 +340,7 @@ function init(server) {
       });
       socket.on('update tags', data => {
         let updateObj = {};
-        updateObj['/Data'] = data;
+        updateObj['Data'] = data;
         tags.update(updateObj);
       });
       /*===設定end===*/

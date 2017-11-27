@@ -1,6 +1,6 @@
 {
 "Data" : [ {
-  "modify" : true,
+  "modify" : false,
   "name" : "姓名",
   "set" : "single",
   "type" : "text"
@@ -56,27 +56,27 @@
   "type" : "time"
 }, {
   "modify" : false,
-  "name" : "首次聊天時間",
+  "name" : "firstChat",
   "set" : "",
   "type" : "time"
 }, {
   "modify" : false,
-  "name" : "上次聊天時間",
+  "name" : "recentChat",
   "set" : "",
   "type" : "time"
 }, {
   "modify" : false,
-  "name" : "總共聊天時間",
+  "name" : "totalChat",
   "set" : "single",
   "type" : "text"
 }, {
   "modify" : false,
-  "name" : "聊天次數",
+  "name" : "chatTimeCount",
   "set" : "single",
   "type" : "text"
 }, {
   "modify" : false,
-  "name" : "平均每次聊天時間",
+  "name" : "avgChat",
   "set" : "single",
   "type" : "text"
 }, {

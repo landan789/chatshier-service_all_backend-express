@@ -1,0 +1,26 @@
+[
+  {
+    "chinese": "姓名",
+    "english": "nickname"
+  },
+  {
+    "chinese": "首次聊天時間",
+    "english": "firstChat"
+  },
+  {
+    "chinese": "上次聊天時間",
+    "english": "recentChat"
+  },
+  {
+    "chinese": "總共聊天時間",
+    "english": "totalChat"
+  },
+  {
+    "chinese": "聊天次數",
+    "english": "chatTimeCount"
+  },
+  {
+    "chinese": "平均每次聊天時間",
+    "english": "avgChat"
+  }
+]
