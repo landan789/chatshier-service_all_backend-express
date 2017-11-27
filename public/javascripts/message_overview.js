@@ -79,9 +79,9 @@ $(document).ready(function() {
   //UI event end
 
   function loadChannelInfo(userId) {
-    socket.emit('request channels', userId);
+    socket.emit('request channels', userId, responseChannel);
   }
-  socket.on('response channel', (data) => {
+  function responseChannel(data) {
     console.log(data);
     if( data.name1 && data.chanId_1 ) {
       channelInfo.push({
@@ -100,7 +100,7 @@ $(document).ready(function() {
       $('#edi-channel').append('<option value="'+data.chanId_2+'">'+data.name2+'</option>');
     }
     loadOverReply();
-  });
+  }
 
   function loadOverReply(){
     $('#data-appointment').empty();
@@ -110,6 +110,7 @@ $(document).ready(function() {
     database.ref('message-overview/' + userId).on('value', snap => {
       let testVal = snap.val();
       if( !testVal ) return;
+
       let myIds = Object.keys(testVal);
 
       for( let i=0;i < myIds.length;i++ ){
@@ -477,14 +478,6 @@ $(document).ready(function() {
     + pad(d.getDate())+'T'
     + pad(d.getHours())+':'
     + pad(d.getMinutes())
-  }
-
-
-  function logout(){
-    auth.signOut()
-    .then(response => {
-      window.location.assign("/login");
-    })
   }
 
 });//document ready

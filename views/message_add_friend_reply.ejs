@@ -12,54 +12,7 @@
     <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
   </head>
   <body>
-    <div id="wrapper">
-      <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom:0;background-color:#00c300">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="/" style="color:white;"> Chatshier </a>
-        </div>
-        <ul class="nav navbar-top-links navbar-left">
-          <li>
-            <a class="nav-link" href="/chat">| <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
-          </li>
-          <li>
-            <a class="nav-link" href="/calendar">| <i class="fa fa-calendar fa-fw"></i> 行事曆</a>
-          </li>
-          <li>
-            <a class="nav-link" href="/ticket">| <i class="fa fa-list-ul fa-fw"></i> 待辦事項</a>
-          </li>
-          <li>
-            <a class="nav-link" href="/analyze">| <i class="fa fa-bar-chart fa-fw"></i> 訊息分析</a>
-          </li>
-          <li id="nav-message">
-            <a class="nav-link" href="#">| <i class="fa fa-commenting fa-fw"></i> 訊息</a>
-          </li>
-          <!-- <li class="sub-tag" style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_overview"> 總覽</a>
-          </li> -->
-          <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_autoreply"> 自動回覆</a>
-          </li>
-          <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_keywordsreply"> 關鍵字回覆</a>
-          </li>
-          <li class="sub-tag"  style="display:none; font-size: 12px; line-height: auto;">
-            <a class="nav-link" href="/message_add_friend_reply"> 加好友回覆</a>
-          </li>
-        </ul>
-        <ul class="nav navbar-top-links navbar-right">
-          <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <i class="fa fa-cog fa-lg"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-user">
-              <li><a href="/setting"><i class="fa fa-user fa-fw"></i> 設定</a></li>
-              <li class="divider"></li>
-              <li><a href="/login" id="signoutBtn"><i class="fa fa-sign-out fa-fw"></i> 登出</a></li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <% include ../views/partials/wrapper.ejs %>
     <div id="home">
       <h3> 加好友回覆</h3>
       <p>新增、編輯、測試傳送到LINE@的訊息</p>
