@@ -20,7 +20,7 @@ $(document).ready(function() {
   $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
   $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic
   $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
-  $(document).on('change', '.multi-select-container', multiselectChange); //複選選項改變
+  $(document).on('change', '.multi-select-container', multiSelectChange); //複選選項改變
   $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); //檢查內部群聊的擁有者是否為群組成員
   $(document).on('change', 'select#create-internal-owner', checkInternalOwner); //檢查內部群聊的擁有者是否為群組成員
   $('#profModal').on('hidden.bs.modal', profClear); //viewModal 收起來
@@ -33,6 +33,7 @@ $(document).ready(function() {
   var allConfirmBtn = $('.all-confirm');
   var allCancelBtn = $('.all-cancel');
   var rowsCount = 0; //dynamic load count in db ref
+  var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
   tagTableBody.sortable();
   socket.emit("get tags from tags");
   socket.on("push tags to tags", data => {
@@ -344,7 +345,7 @@ $(document).ready(function() {
     }
     select.val('');
   });
-  function multiselectChange() {
+  function multiSelectChange() {
     changeMultiSelectText($(this));
   }
   function changeMultiSelectText(container) {
@@ -392,7 +393,7 @@ $(document).ready(function() {
     if( confirm("確認新建內部聊天室?") ) {
       let roomName = $('#create-internal-room-name').val();
       let description = $('#create-internal-description').val();
-      let photo = $('.input-file').val();
+      let photo = $('.file-container').val();
       let owner = $('#create-internal-owner').val();
       let agent = $('#create-internal-agents').attr('rel');
 
@@ -403,7 +404,7 @@ $(document).ready(function() {
         let data = {
           "roomName": roomName,
           "description": description,
-          "photo": photo,
+          "photo": photo ? photo : DEFAULT_INTERNAL_PHOTO,
           "owner": owner,
           "agent": agent
         }
@@ -413,36 +414,32 @@ $(document).ready(function() {
       }
     }
   }
-});
 
-let btnFileChoose = $('button#create-internal-photo');
-let btnFileReset = btnFileChoose.parents('.input-file').find('button.btn-file-reset');
-let inputFileGhost = btnFileChoose.parents('.input-file').find('input.input-file-ghost');
-let inputFileText = btnFileChoose.parents('.input-file').find('input.input-file-text');
-inputFileGhost.change(function(){
-  inputFileText.val((inputFileGhost.val()).split('\\').pop());
-});
-btnFileChoose.click(function(){
-  inputFileGhost.click();
-});
-btnFileReset.click(function(){
-  inputFileGhost.val(null);
-  inputFileText.val('');
-});
+  $(document).on('change', '.file-container input.file-ghost', function(){
+    if(0 < this.files.length) {
+      let fileContainer = $(this).parents('.file-container');
+      let fileText = fileContainer.find('.file-text');
+      fileText.text(($(this).val()).split('\\').pop());
 
-inputFileGhost.on('change', function() {
-  console.log("url");
-  if(0 < this.files.length) {
-    var file = this.files[0];
-    var self = this;
-    var storageRef = firebase.storage().ref();
-    var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-    fileRef.put(file).then(function(snapshot) {
-      var url = snapshot.a.downloadURLs[0];
-      var type = $(self).data('type');
-      $('.input-file').val(url);
-      $('.input-file').attr('rel', type);
-      console.log(url);
-    });
-  }
+      let file = this.files[0];
+      let storageRef = firebase.storage().ref();
+      let fileRef = storageRef.child(file.lastModified + '_' + file.name);
+      fileRef.put(file).then(function(snapshot) {
+        let url = snapshot.a.downloadURLs[0];
+        fileContainer.val(url);
+      });
+    }
+  });
+  $(document).on('click', '.file-container button.file-choose', function(){
+    let fileContainer = $(this).parents('.file-container');
+    let fileGhost = fileContainer.find('.file-ghost');
+    fileGhost.click();
+  });
+  $(document).on('click', '.file-container button.file-reset', function(){
+    let fileContainer = $(this).parents('.file-container');
+    let fileGhost = fileContainer.find('.file-ghost');
+    let fileText = fileContainer.find('.file-text');
+    fileGhost.val(null);
+    fileText.text('');
+  });
 });

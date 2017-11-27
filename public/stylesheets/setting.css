@@ -50,9 +50,9 @@ body{
 .bold-word{
   font-weight:bold;
 }
-
-.prof-wid{
-
+p:empty:not(:focus)::before {
+  content: attr(data-placeholder);
+  color: gray;
 }
 .multi-select-container {
   padding: 5px 5px;
