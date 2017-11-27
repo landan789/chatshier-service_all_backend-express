@@ -1010,3 +1010,8 @@ img[src=""] {
   color: #009900;
   cursor: pointer;
 }
+#msg {
+  font-size:8px;
+  font-weight: normal;
+  margin-left:12px;
+}

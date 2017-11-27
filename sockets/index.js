@@ -88,9 +88,9 @@ function init(server) {
       /*===聊天室start===*/
       // 按照程式流程順序
       // 1.更新標籤
-      socket.on('get tags from chat', () => {
+      socket.on('request tags', (callback) => {
         tags.get(function(tagsData){
-          socket.emit('push tags to chat', tagsData);
+          callback(tagsData);
         });
       });
       // 2.更新群組
@@ -121,19 +121,19 @@ function init(server) {
         });
       });
       // 3.更新群組頻道
-      socket.on('request channels', (userId)=> {
+      socket.on('request channels', (userId, callback)=> {
         users.getUser(userId, chatInfo => {
           utility.updateChannel(chatInfo, (channelObj) => {
-            socket.emit('response channel', channelObj);
+            callback(channelObj);
           });
         });
       });
       // 4.撈出歷史訊息
-      socket.on('get json from back', (channelIdArr) => {
+      socket.on('request chat data', (channelIdArr, callback) => {
         chats.get(function(chatData){
           messageHandle.filterUser(channelIdArr, chatData, function(filterData) {
-            messageHandle.loadChatHistory(filterData, sendData => {
-              socket.emit('push json to front', sendData);
+            messageHandle.loadChatHistory(filterData, (data) => {
+              callback(data);
             });
           });
         });
@@ -188,7 +188,7 @@ function init(server) {
       }); //sent message
       // 更新客戶資料
       socket.on('update profile', (data, callback) => {
-        console.log(184);
+        console.log("update profile");
         chats.get(function(chatData){
           for( let i in chatData ) {
             if( utility.isSameUser(chatData[i].Profile, data.userId, data.channelId) ) {
@@ -203,9 +203,9 @@ function init(server) {
         });
       });
       // 當使用者要看客戶之前的聊天記錄時要向上滾動
-      socket.on('upload history msg from front', data => {
+      socket.on('upload history msg from front', (data, callback) => {
         let userId = data.userId;
-        let roomId = data.roomId;
+        let channelId = data.channelId;
         let head = data.head;
         let tail = data.tail;
         let sendData = [];
@@ -218,11 +218,12 @@ function init(server) {
               break;
             }
           }
-          socket.emit('upload history msg from back', {
+          let obj = {
             userId: userId,
-            roomId: roomId,
+            channelId: channelId,
             messages: sendData
-          });
+          };
+          callback(obj);
         });
       });
       // 訊息已讀
@@ -266,7 +267,7 @@ function init(server) {
         agents.create(data);
       });
       // 5.撈出內部聊天室紀錄
-      socket.on('get internal chat from back', (data) => {
+      socket.on('request internal chat data', (data, callback) => {
         let thisAgentData = [];
         agents.get(function(agentChatData){
           for( let i in agentChatData ){
@@ -287,7 +288,7 @@ function init(server) {
               { "name": "recentChat", "type": "time", "set": "", "modify": false },
               { "name": "firstChat", "type": "time", "set": "", "modify": false }
             ]
-            socket.emit('push internal chat to front', {
+            callback({
               data: thisAgentData,
               agentIdToName: agentIdToName,
               internalTagsData: internalTagsData
@@ -385,7 +386,6 @@ function init(server) {
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead){
 
-      console.log("4444"+channelId);
       messageHandle.toDB(obj, pictureUrl, channelId, receiverId, unRead, profile => {
         io.sockets.emit('new user profile', profile);
       });
