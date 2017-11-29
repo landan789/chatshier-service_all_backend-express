@@ -1,38 +1,40 @@
 $(document).ready(function() {
-  $(document).on('click', '#register-btn', register); //註冊
+    console.log(window.location);
+    let www = 'www' + window.location.host.substr(7);
+    $('#terms').attr('href', 'https://' + www + '/terms.html');
+    $('#privacy').attr('href', 'https://' + www + '/privacy.html');
+    $(document).on('click', '#signup', register); //註冊
 });
 
-function register() {
-  let fname = document.getElementById('first-name').value;
-  let lname = document.getElementById('last-name').value;
-  let email = document.getElementById('register-email').value;
-  let password = document.getElementById('register-password').value;
-  let nick = document.getElementById('nick').value;
-  let full_name = fname + ' ' + lname;
-  // console.log(full_name, email, password);
-  if(fname === '') {
-    showError('Please type in your first name');
-  } else if(lname === '') {
-    showError('Please type in your last name');
-  } else {
-    auth.createUserWithEmailAndPassword(email, password).then(() => {
-      database.ref('users/' + auth.currentUser.uid).set({
-        name: full_name,
-        nickname: nick,
-        email: email,
-        name1: "line群組1",
-        name2: "line群組2",
-        fbgroup: "臉書群組"
-      });
-    }).catch(error => {
-      showError(error.message);
-    });
-  }
+function register(event) {
+    event.preventDefault();
+    let name = document.getElementById('signup-name').value;
+    let email = document.getElementById('signup-email').value;
+    let password = document.getElementById('signup-password').value;
+    let passwordConfirm = document.getElementById('signup-password-confirm').value;
+    if (name === '') {
+        showError('請輸入姓名。');
+    } else {
+        if (password === passwordConfirm) {
+            auth.createUserWithEmailAndPassword(email, password).then(() => {
+                database.ref('users/' + auth.currentUser.uid).set({
+                    name: name,
+                    nickname: name,
+                    email: email,
+                    password: password
+                });
+            }).catch(error => {
+                showError(error.message);
+            });
+        } else {
+            showError('兩組密碼不符。');
+        }
+    }
 };
 
 function showError(msg) {
-  $('#reg-error').hide();
-  $('#reg-error').text('');
-  $('#reg-error').append(msg);
-  $('#reg-error').show();
+    $('.error-notify').hide();
+    $('.error-notify').text('');
+    $('.error-notify').append(msg);
+    $('.error-notify').show();
 }

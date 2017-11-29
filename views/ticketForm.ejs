@@ -1,99 +1,106 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= title %></title>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="icon" href="image/favicon.ico" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
     <link rel="stylesheet" href="stylesheets/main.css">
     <link rel="stylesheet" href="stylesheets/ticket.css">
-  </head>
-  <body>
+</head>
+
+<body>
     <% include ../views/partials/wrapper.ejs %>
-    <!-- Form -->
-    <div id="form-wrap">
-      <!-- 任務內容 -->
-      <form>
-        <!-- 客戶名 -->
-        <div class="form-group row">
-          <label for="subject" class="col-2 col-form-label">客戶姓名</label>
-          <div class="col-4">
-            <input class="form-control" type="text" value="" id="form-name">
-          </div>
-        </div>
-        <!-- 客戶Id -->
-        <div class="form-group row">
-          <label for="subject" class="col-2 col-form-label">客戶ID</label>
-          <div class="col-4">
-            <input class="form-control" type="text" value="" id="form-uid">
-          </div>
-        </div>
-        <!-- 主題 -->
-        <div class="form-group row">
-          <label for="subject" class="col-2 col-form-label">主題</label>
-          <div class="col-4">
-            <input class="form-control" type="text" value="" id="form-subject">
-          </div>
-        </div>
-        <!-- email -->
-        <div class="form-group row">
-          <label for="email" class="col-2 col-form-label">電子郵件</label>
-          <div class="col-4">
-            <input class="form-control" type="text" value="" id="form-email">
-          </div>
-        </div>
-        <!-- phone -->
-        <div class="form-group row">
-          <label for="phone" class="col-2 col-form-label">手機</label>
-          <div class="col-4">
-            <input class="form-control" type="text" value="" id="form-phone">
-          </div>
-        </div>
-        <!-- 狀態 -->
-        <div class="form-group row">
-          <label for="status">狀態</label>
-          <select class="form-control" id="form-status">
+        <!-- Form -->
+        <div id="form-wrap">
+            <!-- 任務內容 -->
+            <form>
+                <!-- 客戶名 -->
+                <div class="form-group row">
+                    <label for="subject" class="col-2 col-form-label">客戶姓名</label>
+                    <div class="col-4">
+                        <input class="form-control" type="text" value="" id="form-name">
+                    </div>
+                </div>
+                <!-- 客戶Id -->
+                <div class="form-group row">
+                    <label for="subject" class="col-2 col-form-label">客戶ID</label>
+                    <div class="col-4">
+                        <input class="form-control" type="text" value="" id="form-uid">
+                    </div>
+                </div>
+                <!-- 主題 -->
+                <div class="form-group row">
+                    <label for="subject" class="col-2 col-form-label">主題</label>
+                    <div class="col-4">
+                        <input class="form-control" type="text" value="" id="form-subject">
+                    </div>
+                </div>
+                <!-- email -->
+                <div class="form-group row">
+                    <label for="email" class="col-2 col-form-label">電子郵件</label>
+                    <div class="col-4">
+                        <input class="form-control" type="text" value="" id="form-email">
+                    </div>
+                </div>
+                <!-- phone -->
+                <div class="form-group row">
+                    <label for="phone" class="col-2 col-form-label">手機</label>
+                    <div class="col-4">
+                        <input class="form-control" type="text" value="" id="form-phone">
+                    </div>
+                </div>
+                <!-- 狀態 -->
+                <div class="form-group row">
+                    <label for="status">狀態</label>
+                    <select class="form-control" id="form-status">
             <option>Open</option>
             <option>Pending</option>
             <option>Resolved</option>
             <option>Closed</option>
           </select>
-        </div>
-        <!-- 緊急 -->
-        <div class="form-group row">
-          <label for="priority">優先</label>
-          <select class="form-control" id="form-priority">
+                </div>
+                <!-- 緊急 -->
+                <div class="form-group row">
+                    <label for="priority">優先</label>
+                    <select class="form-control" id="form-priority">
             <option>低</option>
             <option>中</option>
             <option>高</option>
             <option>急</option>
           </select>
+                </div>
+                <!-- 說明 -->
+                <div class="form-group row">
+                    <label for="description">說明</label>
+                    <textarea class="form-control" id="form-description" rows="3"></textarea>
+                </div>
+                <br />
+                <div id="error" class="error"></div>
+                <br />
+                <button type="button" class="btn btn-default" id="form-goback">返回</button>
+                <button type="button" class="btn btn-primary" id="form-submit">確認</button>
+                <br />
+                <br />
+            </form>
         </div>
-        <!-- 說明 -->
-        <div class="form-group row">
-          <label for="description">說明</label>
-          <textarea class="form-control" id="form-description" rows="3"></textarea>
-        </div>
-        <br />
-        <div id="error" class="error"></div>
-        <br />
-        <button type="button" class="btn btn-default" id="form-goback">返回</button>
-        <button type="button" class="btn btn-primary" id="form-submit">確認</button>
-        <br />
-        <br />
-      </form>
-    </div>
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
-    <script src="config/firebaseConfig.js"></script>
-    <script src="javascripts/navigation.js"></script>
-    <script src="javascripts/firebaseAuth.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="javascripts/ticket.js"></script>
-    <script src="javascripts/sb-admin-2.js"></script>
-  </body>
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+        <script src="config/firebaseConfig.js"></script>
+        <script src="javascripts/navigation.js"></script>
+        <script src="javascripts/firebaseAuth.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        <script src="javascripts/ticket.js"></script>
+        <script src="javascripts/sb-admin-2.js"></script>
+</body>
+
 </html>
