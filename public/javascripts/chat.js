@@ -2,12 +2,12 @@ const socket = io.connect(); // Socket
 const LOADING_MSG_AND_ICON = "<p class='message-day'><strong><i>" + "Loading History Messages..." + "</i></strong><span class='loadingIcon'></span></p>";
 const NO_HISTORY_MSG = "<p class='message-day'><strong><i>" + "-沒有更舊的歷史訊息-" + "</i></strong></p>";
 const COLOR = {
-  FIND: "#ff0000",
-  CLICKED: "#ccc",
-  FINDBACK: "#ffff00"
+    FIND: "#ff0000",
+    CLICKED: "#ccc",
+    FINDBACK: "#ffff00"
 };
 const SCROLL = {
-  HEIGHT: 90
+    HEIGHT: 90
 };
 const yourdomain = 'fongyu'; // freshdesk domain
 const api_key = 'UMHU5oqRvapqkIWuOdT8'; // freshdesk agent api key
@@ -38,1361 +38,1369 @@ var searchBox = $('#searchBox');
 var addTicketModal = $('#addTicketModal');
 
 $(document).ready(function() {
-  // start the loading works
-  if(window.location.pathname === '/chat') {
-    socket.emit("request tags", responseTags);
-    $infoPanel.hide();
-    auth.onAuthStateChanged(currentUser => {
-      agentId = currentUser.uid;
-      socket.emit('new user', agentId, checkNickName);
-      socket.emit('request channels', agentId, responseChannel);
-      socket.emit('develop update bot', agentId);    //should only for developer
-      socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
-    });
-  }
-
-  //=====start chat event=====
-  openChatAppItem.click(showChatApp);
-  $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
-  $(document).on('click', '.topright', clickSpan);
-  $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
-  ocClickShow.on('click', triggerFileUpload);   // 傳圖，音，影檔功能
-  $('.send-file').on('change', fileUpload);  // 傳圖，音，影檔功能
-  messageInput.on('keydown', function(e) { // 按enter可以發送訊息
-    if(e.keyCode === 13) {
-      $('#submitMsg').click();
-    }
-  });
-  //=====end chat event=====
-
-  //=====start profile event=====
-  $(document).on('click', '#show-profile', showProfile);
-  $(document).on('click', '.userInfoTd[modify="true"] p#td-inner', userInfoClick);
-  $(document).on('keypress', '.userInfoTd[modify="true"] input[type="text"]', userInfoKeyPress);
-  $(document).on('blur', '.userInfoTd[modify="true"] input[type="text"]', userInfoBlur);
-  $(document).on('click', '.profile-confirm button', userInfoConfirm);
-  $(document).on('click', '.internal-profile-confirm button', internalConfirm);
-  $(document).on('click', '.photo-choose', groupPhotoChoose);
-  $(document).on('change', '.photo-ghost', groupPhotoUpload);
-  //=====end profile event=====
-
-  //=====start ticket event=====
-  $(document).on('click', '#show-todo', showTodo);
-  $(document).on('click', '.ticketContent', moreInfo);
-  $(document).on('click', '.edit', showInput);
-  $(document).on('focusout', '.inner', hideInput);
-  $(document).on('keypress', '.inner', function(e) {
-    if(e.which === 13) $(this).blur();
-  });
-  $(document).on('keyup', '.ticketSearchBar', ticketSearch);
-  addTicketModal.on('show.bs.modal', function() {
-    let getId = $('.card-group[style="display:block"]').attr('id');
-    let realId = getId.substr(0, getId.indexOf('-'));
-    $('#form-uid').val(realId);
-  });
-  //=====end ticket event=====
-
-  //=====start utility event=====
-  $(document).on('click', '#signoutBtn', logout); // 登出
-  $(document).on('change', '.multi-select-container', multiSelectChange);
-  $(document).on('click', '.dropdown-menu', function(event) {
-    event.stopPropagation();
-  });
-  $.extend($.expr[':'], {
-    'containsi': function(elem, i, match, array) {
-      return(elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
-    }
-  });
-  hiddenGroupName.mouseover(function() { // 秀群組名稱
-    $(this).show();
-  })
-  //=====end utility event=====
-
-  //==========start initialize function========== //
-  function checkNickName(check) {
-    if( !check ) {
-      //enter agent name
-      let person = prompt("Please enter your name");
-      socket.emit('new nickname', agentId, person);
-    }
-  }
-  function responseChannel(data) {
-    if(data.chanId_1 === '' && data.chanId_2 === '' && data.fbPageId === '') {
-      error.text('群組名稱沒有設定，請於設定頁面更改。').show();
-    }
-    else {
-      socket.emit('request chat data', [data.chanId_1, data.chanId_2, data.fbPageId], responseChatData);
-      if( !data.name1 || !data.name2 || !data.fbName ) {
-        error.append('您至少其中一個群組還沒有做聊天設定，如有需要請至Settings做設定。').show();
-      }
-      $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
-      $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
-      $('.chat-app-item#FB').attr('rel', data.fbPageId);
-      $('#line1 p').text(data.name1);
-      $('#line2 p').text(data.name2);
-      $('#fbname p').text(data.fbName);
-      room_list.push(data.chanId_1);
-      room_list.push(data.chanId_2);
-      room_list.push(data.fbPageId);
-
-    }
-  }
-  function responseChatData(data) {
-    // console.log(data);
-    for(i in data) pushMsg(data[i]); //聊天記錄
-    setTimeout(function() {
-      for(i in data) pushInfo(data[i]);
-    }, 500);
-    sortUsers("recentTime", sortRecentBool, function(a, b) {
-      return a < b;
-    }); //照時間排列 新到舊
-  }
-  function responseHistoryMsg(data) {
-    let msgContent = $('#' + data.userId + '-content' + '[rel="' + data.channelId + '"]');
-    let origin_height = msgContent[0].scrollHeight;
-    msgContent.find('.message:first').remove();
-    msgContent.find('.message-day:lt(3)').remove();
-    msgContent.prepend(historyMsgToStr(data.messages));
-    let now_height = msgContent[0].scrollHeight;
-    msgContent.animate({
-      scrollTop: now_height - origin_height
-    }, 0);
-    if(msgContent.attr('data-position') > 0) msgContent.prepend(LOADING_MSG_AND_ICON);
-    else msgContent.prepend(NO_HISTORY_MSG);
-  }
-  function responseTags(data) {
-    TagsData = data;
-  }
-  function responseInternalChatData(data) {
-    // console.log(data);
-    internalTagsData = data.internalTagsData;
-    agentIdToName = data.agentIdToName;
-    for(i in data.data) {
-      pushInternalMsg(data.data[i]); //聊天記錄
-      pushInternalInfo(data.data[i].Profile);
-    }
-  }
-
-  function pushMsg(data) {
-    let historyMsg = data.Messages;
-    let profile = data.Profile;
-    let historyMsgStr = "";
-    if(data.position !== 0) {
-      historyMsgStr += LOADING_MSG_AND_ICON; //history message string head
-    } else {
-      historyMsgStr += NO_HISTORY_MSG; //history message string head
-    }
-    historyMsgStr += historyMsgToStr(historyMsg);
-    // end of history message
-    $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
-
-    let lastMsg = historyMsg[historyMsg.length - 1];
-    let lastMsgStr = lastMsgToStr(lastMsg);
-
-    let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
-    if( profile.unRead>0 ) {
-      tablinkHtml += "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-    }
-    else {
-      tablinkHtml += "</div>" + "<div class='unreadMsg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-    }
-    if( typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇" ) {
-      $('#vip_list').prepend(tablinkHtml);
-    }
-    else {
-      $('#clients').append(tablinkHtml);
-    }
-    canvas.append( //push string into canvas
-      '<div id="' + profile.userId + '" rel="' + profile.channelId + '" class="tabcontent">' + '<span class="topright">x&nbsp;&nbsp;&nbsp</span>' + "<div id='" + profile.userId + "-content' rel='" + profile.channelId + "' class='messagePanel' data-position='" + data.position + "'>" + historyMsgStr + "</div>" + "</div>"
-    ); // close append
-    if(data.position != 0) $('#' + profile.userId + '-content' + '[rel="' + profile.channelId + '"]').on('scroll', function() {
-      detecetScrollTop($(this));
-    });
-    name_list.push(profile.channelId + profile.userId); //make a name list of all chated user
-    userProfiles[profile.userId] = profile;
-  } // end of pushMsg
-  function historyMsgToStr(messages) {
-    let returnStr = "";
-    let nowDateStr = "";
-    let prevTime = 0;
-    for(let i in messages) {
-      //this loop plus date info into history message, like "----Thu Aug 01 2017----"
-      let d = new Date(messages[i].time).toDateString(); //get msg's date
-      if(d != nowDateStr) {
-        //if (now msg's date != previos msg's date), change day
-        nowDateStr = d;
-        returnStr += "<p class='message-day'><strong>" + nowDateStr + "</strong></p>"; //plus date info
-      }
-      if(messages[i].time - prevTime > 15 * 60 * 1000) {
-        //if out of 15min section, new a section
-        returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + "</strong></p>"; //plus date info
-      }
-      prevTime = messages[i].time;
-      if(messages[i].owner === "agent") {
-        //plus every history msg into string
-        returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
-      } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
-    }
-    return returnStr;
-  } // end of historyMsgToStr
-  function pushInfo(data) {
-    let profile = data.Profile;
-    for(let i in profile.email) {
-      socket.emit('get ticket', {
-        email: profile.email[i],
-        id: profile.userId
-      });
-    }
-    if( room_list.indexOf(profile.channelId)!= -1 ){
-      infoCanvas.append('<div class="card-group" id="' + profile.userId + '-info" rel="' + profile.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"></th>' + '<th><a id="' + profile.userId + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
-    }
-  } // end of pushInfo
-  function loadPanelProfile(profile) {
-    let html = "<table class='panelTable'>";
-    for(let i in TagsData) {
-      let name = TagsData[i].name;
-      let type = TagsData[i].type;
-      let set = TagsData[i].set;
-      let modify = TagsData[i].modify;
-      let data = profile[name];
-      let tdHtml = "";
-      if(name === '客戶編號') continue;
-      if(name === '電子郵件') {
-        for(let i in data) {
-          tdHtml += '<p id="td-inner">' + data[i] + '</p>';
-        }
-      } else if(type === 'text') {
-        if(data) {
-          tdHtml = '<p id="td-inner">' + data + '</p>';
-        } else {
-          tdHtml = '<p id="td-inner">尚未輸入</p>';
-        }
-      } else if(type === "time") {
-        if(modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
-        else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
-        if(data) {
-          d = new Date(data);
-          tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
-        }
-        tdHtml += ' ></input>';
-      } else if(type === 'single-select') {
-        if(modify) tdHtml = '<select id="td-inner">';
-        else tdHtml = '<select id="td-inner" disabled>';
-        if(!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
-        else tdHtml += '<option> 未選擇 </option>';
-        for(let j in set) {
-          if(set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
-          else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
-        }
-        tdHtml += '</select>';
-      } else if(type === 'multi-select') {
-        tdHtml = '<div class="btn-group" id="td-inner">';
-        if(modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
-        else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
-        if(!data) data = "";
-        let selected = data.split(',');
-        if(selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText" rel="'+data+'">' + "全選" + '</span>';
-        else tdHtml += '<span class="multi-selectSelectedText" rel="'+data+'">' + data + '</span>';
-        tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
-        for(let j in set) {
-          if(selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
-          else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
-        }
-        tdHtml += '</ul></div>';
-      }
-      html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
-    }
-    html += "</table>";
-    return html;
-  } // end of loadPanelProfile
-
-  function pushInternalMsg(data) {
-    let historyMsg = data.Messages;
-    let profile = data.Profile;
-    let historyMsgStr = "";
-    historyMsgStr += internalHistoryMsgToStr(historyMsg);
-    // end of history message
-    $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
-    let lastMsg = historyMsg[historyMsg.length - 1];
-    let lastMsgStr = lastMsgToStr(lastMsg);
-    if(profile.unRead > 0) {
-      $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
-    }
-    else {
-      $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
-    }
-    // 依照不同的channel ID做分類
-    canvas.append( //push string into canvas
-      '<div id="' + profile.roomId + '" rel="internal" class="tabcontent"style="display: none;">' + '<span class="topright">x&nbsp;&nbsp;&nbsp</span>' + "<div id='" + profile.roomId + "-content' rel='internal' class='messagePanel' data-position='" + 0 + "'>" + historyMsgStr + "</div>" + "</div>"
-    ); // close append
-    name_list.push("internal" + profile.roomId); //make a name list of all chated user
-    userProfiles[profile.roomId] = profile;
-  } // end of pushInternalMsg
-  function internalHistoryMsgToStr(messages) {
-    let returnStr = "";
-    let nowDateStr = "";
-    let prevTime = 0;
-    for(let i in messages) {
-      messages[i].name = agentIdToName[messages[i].agentId];
-      //this loop plus date info into history message, like "----Thu Aug 01 2017----"
-      let d = new Date(messages[i].time).toDateString(); //get msg's date
-      if(d != nowDateStr) {
-        //if (now msg's date != previos msg's date), change day
-        nowDateStr = d;
-        returnStr += "<p class='message-day' style='text-align: center'><strong>" + nowDateStr + "</strong></p>"; //plus date info
-      }
-      if(messages[i].time - prevTime > 15 * 60 * 1000) {
-        //if out of 15min section, new a section
-        returnStr += "<p class='message-day' style='text-align: center'><strong>" + toDateStr(messages[i].time) + "</strong></p>"; //plus date info
-      }
-      prevTime = messages[i].time;
-      if(messages[i].agentId == agentId) {
-        //plus every history msg into string
-        returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
-      } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
-    }
-    return returnStr;
-  } // end of internalHistoryMsgToStr
-  function pushInternalInfo(profile) {
-    let photoHtml = "<div class='photo-container' rel='"+profile.photo+"'><input type='file' class='photo-ghost' style='visibility:hidden; height:0'>"+'<img class="photo-choose" src="' + profile.photo + '" alt="無法顯示相片" style="width:auto;height:128px;">' + "</div>";
-    infoCanvas.append('<div class="card-group" id="' + profile.roomId + '-info" rel="internal-info">' + '<div class="card-body" id="profile">' + photoHtml + loadInternalPanelProfile(profile) + '<div class="internal-profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div></div>');
-  } // end of pushInternalInfo
-  function loadInternalPanelProfile(profile) {
-    let html = "<table class='panelTable'>";
-    for(let i in internalTagsData) {
-      let name = internalTagsData[i].name;
-      let type = internalTagsData[i].type;
-      let set = internalTagsData[i].set;
-      let modify = internalTagsData[i].modify;
-      let data = profile[name];
-      let tdHtml = "";
-      if(type === 'text') {
-        if(data) {
-          tdHtml = '<p id="td-inner">' + data + '</p>';
-        } else {
-          tdHtml = '<p id="td-inner">尚未輸入</p>';
-        }
-      } else if(type === "time") {
-        if(modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
-        else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
-        if(data) {
-          d = new Date(data);
-          tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
-        }
-        tdHtml += ' ></input>';
-      } else if(type === 'single-select') {
-        if(modify) tdHtml = '<select id="td-inner">';
-        else tdHtml = '<select id="td-inner" disabled>';
-        if(!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
-        else tdHtml += '<option> 未選擇 </option>';
-        if(name == "owner") {
-          for(let id in agentIdToName) {
-            if(id != data) tdHtml += '<option value="' + id + '">' + agentIdToName[id] + '</option>';
-            else tdHtml += '<option value="' + id + '" selected="selected">' + agentIdToName[id] + '</option>';
-          }
-        } else {
-          for(let j in set) {
-            if(set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
-            else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
-          }
-        }
-        tdHtml += '</select>';
-      } else if(type === 'multi-select') {
-        // console.log("data == " + data);
-        tdHtml = '<div class="btn-group" id="td-inner">';
-        if(modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
-        else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
-        if(!data) data = "";
-        if(name == "agent") {
-          let selected = data.split(',');
-          let names = selected.map(function(e) {
-            return agentIdToName[e];
-          });
-          if(names.length == Object.keys(agentIdToName).length) tdHtml += '<span class="multi-selectSelectedText" rel="'+data+'">' + "全選" + '</span>';
-          else tdHtml += '<span class="multi-selectSelectedText" rel="'+data+'">' + names.join(',') + '</span>';
-          tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
-          for(let id in agentIdToName) {
-            if(selected.indexOf(id) != -1) tdHtml += '<li><input type="checkbox" value="' + id + '" checked>' + agentIdToName[id] + '</li>';
-            else tdHtml += '<li><input type="checkbox" value="' + id + '">' + agentIdToName[id] + '</li>';
-          }
-        } else {
-          let selected = data.split(',');
-          if(selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText">' + "全選" + '</span>';
-          else tdHtml += '<span class="multi-selectSelectedText">' + data + '</span>';
-          tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
-          for(let j in set) {
-            if(selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
-            else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
-          }
-        }
-        tdHtml += '</ul></div>';
-      }
-      html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
-    }
-    html += "</table>";
-    return html;
-  } // end of loadInternalPanelProfile
-  //==========end initialize function========== //
-
-  //=====start socket function=====
-  socket.on('new message', (data) => {
-    if(!data.channelId) {
-      console.log("data miss channelId");
-      return;
-    }
-    let $room = $('.chat-app-item[rel="'+data.channelId+'"]');
-    if( $room.length!=0 ) {
-      displayMessage(data, data.channelId); //update 聊天室
-      displayClient(data, data.channelId); //update 客戶清單
-      if(name_list.indexOf(data.channelId + data.id) === -1) { // 新客戶
-        name_list.push(data.channelId + data.id);
-      }
-    }
-  });
-  socket.on('new internal message', (data) => {
-    let $room = $('.tablinks-area .tablinks[name="'+data.roomId+'"]');
-    if( $room.length!=0 ) {
-      displayMessageInternal(data.sendObj, data.roomId);
-      displayClientInternal(data.sendObj, data.roomId);
-    }
-  });
-  socket.on('new user profile', function(data) {
-    userProfiles[data.userId] = data;
-  });
-  //=====end socket function=====
-
-  //=====start chat function=====
-  function showChatApp() {
-    let thisRel = $(this).attr('rel');
-    if(thisRel === 'All') {
-      $('.tablinks-area').find('b').show();
-    } else if(thisRel === 'unread') {
-      $('.tablinks-area').find('.unreadMsg').each(function(index, el) {
-        if($(this).text() === '0') {
-          $(this).parent().parent().hide();
-        } else {
-          $(this).parent().parent().show();
-        }
-      });
-    } else if(thisRel === 'assigned') {
-      $('.tablinks-area').find('b').hide();
-      $('#指派負責人 #td-inner').each(function(index, el) {
-        if($(this).text() !== '尚未輸入') {
-          let cardGroup = $(this).parents('.card-group');
-          let id = cardGroup.attr('id');
-          let room = cardGroup.attr('rel');
-          let newId = id.substr(0, id.indexOf('-'));
-          let newRoom = room.substr(0, room.indexOf('-'));
-          $('[name="' + newId + '"][rel="' + newRoom + '"]').parent().show();
-        }
-      });
-    } else if(thisRel === 'unassigned') {
-      $('.tablinks-area').find('b').hide();
-      $('#指派負責人 #td-inner').each(function(index, el) {
-        if($(this).text() === '尚未輸入') {
-          let cardGroup = $(this).parents('.card-group');
-          let id = cardGroup.attr('id');
-          let room = cardGroup.attr('rel');
-          let newId = id.substr(0, id.indexOf('-'));
-          let newRoom = room.substr(0, room.indexOf('-'));
-          $('[name="' + newId + '"][rel="' + newRoom + '"]').parent().show();
-        }
-      });
-    } else {
-      $('.tablinks-area').find('b').hide();
-      $('.tablinks-area').find('[rel="' + thisRel + '"]').parent().show();
-    }
-  }
-  function clickUserTablink() {
-    $('#send-message').show();
-    $infoPanel.show();
-    let userId = $(this).attr('name'); // ID
-    let channelId = $(this).attr('rel'); // channelId
-    loadTable(userId);
-    $(".tablinks#selected").removeAttr('id').css("background-color", ""); //selected tablinks change, clean prev's color
-    $(this).attr('id', 'selected').css("background-color", COLOR.CLICKED); //clicked tablinks color
-    if($(this).find('.unreadMsg').text() !== '0') { //如果未讀的話
-      $(this).find('.unreadMsg').text('0').hide(); // 已讀 把未讀的區塊隱藏
-      $(this).find("#msg").css("font-weight", "normal"); // 取消未讀粗體
-      socket.emit("read message", {
-        channelId: channelId,
-        userId: userId
-      }); //tell socket that this user isnt unRead
-    }
-    $('#user-rooms').val(userId); //change value in select bar
-    $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
-    $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
-    $("#" + userId + "[rel='" + channelId + "']" + '>#' + userId + '-content' + '[rel="' + channelId + '"]').scrollTop($('#' + userId + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
-    let profile = userProfiles[userId];
-    // console.log("targetId = " + userId);
-    if(profile.hasOwnProperty("nickname")) $('#prof-nick').text(profile.nickname); //如果是一般的聊天
-    else $('#prof-nick').text(profile.roomName); //如果是內部聊天
-  } // end of clickUserTablink
-  function clickSpan() {
-    let userId = $(this).parent().hide().attr("id");
-    let room = $(this).parent().hide().attr("rel");
-    $(".tablinks[name='" + userId + "'][rel='" + room + "']").removeAttr('id').css("background-color", ""); //clean tablinks color
-    $('#send-message').hide(); // hide input bar
-    $("#" + userId + "-info[rel='" + room + "-info']").hide();
-    $('#prof-nick').text('');
-  } // end of clickSpan
-  function detecetScrollTop(ele) {
-    if(ele.scrollTop() === 0) {
-      let tail = parseInt(ele.attr('data-position'));
-      let head = parseInt(ele.attr('data-position')) - 20;
-      if(head < 0) head = 0;
-      let request = {
-        userId: ele.parent().attr('id'),
-        channelId: ele.parent().attr('rel'),
-        head: head,
-        tail: tail
-      };
-      if(head === 0) ele.off('scroll');
-      ele.attr('data-position', head);
-      socket.emit('upload history msg from front', request, responseHistoryMsg);
-    }
-  } // end of detecetScrollTop
-  function submitMsg(e) {
-    e.preventDefault();
-    let email = auth.currentUser.email;
-    let channelId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel');
-    let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id');
-    if(userId !== undefined || channelId !== undefined) {
-      if(channelId == "internal") {
-        let sendObj = {
-          agentId: auth.currentUser.uid,
-          time: Date.now(),
-          message: messageInput.val()
-        };
-        socket.emit('send internal message', {
-          sendObj: sendObj,
-          roomId: userId
+    // start the loading works
+    if (window.location.pathname === '/chat') {
+        socket.emit("request tags", responseTags);
+        $infoPanel.hide();
+        auth.onAuthStateChanged(currentUser => {
+            agentId = currentUser.uid;
+            socket.emit('new user', agentId, checkNickName);
+            socket.emit('request channels', agentId, responseChannel);
+            socket.emit('develop update bot', agentId); //should only for developer
+            socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
         });
-      } else {
-        let sendObj = {
-          id: userId,
-          msg: messageInput.val(),
-          msgtime: Date.now(),
-          // room: room,
-          channelId: channelId
-          // room: $(this).parent().parent().parent().siblings('#user').find('.tablinksArea[style="display: block;"]').attr('id'), // 聊天室
-          // channelId: $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel')
-        };
-        // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
-        database.ref('chats/Data').once('value', outsnap => {
-          let outInfo = outsnap.val();
-          let outId = Object.keys(outInfo);
-          for(let i in outId) {
-            database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
-              let innInfo = innsnap.val();
-              if(innInfo.channelId === undefined) {} else if(innInfo.channelId === channelId && innInfo.userId === userId) {
-                database.ref('chats/Data/' + outId[i] + '/Profile').update({
-                  "最後聊天的客服人員": email
-                });
-              }
+    }
+
+    //=====start chat event=====
+    openChatAppItem.click(showChatApp);
+    $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    $(document).on('click', '.topright', clickSpan);
+    $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
+    ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
+    $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
+    messageInput.on('keydown', function(e) { // 按enter可以發送訊息
+        if (e.keyCode === 13) {
+            $('#submitMsg').click();
+        }
+    });
+    //=====end chat event=====
+
+    //=====start profile event=====
+    $(document).on('click', '#show-profile', showProfile);
+    $(document).on('click', '.userInfoTd[modify="true"] p#td-inner', userInfoClick);
+    $(document).on('keypress', '.userInfoTd[modify="true"] input[type="text"]', userInfoKeyPress);
+    $(document).on('blur', '.userInfoTd[modify="true"] input[type="text"]', userInfoBlur);
+    $(document).on('click', '.profile-confirm button', userInfoConfirm);
+    $(document).on('click', '.internal-profile-confirm button', internalConfirm);
+    $(document).on('click', '.photo-choose', groupPhotoChoose);
+    $(document).on('change', '.photo-ghost', groupPhotoUpload);
+    //=====end profile event=====
+
+    //=====start ticket event=====
+    $(document).on('click', '#show-todo', showTodo);
+    $(document).on('click', '.ticketContent', moreInfo);
+    $(document).on('click', '.edit', showInput);
+    $(document).on('focusout', '.inner', hideInput);
+    $(document).on('keypress', '.inner', function(e) {
+        if (e.which === 13) $(this).blur();
+    });
+    $(document).on('keyup', '.ticketSearchBar', ticketSearch);
+    addTicketModal.on('show.bs.modal', function() {
+        let getId = $('.card-group[style="display:block"]').attr('id');
+        let realId = getId.substr(0, getId.indexOf('-'));
+        $('#form-uid').val(realId);
+    });
+    //=====end ticket event=====
+
+    //=====start utility event=====
+    $(document).on('click', '#signoutBtn', logout); // 登出
+    $(document).on('change', '.multi-select-container', multiSelectChange);
+    $(document).on('click', '.dropdown-menu', function(event) {
+        event.stopPropagation();
+    });
+    $.extend($.expr[':'], {
+        'containsi': function(elem, i, match, array) {
+            return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+        }
+    });
+    hiddenGroupName.mouseover(function() { // 秀群組名稱
+            $(this).show();
+        })
+        //=====end utility event=====
+
+    //==========start initialize function========== //
+    function checkNickName(check) {
+        if (!check) {
+            //enter agent name
+            let person = prompt("Please enter your name");
+            socket.emit('new nickname', agentId, person);
+        }
+    }
+
+    function responseChannel(data) {
+        if (data.chanId_1 === '' && data.chanId_2 === '' && data.fbPageId === '') {
+            $('#notifyModal').modal("show");
+        } else {
+            socket.emit('request chat data', [data.chanId_1, data.chanId_2, data.fbPageId], responseChatData);
+            $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
+            $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
+            $('.chat-app-item#FB').attr('rel', data.fbPageId);
+            $('#line1 p').text(data.name1);
+            $('#line2 p').text(data.name2);
+            $('#fbname p').text(data.fbName);
+            room_list.push(data.chanId_1);
+            room_list.push(data.chanId_2);
+            room_list.push(data.fbPageId);
+
+        }
+    }
+
+    function responseChatData(data) {
+        // console.log(data);
+        for (i in data) pushMsg(data[i]); //聊天記錄
+        setTimeout(function() {
+            for (i in data) pushInfo(data[i]);
+        }, 500);
+        sortUsers("recentTime", sortRecentBool, function(a, b) {
+            return a < b;
+        }); //照時間排列 新到舊
+    }
+
+    function responseHistoryMsg(data) {
+        let msgContent = $('#' + data.userId + '-content' + '[rel="' + data.channelId + '"]');
+        let origin_height = msgContent[0].scrollHeight;
+        msgContent.find('.message:first').remove();
+        msgContent.find('.message-day:lt(3)').remove();
+        msgContent.prepend(historyMsgToStr(data.messages));
+        let now_height = msgContent[0].scrollHeight;
+        msgContent.animate({
+            scrollTop: now_height - origin_height
+        }, 0);
+        if (msgContent.attr('data-position') > 0) msgContent.prepend(LOADING_MSG_AND_ICON);
+        else msgContent.prepend(NO_HISTORY_MSG);
+    }
+
+    function responseTags(data) {
+        TagsData = data;
+    }
+
+    function responseInternalChatData(data) {
+        // console.log(data);
+        internalTagsData = data.internalTagsData;
+        agentIdToName = data.agentIdToName;
+        for (i in data.data) {
+            pushInternalMsg(data.data[i]); //聊天記錄
+            pushInternalInfo(data.data[i].Profile);
+        }
+    }
+
+    function pushMsg(data) {
+        let historyMsg = data.Messages;
+        let profile = data.Profile;
+        let historyMsgStr = "";
+        if (data.position !== 0) {
+            historyMsgStr += LOADING_MSG_AND_ICON; //history message string head
+        } else {
+            historyMsgStr += NO_HISTORY_MSG; //history message string head
+        }
+        historyMsgStr += historyMsgToStr(historyMsg);
+        // end of history message
+        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
+
+        let lastMsg = historyMsg[historyMsg.length - 1];
+        let lastMsgStr = lastMsgToStr(lastMsg);
+
+        let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
+        if (profile.unRead > 0) {
+            tablinkHtml += "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+        } else {
+            tablinkHtml += "</div>" + "<div class='unreadMsg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+        }
+        if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
+            $('#vip_list').prepend(tablinkHtml);
+        } else {
+            $('#clients').append(tablinkHtml);
+        }
+        canvas.append( //push string into canvas
+            '<div id="' + profile.userId + '" rel="' + profile.channelId + '" class="tabcontent">' + '<span class="topright">x&nbsp;&nbsp;&nbsp</span>' + "<div id='" + profile.userId + "-content' rel='" + profile.channelId + "' class='messagePanel' data-position='" + data.position + "'>" + historyMsgStr + "</div>" + "</div>"
+        ); // close append
+        if (data.position != 0) $('#' + profile.userId + '-content' + '[rel="' + profile.channelId + '"]').on('scroll', function() {
+            detecetScrollTop($(this));
+        });
+        name_list.push(profile.channelId + profile.userId); //make a name list of all chated user
+        userProfiles[profile.userId] = profile;
+    } // end of pushMsg
+    function historyMsgToStr(messages) {
+        let returnStr = "";
+        let nowDateStr = "";
+        let prevTime = 0;
+        for (let i in messages) {
+            //this loop plus date info into history message, like "----Thu Aug 01 2017----"
+            let d = new Date(messages[i].time).toDateString(); //get msg's date
+            if (d != nowDateStr) {
+                //if (now msg's date != previos msg's date), change day
+                nowDateStr = d;
+                returnStr += "<p class='message-day'><strong>" + nowDateStr + "</strong></p>"; //plus date info
+            }
+            if (messages[i].time - prevTime > 15 * 60 * 1000) {
+                //if out of 15min section, new a section
+                returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + "</strong></p>"; //plus date info
+            }
+            prevTime = messages[i].time;
+            if (messages[i].owner === "agent") {
+                //plus every history msg into string
+                returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
+            } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
+        }
+        return returnStr;
+    } // end of historyMsgToStr
+    function pushInfo(data) {
+        let profile = data.Profile;
+        for (let i in profile.email) {
+            socket.emit('get ticket', {
+                email: profile.email[i],
+                id: profile.userId
             });
-          }
-        });
-        socket.emit('send message', sendObj); //emit到server (www)
-      }
-      messageInput.val('');
-    } else {
-      console.log('either room id or channel id is undefined');
-    }
-  } // end of submitMsg
-  function triggerFileUpload(e) {
-    var eId = $(this).data('id');
-    $('#' + eId).trigger('click');
-  }
-  function fileUpload() {
-    var $contentPanel = $(this).parent().parent().parent().parent();
-    var $chat = $contentPanel.find('#canvas').find('div[style="display: block;"]');
-    var id = $chat.attr('id');
-    var rel = $chat.attr('rel');
-    if(0 < this.files.length) {
-      var file = this.files[0];
-      var self = this;
-      var storageRef = firebase.storage().ref();
-      var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-      fileRef.put(file).then(function(snapshot) {
-        var url = snapshot.a.downloadURLs[0];
-        var type = $(self).data('type');
-        var data = {
-          msg: '/' + type + ' ' + url,
-          id: id,
-          room: rel,
-          channelId: rel,
         }
-        socket.emit('send message', data);
-      });
-    }
-  }
-  function displayMessage(data, channelId) {
-    if(name_list.indexOf(channelId + data.id) !== -1) { //if its chated user
-      let str;
-      let designated_chat_room_msg_time = $("#" + data.id + "-content" + "[rel='" + channelId + "']").find(".message:last").attr('rel');
-      if(data.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
-        $("#" + data.id + "-content" + "[rel='" + channelId + "']").append('<p class="message-day"><strong>-新訊息-</strong></p>');
-      }
-      if(data.owner === "agent") str = toAgentStr(data.message, data.name, data.time);
-      else str = toUserStr(data.message, data.name, data.time);
-      $("#" + data.id + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
-      $('#' + data.id + '-content' + "[rel='" + channelId + "']").scrollTop($('#' + data.id + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
-    } else { //if its new user
-      let historyMsgStr = NO_HISTORY_MSG;
-      if(data.owner === "agent") historyMsgStr += toAgentStr(data.message, data.name, data.time);
-      else historyMsgStr += toUserStr(data.message, data.name, data.time);
-      canvas.append( //new a canvas
-        '<div id="' + data.id + '" rel="' + channelId + '" class="tabcontent">' + '<span class="topright">x&nbsp;</span>' + '<div id="' + data.id + '-content" rel="' + channelId + '" class="messagePanel">' + historyMsgStr + '</div></div>'
-      ); // close append
-      $('#user-rooms').append('<option value="' + data.id + '">' + data.name + '</option>'); //new a option in select bar
-    }
-  } // end of displayMessage
-  function displayClient(data, channelId) {
-    if(name_list.indexOf(channelId + data.id) > -1) {
-      let target = $('.tablinks-area').find(".tablinks[name='" + data.id + "'][rel='" + channelId + "']");
-      if(data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
-        target.find("#msg").html(toTimeStr(data.time) + '檔案');
-      } else if(data.message.startsWith('<img')) {
-        target.find("#msg").html(toTimeStr(data.time) + '貼圖');
-      } else {
-        target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message));
-      }
-      target.attr("data-recentTime", data.time);
-      // update tablnks's last msg
-      if(data.owner === "agent") {
-        target.find('.unreadMsg').text("0").css("display", "none");
-      }
-      else target.find('.unreadMsg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
-      let ele = target.parents('b'); //buttons to b
-      ele.remove();
-      $('.tablinks-area>#clients').prepend(ele);
-    } else { // 新客戶個人資料跟清單
-      $('#clients').prepend("<b><button name='" + data.id + "' rel='" + channelId + "' class='tablinks'>" + "<div class='img-holder'>" + "<img src='" + data.pictureUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + "</span>" + "<br />" + "<div id='msg' style='font-weight: normal; font-size:8px; margin-left:12px;'>" + data.message + "</div>" + "</div>" + "<div class='unreadMsg'>1</div>" + "</button><hr/></b>");
-      infoCanvas.append(
-        '<div class="card-group" id="' + data.id + '-info" rel="' + channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.pictureUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + "<table class='panelTable'>" + "<tbody>" + "<tr>" + "<th class='userInfo-th' id='姓名'>姓名</th>" + "<td class='userInfoTd' id='姓名' type='text' set='single' modify='true'>" + "<p id='td-inner'>" + data.name + "</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電子郵件'>電子郵件</th>" + "<td class='userInfoTd' id='電子郵件' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='年齡'>年齡</th>" + "<td class='userInfoTd' id='年齡' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='性別'>性別</th>" + "<td class='userInfoTd' id='性別' type='singleSelect' set='男,女' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='男'>男</option>" + "<option value='女'>女</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='地區'>地區</th>" + "<td class='userInfoTd' id='地區' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='住址'>住址</th>" + "<td class='userInfoTd' id='住址' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='備註'>備註</th>" + "<td class='userInfoTd' id='備註' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='標籤'>標籤</th>" + "<td class='userInfoTd' id='標籤' type='multiSelect' set='奧客,未付費,廢話多,敢花錢,常客,老闆的好朋友,外國人,窮學生,花東團abc123,台南團abc456' modify='true'>" + "<div class='btn-group' id='td-inner'>" + "<button type='button' data-toggle='dropdown' aria-expanded='false'><span class='multiselectSelectedText'>奧客</span><b class='caret'></b></button>" + "<ul class='multi-select-container dropdown-menu'>" + "<li><input type='checkbox' value='奧客' checked=''>奧客</li>" + "<li><input type='checkbox' value='未付費'>未付費</li>" + "<li><input type='checkbox' value='廢話多'>廢話多</li>" + "<li><input type='checkbox' value='敢花錢'>敢花錢</li>" + "<li><input type='checkbox' value='常客'>常客</li>" + "<li><input type='checkbox' value='老闆的好朋友'>老闆的好朋友</li>" + "<li><input type='checkbox' value='外國人'>外國人</li>" + "<li><input type='checkbox' value='窮學生'>窮學生</li>" + "<li><input type='checkbox' value='花東團abc123'>花東團abc123</li>" + "<li><input type='checkbox' value='台南團abc456'>台南團abc456</li>" + "</ul>" + "</div>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='VIP等級'>VIP等級</th>" + "<td class='userInfoTd' id='VIP等級' type='singleSelect' set='鑽石會員,白金會員,普通銅牌,超級普通會員' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='鑽石會員'>鑽石會員</option>" + "<option value='白金會員'>白金會員</option>" + "<option value='普通銅牌'>普通銅牌</option>" + "<option value='超級普通會員'>超級普通會員</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='下次聯絡客戶時間'>下次聯絡客戶時間</th>" + "<td class='userInfoTd' id='下次聯絡客戶時間' type='time' set='' modify='true'>" + "<input type='datetime-local' id='td-inner'>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='首次聊天時間'>首次聊天時間</th>" + "<td class='userInfoTd' id='首次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='上次聊天時間'>上次聊天時間</th>" + "<td class='userInfoTd' id='上次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='總共聊天時間'>總共聊天時間</th>" + "<td class='userInfoTd' id='總共聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='聊天次數'>聊天次數</th>" + "<td class='userInfoTd' id='聊天次數' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='平均每次聊天時間'>平均每次聊天時間</th>" + "<td class='userInfoTd' id='平均每次聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='客人的抱怨'>客人的抱怨</th>" + "<td class='userInfoTd' id='客人的抱怨' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='付費階段'>付費階段</th>" + "<td class='userInfoTd' id='付費階段' type='singleSelect' set='等待報價,已完成報價，等待付費,已完成付費,要退錢' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='等待報價'>等待報價</option>" + "<option value='已完成報價，等待付費'>已完成報價，等待付費</option>" + "<option value='已完成付費'>已完成付費</option>" + "<option value='要退錢'>要退錢</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='指派負責人'>指派負責人</th>" + "<td class='userInfoTd' id='指派負責人' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "</tbody>" + "</table>" + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(2)"hidden> 內容 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="Search"></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>'
-      );
-    }
-  } // end of displayClient
-  //=====end chat function=====
-
-  //=====start profile function=====
-  function showProfile() {
-    $('.nav li.active').removeClass('active');
-    $(this).parent().addClass('active');
-    $("#infoCanvas #profile").show();
-    $("#infoCanvas #todo").hide();
-  }
-  function userInfoClick() {
-    let val = $(this).text(); //抓目前的DATA
-    let td = $(this).parents('.userInfoTd');
-    td.html('<input id="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
-    td.find('input').select(); //自動FOCUS該INPUT
-  }
-  function userInfoKeyPress(e) {
-    let code = (e.keyCode ? e.keyCode : e.which);
-    if(code === 13) {
-      $(this).blur(); //如果按了ENTER就離開此INPUT，觸發on blur事件
-    }
-  }
-  function userInfoBlur() {
-    let val = $(this).val(); //抓INPUT裡的資料
-    if(!val) val = "尚未輸入";
-    $(this).parent().html('<p id="td-inner">' + val + '</p>'); //將INPUT元素刪掉，把資料直接放上去
-  }
-  function userInfoConfirm() {
-    let userId = $(this).parents('.card-group').attr('id');
-    userId = userId.substr(0, userId.length - 5);
-    let channelId = $(this).parents('.card-group').attr('rel');
-    channelId = channelId.substr(0, channelId.length - 5);
-    let method = $(this).attr('id');
-    if(method === "confirm") {
-      if(confirm("Are you sure to change profile?")) {
-        let data = {
-          userId: userId,
-          channelId: channelId
-        };
-        let tds = $(this).parents('.card-group').find('.panelTable tbody td');
-        tds.each(function() {
-          let prop = $(this).attr('id');
-          let type = $(this).attr('type');
-          let value;
-          if(type === "text") value = $(this).find('#td-inner').text();
-          else if(type === "time") value = $(this).find('#td-inner').val();
-          else if(type === "single-select") value = $(this).find('#td-inner').val();
-          else if(type === "multi-select") value = $(this).find('.multi-selectSelectedText').attr('rel');
-          if(!value) value = "";
-          data[prop] = value;
-        });
-        socket.emit('update profile', data);
-      } else {}
-    } else {
-      console.log("cancelled");
-    }
-  }
-  //=====end profile function=====
-
-  //=====start ticket function=====
-  function showTodo() {
-    $('.nav li.active').removeClass('active');
-    $(this).parent().addClass('active');
-    $("#infoCanvas #profile").hide();
-    $("#infoCanvas #todo").show();
-  }
-  function loadTable(userId) {
-    $('.ticket-content').empty();
-    $('.ticket_memo').empty();
-    var ticket_memo_list = [];
-    $.ajax({
-      url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets?include=requester",
-      type: 'GET',
-      contentType: "application/json; charset=utf-8",
-      dataType: "json",
-      headers: {
-        "Authorization": "Basic " + btoa(api_key + ":x")
-      },
-      success: function(data, textStatus, jqXHR) {
-        for(let i = 0; i < data.length; i++) {
-          if(data[i].subject === userId) {
-            ticketInfo = data;
-            $('.ticket-content').prepend('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticketInfoModal">' + '<td class="data_id" style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td hidden>' + data[i].description + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>');
-            ticket_memo_list.push(String(data[i].id));
-          }
+        if (room_list.indexOf(profile.channelId) != -1) {
+            infoCanvas.append('<div class="card-group" id="' + profile.userId + '-info" rel="' + profile.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"></th>' + '<th><a id="' + profile.userId + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
         }
-      },
-      error: function(jqXHR, tranStatus) {
-        console.log('error');
-      }
+    } // end of pushInfo
+    function loadPanelProfile(profile) {
+        let html = "<table class='panelTable'>";
+        for (let i in TagsData) {
+            let name = TagsData[i].name;
+            let type = TagsData[i].type;
+            let set = TagsData[i].set;
+            let modify = TagsData[i].modify;
+            let data = profile[name];
+            let tdHtml = "";
+            if (name === '客戶編號') continue;
+            if (name === '電子郵件') {
+                for (let i in data) {
+                    tdHtml += '<p id="td-inner">' + data[i] + '</p>';
+                }
+            } else if (type === 'text') {
+                if (data) {
+                    tdHtml = '<p id="td-inner">' + data + '</p>';
+                } else {
+                    tdHtml = '<p id="td-inner">尚未輸入</p>';
+                }
+            } else if (type === "time") {
+                if (modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
+                else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
+                if (data) {
+                    d = new Date(data);
+                    tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
+                }
+                tdHtml += ' ></input>';
+            } else if (type === 'single-select') {
+                if (modify) tdHtml = '<select id="td-inner">';
+                else tdHtml = '<select id="td-inner" disabled>';
+                if (!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
+                else tdHtml += '<option> 未選擇 </option>';
+                for (let j in set) {
+                    if (set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
+                    else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
+                }
+                tdHtml += '</select>';
+            } else if (type === 'multi-select') {
+                tdHtml = '<div class="btn-group" id="td-inner">';
+                if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
+                else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
+                if (!data) data = "";
+                let selected = data.split(',');
+                if (selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + "全選" + '</span>';
+                else tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + data + '</span>';
+                tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
+                for (let j in set) {
+                    if (selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
+                    else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
+                }
+                tdHtml += '</ul></div>';
+            }
+            html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
+        }
+        html += "</table>";
+        return html;
+    } // end of loadPanelProfile
+
+    function pushInternalMsg(data) {
+        let historyMsg = data.Messages;
+        let profile = data.Profile;
+        let historyMsgStr = "";
+        historyMsgStr += internalHistoryMsgToStr(historyMsg);
+        // end of history message
+        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
+        let lastMsg = historyMsg[historyMsg.length - 1];
+        let lastMsgStr = lastMsgToStr(lastMsg);
+        if (profile.unRead > 0) {
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+        } else {
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unreadMsg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+        }
+        // 依照不同的channel ID做分類
+        canvas.append( //push string into canvas
+            '<div id="' + profile.roomId + '" rel="internal" class="tabcontent"style="display: none;">' + '<span class="topright">x&nbsp;&nbsp;&nbsp</span>' + "<div id='" + profile.roomId + "-content' rel='internal' class='messagePanel' data-position='" + 0 + "'>" + historyMsgStr + "</div>" + "</div>"
+        ); // close append
+        name_list.push("internal" + profile.roomId); //make a name list of all chated user
+        userProfiles[profile.roomId] = profile;
+    } // end of pushInternalMsg
+    function internalHistoryMsgToStr(messages) {
+        let returnStr = "";
+        let nowDateStr = "";
+        let prevTime = 0;
+        for (let i in messages) {
+            messages[i].name = agentIdToName[messages[i].agentId];
+            //this loop plus date info into history message, like "----Thu Aug 01 2017----"
+            let d = new Date(messages[i].time).toDateString(); //get msg's date
+            if (d != nowDateStr) {
+                //if (now msg's date != previos msg's date), change day
+                nowDateStr = d;
+                returnStr += "<p class='message-day' style='text-align: center'><strong>" + nowDateStr + "</strong></p>"; //plus date info
+            }
+            if (messages[i].time - prevTime > 15 * 60 * 1000) {
+                //if out of 15min section, new a section
+                returnStr += "<p class='message-day' style='text-align: center'><strong>" + toDateStr(messages[i].time) + "</strong></p>"; //plus date info
+            }
+            prevTime = messages[i].time;
+            if (messages[i].agentId == agentId) {
+                //plus every history msg into string
+                returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
+            } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
+        }
+        return returnStr;
+    } // end of internalHistoryMsgToStr
+    function pushInternalInfo(profile) {
+        let photoHtml = "<div class='photo-container' rel='" + profile.photo + "'><input type='file' class='photo-ghost' style='visibility:hidden; height:0'>" + '<img class="photo-choose" src="' + profile.photo + '" alt="無法顯示相片" style="width:auto;height:128px;">' + "</div>";
+        infoCanvas.append('<div class="card-group" id="' + profile.roomId + '-info" rel="internal-info">' + '<div class="card-body" id="profile">' + photoHtml + loadInternalPanelProfile(profile) + '<div class="internal-profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div></div>');
+    } // end of pushInternalInfo
+    function loadInternalPanelProfile(profile) {
+        let html = "<table class='panelTable'>";
+        for (let i in internalTagsData) {
+            let name = internalTagsData[i].name;
+            let type = internalTagsData[i].type;
+            let set = internalTagsData[i].set;
+            let modify = internalTagsData[i].modify;
+            let data = profile[name];
+            let tdHtml = "";
+            if (type === 'text') {
+                if (data) {
+                    tdHtml = '<p id="td-inner">' + data + '</p>';
+                } else {
+                    tdHtml = '<p id="td-inner">尚未輸入</p>';
+                }
+            } else if (type === "time") {
+                if (modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
+                else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
+                if (data) {
+                    d = new Date(data);
+                    tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
+                }
+                tdHtml += ' ></input>';
+            } else if (type === 'single-select') {
+                if (modify) tdHtml = '<select id="td-inner">';
+                else tdHtml = '<select id="td-inner" disabled>';
+                if (!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
+                else tdHtml += '<option> 未選擇 </option>';
+                if (name == "owner") {
+                    for (let id in agentIdToName) {
+                        if (id != data) tdHtml += '<option value="' + id + '">' + agentIdToName[id] + '</option>';
+                        else tdHtml += '<option value="' + id + '" selected="selected">' + agentIdToName[id] + '</option>';
+                    }
+                } else {
+                    for (let j in set) {
+                        if (set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
+                        else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
+                    }
+                }
+                tdHtml += '</select>';
+            } else if (type === 'multi-select') {
+                // console.log("data == " + data);
+                tdHtml = '<div class="btn-group" id="td-inner">';
+                if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
+                else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
+                if (!data) data = "";
+                if (name == "agent") {
+                    let selected = data.split(',');
+                    let names = selected.map(function(e) {
+                        return agentIdToName[e];
+                    });
+                    if (names.length == Object.keys(agentIdToName).length) tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + "全選" + '</span>';
+                    else tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + names.join(',') + '</span>';
+                    tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
+                    for (let id in agentIdToName) {
+                        if (selected.indexOf(id) != -1) tdHtml += '<li><input type="checkbox" value="' + id + '" checked>' + agentIdToName[id] + '</li>';
+                        else tdHtml += '<li><input type="checkbox" value="' + id + '">' + agentIdToName[id] + '</li>';
+                    }
+                } else {
+                    let selected = data.split(',');
+                    if (selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText">' + "全選" + '</span>';
+                    else tdHtml += '<span class="multi-selectSelectedText">' + data + '</span>';
+                    tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
+                    for (let j in set) {
+                        if (selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
+                        else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
+                    }
+                }
+                tdHtml += '</ul></div>';
+            }
+            html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
+        }
+        html += "</table>";
+        return html;
+    } // end of loadInternalPanelProfile
+    //==========end initialize function========== //
+
+    //=====start socket function=====
+    socket.on('new message', (data) => {
+        if (!data.channelId) {
+            console.log("data miss channelId");
+            return;
+        }
+        let $room = $('.chat-app-item[rel="' + data.channelId + '"]');
+        if ($room.length != 0) {
+            displayMessage(data, data.channelId); //update 聊天室
+            displayClient(data, data.channelId); //update 客戶清單
+            if (name_list.indexOf(data.channelId + data.id) === -1) { // 新客戶
+                name_list.push(data.channelId + data.id);
+            }
+        }
     });
-    setTimeout(function() {
-      for(var i = 0; i < ticket_memo_list.length; i++) {
+    socket.on('new internal message', (data) => {
+        let $room = $('.tablinks-area .tablinks[name="' + data.roomId + '"]');
+        if ($room.length != 0) {
+            displayMessageInternal(data.sendObj, data.roomId);
+            displayClientInternal(data.sendObj, data.roomId);
+        }
+    });
+    socket.on('new user profile', function(data) {
+        userProfiles[data.userId] = data;
+    });
+    //=====end socket function=====
+
+    //=====start chat function=====
+    function showChatApp() {
+        let thisRel = $(this).attr('rel');
+        if (thisRel === 'All') {
+            $('.tablinks-area').find('b').show();
+        } else if (thisRel === 'unread') {
+            $('.tablinks-area').find('.unreadMsg').each(function(index, el) {
+                if ($(this).text() === '0') {
+                    $(this).parent().parent().hide();
+                } else {
+                    $(this).parent().parent().show();
+                }
+            });
+        } else if (thisRel === 'assigned') {
+            $('.tablinks-area').find('b').hide();
+            $('#指派負責人 #td-inner').each(function(index, el) {
+                if ($(this).text() !== '尚未輸入') {
+                    let cardGroup = $(this).parents('.card-group');
+                    let id = cardGroup.attr('id');
+                    let room = cardGroup.attr('rel');
+                    let newId = id.substr(0, id.indexOf('-'));
+                    let newRoom = room.substr(0, room.indexOf('-'));
+                    $('[name="' + newId + '"][rel="' + newRoom + '"]').parent().show();
+                }
+            });
+        } else if (thisRel === 'unassigned') {
+            $('.tablinks-area').find('b').hide();
+            $('#指派負責人 #td-inner').each(function(index, el) {
+                if ($(this).text() === '尚未輸入') {
+                    let cardGroup = $(this).parents('.card-group');
+                    let id = cardGroup.attr('id');
+                    let room = cardGroup.attr('rel');
+                    let newId = id.substr(0, id.indexOf('-'));
+                    let newRoom = room.substr(0, room.indexOf('-'));
+                    $('[name="' + newId + '"][rel="' + newRoom + '"]').parent().show();
+                }
+            });
+        } else {
+            $('.tablinks-area').find('b').hide();
+            $('.tablinks-area').find('[rel="' + thisRel + '"]').parent().show();
+        }
+    }
+
+    function clickUserTablink() {
+        $('#send-message').show();
+        $infoPanel.show();
+        let userId = $(this).attr('name'); // ID
+        let channelId = $(this).attr('rel'); // channelId
+        loadTable(userId);
+        $(".tablinks#selected").removeAttr('id').css("background-color", ""); //selected tablinks change, clean prev's color
+        $(this).attr('id', 'selected').css("background-color", COLOR.CLICKED); //clicked tablinks color
+        if ($(this).find('.unreadMsg').text() !== '0') { //如果未讀的話
+            $(this).find('.unreadMsg').text('0').hide(); // 已讀 把未讀的區塊隱藏
+            $(this).find("#msg").css("font-weight", "normal"); // 取消未讀粗體
+            socket.emit("read message", {
+                channelId: channelId,
+                userId: userId
+            }); //tell socket that this user isnt unRead
+        }
+        $('#user-rooms').val(userId); //change value in select bar
+        $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
+        $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
+        $("#" + userId + "[rel='" + channelId + "']" + '>#' + userId + '-content' + '[rel="' + channelId + '"]').scrollTop($('#' + userId + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
+        let profile = userProfiles[userId];
+        // console.log("targetId = " + userId);
+        if (profile.hasOwnProperty("nickname")) $('#prof-nick').text(profile.nickname); //如果是一般的聊天
+        else $('#prof-nick').text(profile.roomName); //如果是內部聊天
+    } // end of clickUserTablink
+    function clickSpan() {
+        let userId = $(this).parent().hide().attr("id");
+        let room = $(this).parent().hide().attr("rel");
+        $(".tablinks[name='" + userId + "'][rel='" + room + "']").removeAttr('id').css("background-color", ""); //clean tablinks color
+        $('#send-message').hide(); // hide input bar
+        $("#" + userId + "-info[rel='" + room + "-info']").hide();
+        $('#prof-nick').text('');
+    } // end of clickSpan
+    function detecetScrollTop(ele) {
+        if (ele.scrollTop() === 0) {
+            let tail = parseInt(ele.attr('data-position'));
+            let head = parseInt(ele.attr('data-position')) - 20;
+            if (head < 0) head = 0;
+            let request = {
+                userId: ele.parent().attr('id'),
+                channelId: ele.parent().attr('rel'),
+                head: head,
+                tail: tail
+            };
+            if (head === 0) ele.off('scroll');
+            ele.attr('data-position', head);
+            socket.emit('upload history msg from front', request, responseHistoryMsg);
+        }
+    } // end of detecetScrollTop
+    function submitMsg(e) {
+        e.preventDefault();
+        let email = auth.currentUser.email;
+        let channelId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel');
+        let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id');
+        if (userId !== undefined || channelId !== undefined) {
+            if (channelId == "internal") {
+                let sendObj = {
+                    agentId: auth.currentUser.uid,
+                    time: Date.now(),
+                    message: messageInput.val()
+                };
+                socket.emit('send internal message', {
+                    sendObj: sendObj,
+                    roomId: userId
+                });
+            } else {
+                let sendObj = {
+                    id: userId,
+                    msg: messageInput.val(),
+                    msgtime: Date.now(),
+                    // room: room,
+                    channelId: channelId
+                        // room: $(this).parent().parent().parent().siblings('#user').find('.tablinksArea[style="display: block;"]').attr('id'), // 聊天室
+                        // channelId: $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel')
+                };
+                // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
+                database.ref('chats/Data').once('value', outsnap => {
+                    let outInfo = outsnap.val();
+                    let outId = Object.keys(outInfo);
+                    for (let i in outId) {
+                        database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
+                            let innInfo = innsnap.val();
+                            if (innInfo.channelId === undefined) {} else if (innInfo.channelId === channelId && innInfo.userId === userId) {
+                                database.ref('chats/Data/' + outId[i] + '/Profile').update({
+                                    "最後聊天的客服人員": email
+                                });
+                            }
+                        });
+                    }
+                });
+                socket.emit('send message', sendObj); //emit到server (www)
+            }
+            messageInput.val('');
+        } else {
+            console.log('either room id or channel id is undefined');
+        }
+    } // end of submitMsg
+    function triggerFileUpload(e) {
+        var eId = $(this).data('id');
+        $('#' + eId).trigger('click');
+    }
+
+    function fileUpload() {
+        var $contentPanel = $(this).parent().parent().parent().parent();
+        var $chat = $contentPanel.find('#canvas').find('div[style="display: block;"]');
+        var id = $chat.attr('id');
+        var rel = $chat.attr('rel');
+        if (0 < this.files.length) {
+            var file = this.files[0];
+            var self = this;
+            var storageRef = firebase.storage().ref();
+            var fileRef = storageRef.child(file.lastModified + '_' + file.name);
+            fileRef.put(file).then(function(snapshot) {
+                var url = snapshot.a.downloadURLs[0];
+                var type = $(self).data('type');
+                var data = {
+                    msg: '/' + type + ' ' + url,
+                    id: id,
+                    room: rel,
+                    channelId: rel,
+                }
+                socket.emit('send message', data);
+            });
+        }
+    }
+
+    function displayMessage(data, channelId) {
+        if (name_list.indexOf(channelId + data.id) !== -1) { //if its chated user
+            let str;
+            let designated_chat_room_msg_time = $("#" + data.id + "-content" + "[rel='" + channelId + "']").find(".message:last").attr('rel');
+            if (data.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
+                $("#" + data.id + "-content" + "[rel='" + channelId + "']").append('<p class="message-day"><strong>-新訊息-</strong></p>');
+            }
+            if (data.owner === "agent") str = toAgentStr(data.message, data.name, data.time);
+            else str = toUserStr(data.message, data.name, data.time);
+            $("#" + data.id + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
+            $('#' + data.id + '-content' + "[rel='" + channelId + "']").scrollTop($('#' + data.id + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
+        } else { //if its new user
+            let historyMsgStr = NO_HISTORY_MSG;
+            if (data.owner === "agent") historyMsgStr += toAgentStr(data.message, data.name, data.time);
+            else historyMsgStr += toUserStr(data.message, data.name, data.time);
+            canvas.append( //new a canvas
+                '<div id="' + data.id + '" rel="' + channelId + '" class="tabcontent">' + '<span class="topright">x&nbsp;</span>' + '<div id="' + data.id + '-content" rel="' + channelId + '" class="messagePanel">' + historyMsgStr + '</div></div>'
+            ); // close append
+            $('#user-rooms').append('<option value="' + data.id + '">' + data.name + '</option>'); //new a option in select bar
+        }
+    } // end of displayMessage
+    function displayClient(data, channelId) {
+        if (name_list.indexOf(channelId + data.id) > -1) {
+            let target = $('.tablinks-area').find(".tablinks[name='" + data.id + "'][rel='" + channelId + "']");
+            if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
+                target.find("#msg").html(toTimeStr(data.time) + '檔案');
+            } else if (data.message.startsWith('<img')) {
+                target.find("#msg").html(toTimeStr(data.time) + '貼圖');
+            } else {
+                target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message));
+            }
+            target.attr("data-recentTime", data.time);
+            // update tablnks's last msg
+            if (data.owner === "agent") {
+                target.find('.unreadMsg').text("0").css("display", "none");
+            } else target.find('.unreadMsg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
+            let ele = target.parents('b'); //buttons to b
+            ele.remove();
+            $('.tablinks-area>#clients').prepend(ele);
+        } else { // 新客戶個人資料跟清單
+            $('#clients').prepend("<b><button name='" + data.id + "' rel='" + channelId + "' class='tablinks'>" + "<div class='img-holder'>" + "<img src='" + data.pictureUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + "</span>" + "<br />" + "<div id='msg' style='font-weight: normal; font-size:8px; margin-left:12px;'>" + data.message + "</div>" + "</div>" + "<div class='unreadMsg'>1</div>" + "</button><hr/></b>");
+            infoCanvas.append(
+                '<div class="card-group" id="' + data.id + '-info" rel="' + channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.pictureUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + "<table class='panelTable'>" + "<tbody>" + "<tr>" + "<th class='userInfo-th' id='姓名'>姓名</th>" + "<td class='userInfoTd' id='姓名' type='text' set='single' modify='true'>" + "<p id='td-inner'>" + data.name + "</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電子郵件'>電子郵件</th>" + "<td class='userInfoTd' id='電子郵件' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='年齡'>年齡</th>" + "<td class='userInfoTd' id='年齡' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='性別'>性別</th>" + "<td class='userInfoTd' id='性別' type='singleSelect' set='男,女' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='男'>男</option>" + "<option value='女'>女</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='地區'>地區</th>" + "<td class='userInfoTd' id='地區' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='住址'>住址</th>" + "<td class='userInfoTd' id='住址' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='備註'>備註</th>" + "<td class='userInfoTd' id='備註' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='標籤'>標籤</th>" + "<td class='userInfoTd' id='標籤' type='multiSelect' set='奧客,未付費,廢話多,敢花錢,常客,老闆的好朋友,外國人,窮學生,花東團abc123,台南團abc456' modify='true'>" + "<div class='btn-group' id='td-inner'>" + "<button type='button' data-toggle='dropdown' aria-expanded='false'><span class='multiselectSelectedText'>奧客</span><b class='caret'></b></button>" + "<ul class='multi-select-container dropdown-menu'>" + "<li><input type='checkbox' value='奧客' checked=''>奧客</li>" + "<li><input type='checkbox' value='未付費'>未付費</li>" + "<li><input type='checkbox' value='廢話多'>廢話多</li>" + "<li><input type='checkbox' value='敢花錢'>敢花錢</li>" + "<li><input type='checkbox' value='常客'>常客</li>" + "<li><input type='checkbox' value='老闆的好朋友'>老闆的好朋友</li>" + "<li><input type='checkbox' value='外國人'>外國人</li>" + "<li><input type='checkbox' value='窮學生'>窮學生</li>" + "<li><input type='checkbox' value='花東團abc123'>花東團abc123</li>" + "<li><input type='checkbox' value='台南團abc456'>台南團abc456</li>" + "</ul>" + "</div>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='VIP等級'>VIP等級</th>" + "<td class='userInfoTd' id='VIP等級' type='singleSelect' set='鑽石會員,白金會員,普通銅牌,超級普通會員' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='鑽石會員'>鑽石會員</option>" + "<option value='白金會員'>白金會員</option>" + "<option value='普通銅牌'>普通銅牌</option>" + "<option value='超級普通會員'>超級普通會員</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='下次聯絡客戶時間'>下次聯絡客戶時間</th>" + "<td class='userInfoTd' id='下次聯絡客戶時間' type='time' set='' modify='true'>" + "<input type='datetime-local' id='td-inner'>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='首次聊天時間'>首次聊天時間</th>" + "<td class='userInfoTd' id='首次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='上次聊天時間'>上次聊天時間</th>" + "<td class='userInfoTd' id='上次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='總共聊天時間'>總共聊天時間</th>" + "<td class='userInfoTd' id='總共聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='聊天次數'>聊天次數</th>" + "<td class='userInfoTd' id='聊天次數' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='平均每次聊天時間'>平均每次聊天時間</th>" + "<td class='userInfoTd' id='平均每次聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='客人的抱怨'>客人的抱怨</th>" + "<td class='userInfoTd' id='客人的抱怨' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='付費階段'>付費階段</th>" + "<td class='userInfoTd' id='付費階段' type='singleSelect' set='等待報價,已完成報價，等待付費,已完成付費,要退錢' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='等待報價'>等待報價</option>" + "<option value='已完成報價，等待付費'>已完成報價，等待付費</option>" + "<option value='已完成付費'>已完成付費</option>" + "<option value='要退錢'>要退錢</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='指派負責人'>指派負責人</th>" + "<td class='userInfoTd' id='指派負責人' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "</tbody>" + "</table>" + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(2)"hidden> 內容 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="Search"></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>'
+            );
+        }
+    } // end of displayClient
+    //=====end chat function=====
+
+    //=====start profile function=====
+    function showProfile() {
+        $('.nav li.active').removeClass('active');
+        $(this).parent().addClass('active');
+        $("#infoCanvas #profile").show();
+        $("#infoCanvas #todo").hide();
+    }
+
+    function userInfoClick() {
+        let val = $(this).text(); //抓目前的DATA
+        let td = $(this).parents('.userInfoTd');
+        td.html('<input id="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
+        td.find('input').select(); //自動FOCUS該INPUT
+    }
+
+    function userInfoKeyPress(e) {
+        let code = (e.keyCode ? e.keyCode : e.which);
+        if (code === 13) {
+            $(this).blur(); //如果按了ENTER就離開此INPUT，觸發on blur事件
+        }
+    }
+
+    function userInfoBlur() {
+        let val = $(this).val(); //抓INPUT裡的資料
+        if (!val) val = "尚未輸入";
+        $(this).parent().html('<p id="td-inner">' + val + '</p>'); //將INPUT元素刪掉，把資料直接放上去
+    }
+
+    function userInfoConfirm() {
+        let userId = $(this).parents('.card-group').attr('id');
+        userId = userId.substr(0, userId.length - 5);
+        let channelId = $(this).parents('.card-group').attr('rel');
+        channelId = channelId.substr(0, channelId.length - 5);
+        let method = $(this).attr('id');
+        if (method === "confirm") {
+            if (confirm("Are you sure to change profile?")) {
+                let data = {
+                    userId: userId,
+                    channelId: channelId
+                };
+                let tds = $(this).parents('.card-group').find('.panelTable tbody td');
+                tds.each(function() {
+                    let prop = $(this).attr('id');
+                    let type = $(this).attr('type');
+                    let value;
+                    if (type === "text") value = $(this).find('#td-inner').text();
+                    else if (type === "time") value = $(this).find('#td-inner').val();
+                    else if (type === "single-select") value = $(this).find('#td-inner').val();
+                    else if (type === "multi-select") value = $(this).find('.multi-selectSelectedText').attr('rel');
+                    if (!value) value = "";
+                    data[prop] = value;
+                });
+                socket.emit('update profile', data);
+            } else {}
+        } else {
+            console.log("cancelled");
+        }
+    }
+    //=====end profile function=====
+
+    //=====start ticket function=====
+    function showTodo() {
+        $('.nav li.active').removeClass('active');
+        $(this).parent().addClass('active');
+        $("#infoCanvas #profile").hide();
+        $("#infoCanvas #todo").show();
+    }
+
+    function loadTable(userId) {
+        $('.ticket-content').empty();
+        $('.ticket_memo').empty();
+        var ticket_memo_list = [];
         $.ajax({
-          url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_memo_list[i] + "/conversations",
-          type: 'GET',
-          contentType: "application/json; charset=utf-8",
-          dataType: "json",
-          headers: {
-            "Authorization": "Basic " + btoa(api_key + ":x")
-          },
-          success: function(data, textStatus, jqXHR) {
-            for(let i = 0; i < data.length; i++) {
-              $('.ticket_memo').prepend('<div class="memo_content">' + data[i].body + '</div>');
+            url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets?include=requester",
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            headers: {
+                "Authorization": "Basic " + btoa(api_key + ":x")
+            },
+            success: function(data, textStatus, jqXHR) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].subject === userId) {
+                        ticketInfo = data;
+                        $('.ticket-content').prepend('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticketInfoModal">' + '<td class="data_id" style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td hidden>' + data[i].description + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>');
+                        ticket_memo_list.push(String(data[i].id));
+                    }
+                }
+            },
+            error: function(jqXHR, tranStatus) {
+                console.log('error');
             }
-          },
-          error: function(jqXHR, tranStatus) {
-            console.log('get ticket error');
-          }
         });
-      }
-    }, 500);
-  } // end of loadTable
-  function moreInfo() {
-    let display;
-    let i = $(this).attr('id');
-    let Tinfo = ticketInfo[i];
-    let Cinfo;
-    let Ainfo;
-    $("#ID_num").text(Tinfo.id);
-    $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
-    display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
-    for(let j in contactInfo) {
-      if(contactInfo[j].id === Tinfo.requester_id) {
-        Cinfo = contactInfo[j];
-        display += '<tr>' + '<th>requester</th>' + '<td>' + Cinfo.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Cinfo.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Cinfo.phone + '</td>' + '</tr>'
-        break;
-      }
-    }
-    for(let j in agentInfo) {
-      if(agentInfo[j].id === Tinfo.requester_id) {
-        Ainfo = agentInfo[j];
-        display += '<tr>' + '<th>requester(<span style="color:red">agent</span>)</th>' + '<td>' + Ainfo.contact.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Ainfo.contact.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Ainfo.contact.phone + '</td>' + '</tr>'
-        break;
-      }
-    }
-    $(".ticket-info-content").html('');
-    $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
-    $(".modal-title").text(Tinfo.requester.name);
-    $(".ticket-info-content").append(display);
-  } // end of moreInfo
-  function showInput() {
-    let prop = $(this).parent().children("th").text();
-    let original = $(this).text();
-    if(prop.indexOf('due date') != -1) {
-      let day = new Date(original);
-      day = Date.parse(day) + 8 * 60 * 60 * 1000;
-      day = new Date(day);
-      $(this).html("<input type='datetime-local' class='inner' value='" + day.toJSON().substring(0, 23) + "'></input>");
-    } else if(prop === 'description') {
-      $(this).html("<textarea  class='inner' rows=4' cols='50'>" + original + "</textarea>");
-    } else {
-      $(this).html("<input type='text' class='inner' value='" + original + "' autofocus>");
-    }
-  } // end of showInput
-  function sortCloseTable(n) {
-    var table, rows, switching, i, x, y,
-    shouldSwitch, dir, switchcount = 0;
-    table = $(".ticket-content");
-    switching = true;
-    //Set the sorting direction to ascending:
-    dir = "asc";
-    /*Make a loop that will continue until
-    no switching has been done:*/
-    while(switching) {
-      //start by saying: no switching is done:
-      switching = false;
-      rows = table.find('tr');
-      /*Loop through all table rows (except the
-      first, which contains table headers):*/
-      for(i = 0; i < (rows.length - 1); i++) {
-        //start by saying there should be no switching:
-        shouldSwitch = false;
-        /*Get the two elements you want to compare,
-        one from current row and one from the next:*/
-        x = rows[i].childNodes[n];
-        y = rows[i + 1].childNodes[n];
-        /*check if the two rows should switch place,
-        based on the direction, asc or desc:*/
-        if(dir === "asc") {
-          if(x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-            //if so, mark as a switch and break the loop:
-            shouldSwitch = true;
-            break;
-          }
-        } else if(dir === "desc") {
-          if(x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-            //if so, mark as a switch and break the loop:
-            shouldSwitch = true;
-            break;
-          }
+        setTimeout(function() {
+            for (var i = 0; i < ticket_memo_list.length; i++) {
+                $.ajax({
+                    url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_memo_list[i] + "/conversations",
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    headers: {
+                        "Authorization": "Basic " + btoa(api_key + ":x")
+                    },
+                    success: function(data, textStatus, jqXHR) {
+                        for (let i = 0; i < data.length; i++) {
+                            $('.ticket_memo').prepend('<div class="memo_content">' + data[i].body + '</div>');
+                        }
+                    },
+                    error: function(jqXHR, tranStatus) {
+                        console.log('get ticket error');
+                    }
+                });
+            }
+        }, 500);
+    } // end of loadTable
+    function moreInfo() {
+        let display;
+        let i = $(this).attr('id');
+        let Tinfo = ticketInfo[i];
+        let Cinfo;
+        let Ainfo;
+        $("#ID_num").text(Tinfo.id);
+        $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
+        display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
+        for (let j in contactInfo) {
+            if (contactInfo[j].id === Tinfo.requester_id) {
+                Cinfo = contactInfo[j];
+                display += '<tr>' + '<th>requester</th>' + '<td>' + Cinfo.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Cinfo.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Cinfo.phone + '</td>' + '</tr>'
+                break;
+            }
         }
-      }
-      if(shouldSwitch) {
-        /*If a switch has been marked, make the switch
-        and mark that a switch has been done:*/
-        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        for (let j in agentInfo) {
+            if (agentInfo[j].id === Tinfo.requester_id) {
+                Ainfo = agentInfo[j];
+                display += '<tr>' + '<th>requester(<span style="color:red">agent</span>)</th>' + '<td>' + Ainfo.contact.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Ainfo.contact.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Ainfo.contact.phone + '</td>' + '</tr>'
+                break;
+            }
+        }
+        $(".ticket-info-content").html('');
+        $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
+        $(".modal-title").text(Tinfo.requester.name);
+        $(".ticket-info-content").append(display);
+    } // end of moreInfo
+    function showInput() {
+        let prop = $(this).parent().children("th").text();
+        let original = $(this).text();
+        if (prop.indexOf('due date') != -1) {
+            let day = new Date(original);
+            day = Date.parse(day) + 8 * 60 * 60 * 1000;
+            day = new Date(day);
+            $(this).html("<input type='datetime-local' class='inner' value='" + day.toJSON().substring(0, 23) + "'></input>");
+        } else if (prop === 'description') {
+            $(this).html("<textarea  class='inner' rows=4' cols='50'>" + original + "</textarea>");
+        } else {
+            $(this).html("<input type='text' class='inner' value='" + original + "' autofocus>");
+        }
+    } // end of showInput
+    function sortCloseTable(n) {
+        var table, rows, switching, i, x, y,
+            shouldSwitch, dir, switchcount = 0;
+        table = $(".ticket-content");
         switching = true;
-        //Each time a switch is done, increase this count by 1:
-        switchcount++;
-      } else {
-        /*If no switching has been done AND the direction is "asc",
-        set the direction to "desc" and run the while loop again.*/
-        if(switchcount === 0 && dir === "asc") {
-          dir = "desc";
-          switching = true;
+        //Set the sorting direction to ascending:
+        dir = "asc";
+        /*Make a loop that will continue until
+        no switching has been done:*/
+        while (switching) {
+            //start by saying: no switching is done:
+            switching = false;
+            rows = table.find('tr');
+            /*Loop through all table rows (except the
+            first, which contains table headers):*/
+            for (i = 0; i < (rows.length - 1); i++) {
+                //start by saying there should be no switching:
+                shouldSwitch = false;
+                /*Get the two elements you want to compare,
+                one from current row and one from the next:*/
+                x = rows[i].childNodes[n];
+                y = rows[i + 1].childNodes[n];
+                /*check if the two rows should switch place,
+                based on the direction, asc or desc:*/
+                if (dir === "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        //if so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir === "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        //if so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                /*If a switch has been marked, make the switch
+                and mark that a switch has been done:*/
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                //Each time a switch is done, increase this count by 1:
+                switchcount++;
+            } else {
+                /*If no switching has been done AND the direction is "asc",
+                set the direction to "desc" and run the while loop again.*/
+                if (switchcount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
         }
-      }
-    }
-  } // end of sortCloseTable
-  function hideInput() {
-    let change = $(this).val();
-    if($(this).attr('type') === 'datetime-local') {
-      $(this).parent().html(displayDate(change));
-    }
-    $(this).parent().html(change);
-  } // end of hideInput
-  function updateStatus() {
-    let select = $(".select"),
-    editable = $(".edit"),
-    input = $("input");
-    let name, value, json = '{';
-    let obj = {};
-    let id = $(this).attr("val");
-    let 客戶名, 客戶ID, 回覆人員, 優先, 狀態, 描述, 到期時間;
-    input.each(function() {
-      $(this).blur();
-    });
-    for(let i = 0; i < editable.length; i++) {
-      name = editable.eq(i).parent().children("th").text().split(" ");
-      value = editable.eq(i).text();
-      json += '"' + name[0] + '":"' + value + '",';
-    }
-    for(let i = 0; i < select.length; i++) {
-      name = select.eq(i).parent().parent().children("th").text();
-      value = select.eq(i).val();
-      json += '"' + name + '":' + value + ','
-    }
-    json += '"id":"' + id + '"}';
-    obj = JSON.parse(json);
-    客戶名 = obj.subject;
-    客戶ID = obj.客戶ID;
-    回覆人員 = obj.回覆人員;
-    優先 = parseInt(obj.優先);
-    狀態 = parseInt(obj.狀態);
-    描述 = obj.描述;
-    obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '"}';
-    if(confirm("確定變更表單？")) {
-      var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
-      $.ajax({
-        url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
-        type: 'PUT',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        headers: {
-          "Authorization": "Basic " + btoa(api_key + ":x")
-        },
-        data: obj,
-        success: function(data, textStatus, jqXHR) {
-          alert("表單已更新");
-          setTimeout(() => {
-            location.reload();
-          }, 500)
-        },
-        error: function(jqXHR, tranStatus) {
-          alert("表單更新失敗，請重試");
+    } // end of sortCloseTable
+    function hideInput() {
+        let change = $(this).val();
+        if ($(this).attr('type') === 'datetime-local') {
+            $(this).parent().html(displayDate(change));
         }
-      });
+        $(this).parent().html(change);
+    } // end of hideInput
+    function updateStatus() {
+        let select = $(".select"),
+            editable = $(".edit"),
+            input = $("input");
+        let name, value, json = '{';
+        let obj = {};
+        let id = $(this).attr("val");
+        let 客戶名, 客戶ID, 回覆人員, 優先, 狀態, 描述, 到期時間;
+        input.each(function() {
+            $(this).blur();
+        });
+        for (let i = 0; i < editable.length; i++) {
+            name = editable.eq(i).parent().children("th").text().split(" ");
+            value = editable.eq(i).text();
+            json += '"' + name[0] + '":"' + value + '",';
+        }
+        for (let i = 0; i < select.length; i++) {
+            name = select.eq(i).parent().parent().children("th").text();
+            value = select.eq(i).val();
+            json += '"' + name + '":' + value + ','
+        }
+        json += '"id":"' + id + '"}';
+        obj = JSON.parse(json);
+        客戶名 = obj.subject;
+        客戶ID = obj.客戶ID;
+        回覆人員 = obj.回覆人員;
+        優先 = parseInt(obj.優先);
+        狀態 = parseInt(obj.狀態);
+        描述 = obj.描述;
+        obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '"}';
+        if (confirm("確定變更表單？")) {
+            var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
+            $.ajax({
+                url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
+                type: 'PUT',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: {
+                    "Authorization": "Basic " + btoa(api_key + ":x")
+                },
+                data: obj,
+                success: function(data, textStatus, jqXHR) {
+                    alert("表單已更新");
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500)
+                },
+                error: function(jqXHR, tranStatus) {
+                    alert("表單更新失敗，請重試");
+                }
+            });
+        }
+    } // end of updateStatus
+    function ticketSearch(e) {
+        let searchStr = $(this).val();
+        let trs = $(this).parents('table').find('tbody').find('tr');
+        trs.each(function() {
+            let text = $(this).text();
+            if (text.indexOf(searchStr) === -1) $(this).hide();
+            else $(this).show();
+        });
     }
-  } // end of updateStatus
-  function ticketSearch(e) {
-    let searchStr = $(this).val();
-    let trs = $(this).parents('table').find('tbody').find('tr');
-    trs.each(function() {
-      let text = $(this).text();
-      if(text.indexOf(searchStr) === -1) $(this).hide();
-      else $(this).show();
-    });
-  }
-  function priorityColor(priority) {
-    switch(priority) {
-      case 4:
-      return 'rgb(230, 100, 100)';
-      break;
-      case 3:
-      return 'rgb(233, 198, 13)';
-      break;
-      case 2:
-      return 'rgb(113, 180, 209)';
-      break;
-      case 1:
-      return 'rgb(126, 215, 170)';
-      break;
-      default:
-      return 'N/A';
-    }
-  } // end of priorityColor
-  function createDate(day) {
-    let html = '';
-    let nowTime = new Date().getTime();
-    let dueday = Date.parse(displayDate(day));
-    let sec = (nowTime - dueday) / 1000;
-    if(sec < 60) return Math.round(sec) + " second(s)";
-    else {
-      let min = sec / 60;
-      if(min < 60) return Math.round(min) + " minute(s)";
-      else {
-        let hr = min / 60;
-        if(hr < 48) return Math.round(hr) + " hours(s)";
+
+    function priorityColor(priority) {
+        switch (priority) {
+            case 4:
+                return 'rgb(230, 100, 100)';
+                break;
+            case 3:
+                return 'rgb(233, 198, 13)';
+                break;
+            case 2:
+                return 'rgb(113, 180, 209)';
+                break;
+            case 1:
+                return 'rgb(126, 215, 170)';
+                break;
+            default:
+                return 'N/A';
+        }
+    } // end of priorityColor
+    function createDate(day) {
+        let html = '';
+        let nowTime = new Date().getTime();
+        let dueday = Date.parse(displayDate(day));
+        let sec = (nowTime - dueday) / 1000;
+        if (sec < 60) return Math.round(sec) + " second(s)";
         else {
-          let day = Math.floor(hr / 24);
-          hr %= 24;
-          return day + " day(s) " + Math.round(hr) + " hour(s) ";
-        }
-      }
-    }
-  } // end of createDate
-  function displayDate(date) {
-    let origin = new Date(date);
-    origin = origin.getTime();
-    let gmt8 = new Date(origin);
-    let yy = gmt8.getFullYear(),
-    mm = gmt8.getMonth() + 1,
-    dd = gmt8.getDate(),
-    hr = gmt8.getHours(),
-    min = gmt8.getMinutes();
-    return yy + "/" + mm + "/" + dd + " " + hr + ":" + min;
-  } // end of displayDate
-  function dueDate(day) {
-    let html = '';
-    let nowTime = new Date().getTime();
-    let dueday = Date.parse(displayDate(day));
-    let hr = dueday - nowTime;
-    hr /= 1000 * 60 * 60;
-    if(hr < 0) {
-      html = '<span class="overdue">過期</span>';
-    } else {
-      html = '<span class="non overdue">即期</span>';
-    }
-    return html;
-  } // end of dueDate
-  function statusNumberToText(status) {
-    switch(status) {
-      case 5:
-      return 'Closed';
-      break;
-      case 4:
-      return 'Resolved';
-      break;
-      case 3:
-      return 'Pending';
-      break;
-      default:
-      return 'Open';
-    }
-  } // end of statusNumberToText
-  function priorityNumberToText(priority) {
-    switch(priority) {
-      case 4:
-      return 'Urgent';
-      break;
-      case 3:
-      return 'High';
-      break;
-      case 2:
-      return 'Medium';
-      break;
-      default:
-      return 'Low';
-    }
-  } // end of priorityNumberToText
-  function responderName(id) {
-    for(let i in agentInfo) {
-      if(agentInfo[i].id === id) return agentInfo[i].contact.name;
-    }
-    return "unassigned";
-  } // end of responderName
-  function showSelect(prop, n) {
-    let html = "<select class='select'>";
-    if(prop === 'priority') {
-      html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
-      for(let i = 1; i < 5; i++) {
-        if(i === n) continue;
-        html += "<option value=" + i + ">" + priorityNumberToText(i) + "</option>";
-      }
-    } else if(prop === 'status') {
-      html += "<option value=" + n + ">" + statusNumberToText(n) + "</option>";
-      for(let i = 2; i < 6; i++) {
-        if(i === n) continue;
-        html += "<option value=" + i + ">" + statusNumberToText(i) + "</option>";
-      }
-    } else if(prop === 'responder') {
-      html += "<option value=" + n + ">" + responderName(n) + "</option>";
-      for(let i in agentInfo) {
-        let id = agentInfo[i].id;
-        if(id === n) continue;
-        html += "<option value=" + id + ">" + responderName(id) + "</option>";
-      }
-    }
-    html += "</select>";
-    return html;
-  } // end of showSelect
-  //=====end ticket function=====
-
-  //=====start internal function=====
-  function displayMessageInternal(data, roomId) {
-    let str;
-    let designated_chat_room_msg_time = $("#" + data.roomId + "-content" + "[rel='internal']").find(".message:last").attr('rel');
-    if(data.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
-      $("#" + data.roomId + "-content" + "[rel='internal']").append('<p class="message-day" style="text-align: center"><strong>-新訊息-</strong></p>');
-    }
-    if(data.agentId == agentId) str = toAgentStr(data.message, data.agentNick, data.time);
-    else str = toUserStr(data.message, data.agentNick, data.time);
-    $("#" + data.roomId + "-content" + "[rel='internal']").append(str); //push message into right canvas
-    $('#' + data.roomId + '-content' + "[rel='internal']").scrollTop($('#' + data.roomId + '-content' + '[rel="internal"]')[0].scrollHeight); //scroll to down
-  } // end of displayMessageInternal
-  function displayClientInternal(data, roomId) {
-    let target = $('.tablinks-area').find(".tablinks[name='" + data.roomId + "'][rel='internal']");
-    if(data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
-      target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
-    } else if(data.message.startsWith('<img')) {
-      target.find("#msg").html(toTimeStr(data.time) + '貼圖'); // 未讀訊息字體變大
-    } else {
-      target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message)); // 未讀訊息字體變大
-    }
-    target.find('.unreadMsg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
-    target.attr("data-recentTime", data.time);
-    // update tablnks's last msg
-    target.find('.unreadMsg').html(data.unRead).css("display", "none");
-    let ele = target.parents('b'); //buttons to b
-    ele.remove();
-    $('.tablinks-area>#clients').prepend(ele);
-  } // end of displayClientInternal
-  function groupPhotoChoose() {
-    let container = $(this).parents('.photo-container');
-    container.find('.photo-ghost').click();
-  }
-  function groupPhotoUpload() {
-    if(0 < this.files.length) {
-      let fileContainer = $(this).parents('.photo-container');
-      let img = fileContainer.find('img');
-
-      let file = this.files[0];
-      let storageRef = firebase.storage().ref();
-      let fileRef = storageRef.child(file.lastModified + '_' + file.name);
-      fileRef.put(file).then(function(snapshot) {
-        let url = snapshot.a.downloadURLs[0];
-        img.attr('src', url);
-      });
-    }
-  }
-  function internalConfirm() {
-
-    let method = $(this).attr('id');
-    if(method === "confirm") {
-      if(confirm("Are you sure to change profile?")) {
-        let cardGroup = $(this).parents('.card-group');
-        let roomId = cardGroup.attr('id');
-        roomId = roomId.substr(0, roomId.length - 5);
-        let photo = cardGroup.find('.photo-choose');
-        let data = {
-          roomId: roomId,
-          photo: photo.attr('src')
-        };
-        let tds = cardGroup.find('.panelTable tbody td');
-        tds.each(function() {
-          let prop = $(this).attr('id');
-          let type = $(this).attr('type');
-          let value;
-          if(type === "text") value = $(this).find('#td-inner').text();
-          else if(type === "time") value = $(this).find('#td-inner').val();
-          else if(type === "single-select") value = $(this).find('#td-inner').val();
-          else if(type === "multi-select") value = $(this).find('.multi-selectSelectedText').attr('rel');
-          if(!value) value = "";
-          data[prop] = value;
-          console.log(data);
-        });
-        socket.emit('update internal profile', data);
-      }
-    } else {
-      console.log("cancelled");
-    }
-  }
-  //=====end internal function
-
-  //=====start searchBox change func=====
-  var $tablinks = [];
-  var $panels = [];
-  var $clientNameOrTexts = [];
-  searchBox.on('keypress', function(e) {
-    let count = 0;
-    $tablinks = [];
-    $panels = [];
-    $clientNameOrTexts = [];
-    let code = (e.keyCode ? e.keyCode : e.which);
-    if(code != 13) return;
-    let searchStr = $(this).val().toLowerCase();
-    if(searchStr === "") {
-      $('#search-right').addClass('invisible');
-      displayAll();
-      $('.tablinks').each(function() {
-        let id = $(this).attr('name');
-        let room = $(this).attr('rel');
-        let panel = $("div #" + id + "-content[rel='" + room + "']");
-        panel.find(".message").each(function() {
-          $(this).find('.content').removeClass('found');
-        });
-      });
-    } else {
-
-      $('.tablinks').each(function() {
-        $self = $(this);
-        let id = $(this).attr('name');
-        let room = $(this).attr('rel');
-        let panel = $("div #" + id + "-content[rel='" + room + "']");
-        let color = "";
-        let display = false;
-
-        // 客戶名單搜尋
-        $(this).find('.clientName').each(function() {
-          let text = $(this).text();
-          if(text.toLowerCase().indexOf(searchStr) != -1) {
-            if(0 === count){
-              $self.trigger('click');
+            let min = sec / 60;
+            if (min < 60) return Math.round(min) + " minute(s)";
+            else {
+                let hr = min / 60;
+                if (hr < 48) return Math.round(hr) + " hours(s)";
+                else {
+                    let day = Math.floor(hr / 24);
+                    hr %= 24;
+                    return day + " day(s) " + Math.round(hr) + " hour(s) ";
+                }
             }
-            $tablinks.push($self);
-            $panels.push(null);
-            $clientNameOrTexts.push(null);
-            count += 1;
-            $(this).find('.content').addClass('found');
-            display = true;
-          }else{
-            $(this).find('.content').removeClass('found');
-
-          }
-        });
-        // 聊天室搜尋
-        panel.find(".message").each(function() {
-          let text = $(this).find('.content').text();
-          var $content = $(this).find('.content');
-          if(text.toLowerCase().indexOf(searchStr) != -1) {
-            // displayMessage match的字標黃
-            if(0 === count){
-              $self.trigger('click');
-              var top = $(this).offset().top;
-              panel.scrollTop(top + SCROLL.HEIGHT);
+        }
+    } // end of createDate
+    function displayDate(date) {
+        let origin = new Date(date);
+        origin = origin.getTime();
+        let gmt8 = new Date(origin);
+        let yy = gmt8.getFullYear(),
+            mm = gmt8.getMonth() + 1,
+            dd = gmt8.getDate(),
+            hr = gmt8.getHours(),
+            min = gmt8.getMinutes();
+        return yy + "/" + mm + "/" + dd + " " + hr + ":" + min;
+    } // end of displayDate
+    function dueDate(day) {
+        let html = '';
+        let nowTime = new Date().getTime();
+        let dueday = Date.parse(displayDate(day));
+        let hr = dueday - nowTime;
+        hr /= 1000 * 60 * 60;
+        if (hr < 0) {
+            html = '<span class="overdue">過期</span>';
+        } else {
+            html = '<span class="non overdue">即期</span>';
+        }
+        return html;
+    } // end of dueDate
+    function statusNumberToText(status) {
+        switch (status) {
+            case 5:
+                return 'Closed';
+                break;
+            case 4:
+                return 'Resolved';
+                break;
+            case 3:
+                return 'Pending';
+                break;
+            default:
+                return 'Open';
+        }
+    } // end of statusNumberToText
+    function priorityNumberToText(priority) {
+        switch (priority) {
+            case 4:
+                return 'Urgent';
+                break;
+            case 3:
+                return 'High';
+                break;
+            case 2:
+                return 'Medium';
+                break;
+            default:
+                return 'Low';
+        }
+    } // end of priorityNumberToText
+    function responderName(id) {
+        for (let i in agentInfo) {
+            if (agentInfo[i].id === id) return agentInfo[i].contact.name;
+        }
+        return "unassigned";
+    } // end of responderName
+    function showSelect(prop, n) {
+        let html = "<select class='select'>";
+        if (prop === 'priority') {
+            html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
+            for (let i = 1; i < 5; i++) {
+                if (i === n) continue;
+                html += "<option value=" + i + ">" + priorityNumberToText(i) + "</option>";
             }
-            $tablinks.push($self);
-            $panels.push(panel);
-            $clientNameOrTexts.push($(this));
-            count += 1;
-            $(this).find('.content').addClass('found');
-            // displayClient顯示"找到訊息"並標紅
-            display = true;
+        } else if (prop === 'status') {
+            html += "<option value=" + n + ">" + statusNumberToText(n) + "</option>";
+            for (let i = 2; i < 6; i++) {
+                if (i === n) continue;
+                html += "<option value=" + i + ">" + statusNumberToText(i) + "</option>";
+            }
+        } else if (prop === 'responder') {
+            html += "<option value=" + n + ">" + responderName(n) + "</option>";
+            for (let i in agentInfo) {
+                let id = agentInfo[i].id;
+                if (id === n) continue;
+                html += "<option value=" + id + ">" + responderName(id) + "</option>";
+            }
+        }
+        html += "</select>";
+        return html;
+    } // end of showSelect
+    //=====end ticket function=====
 
-            $('[name="' + id + '"][rel="' + room + '"]').find('#msg').css('color', COLOR.FIND).text("找到訊息");
-          }else{
-            $(this).find('.content').removeClass('found');
+    //=====start internal function=====
+    function displayMessageInternal(data, roomId) {
+        let str;
+        let designated_chat_room_msg_time = $("#" + data.roomId + "-content" + "[rel='internal']").find(".message:last").attr('rel');
+        if (data.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
+            $("#" + data.roomId + "-content" + "[rel='internal']").append('<p class="message-day" style="text-align: center"><strong>-新訊息-</strong></p>');
+        }
+        if (data.agentId == agentId) str = toAgentStr(data.message, data.agentNick, data.time);
+        else str = toUserStr(data.message, data.agentNick, data.time);
+        $("#" + data.roomId + "-content" + "[rel='internal']").append(str); //push message into right canvas
+        $('#' + data.roomId + '-content' + "[rel='internal']").scrollTop($('#' + data.roomId + '-content' + '[rel="internal"]')[0].scrollHeight); //scroll to down
+    } // end of displayMessageInternal
+    function displayClientInternal(data, roomId) {
+        let target = $('.tablinks-area').find(".tablinks[name='" + data.roomId + "'][rel='internal']");
+        if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
+            target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
+        } else if (data.message.startsWith('<img')) {
+            target.find("#msg").html(toTimeStr(data.time) + '貼圖'); // 未讀訊息字體變大
+        } else {
+            target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message)); // 未讀訊息字體變大
+        }
+        target.find('.unreadMsg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
+        target.attr("data-recentTime", data.time);
+        // update tablnks's last msg
+        target.find('.unreadMsg').html(data.unRead).css("display", "none");
+        let ele = target.parents('b'); //buttons to b
+        ele.remove();
+        $('.tablinks-area>#clients').prepend(ele);
+    } // end of displayClientInternal
+    function groupPhotoChoose() {
+        let container = $(this).parents('.photo-container');
+        container.find('.photo-ghost').click();
+    }
 
-          }
+    function groupPhotoUpload() {
+        if (0 < this.files.length) {
+            let fileContainer = $(this).parents('.photo-container');
+            let img = fileContainer.find('img');
+
+            let file = this.files[0];
+            let storageRef = firebase.storage().ref();
+            let fileRef = storageRef.child(file.lastModified + '_' + file.name);
+            fileRef.put(file).then(function(snapshot) {
+                let url = snapshot.a.downloadURLs[0];
+                img.attr('src', url);
+            });
+        }
+    }
+
+    function internalConfirm() {
+
+        let method = $(this).attr('id');
+        if (method === "confirm") {
+            if (confirm("Are you sure to change profile?")) {
+                let cardGroup = $(this).parents('.card-group');
+                let roomId = cardGroup.attr('id');
+                roomId = roomId.substr(0, roomId.length - 5);
+                let photo = cardGroup.find('.photo-choose');
+                let data = {
+                    roomId: roomId,
+                    photo: photo.attr('src')
+                };
+                let tds = cardGroup.find('.panelTable tbody td');
+                tds.each(function() {
+                    let prop = $(this).attr('id');
+                    let type = $(this).attr('type');
+                    let value;
+                    if (type === "text") value = $(this).find('#td-inner').text();
+                    else if (type === "time") value = $(this).find('#td-inner').val();
+                    else if (type === "single-select") value = $(this).find('#td-inner').val();
+                    else if (type === "multi-select") value = $(this).find('.multi-selectSelectedText').attr('rel');
+                    if (!value) value = "";
+                    data[prop] = value;
+                    console.log(data);
+                });
+                socket.emit('update internal profile', data);
+            }
+        } else {
+            console.log("cancelled");
+        }
+    }
+    //=====end internal function
+
+    //=====start searchBox change func=====
+    var $tablinks = [];
+    var $panels = [];
+    var $clientNameOrTexts = [];
+    searchBox.on('keypress', function(e) {
+        let count = 0;
+        $tablinks = [];
+        $panels = [];
+        $clientNameOrTexts = [];
+        let code = (e.keyCode ? e.keyCode : e.which);
+        if (code != 13) return;
+        let searchStr = $(this).val().toLowerCase();
+        if (searchStr === "") {
+            $('#search-right').addClass('invisible');
+            displayAll();
+            $('.tablinks').each(function() {
+                let id = $(this).attr('name');
+                let room = $(this).attr('rel');
+                let panel = $("div #" + id + "-content[rel='" + room + "']");
+                panel.find(".message").each(function() {
+                    $(this).find('.content').removeClass('found');
+                });
+            });
+        } else {
+
+            $('.tablinks').each(function() {
+                $self = $(this);
+                let id = $(this).attr('name');
+                let room = $(this).attr('rel');
+                let panel = $("div #" + id + "-content[rel='" + room + "']");
+                let color = "";
+                let display = false;
+
+                // 客戶名單搜尋
+                $(this).find('.clientName').each(function() {
+                    let text = $(this).text();
+                    if (text.toLowerCase().indexOf(searchStr) != -1) {
+                        if (0 === count) {
+                            $self.trigger('click');
+                        }
+                        $tablinks.push($self);
+                        $panels.push(null);
+                        $clientNameOrTexts.push(null);
+                        count += 1;
+                        $(this).find('.content').addClass('found');
+                        display = true;
+                    } else {
+                        $(this).find('.content').removeClass('found');
+
+                    }
+                });
+                // 聊天室搜尋
+                panel.find(".message").each(function() {
+                    let text = $(this).find('.content').text();
+                    var $content = $(this).find('.content');
+                    if (text.toLowerCase().indexOf(searchStr) != -1) {
+                        // displayMessage match的字標黃
+                        if (0 === count) {
+                            $self.trigger('click');
+                            var top = $(this).offset().top;
+                            panel.scrollTop(top + SCROLL.HEIGHT);
+                        }
+                        $tablinks.push($self);
+                        $panels.push(panel);
+                        $clientNameOrTexts.push($(this));
+                        count += 1;
+                        $(this).find('.content').addClass('found');
+                        // displayClient顯示"找到訊息"並標紅
+                        display = true;
+
+                        $('[name="' + id + '"][rel="' + room + '"]').find('#msg').css('color', COLOR.FIND).text("找到訊息");
+                    } else {
+                        $(this).find('.content').removeClass('found');
+
+                    }
+                });
+
+                if (1 <= count) {
+                    $('#this-number').html(1);
+                    $('#total-number').html(count);
+                    $('#search-right').removeClass('invisible');
+                    $(this).css('color', color);
+                }
+
+
+                if (display === false) {
+                    $(this).css('display', 'none');
+                } else {
+                    $(this).css('display', 'block');
+                }
+
+            });
+        }
+    });
+    $('div.search .glyphicon-chevron-up').on('click', (e) => {
+        var i = Number($('#this-number').html());
+        var total = Number($('#total-number').html());
+        if (Number(i) <= 1) {
+            i = total;
+        } else {
+            i -= 　1;
+        }
+        var $panel = $panels[(i - 1)];
+        var $tablink = $tablinks[(i - 1)];
+        $tablink.trigger('click');
+        if (null !== $clientNameOrTexts[(i - 1)]) {
+            var $clientNameOrText = $clientNameOrTexts[(i - 1)];
+            var top = $clientNameOrText.offset().top;
+            $panel.scrollTop(top + SCROLL.HEIGHT);
+        }
+        $('#this-number').html(Number(i));
+    });
+    $('div.search .glyphicon-chevron-down').on('click', (e) => {
+        var i = Number($('#this-number').html());
+        var total = Number($('#total-number').html());
+        if (Number(i) >= total) {
+            i = 1;
+        } else {
+            i += 　1;
+        }
+        var $panel = $panels[(i - 1)];
+        var $tablink = $tablinks[(i - 1)];
+        $tablink.trigger('click');
+        if (null !== $clientNameOrTexts[(i - 1)]) {
+            var $clientNameOrText = $clientNameOrTexts[(i - 1)];
+            var top = $clientNameOrText.offset().top;
+            $panel.scrollTop(top + SCROLL.HEIGHT);
+        }
+        $('#this-number').html(Number(i));
+
+    });
+
+    function displayAll() {
+        $('.tablinks').each(function() {
+            let id = $(this).attr('name');
+            let rel = $(this).attr('rel');
+            $(this).find('#msg').text($("div #" + id + "-content" + "[rel='" + rel + "']" + " .message:last").find('.content').text().trim()).css('color', 'black');
+            $("div #" + id + "-content" + "[rel='" + rel + "']" + " .message").find('.content').css({
+                "color": "black",
+                "background-color": "lightgrey"
+            });
+            $(this).find('.clientName').css({
+                "color": "black",
+                "background-color": ""
+            });
         });
-
-        if(1 <= count){
-          $('#this-number').html(1);
-          $('#total-number').html(count);
-          $('#search-right').removeClass('invisible');
-          $(this).css('color', color);
+    } // end of displayAll
+    function sortUsers(ref, up_or_down, operate) {
+        let arr = $('#clients b');
+        for (let i = 0; i < arr.length - 1; i++) {
+            for (let j = i + 1; j < arr.length; j++) {
+                let a = arr.eq(i).children(".tablinks").attr("data-" + ref) - '0';
+                let b = arr.eq(j).children(".tablinks").attr("data-" + ref) - '0';
+                if (up_or_down === operate(a, b)) {
+                    let tmp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = tmp;
+                }
+            }
         }
+        $('#clients').append(arr);
+    } //end of sortUsers
+    //=====end searchBox change func=====
 
-
-        if(display === false){
-          $(this).css('display', 'none');
-        }else{
-          $(this).css('display', 'block');
+    //=====start utility function
+    function toAgentStr(msg, name, time) {
+        if (msg.startsWith("<a") || msg.startsWith("<img")) {
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="sendTime">' + toTimeStr(time) + '</span><span class="content">  ' + msg + '</span><strong></strong><br/></p>';
+        } else {
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="sendTime">' + toTimeStr(time) + '</span><span class="content" style="border:1px solid #b5e7a0; padding:8px; border-radius:10px; background-color:#b5e7a0">  ' + msg + '</span><strong></strong><br/></p>';
         }
-
-      });
-    }
-  });
-  $('div.search .glyphicon-chevron-up').on('click', (e) => {
-    var i = Number($('#this-number').html());
-    var total = Number($('#total-number').html());
-    if(Number(i) <= 1){
-      i = total;
-    }else{
-      i -=　1;
-    }
-    var $panel = $panels[ (i-1) ];
-    var $tablink = $tablinks[ (i-1) ];
-    $tablink.trigger('click');
-    if(null !== $clientNameOrTexts[(i-1)]){
-      var $clientNameOrText = $clientNameOrTexts[(i-1)];
-      var top = $clientNameOrText.offset().top;
-      $panel.scrollTop(top + SCROLL.HEIGHT);
-    }
-    $('#this-number').html(Number(i));
-  });
-  $('div.search .glyphicon-chevron-down').on('click', (e) => {
-    var i = Number($('#this-number').html());
-    var total = Number($('#total-number').html());
-    if(Number(i) >= total){
-      i = 1;
-    }else{
-      i +=　1;
-    }
-    var $panel = $panels[ (i-1) ];
-    var $tablink = $tablinks[ (i-1) ];
-    $tablink.trigger('click');
-    if(null !== $clientNameOrTexts[(i-1)]){
-      var $clientNameOrText = $clientNameOrTexts[(i-1)];
-      var top = $clientNameOrText.offset().top;
-      $panel.scrollTop(top + SCROLL.HEIGHT);
-    }
-    $('#this-number').html(Number(i));
-
-  });
-  function displayAll() {
-    $('.tablinks').each(function() {
-      let id = $(this).attr('name');
-      let rel = $(this).attr('rel');
-      $(this).find('#msg').text($("div #" + id + "-content" + "[rel='" + rel + "']" + " .message:last").find('.content').text().trim()).css('color', 'black');
-      $("div #" + id + "-content" + "[rel='" + rel + "']" + " .message").find('.content').css({
-        "color": "black",
-        "background-color": "lightgrey"
-      });
-      $(this).find('.clientName').css({
-        "color": "black",
-        "background-color": ""
-      });
-    });
-  } // end of displayAll
-  function sortUsers(ref, up_or_down, operate) {
-    let arr = $('#clients b');
-    for(let i = 0; i < arr.length - 1; i++) {
-      for(let j = i + 1; j < arr.length; j++) {
-        let a = arr.eq(i).children(".tablinks").attr("data-" + ref) - '0';
-        let b = arr.eq(j).children(".tablinks").attr("data-" + ref) - '0';
-        if(up_or_down === operate(a, b)) {
-          let tmp = arr[i];
-          arr[i] = arr[j];
-          arr[j] = tmp;
+    } // end of toAgentStr
+    function toUserStr(msg, name, time) {
+        if (msg.startsWith("<a") || msg.startsWith("<img")) {
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content">  ' + msg + '</span><span class="sendTime">' + toTimeStr(time) + '</span><br/></p>';
+        } else {
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span style="border:1px solid lightgrey;background-color:lightgrey; padding:8px; border-radius:10px" class="content">  ' + msg + '</span><span class="sendTime">' + toTimeStr(time) + '</span><br/></p>';
         }
-      }
+    } // end of toUserStr
+    function lastMsgToStr(msg) {
+        if (msg.message.startsWith('<a')) {
+            return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送檔案</div>';
+        } else if (msg.message.startsWith('<img')) {
+            return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送貼圖</div>';
+        } else {
+            return '<br><div id="msg">' + toTimeStr(msg.time) + loadMessageInDisplayClient(msg.message) + '</div>';
+        }
     }
-    $('#clients').append(arr);
-  } //end of sortUsers
-  //=====end searchBox change func=====
 
-  //=====start utility function
-  function toAgentStr(msg, name, time) {
-    if(msg.startsWith("<a") || msg.startsWith("<img")) {
-      return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="sendTime">' + toTimeStr(time) + '</span><span class="content">  ' + msg + '</span><strong></strong><br/></p>';
-    } else {
-      return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="sendTime">' + toTimeStr(time) + '</span><span class="content" style="border:1px solid #b5e7a0; padding:8px; border-radius:10px; background-color:#b5e7a0">  ' + msg + '</span><strong></strong><br/></p>';
-    }
-  } // end of toAgentStr
-  function toUserStr(msg, name, time) {
-    if(msg.startsWith("<a") || msg.startsWith("<img")) {
-      return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content">  ' + msg + '</span><span class="sendTime">' + toTimeStr(time) + '</span><br/></p>';
-    } else {
-      return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span style="border:1px solid lightgrey;background-color:lightgrey; padding:8px; border-radius:10px" class="content">  ' + msg + '</span><span class="sendTime">' + toTimeStr(time) + '</span><br/></p>';
-    }
-  } // end of toUserStr
-  function lastMsgToStr(msg) {
-    if(msg.message.startsWith('<a')) {
-      return '<br><div id="msg">'+ toTimeStr(msg.time) + '客戶傳送檔案</div>';
-    }
-    else if(msg.message.startsWith('<img')) {
-      return '<br><div id="msg">'+ toTimeStr(msg.time) + '客戶傳送貼圖</div>';
-    }
-    else {
-      return '<br><div id="msg">'+ toTimeStr(msg.time) + loadMessageInDisplayClient(msg.message) + '</div>';
-    }
-  }
-  function loadMessageInDisplayClient(msg) {
-    if(msg.length > 10) {
-      return msg = msg.substr(0, 10) + '...';
-    } else {
-      return msg;
-    }
-  } // end of loadMessageInDisplayClient
-  function toDateStr(input) {
-    let str = " ";
-    let date = new Date(input);
-    str += date.getFullYear() + '/' + addZero(date.getMonth() + 1) + '/' + addZero(date.getDate()) + ' ';
-    let week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    str += week[date.getDay()] + ' ' + addZero(date.getHours()) + ':' + addZero(date.getMinutes());
-    return str;
-  } // end of toDateStr
-  function toTimeStr(input) {
-    let date = new Date(input);
-    return " (" + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ") ";
-  } // end of toTimeStr
-  function toTimeStrMinusQuo(input) {
-    let date = new Date(input);
-    return addZero(date.getHours()) + ':' + addZero(date.getMinutes());
-  } // end of toTimeStrMinusQuo
-  function multiSelectChange() {
-    let valArr = [];
-    let textArr = [];
-    let boxes = $(this).find('input');
-    boxes.each(function() {
-      if($(this).is(':checked')) {
-        valArr.push($(this).val());
-        textArr.push($(this).parents('li').text());
-      }
-    });
-    valArr = valArr.join(',');
-    if(textArr.length === boxes.length) textArr = "全選";
-    else textArr = textArr.join(',');
-    $(this).parent().find($('.multi-selectSelectedText')).text(textArr).attr('rel', valArr);
-  } // end of multiSelectChange
-  function addZero(val) {
-    return val < 10 ? '0' + val : val;
-  } // end of addZero
-  function ISODateTimeString(d) {
-    d = new Date(d);
+    function loadMessageInDisplayClient(msg) {
+        if (msg.length > 10) {
+            return msg = msg.substr(0, 10) + '...';
+        } else {
+            return msg;
+        }
+    } // end of loadMessageInDisplayClient
+    function toDateStr(input) {
+        let str = " ";
+        let date = new Date(input);
+        str += date.getFullYear() + '/' + addZero(date.getMonth() + 1) + '/' + addZero(date.getDate()) + ' ';
+        let week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        str += week[date.getDay()] + ' ' + addZero(date.getHours()) + ':' + addZero(date.getMinutes());
+        return str;
+    } // end of toDateStr
+    function toTimeStr(input) {
+        let date = new Date(input);
+        return " (" + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ") ";
+    } // end of toTimeStr
+    function toTimeStrMinusQuo(input) {
+        let date = new Date(input);
+        return addZero(date.getHours()) + ':' + addZero(date.getMinutes());
+    } // end of toTimeStrMinusQuo
+    function multiSelectChange() {
+        let valArr = [];
+        let textArr = [];
+        let boxes = $(this).find('input');
+        boxes.each(function() {
+            if ($(this).is(':checked')) {
+                valArr.push($(this).val());
+                textArr.push($(this).parents('li').text());
+            }
+        });
+        valArr = valArr.join(',');
+        if (textArr.length === boxes.length) textArr = "全選";
+        else textArr = textArr.join(',');
+        $(this).parent().find($('.multi-selectSelectedText')).text(textArr).attr('rel', valArr);
+    } // end of multiSelectChange
+    function addZero(val) {
+        return val < 10 ? '0' + val : val;
+    } // end of addZero
+    function ISODateTimeString(d) {
+        d = new Date(d);
 
-    return d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
-  } // end of ISODateTimeString
-  //=====end utility function
+        return d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
+    } // end of ISODateTimeString
+    //=====end utility function
 
 }); //document ready close
