@@ -35,7 +35,7 @@ function getProfile() {
         let profile = data.val();
         let name = profile.name;
         let email = profile.email;
-        document.cookie = "name=" + name + "email=" + email + ";domain=" + domain;
+        document.cookie = "name=" + name + ";email=" + email + ";domain=" + domain;
         console.log(name);
     });
 }
