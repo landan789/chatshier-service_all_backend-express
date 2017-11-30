@@ -21,146 +21,212 @@
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
-        <div id="home">
-            <h3> 自訂Line Template</h3>
-            <button type="button" class="btn btn-default" id="new-template" data-toggle="modal" data-target="#template-modal">新增template</button>
+    <div id="home">
+        <h3> 自訂Line Template</h3>
+        <button type="button" class="btn btn-default" id="new-template" data-toggle="modal" data-target="#template-modal">新增template</button>
 
-
-            <div class="modal fade" id="template-modal" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="/foo-route" id="template-form">
-                                <!-- 編號 -->
-                                <div class="form-group" hidden>
-                                    <label for="template-id" class="col-2 col-form-label">ID</label>
-                                    <span id="template-id"></span>
-                                </div>
-                                <!-- Keyword -->
-                                <div class="form-group">
-                                    <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong>
-                    <div class="col-4">
-                      <input class="form-control" type="text" value="" id="template-keyword">
+        <!-- new modal -->
+        <div class="modal fade" id="template-modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                  </label>
-                                </div>
-                                <!-- Type -->
-                                <div class="form-group">
-                                    <label class="col-2 col-form-label"><strong>類型:</strong>
-                    <div class="col-4">
-                      <select class="form-control" id="template-type">
-                        <option disabled selected value> -- 請選擇 -- </option>
-                        <option value="buttons">按鈕</option>
-                        <option value="confirm">是非題</option>
-                        <option value="carousel">多欄</option>
-                        <!-- <option value="image_carousel">圖片多欄</option> -->
-                      </select>
-                    </div>
-                  </label>
-                                </div>
-                                <!-- AltText -->
-                                <div class="form-group view-confirm view-button view-carousel">
-                                    <label class="col-2 col-form-label"><strong>電腦版替代文字:</strong>
-                    <div class="col-4">
-                      <input class="form-control" type="text" value="" id="template-altText">
-                    </div>
-                  </label>
-                                </div>
-                                <div class="view-button view-carousel">
-                                    <div class="form-group view-carousel">
-                                        <!-- <strong class="column-indicator">第一欄</strong> -->
-                                        <ul class="nav nav-pills">
-                                            <li class="active"><a data-toggle="pill" href="#template-column-1">第一欄</a></li>
-                                            <li><a data-toggle="pill" href="#template-column-2">第二欄</a></li>
-                                            <li><a data-toggle="pill" href="#template-column-3">第三欄</a></li>
-                                        </ul>
+                    <div class="modal-body">
+                        <form method="POST" action="/foo-route" id="template-form">
+                            <!-- 編號 -->
+                            <div class="form-group" hidden>
+                                <label for="template-id" class="col-2 col-form-label">ID</label>
+                                <span id="template-id"></span>
+                            </div>
+                            <!-- Keyword -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong>
+                                    <div class="col-4">
+                                        <input class="form-control" type="text" value="" id="template-keyword">
                                     </div>
-                                    <div class="tab-content">
-                                        <% for(let i=0; i<10; i++) {%>
-                                            <div id="template-column-<%= i %>" class="tab-pane fade">
-                                                <div class="form-group">
-                                                    <label class="col-2 col-form-label"><strong>標題:</strong>
-                            <div class="col-4">
-                              <input class="form-control" type="text" value="" id="column-title'">
+                                </label>
                             </div>
-                          </label>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-2 col-form-label"><strong>說明文字:</strong>
-                            <div class="col-4">
-                              <input class="form-control" type="text" value="" id="column-text'">
+                            <!-- Type -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label"><strong>類型:</strong>
+                                    <div class="col-4">
+                                        <select class="form-control" id="template-type">
+                                            <option disabled selected value> -- 請選擇 -- </option>
+                                            <option value="buttons">按鈕</option>
+                                            <option value="confirm">是非題</option>
+                                            <option value="carousel">多欄</option>
+                                            <!-- <option value="image_carousel">圖片多欄</option> -->
+                                        </select>
+                                    </div>
+                                </label>
                             </div>
-                          </label>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-2 col-form-label"><strong>圖片:</strong>
-                            <div class="col-4">
-                              <input class="hidden" type="text" value="" id="column-thumbnailImageUrl" >
-                              <img src id="preview-thumbnailImageUrl"></img>
+                            <!-- AltText -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label"><strong>電腦版替代文字:</strong>
+                                    <div class="col-4">
+                                        <input class="form-control" type="text" value="" id="template-altText">
+                                    </div>
+                                </label>
                             </div>
-                          </label>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-2 col-form-label"><strong>選項:</strong>
-                            <div class="col-4">
-                              <div class="action">
-                                <p>label: </p>
-                                <input class="form-control" type="text" value="" id="action-label'">
-                                <p>text: </p>
-                                <input class="form-control" type="text" value="" id="template-text'">
-                              </div>
-                              <div class="action">
-                                <p>label: </p>
-                                <input class="form-control" type="text" value="" id="action-label'">
-                                <p>text: </p>
-                                <input class="form-control" type="text" value="" id="template-text'">
-                              </div>
-                              <div class="action">
-                                <p>label: </p>
-                                <input class="form-control" type="text" value="" id="action-label'">
-                                <p>text: </p>
-                                <input class="form-control" type="text" value="" id="template-text'">
-                              </div>
-                            </div>
-                          </label>
+                            <!-- button, carousel field -->
+                            <div id="carousel-container" class="template-view carousel slide" rel="carousel buttons" data-ride="carousel"  data-interval="false">
+                                <!-- Wrapper for slides -->
+                                <div class="carousel-inner">
+                                    <div class="item active">
+                                        <div class="rounded-border">
+                                            <div class="line-content">
+                                                <div class="line-thumbnailImageUrl">
+                                                    <input type="file" class="image-ghost" accept="image/*">
+                                                    <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
                                                 </div>
                                             </div>
-                                            <% } %>
-
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            </div>
+                                            <div class="line-content">
+                                                <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            </div>
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <div class="line-action" id="row-1">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-2">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-3">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item">
+                                        <div class="rounded-border">
+                                            <div class="line-content">
+                                                <div class="line-thumbnailImageUrl">
+                                                    <input type="file" class="image-ghost" accept="image/*">
+                                                    <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
+                                                </div>
+                                            </div>
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            </div>
+                                            <div class="line-content">
+                                                <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            </div>
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <div class="line-action" id="row-1">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-2">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-3">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="item">
+                                        <div class="rounded-border">
+                                            <div class="line-content">
+                                                <div class="line-thumbnailImageUrl">
+                                                    <input type="file" class="image-ghost" accept="image/*">
+                                                    <img alt="請點選以上傳圖片，長寬比請設定為1:1.51" class="image-upload" src="">
+                                                </div>
+                                            </div>
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            </div>
+                                            <div class="line-content">
+                                                <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            </div>
+                                            <div class="divider-line"></div>
+                                            <div class="line-content">
+                                                <div class="line-action" id="row-1">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-2">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                                <div class="line-action" id="row-3">
+                                                    <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                                    <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                            <button type="button" class="btn btn-primary" id="prof-submit-basic">確認</button>
-                        </div>
+                                <!-- Left and right controls -->
+                                <div class="template-view" rel="carousel">
+                                    <a class="left carousel-control" href="#carousel-container" data-slide="prev">
+                                        <span class="glyphicon glyphicon-chevron-left"></span>
+                                        <span class="sr-only">Previous</span>
+                                    </a>
+                                    <a class="right carousel-control" href="#carousel-container" data-slide="next">
+                                        <span class="glyphicon glyphicon-chevron-right"></span>
+                                        <span class="sr-only">Next</span>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- button carousel field end -->
+                            <div class="template-view" rel="confirm">
+                                <div class="rounded-border">
+                                    <div class="line-content">
+                                        <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="240">
+                                    </div>
+                                    <div class="divider-line"></div>
+                                    <div class="line-content">
+                                        <div class="line-action" id="row-1">
+                                            <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                            <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                        </div>
+                                        <div class="line-action" id="row-2">
+                                            <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
+                                            <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="modal-create">確認</button>
                     </div>
                 </div>
             </div>
-
-
-
-
         </div>
-        <% include ../views/partials/firebase_disable.ejs %>
-            <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-            <script src="https://www.amcharts.com/lib/3/serial.js"></script>
-            <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-            <script src="config/firebaseConfig.js"></script>
-            <script src="javascripts/firebaseAuth.js"></script>
-            <script src="javascripts/navigation.js"></script>
-            <script src="javascripts/template.js"></script>
-            <script src="javascripts/partials/firebase-disable.js"></script>
+        <!-- end new modal -->
+    </div>
+    <% include ../views/partials/firebase_disable.ejs %>
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="config/firebaseConfig.js"></script>
+    <script src="javascripts/firebaseAuth.js"></script>
+    <script src="javascripts/navigation.js"></script>
+    <script src="javascripts/template.js"></script>
+    <script src="javascripts/partials/firebase-disable.js"></script>
 </body>
 
 </html>

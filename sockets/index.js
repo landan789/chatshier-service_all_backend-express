@@ -363,6 +363,12 @@ function init(server) {
       });
       /*===分析end===*/
 
+      /*===template start===*/
+      socket.on('create template', (data) => {
+          linetemplate.set(data.keyword, data);
+      });
+      /*===template end===*/
+
       // 新使用者
       socket.on('new user', (id, hasNickName) => {
         users.getUser(id, (data) => {
@@ -430,6 +436,9 @@ function init(server) {
             console.log("autoreply bot replyed!");
           }
           if( lineTemplateReply(msgObj.message)!==-1 ) {
+            console.log("line template bot replyed!");
+          }
+          if( lineTemplateReplyDemo(msgObj.message)!==-1 ) {
             console.log("linebotdemo bot replyed!");
           }
           if( surveyReply(msgObj.message)!==-1 ) {
@@ -493,18 +502,30 @@ function init(server) {
                 if(!sent) return -1;
             });
         }
-        function lineTemplateReply( msg ) {
-          replyMsgObj.name = "Line Template Demo Reply";
-          linetemplate.get( function( templateData ) {
-            let data = templateData[msg];
-            if( data ) {
-              replyMsgObj.message = data.altText;
-              pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
-              templateToStr = JSON.stringify(data);
-              send_to_Line("/template "+templateToStr, receiverId, channelId);
-            }
-            else return -1;
-          });
+        function lineTemplateReply(msg) {
+            linetemplate.get(channelId, msg, function(data) {
+                if( data ) {
+                    replyMsgObj.name = "Line Template Demo Reply";
+                    replyMsgObj.message = data.altText;
+                    pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+                    templateToStr = JSON.stringify(data);
+                    send_to_Line("/template "+templateToStr, receiverId, channelId);
+                }
+                else return -1;
+            });
+        }
+        function lineTemplateReplyDemo( msg ) {
+          // replyMsgObj.name = "Line Template Demo Reply";
+          // linetemplate.get( function( templateData ) {
+          //   let data = templateData[msg];
+          //   if( data ) {
+          //     replyMsgObj.message = data.altText;
+          //     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+          //     templateToStr = JSON.stringify(data);
+          //     send_to_Line("/template "+templateToStr, receiverId, channelId);
+          //   }
+          //   else return -1;
+          // });
         }
         function surveyReply(msg){
           console.log("survey execute");
