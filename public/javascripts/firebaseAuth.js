@@ -13,7 +13,8 @@ auth.onAuthStateChanged(user => {
             location = '/chat';
         }
     } else if (!user && (location.pathname === '/login' || location.pathname === '/signup')) {
-        document.cookie = "name=; email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; " + "domain=" + domain;
+        document.cookie = "name=; expires=Thu, 01 Jan 1970 00:00:00 UTC; " + "domain=" + domain;
+        document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; " + "domain=" + domain;
         console.log('need to sign in');
     } else {
         location = '/login';
@@ -35,7 +36,8 @@ function getProfile() {
         let profile = data.val();
         let name = profile.name;
         let email = profile.email;
-        document.cookie = "name=" + name + ";email=" + email + ";domain=" + domain;
+        document.cookie = "name=" + name + ";domain=" + domain;
+        document.cookie = "email=" + email + ";domain=" + domain;
         console.log(name);
     });
 }
