@@ -70,7 +70,7 @@
     display: block;
 }
 
-.ticket_memo {
+.ticket-memo {
     overflow: scroll !important;
 }
 
@@ -117,7 +117,7 @@ hr {
     border: 0;
 }
 
-.memo_content {
+.memo-content {
     width: 300px;
     height: 50px;
     padding: 5%;
@@ -371,7 +371,7 @@ h2 {
     width: 80%;
 }
 
-.ticket_content:hover {
+.ticket-content:hover {
     cursor: pointer;
     background-color: rgba(183, 208, 181, 0.77);
     transition: .3s ease-in-out;
@@ -479,7 +479,7 @@ input[type="range"]:active::-webkit-slider-thumb:after {
 
 /*END TICKET.CSS*/
 
-.agentImg_holder {
+.agentimg-holder {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -828,7 +828,7 @@ body .grey {
     overflow: inherit;
 }
 
-.tablinks .img_holder {
+.tablinks .img-holder {
     width: 50px;
     height: 50px;
     border-radius: 50%;

@@ -746,8 +746,8 @@ $(document).ready(function() {
 
     function loadTable(userId) {
         $('.ticket-content').empty();
-        $('.ticket_memo').empty();
         var ticket_memo_list = [];
+        $('.ticket-memo').empty();
         $.ajax({
             url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets?include=requester",
             type: 'GET',
@@ -781,7 +781,7 @@ $(document).ready(function() {
                     },
                     success: function(data, textStatus, jqXHR) {
                         for (let i = 0; i < data.length; i++) {
-                            $('.ticket_memo').prepend('<div class="memo_content">' + data[i].body + '</div>');
+                            $('.ticket-memo').prepend('<div class="memo-content">' + data[i].body + '</div>');
                         }
                     },
                     error: function(jqXHR, tranStatus) {

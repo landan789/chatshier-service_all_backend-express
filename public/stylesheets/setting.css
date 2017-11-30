@@ -7,11 +7,10 @@
 }
 
 @media screen and (max-width: 767px) {
-    .prof-wid {
+    .prof-wid{
         width: 100%;
     }
 }
-
 @media (max-width: 1141px) {
     .prof-wid {
         width: 95%;
