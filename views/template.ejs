@@ -22,8 +22,18 @@
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <div id="home">
-        <h3> 自訂Line Template</h3>
-        <button type="button" class="btn btn-default" id="new-template" data-toggle="modal" data-target="#template-modal">新增template</button>
+        <div id="title">
+            <h3> 自訂Line Template</h3>
+            <button type="button" class="btn btn-default" id="show-template-modal" data-toggle="modal" data-target="#template-modal">新增template</button>
+        </div>
+        <div class="row">
+            <div class="col-md-6" id="view-all">
+                <ul class="nav nav-tabs">
+                </ul>
+                <div class="tab-content">
+                </div>
+            </div>
+        </div>
 
         <!-- new modal -->
         <div class="modal fade" id="template-modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -39,13 +49,34 @@
                             <!-- 編號 -->
                             <div class="form-group" hidden>
                                 <label for="template-id" class="col-2 col-form-label">ID</label>
-                                <span id="template-id"></span>
+                                <input id="template-id"></span>
+                            </div>
+                            <!-- channelId -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label"><strong>發送群組:</strong>
+                                    <div class="col-4">
+                                        <select class="form-control channel-select" id="template-channelId">
+                                            <option disabled selected value> -- 請選擇 -- </option>
+                                        </select>
+                                    </div>
+                                </label>
                             </div>
                             <!-- Keyword -->
                             <div class="form-group">
-                                <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong>
+                                <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong><p class="keyword-duplicate hidden">關鍵字重複，請重新輸入</p>
                                     <div class="col-4">
                                         <input class="form-control" type="text" value="" id="template-keyword">
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- status -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label"><strong>狀態:</strong>
+                                    <div class="col-4">
+                                        <select class="form-control" id="template-status">
+                                            <option value="open">開放</option>
+                                            <option value="close">關閉</option>
+                                        </select>
                                     </div>
                                 </label>
                             </div>
@@ -55,6 +86,7 @@
                                     <div class="col-4">
                                         <select class="form-control" id="template-type">
                                             <option disabled selected value> -- 請選擇 -- </option>
+                                            <option value="text">純文字</option>
                                             <option value="buttons">按鈕</option>
                                             <option value="confirm">是非題</option>
                                             <option value="carousel">多欄</option>
@@ -63,9 +95,17 @@
                                     </div>
                                 </label>
                             </div>
+                            <!-- text -->
+                            <div class="form-group">
+                                <label class="col-2 col-form-label template-view" rel="text"><strong>文字:</strong>
+                                    <div class="col-4">
+                                        <input class="form-control" type="text" value="" id="template-text">
+                                    </div>
+                                </label>
+                            </div>
                             <!-- AltText -->
                             <div class="form-group">
-                                <label class="col-2 col-form-label"><strong>電腦版替代文字:</strong>
+                                <label class="col-2 col-form-label template-view" rel="confirm carousel buttons"><strong>電腦版替代文字:</strong>
                                     <div class="col-4">
                                         <input class="form-control" type="text" value="" id="template-altText">
                                     </div>
@@ -207,7 +247,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" id="modal-create">確認</button>
+                        <button type="button" class="btn btn-primary" id="modal-save">確認</button>
                     </div>
                 </div>
             </div>

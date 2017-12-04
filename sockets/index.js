@@ -364,8 +364,20 @@ function init(server) {
       /*===分析end===*/
 
       /*===template start===*/
-      socket.on('create template', (data) => {
-          linetemplate.set(data.keyword, data);
+      socket.on('create template', (userId, data, callback) => {
+          console.log(data);
+          linetemplate.create(userId, data);
+          callback();
+      });
+      socket.on('request template', (userId, callback) => {
+         linetemplate.get(userId, callback);
+      });
+      socket.on('get template', (userId, channelId, keyword, callback) => {
+          linetemplate.getTemplate(channelId, keyword, callback);
+      });
+      socket.on('change template', (userId, id, updateObj, callback) => {
+          linetemplate.set(userId, id, updateObj);
+          callback();
       });
       /*===template end===*/
 
@@ -503,7 +515,7 @@ function init(server) {
             });
         }
         function lineTemplateReply(msg) {
-            linetemplate.get(channelId, msg, function(data) {
+            linetemplate.getMsg(channelId, msg, function(data) {
                 if( data ) {
                     replyMsgObj.name = "Line Template Demo Reply";
                     replyMsgObj.message = data.altText;
