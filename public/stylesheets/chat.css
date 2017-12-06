@@ -191,7 +191,7 @@ hr {
 
 input,
 select {
-    width: 15%;
+    width: 80%;
 }
 
 #tdInner {
@@ -828,7 +828,7 @@ body .grey {
     overflow: inherit;
 }
 
-.tablinks .img_holder {
+.tablinks .img-holder {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -937,7 +937,7 @@ body .grey {
 }
 
 .form-lower input[type="text"] {
-    width: 85%;
+    width: calc(100% - 40px);
     height: 50px;
     border: 0;
 }
@@ -1166,4 +1166,30 @@ img[alt="無法顯示相片"] {
 .click-here a[href="/setting"] {
     color: red;
     text-decoration: none;
+}
+
+.click-here {
+    margin-left: 10px;
+    margin-right: 8px;
+}
+
+.message {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+[data-target="#add-ticket-modal"],
+.show-option {
+    color: #33CCFF;
+}
+
+[data-target="#add-ticket-modal"]:hover {
+    text-decoration: none;
+    color: #33CCFF;
+    cursor: pointer;
+}
+
+.padding-side {
+    padding-left: 10px;
+    padding-right: 10px;
 }

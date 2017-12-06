@@ -65,8 +65,8 @@
                     <div class="search">
                         <input type="text" id="searchBox" placeholder="Search for messages..">
                         <span id="search-right" class="invisible">
-              <span class="number">
-                <span id="this-number" class="this-number">1</span>
+                        <span class="number">
+                            <span id="this-number" class="this-number">1</span>
                         <span class="slash-number">/</span>
                         <span id="total-number" class="total-number">5</span>
                         </span>
@@ -81,7 +81,7 @@
                 </div>
                 <div id="chat" class="content-panel">
                     <div class="chat-prof">
-                        <h4 id="prof-nick"></h4>
+                        <h4 id="prof_nick"></h4>
                     </div>
                     <div id="canvas"></div>
                     <div id="send-message">
@@ -107,18 +107,17 @@
                 <div id="infoPanel" class="colume">
                     <div class="card text-center">
                         <ul class="nav nav-pills">
-                            <li class="active"><a id="show-profile">用戶資料</a></li>
-                            <li><a id="show-todo">待辦事項</a></li>
+                            <li class="active"><a id="show-profile" class="show-option">用戶資料</a></li>
+                            <li><a id="show-todo" class="show-option">待辦事項</a></li>
                         </ul>
                         <div id="infoCanvas"></div>
                     </div>
                 </div>
-
             </div>
         </div>
-        <% include ../views/partials/empty_chat_modal.ejs %>
-            <% include ../views/partials/firebase_disable.ejs %>
-                <% include ../views/partials/chat_setting_notify.ejs %>
+        <% include ../views/partials/add_ticket_modal.ejs %>
+            <% include ../views/partials/error_modal.ejs %>
+                <% include ../views/partials/firebase_disable.ejs %>
                     <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js'></script>
                     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
                     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -130,8 +129,6 @@
                     <script src="javascripts/navigation.js"></script>
                     <script src="javascripts/chat.js"></script>
                     <script src="javascripts/partials/firebase-disable.js"></script>
-                    <script src="javascripts/partials/chat-setting-notify.js"></script>
-
 </body>
 
 </html>

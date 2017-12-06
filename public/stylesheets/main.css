@@ -4,9 +4,12 @@
     color: white;
 }
 
-.chatshier-navbar {
-    margin-bottom: 0;
+.chsr.navbar-default {
     background-color: #33CCFF;
+}
+
+.chsr.navbar {
+    margin-bottom: 0;
 }
 
 .sub-tag {
@@ -24,15 +27,20 @@
 .panel-info>.panel-heading {
     color: #ffffff;
     background-color: #33CCFF;
-    ;
     border-color: #33CCFF;
-    ;
 }
 
 a[href="/"],
-#nav-message a[href="#"],
+#nav_message a[href="#"],
 .dropdown a[href="#"],
-a.nav-link {
+a[href="/chat"],
+a[href="/calendar"],
+a[href="/ticket"],
+a[href="/analyze"],
+a[href="/message_overview"],
+a[href="/message_autoreply"],
+a[href="/message_keywordsreply"],
+a[href="/message_add_friend_reply"] {
     color: white;
     text-decoration: none;
 }
