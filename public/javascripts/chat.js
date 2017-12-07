@@ -35,7 +35,7 @@ var hiddenGroupName = $('.hidden-group-name');
 var ocClickShow = $('.on-click-show');
 var openChatAppItem = $('.chat-app-item[open="true"]');
 var searchBox = $('#searchBox');
-var addTicketModal = $('#addTicketModal');
+var addTicketModal = $('#add-ticket-modal');
 
 $(document).ready(function() {
     // start the loading works
@@ -85,11 +85,8 @@ $(document).ready(function() {
         if (e.which === 13) $(this).blur();
     });
     $(document).on('keyup', '.ticketSearchBar', ticketSearch);
-    addTicketModal.on('show.bs.modal', function() {
-        let getId = $('.card-group[style="display:block"]').attr('id');
-        let realId = getId.substr(0, getId.indexOf('-'));
-        $('#form-uid').val(realId);
-    });
+    addTicketModal.on('show.bs.modal', openTicketModal);
+    $(document).on('click', '#form-submit', addTicket);
     //=====end ticket event=====
 
     //=====start utility event=====
@@ -760,7 +757,7 @@ $(document).ready(function() {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].subject === userId) {
                         ticketInfo = data;
-                        $('.ticket-content').prepend('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticketInfoModal">' + '<td class="data_id" rel="' + data[i].id + '" style="border-left: 5px solid ' + priorityColor(data[i].priority) + '" hidden></td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + data[i].description + '</td>' + '</tr>');
+                        $('.ticket-content').prepend('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td class="data_id" rel="' + data[i].id + '" style="border-left: 5px solid ' + priorityColor(data[i].priority) + '" hidden></td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + data[i].description + '</td><td></td>' + '</tr>');
                         ticket_memo_list.push(String(data[i].id));
                     }
                 }
@@ -814,10 +811,10 @@ $(document).ready(function() {
                 break;
             }
         }
-        $(".ticket-info-content").html('');
+        $(".info_input_table").empty();
         $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
         $(".modal-title").text(Tinfo.requester.name);
-        $(".ticket-info-content").append(display);
+        $(".info_input_table").append(display);
     } // end of moreInfo
     function showInput() {
         let prop = $(this).parent().children("th").text();
@@ -957,7 +954,89 @@ $(document).ready(function() {
             else $(this).show();
         });
     }
-
+    function openTicketModal() {
+        let getId = $('.card-group[style="display: block;"]').attr('id');
+        let realId = getId.substr(0, getId.indexOf('-'));
+        let clientName = $('#selected .clientName').text();
+        $('#form-uid').val(realId);
+        $('#form-name').val(clientName);
+    }
+    function addTicket() {
+        let name = $('#form-name').val();
+        let uid = $('#form-uid').val(); //因為沒有相關可用的string，暫時先儲存在to_emails這個功能下面
+        let email = 'xxx@9thflr.com'
+        let phone = '0900000000'
+        let status = $('#form-status option:selected').text();
+        let priority = $('#form-priority option:selected').text();
+        let description = $('#form-description').val();
+        ticket_data = '{ "description": "' + description + '", "name" : "' + name + '",  "subject": "' + uid + '", "email": "' + email + '", "phone": "' + phone + '", "priority": ' + priorityTextToMark(priority) + ', "status": ' + statusTextToMark(status) + '}';
+        console.log(ticket_data);
+          // 驗證
+          if($('#form-uid').val().trim() === '') {
+            $('#error').append('請輸入客戶ID');
+            $('#form-subject').css('border', '1px solid red');
+            setTimeout(() => {
+              $('#error').empty();
+              $('#form-subject').css('border', '1px solid #ccc');
+            }, 3000);
+          } else if($('#form-description').val().trim() === '') {
+            $('#error').append('請輸入內容');
+            $('#form-description').css('border', '1px solid red');
+            setTimeout(() => {
+              $('#error').empty();
+              $('#form-description').css('border', '1px solid #ccc');
+            }, 3000);
+          } else if($('#form-name').val().trim() === '') {
+            $('#error').append('請輸入客戶姓名');
+            $('#form-name').css('border', '1px solid red');
+            setTimeout(() => {
+              $('#error').empty();
+              $('#form-description').css('border', '1px solid #ccc');
+            }, 3000);
+          } else {
+            let nowTime = new Date().getTime();
+            let dueDate = nowTime + 86400000 * 3;
+            let start = ISODateTimeString(nowTime);
+            let end = ISODateTimeString(dueDate)
+            let userId = auth.currentUser.uid;
+            $.ajax({
+              url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets",
+              type: 'POST',
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              headers: {
+                "Authorization": "Basic " + btoa(api_key + ":x")
+              },
+              data: ticket_data,
+              success: function(data, textStatus, jqXHR) {
+                console.log('tickt created');
+                //把事件儲存到calendar database，到期時間和ticket一樣設定三天
+                database.ref('cal-events/' + userId).push({
+                  title: name + ": " + description.substring(0, 10) + "...",
+                  start: start,
+                  end: end,
+                  description: description,
+                  allDay: false
+                });
+                $('#form-name').val('');
+                $('#form-uid').val('');
+                $('#form-subject').val('');
+                $('#form-email').val('');
+                $('#form-phone').val('');
+                $('#form-description').val('');
+                addTicketModal.modal('hide');
+                location = '/chat';
+              },
+              error: function(jqXHR, tranStatus) {
+                x_request_id = jqXHR.getResponseHeader('X-Request-Id');
+                response_text = jqXHR.responseText;
+                console.log(response_text)
+              }
+            });
+            
+          }
+          
+    }
     function priorityColor(priority) {
         switch (priority) {
             case 4:
@@ -1401,6 +1480,36 @@ $(document).ready(function() {
 
         return d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
     } // end of ISODateTimeString
+    function priorityTextToMark(priority) {
+      switch(priority) {
+        case 'Urgent':
+          return 4;
+          break;
+        case 'High':
+          return 3;
+          break;
+        case 'Medium':
+          return 2;
+          break;
+        default:
+          return 1;
+      }
+    } // end of priorityTextToMark
+    function statusTextToMark(status) {
+      switch(status) {
+        case 'Closed':
+          return 5;
+          break;
+        case 'Resolved':
+          return 4;
+          break;
+        case 'Pending':
+          return 3;
+          break;
+        default:
+          return 2;
+      }
+    } // end of statusTextToMark
     //=====end utility function
 
 }); //document ready close
