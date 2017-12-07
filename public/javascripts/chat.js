@@ -87,6 +87,8 @@ $(document).ready(function() {
     $(document).on('keyup', '.ticketSearchBar', ticketSearch);
     addTicketModal.on('show.bs.modal', openTicketModal);
     $(document).on('click', '#form-submit', addTicket);
+    $(document).on('click', '#ticket-info-delete', deleteTicket);
+
     //=====end ticket event=====
 
     //=====start utility event=====
@@ -791,8 +793,8 @@ $(document).ready(function() {
         let Tinfo = ticketInfo[i];
         let Cinfo;
         let Ainfo;
-        $("#ID-num").text(Tinfo.id);
-        $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
+        $("#ID_num").text(Tinfo.id);
+        $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
         display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
         for (let j in contactInfo) {
             if (contactInfo[j].id === Tinfo.requester_id) {
@@ -920,7 +922,7 @@ $(document).ready(function() {
         描述 = obj.描述;
         obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '"}';
         if (confirm("確定變更表單？")) {
-            var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
+            var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
             $.ajax({
                 url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
                 type: 'PUT',
@@ -1034,6 +1036,28 @@ $(document).ready(function() {
           }
           
     }
+    function deleteTicket() {
+        if(confirm("確認刪除表單？")) {
+          var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
+          $.ajax({
+            url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
+            type: 'DELETE',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            headers: {
+              "Authorization": "Basic " + btoa(api_key + ":x")
+            },
+            success: function(data, textStatus, jqXHR) {
+              alert("表單已刪除");
+              location.reload();
+            },
+            error: function(jqXHR, tranStatus) {
+              alert("表單刪除失敗，請重試");
+              console.log(jqXHR)
+            }
+          });
+        }
+    }
     function priorityColor(priority) {
         switch (priority) {
             case 4:
@@ -1133,7 +1157,7 @@ $(document).ready(function() {
         return "unassigned";
     } // end of responderName
     function showSelect(prop, n) {
-        let html = "<select class='select'>";
+        let html = "<select class='select form-control'>";
         if (prop === 'priority') {
             html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
             for (let i = 1; i < 5; i++) {
