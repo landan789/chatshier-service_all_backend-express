@@ -1,26 +1,50 @@
 [
-  {
-    "chinese": "姓名",
-    "english": "nickname"
-  },
-  {
-    "chinese": "首次聊天時間",
-    "english": "firstChat"
-  },
-  {
-    "chinese": "上次聊天時間",
-    "english": "recentChat"
-  },
-  {
-    "chinese": "總共聊天時間",
-    "english": "totalChat"
-  },
-  {
-    "chinese": "聊天次數",
-    "english": "chatTimeCount"
-  },
-  {
-    "chinese": "平均每次聊天時間",
-    "english": "avgChat"
-  }
+    {
+        "chinese": "姓名",
+        "english": "nickname"
+    },
+    {
+        "chinese": "電子郵件",
+        "english": "email"
+    },
+    {
+        "chinese": "電話",
+        "english": "telephone"
+    },
+    {
+        "chinese": "年齡",
+        "english": "age"
+    },
+    {
+        "chinese": "性別",
+        "english": "gender"
+    },
+    {
+        "chinese": "備註",
+        "english": "remark"
+    },
+    {
+        "chinese": "首次聊天時間",
+        "english": "firstChat"
+    },
+    {
+        "chinese": "上次聊天時間",
+        "english": "recentChat"
+    },
+    {
+        "chinese": "總共聊天時間",
+        "english": "totalChat"
+    },
+    {
+        "chinese": "聊天次數",
+        "english": "chatTimeCount"
+    },
+    {
+        "chinese": "平均每次聊天時間",
+        "english": "avgChat"
+    },
+    {
+        "chinese": "指派負責人",
+        "english": "assigned"
+    }
 ]

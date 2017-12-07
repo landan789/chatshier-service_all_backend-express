@@ -1,98 +1,74 @@
 {
-"Data" : [ {
-  "modify" : false,
-  "name" : "姓名",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "電子郵件",
-  "set" : "multi",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "電話",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "年齡",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "性別",
-  "set" : [ "男", "女" ],
-  "type" : "single-select"
-}, {
-  "modify" : true,
-  "name" : "地區",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "住址",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "備註",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "標籤",
-  "set" : [ "奧客", "未付費", "廢話多", "敢花錢", "常客", "老闆的好朋友", "外國人", "窮學生", "花東團abc123", "台南團abc456" ],
-  "type" : "multi-select"
-}, {
-  "modify" : true,
-  "name" : "VIP等級",
-  "set" : [ "鑽石會員", "白金會員", "普通銅牌", "超級普通會員" ],
-  "type" : "single-select"
-}, {
-  "modify" : true,
-  "name" : "下次聯絡客戶時間",
-  "set" : "",
-  "type" : "time"
-}, {
-  "modify" : false,
-  "name" : "firstChat",
-  "set" : "",
-  "type" : "time"
-}, {
-  "modify" : false,
-  "name" : "recentChat",
-  "set" : "",
-  "type" : "time"
-}, {
-  "modify" : false,
-  "name" : "totalChat",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : false,
-  "name" : "chatTimeCount",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : false,
-  "name" : "avgChat",
-  "set" : "single",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "客人的抱怨",
-  "set" : "multi",
-  "type" : "text"
-}, {
-  "modify" : true,
-  "name" : "付費階段",
-  "set" : [ "等待報價", "已完成報價，等待付費", "已完成付費", "要退錢" ],
-  "type" : "single-select"
-}, {
-  "modify" : true,
-  "name" : "指派負責人",
-  "set" : "single",
-  "type" : "text"
-} ]
+    "nickname": {
+        "modify" : false,
+        "name" : "nickname",
+        "set" : "single",
+        "type" : "text"
+    },
+    "email": {
+        "modify" : false,
+        "name" : "email",
+        "set" : "multi",
+        "type" : "text"
+    },
+    "telephone": {
+        "modify" : false,
+        "name" : "telephone",
+        "set" : "single",
+        "type" : "text"
+    },
+    "age": {
+        "modify" : false,
+        "name" : "age",
+        "set" : "single",
+        "type" : "text"
+    },
+    "gender": {
+        "modify" : false,
+        "name" : "gender",
+        "set" : [ "男", "女" ],
+        "type" : "single-select"
+    },
+    "remark": {
+        "modify" : false,
+        "name" : "remark",
+        "set" : "multi",
+        "type" : "text"
+    },
+    "firstChat": {
+        "modify" : false,
+        "name" : "firstChat",
+        "set" : "",
+        "type" : "time"
+    },
+    "recentChat": {
+        "modify" : false,
+        "name" : "recentChat",
+        "set" : "",
+        "type" : "time"
+    },
+    "totalChat": {
+        "modify" : false,
+        "name" : "totalChat",
+        "set" : "single",
+        "type" : "text"
+    },
+    "chatTimeCount": {
+        "modify" : false,
+        "name" : "chatTimeCount",
+        "set" : "single",
+        "type" : "text"
+    },
+    "avgChat": {
+        "modify" : false,
+        "name" : "avgChat",
+        "set" : "single",
+        "type" : "text"
+    },
+    "assigned": {
+        "modify" : false,
+        "name" : "assigned",
+        "set" : "single",
+        "type" : "text"
+    }
 }

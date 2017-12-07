@@ -326,16 +326,18 @@ function init(server) {
         socket.on('update bot', (data) => {
             update_line_bot(data);
         });
-        // going to tags page
-        socket.on('get tags from tags', () => {
-            tags.get(function(tagsData) {
-                socket.emit('push tags to tags', tagsData);
-            });
-        });
-        socket.on('update tags', data => {
-            let updateObj = {};
-            updateObj['Data'] = data;
-            tags.update(updateObj);
+        socket.on('update tags', tagsData => {
+            let customData = {};
+            let order = [];
+            for( let i=0; i<tagsData.length; i++ ) {
+                let ele = tagsData[i];
+                order.push(ele.id);
+                if( ele.data.modify ) {
+                    customData[ele.id] = ele.data;
+                }
+            }
+            tags.updateCustom(customData);
+            tags.updateOrder(order);
         });
         /*===設定end===*/
 
