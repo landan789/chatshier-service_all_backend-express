@@ -1,7 +1,7 @@
-.ticket_memo::-webkit-scrollbar {
+.ticket-memo::-webkit-scrollbar {
     width: 1em;
 }
-.ticket_memo{
+.ticket-memo{
     overflow: scroll !important;
     height:700px;
 }
@@ -234,7 +234,7 @@ table { width: 100%}
   width: 80%;
 }
 
-.ticket_content:hover{
+.ticket-content:hover{
   cursor:  pointer;
   background-color: rgba(183, 208, 181, 0.77) ;
   transition: .3s ease-in-out ;
@@ -252,7 +252,7 @@ table { width: 100%}
 .non{
   background-color: rgb(91, 195, 92)
 }
-#ID_num{
+#ID-num{
   display: flex;
   width: 45px;
   height: 40px;
