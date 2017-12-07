@@ -63,7 +63,7 @@ function loadTable() {
       for(let i = 0; i < data.length; i++) {
         ticketInfo = data;
         console.log(data[i]);
-        ticket-content.append('<tr id="' + i + '" class="ticket-content" data-toggle="modal" data-target="#ticketInfoModal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
+        ticket_content.append('<tr id="' + i + '" class="ticket-content" data-toggle="modal" data-target="#ticketInfoModal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
       }
     },
     error: function(jqXHR, tranStatus) {

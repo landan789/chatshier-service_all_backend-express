@@ -518,7 +518,7 @@ function init(server) {
             linetemplate.getMsg(channelId, msg, function(data) {
                 if( data ) {
                     replyMsgObj.name = "Line Template Demo Reply";
-                    replyMsgObj.message = data.altText;
+                    replyMsgObj.message = data.altText ? data.altText : data.text;
                     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
                     templateToStr = JSON.stringify(data);
                     send_to_Line("/template "+templateToStr, receiverId, channelId);

@@ -2,6 +2,9 @@ const socket = io.connect();
 var templateForm = $('#template-form');
 var templateData = {};
 var userId = "";
+$(document).load(function() {
+    // mermaid.initialize({startOnLoad:true});
+});
 $(function() {
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').hide();
@@ -11,7 +14,7 @@ $(function() {
     $(document).on('click', '#modal-save', saveTemplate);
     $(document).on('contextmenu', '.template-btn', toggleTemplateStatus);
     $(document).on('dblclick', '.template-btn', showTemplate);
-    $(document).on('click', '.template-btn', showTemplateChart);
+    // $(document).on('click', '.template-btn', showTemplateChart); //not done
     auth.onAuthStateChanged(currentUser => {
         userId = currentUser.uid;
         loadChannelInfo();
@@ -63,16 +66,16 @@ function toggleTemplateStatus(e) {
     let channelId = $(this).parents('.tab-pane').attr('id');
     let status = "";
     if( $(this).hasClass('btn-success') ) {
-        $(this).removeClass('btn-success').addClass('btn-danger');
+        // $(this).removeClass('btn-success').addClass('btn-danger');
         status = "close";
     }
     else {
-        $(this).addClass('btn-success').removeClass('btn-danger');
+        // $(this).addClass('btn-success').removeClass('btn-danger');
         status = "open";
     }
     socket.emit('change template', userId, id, {
         "status": status
-    });
+    }, loadTemplate);
 }
 function showTemplate() {
     let id = $(this).attr('id');
@@ -193,10 +196,10 @@ function saveTemplate() {
             };
             console.log(data);
             if( propId ) {
-                socket.emit('change template', userId, propId, data, loadTemplate() );
+                socket.emit('change template', userId, propId, data, loadTemplate );
             }
             else {
-                socket.emit('create template', userId, data, loadTemplate() );
+                socket.emit('create template', userId, data, loadTemplate );
             }
             $('#template-modal').modal('toggle');
         }
@@ -344,6 +347,7 @@ function getDeepProperty(obj, property) {
     return list;
 }
 
+    // mermaid.init({}, ".mermaidd");
 
 
 // =====chart end=====
