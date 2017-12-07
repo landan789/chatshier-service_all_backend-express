@@ -189,8 +189,7 @@ hr {
     display: none;
 }
 
-input,
-select {
+input {
     width: 80%;
 }
 
@@ -364,7 +363,7 @@ h2 {
 }
 
 .select {
-    width: 100px;
+    width: 70%;
 }
 
 .inner {
@@ -376,7 +375,7 @@ h2 {
 
 .ticket-content:hover {
     cursor: pointer;
-    background-color: rgba(183, 208, 181, 0.77);
+    /*background-color: rgba(183, 208, 181, 0.77);*/
     transition: .3s ease-in-out;
 }
 
@@ -393,7 +392,7 @@ h2 {
     background-color: rgb(91, 195, 92)
 }
 
-#ID-num {
+#ID_num {
     display: flex;
     width: 45px;
     height: 40px;
@@ -621,8 +620,7 @@ body {
     position: relative;
 }
 
-.chat-app-item:hover,
-.select {
+.chat-app-item:hover {
     background-color: #afafaf;
     color: white;
 }
@@ -1196,4 +1194,19 @@ img[alt="無法顯示相片"] {
 .padding-side {
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.info_input_table td, .info_input_table th {
+    border-bottom:  1px solid rgb(5, 82, 87);
+    text-align: left;
+    padding: 8px;
+    margin: 2px 0 ;
+}
+
+.info_input_table {
+    width: 100%;
+}
+
+.info_input_table tr:nth-child(even) {
+    background-color: rgb(169, 196, 186);
 }
