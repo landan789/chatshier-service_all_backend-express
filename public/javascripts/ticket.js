@@ -13,7 +13,7 @@ $(document).ready(function() {
   $(document).on('click', '#form-goback', function() {
     location.href = '/ticket'
   }) //返回ticket
-  $(document).on('click', '.ticket_content', moreInfo);
+  $(document).on('click', '.ticket-content', moreInfo);
   $(document).on('click', "#ticketInfo-submit", updateStatus);
   $(document).on('click', '.edit', showInput);
   $(document).on('click', '.inner', function(event) {
@@ -26,7 +26,7 @@ $(document).ready(function() {
   $("#exampleInputAmount").keyup(searchBar);
   $('#ticketInfo-delete').click(function() {
     if(confirm("確認刪除表單？")) {
-      var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
+      var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
       $.ajax({
         url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
         type: 'DELETE',
@@ -63,7 +63,7 @@ function loadTable() {
       for(let i = 0; i < data.length; i++) {
         ticketInfo = data;
         console.log(data[i]);
-        ticket_content.append('<tr id="' + i + '" class="ticket_content" data-toggle="modal" data-target="#ticketInfoModal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
+        ticket_content.append('<tr id="' + i + '" class="ticket-content" data-toggle="modal" data-target="#ticketInfoModal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
       }
     },
     error: function(jqXHR, tranStatus) {
@@ -153,7 +153,7 @@ function updateStatus() {
   console.log(客戶名);
   obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '", "due_by": "' + new_time + '"}';
   if(confirm("確定變更表單？")) {
-    var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
+    var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
     $.ajax({
       url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
       type: 'PUT',
@@ -212,8 +212,8 @@ function moreInfo() {
   let Tinfo = ticketInfo[i];
   let Cinfo;
   let Ainfo;
-  $("#ID_num").text(Tinfo.id);
-  $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
+  $("#ID-num").text(Tinfo.id);
+  $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
   display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>回覆人員</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description + '</td>' + '</tr><tr>' + '<th>到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td class="edit">' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立時間</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
   for(let j in contactInfo) {
     if(contactInfo[j].id == Tinfo.requester_id) {
@@ -229,11 +229,11 @@ function moreInfo() {
       break;
     }
   }
-  $(".info_input_table").html('');
+  $(".info-input-table").html('');
   $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
   $(".modal-title").text(Tinfo.requester.name);
   $("#ticketInfo-submit").attr("val", Tinfo.id);
-  $(".info_input_table").append(display);
+  $(".info-input-table").append(display);
 }
 
 function displayDate(date) {

@@ -70,7 +70,7 @@
     display: block;
 }
 
-.ticket_memo {
+.ticket-memo {
     overflow: scroll !important;
 }
 
@@ -79,7 +79,7 @@ hr {
     margin: 0;
 }
 
-.panelTable tbody tr th {
+.panel-table tbody tr th {
     padding: 0 10px;
 }
 
@@ -117,7 +117,7 @@ hr {
     border: 0;
 }
 
-.memo_content {
+.memo-content {
     width: 300px;
     height: 50px;
     padding: 5%;
@@ -194,6 +194,9 @@ select {
     width: 80%;
 }
 
+.panel-table input {
+    width: auto;
+}
 #tdInner {
     width: 80%;
 }
@@ -371,7 +374,7 @@ h2 {
     width: 80%;
 }
 
-.ticket_content:hover {
+.ticket-content:hover {
     cursor: pointer;
     background-color: rgba(183, 208, 181, 0.77);
     transition: .3s ease-in-out;
@@ -390,7 +393,7 @@ h2 {
     background-color: rgb(91, 195, 92)
 }
 
-#ID_num {
+#ID-num {
     display: flex;
     width: 45px;
     height: 40px;
@@ -479,7 +482,7 @@ input[type="range"]:active::-webkit-slider-thumb:after {
 
 /*END TICKET.CSS*/
 
-.agentImg_holder {
+.agentimg-holder {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -515,7 +518,8 @@ input[type="range"]:active::-webkit-slider-thumb:after {
     margin-top: 20px;
 }
 
-.tablinks_head {
+.tablinks-head {
+    //unused?
     font-size: 14px;
     font-weight: bold;
 }
@@ -570,7 +574,7 @@ input[type="range"]:active::-webkit-slider-thumb:after {
     font-size: 10px
 }
 
-#prof_nick {
+#prof-nick {
     position: absolute;
     font-size: 100%;
     float: bottom;
@@ -643,19 +647,19 @@ body {
     border-radius: 15%;
 }
 
-.filter_head {
+.filter-head {
     padding: 10px;
     height: 80px;
 }
 
-.filter_head i {
+.filter-head i {
     font-size: 20px;
     margin: 0 5px;
     float: right;
     cursor: pointer;
 }
 
-.filter_head .fa-filter {
+.filter-head .fa-filter {
     float: left;
 }
 
@@ -739,7 +743,7 @@ body .grey {
     width: 100%
 }
 
-.filter_btn {
+.filter-btn {
     width: 100%;
     margin: 0;
     padding: 5px 0;
@@ -749,11 +753,11 @@ body .grey {
     border-radius: 0
 }
 
-.filter_btn:hover {
+.filter-btn:hover {
     background-color: #ccc
 }
 
-.tablinks_head {
+.tablinks-head {
     overflow: hidden;
     height: 80px;
     width: 100%;
@@ -823,7 +827,7 @@ body .grey {
     text-align: left;
 }
 
-.tablinks .msg_holder {
+.tablinks .msg-holder {
     height: 60px;
     overflow: inherit;
 }
@@ -1038,11 +1042,11 @@ p {
     float: left;
 }
 
-.info_input_table {
+.info-input-table {
     width: 100%;
 }
 
-.info_input_table tr {}
+.info-input-table tr {}
 
 .userInfo-th {
     width: 50%;
@@ -1066,7 +1070,7 @@ p {
     background-color: lightgray;
 }
 
-.multiselect-container li {
+.multi-select-container li {
     margin: 10px;
 }
 
@@ -1119,7 +1123,7 @@ p {
     justify-content: center;
 }
 
-.panelTable {
+.panel-table {
     margin: 0%;
 }
 
