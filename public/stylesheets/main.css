@@ -406,3 +406,32 @@ input {
     right: 10px;
   }*/
 }
+
+.chsr .nav>li>a:focus,
+.chsr .nav>li>a:hover {
+    text-decoration: none;
+    background-color: rgb(47, 191, 240);
+}
+
+.chsr a:focus,
+.chsr a:hover {
+    color: #ffffff;
+}
+
+.chsr .nav .open>a,
+.chsr .nav .open>a:focus,
+.chsr .nav .open>a:hover {
+    background-color: rgb(47, 191, 240);
+}
+
+.chsr .dropdown-menu .divider {
+    margin: 0px;
+}
+
+.chsr .dropdown-menu {
+    padding: 0px;
+}
+
+.chsr .dropdown-menu>li>a {
+    padding: 10px 20px;
+}

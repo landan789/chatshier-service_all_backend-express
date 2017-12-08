@@ -5,31 +5,32 @@
         </div>
         <ul class="nav navbar-top-links navbar-left">
             <li>
-                <a href="/chat">| <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
+                <a href="/chat"> <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
             </li>
             <li>
-                <a href="/calendar">| <i class="fa fa-calendar fa-fw"></i> 行事曆</a>
+                <a href="/calendar"> <i class="fa fa-calendar fa-fw"></i> 行事曆</a>
             </li>
             <li>
-                <a href="/ticket">| <i class="fa fa-list-ul fa-fw"></i> 待辦事項</a>
+                <a href="/ticket"> <i class="fa fa-list-ul fa-fw"></i> 待辦事項</a>
             </li>
             <li>
-                <a href="/analyze">| <i class="fa fa-bar-chart fa-fw"></i> 訊息分析</a>
+                <a href="/analyze"> <i class="fa fa-bar-chart fa-fw"></i> 訊息分析</a>
             </li>
-            <li id="nav_message">
-                <a href="#">| <i class="fa fa-commenting fa-fw"></i> 訊息</a>
-            </li>
-            <li class="sub-tag">
-                <a href="/message_overview"> 群發</a>
-            </li>
-            <li class="sub-tag">
-                <a href="/message_autoreply"> 自動回覆</a>
-            </li>
-            <li class="sub-tag">
-                <a href="/message_keywordsreply"> 關鍵字回覆</a>
-            </li>
-            <li class="sub-tag">
-                <a href="/message_add_friend_reply"> 加好友回覆</a>
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i class="fa fa-envelope" aria-hidden="true"></i> 訊息</a>
+                </a>
+
+                </a>
+                <ul class="dropdown-menu ">
+
+                    <li><a href="/message_overview"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp; 群發</a></li>
+                    <li class="divider"></li>
+                    <li><a href="/message_autoreply"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;自動回覆</a></li>
+                    <li class="divider"></li>
+                    <li><a href="/message_keywordsreply" id="signoutBtn"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;關鍵字回覆</a></li>
+                    <li class="divider"></li>
+                    <li><a href="/message_add_friend_reply" id="signoutBtn"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;加好友回覆</a></li>
+                </ul>
             </li>
         </ul>
         <ul class="nav navbar-top-links navbar-right">
