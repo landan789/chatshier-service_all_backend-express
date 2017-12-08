@@ -38,8 +38,8 @@
                                             <br/>
                                             <div class="control-group padding-left-right">
                                                 <div class="input-group">
-                                                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-                                                    <input id="login-password" type="password" class="form-control" placeholder="密碼" required/>
+                                                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock" required></i></span>
+                                                    <input id="login-password" type="password" class="form-control" placeholder="密碼" required data-toggle="tooltip" data-placement="top" title="密碼錯誤!" />
                                                 </div>
                                             </div>
                                             <br/>
@@ -47,7 +47,7 @@
                                             <div class="control-group padding-left-right">
                                                 <label class="control-label" for="signin"></label>
                                                 <div class="controls">
-                                                    <button id="login-btn" class="btn btn-info">登入</button>
+                                                    <button id="login-btn" class="btn btn-info" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> 登入中...">登入</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -71,6 +71,7 @@
     <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="javascripts/firebaseAuth.js"></script>
+    <script src="config/url-config.js"></script>
     <script src="javascripts/login.js"></script>
 </body>
 
