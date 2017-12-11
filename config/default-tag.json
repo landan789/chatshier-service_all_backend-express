@@ -6,31 +6,31 @@
         "type" : "text"
     },
     "email": {
-        "modify" : false,
+        "modify" : true,
         "name" : "email",
         "set" : "multi",
         "type" : "text"
     },
     "telephone": {
-        "modify" : false,
+        "modify" : true,
         "name" : "telephone",
         "set" : "single",
         "type" : "text"
     },
     "age": {
-        "modify" : false,
+        "modify" : true,
         "name" : "age",
         "set" : "single",
         "type" : "text"
     },
     "gender": {
-        "modify" : false,
+        "modify" : true,
         "name" : "gender",
         "set" : [ "男", "女" ],
         "type" : "single-select"
     },
     "remark": {
-        "modify" : false,
+        "modify" : true,
         "name" : "remark",
         "set" : "multi",
         "type" : "text"
@@ -66,9 +66,9 @@
         "type" : "text"
     },
     "assigned": {
-        "modify" : false,
+        "modify" : true,
         "name" : "assigned",
-        "set" : "single",
-        "type" : "text"
+        "set" : ["無"],
+        "type" : "single-select"
     }
 }
