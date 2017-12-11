@@ -65,6 +65,11 @@ tags.getOrder = (callback) => {
         if(snapshot.val() !== null){
             order = snapshot.val();
         }
+        else {
+          order = require("../config/default-tag-order.json");
+          admin.database().ref().child('tags/order').set(order);
+          console.log('default tag order loaded');
+        }
         console.log(order);
         callback(order);
     });
