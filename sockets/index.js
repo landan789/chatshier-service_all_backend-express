@@ -205,7 +205,7 @@ function init(server) {
             let sendData = [];
             chats.get(function(chatData) {
                 for (let i in chatData) {
-                    if (utility.isSameUser(chatData[i].Profile, userId, roomId)) {
+                    if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
                         for (let j = head; j < tail + 1; j++) {
                             sendData.push(chatData[i].Messages[j]);
                         }
@@ -332,7 +332,7 @@ function init(server) {
             for( let i=0; i<tagsData.length; i++ ) {
                 let ele = tagsData[i];
                 order.push(ele.id);
-                if( ele.data.modify ) {
+                if( ele.source=="custom" ) {
                     customData[ele.id] = ele.data;
                 }
             }

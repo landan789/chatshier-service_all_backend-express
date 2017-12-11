@@ -2,17 +2,29 @@ var admin = require("firebase-admin"); //firebase admin SDK
 var utility = require('../helpers/utility');
 var tags = {};
 tags.get = function(callback){
-    tags.getCustom( (tagsData) => {
+    tags.getCustom( (customData) => {
         tags.getDefault( (defaultData) => {
             tags.getOrder( (orderData) => {
                 let resultData = [];
-                Object.assign(tagsData, defaultData);
                 for( let i=0; i<orderData.length; i++ ) {
                     let id = orderData[i];
-                    resultData.push({
-                        "id": id,
-                        "data": tagsData[id]
-                    });
+                    if( customData[id] ) {
+                        resultData.push({
+                            "id": id,
+                            "source": "custom",
+                            "data": customData[id]
+                        });
+                    }
+                    else if( defaultData[id] ) {
+                        resultData.push({
+                            "id": id,
+                            "source": "default",
+                            "data": defaultData[id]
+                        });
+                    }
+                    else {
+                        console.log("modal/tags error 87");
+                    }
                 }
                 console.log(resultData);
                 callback(resultData);

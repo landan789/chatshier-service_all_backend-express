@@ -41,11 +41,11 @@ $(document).ready(function() {
     for(let i=0; i<tagsData.length; i++ ) {
       appendNewTag(tagsData[i].id);
       let data = tagsData[i].data;
+      let source = tagsData[i].source;
       let name = data.name;
       let type = data.type;
       let modify = data.modify;
       let tr = tagTableBody.find(".tag-content:last");
-      // tr.attr('id', prop);
       tr.find(".tag-name").text(name);
       tr.find(".tag-option").val(type);
       tr.find(".tag-modify").text(modify);
@@ -53,11 +53,9 @@ $(document).ready(function() {
       let set = data.set;
       if(type == 3) set = set.join('\n'); //if type is single-select || multi-select
       tr.find('.tag-set-td').find('#set' + type).val(set).show().siblings().hide();
-      if(modify) {
-          tr.addClass('custom');
-      }
-      else {
-          tr.addClass('default');
+
+      tr.addClass(source);
+      if(source=="default") {
           tr.find("select").prop("disabled", "disabled");
           tr.find("button").prop("disabled", "disabled");
           tr.find("textarea").prop("disabled", "disabled");
@@ -68,7 +66,7 @@ $(document).ready(function() {
   });
   addTagBtn.on('click', function() {
     appendNewTag(""+Date.now());
-    tagTableBody.find(".tag-name:last").click();
+    tagTableBody.find(".tag-content:last").addClass('custom').find('.tag-name').click();
   });
   $(document).on('click', '.tag-name', function() {
     if($(this).find('input').length == 0 && $(this).parent().find('.tag-modify').text() == "true") {
@@ -111,6 +109,7 @@ $(document).ready(function() {
     let sendObj = [];
     tagTableBody.find('tr').each(function() {
         let id = $(this).attr('id');
+        let source = $(this).hasClass('custom') ? 'custom' : 'default';
         let name = $(this).find('.tag-name').text();
         let type = $(this).find('.tag-option').val();
         let modify = $(this).find('.tag-modify').text() == "true";
@@ -126,6 +125,7 @@ $(document).ready(function() {
         };
         sendObj.push({
             "id": id ? id : Date.now(),
+            "source": source,
             "data": data
         });
     });
@@ -157,8 +157,11 @@ $(document).ready(function() {
   }
 
   function appendNewTag(id) {
-    tagTableBody.append('<tr class="tag-content" id="'+id+'">' + '<td class="tag-name"></td>' + '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' + '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>'
-     + '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' + '<td class="tag-move"><p id="moveup"><i class="fa fa-caret-up" style="font-size:16px"></i></p><p id="movedown"><i class="fa fa-caret-down" style="font-size:16px"></i></p></td>' + '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
+    tagTableBody.append('<tr class="tag-content" id="'+id+'">' + '<td class="tag-name"></td>'
+     + '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>'
+      + '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>'
+     + '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>'
+      + '<td class="tag-move"><p id="moveup"><i class="fa fa-caret-up" style="font-size:16px"></i></p><p id="movedown"><i class="fa fa-caret-down" style="font-size:16px"></i></p></td>' + '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
   }
   //-------------end TAG--------------------
   function loadProf() {

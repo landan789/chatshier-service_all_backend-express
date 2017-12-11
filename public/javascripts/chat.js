@@ -48,6 +48,7 @@ $(document).ready(function() {
             socket.emit('request channels', agentId, responseChannel);
             socket.emit('develop update bot', agentId); //should only for developer
             socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
+            socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         });
     }
 
@@ -161,6 +162,7 @@ $(document).ready(function() {
 
     function responseTags(data) {
         TagsData = data;
+        console.log(TagsData);
     }
 
     function responseInternalChatData(data) {
@@ -246,62 +248,123 @@ $(document).ready(function() {
         }
     } // end of pushInfo
     function loadPanelProfile(profile) {
-        let html = "<table class='panel-table'>";
-        for (let i in TagsData) {
-            let name = TagsData[i].name;
-            let type = TagsData[i].type;
-            let set = TagsData[i].set;
-            let modify = TagsData[i].modify;
-            let data = profile[name];
-            let tdHtml = "";
-            if (name === '客戶編號') continue;
-            if (name === '電子郵件') {
-                for (let i in data) {
-                    tdHtml += '<p id="td-inner">' + data[i] + '</p>';
+        let table = $.parseHTML("<table class='panel-table'></table>");
+        console.log(profile);
+        for (let i=0; i<TagsData.length; i++ ) {
+            let tagId = TagsData[i].id;
+            let tagSource = TagsData[i].source;
+            let tagData = TagsData[i].data;
+
+            let name = tagData.name;
+            let type = tagData.type;
+            let set = tagData.set;
+            let modify = tagData.modify;
+
+            let th = $.parseHTML('<th class="userInfo-th"></th>');
+            let td = $.parseHTML('<td class="userInfoTd"></td>');
+            //todo userInfoTd css
+
+            if( tagSource=="default" ) {
+                let profData = profile[tagId];
+                let dom = {};
+                if( tagId=="nickname"|| tagId=="email" || tagId=="age" || tagId=="remark" || tagId=="telephone" ) {
+                    dom = getSingleTextDom(tagData, profData);
                 }
-            } else if (type === 'text') {
-                if (data) {
-                    tdHtml = '<p id="td-inner">' + data + '</p>';
-                } else {
-                    tdHtml = '<p id="td-inner">尚未輸入</p>';
+                else if( tagId=="gender") {
+                    dom = getSingleSelectDom(tagData, profData);
                 }
-            } else if (type === "time") {
-                if (modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
-                else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
-                if (data) {
-                    d = new Date(data);
-                    tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
+                else if( tagId=="firstChat" || tagId=="recentChat" ) {
+                    dom = getTimeDom(tagData, profData);
                 }
-                tdHtml += ' ></input>';
-            } else if (type === 'single-select') {
-                if (modify) tdHtml = '<select id="td-inner">';
-                else tdHtml = '<select id="td-inner" disabled>';
-                if (!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
-                else tdHtml += '<option> 未選擇 </option>';
-                for (let j in set) {
-                    if (set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
-                    else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
+                else if( tagId=="totalChat" || tagId=="avgChat" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                    let text = $(dom).text();
+                    text = parseFloat(text).toFixed(2).toString();
+                    $(dom).text( text+" 分鐘" );
                 }
-                tdHtml += '</select>';
-            } else if (type === 'multi-select') {
-                tdHtml = '<div class="btn-group" id="td-inner">';
-                if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
-                else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
-                if (!data) data = "";
-                let selected = data.split(',');
-                if (selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + "全選" + '</span>';
-                else tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + data + '</span>';
-                tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
-                for (let j in set) {
-                    if (selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
-                    else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
+                else if( tagId=="chatTimeCount" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                    $(dom).text( $(dom).text()+" 次" );
                 }
-                tdHtml += '</ul></div>';
+                else if( tagId=="assigned" ) {
+                    dom = getMultiSelectDom(tagData, "");
+                }
+                $(th).attr('id', tagId).text(name);
+                $(td).attr('id', name).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
             }
-            html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
+            else {
+                let profData = profile[name];
+                let dom = {};
+                if( type=="text" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                }
+                else if( type=="time" ) {
+                    dom = getTimeDom(tagData, profData);
+                }
+                else if( type=="single-select" ) {
+                    dom = getSingleSelectDom(tagData, profData);
+                }
+                else if( type=="multi-select" ) {
+                    dom = getMultiSelectDom(tagData, profData);
+                }
+
+                $(th).attr('id', name).text(name);
+                $(td).attr('id', name).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
+            }
+            $(table).append('<tr>'+th[0].outerHTML+td[0].outerHTML+'</tr>');
         }
-        html += "</table>";
-        return html;
+        return $(table)[0].outerHTML;
+
+        function getSingleTextDom( tagD, profD ) {
+            let dom =  $.parseHTML('<p id="td-inner">尚未輸入</p>');
+            if( profD ) $(dom).text(profD);
+            return dom;
+        }
+        function getTimeDom( tagD, profD ) {
+            let dom = $.parseHTML('<input type="datetime-local" id="td-inner"></input>');
+            if( !tagD.modify ) $(dom).prop('readOnly', true);
+
+            if( profD ) {
+                d = new Date(profD);
+                let val = d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
+                $(dom).attr("value", val);
+            }
+            return dom;
+        }
+        function getSingleSelectDom( tagD, profD ) {
+            let dom = $.parseHTML('<select id="td-inner"></select>');
+            $(dom).append('<option value=""> 未選擇 </option>');
+            if ( !tagD.modify ) $(dom).prop('readOnly', true);
+            for (let i in tagD.set) {
+                let opt = tagD.set[i];
+                let option = $.parseHTML('<option></option>');
+                $(option).val(opt).text(opt).attr("selected", (opt==profD) );
+                $(dom).append(option);
+            }
+            return dom;
+        }
+        function getMultiSelectDom( tagD, profD ) {
+            let dom = $.parseHTML('<div class="btn-group" id="td-inner"></div>');
+            $(dom).append('<button type="button" data-toggle="dropdown" aria-expanded="false">');
+            $(dom).append('</button><ul class="multi-select-container dropdown-menu"></ul>');
+            if( !tagD.modify ) $(dom).find('button').prop('disabled', true);
+            if( !profD ) profD = "";
+
+            let selected = profD.split(',');
+            let set = tagD.set;
+
+            let text = profD && selected.length==set.length ? "全選" : profD;
+            $(dom).find('button').append('<span></span><b class="caret"></b>');
+            $(dom).find('span').attr('class', 'multi-selectSelectedText').attr('rel', profD).text(text);
+
+            for( let i in set ) {
+                let input = $.parseHTML('<input type="checkbox">');
+                $(input).attr('value', set[i]);
+                if( selected.indexOf(set[i]) != -1) $(input).attr('checked', '');
+                $(dom).find('ul').append('<li>'+input[0].outerHTML+set[i]+'</li>');
+            }
+            return dom;
+        }
     } // end of loadPanelProfile
 
     function pushInternalMsg(data) {
@@ -395,7 +458,6 @@ $(document).ready(function() {
                 }
                 tdHtml += '</select>';
             } else if (type === 'multi-select') {
-                // console.log("data == " + data);
                 tdHtml = '<div class="btn-group" id="td-inner">';
                 if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
                 else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
@@ -1032,9 +1094,9 @@ $(document).ready(function() {
                 console.log(response_text)
               }
             });
-            
+
           }
-          
+
     }
     function deleteTicket() {
         if(confirm("確認刪除表單？")) {
