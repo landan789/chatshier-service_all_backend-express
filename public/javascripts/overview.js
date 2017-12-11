@@ -132,7 +132,7 @@ $(document).ready(function() {
             // 塞入資料庫並重整
             $('#quickAdd').modal('hide');
             $('.textinput').val('');
-            $('#sendTime').val('');
+            $('#send-time').val('');
             $('#inputText').empty();
             inputNum = 0;
             alert('變更已儲存!');
