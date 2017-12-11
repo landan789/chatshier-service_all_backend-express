@@ -1,4 +1,4 @@
-#chatApp {
+#chat_App {
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -196,6 +196,7 @@ input {
 .panel-table input {
     width: auto;
 }
+
 #tdInner {
     width: 80%;
 }
@@ -595,7 +596,7 @@ body {
     height: 7%;
 }
 
-#chatHome {
+#chat-Home {
     position: relative;
     left: 0;
     width: 100%;
@@ -1196,11 +1197,12 @@ img[alt="無法顯示相片"] {
     padding-right: 10px;
 }
 
-.info_input_table td, .info_input_table th {
-    border-bottom:  1px solid rgb(5, 82, 87);
+.info_input_table td,
+.info_input_table th {
+    border-bottom: 1px solid rgb(5, 82, 87);
     text-align: left;
     padding: 8px;
-    margin: 2px 0 ;
+    margin: 2px 0;
 }
 
 .info_input_table {
@@ -1209,4 +1211,33 @@ img[alt="無法顯示相片"] {
 
 .info_input_table tr:nth-child(even) {
     background-color: rgb(169, 196, 186);
+}
+
+.chsr .nav>li>a:focus,
+.chsr .nav>li>a:hover {
+    text-decoration: none;
+    background-color: rgb(47, 191, 240);
+}
+
+.chsr a:focus,
+.chsr a:hover {
+    color: #ffffff;
+}
+
+.chsr .nav .open>a,
+.chsr .nav .open>a:focus,
+.chsr .nav .open>a:hover {
+    background-color: rgb(47, 191, 240);
+}
+
+.chsr .dropdown-menu .divider {
+    margin: 0px;
+}
+
+.chsr .dropdown-menu {
+    padding: 0px;
+}
+
+.chsr .dropdown-menu>li>a {
+    padding: 10px 20px;
 }

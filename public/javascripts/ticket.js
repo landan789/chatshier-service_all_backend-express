@@ -62,7 +62,6 @@ function loadTable() {
     success: function(data, textStatus, jqXHR) {
       for(let i = 0; i < data.length; i++) {
         ticketInfo = data;
-        console.log(data[i]);
         ticket_content.append('<tr id="' + i + '" class="ticket-content" data-toggle="modal" data-target="#ticketInfoModal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
       }
     },
@@ -180,7 +179,7 @@ function updateStatus() {
 function showSelect(prop, n) {
   // let prop = $(this).parent().children("th").text() ;
   // alert(prop) ;
-  let html = "<select class='select'>";
+  let html = "<select class='select form-control'>";
   if(prop == 'priority') {
     html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
     for(let i = 1; i < 5; i++) {
@@ -252,8 +251,6 @@ function displayDate(date) {
 function dueDate(day) {
   let html = '';
   let nowTime = new Date().getTime();
-  console.log('this is nowTime');
-  console.log(nowTime);
   let dueday = Date.parse(displayDate(day));
   let hr = dueday - nowTime;
   hr /= 1000 * 60 * 60;
