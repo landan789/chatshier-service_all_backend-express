@@ -51,12 +51,16 @@
                                     <table class="table table-user-information">
                                         <tbody>
                                             <tr>
+                                                <td>綽號: </td>
+                                                <td id="prof-nickname"></td>
+                                            </tr>
+                                            <tr>
                                                 <td>公司: </td>
                                                 <td id="prof-company"></td>
                                             </tr>
                                             <tr>
                                                 <td>Logo: </td>
-                                                <td id="prof-logo"></td>
+                                                <td id="prof-logo" style="width: 50%;"><img style="width: 100%;"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -173,8 +177,8 @@
                 <div id="menu3" class="tab-pane fade">
                     <h3>標籤
                         <button type="button" class="btn btn-default add-tag" href=".tag-name:last">
-              <span class="fa fa-plus fa-fw"></span> 新增
-            </button>
+                            <span class="fa fa-plus fa-fw"></span> 新增
+                        </button>
                     </h3>
                     <div class="col-md-8 col-lg-8 panel-info prof-wid">
                         <div class="float-down">
@@ -201,6 +205,9 @@
                                                 </tbody>
                                             </table>
                                             <div class="align-center">
+                                                <button type="button" class="btn btn-default add-tag pull-left bold-word" href=".tag-name:last">
+                                                    <span class="fa fa-plus fa-fw"></span> 新增
+                                                </button>
                                                 <button type="button" class="btn btn-default all-confirm bold-word">確認</button>
                                                 <button type="button" class="btn btn-default all-cancel bold-word">取消</button>
                                             </div>
@@ -231,9 +238,9 @@
                                         <div class="form-group">
                                             <label for="create-internal-photo" class="col-2 col-form-label">群組圖片(URL): </label>
                                             <div class="col-4">
-                                                <div class="input-group file-container">
+                                                <div class="input-group file-container" id="create-internal-photo" >
                                                     <span class="input-group-btn">
-                                                        <button id="create-internal-photo" class="btn btn-default file-choose" type="button">上傳圖片</button>
+                                                        <button class="btn btn-default file-choose" type="button">上傳圖片</button>
                                                     </span>
                                                     <input type="file" class='file-ghost' style='visibility:hidden; height:0'>
                                                     <p type="input" class="form-control file-text" data-placeholder="Choose a file..."></p>
@@ -272,6 +279,8 @@
                                     <div class="panel-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                                         <button type="button" class="btn btn-primary" id="prof-submit-create-internal-room">確認</button>
+                                        <button type="button" class="btn btn-danger pull-right" id="clear-create-internal-room">清空</button>
+
                                     </div>
                                 </div>
                             </div>
@@ -297,6 +306,13 @@
                                         <label for="edit-id" class="col-2 col-form-label">ID</label>
                                         <span id="prof-edit-id"></span>
                                     </div>
+                                    <!-- nickname -->
+                                    <div class="form-group">
+                                        <label for="prof-edit-nickname" class="col-2 col-form-label">綽號: </label>
+                                        <div class="col-4">
+                                            <input class="form-control" type="text" value="" id="prof-edit-nickname">
+                                        </div>
+                                    </div>
                                     <!-- Company -->
                                     <div class="form-group">
                                         <label for="prof-edit-company" class="col-2 col-form-label">公司: </label>
@@ -308,83 +324,25 @@
                                     <div class="form-group">
                                         <label for="prof-edit-logo" class="col-2 col-form-label">Logo: </label>
                                         <div class="col-4">
-                                            <input class="form-control" type="tel" value="" id="prof-edit-logo">
+                                            <div class="input-group file-container" id="prof-edit-logo">
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-default file-choose" type="button">上傳圖片</button>
+                                                </span>
+                                                <input type="file" class="file-ghost hidden">
+                                                <p type="input" class="form-control file-text" data-placeholder="Choose a file..."></p>
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-warning file-reset" type="button">重設</button>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+
+
                                 </form>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                                 <button type="button" class="btn btn-primary" id="prof-submit-basic">確認</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Account Modal -->
-                <div class="modal fade" id="accountModal" tabindex="-1" role="dialog" aria-labelledby="profModalTitle" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="profModalTitle"></h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form method="POST" action="/foo-route">
-                                    <!-- 編號 -->
-                                    <div class="form-group" hidden>
-                                        <label for="edit-id" class="col-2 col-form-label">ID</label>
-                                        <span id="prof-edit-id"></span>
-                                    </div>
-                                    <!-- 姓名 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-name" class="col-2 col-form-label">姓名: </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="text" value="" id="prof-edit-name">
-                                        </div>
-                                    </div>
-                                    <!-- 綽號 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-nickname" class="col-2 col-form-label">綽號: </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="text" value="" id="prof-edit-nickname">
-                                        </div>
-                                    </div>
-                                    <!-- 出生日期 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-dob" class="col-2 col-form-label">出生日期: </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="date" value="" id="prof-edit-dob">
-                                        </div>
-                                    </div>
-                                    <!-- 郵件 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-email" class="col-2 col-form-label">電子郵件: </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="email" value="" id="prof-edit-email">
-                                        </div>
-                                    </div>
-                                    <!-- 性別 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-gender">性別: </label>
-                                        <select class="form-control" id="prof-edit-gender">
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                        </select>
-                                    </div>
-                                    <!-- 電話 -->
-                                    <div class="form-group">
-                                        <label for="prof-edit-phone" class="col-2 col-form-label">手機: </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="tel" value="" id="prof-edit-phone">
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                                <button type="button" class="btn btn-primary" id="prof-submit-action">確認</button>
                             </div>
                         </div>
                     </div>

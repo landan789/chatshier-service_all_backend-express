@@ -89,7 +89,7 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
             let updateObj = {};       //建立update物件
             updateObj['/'+prop+'/Messages/'+length] = obj;  //將最新一則的訊息放至訊息陣列的最後
             if( unRead>0 ) updateObj['/'+prop+'/Profile/unRead'] = count_unread;    //如果新訊息是user發的，則須更新unread
-            if( pictureUrl ) updateObj['/'+prop+'/Profile/pictureUrl'] = pictureUrl;    //如果有獲得user的頭貼，則更新頭貼
+            if( pictureUrl ) updateObj['/'+prop+'/Profile/photo'] = pictureUrl;    //如果有獲得user的頭貼，則更新頭貼
             else pictureUrl = data.Profile.pictureUrl;      //如果無獲得user的頭貼，則將原本頭貼傳回全端
             chats.update(updateObj);
             flag = false;
