@@ -69,6 +69,6 @@
         "modify" : true,
         "name" : "assigned",
         "set" : ["無"],
-        "type" : "single-select"
+        "type" : "multi-select"
     }
 }
