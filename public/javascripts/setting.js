@@ -458,6 +458,7 @@ $(document).ready(function() {
       $('#create-internal-photo .file-reset').click();
       $('#create-internal-owner').val('');
       $('#create-internal-agents').attr('rel', '').text('未選擇');
+      $('.multi-select-container[rel="create-internal-agents"] input[type="checkbox"]').prop('checked', false);
   }
 
   $(document).on('change', '.file-container input.file-ghost', function(){

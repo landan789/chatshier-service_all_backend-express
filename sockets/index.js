@@ -110,7 +110,6 @@ function init(server) {
 
                         requestInternalChatData(userId, (data) => {
                             res.internalChatData = data;
-                            console.log(data);
 
                             callback(res);
                         });
