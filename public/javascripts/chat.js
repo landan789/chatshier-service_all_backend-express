@@ -143,11 +143,10 @@ $(document).ready(function() {
     }
 
     function responseChatData(data) {
-        // console.log(data);
-        for (i in data) pushMsg(data[i]); //聊天記錄
-        setTimeout(function() {
-            for (i in data) pushInfo(data[i]);
-        }, 500);
+        console.log(data);
+        for (i in data) pushMsg(data[i], () => {
+            pushInfo(data[i]);
+        }); //聊天記錄
         sortUsers("recentTime", sortRecentBool, function(a, b) {
             return a < b;
         }); //照時間排列 新到舊
@@ -193,7 +192,7 @@ $(document).ready(function() {
         }
     }
 
-    function pushMsg(data) {
+    function pushMsg(data, callback) {
         let historyMsg = data.Messages;
         let profile = data.Profile;
         let historyMsgStr = "";
@@ -228,6 +227,7 @@ $(document).ready(function() {
         });
         name_list.push(profile.channelId + profile.userId); //make a name list of all chated user
         userProfiles[profile.userId] = profile;
+        callback();
     } // end of pushMsg
     function historyMsgToStr(messages) {
         let returnStr = "";
@@ -871,29 +871,28 @@ $(document).ready(function() {
         let display;
         let i = $(this).attr('id');
         let Tinfo = ticketInfo[i];
-        let Cinfo;
-        let Ainfo;
-        $("#ID_num").text(Tinfo.id);
-        $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
-        display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
-        for (let j in contactInfo) {
-            if (contactInfo[j].id === Tinfo.requester_id) {
-                Cinfo = contactInfo[j];
-                display += '<tr>' + '<th>requester</th>' + '<td>' + Cinfo.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Cinfo.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Cinfo.phone + '</td>' + '</tr>'
-                break;
-            }
+        let Ainfo = [];
+        socket.emit('get agents profile',loadAgentsInfo);
+        
+        function loadAgentsInfo(data) {
+            // console.log(data); // 所有agent的名單物件
+            agentInfo = data;
+            agentKey = Object.keys(agentInfo);
+            console.log(agentInfo);
+
+            agentKey.map(agent => {
+                Ainfo.push({name:agentInfo[agent].name,id:agent})
+            });
+
+            $("#ID_num").text(Tinfo.id);
+            $("#ID_num").css("background-color", priorityColor(Tinfo.priority));
+            display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Ainfo) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
+
+            $(".info_input_table").empty();
+            $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
+            $(".modal-title").text(Tinfo.requester.name);
+            $(".info_input_table").append(display);
         }
-        for (let j in agentInfo) {
-            if (agentInfo[j].id === Tinfo.requester_id) {
-                Ainfo = agentInfo[j];
-                display += '<tr>' + '<th>requester(<span style="color:red">agent</span>)</th>' + '<td>' + Ainfo.contact.name + '</td>' + '</tr><tr>' + '<th>requester email</th>' + '<td>' + Ainfo.contact.email + '</td>' + '</tr><tr>' + '<th>requester phone</th>' + '<td>' + Ainfo.contact.phone + '</td>' + '</tr>'
-                break;
-            }
-        }
-        $(".info_input_table").empty();
-        $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
-        $(".modal-title").text(Tinfo.requester.name);
-        $(".info_input_table").append(display);
     } // end of moreInfo
     function showInput() {
         let prop = $(this).parent().children("th").text();
@@ -1231,6 +1230,7 @@ $(document).ready(function() {
         }
     } // end of priorityNumberToText
     function responderName(id) {
+        console.log(agentInfo);
         for (let i in agentInfo) {
             if (agentInfo[i].id === id) return agentInfo[i].contact.name;
         }
@@ -1251,12 +1251,10 @@ $(document).ready(function() {
                 html += "<option value=" + i + ">" + statusNumberToText(i) + "</option>";
             }
         } else if (prop === 'responder') {
-            html += "<option value=" + n + ">" + responderName(n) + "</option>";
-            for (let i in agentInfo) {
-                let id = agentInfo[i].id;
-                if (id === n) continue;
-                html += "<option value=" + id + ">" + responderName(id) + "</option>";
-            }
+            html += "<option value=''>請選擇</option>";
+            n.map(agent => {
+                html += "<option value=" + agent.id + ">" + agent.name + "</option>";
+            });
         }
         html += "</select>";
         return html;
@@ -1313,7 +1311,6 @@ $(document).ready(function() {
     }
 
     function internalConfirm() {
-
         let method = $(this).attr('id');
         if (method === "confirm") {
             if (confirm("Are you sure to change profile?")) {

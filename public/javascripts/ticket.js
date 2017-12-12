@@ -360,9 +360,6 @@ function submitAdd() {
     $('#form-email').val('');
     $('#form-phone').val('');
     $('#form-description').val('');
-    // setTimeout(() => {
-    //   location.href = '/chat';
-    // }, 5000);
   }
 }
 
