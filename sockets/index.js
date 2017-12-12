@@ -98,26 +98,28 @@ function init(server) {
         // 但for developer，此步驟可讓npm重開機時，不用再去setting提交channel config
         socket.on('develop update bot', (userId) => {
             users.getUser(userId, chatInfo => {
-                let data = {
-                    line_1: {
-                        channelId: chatInfo.chanId_1,
-                        channelSecret: chatInfo.chanSecret_1,
-                        channelAccessToken: chatInfo.chanAT_1
-                    },
-                    line_2: {
-                        channelId: chatInfo.chanId_2,
-                        channelSecret: chatInfo.chanSecret_2,
-                        channelAccessToken: chatInfo.chanAT_2
-                    },
-                    fb: {
-                        pageID: chatInfo.fbPageId,
-                        appID: chatInfo.fbAppId,
-                        appSecret: chatInfo.fbAppSecret,
-                        validationToken: chatInfo.fbValidToken,
-                        pageToken: chatInfo.fbPageToken
-                    }
-                };
-                update_line_bot(data);
+                if (chatInfo) {
+                    let data = {
+                        line_1: {
+                            channelId: chatInfo.chanId_1,
+                            channelSecret: chatInfo.chanSecret_1,
+                            channelAccessToken: chatInfo.chanAT_1
+                        },
+                        line_2: {
+                            channelId: chatInfo.chanId_2,
+                            channelSecret: chatInfo.chanSecret_2,
+                            channelAccessToken: chatInfo.chanAT_2
+                        },
+                        fb: {
+                            pageID: chatInfo.fbPageId,
+                            appID: chatInfo.fbAppId,
+                            appSecret: chatInfo.fbAppSecret,
+                            validationToken: chatInfo.fbValidToken,
+                            pageToken: chatInfo.fbPageToken
+                        }
+                    };
+                    update_line_bot(data);
+                }
             });
         });
         // 3.更新群組頻道
@@ -393,7 +395,7 @@ function init(server) {
         // 新使用者
         socket.on('new user', (id, hasNickName) => {
             users.getUser(id, (data) => {
-                if (data.nickname) {
+                if (data && data.nickname) {
                     socket.nickname = data.nickname;
                     hasNickName(true);
                 } else {
@@ -404,10 +406,10 @@ function init(server) {
         socket.on('new nickname', (id, nick) => {
             users.updateUser(id, { nickname: nick });
         });
-            // socket.on('disconnect', (data) => {
-            //   if (!socket.nickname) return;
-            //   delete users[socket.nickname];
-            // });
+        // socket.on('disconnect', (data) => {
+        //   if (!socket.nickname) return;
+        //   delete users[socket.nickname];
+        // });
     });
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead) {
@@ -449,45 +451,46 @@ function init(server) {
                 msgObj.message = msgData;
                 pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
 
-                if (keywordsReply(msgObj.message)!==-1){
+                if (keywordsReply(msgObj.message) !== -1) {
                     console.log('keywordsreply bot replied!');
                 }
-                if( autoReply(msgObj.message)!==-1 ) {
+                if (autoReply(msgObj.message) !== -1) {
                     console.log("autoreply bot replyed!");
                 }
-                if( lineTemplateReply(msgObj.message)!==-1 ) {
+                if (lineTemplateReply(msgObj.message) !== -1) {
                     console.log("line template bot replyed!");
                 }
-                if( lineTemplateReplyDemo(msgObj.message)!==-1 ) {
+                if (lineTemplateReplyDemo(msgObj.message) !== -1) {
                     console.log("linebotdemo bot replyed!");
                 }
-                if( surveyReply(msgObj.message)!==-1 ) {
+                if (surveyReply(msgObj.message) !== -1) {
                     console.log("surveyReply bot replyed!");
                 }
-                if( appointmentReply(msgObj.message)!==-1 ) {
+                if (appointmentReply(msgObj.message) !== -1) {
                     console.log("appointment bot replyed!");
                 }
-                if( apiai(msgObj.message)!==-1 ) {
+                if (apiai(msgObj.message) !== -1) {
                     console.log("api.ai bot replyed!");
                 }
                 // else {
                 //   console.log("no auto reply bot work! wait for agent reply");
                 // }
             });
+
             function keywordsReply(msg) {
                 replyMsgObj.name = "KeyWords Reply";
                 let sent = false;
-                keywords.get(function(keywordData){
+                keywords.get(function(keywordData) {
                     for (let i in keywordData) {
-                        for( let j in keywordData[i] ) {
+                        for (let j in keywordData[i]) {
                             let thisData = keywordData[i][j];
-                            if(thisData.taskCate=="開放") {
+                            if (thisData.taskCate == "開放") {
                                 let keywords = thisData.taskSubK ? JSON.parse(JSON.stringify(thisData.taskSubK)) : [];
                                 keywords.push(thisData.taskMainK);
                                 keywords.map(function(word) {
-                                    if( msg.trim().toLowerCase() == word.trim().toLowerCase() ) {
+                                    if (msg.trim().toLowerCase() == word.trim().toLowerCase()) {
                                         sent = true;
-                                        for( let k in thisData.taskText ) {
+                                        for (let k in thisData.taskText) {
                                             replyMsgObj.message = thisData.taskText[k];
                                             pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
                                             send_to_Line(thisData.taskText[k], receiverId, channelId);
@@ -521,22 +524,23 @@ function init(server) {
                     }
 
                     console.log(sent);
-                    if(!sent) return -1;
+                    if (!sent) return -1;
                 });
             }
+
             function lineTemplateReply(msg) {
                 linetemplate.getMsg(channelId, msg, function(data) {
-                    if( data ) {
+                    if (data) {
                         replyMsgObj.name = "Line Template Demo Reply";
                         replyMsgObj.message = data.altText ? data.altText : data.text;
                         pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
                         templateToStr = JSON.stringify(data);
-                        send_to_Line("/template "+templateToStr, receiverId, channelId);
-                    }
-                    else return -1;
+                        send_to_Line("/template " + templateToStr, receiverId, channelId);
+                    } else return -1;
                 });
             }
-            function lineTemplateReplyDemo( msg ) {
+
+            function lineTemplateReplyDemo(msg) {
                 // replyMsgObj.name = "Line Template Demo Reply";
                 // linetemplate.get( function( templateData ) {
                 //   let data = templateData[msg];
