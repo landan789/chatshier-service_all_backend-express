@@ -89,7 +89,7 @@ $(document).ready(function() {
     addTicketModal.on('show.bs.modal', openTicketModal);
     $(document).on('click', '#form-submit', addTicket);
     $(document).on('click', '#ticket-info-delete', deleteTicket);
-
+    $(document).on('click', '#ticket-info-modify', modifyTicket)
     //=====end ticket event=====
 
     //=====start utility event=====
@@ -114,7 +114,6 @@ $(document).ready(function() {
         responseInternalChatData(data.internalChatData);
         responseTags(data.tagsData);
         responseChannels(data.channelsData);
-        console.log(data);
     }
     function checkNickName(check) {
         if (!check) {
@@ -143,7 +142,6 @@ $(document).ready(function() {
     }
 
     function responseChatData(data) {
-        console.log(data);
         for (i in data) pushMsg(data[i], () => {
             pushInfo(data[i]);
         }); //聊天記錄
@@ -174,12 +172,10 @@ $(document).ready(function() {
                     list.push(agentIdToName[prop]);
                 }
                 data[i].data.set = list;
-                console.log(agentIdToName);
                 break;
             }
         }
         TagsData = data;
-        console.log(TagsData);
     }
 
     function responseInternalChatData(data) {
@@ -267,7 +263,6 @@ $(document).ready(function() {
     } // end of pushInfo
     function loadPanelProfile(profile) {
         let table = $.parseHTML("<table class='panel-table'></table>");
-        console.log(profile);
         for (let i=0; i<TagsData.length; i++ ) {
             let tagId = TagsData[i].id;
             let tagSource = TagsData[i].source;
@@ -662,7 +657,7 @@ $(document).ready(function() {
                             let innInfo = innsnap.val();
                             if (innInfo.channelId === undefined) {} else if (innInfo.channelId === channelId && innInfo.userId === userId) {
                                 database.ref('chats/Data/' + outId[i] + '/Profile').update({
-                                    "最後聊天的客服人員": email
+                                    "lastTalkedTo": email
                                 });
                             }
                         });
@@ -868,17 +863,27 @@ $(document).ready(function() {
         }, 500);
     } // end of loadTable
     function moreInfo() {
+        let userId = auth.currentUser.uid;
         let display;
         let i = $(this).attr('id');
+        let idNum = $('#'+i+' .data_id').attr('rel');
+        // console.log('tickets/' + userId + '/t' + idNum)
+        // console.log(idNum);
         let Tinfo = ticketInfo[i];
         let Ainfo = [];
         socket.emit('get agents profile',loadAgentsInfo);
         
         function loadAgentsInfo(data) {
             // console.log(data); // 所有agent的名單物件
+            database.ref('tickets/' + userId + '/t' + idNum).once('value', snapshot => {
+                if(snapshot.val() !== null) {
+                    // console.log(snapshot.val());
+                    let value = snapshot.val();
+                    $('option[value="'+value.owner+'"]').attr('selected','selected');
+                }
+            });
             agentInfo = data;
             agentKey = Object.keys(agentInfo);
-            console.log(agentInfo);
 
             agentKey.map(agent => {
                 Ainfo.push({name:agentInfo[agent].name,id:agent})
@@ -891,7 +896,7 @@ $(document).ready(function() {
             $(".info_input_table").empty();
             $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
             $(".modal-title").text(Tinfo.requester.name);
-            $(".info_input_table").append(display);
+            $(".info_input_table").append(display); 
         }
     } // end of moreInfo
     function showInput() {
@@ -970,59 +975,6 @@ $(document).ready(function() {
         }
         $(this).parent().html(change);
     } // end of hideInput
-    function updateStatus() {
-        let select = $(".select"),
-            editable = $(".edit"),
-            input = $("input");
-        let name, value, json = '{';
-        let obj = {};
-        let id = $(this).attr("val");
-        let 客戶名, 客戶ID, 回覆人員, 優先, 狀態, 描述, 到期時間;
-        input.each(function() {
-            $(this).blur();
-        });
-        for (let i = 0; i < editable.length; i++) {
-            name = editable.eq(i).parent().children("th").text().split(" ");
-            value = editable.eq(i).text();
-            json += '"' + name[0] + '":"' + value + '",';
-        }
-        for (let i = 0; i < select.length; i++) {
-            name = select.eq(i).parent().parent().children("th").text();
-            value = select.eq(i).val();
-            json += '"' + name + '":' + value + ','
-        }
-        json += '"id":"' + id + '"}';
-        obj = JSON.parse(json);
-        客戶名 = obj.subject;
-        客戶ID = obj.客戶ID;
-        回覆人員 = obj.回覆人員;
-        優先 = parseInt(obj.優先);
-        狀態 = parseInt(obj.狀態);
-        描述 = obj.描述;
-        obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '"}';
-        if (confirm("確定變更表單？")) {
-            var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
-            $.ajax({
-                url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
-                type: 'PUT',
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                headers: {
-                    "Authorization": "Basic " + btoa(api_key + ":x")
-                },
-                data: obj,
-                success: function(data, textStatus, jqXHR) {
-                    alert("表單已更新");
-                    setTimeout(() => {
-                        location.reload();
-                    }, 500)
-                },
-                error: function(jqXHR, tranStatus) {
-                    alert("表單更新失敗，請重試");
-                }
-            });
-        }
-    } // end of updateStatus
     function ticketSearch(e) {
         let searchStr = $(this).val();
         let trs = $(this).parents('table').find('tbody').find('tr');
@@ -1038,17 +990,35 @@ $(document).ready(function() {
         let clientName = $('#selected .clientName').text();
         $('#form-uid').val(realId);
         $('#form-name').val(clientName);
+
+        let agentList;
+        let Ainfo = [];
+        socket.emit('get agents profile',loadAgentsInfo);
+        function loadAgentsInfo(data) {
+            // console.log(data); // 所有agent的名單物件
+            agentInfo = data;
+            agentKey = Object.keys(agentInfo);
+            agentKey.map(agent => {
+                Ainfo.push({name:agentInfo[agent].name,id:agent})
+            });
+            Ainfo.map(agent => {
+                agentList += "<option value=" + agent.id + ">" + agent.name + "</option>";
+            });
+            $('#add-form-agents').append(agentList);
+        }
     }
     function addTicket() {
         let name = $('#form-name').val();
         let uid = $('#form-uid').val(); //因為沒有相關可用的string，暫時先儲存在to_emails這個功能下面
-        let email = 'xxx@9thflr.com'
-        let phone = '0900000000'
+        let email = 'xxx@9thflr.com' // 一定要加上這個參數 先放假資料 以後可以新增在這裡
+        let phone = '0900000000' // 一定要加上這個參數 先放假資料 以後可以新增在這裡
         let status = $('#form-status option:selected').text();
         let priority = $('#form-priority option:selected').text();
+        let ownerAgent = $('#add-form-agents option:selected').val();
+        console.log(ownerAgent);
         let description = $('#form-description').val();
         ticket_data = '{ "description": "' + description + '", "name" : "' + name + '",  "subject": "' + uid + '", "email": "' + email + '", "phone": "' + phone + '", "priority": ' + priorityTextToMark(priority) + ', "status": ' + statusTextToMark(status) + '}';
-        console.log(ticket_data);
+        // console.log(ticket_data);
           // 驗證
           if($('#form-uid').val().trim() === '') {
             $('#error').append('請輸入客戶ID');
@@ -1087,6 +1057,7 @@ $(document).ready(function() {
               },
               data: ticket_data,
               success: function(data, textStatus, jqXHR) {
+                console.log(data);
                 console.log('tickt created');
                 //把事件儲存到calendar database，到期時間和ticket一樣設定三天
                 database.ref('cal-events/' + userId).push({
@@ -1096,6 +1067,7 @@ $(document).ready(function() {
                   description: description,
                   allDay: false
                 });
+                database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent })
                 $('#form-name').val('');
                 $('#form-uid').val('');
                 $('#form-subject').val('');
@@ -1111,9 +1083,7 @@ $(document).ready(function() {
                 console.log(response_text)
               }
             });
-
           }
-
     }
     function deleteTicket() {
         if(confirm("確認刪除表單？")) {
@@ -1136,6 +1106,85 @@ $(document).ready(function() {
             }
           });
         }
+    }
+    function modifyTicket() {
+          let userId = auth.currentUser.uid;
+          let select = $(".select"),
+            editable = $(".edit"),
+            input = $("input");
+          let name, value, json = '{';
+          let obj = {};
+          let id = $(this).parent().siblings('.modal-header').find('#ID_num').text();
+          let clientName, clientId, clientOwner, clientPriority, clientStatus, clientDescription, clientDue;
+          input.each(function() {
+            $(this).blur();
+          });
+          for(let i = 0; i < editable.length; i++) {
+            name = editable.eq(i).parent().children("th").text().split(" ");
+            value = editable.eq(i).parent().children("td").text();
+            // console.log(name,value);
+            // if(name[0] === "到期時間過期") 
+            json += '"' + name[0] + '":"' + value + '",';
+          }
+          for(let i = 0; i < select.length; i++) {
+            name = select.eq(i).parent().parent().children("th").text();
+            value = select.eq(i).val();
+            if(name === '負責人') json += '"' + name + '":' + wrapQuotes(value) + ','
+            else json += '"' + name + '":' + value + ','
+          }
+          json += '"id":"' + id + '"}';
+          obj = JSON.parse(json);
+          clientName = obj.subject;
+          clientId = obj.客戶ID;
+          clientOwner = obj.負責人;
+          // console.log(clientOwner);
+          clientPriority = parseInt(obj.優先);
+          clientStatus = parseInt(obj.狀態);
+          clientDescription = obj.描述;
+          // console.log(obj.到期時間過期);
+          if(obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
+          else clientDue = obj.到期時間即期;
+          var time_list = clientDue.split("/");
+          var new_time = [];
+          var new_time2 = [];
+          time_list.map(function(i) {
+            if(i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
+            new_time.push(i);
+          });
+          new_time = new_time.join("-").split(" ");
+          if(new_time[1].length < 8) {
+            new_time[1].split(":").map(function(x) {
+              if(x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
+            });
+          };
+          new_time = new_time.join("T") + "Z";
+          obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + new_time + '"}';
+          // console.log(obj);
+          if(confirm("確定變更表單？")) {
+            var ticket_id = $(this).parent().siblings().children().find('#ID_num').text();
+            $.ajax({
+              url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
+              type: 'PUT',
+              contentType: "application/json; charset=utf-8",
+              dataType: "json",
+              headers: {
+                "Authorization": "Basic " + btoa(api_key + ":x")
+              },
+              data: obj,
+              success: function(data, textStatus, jqXHR) {
+                database.ref('tickets/' + userId + '/t' + id).set({owner:clientOwner});
+                alert("表單已更新");
+                location.reload();
+              },
+              error: function(jqXHR, tranStatus) {
+                alert("表單更新失敗，請重試");
+                console.log(jqXHR.responseText)
+              }
+            });
+          }
+          function wrapQuotes(msg) {
+            return '"' + msg + '"';
+          }
     }
     function priorityColor(priority) {
         switch (priority) {
@@ -1237,7 +1286,7 @@ $(document).ready(function() {
         return "unassigned";
     } // end of responderName
     function showSelect(prop, n) {
-        let html = "<select class='select form-control'>";
+        let html = "<select class='select form-control' required>";
         if (prop === 'priority') {
             html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
             for (let i = 1; i < 5; i++) {
@@ -1251,7 +1300,7 @@ $(document).ready(function() {
                 html += "<option value=" + i + ">" + statusNumberToText(i) + "</option>";
             }
         } else if (prop === 'responder') {
-            html += "<option value=''>請選擇</option>";
+            html += "<option value='未指派'>請選擇</option>";
             n.map(agent => {
                 html += "<option value=" + agent.id + ">" + agent.name + "</option>";
             });
