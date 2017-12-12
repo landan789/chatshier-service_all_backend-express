@@ -26,6 +26,7 @@ $(document).ready(function() {
   $('#profModal').on('hidden.bs.modal', profClear); //viewModal 收起來
   $(document).on('click', '#signout-btn', logout); //登出
   //----------------TAG---------------
+  var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
   var socket = io.connect();
   var tagTable = $('#tagTable');
   var tagTableBody = $('#tagTable-body');
@@ -33,31 +34,39 @@ $(document).ready(function() {
   var allConfirmBtn = $('.all-confirm');
   var allCancelBtn = $('.all-cancel');
   var rowsCount = 0; //dynamic load count in db ref
-  var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
   tagTableBody.sortable();
-  socket.emit("get tags from tags");
-  socket.on("push tags to tags", data => {
-    // console.log("data:");
-    // console.log(data);
-    for(let i in data) {
-      append_new_tag();
-      let name = data[i].name;
-      let type = data[i].type;
-      let modify = data[i].modify;
-      tagTableBody.find(".tag-name:last").text(name);
-      tagTableBody.find(".tag-option:last").val(type);
-      tagTableBody.find(".tag-modify:last").text(modify);
+  socket.emit('request tags', (tagsData) => {
+    console.log("data:");
+    console.log(tagsData);
+    for(let i=0; i<tagsData.length; i++ ) {
+      appendNewTag(tagsData[i].id);
+      let data = tagsData[i].data;
+      let source = tagsData[i].source;
+      let name = data.name;
+      let type = data.type;
+      let modify = data.modify;
+      let tr = tagTableBody.find(".tag-content:last");
+      tr.find(".tag-name").text(name);
+      tr.find(".tag-option").val(type);
+      tr.find(".tag-modify").text(modify);
       type = toTypeValue(type);
-      let set = data[i].set;
+      let set = data.set;
       if(type == 3) set = set.join('\n'); //if type is single-select || multi-select
-      tagTableBody.find('.tag-set-td:last').find('#set' + type).val(set).show().siblings().hide();
-      if(modify) tagTableBody.find(".tag-delete:last").html('<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button>');
-      else tagTableBody.find(".tag-delete:last").html('<button type="button" class="btn btn-default btn-sm" disabled="disabled"><span class="glyphicon glyphicon-remove"></span> 刪除</button>');
+      tr.find('.tag-set-td').find('#set' + type).val(set).show().siblings().hide();
+
+      tr.addClass(source);
+      if(source=="default") {
+          tr.find("select").prop("disabled", "disabled");
+          tr.find("button").prop("disabled", "disabled");
+          tr.find("textarea").prop("disabled", "disabled");
+      }
+      // tagTableBody.find(".tag-delete:last").html('<button type="button" class="btn btn-default btn-sm" disabled="disabled"><span class="glyphicon glyphicon-remove"></span> 刪除</button>');
+
     }
   });
   addTagBtn.on('click', function() {
-    append_new_tag();
-    tagTableBody.find(".tag-name:last").click();
+    appendNewTag(""+Date.now());
+    tagTableBody.find(".tag-content:last").addClass('custom').find('.tag-name').click();
   });
   $(document).on('click', '.tag-name', function() {
     if($(this).find('input').length == 0 && $(this).parent().find('.tag-modify').text() == "true") {
@@ -99,24 +108,40 @@ $(document).ready(function() {
     if(!confirm("Confirm???")) return;
     let sendObj = [];
     tagTableBody.find('tr').each(function() {
-      let name = $(this).find('.tag-name').text();
-      let type = $(this).find('.tag-option').val();
-      let modify = $(this).find('.tag-modify').text() == "true";
-      let set = $(this).find('.tag-set-td').find('#set' + toTypeValue(type)).val();
-      if(type.indexOf('select') != -1) { //seperate options
-        set = set.split('\n');
-      }
-      let nowObj = {
-        name: name,
-        type: type,
-        set: set,
-        modify: modify
-      };
-      sendObj.push(nowObj);
+        let id = $(this).attr('id');
+        let source = $(this).hasClass('custom') ? 'custom' : 'default';
+        let name = $(this).find('.tag-name').text();
+        let type = $(this).find('.tag-option').val();
+        let modify = $(this).find('.tag-modify').text() == "true";
+        let set = $(this).find('.tag-set-td').find('#set' + toTypeValue(type)).val();
+        if(type.indexOf('select') != -1) { //seperate options
+            set = set.split('\n');
+        }
+        let data = {
+            name: name,
+            type: type,
+            set: set,
+            modify: modify
+        };
+        sendObj.push({
+            "id": id ? id : Date.now(),
+            "source": source,
+            "data": data
+        });
     });
     console.log(sendObj);
-    socket.emit('update tags', sendObj);
-    alert('change saved!');
+    if( !noDuplicate() ) alert('標籤名稱不可重複');
+    else {
+        socket.emit('update tags', sendObj);
+        alert('已儲存！');
+    }
+
+    function noDuplicate() {
+        for( let i=0; i<sendObj.length; i++ ) for( let j=i+1; j<sendObj.length; j++ ) {
+            if( sendObj[i].data.name == sendObj[j].data.name ) return false;
+        }
+        return true;
+    }
   });
   allCancelBtn.on('click', function() {
     if(confirm("Cancel change??")) location.reload();
@@ -131,8 +156,12 @@ $(document).ready(function() {
     else console.log("ERROR 1");
   }
 
-  function append_new_tag(from) {
-    tagTableBody.append('<tr class="tag-content" id="tag-index-' + (rowsCount++) + '">' + '<td class="tag-name"></td>' + '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' + '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>' + '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' + '<td class="tag-move"><p id="moveup"><i class="fa fa-caret-up" style="font-size:16px"></i></p><p id="movedown"><i class="fa fa-caret-down" style="font-size:16px"></i></p></td>' + '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
+  function appendNewTag(id) {
+    tagTableBody.append('<tr class="tag-content" id="'+id+'">' + '<td class="tag-name"></td>'
+     + '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>'
+      + '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>'
+     + '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>'
+      + '<td class="tag-move"><p id="moveup"><i class="fa fa-caret-up" style="font-size:16px"></i></p><p id="movedown"><i class="fa fa-caret-down" style="font-size:16px"></i></p></td>' + '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
   }
   //-------------end TAG--------------------
   function loadProf() {
@@ -167,7 +196,7 @@ $(document).ready(function() {
         $('#prof-fbValidToken').text(profInfo.fbValidToken);
         $('#prof-fbPageToken').text(profInfo.fbPageToken);
         $('#prof-company').text(profInfo.company);
-        $('#prof-logo').text(profInfo.logo);
+        $('#prof-logo img').attr('src', profInfo.logo);
       }
     });
   }
@@ -196,7 +225,7 @@ $(document).ready(function() {
     let fbValidToken = $('#prof-fbValidToken').text();
     let fbPageToken = $('#prof-fbPageToken').text();
     let company = $('#prof-company').text();
-    let logo = $('#prof-logo').text();
+    let logo = $('#prof-logo img').attr('src');
     $('#prof-edit-id').val(id);
     $('#prof-edit-name').val(name);
     $('#prof-edit-nickname').val(nickname);
@@ -220,7 +249,13 @@ $(document).ready(function() {
     $('#prof-edit-fbValidToken').val(fbValidToken);
     $('#prof-edit-fbPageToken').val(fbPageToken);
     $('#prof-edit-company').val(company);
-    $('#prof-edit-logo').val(logo);
+    if( logo ) {
+        $('#prof-edit-logo').val(logo);
+        console.log(logo);
+        logo = logo.substr(logo.lastIndexOf('/')+1);
+        logo = logo.substr(0, logo.indexOf('?'));
+        $('#prof-edit-logo .file-text').text(logo);
+    }
     if($(this).parent().attr('class') == "line") {
       if($(this).parent().attr('id') == "group1") {
         $('#prof-edit-line-1').show();
@@ -241,13 +276,15 @@ $(document).ready(function() {
   function profSubmitBasic() {
     let userId = auth.currentUser.uid;
     // console.log(id, name, dob, email, gender,phone);
+    let nickname = $('#prof-edit-nickname').val();
     let company = $('#prof-edit-company').val();
     let logo = $('#prof-edit-logo').val();
     // console.log(id);
     // database.ref('users/' + userId).remove();
     database.ref('users/' + userId).update({
-      company: company,
-      logo: logo
+        nickname: nickname,
+        company: company,
+        logo: logo
     });
     $('#error-message').hide();
     profClear();
@@ -393,7 +430,7 @@ $(document).ready(function() {
     if( confirm("確認新建內部聊天室?") ) {
       let roomName = $('#create-internal-room-name').val();
       let description = $('#create-internal-description').val();
-      let photo = $('.file-container').val();
+      let photo = $('#create-internal-photo').val();
       let owner = $('#create-internal-owner').val();
       let agent = $('#create-internal-agents').attr('rel');
 
@@ -410,9 +447,17 @@ $(document).ready(function() {
         }
         socket.emit('create internal room', data);
         alert('成功!');
-        $('.modal#create-internal-room').modal('toggle');
+        clearCreateInternalRoomInput();
       }
     }
+  }
+  $('#clear-create-internal-room').on('click', clearCreateInternalRoomInput);
+  function clearCreateInternalRoomInput() {
+      $('#create-internal-room-name').val('');
+      $('#create-internal-description').val('');
+      $('#create-internal-photo .file-reset').click();
+      $('#create-internal-owner').val('');
+      $('#create-internal-agents').attr('rel', '').text('未選擇');
   }
 
   $(document).on('change', '.file-container input.file-ghost', function(){
@@ -440,6 +485,7 @@ $(document).ready(function() {
     let fileGhost = fileContainer.find('.file-ghost');
     let fileText = fileContainer.find('.file-text');
     fileGhost.val(null);
+    fileContainer.val('');
     fileText.text('');
   });
 });

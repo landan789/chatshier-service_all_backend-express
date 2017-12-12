@@ -40,14 +40,15 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     if (window.location.pathname === '/chat') {
-        socket.emit("request tags", responseTags);
+        // socket.emit("request tags", responseTags);
         $infoPanel.hide();
         auth.onAuthStateChanged(currentUser => {
             agentId = currentUser.uid;
-            socket.emit('new user', agentId, checkNickName);
-            socket.emit('request channels', agentId, responseChannel);
             socket.emit('develop update bot', agentId); //should only for developer
-            socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
+            // socket.emit('new user', agentId, checkNickName);
+            // socket.emit('request channels', agentId, responseChannels);
+            // socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
+            socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         });
     }
 
@@ -108,6 +109,13 @@ $(document).ready(function() {
         //=====end utility event=====
 
     //==========start initialize function========== //
+    function responseChatInitData(data) {
+        checkNickName(data.checkNickName);
+        responseInternalChatData(data.internalChatData);
+        responseTags(data.tagsData);
+        responseChannels(data.channelsData);
+        console.log(data);
+    }
     function checkNickName(check) {
         if (!check) {
             //enter agent name
@@ -116,7 +124,7 @@ $(document).ready(function() {
         }
     }
 
-    function responseChannel(data) {
+    function responseChannels(data) {
         if (data.chanId_1 === '' && data.chanId_2 === '' && data.fbPageId === '') {
             $('#notifyModal').modal("show");
         } else {
@@ -160,7 +168,19 @@ $(document).ready(function() {
     }
 
     function responseTags(data) {
+        for( let i=0; i<data.length; i++ ) {
+            if( data[i].id=="assigned" ) {
+                let list = [];
+                for( let prop in agentIdToName ) {
+                    list.push(agentIdToName[prop]);
+                }
+                data[i].data.set = list;
+                console.log(agentIdToName);
+                break;
+            }
+        }
         TagsData = data;
+        console.log(TagsData);
     }
 
     function responseInternalChatData(data) {
@@ -246,62 +266,123 @@ $(document).ready(function() {
         }
     } // end of pushInfo
     function loadPanelProfile(profile) {
-        let html = "<table class='panel-table'>";
-        for (let i in TagsData) {
-            let name = TagsData[i].name;
-            let type = TagsData[i].type;
-            let set = TagsData[i].set;
-            let modify = TagsData[i].modify;
-            let data = profile[name];
-            let tdHtml = "";
-            if (name === '客戶編號') continue;
-            if (name === '電子郵件') {
-                for (let i in data) {
-                    tdHtml += '<p id="td-inner">' + data[i] + '</p>';
+        let table = $.parseHTML("<table class='panel-table'></table>");
+        console.log(profile);
+        for (let i=0; i<TagsData.length; i++ ) {
+            let tagId = TagsData[i].id;
+            let tagSource = TagsData[i].source;
+            let tagData = TagsData[i].data;
+
+            let name = tagData.name;
+            let type = tagData.type;
+            let set = tagData.set;
+            let modify = tagData.modify;
+
+            let th = $.parseHTML('<th class="userInfo-th"></th>');
+            let td = $.parseHTML('<td class="userInfoTd"></td>');
+            //todo userInfoTd css
+
+            if( tagSource=="default" ) {
+                let profData = profile[tagId];
+                let dom = {};
+                if( tagId=="nickname"|| tagId=="email" || tagId=="age" || tagId=="remark" || tagId=="telephone" ) {
+                    dom = getSingleTextDom(tagData, profData);
                 }
-            } else if (type === 'text') {
-                if (data) {
-                    tdHtml = '<p id="td-inner">' + data + '</p>';
-                } else {
-                    tdHtml = '<p id="td-inner">尚未輸入</p>';
+                else if( tagId=="gender") {
+                    dom = getSingleSelectDom(tagData, profData);
                 }
-            } else if (type === "time") {
-                if (modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
-                else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
-                if (data) {
-                    d = new Date(data);
-                    tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
+                else if( tagId=="firstChat" || tagId=="recentChat" ) {
+                    dom = getTimeDom(tagData, profData);
                 }
-                tdHtml += ' ></input>';
-            } else if (type === 'single-select') {
-                if (modify) tdHtml = '<select id="td-inner">';
-                else tdHtml = '<select id="td-inner" disabled>';
-                if (!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
-                else tdHtml += '<option> 未選擇 </option>';
-                for (let j in set) {
-                    if (set[j] != data) tdHtml += '<option value="' + set[j] + '">' + set[j] + '</option>';
-                    else tdHtml += '<option value="' + set[j] + '" selected="selected">' + set[j] + '</option>';
+                else if( tagId=="totalChat" || tagId=="avgChat" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                    let text = $(dom).text();
+                    text = parseFloat(text).toFixed(2).toString();
+                    $(dom).text( text+" 分鐘" );
                 }
-                tdHtml += '</select>';
-            } else if (type === 'multi-select') {
-                tdHtml = '<div class="btn-group" id="td-inner">';
-                if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
-                else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
-                if (!data) data = "";
-                let selected = data.split(',');
-                if (selected.length == set.length) tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + "全選" + '</span>';
-                else tdHtml += '<span class="multi-selectSelectedText" rel="' + data + '">' + data + '</span>';
-                tdHtml += '<b class="caret"></b></button>' + '<ul class="multi-select-container dropdown-menu">';
-                for (let j in set) {
-                    if (selected.indexOf(set[j]) != -1) tdHtml += '<li><input type="checkbox" value="' + set[j] + '" checked>' + set[j] + '</li>';
-                    else tdHtml += '<li><input type="checkbox" value="' + set[j] + '">' + set[j] + '</li>';
+                else if( tagId=="chatTimeCount" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                    $(dom).text( $(dom).text()+" 次" );
                 }
-                tdHtml += '</ul></div>';
+                else if( tagId=="assigned" ) {
+                    dom = getMultiSelectDom(tagData, profData);
+                }
+                $(th).attr('id', tagId).text(name);
+                $(td).attr('id', tagId).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
             }
-            html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userInfoTd" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
+            else {
+                let profData = profile[name];
+                let dom = {};
+                if( type=="text" ) {
+                    dom = getSingleTextDom(tagData, profData);
+                }
+                else if( type=="time" ) {
+                    dom = getTimeDom(tagData, profData);
+                }
+                else if( type=="single-select" ) {
+                    dom = getSingleSelectDom(tagData, profData);
+                }
+                else if( type=="multi-select" ) {
+                    dom = getMultiSelectDom(tagData, profData);
+                }
+
+                $(th).attr('id', name).text(name);
+                $(td).attr('id', name).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
+            }
+            $(table).append('<tr>'+th[0].outerHTML+td[0].outerHTML+'</tr>');
         }
-        html += "</table>";
-        return html;
+        return $(table)[0].outerHTML;
+
+        function getSingleTextDom( tagD, profD ) {
+            let dom =  $.parseHTML('<p id="td-inner">尚未輸入</p>');
+            if( profD ) $(dom).text(profD);
+            return dom;
+        }
+        function getTimeDom( tagD, profD ) {
+            let dom = $.parseHTML('<input type="datetime-local" id="td-inner"></input>');
+            if( !tagD.modify ) $(dom).prop('readOnly', true);
+
+            if( profD ) {
+                d = new Date(profD);
+                let val = d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
+                $(dom).attr("value", val);
+            }
+            return dom;
+        }
+        function getSingleSelectDom( tagD, profD ) {
+            let dom = $.parseHTML('<select id="td-inner"></select>');
+            $(dom).append('<option value=""> 未選擇 </option>');
+            if ( !tagD.modify ) $(dom).prop('readOnly', true);
+            for (let i in tagD.set) {
+                let opt = tagD.set[i];
+                let option = $.parseHTML('<option></option>');
+                $(option).val(opt).text(opt).attr("selected", (opt==profD) );
+                $(dom).append(option);
+            }
+            return dom;
+        }
+        function getMultiSelectDom( tagD, profD ) {
+            let dom = $.parseHTML('<div class="btn-group" id="td-inner"></div>');
+            $(dom).append('<button type="button" data-toggle="dropdown" aria-expanded="false">');
+            $(dom).append('</button><ul class="multi-select-container dropdown-menu"></ul>');
+            if( !tagD.modify ) $(dom).find('button').prop('disabled', true);
+            if( !profD ) profD = "";
+
+            let selected = profD.split(',');
+            let set = tagD.set;
+
+            let text = profD && selected.length==set.length ? "全選" : profD;
+            $(dom).find('button').append('<span></span><b class="caret"></b>');
+            $(dom).find('span').attr('class', 'multi-selectSelectedText').attr('rel', profD).text(text);
+
+            for( let i in set ) {
+                let input = $.parseHTML('<input type="checkbox">');
+                $(input).attr('value', set[i]);
+                if( selected.indexOf(set[i]) != -1) $(input).attr('checked', '');
+                $(dom).find('ul').append('<li>'+input[0].outerHTML+set[i]+'</li>');
+            }
+            return dom;
+        }
     } // end of loadPanelProfile
 
     function pushInternalMsg(data) {
@@ -395,7 +476,6 @@ $(document).ready(function() {
                 }
                 tdHtml += '</select>';
             } else if (type === 'multi-select') {
-                // console.log("data == " + data);
                 tdHtml = '<div class="btn-group" id="td-inner">';
                 if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
                 else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
@@ -664,9 +744,9 @@ $(document).ready(function() {
             ele.remove();
             $('.tablinks-area>#clients').prepend(ele);
         } else { // 新客戶個人資料跟清單
-            $('#clients').prepend("<b><button name='" + data.id + "' rel='" + channelId + "' class='tablinks'>" + "<div class='img-holder'>" + "<img src='" + data.pictureUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + "</span>" + "<br />" + "<div id='msg' style='font-weight: normal; font-size:8px; margin-left:12px;'>" + data.message + "</div>" + "</div>" + "<div class='unreadMsg'>1</div>" + "</button><hr/></b>");
+            $('#clients').prepend("<b><button name='" + data.id + "' rel='" + channelId + "' class='tablinks'>" + "<div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + "</span>" + "<br />" + "<div id='msg' style='font-weight: normal; font-size:8px; margin-left:12px;'>" + data.message + "</div>" + "</div>" + "<div class='unreadMsg'>1</div>" + "</button><hr/></b>");
             infoCanvas.append(
-                '<div class="card-group" id="' + data.id + '-info" rel="' + channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.pictureUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + "<table class='panel-table'>" + "<tbody>" + "<tr>" + "<th class='userInfo-th' id='姓名'>姓名</th>" + "<td class='userInfoTd' id='姓名' type='text' set='single' modify='true'>" + "<p id='td-inner'>" + data.name + "</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電子郵件'>電子郵件</th>" + "<td class='userInfoTd' id='電子郵件' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='年齡'>年齡</th>" + "<td class='userInfoTd' id='年齡' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='性別'>性別</th>" + "<td class='userInfoTd' id='性別' type='singleSelect' set='男,女' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='男'>男</option>" + "<option value='女'>女</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='地區'>地區</th>" + "<td class='userInfoTd' id='地區' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='住址'>住址</th>" + "<td class='userInfoTd' id='住址' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='備註'>備註</th>" + "<td class='userInfoTd' id='備註' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='標籤'>標籤</th>" + "<td class='userInfoTd' id='標籤' type='multiSelect' set='奧客,未付費,廢話多,敢花錢,常客,老闆的好朋友,外國人,窮學生,花東團abc123,台南團abc456' modify='true'>" + "<div class='btn-group' id='td-inner'>" + "<button type='button' data-toggle='dropdown' aria-expanded='false'><span class='multiselectSelectedText'>奧客</span><b class='caret'></b></button>" + "<ul class='multi-select-container dropdown-menu'>" + "<li><input type='checkbox' value='奧客' checked=''>奧客</li>" + "<li><input type='checkbox' value='未付費'>未付費</li>" + "<li><input type='checkbox' value='廢話多'>廢話多</li>" + "<li><input type='checkbox' value='敢花錢'>敢花錢</li>" + "<li><input type='checkbox' value='常客'>常客</li>" + "<li><input type='checkbox' value='老闆的好朋友'>老闆的好朋友</li>" + "<li><input type='checkbox' value='外國人'>外國人</li>" + "<li><input type='checkbox' value='窮學生'>窮學生</li>" + "<li><input type='checkbox' value='花東團abc123'>花東團abc123</li>" + "<li><input type='checkbox' value='台南團abc456'>台南團abc456</li>" + "</ul>" + "</div>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='VIP等級'>VIP等級</th>" + "<td class='userInfoTd' id='VIP等級' type='singleSelect' set='鑽石會員,白金會員,普通銅牌,超級普通會員' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='鑽石會員'>鑽石會員</option>" + "<option value='白金會員'>白金會員</option>" + "<option value='普通銅牌'>普通銅牌</option>" + "<option value='超級普通會員'>超級普通會員</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='下次聯絡客戶時間'>下次聯絡客戶時間</th>" + "<td class='userInfoTd' id='下次聯絡客戶時間' type='time' set='' modify='true'>" + "<input type='datetime-local' id='td-inner'>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='首次聊天時間'>首次聊天時間</th>" + "<td class='userInfoTd' id='首次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='上次聊天時間'>上次聊天時間</th>" + "<td class='userInfoTd' id='上次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='總共聊天時間'>總共聊天時間</th>" + "<td class='userInfoTd' id='總共聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='聊天次數'>聊天次數</th>" + "<td class='userInfoTd' id='聊天次數' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='平均每次聊天時間'>平均每次聊天時間</th>" + "<td class='userInfoTd' id='平均每次聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='客人的抱怨'>客人的抱怨</th>" + "<td class='userInfoTd' id='客人的抱怨' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='付費階段'>付費階段</th>" + "<td class='userInfoTd' id='付費階段' type='singleSelect' set='等待報價,已完成報價，等待付費,已完成付費,要退錢' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='等待報價'>等待報價</option>" + "<option value='已完成報價，等待付費'>已完成報價，等待付費</option>" + "<option value='已完成付費'>已完成付費</option>" + "<option value='要退錢'>要退錢</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='指派負責人'>指派負責人</th>" + "<td class='userInfoTd' id='指派負責人' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "</tbody>" + "</table>" + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(2)"hidden> 內容 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="Search"></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>'
+                '<div class="card-group" id="' + data.id + '-info" rel="' + channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + "<table class='panel-table'>" + "<tbody>" + "<tr>" + "<th class='userInfo-th' id='姓名'>姓名</th>" + "<td class='userInfoTd' id='姓名' type='text' set='single' modify='true'>" + "<p id='td-inner'>" + data.name + "</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電子郵件'>電子郵件</th>" + "<td class='userInfoTd' id='電子郵件' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='年齡'>年齡</th>" + "<td class='userInfoTd' id='年齡' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='性別'>性別</th>" + "<td class='userInfoTd' id='性別' type='singleSelect' set='男,女' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='男'>男</option>" + "<option value='女'>女</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='地區'>地區</th>" + "<td class='userInfoTd' id='地區' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='住址'>住址</th>" + "<td class='userInfoTd' id='住址' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='電話'>電話</th>" + "<td class='userInfoTd' id='電話' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='備註'>備註</th>" + "<td class='userInfoTd' id='備註' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='標籤'>標籤</th>" + "<td class='userInfoTd' id='標籤' type='multiSelect' set='奧客,未付費,廢話多,敢花錢,常客,老闆的好朋友,外國人,窮學生,花東團abc123,台南團abc456' modify='true'>" + "<div class='btn-group' id='td-inner'>" + "<button type='button' data-toggle='dropdown' aria-expanded='false'><span class='multiselectSelectedText'>奧客</span><b class='caret'></b></button>" + "<ul class='multi-select-container dropdown-menu'>" + "<li><input type='checkbox' value='奧客' checked=''>奧客</li>" + "<li><input type='checkbox' value='未付費'>未付費</li>" + "<li><input type='checkbox' value='廢話多'>廢話多</li>" + "<li><input type='checkbox' value='敢花錢'>敢花錢</li>" + "<li><input type='checkbox' value='常客'>常客</li>" + "<li><input type='checkbox' value='老闆的好朋友'>老闆的好朋友</li>" + "<li><input type='checkbox' value='外國人'>外國人</li>" + "<li><input type='checkbox' value='窮學生'>窮學生</li>" + "<li><input type='checkbox' value='花東團abc123'>花東團abc123</li>" + "<li><input type='checkbox' value='台南團abc456'>台南團abc456</li>" + "</ul>" + "</div>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='VIP等級'>VIP等級</th>" + "<td class='userInfoTd' id='VIP等級' type='singleSelect' set='鑽石會員,白金會員,普通銅牌,超級普通會員' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='鑽石會員'>鑽石會員</option>" + "<option value='白金會員'>白金會員</option>" + "<option value='普通銅牌'>普通銅牌</option>" + "<option value='超級普通會員'>超級普通會員</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='下次聯絡客戶時間'>下次聯絡客戶時間</th>" + "<td class='userInfoTd' id='下次聯絡客戶時間' type='time' set='' modify='true'>" + "<input type='datetime-local' id='td-inner'>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='首次聊天時間'>首次聊天時間</th>" + "<td class='userInfoTd' id='首次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='上次聊天時間'>上次聊天時間</th>" + "<td class='userInfoTd' id='上次聊天時間' type='time' set='' modify='false'>" + "<input type='datetime-local' id='td-inner' readonly='' value=''>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='總共聊天時間'>總共聊天時間</th>" + "<td class='userInfoTd' id='總共聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='聊天次數'>聊天次數</th>" + "<td class='userInfoTd' id='聊天次數' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='平均每次聊天時間'>平均每次聊天時間</th>" + "<td class='userInfoTd' id='平均每次聊天時間' type='text' set='single' modify='false'>" + "<p id='td-inner'></p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='客人的抱怨'>客人的抱怨</th>" + "<td class='userInfoTd' id='客人的抱怨' type='text' set='multi' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='付費階段'>付費階段</th>" + "<td class='userInfoTd' id='付費階段' type='singleSelect' set='等待報價,已完成報價，等待付費,已完成付費,要退錢' modify='true'>" + "<select id='td-inner'>" + "<option> 未選擇 </option>" + "<option value='等待報價'>等待報價</option>" + "<option value='已完成報價，等待付費'>已完成報價，等待付費</option>" + "<option value='已完成付費'>已完成付費</option>" + "<option value='要退錢'>要退錢</option>" + "</select>" + "</td>" + "</tr>" + "<tr>" + "<th class='userInfo-th' id='指派負責人'>指派負責人</th>" + "<td class='userInfoTd' id='指派負責人' type='text' set='single' modify='true'>" + "<p id='td-inner'>尚未輸入</p>" + "</td>" + "</tr>" + "</tbody>" + "</table>" + '<div class="profile-confirm">' + '<button type="button" class="btn btn-primary pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> ID </th>' + '<th onclick="sortCloseTable(1)"> 姓名 </th>' + '<th onclick="sortCloseTable(2)"hidden> 內容 </th>' + '<th onclick="sortCloseTable(3)"> 狀態 </th>' + '<th onclick="sortCloseTable(4)"> 優先 </th>' + '<th onclick="sortCloseTable(5)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="Search"></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#addTicketModal"><span class="fa fa-plus fa-fw"></span> 新增表單</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>'
             );
         }
     } // end of displayClient
@@ -1032,9 +1112,9 @@ $(document).ready(function() {
                 console.log(response_text)
               }
             });
-            
+
           }
-          
+
     }
     function deleteTicket() {
         if(confirm("確認刪除表單？")) {

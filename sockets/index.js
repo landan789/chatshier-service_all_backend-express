@@ -89,9 +89,54 @@ function init(server) {
         // 按照程式流程順序
         // 1.更新標籤
         socket.on('request tags', (callback) => {
+            requestTags(callback);
+        });
+        function requestTags(callback) {
             tags.get(function(tagsData) {
                 callback(tagsData);
             });
+        }
+        socket.on('request chat init data', (req, callback) => {
+            let userId = req.id;
+            let res = {};
+            requestTags( (data) => {
+                res.tagsData = data;
+
+                newUser(userId, (data) => {
+                    res.checkNickName = data;
+
+                    requestChannels(userId, (data) => {
+                        res.channelsData = data;
+
+                        requestInternalChatData(userId, (data) => {
+                            res.internalChatData = data;
+                            console.log(data);
+
+                            callback(res);
+                        });
+                    });
+                });
+            });
+
+            // requestTags( (data) => {
+            //     res.responseTags = data;
+            // });
+            // newUser(userId, (data) => {
+            //     res.checkNickName = data;
+            // });
+            // requestChannels(userId, (data) => {
+            //     res.responseChannels = data;
+            // });
+            // requestInternalChatData(userId, (data) => {
+            //     res.responseInternalChatData = data;
+            // });
+            // let timer = setInterval(() => {
+            //     if( Object.keys(res).length==4 ) {
+            //         clearInterval(timer);
+            //         callback(res);
+            //     }
+            // }, 10);
+
         });
         // 2.更新群組
         // SERVER上線後，不應有這步驟，否則只要有agent未填setting的channel，整台server的line_bot, fb_bot就會變空
@@ -124,12 +169,15 @@ function init(server) {
         });
         // 3.更新群組頻道
         socket.on('request channels', (userId, callback) => {
+            requestChannels(userId, callback);
+        });
+        function requestChannels(userId, callback) {
             users.getUser(userId, chatInfo => {
                 utility.updateChannel(chatInfo, (channelObj) => {
                     callback(channelObj);
                 });
             });
-        });
+        }
         // 4.撈出歷史訊息
         socket.on('request chat data', (channelIdArr, callback) => {
             chats.get(function(chatData) {
@@ -207,7 +255,7 @@ function init(server) {
             let sendData = [];
             chats.get(function(chatData) {
                 for (let i in chatData) {
-                    if (utility.isSameUser(chatData[i].Profile, userId, roomId)) {
+                    if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
                         for (let j = head; j < tail + 1; j++) {
                             sendData.push(chatData[i].Messages[j]);
                         }
@@ -264,10 +312,13 @@ function init(server) {
         });
         // 5.撈出內部聊天室紀錄
         socket.on('request internal chat data', (data, callback) => {
+            requestInternalChatData(data, callback);
+        });
+        function requestInternalChatData( userId, callback ) {
             let thisAgentData = [];
             agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
-                    if (agentChatData[i].Profile.agent.indexOf(data.id) != -1) {
+                    if (agentChatData[i].Profile.agent.indexOf(userId) != -1) {
                         thisAgentData.push(agentChatData[i]);
                     }
                 }
@@ -291,7 +342,7 @@ function init(server) {
                     });
                 });
             });
-        });
+        }
         // 內部聊天室傳訊息
         socket.on('send internal message', (data) => {
             let roomId = data.roomId;
@@ -328,16 +379,18 @@ function init(server) {
         socket.on('update bot', (data) => {
             update_line_bot(data);
         });
-        // going to tags page
-        socket.on('get tags from tags', () => {
-            tags.get(function(tagsData) {
-                socket.emit('push tags to tags', tagsData);
-            });
-        });
-        socket.on('update tags', data => {
-            let updateObj = {};
-            updateObj['Data'] = data;
-            tags.update(updateObj);
+        socket.on('update tags', tagsData => {
+            let customData = {};
+            let order = [];
+            for( let i=0; i<tagsData.length; i++ ) {
+                let ele = tagsData[i];
+                order.push(ele.id);
+                if( ele.source=="custom" ) {
+                    customData[ele.id] = ele.data;
+                }
+            }
+            tags.updateCustom(customData);
+            tags.updateOrder(order);
         });
         /*===設定end===*/
 
@@ -394,6 +447,9 @@ function init(server) {
 
         // 新使用者
         socket.on('new user', (id, hasNickName) => {
+            newUser(id, hasNickName);
+        });
+        function newUser(id, hasNickName) {
             users.getUser(id, (data) => {
                 if (data && data.nickname) {
                     socket.nickname = data.nickname;
@@ -402,7 +458,7 @@ function init(server) {
                     hasNickName(false);
                 }
             });
-        });
+        }
         socket.on('new nickname', (id, nick) => {
             users.updateUser(id, { nickname: nick });
         });
@@ -447,7 +503,7 @@ function init(server) {
             //  ===================  訊息類別 ==================== //
             utility.lineMsgType(event, message_type, (msgData) => {
 
-                console.log(413 + channelId);
+                console.log(413 + pictureUrl);
                 msgObj.message = msgData;
                 pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
 

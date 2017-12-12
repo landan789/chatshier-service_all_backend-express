@@ -208,6 +208,7 @@ td, th {
     text-align: left;
     padding: 8px;
     margin: 2px 0 ;
+    width: 115px;
 }
 
 tr:nth-child(even) {
@@ -224,7 +225,7 @@ table { width: 100%}
 }
 
 .select{
-  width : 100px ;
+  width : 70%;
 }
 
 .inner{
@@ -236,7 +237,7 @@ table { width: 100%}
 
 .ticket-content:hover{
   cursor:  pointer;
-  background-color: rgba(183, 208, 181, 0.77) ;
+  /* background-color: rgba(183, 208, 181, 0.77) ; */
   transition: .3s ease-in-out ;
 
 }
