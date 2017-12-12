@@ -426,6 +426,13 @@ function init(server) {
                 }
             });
         });
+        /*===ticket start===*/
+        socket.on('get agents profile', (callback) => {
+            users.get(data => {
+                callback(data);
+            });
+        });
+        /*===ticket end===*/
         /*===template start===*/
         socket.on('create template', (userId, data, callback) => {
             console.log(data);
