@@ -22,7 +22,7 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var messageHandle = require('../message_handle');
 
-var globalChannelMessageArray = [];
+var globalLineMessageArray = [];
 
 function init(server) {
     var io = socketio(server);
@@ -367,14 +367,41 @@ function init(server) {
         /*===內部聊天室end===*/
 
         /*===訊息start===*/
+        socket.on('load add friend', () => {
+            console.log(globalLineMessageArray)
+        });
         //更新關鍵字回覆
-        socket.on('update add friend message', data => {
+        socket.on('update add friend message', (data,callback) => {
             // addFriendBroadcastMsg = data;
             let id = data.userId;
             let messageArray = data.textArray;
-            users.getUser(id, dbData => {
-                console.log(dbData);
-            });
+            if(messageArray.length === 0) {
+                globalLineMessageArray.map(item => {
+                    if(item.userId === id){
+                        globalLineMessageArray.splice(globalLineMessageArray.indexOf(item),1);
+                    }
+                });
+            } else {
+                users.getUser(id, dbData => {
+                    if(dbData.chanId_1 === '' && dbData.chanId_2 === ''){
+                        callback('帳號未設定');
+                    } else {
+                        if(globalLineMessageArray.length === 0) {
+                            globalLineMessageArray.push({userId:id,chanId:channelIds[0],msg:messageArray});
+                        } else {
+                            globalLineMessageArray.map(item => {
+                                // console.log('in the loop')
+                                if(item.userId === id) {
+                                    // console.log('existing record')
+                                    globalLineMessageArray[item].msg.push(messageArray);
+                                }
+                            });
+                        }
+                        console.log(globalLineMessageArray);
+                        callback();
+                    }
+                });
+            }
         });
         socket.on('update overview', (data) => {
             overview[data.message] = data.time;
@@ -482,7 +509,6 @@ function init(server) {
     });
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead) {
-
         messageHandle.toDB(obj, pictureUrl, channelId, receiverId, unRead, profile => {
             io.sockets.emit('new user profile', profile);
         });
@@ -492,6 +518,7 @@ function init(server) {
     }
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
+        console.log(event);
         let channelId = this.options.channelId; // line群組ID
         console.log(390 + channelId);
         let message_type = event.message.type; // line訊息類別 text, location, image, video...
@@ -1007,13 +1034,18 @@ function init(server) {
         });
     } // end of bot_on_message
     function bot_on_follow(event) {
+        // console.log(bot[0].options.channelId);
         let follow_message = [];
-        if (addFriendBroadcastMsg === []) {
-            follow_message.push('感謝您將本帳號設為好友！');
-        } else {
-            follow_message = [];
-            follow_message = addFriendBroadcastMsg;
-        }
+        let currentChannel = bot[0].options.channelId;
+        globalLineMessageArray.map(item => {
+            console.log('LOOPING...')
+            console.log(currentChannel + ":" + item.chanId)
+            if(currentChannel === item.chanId) {
+                console.log('success')
+                follow_message = item.msg;
+                console.log(follow_message)
+            }
+        });
         event.reply(follow_message);
     } // end of bot_on_follow
     function update_line_bot(chanInfo) {
