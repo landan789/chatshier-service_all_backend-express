@@ -22,6 +22,8 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var messageHandle = require('../message_handle');
 
+var globalChannelMessageArray = [];
+
 function init(server) {
     var io = socketio(server);
     var addFriendBroadcastMsg; // 加好友參數
@@ -367,7 +369,12 @@ function init(server) {
         /*===訊息start===*/
         //更新關鍵字回覆
         socket.on('update add friend message', data => {
-            addFriendBroadcastMsg = data;
+            // addFriendBroadcastMsg = data;
+            let id = data.userId;
+            let messageArray = data.textArray;
+            users.getUser(id, dbData => {
+                console.log(dbData);
+            });
         });
         socket.on('update overview', (data) => {
             overview[data.message] = data.time;

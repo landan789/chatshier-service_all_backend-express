@@ -39,7 +39,7 @@ function loadFriendsReply(){
         textArray.push(objArray[i].taskText);
         currentCount = textArray.length;
       }
-      emitToServer(textArray);
+      emitToServer({userId,textArray});
     }
   });
 } // end of loadFriendsReply
