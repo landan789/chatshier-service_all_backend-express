@@ -102,7 +102,7 @@ function updateStatus() {
   let name, value, json = '{';
   let obj = {};
   let id = $(this).attr("val");
-  let 客戶名, 客戶ID, 回覆人員, 優先, 狀態, 描述, 到期時間;
+  let clientName, clientId, clientOwner, clientPriority, clientStatus, clientDescription, clientDue;
   input.each(function() {
     $(this).blur();
   });
@@ -118,15 +118,16 @@ function updateStatus() {
   }
   json += '"id":"' + id + '"}';
   obj = JSON.parse(json);
-  客戶名 = obj.subject;
-  客戶ID = obj.客戶ID;
-  回覆人員 = obj.回覆人員;
-  優先 = parseInt(obj.優先);
-  狀態 = parseInt(obj.狀態);
-  描述 = obj.描述;
-  if(obj.到期時間過期 !== undefined) 到期時間 = obj.到期時間過期;
-  else 到期時間 = obj.到期時間即期;
-  var time_list = 到期時間.split("/");
+  clientName = obj.subject;
+  clientId = obj.clientId;
+  clientOwner = obj.clientOwner;
+  clientPriority = parseInt(obj.clientPriority);
+  clientStatus = parseInt(obj.clientStatus);
+  clientDescription = obj.clientDescription;
+  console.log(obj.到期時間過期);
+  if(obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
+  else clientDue = obj.到期時間即期;
+  var time_list = clientDue.split("/");
   var new_time = [];
   var new_time2 = [];
   time_list.map(function(i) {
@@ -140,17 +141,8 @@ function updateStatus() {
     });
   };
   new_time = new_time.join("T") + "Z";
-  // .split(":");
-  //     new_time.map(function(i){
-  //       console.log(i);
-  //       if (i.length == 12 && i.endsWith('0')) i = i+'0';
-  //       if (i.length==1 || i.length ==2 && i.endsWith('Z')) i = '0'+i;
-  //       new_time2.push(i);
-  //     })
-  //     new_time = new_time2.join(":");
-  console.log(new_time);
-  console.log(客戶名);
-  obj = '{"name": "' + 客戶名 + '", "subject": "' + 客戶ID + '", "status": ' + 狀態 + ', "priority": ' + 優先 + ', "description": "' + 描述 + '", "due_by": "' + new_time + '"}';
+  obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + new_time + '"}';
+  console.log(obj);
   if(confirm("確定變更表單？")) {
     var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
     $.ajax({
@@ -213,7 +205,7 @@ function moreInfo() {
   let Ainfo;
   $("#ID-num").text(Tinfo.id);
   $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
-  display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>回覆人員</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description + '</td>' + '</tr><tr>' + '<th>到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td class="edit">' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立時間</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
+  display = '<tr>' + '<th>clientId</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>clientOwner</th>' + '<td>' + showSelect('responder', Tinfo.responder_id) + '</td>' + '</tr><tr>' + '<th>clientPriority</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>clientStatus</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>clientDescription</th>' + '<td class="edit">' + Tinfo.description + '</td>' + '</tr><tr>' + '<th>clientDue' + dueDate(Tinfo.due_by) + '</th>' + '<td class="edit">' + displayDate(Tinfo.due_by) + '</td>' + '</tr><tr>' + '<th>建立時間</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
   for(let j in contactInfo) {
     if(contactInfo[j].id == Tinfo.requester_id) {
       Cinfo = contactInfo[j];
@@ -302,7 +294,7 @@ function submitAdd() {
       $('#form-phone').css('border', '1px solid #ccc');
     }, 3000);
   } else if($('#form-uid').val().trim() === '') {
-    $('#error').append('請輸入客戶ID');
+    $('#error').append('請輸入clientId');
     $('#form-subject').css('border', '1px solid red');
     setTimeout(() => {
       $('#error').empty();
@@ -360,9 +352,6 @@ function submitAdd() {
     $('#form-email').val('');
     $('#form-phone').val('');
     $('#form-description').val('');
-    // setTimeout(() => {
-    //   location.href = '/chat';
-    // }, 5000);
   }
 }
 

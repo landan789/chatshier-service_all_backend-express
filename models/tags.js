@@ -26,7 +26,6 @@ tags.get = function(callback){
                         console.log("modal/tags error 87");
                     }
                 }
-                console.log(resultData);
                 callback(resultData);
             })
         });
@@ -45,7 +44,6 @@ tags.getDefault = function(callback){
     for( let i in tagsData ) {
       tagsData[i].name = utility.translateTag(tagsData[i].name, "english", "chinese");
     }
-    console.log(tagsData);
     callback(tagsData);
   });
 };
@@ -55,7 +53,6 @@ tags.getCustom = function(callback){
     if(snapshot.val() !== null){
       tagsData = snapshot.val();
     }
-    console.log(tagsData);
     callback(tagsData);
   });
 };
@@ -70,7 +67,6 @@ tags.getOrder = (callback) => {
           admin.database().ref().child('tags/order').set(order);
           console.log('default tag order loaded');
         }
-        console.log(order);
         callback(order);
     });
 

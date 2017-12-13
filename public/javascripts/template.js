@@ -2,9 +2,6 @@ const socket = io.connect();
 var templateForm = $('#template-form');
 var templateData = {};
 var userId = "";
-$(document).load(function() {
-    // mermaid.initialize({startOnLoad:true});
-});
 $(function() {
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').hide();
