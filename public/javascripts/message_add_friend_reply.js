@@ -10,9 +10,10 @@ $(document).ready(function(){
   $(document).on('click', '#save', modalSubmit );
   $(document).on('click', '#addbtn', addMsgCanvas);
   $(document).on('click', '#delete', delMsgCanvas);
-  setTimeout(loadFriendsReply, 1000);
+  setTimeout(loadFriendsReply, 2000);
 });
 function loadFriendsReply(){
+  socket.emit('load add friend');
   let userId = auth.currentUser.uid;
   objArray = []; // empty the array first
   textArray = []; // get a new array to emit
@@ -39,7 +40,7 @@ function loadFriendsReply(){
         textArray.push(objArray[i].taskText);
         currentCount = textArray.length;
       }
-      emitToServer(textArray);
+      emitToServer({userId,textArray});
     }
   });
 } // end of loadFriendsReply
@@ -68,6 +69,7 @@ function addMsgCanvas(){
   }
 } // end of addMsgCanvas
 function delMsgCanvas(){ // 如果只是新增一個空的tr再刪除會止移除第二個tr
+  let userId = auth.currentUser.uid;
   if($(this).parent().parent().attr('id') === undefined){
     location.reload();
   }else{
@@ -78,6 +80,7 @@ function delMsgCanvas(){ // 如果只是新增一個空的tr再刪除會止移�
       substrId = id.substr(0,20); // 把ID的"-row"拿掉
       if(confirm('確定要刪除嗎？')){
         database.ref('message-addfriendsreply/'+uid+'/'+substrId).remove();
+        emitToServer({userId:userId,textArray:[]});
       }
     }else{
       substrId = id.substr(0,1);
@@ -105,7 +108,7 @@ function modalSubmit(){ // 送出新增
         updateUserData(MsgInfo);
       }
     }else{
-      alert('Please fill in the space');
+      alert('請填入文字內容');
     }
   }
   //塞入資料庫並重整
@@ -128,5 +131,9 @@ function updateUserData(obj){ // 寫進資料庫
   });
 } // end of updateUserData
 function emitToServer(data){ // 推到server端處理
-  socket.emit('update add friend message', data);
+  socket.emit('update add friend message', data, getResponse);
 } // end of emitToServer
+function getResponse(data = ''){
+  if(data === '帳號未設定') alert(data);
+  else console.log('setup finished');
+}
