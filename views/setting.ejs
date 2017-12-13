@@ -51,16 +51,22 @@
                                     <table class="table table-user-information">
                                         <tbody>
                                             <tr>
-                                                <td>綽號: </td>
-                                                <td id="prof-nickname"></td>
+                                                <td>ID: </td>
+                                                <td id="prof-IDnumber"></td>
                                             </tr>
                                             <tr>
                                                 <td>公司: </td>
                                                 <td id="prof-company"></td>
                                             </tr>
                                             <tr>
-                                                <td>Logo: </td>
-                                                <td id="prof-logo" style="width: 50%;"><img style="width: 100%;"></td>
+                                                <td>手機: </td>
+                                                <td id="prof-phonenumber"></td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>地區: </td>
+                                                <td id="prof-address"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -238,7 +244,7 @@
                                         <div class="form-group">
                                             <label for="create-internal-photo" class="col-2 col-form-label">群組圖片(URL): </label>
                                             <div class="col-4">
-                                                <div class="input-group file-container" id="create-internal-photo" >
+                                                <div class="input-group file-container" id="create-internal-photo">
                                                     <span class="input-group-btn">
                                                         <button class="btn btn-default file-choose" type="button">上傳圖片</button>
                                                     </span>
@@ -306,11 +312,11 @@
                                         <label for="edit-id" class="col-2 col-form-label">ID</label>
                                         <span id="prof-edit-id"></span>
                                     </div>
-                                    <!-- nickname -->
+                                    <!-- ID -->
                                     <div class="form-group">
-                                        <label for="prof-edit-nickname" class="col-2 col-form-label">綽號: </label>
+                                        <label for="prof-edit-IDnumber" class="col-2 col-form-label">ID: </label>
                                         <div class="col-4">
-                                            <input class="form-control" type="text" value="" id="prof-edit-nickname">
+                                            <input class="form-control" type="tel" value="" id="prof-edit-IDnumber">
                                         </div>
                                     </div>
                                     <!-- Company -->
@@ -320,24 +326,21 @@
                                             <input class="form-control" type="tel" value="" id="prof-edit-company">
                                         </div>
                                     </div>
-                                    <!-- Logo -->
+
+                                    <!-- phonenumber -->
                                     <div class="form-group">
-                                        <label for="prof-edit-logo" class="col-2 col-form-label">Logo: </label>
+                                        <label for="prof-edit-phonenumber " class="col-2 col-form-label">手機: </label>
                                         <div class="col-4">
-                                            <div class="input-group file-container" id="prof-edit-logo">
-                                                <span class="input-group-btn">
-                                                    <button class="btn btn-default file-choose" type="button">上傳圖片</button>
-                                                </span>
-                                                <input type="file" class="file-ghost hidden">
-                                                <p type="input" class="form-control file-text" data-placeholder="Choose a file..."></p>
-                                                <span class="input-group-btn">
-                                                    <button class="btn btn-warning file-reset" type="button">重設</button>
-                                                </span>
-                                            </div>
+                                            <input class="form-control" type="tel" value="" id="prof-edit-phonenumber" required data-toggle="tooltip" data-placement="top" title="手機格式輸入錯誤" required/>
                                         </div>
                                     </div>
-
-
+                                    <!-- address -->
+                                    <div class="form-group">
+                                        <label for="prof-edit-address" class="col-2 col-form-label">地區: </label>
+                                        <div class="col-4">
+                                            <input class="form-control" type="tel" value="" id="prof-edit-address">
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                             <div class="modal-footer">
