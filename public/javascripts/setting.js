@@ -278,7 +278,7 @@ $(document).ready(function() {
         }
     }
 
-    function profSubmitBasic() {
+    function profSubmitBasic(event) {
         var $this = $(this);
         let userId = auth.currentUser.uid;
         // console.log(id, name, dob, email, gender,phone);
@@ -286,7 +286,7 @@ $(document).ready(function() {
         let company = $('#prof-edit-company').val();
         let phonenumber = $('#prof-edit-phonenumber').val();
         let address = $('#prof-edit-address').val();
-
+        phoneRule = /^09\d{8}$/;
         // console.log(id);
         // database.ref('users/' + userId).remove();
         if (phonenumber === "") {
@@ -294,18 +294,23 @@ $(document).ready(function() {
             setTimeout(function() {
                 $('#prof-edit-phonenumber').tooltip('destroy');
             }, 3000);
-            $this.button('reset');
+        } else if (!phonenumber.match(phoneRule)) {
+            $('#prof-edit-phonenumber').tooltip('show'); //show 
+            setTimeout(function() {
+                $('#prof-edit-phonenumber').tooltip('destroy');
+            }, 3000);
+        } else {
+            database.ref('users/' + userId).update({
+                IDnumber: IDnumber,
+                company: company,
+                phonenumber: phonenumber,
+                address: address
+            });
+            $('#error-message').hide();
+            profClear();
+            loadProf();
+            $('#basicModal').modal('hide');
         }
-        database.ref('users/' + userId).update({
-            IDnumber: IDnumber,
-            company: company,
-            phonenumber: phonenumber,
-            address: address
-        });
-        $('#error-message').hide();
-        profClear();
-        loadProf();
-        $('#basicModal').modal('hide');
     }
 
     function profSubmitProfile() {
