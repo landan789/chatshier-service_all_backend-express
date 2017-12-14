@@ -101,6 +101,7 @@ function init(server) {
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
+            const WAIT_TIME = 10000;
             let f1 = new Promise((resolve, reject) => {
                 console.log("tag start");
                 requestTags( (data) => {
@@ -108,6 +109,7 @@ function init(server) {
                     res.tagsData = data;
                     resolve();
                 });
+                setTimeout(reject, WAIT_TIME, "tag network too slow");
             });
             let f2 = new Promise((resolve, reject) => {
                 console.log("nick start");
@@ -116,6 +118,7 @@ function init(server) {
                     res.checkNickName = data;
                     resolve();
                 });
+                setTimeout(reject, WAIT_TIME, "nick network too slow");
             });
             let f3 = new Promise((resolve, reject) => {
                 console.log("chan start");
@@ -124,6 +127,7 @@ function init(server) {
                     res.channelsData = data;
                     resolve();
                 });
+                setTimeout(reject, WAIT_TIME, "chan network too slow");
             });
             let f4 = new Promise((resolve, reject) => {
                 console.log("internal start");
@@ -132,12 +136,17 @@ function init(server) {
                     res.internalChatData = data;
                     resolve();
                 });
+                setTimeout(reject, WAIT_TIME, "internal network too slow");
             });
 
             Promise.all([f1, f2, f3, f4]).then(() => {
                 console.log("all done ! print res");
                 console.log(res);
                 callback(res);
+            }).catch((reason) => {
+                console.log("promise faied! print reason");
+                console.log(reason);
+                callback({"reject": "Failed!\nNetwork too slow, or not supported!"});
             });
 
         });

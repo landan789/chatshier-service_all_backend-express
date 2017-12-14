@@ -111,10 +111,15 @@ $(document).ready(function() {
     //==========start initialize function========== //
     function responseChatInitData(data) {
         console.log(data);
-        checkNickName(data.checkNickName);
-        responseInternalChatData(data.internalChatData);
-        responseTags(data.tagsData);
-        responseChannels(data.channelsData);
+        if( data.reject ) {
+            alert(data.reject);
+        }
+        else {
+            checkNickName(data.checkNickName);
+            responseInternalChatData(data.internalChatData);
+            responseTags(data.tagsData);
+            responseChannels(data.channelsData);
+        }
     }
 
     function checkNickName(check) {
