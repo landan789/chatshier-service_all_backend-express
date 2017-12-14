@@ -101,42 +101,44 @@ function init(server) {
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
-            requestTags( (data) => {
-                res.tagsData = data;
-
+            let f1 = new Promise((resolve, reject) => {
+                console.log("tag start");
+                requestTags( (data) => {
+                    console.log("tag end");
+                    res.tagsData = data;
+                    resolve();
+                });
+            });
+            let f2 = new Promise((resolve, reject) => {
+                console.log("nick start");
                 newUser(userId, (data) => {
+                    console.log("nick end");
                     res.checkNickName = data;
-
-                    requestChannels(userId, (data) => {
-                        res.channelsData = data;
-
-                        requestInternalChatData(userId, (data) => {
-                            res.internalChatData = data;
-
-                            callback(res);
-                        });
-                    });
+                    resolve();
+                });
+            });
+            let f3 = new Promise((resolve, reject) => {
+                console.log("chan start");
+                requestChannels(userId, (data) => {
+                    console.log("chan end");
+                    res.channelsData = data;
+                    resolve();
+                });
+            });
+            let f4 = new Promise((resolve, reject) => {
+                console.log("internal start");
+                requestInternalChatData(userId, (data) => {
+                    console.log("internal end");
+                    res.internalChatData = data;
+                    resolve();
                 });
             });
 
-            // requestTags( (data) => {
-            //     res.responseTags = data;
-            // });
-            // newUser(userId, (data) => {
-            //     res.checkNickName = data;
-            // });
-            // requestChannels(userId, (data) => {
-            //     res.responseChannels = data;
-            // });
-            // requestInternalChatData(userId, (data) => {
-            //     res.responseInternalChatData = data;
-            // });
-            // let timer = setInterval(() => {
-            //     if( Object.keys(res).length==4 ) {
-            //         clearInterval(timer);
-            //         callback(res);
-            //     }
-            // }, 10);
+            Promise.all([f1, f2, f3, f4]).then(() => {
+                console.log("all done ! print res");
+                console.log(res);
+                callback(res);
+            });
 
         });
         // 2.更新群組
@@ -1019,10 +1021,8 @@ function init(server) {
             }
 
             function apiai(msg) {
-                console.log(885);
                 apiModel.process(msg, function(replyMessage, replyTemplate) {
-                    console.log("replyMessage = " + replyMessage);
-                    console.log(replyTemplate);
+                    console.log("apiai replyMessage=" + replyMessage);
                     if (replyMessage !== "-1") {
                         replyMsgObj.name = "api.ai";
                         replyMsgObj.message = replyMessage;
