@@ -692,7 +692,7 @@ $(document).ready(function() {
             var storageRef = firebase.storage().ref();
             var fileRef = storageRef.child(file.lastModified + '_' + file.name);
             fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.a.downloadURLs[0];
+                let url = snapshot.downloadURL;
                 var type = $(self).data('type');
                 var data = {
                     msg: '/' + type + ' ' + url,
@@ -1364,7 +1364,7 @@ $(document).ready(function() {
             let storageRef = firebase.storage().ref();
             let fileRef = storageRef.child(file.lastModified + '_' + file.name);
             fileRef.put(file).then(function(snapshot) {
-                let url = snapshot.a.downloadURLs[0];
+                let url = snapshot.downloadURL;
                 img.attr('src', url);
             });
         }

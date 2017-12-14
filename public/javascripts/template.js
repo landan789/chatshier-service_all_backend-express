@@ -163,7 +163,7 @@ function uploadImage() {
         let storageRef = firebase.storage().ref();
         let fileRef = storageRef.child(file.lastModified + '_' + file.name);
         fileRef.put(file).then(function(snapshot) {
-          let url = snapshot.metadata.downloadURLs[0];
+          let url = snapshot.downloadURL;
           $(input).parents('.line-thumbnailImageUrl').val(url);
           $(input).siblings('img').attr('src', url);
         });
