@@ -91,6 +91,10 @@ function viewMonth() {
     let date = new Date(t);
     let y = date.getFullYear();
     let m = date.getMonth()+n;
+    if( m>12 ) {
+        m -= 12;
+        y++;
+    }
     let newDate = new Date(y+"/"+m);
     return newDate.getTime();
   }
