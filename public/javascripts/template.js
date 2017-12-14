@@ -62,9 +62,12 @@ function clearModal() {
     let modal = $('#template-modal');
     console.log("clear");
     modal.find('input').val('');
-    modal.find('selece').val('');
+    modal.find('textarea').val('');
+    modal.find('select').val('');
     modal.find('.line-thumbnailImageUrl').val('');
     modal.find('.image-upload').attr('src', '');
+    modal.find('.carousel-inner').find('.item:first').addClass('active').siblings('.item').removeClass('active');
+    checkCarouselSide();
 }
 function toggleTemplateStatus(e) {
     e.preventDefault();
