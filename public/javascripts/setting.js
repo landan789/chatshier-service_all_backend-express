@@ -499,7 +499,7 @@ $(document).ready(function() {
             let storageRef = firebase.storage().ref();
             let fileRef = storageRef.child(file.lastModified + '_' + file.name);
             fileRef.put(file).then(function(snapshot) {
-                let url = snapshot.a.downloadURLs[0];
+                let url = snapshot.downloadURL;
                 fileContainer.val(url);
             });
         }

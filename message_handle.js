@@ -102,18 +102,19 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
                     nickname: obj.name,
                     userId: receiverId ? receiverId : obj.id,
                     channelId: channelId ? channelId : 'unassigned',
-                    locale: obj.locale ? obj.locale : "",
                     gender: obj.gend ? obj.gend : "",
                     age: -1,
                     telephone: "",
-                    address: "",
                     firstChat: Date.now(),
                     recentChat: Date.now(),
-                    totalTime: 1,
+                    chatTimeCount: 1,
                     totalChat: 1,
                     avgChat: 1,
                     unRead: 1,
-                    photo: pictureUrl? pictureUrl : (obj.prof_pic ? obj.prof_pic : "")
+                    assigned: "",
+                    email: "",
+                    remark: "",
+                    photo: pictureUrl? pictureUrl : ""
                 },
                 Messages: [obj]
           };
@@ -127,7 +128,7 @@ function send_to_frontSocket(obj, pictureUrl, channelId, receiverId, unRead, cal
     data.unRead = unRead;
     data.channelId = channelId;
     data.id = receiverId;
-    data.pictureUrl = pictureUrl;
+    data.photo = pictureUrl;
     callback(data);
 }
 module.exports = messageHandle;
