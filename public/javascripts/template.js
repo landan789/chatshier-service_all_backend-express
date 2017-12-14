@@ -57,6 +57,15 @@ function loadTemplate() {
 // =====load template end=====
 
 // =====view template start=====
+$(document).on('click', '#show-template-modal', clearModal);
+function clearModal() {
+    let modal = $('#template-modal');
+    console.log("clear");
+    modal.find('input').val('');
+    modal.find('selece').val('');
+    modal.find('.line-thumbnailImageUrl').val('');
+    modal.find('.image-upload').attr('src', '');
+}
 function toggleTemplateStatus(e) {
     e.preventDefault();
     let id = $(this).attr('id');
@@ -75,6 +84,8 @@ function toggleTemplateStatus(e) {
     }, loadTemplate);
 }
 function showTemplate() {
+    $('#show-template-modal').click();
+
     let id = $(this).attr('id');
     let keyword = $(this).text();
     let channelId = $(this).parents('.tab-pane').attr('id');
@@ -130,7 +141,6 @@ function showTemplate() {
             dom.find('.row-text').val(data.text);
         }
     }
-    $('#show-template-modal').click();
 }
 // =====view template end=====
 
@@ -288,11 +298,11 @@ function createTemplate(type) {
         else {
             let actions = getAction(container);
             let column = {
-                "thumbnailImageUrl": thumbnailImageUrl,
-                "title": title,
                 "text": text,
                 "actions": actions
             };
+            if( thumbnailImageUrl ) column["thumbnailImageUrl"] = thumbnailImageUrl;
+            if( title ) column["title"] = title;
             return column;
         }
     }
@@ -302,10 +312,9 @@ function createTemplate(type) {
         $actions.each(function() {
             let label = $(this).find('.row-label').val();
             let text = $(this).find('.row-text').val();
-            if( !label ) {
-                label = "---";
-                text = "";
-            }
+            if( !label ) label = "---";
+            if( label=="---" ) text = " ";
+            else if( !text ) text = label;
             actionArr.push({
                 "type": "message",
                 "label": label,
