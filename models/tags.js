@@ -1,36 +1,6 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var utility = require('../helpers/utility');
 var tags = {};
-tags.get = function(callback){
-    tags.getCustom( (customData) => {
-        tags.getDefault( (defaultData) => {
-            tags.getOrder( (orderData) => {
-                let resultData = [];
-                for( let i=0; i<orderData.length; i++ ) {
-                    let id = orderData[i];
-                    if( customData[id] ) {
-                        resultData.push({
-                            "id": id,
-                            "source": "custom",
-                            "data": customData[id]
-                        });
-                    }
-                    else if( defaultData[id] ) {
-                        resultData.push({
-                            "id": id,
-                            "source": "default",
-                            "data": defaultData[id]
-                        });
-                    }
-                    else {
-                        console.log("modal/tags error 87");
-                    }
-                }
-                callback(resultData);
-            })
-        });
-    });
-};
 tags.getDefault = function(callback){
   admin.database().ref().child('tags/default').once('value', snapshot=> {
     let tagsData = {};
@@ -71,6 +41,37 @@ tags.getOrder = (callback) => {
     });
 
 }
+
+tags.get = function(callback){
+    tags.getCustom( (customData) => {
+        tags.getDefault( (defaultData) => {
+            tags.getOrder( (orderData) => {
+                let resultData = [];
+                for( let i=0; i<orderData.length; i++ ) {
+                    let id = orderData[i];
+                    if( customData[id] ) {
+                        resultData.push({
+                            "id": id,
+                            "source": "custom",
+                            "data": customData[id]
+                        });
+                    }
+                    else if( defaultData[id] ) {
+                        resultData.push({
+                            "id": id,
+                            "source": "default",
+                            "data": defaultData[id]
+                        });
+                    }
+                    else {
+                        console.log("modal/tags error 87");
+                    }
+                }
+                callback(resultData);
+            })
+        });
+    });
+};
 tags.updateCustom = obj => {
     admin.database().ref().child('tags/custom').set(obj);
 };
