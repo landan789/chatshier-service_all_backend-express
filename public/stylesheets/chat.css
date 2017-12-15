@@ -396,6 +396,10 @@ p {
     #td-inner[type="datetime-local"] {
         margin-top: 2px;
     }
+    .photo-container {
+        display: flex;
+        justify-content: center;
+    }
 }
 
 /*ticket*/
