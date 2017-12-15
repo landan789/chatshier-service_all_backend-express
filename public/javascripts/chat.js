@@ -31,7 +31,6 @@ var messageInput = $('#message'); // 訊息欄
 var canvas = $("#canvas"); // 聊天室空間
 var infoCanvas = $("#infoCanvas"); // 個人資料空間
 var error = $('.error');
-var hiddenGroupName = $('.hidden-group-name');
 var ocClickShow = $('.on-click-show');
 var openChatAppItem = $('.chat-app-item[open="true"]');
 var searchBox = $('#searchBox');
@@ -103,9 +102,6 @@ $(document).ready(function() {
             return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
         }
     });
-    hiddenGroupName.mouseover(function() { // 秀群組名稱
-            $(this).show();
-        })
         //=====end utility event=====
 
     //==========start initialize function========== //
@@ -142,9 +138,9 @@ $(document).ready(function() {
             $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
             $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
             $('.chat-app-item#FB').attr('rel', data.fbPageId);
-            $('#line1 p').text(data.name1);
-            $('#line2 p').text(data.name2);
-            $('#fbname p').text(data.fbName);
+            $('#Line_1').attr('title',data.name1);
+            $('#Line_2').attr('title',data.name2);
+            $('#FB').attr('title',data.fbName);
             room_list.push(data.chanId_1);
             room_list.push(data.chanId_2);
             room_list.push(data.fbPageId);
@@ -787,6 +783,7 @@ $(document).ready(function() {
         let method = $(this).attr('id');
         if (method === "confirm") {
             if (confirm("Are you sure to change profile?")) {
+                $('#infoCanvas').scrollTop(0);
                 let data = {
                     userId: userId,
                     channelId: channelId
