@@ -93,6 +93,7 @@ function init(server) {
         socket.on('request tags', (callback) => {
             requestTags(callback);
         });
+
         function requestTags(callback) {
             tags.get(function(tagsData) {
                 callback(tagsData);
@@ -104,7 +105,7 @@ function init(server) {
             const WAIT_TIME = 10000;
             let f1 = new Promise((resolve, reject) => {
                 console.log("tag start");
-                requestTags( (data) => {
+                requestTags((data) => {
                     console.log("tag end");
                     res.tagsData = data;
                     resolve();
@@ -146,7 +147,7 @@ function init(server) {
             }).catch((reason) => {
                 console.log("promise faied! print reason");
                 console.log(reason);
-                callback({"reject": "Failed!\nNetwork too slow, or not supported!"});
+                callback({ "reject": "Failed!\nNetwork too slow, or not supported!" });
             });
 
         });
@@ -183,6 +184,7 @@ function init(server) {
         socket.on('request channels', (userId, callback) => {
             requestChannels(userId, callback);
         });
+
         function requestChannels(userId, callback) {
             users.getUser(userId, chatInfo => {
                 utility.updateChannel(chatInfo, (channelObj) => {
@@ -223,12 +225,19 @@ function init(server) {
             };
             let channelId = -1;
             if (channelIds.indexOf(chanId) !== -1) channelId = chanId;
-            if (msg.startsWith('/image')) {
-                msgObj.message = '傳圖檔給客戶';
-            } else if (msg.startsWith('/audio')) {
-                msgObj.message = '傳音檔給客戶';
-            } else if (msg.startsWith('/video')) {
-                msgObj.message = '傳影檔給客戶';
+            if (msg.includes('/image')) {
+                var src = msg.split(' ')[1];
+                msgObj.message = `<img src="${src}" />`;
+            } else if (msg.includes('/audio')) {
+                var src = msg.split(' ')[1];
+                msgObj.message = `<audio controls="controls">
+                                    <source src="${src}" type="audio/ogg">
+                                  </audio>`;
+            } else if (msg.includes('/video')) {
+                var src = msg.split(' ')[1];
+                msgObj.message = `<video controls="controls">
+                                    <source src="${src}" type="video/mp4">
+                                  </video> `;
             } else if (utility.isUrl(msg)) {
                 let urlStr = '<a href=';
                 if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
@@ -326,7 +335,8 @@ function init(server) {
         socket.on('request internal chat data', (data, callback) => {
             requestInternalChatData(data, callback);
         });
-        function requestInternalChatData( userId, callback ) {
+
+        function requestInternalChatData(userId, callback) {
             let thisAgentData = [];
             agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
@@ -382,27 +392,27 @@ function init(server) {
             console.log(globalLineMessageArray)
         });
         //更新關鍵字回覆
-        socket.on('update add friend message', (data,callback) => {
+        socket.on('update add friend message', (data, callback) => {
             // addFriendBroadcastMsg = data;
             let id = data.userId;
             let messageArray = data.textArray;
-            if(messageArray.length === 0) {
+            if (messageArray.length === 0) {
                 globalLineMessageArray.map(item => {
-                    if(item.userId === id){
-                        globalLineMessageArray.splice(globalLineMessageArray.indexOf(item),1);
+                    if (item.userId === id) {
+                        globalLineMessageArray.splice(globalLineMessageArray.indexOf(item), 1);
                     }
                 });
             } else {
                 users.getUser(id, dbData => {
-                    if(dbData.chanId_1 === '' && dbData.chanId_2 === ''){
+                    if (dbData.chanId_1 === '' && dbData.chanId_2 === '') {
                         callback('帳號未設定');
                     } else {
-                        if(globalLineMessageArray.length === 0) {
-                            globalLineMessageArray.push({userId:id,chanId:channelIds[0],msg:messageArray});
+                        if (globalLineMessageArray.length === 0) {
+                            globalLineMessageArray.push({ userId: id, chanId: channelIds[0], msg: messageArray });
                         } else {
                             globalLineMessageArray.map(item => {
                                 // console.log('in the loop')
-                                if(item.userId === id) {
+                                if (item.userId === id) {
                                     // console.log('existing record')
                                     globalLineMessageArray[item].msg.push(messageArray);
                                 }
@@ -426,10 +436,10 @@ function init(server) {
         socket.on('update tags', tagsData => {
             let customData = {};
             let order = [];
-            for( let i=0; i<tagsData.length; i++ ) {
+            for (let i = 0; i < tagsData.length; i++) {
                 let ele = tagsData[i];
                 order.push(ele.id);
-                if( ele.source=="custom" ) {
+                if (ele.source == "custom") {
                     customData[ele.id] = ele.data;
                 }
             }
@@ -500,6 +510,7 @@ function init(server) {
         socket.on('new user', (id, hasNickName) => {
             newUser(id, hasNickName);
         });
+
         function newUser(id, hasNickName) {
             users.getUser(id, (data) => {
                 if (data && data.nickname) {
@@ -1049,7 +1060,7 @@ function init(server) {
         globalLineMessageArray.map(item => {
             console.log('LOOPING...')
             console.log(currentChannel + ":" + item.chanId)
-            if(currentChannel === item.chanId) {
+            if (currentChannel === item.chanId) {
                 console.log('success')
                 follow_message = item.msg;
                 console.log(follow_message)
