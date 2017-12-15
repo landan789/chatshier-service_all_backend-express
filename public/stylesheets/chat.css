@@ -121,6 +121,14 @@ p {
         display: none;
         text-align: center;
     }
+    .chat-app-item + .tooltip > .tooltip-inner {
+        background-color: #33CCFF;
+        border: 1px solid #33CCFF;
+    }
+
+    .chat-app-item + .tooltip.bottom > .tooltip-arrow {
+        border-bottom-color: #33CCFF;
+    }
 }
 
 /*user tablinks*/

@@ -58,6 +58,7 @@ $(document).ready(function() {
     $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
+    $('[data-toggle="tooltip"]').tooltip();
     messageInput.on('keydown', function(e) { // 按enter可以發送訊息
         if (e.keyCode === 13) {
             $('#submitMsg').click();
@@ -138,9 +139,9 @@ $(document).ready(function() {
             $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
             $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
             $('.chat-app-item#FB').attr('rel', data.fbPageId);
-            $('#Line_1').attr('title',data.name1);
-            $('#Line_2').attr('title',data.name2);
-            $('#FB').attr('title',data.fbName);
+            $('#Line_1').attr('data-original-title',data.name1);
+            $('#Line_2').attr('data-original-title',data.name2);
+            $('#FB').attr('data-original-title',data.fbName);
             room_list.push(data.chanId_1);
             room_list.push(data.chanId_2);
             room_list.push(data.fbPageId);
