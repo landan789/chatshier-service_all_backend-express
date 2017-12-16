@@ -8,8 +8,8 @@
 
 #form-wrap {
   position: relative;
-  left: 270px;
-  width: 70%
+  padding: 0 30%;
+  top: 10%;
 }
 
 #edit-subt, #view-subt {
@@ -212,7 +212,8 @@ td, th {
 }
 
 tr:nth-child(even) {
-    background-color: rgb(169, 196, 186);
+    background-color: #33CCFF;
+    color: white;
 }
 table { width: 100%}
 .sidebar{

@@ -405,8 +405,9 @@ p {
         margin-top: 2px;
     }
     .photo-container {
-        display: flex;
+        display: block;
         justify-content: center;
+        text-align: center;
     }
 }
 
@@ -435,7 +436,8 @@ p {
         margin: 2px 0;
     }
     .ticket tr:nth-child(even) {
-        background-color: rgb(169, 196, 186);
+        background-color: #33CCFF;
+        color: white;
     }
     .ticket table {
         width: 100%;
@@ -465,7 +467,7 @@ p {
     .non {
         background-color: rgb(91, 195, 92)
     }
-    #ID_num {
+    #ID-num {
         display: flex;
         width: 45px;
         height: 40px;
@@ -487,6 +489,9 @@ p {
     textarea {
         /* will prevent resizing horizontally */
         resize: vertical;
+    }
+    .display-date-input {
+        width: 75%;
     }
 }
 
@@ -637,7 +642,8 @@ img[alt="無法顯示相片"] {
 }
 
 .info_input_table tr:nth-child(even) {
-    background-color: rgb(169, 196, 186);
+    background-color: #33CCFF;
+    color: white;
 }
 .multi-select-container input[type="checkbox"] {
     width: auto;

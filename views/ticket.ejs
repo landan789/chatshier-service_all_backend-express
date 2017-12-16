@@ -49,31 +49,7 @@
             <p id="console">
             </p>
         </div>
-        <div class="modal fade" id="ticketInfoModal" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <div style="display:flex">
-                            <span id="ID-num"></span>
-                            <table>
-                                <th style="display:none">subject</th>
-                                <td class="modal-title edit">User NickName</td>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="modal-body">
-                        <table class="info-input-table">
-                        </table>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" id="ticketInfo-delete" class="btn btn-danger" data-dismiss="modal">刪除</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                        <button type="button" id="ticketInfo-submit" class="btn btn-success" data-dismiss="modal">確認</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <% include ../views/partials/ticket_info_modal.ejs %>
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
