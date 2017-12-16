@@ -235,7 +235,7 @@ function submitAdd() {
   let phone = $('#add-form-phone').val();
   let status = $('#add-form-status option:selected').text();
   let priority = $('#add-form-priority option:selected').text();
-  let selectedAgent = $('#add-form-agents option:selected').val();
+  let ownerAgent = $('#add-form-agents option:selected').val();
   let description = $('#add-form-description').val();
   ticket_data = '{ "description": "' + description + '", "name" : "' + name + '",  "subject": "' + uid + '", "email": "' + email + '", "phone": "' + phone + '", "priority": ' + priorityTextToMark(priority) + ', "status": ' + statusTextToMark(status) + '}';
   console.log(ticket_data);
@@ -303,7 +303,7 @@ function submitAdd() {
           description: description,
           allDay: false
         }).then(() => {
-          database.ref('tickets/' + userId + '/t' + data.id).push({ owner: selectedAgent });
+          database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent });
         }).then(() => {
           $('#add-form-name').val('');
           $('#add-form-uid').val('');
@@ -313,6 +313,8 @@ function submitAdd() {
           $('#add-form-status option:first').attr('selected', true);
           $('#add-form-priority option:first').attr('selected', true);
           $('#add-form-agents option:first').attr('selected', true);
+        }).then(() => {
+          location = '/ticket';
         });
       },
       error: function(jqXHR, tranStatus) {

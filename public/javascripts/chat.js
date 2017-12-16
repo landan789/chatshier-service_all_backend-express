@@ -1069,15 +1069,17 @@ $(document).ready(function() {
                       allDay: false
                     }).then(() => {
                       database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent });
-                    })
-                    $('#form-name').val('');
-                    $('#form-uid').val('');
-                    $('#form-subject').val('');
-                    $('#form-email').val('');
-                    $('#form-phone').val('');
-                    $('#form-description').val('');
-                    addTicketModal.modal('hide');
-                    location = '/chat';
+                    }).then(() => {
+                        $('#form-name').val('');
+                        $('#form-uid').val('');
+                        $('#form-subject').val('');
+                        $('#form-email').val('');
+                        $('#form-phone').val('');
+                        $('#form-description').val('');
+                        addTicketModal.modal('hide');
+                    }).then(() => {
+                        location = '/chat';
+                    });
                 },
                 error: function(jqXHR, tranStatus) {
                     x_request_id = jqXHR.getResponseHeader('X-Request-Id');
