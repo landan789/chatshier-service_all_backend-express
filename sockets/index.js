@@ -1109,17 +1109,19 @@ function init(server) {
         }
     } // end of update_line_bot
     function send_to_FB(msg, receiver) {
-        if (msg.startsWith('/image')) {
-            let link = msg.substr(7);
-            fb_bot.sendImageMessage(receiver, link, true);
-        } else if (msg.startsWith('/video')) {
-            let link = msg.substr(7);
-            fb_bot.sendVideoMessage(receiver, link, true);
-        } else if (msg.startsWith('/audio')) {
-            let link = msg.substr(7);
-            fb_bot.sendAudioMessage(receiver, link, true);
-        } else {
-            fb_bot.sendTextMessage(receiver, msg);
+        if(Object.keys(fb_bot).length > 0) {
+            if (msg.startsWith('/image')) {
+                let link = msg.substr(7);
+                fb_bot.sendImageMessage(receiver, link, true);
+            } else if (msg.startsWith('/video')) {
+                let link = msg.substr(7);
+                fb_bot.sendVideoMessage(receiver, link, true);
+            } else if (msg.startsWith('/audio')) {
+                let link = msg.substr(7);
+                fb_bot.sendAudioMessage(receiver, link, true);
+            } else {
+                fb_bot.sendTextMessage(receiver, msg);
+            }
         }
     }
 

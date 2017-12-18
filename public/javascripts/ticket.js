@@ -25,6 +25,7 @@ $(document).ready(function() {
   });
   $("#exampleInputAmount").keyup(searchBar);
   $('#ticket-info-delete').click(function() {
+    let userId = auth.currentUser.uid;
     if(confirm("確認刪除表單？")) {
       var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
       $.ajax({
@@ -36,10 +37,13 @@ $(document).ready(function() {
           "Authorization": "Basic " + btoa(api_key + ":x")
         },
         success: function(data, textStatus, jqXHR) {
-          alert("表單已刪除");
-          setTimeout(() => {
+          database.ref('cal-events/' + userId + '/t' + ticket_id).remove()
+          .then(() => {
+            alert("表單已刪除");
+          })
+          .then(() => {
             location.reload();
-          }, 500)
+          });
         },
         error: function(jqXHR, tranStatus) {
           alert("表單刪除失敗，請重試");
