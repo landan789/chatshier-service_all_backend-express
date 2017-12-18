@@ -13,52 +13,55 @@ $(document).ready(function() {
             clearInterval(timer_1);
             userId = auth.currentUser.uid;
             database.ref('users/' + userId).once('value', snap => {
-                let data = snap.val();
-                let name1 = data.name1;
-                let name2 = data.name2;
-                let fbName = data.fbName;
-                let id1 = data.chanId_1;
-                let id2 = data.chanId_2;
-                let secret1 = data.chanSecret_1;
-                let secret2 = data.chanSecret_2;
-                let token1 = data.chanAT_1;
-                let token2 = data.chanAT_2;
-                let fbPageId = data.fbPageId;
-                let fbAppId = data.fbAppId;
-                let fbAppSecret = data.fbAppSecret;
-                let fbValidToken = data.fbValidToken;
-                let fbPageToken = data.fbPageToken;
-                if ((!name1 || !id1 || !secret1 || !token1) && (!name2 || !id2 || !secret2 || !token2) && (!fbName || !fbPageId || !fbAppId || !fbAppSecret || !fbValidToken || !fbPageToken)) {
-                    // 放modal提示
-                    $('#errorModal').modal("show");
-                } else {
-                    $('#line1 p').text(name1);
-                    $('#line2 p').text(name2);
-                    $('#fbname p').text(fbName);
-                    socket.emit('update bot', {
-                        line_1: {
-                            channelId: id1,
-                            channelSecret: secret1,
-                            channelAccessToken: token1
-                        },
-                        line_2: {
-                            channelId: id2,
-                            channelSecret: secret2,
-                            channelAccessToken: token2
-                        },
-                        fb: {
-                            pageID: fbPageId,
-                            appID: fbAppId,
-                            appSecret: fbAppSecret,
-                            validationToken: fbValidToken,
-                            pageToken: fbPageToken
-                        },
-                    });
-                }
-            });
-            setTimeout(() => {
-                socket.emit('request line channel', userId);
-            }, 1000);
+                    let data = snap.val();
+                    let name1 = data.name1;
+                    let name2 = data.name2;
+                    let fbName = data.fbName;
+                    let id1 = data.chanId_1;
+                    let id2 = data.chanId_2;
+                    let secret1 = data.chanSecret_1;
+                    let secret2 = data.chanSecret_2;
+                    let token1 = data.chanAT_1;
+                    let token2 = data.chanAT_2;
+                    let fbPageId = data.fbPageId;
+                    let fbAppId = data.fbAppId;
+                    let fbAppSecret = data.fbAppSecret;
+                    let fbValidToken = data.fbValidToken;
+                    let fbPageToken = data.fbPageToken;
+                    if ((!name1 || !id1 || !secret1 || !token1) && (!name2 || !id2 || !secret2 || !token2) && (!fbName || !fbPageId || !fbAppId || !fbAppSecret || !fbValidToken || !fbPageToken)) {
+                        // 放modal提示
+                        $('#errorModal').modal("show");
+                    } else {
+                        $('#line1 p').text(name1);
+                        $('#line2 p').text(name2);
+                        $('#fbname p').text(fbName);
+                        socket.emit('update bot', {
+                            line_1: {
+                                channelId: id1,
+                                channelSecret: secret1,
+                                channelAccessToken: token1
+                            },
+                            line_2: {
+                                channelId: id2,
+                                channelSecret: secret2,
+                                channelAccessToken: token2
+                            },
+                            fb: {
+                                pageID: fbPageId,
+                                appID: fbAppId,
+                                appSecret: fbAppSecret,
+                                validationToken: fbValidToken,
+                                pageToken: fbPageToken
+                            },
+                        });
+                    }
+                })
+                .then(() => {
+                    loadTable();
+                })
+                .then(() => {
+                    socket.emit('request line channel', userId);
+                });
         }
     }, 10);
     // ACTIONS
@@ -66,7 +69,36 @@ $(document).ready(function() {
     $(document).on('click', '#btn-text', btnText);
     $(document).on('click', '.remove-btn', removeInput); //移除input
     $(document).on('click', '#modal-submit', modalSubmit); //新增
+    $(document).on('click', '#modal-draft', modalDraft);
     // FUNCTIONS
+    function loadTable() {
+        database.ref('message-overview/' + userId).once('value', snap => {
+            let data = snap.val();
+            let key = Object.keys(data);
+            for (let i in key) {
+                titleItemnumber = data[key[i]].titleItemnumber;
+                textInput = data[key[i]].textInput;
+                titleOptional = data[key[i]].titleOptional;
+                titleSort = data[key[i]].titleSort;
+                titleStaus = data[key[i]].titleStaus;
+                titleReservation = data[key[i]].titleReservation;
+                let stringobj = '<tr>' + '<td>' + 1 + '</td>' + '<td>' + textInput + '</td>' + '<td>' + titleSort + '</td>' + '<td>' + titleOptional + '</td>' + '<td>' + titleStaus + '</td>' + '<td>' + titleReservation + '</td>' + '<td>' + 3 + '</td>' + '</tr>';
+                switch (titleStaus) {
+                    // case 1:
+                    case '2':
+                        $('#data-draft').append(stringobj);
+                        break;
+
+                    case '3':
+
+                        $('#data-history').append(stringobj);
+                        break;
+
+                }
+            }
+        });
+    }
+
     function clickMsg() { // 更換switch
         var target = $(this).attr('rel');
         $("#" + target).show().siblings().hide();
@@ -105,7 +137,14 @@ $(document).ready(function() {
     }
 
     function modalSubmit() {
+        userId = auth.currentUser.uid;
+        let titleItemnumber = '1',
+            titleSort = 'test',
+            titleOptional = 'test',
+            titleStaus = '3',
+            titleReservation = 'test';
         let textInput = $('.textinput');
+
         console.log(textInput.length);
         if (textInput.length === 0) {
             $('.error-input').show();
@@ -121,13 +160,34 @@ $(document).ready(function() {
             if (input3 === undefined) input3 = '未設定';
             console.log(input3)
             let status;
-            if ($('#send-now').attr('checked') === 'checked') {
+            if ($('#send-now').prop('checked') !== 'checked') {
                 status = 'now'
                 socket.emit('push notification to all', { list: clientIntoArray, message: [input1, input2, input3], status: status });
+                database.ref('message-overview/' + userId).push({
+                    titleItemnumber: titleItemnumber,
+                    textInput: textInput.val(),
+                    titleOptional: titleOptional,
+                    titleSort: titleSort,
+                    titleStaus: titleStaus,
+                    titleReservation: titleReservation
+                });
+                // if ($('#send-sometime').prop('checked') !== 'checked') {
+                //     status = 'now'
+                //     socket.emit('push notification to all', { list: clientIntoArray, message: [input1, input2, input3], status: status });
+                //     database.ref('message-overview/' + userId).push({
+                //         titleItemnumber: titleItemnumber,
+                //         textInput: textInput.val(),
+                //         titleOptional: titleOptional,
+                //         titleSort: titleSort,
+                //         titleStaus: titleStaus,
+                //         titleReservation: titleReservation
+                //     });
+
             } else {
                 status = 'put the reserved time here'
                 console.log('not checked')
             }
+
 
             // 塞入資料庫並重整
             $('#quickAdd').modal('hide');
@@ -136,7 +196,34 @@ $(document).ready(function() {
             $('#inputText').empty();
             inputNum = 0;
             alert('變更已儲存!');
+            location.reload();
+
         }
+    }
+
+    function modalDraft() {
+        userId = auth.currentUser.uid;
+        let textInput = $('.textinput');
+        let titleItemnumber = '1',
+            titleSort = 'test',
+            titleOptional = 'test',
+            titleStaus = '2',
+            titleReservation = 'test';
+        database.ref('message-overview/' + userId).push({
+            titleItemnumber: titleItemnumber,
+            textInput: textInput.val(),
+            titleSort: titleSort,
+            titleOptional: titleOptional,
+            titleStaus: titleStaus,
+            titleReservation: titleReservation
+        });
+        $('#quickAdd').modal('hide');
+        $('.textinput').val('');
+        $('#send-time').val('');
+        $('#inputText').empty();
+        inputNum = 0;
+        alert('變更已儲存!');
+        location.reload();
     }
 
     function loadClientData() {
