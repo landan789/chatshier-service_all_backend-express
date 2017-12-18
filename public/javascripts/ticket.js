@@ -24,7 +24,7 @@ $(document).ready(function() {
     if(e.which == 13) $(this).blur();
   });
   $("#exampleInputAmount").keyup(searchBar);
-  $('#ticketInfo-delete').click(function() {
+  $('#ticket-info-delete').click(function() {
     if(confirm("確認刪除表單？")) {
       var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
       $.ajax({
