@@ -7,10 +7,7 @@ var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
 var admin = require("firebase-admin"); //firebase admin SDK
 var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
 var databaseURL = require("../config/firebaseAdminDatabaseUrl.js");
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: databaseURL.url
-});
+
 var agents = require('../models/agents');
 var autos = require('../models/autos');
 var linetemplate = require('../models/linetemplate');
@@ -22,7 +19,14 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var messageHandle = require('../message_handle');
 
+const WAIT_TIME = 10000;
+
 var globalLineMessageArray = [];
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: databaseURL.url
+});
 
 function init(server) {
     var io = socketio(server);
@@ -102,7 +106,6 @@ function init(server) {
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
-            const WAIT_TIME = 10000;
             let f1 = new Promise((resolve, reject) => {
                 console.log("tag start");
                 requestTags((data) => {
@@ -467,16 +470,28 @@ function init(server) {
         /*===分析end===*/
         // 推播全部人
         socket.on('push notification to all', (data) => {
+            let nowTime = Date.now();
             // 判斷式 有U開頭就是LINE 否則就是Facebook
             utility.checkEachClient(data, (userId, chanId) => {
+                // 初始化推播物件
+                var notificationObj = {
+                    owner: "agent",
+                    name: "notification",
+                    time: nowTime,
+                    message: "undefined message"
+                }
                 console.log(userId, chanId)
                 if (userId.substr(0, 1) === 'U') {
                     utility.checkMessageLength(data, msg => {
+                        notificationObj.message = msg;
                         send_to_Line(msg, userId, chanId);
+                        pushAndEmit(notificationObj, null, chanId, userId, 1)
                     });
                 } else {
                     utility.checkMessageLength(data, msg => {
+                        notificationObj.message = msg;
                         send_to_FB(msg, userId);
+                        pushAndEmit(notificationObj, null, chanId, userId, 1)
                     });
                 }
             });
