@@ -1590,17 +1590,17 @@ $(document).ready(function() {
 
     //=====start utility function
     function toAgentStr(msg, name, time) {
-        if (msg.startsWith("<a") || msg.startsWith("<img")) {
-            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content">  ' + msg + '</span><strong></strong><br/></p>';
+        if (msg.startsWith("<a") || msg.startsWith("<img")|| msg.startsWith("<audio")|| msg.startsWith("<video")) {
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content stikcer">  ' + msg + '</span><strong></strong><br/></p>';
         } else {
-            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content" style="border:1px solid #b5e7a0; padding:8px; border-radius:10px; background-color:#b5e7a0">  ' + msg + '</span><strong></strong><br/></p>';
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content words">  ' + msg + '</span><strong></strong><br/></p>';
         }
     } // end of toAgentStr
     function toUserStr(msg, name, time) {
-        if (msg.startsWith("<a") || msg.startsWith("<img")) {
-            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
+        if (msg.startsWith("<a") || msg.startsWith("<img")|| msg.startsWith("<audio")|| msg.startsWith("<video")) {
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content sticker">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
         } else {
-            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span style="border:1px solid lightgrey;background-color:lightgrey; padding:8px; border-radius:10px" class="content">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content words">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
         }
     } // end of toUserStr
     function lastMsgToStr(msg) {
