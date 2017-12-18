@@ -84,7 +84,9 @@ $(document).ready(function() {
                 titleReservation = data[key[i]].titleReservation;
                 let stringobj = '<tr>' + '<td>' + 1 + '</td>' + '<td>' + textInput + '</td>' + '<td>' + titleSort + '</td>' + '<td>' + titleOptional + '</td>' + '<td>' + titleStaus + '</td>' + '<td>' + titleReservation + '</td>' + '<td>' + 3 + '</td>' + '</tr>';
                 switch (titleStaus) {
-                    // case 1:
+                    case '1':
+                        $('#data-appointment').append(stringobj);
+                        break;
                     case '2':
                         $('#data-draft').append(stringobj);
                         break;
@@ -160,32 +162,75 @@ $(document).ready(function() {
             if (input3 === undefined) input3 = '未設定';
             console.log(input3)
             let status;
-            if ($('#send-now').prop('checked') !== 'checked') {
+            if ($('#send-now').prop('checked')) {
                 status = 'now'
                 socket.emit('push notification to all', { list: clientIntoArray, message: [input1, input2, input3], status: status });
-                database.ref('message-overview/' + userId).push({
-                    titleItemnumber: titleItemnumber,
-                    textInput: textInput.val(),
-                    titleOptional: titleOptional,
-                    titleSort: titleSort,
-                    titleStaus: titleStaus,
-                    titleReservation: titleReservation
-                });
-                // if ($('#send-sometime').prop('checked') !== 'checked') {
-                //     status = 'now'
-                //     socket.emit('push notification to all', { list: clientIntoArray, message: [input1, input2, input3], status: status });
-                //     database.ref('message-overview/' + userId).push({
-                //         titleItemnumber: titleItemnumber,
-                //         textInput: textInput.val(),
-                //         titleOptional: titleOptional,
-                //         titleSort: titleSort,
-                //         titleStaus: titleStaus,
-                //         titleReservation: titleReservation
-                //     });
 
-            } else {
-                status = 'put the reserved time here'
-                console.log('not checked')
+                if (input1 !== undefined) {
+                    database.ref('message-overview/' + userId).push({
+                        titleItemnumber: titleItemnumber,
+                        textInput: input1,
+                        titleOptional: titleOptional,
+                        titleSort: titleSort,
+                        titleStaus: titleStaus,
+                        titleReservation: titleReservation
+                    });
+                    if (input2 !== '未設定') {
+                        database.ref('message-overview/' + userId).push({
+                            titleItemnumber: titleItemnumber,
+                            textInput: input2,
+                            titleOptional: titleOptional,
+                            titleSort: titleSort,
+                            titleStaus: titleStaus,
+                            titleReservation: titleReservation
+                        });
+                        if (input3 !== '未設定') {
+                            database.ref('message-overview/' + userId).push({
+                                titleItemnumber: titleItemnumber,
+                                textInput: input3,
+                                titleOptional: titleOptional,
+                                titleSort: titleSort,
+                                titleStaus: titleStaus,
+                                titleReservation: titleReservation
+                            });
+                        }
+                    }
+                }
+            }
+            if ($('#send-sometime').prop('checked')) {
+                status = 'now'
+                socket.emit('push notification to all', { list: clientIntoArray, message: [input1, input2, input3], status: status });
+                titleStaus = '1';
+                if (input1 !== undefined) {
+                    database.ref('message-overview/' + userId).push({
+                        titleItemnumber: titleItemnumber,
+                        textInput: input1,
+                        titleOptional: titleOptional,
+                        titleSort: titleSort,
+                        titleStaus: titleStaus,
+                        titleReservation: titleReservation
+                    });
+                    if (input2 !== '未設定') {
+                        database.ref('message-overview/' + userId).push({
+                            titleItemnumber: titleItemnumber,
+                            textInput: input2,
+                            titleOptional: titleOptional,
+                            titleSort: titleSort,
+                            titleStaus: titleStaus,
+                            titleReservation: titleReservation
+                        });
+                        if (input3 !== '未設定') {
+                            database.ref('message-overview/' + userId).push({
+                                titleItemnumber: titleItemnumber,
+                                textInput: input3,
+                                titleOptional: titleOptional,
+                                titleSort: titleSort,
+                                titleStaus: titleStaus,
+                                titleReservation: titleReservation
+                            });
+                        }
+                    }
+                }
             }
 
 
@@ -209,14 +254,43 @@ $(document).ready(function() {
             titleOptional = 'test',
             titleStaus = '2',
             titleReservation = 'test';
-        database.ref('message-overview/' + userId).push({
-            titleItemnumber: titleItemnumber,
-            textInput: textInput.val(),
-            titleSort: titleSort,
-            titleOptional: titleOptional,
-            titleStaus: titleStaus,
-            titleReservation: titleReservation
-        });
+        let input1 = $('#inputNum1').val();
+        let input2 = $('#inputNum2').val();
+        if (input2 === undefined) input2 = '未設定';
+        console.log(input2)
+        let input3 = $('#inputNum3').val();
+        if (input3 === undefined) input3 = '未設定';
+        console.log(input3)
+        if (input1 !== undefined) {
+            database.ref('message-overview/' + userId).push({
+                titleItemnumber: titleItemnumber,
+                textInput: input1,
+                titleOptional: titleOptional,
+                titleSort: titleSort,
+                titleStaus: titleStaus,
+                titleReservation: titleReservation
+            });
+            if (input2 !== '未設定') {
+                database.ref('message-overview/' + userId).push({
+                    titleItemnumber: titleItemnumber,
+                    textInput: input2,
+                    titleOptional: titleOptional,
+                    titleSort: titleSort,
+                    titleStaus: titleStaus,
+                    titleReservation: titleReservation
+                });
+                if (input3 !== '未設定') {
+                    database.ref('message-overview/' + userId).push({
+                        titleItemnumber: titleItemnumber,
+                        textInput: input3,
+                        titleOptional: titleOptional,
+                        titleSort: titleSort,
+                        titleStaus: titleStaus,
+                        titleReservation: titleReservation
+                    });
+                }
+            }
+        }
         $('#quickAdd').modal('hide');
         $('.textinput').val('');
         $('#send-time').val('');
