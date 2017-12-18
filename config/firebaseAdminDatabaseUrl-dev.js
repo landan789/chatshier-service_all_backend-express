@@ -1,1 +1,1 @@
-exports.url = "https://shield-production.firebaseio.com";
+exports.url = "https://fea-chatshier-cddbe.firebaseio.com";
