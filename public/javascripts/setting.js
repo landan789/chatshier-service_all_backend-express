@@ -1,12 +1,10 @@
 $(document).ready(function() {
     $('.panel-title').text('');
     $('#prof-name').text('');
-    $('#prof-nickname').text('');
     $('#prof-dob').text('');
     $('#prof-email').text('');
     $('#prof-gender').text('');
     $('#prof-phone').text('');
-    $('#prof-nick').text('');
     $('#prof-name1').text('');
     $('#prof-channelId_1').text('');
     $('#prof-channelSecret_1').text('');
@@ -182,12 +180,10 @@ $(document).ready(function() {
                             $('#prof-id').text(userId);
                             $('.panel-title').text(profInfo.name);
                             $('#prof-name').text(profInfo.name);
-                            $('#prof-nickname').text(profInfo.nickname);
                             $('#prof-dob').text(profInfo.dob);
                             $('#prof-email').text(profInfo.email);
                             $('#prof-gender').text(profInfo.gender);
                             $('#prof-phone').text(profInfo.phone);
-                            $('#prof-nick').text(profInfo.nickname);
                             $('#prof-IDnumber').text(userId);
                             $('#prof-company').text(profInfo.company);
                             $('#prof-phonenumber').text(profInfo.phonenumber);
@@ -242,7 +238,6 @@ $(document).ready(function() {
         //移到最上面了
         let id = $('#prof-id').text();
         let name = $('#prof-name').text();
-        let nickname = $('#prof-nickname').text();
         let dob = $('#prof-dob').text();
         let email = $('#prof-email').text();
         let gender = $('#prof-gender').text();
@@ -268,12 +263,10 @@ $(document).ready(function() {
         //let logo = $('#prof-logo img').attr('src');
         $('#prof-edit-id').val(id);
         $('#prof-edit-name').val(name);
-        $('#prof-edit-nickname').val(nickname);
         $('#prof-edit-dob').val(dob);
         $('#prof-edit-email').val(email);
         $('#prof-edit-gender').val(gender);
         $('#prof-edit-phone').val(phone);
-        $('#prof-edit-nickname').val(nickname);
         $('#prof-edit-name1').val(name1);
         $('#prof-edit-channelId_1').val(chanId_1);
         $('#prof-edit-channelSecret_1').val(chanSecret_1);
@@ -408,12 +401,10 @@ $(document).ready(function() {
     function profClear() {
         $('#prof-edit-id').val('');
         $('#prof-edit-name').val('');
-        $('#prof-edit-nickname').val('');
         $('#prof-edit-dob').val('');
         $('#prof-edit-email').val('');
         $('#prof-edit-gender').val('Male');
         $('#prof-edit-phone').val('');
-        $('#prof-edit-nick').val('');
         $('#prof-edit-name1').val('');
         $('#prof-edit-channelId_1').val('');
         $('#prof-edit-channelSecret_1').val('');

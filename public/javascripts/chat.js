@@ -107,18 +107,9 @@ $(document).ready(function() {
             alert(data.reject);
         }
         else {
-            checkNickName(data.checkNickName);
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
             responseChannels(data.channelsData);
-        }
-    }
-
-    function checkNickName(check) {
-        if (!check) {
-            //enter agent name
-            let person = prompt("Please enter your name");
-            socket.emit('new nickname', agentId, person);
         }
     }
 

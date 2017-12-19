@@ -69,9 +69,7 @@ function register(event) {
 
                 database.ref('users/' + auth.currentUser.uid).set({
                     name: name,
-                    nickname: name,
-                    email: email,
-                    password: password
+                    email: email
                 }).then(() => {
                     document.cookie = "name=" + name + ";domain=" + domain;
                     document.cookie = "email=" + email + ";domain=" + domain;

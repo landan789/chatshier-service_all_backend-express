@@ -1,6 +1,6 @@
 var urlConfig = {
     wwwUrl: '',
-    port: '3001',
+    port: '',
     index: '/index.html',
     terms: '/terms.html',
     privacy: '/privacy.html'

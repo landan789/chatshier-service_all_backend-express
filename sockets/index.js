@@ -107,7 +107,7 @@ function init(server) {
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
-            let f1 = new Promise((resolve, reject) => {
+            let loadTags = new Promise((resolve, reject) => {
                 console.log("tag start");
                 requestTags((data) => {
                     console.log("tag end");
@@ -116,16 +116,7 @@ function init(server) {
                 });
                 setTimeout(reject, WAIT_TIME, "tag network too slow");
             });
-            let f2 = new Promise((resolve, reject) => {
-                console.log("nick start");
-                newUser(userId, (data) => {
-                    console.log("nick end");
-                    res.checkNickName = data;
-                    resolve();
-                });
-                setTimeout(reject, WAIT_TIME, "nick network too slow");
-            });
-            let f3 = new Promise((resolve, reject) => {
+            let loadChannels = new Promise((resolve, reject) => {
                 console.log("chan start");
                 requestChannels(userId, (data) => {
                     console.log("chan end");
@@ -134,7 +125,7 @@ function init(server) {
                 });
                 setTimeout(reject, WAIT_TIME, "chan network too slow");
             });
-            let f4 = new Promise((resolve, reject) => {
+            let loadInternals = new Promise((resolve, reject) => {
                 console.log("internal start");
                 requestInternalChatData(userId, (data) => {
                     console.log("internal end");
@@ -144,7 +135,7 @@ function init(server) {
                 setTimeout(reject, WAIT_TIME, "internal network too slow");
             });
 
-            Promise.all([f1, f2, f3, f4]).then(() => {
+            Promise.all([loadTags, loadChannels, loadInternals]).then(() => {
                 console.log("all done ! print res");
                 console.log(res);
                 callback(res);
@@ -314,7 +305,7 @@ function init(server) {
             users.get(agentData => {
                 let agentIdToName = { "0": "System" };
                 for (let prop in agentData) {
-                    agentIdToName[prop] = agentData[prop].nickname;
+                    agentIdToName[prop] = agentData[prop].name;
                 }
                 socket.emit('send agentIdToName list', agentIdToName);
             });
@@ -351,7 +342,7 @@ function init(server) {
                 users.get(agentData => {
                     let agentIdToName = { "0": "System" };
                     for (let prop in agentData) {
-                        agentIdToName[prop] = agentData[prop].nickname;
+                        agentIdToName[prop] = agentData[prop].name;
                     }
                     let internalTagsData = [
                         { "name": "roomName", "type": "text", "set": "single", "modify": true },
@@ -521,29 +512,6 @@ function init(server) {
             callback();
         });
         /*===template end===*/
-
-        // 新使用者
-        socket.on('new user', (id, hasNickName) => {
-            newUser(id, hasNickName);
-        });
-
-        function newUser(id, hasNickName) {
-            users.getUser(id, (data) => {
-                if (data && data.nickname) {
-                    socket.nickname = data.nickname;
-                    hasNickName(true);
-                } else {
-                    hasNickName(false);
-                }
-            });
-        }
-        socket.on('new nickname', (id, nick) => {
-            users.updateUser(id, { nickname: nick });
-        });
-        // socket.on('disconnect', (data) => {
-        //   if (!socket.nickname) return;
-        //   delete users[socket.nickname];
-        // });
     });
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead) {
