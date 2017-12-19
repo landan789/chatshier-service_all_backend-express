@@ -1,1 +1,1 @@
-exports.url = "https://fea-chatshier-cddbe.firebaseio.com";
+exports.url = "https://dev-chatshier.firebaseio.com";
