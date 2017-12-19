@@ -56,6 +56,8 @@ window.addEventListener('firebaseAuth', function(e) {
 function logout(callback) {
     auth.signOut()
         .then(response => {
+            clearCookie('name', domain);
+            clearCookie('email', domain);
             callback();
         })
 }
