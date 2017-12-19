@@ -120,12 +120,12 @@ utility.updateChannel = (chatInfo, callback) => {
     let channelObj;
     if (chatInfo) {
         channelObj = {
-            name1: chatInfo.name1,
-            chanId_1: chatInfo.chanId_1,
-            name2: chatInfo.name2,
-            chanId_2: chatInfo.chanId_2,
-            fbName: chatInfo.fbName,
-            fbPageId: chatInfo.fbPageId
+            name1: chatInfo.ids.name1,
+            chanId_1: chatInfo.ids.chanId_1,
+            name2: chatInfo.ids.name2,
+            chanId_2: chatInfo.ids.chanId_2,
+            fbName: chatInfo.ids.fbName,
+            fbPageId: chatInfo.ids.fbPageId
         }
     } else {
         channelObj = {

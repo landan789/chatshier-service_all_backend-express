@@ -15,6 +15,7 @@ var chats = require('../models/chats');
 var keywords = require('../models/keywords');
 var tags = require('../models/tags');
 var users = require('../models/users');
+var chatapps = require('../models/chatapps');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var messageHandle = require('../message_handle');
@@ -158,25 +159,25 @@ function init(server) {
         // SERVER上線後，不應有這步驟，否則只要有agent未填setting的channel，整台server的line_bot, fb_bot就會變空
         // 但for developer，此步驟可讓npm重開機時，不用再去setting提交channel config
         socket.on('develop update bot', (userId) => {
-            users.getUser(userId, chatInfo => {
+            chatapps.getApps(userId, chatInfo => {
                 if (chatInfo) {
                     let data = {
                         line_1: {
-                            channelId: chatInfo.chanId_1,
-                            channelSecret: chatInfo.chanSecret_1,
-                            channelAccessToken: chatInfo.chanAT_1
+                            channelId: chatInfo.ids.chanId_1,
+                            channelSecret: chatInfo.secrets.chanSecret_1,
+                            channelAccessToken: chatInfo.tokens.chanAT_1
                         },
                         line_2: {
-                            channelId: chatInfo.chanId_2,
-                            channelSecret: chatInfo.chanSecret_2,
-                            channelAccessToken: chatInfo.chanAT_2
+                            channelId: chatInfo.ids.chanId_2,
+                            channelSecret: chatInfo.secrets.chanSecret_2,
+                            channelAccessToken: chatInfo.tokens.chanAT_2
                         },
                         fb: {
-                            pageID: chatInfo.fbPageId,
-                            appID: chatInfo.fbAppId,
-                            appSecret: chatInfo.fbAppSecret,
-                            validationToken: chatInfo.fbValidToken,
-                            pageToken: chatInfo.fbPageToken
+                            pageID: chatInfo.ids.fbPageId,
+                            appID: chatInfo.ids.fbAppId,
+                            appSecret: chatInfo.secrets.fbAppSecret,
+                            validationToken: chatInfo.tokens.fbValidToken,
+                            pageToken: chatInfo.tokens.fbPageToken
                         }
                     };
                     update_line_bot(data);
@@ -189,7 +190,7 @@ function init(server) {
         });
 
         function requestChannels(userId, callback) {
-            users.getUser(userId, chatInfo => {
+            chatapps.getApps(userId, chatInfo => {
                 utility.updateChannel(chatInfo, (channelObj) => {
                     callback(channelObj);
                 });
@@ -407,7 +408,7 @@ function init(server) {
                 });
             } else {
                 users.getUser(id, dbData => {
-                    if (dbData.chanId_1 === '' && dbData.chanId_2 === '') {
+                    if (dbData.ids.chanId_1 === '' && dbData.ids.chanId_2 === '') {
                         callback('帳號未設定');
                     } else {
                         if (globalLineMessageArray.length === 0) {

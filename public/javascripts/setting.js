@@ -38,8 +38,8 @@ $(document).ready(function() {
     var rowsCount = 0; //dynamic load count in db ref
     tagTableBody.sortable();
     socket.emit('request tags', (tagsData) => {
-        console.log("data:");
-        console.log(tagsData);
+        // console.log("data:");
+        // console.log(tagsData);
         for (let i = 0; i < tagsData.length; i++) {
             appendNewTag(tagsData[i].id);
             let data = tagsData[i].data;
@@ -72,7 +72,7 @@ $(document).ready(function() {
     });
     $(document).on('click', '.tag-name', function() {
         if ($(this).find('input').length == 0 && $(this).parent().find('.tag-modify').text() == "true") {
-            console.log(".tag-name click");
+            // console.log(".tag-name click");
             let val = $(this).text();
             $(this).html('<input type="text" value="' + val + '"></input>');
             $(this).find('input').select();
@@ -81,12 +81,12 @@ $(document).ready(function() {
     $(document).on('keypress', '.tag-name input', function(e) {
         let code = (e.keyCode ? e.keyCode : e.which);
         if (code == 13) {
-            console.log(".tag-name-input keypress");
+            // console.log(".tag-name-input keypress");
             $(this).blur();
         }
     });
     $(document).on('blur', '.tag-name input', function() {
-        console.log(".tag-name-input blur");
+        // console.log(".tag-name-input blur");
         let val = $(this).val();
         $(this).parent().html(val);
     });
@@ -131,7 +131,7 @@ $(document).ready(function() {
                 "data": data
             });
         });
-        console.log(sendObj);
+        // console.log(sendObj);
         if (!noDuplicate()) alert('標籤名稱不可重複');
         else {
             socket.emit('update tags', sendObj);
@@ -168,41 +168,72 @@ $(document).ready(function() {
     }
     //-------------end TAG--------------------
     function loadProf() {
-        let userId = auth.currentUser.uid;
-        database.ref('users/' + userId).on('value', snap => {
-            let profInfo = snap.val();
-            if (profInfo === null) {
-                $('#error-message').show();
-            } else {
-                let profInfo = snap.val();
-                $('#prof-id').text(userId);
-                $('.panel-title').text(profInfo.name);
-                $('#prof-name').text(profInfo.name);
-                $('#prof-nickname').text(profInfo.nickname);
-                $('#prof-dob').text(profInfo.dob);
-                $('#prof-email').text(profInfo.email);
-                $('#prof-gender').text(profInfo.gender);
-                $('#prof-phone').text(profInfo.phone);
-                $('#prof-nick').text(profInfo.nickname);
-                $('#prof-name1').text(profInfo.name1);
-                $('#prof-channelId_1').text(profInfo.chanId_1);
-                $('#prof-channelSecret_1').text(profInfo.chanSecret_1);
-                $('#prof-channelAccessToken_1').text(profInfo.chanAT_1);
-                $('#prof-name2').text(profInfo.name2);
-                $('#prof-channelId_2').text(profInfo.chanId_2);
-                $('#prof-channelSecret_2').text(profInfo.chanSecret_2);
-                $('#prof-channelAccessToken_2').text(profInfo.chanAT_2);
-                $('#prof-fbPageName').text(profInfo.fbName);
-                $('#prof-fbPageId').text(profInfo.fbPageId);
-                $('#prof-fbAppId').text(profInfo.fbAppId);
-                $('#prof-fbAppSecret').text(profInfo.fbAppSecret);
-                $('#prof-fbValidToken').text(profInfo.fbValidToken);
-                $('#prof-fbPageToken').text(profInfo.fbPageToken);
-                $('#prof-IDnumber').text(profInfo.IDnumber);
-                $('#prof-company').text(profInfo.company);
-                $('#prof-phonenumber').text(profInfo.phonenumber);
-                $('#prof-address').text(profInfo.address);
-                //$('#prof-logo img').attr('src', profInfo.logo);
+        let userId;
+        var runProgram = new Promise(function(resolve,reject) {
+            resolve();
+        });
+        auth.onAuthStateChanged(current => {
+            if(current) {
+                userId = current.uid;
+                console.log(userId);
+                runProgram.then(function() {
+                    return new Promise(function(resolve,reject) {
+                        getDB('users',userId,'', profInfo => {
+                            $('#prof-id').text(userId);
+                            $('.panel-title').text(profInfo.name);
+                            $('#prof-name').text(profInfo.name);
+                            $('#prof-nickname').text(profInfo.nickname);
+                            $('#prof-dob').text(profInfo.dob);
+                            $('#prof-email').text(profInfo.email);
+                            $('#prof-gender').text(profInfo.gender);
+                            $('#prof-phone').text(profInfo.phone);
+                            $('#prof-nick').text(profInfo.nickname);
+                            $('#prof-IDnumber').text(userId);
+                            $('#prof-company').text(profInfo.company);
+                            $('#prof-phonenumber').text(profInfo.phonenumber);
+                            $('#prof-address').text(profInfo.address);
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    return new Promise(function(resolve,reject) {
+                        getDB('apps',userId,'/ids', appsInfo => {
+                            $('#prof-name1').text(appsInfo.name1);
+                            $('#prof-channelId_1').text(appsInfo.chanId_1);
+                            $('#prof-name2').text(appsInfo.name2);
+                            $('#prof-channelId_2').text(appsInfo.chanId_2);
+                            $('#prof-fbPageName').text(appsInfo.fbName);
+                            $('#prof-fbPageId').text(appsInfo.fbPageId);
+                            $('#prof-fbAppId').text(appsInfo.fbAppId);
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    return new Promise(function(resolve,reject) {
+                        getDB('apps',userId,'/secrets', appsInfo => {
+                            $('#prof-channelSecret_1').text(appsInfo.chanSecret_1);
+                            $('#prof-channelSecret_2').text(appsInfo.chanSecret_2);
+                            $('#prof-fbAppSecret').text(appsInfo.fbAppSecret);
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    getDB('apps',userId,'/tokens', appsInfo => {
+                        $('#prof-channelAccessToken_1').text(appsInfo.chanAT_1);
+                        $('#prof-channelAccessToken_2').text(appsInfo.chanAT_2);
+                        $('#prof-fbValidToken').text(appsInfo.fbValidToken);
+                        $('#prof-fbPageToken').text(appsInfo.fbPageToken);
+                    });
+                });
+            }
+        });
+    }
+
+    function getDB(collection,userId,ref,callback) {
+        database.ref(collection + '/' + userId + ref).once('value', snap => {
+            info = snap.val();
+            if(info !== null) {
+                callback(info);
             }
         });
     }
@@ -307,9 +338,9 @@ $(document).ready(function() {
                 address: address
             });
             $('#error-message').hide();
+            $('#basicModal').modal('hide');
             profClear();
             loadProf();
-            $('#basicModal').modal('hide');
         }
     }
 
@@ -329,21 +360,25 @@ $(document).ready(function() {
         let fbAppSecret = $('#prof-edit-fbAppSecret').val();
         let fbValidToken = $('#prof-edit-fbValidToken').val();
         let fbPageToken = $('#prof-edit-fbPageToken').val();
-        database.ref('users/' + userId).update({
+        database.ref('apps/' + userId + '/ids').update({
             name1: name1,
             chanId_1: chanId_1,
-            chanSecret_1: chanSecret_1,
-            chanAT_1: chanAT_1,
             name2: name2,
             chanId_2: chanId_2,
-            chanSecret_2: chanSecret_2,
-            chanAT_2: chanAT_2,
             fbName: fbName,
             fbPageId: fbPageId,
-            fbAppId: fbAppId,
-            fbAppSecret: fbAppSecret,
-            fbValidToken: fbValidToken,
-            fbPageToken: fbPageToken
+            fbAppId: fbAppId
+        });
+        database.ref('apps/' + userId + '/secrets').update({
+            chanSecret_1: chanSecret_1,
+            chanSecret_2: chanSecret_2,
+            fbAppSecret: fbAppSecret
+        });
+        database.ref('apps/' + userId + '/tokens').update({
+            chanAT_1,
+            chanAT_2,
+            fbValidToken,
+            fbPageToken
         });
         socket.emit('update bot', {
             line_1: {
@@ -391,13 +426,12 @@ $(document).ready(function() {
         $('#prof-edit-company').val('');
         $('#prof-edit-phonenumber').val('');
         $('#prof-edit-address').val('');
-        //$('#prof-edit-logo').val('');
     }
 
     socket.emit('get agentIdToName list');
     socket.on('send agentIdToName list', data => {
-        console.log("send!");
-        console.log(data);
+        // console.log("send!");
+        // console.log(data);
         let select = $('#create-internal-owner');
         let ul = $("#create-internal-agents").parent().siblings('ul').empty();
         for (let id in data) {
@@ -421,8 +455,8 @@ $(document).ready(function() {
                 textArr.push($(this).parents('li').text());
             }
         });
-        console.log(valArr);
-        console.log(textArr);
+        // console.log(valArr);
+        // console.log(textArr);
         valArr = valArr.join(',');
         if (textArr.length === boxes.length) textArr = "全選";
         else if (textArr.length == 0) textArr = "未選擇";

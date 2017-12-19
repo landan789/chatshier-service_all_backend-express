@@ -39,14 +39,10 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     if (window.location.pathname === '/chat') {
-        // socket.emit("request tags", responseTags);
         $infoPanel.hide();
         auth.onAuthStateChanged(currentUser => {
             agentId = currentUser.uid;
             socket.emit('develop update bot', agentId); //should only for developer
-            // socket.emit('new user', agentId, checkNickName);
-            // socket.emit('request channels', agentId, responseChannels);
-            // socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
             socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         });
     }
@@ -102,7 +98,7 @@ $(document).ready(function() {
             return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
         }
     });
-        //=====end utility event=====
+    //=====end utility event=====
 
     //==========start initialize function========== //
     function responseChatInitData(data) {
