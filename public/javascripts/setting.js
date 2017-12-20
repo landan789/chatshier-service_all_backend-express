@@ -38,6 +38,8 @@ $(document).ready(function() {
     socket.emit('request tags', (tagsData) => {
         // console.log("data:");
         // console.log(tagsData);
+        window.dispatchEvent(firbaseEvent);
+
         for (let i = 0; i < tagsData.length; i++) {
             appendNewTag(tagsData[i].id);
             let data = tagsData[i].data;
@@ -167,16 +169,16 @@ $(document).ready(function() {
     //-------------end TAG--------------------
     function loadProf() {
         let userId;
-        var runProgram = new Promise(function(resolve,reject) {
+        var runProgram = new Promise(function(resolve, reject) {
             resolve();
         });
         auth.onAuthStateChanged(current => {
-            if(current) {
+            if (current) {
                 userId = current.uid;
                 console.log(userId);
                 runProgram.then(function() {
-                    return new Promise(function(resolve,reject) {
-                        getDB('users',userId,'', profInfo => {
+                    return new Promise(function(resolve, reject) {
+                        getDB('users', userId, '', profInfo => {
                             $('#prof-id').text(userId);
                             $('.panel-title').text(profInfo.name);
                             $('#prof-name').text(profInfo.name);
@@ -192,8 +194,8 @@ $(document).ready(function() {
                         });
                     });
                 }).then(() => {
-                    return new Promise(function(resolve,reject) {
-                        getDB('apps',userId,'/ids', appsInfo => {
+                    return new Promise(function(resolve, reject) {
+                        getDB('apps', userId, '/ids', appsInfo => {
                             $('#prof-name1').text(appsInfo.name1);
                             $('#prof-channelId_1').text(appsInfo.chanId_1);
                             $('#prof-name2').text(appsInfo.name2);
@@ -205,8 +207,8 @@ $(document).ready(function() {
                         });
                     });
                 }).then(() => {
-                    return new Promise(function(resolve,reject) {
-                        getDB('apps',userId,'/secrets', appsInfo => {
+                    return new Promise(function(resolve, reject) {
+                        getDB('apps', userId, '/secrets', appsInfo => {
                             $('#prof-channelSecret_1').text(appsInfo.chanSecret_1);
                             $('#prof-channelSecret_2').text(appsInfo.chanSecret_2);
                             $('#prof-fbAppSecret').text(appsInfo.fbAppSecret);
@@ -214,7 +216,7 @@ $(document).ready(function() {
                         });
                     });
                 }).then(() => {
-                    getDB('apps',userId,'/tokens', appsInfo => {
+                    getDB('apps', userId, '/tokens', appsInfo => {
                         $('#prof-channelAccessToken_1').text(appsInfo.chanAT_1);
                         $('#prof-channelAccessToken_2').text(appsInfo.chanAT_2);
                         $('#prof-fbValidToken').text(appsInfo.fbValidToken);
@@ -225,10 +227,10 @@ $(document).ready(function() {
         });
     }
 
-    function getDB(collection,userId,ref,callback) {
+    function getDB(collection, userId, ref, callback) {
         database.ref(collection + '/' + userId + ref).once('value', snap => {
             info = snap.val();
-            if(info !== null) {
+            if (info !== null) {
                 callback(info);
             }
         });

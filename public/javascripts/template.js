@@ -3,6 +3,8 @@ var templateForm = $('#template-form');
 var templateData = {};
 var userId = "";
 $(function() {
+    window.dispatchEvent(firbaseEvent);
+
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').hide();
     $('#carousel-container').on('slid.bs.carousel', checkCarouselSide);
@@ -25,32 +27,34 @@ $(function() {
 function loadChannelInfo(callback) {
     socket.emit('request channels', userId, (data) => {
         console.log(data);
-        if( data.chanId_1 && data.name1 ) appendToView(data.chanId_1, data.name1);
-        if( data.chanId_2 && data.name2 ) appendToView(data.chanId_2, data.name2);
+        if (data.chanId_1 && data.name1) appendToView(data.chanId_1, data.name1);
+        if (data.chanId_2 && data.name2) appendToView(data.chanId_2, data.name2);
         // if( data.fbPageId && data.fbName ) container.append('<option value="'+data.fbPageId+'">'+data.fbName+'</option>');
         loadTemplate();
     });
+
     function appendToView(id, name) {
         let select = $('.channel-select');
         let navTabs = $('#view-all>.nav-tabs');
         let tabContent = $('#view-all>.tab-content');
-        select.append('<option value="'+id+'">'+name+'</option>');
-        navTabs.append('<li><a data-toggle="tab" href="#'+id+'">'+name+'</a></li>');
-        tabContent.append('<div class="tab-pane fade" id="'+id+'"></div>');
+        select.append('<option value="' + id + '">' + name + '</option>');
+        navTabs.append('<li><a data-toggle="tab" href="#' + id + '">' + name + '</a></li>');
+        tabContent.append('<div class="tab-pane fade" id="' + id + '"></div>');
     }
 }
+
 function loadTemplate() {
     socket.emit('request template', userId, (templates) => {
         $('.tab-pane').empty();
         console.log(templates);
         templateData = templates;
         let container = $('#view-all');
-        for( let prop in templates ) {
-            let tab = container.find('.tab-pane#'+templates[prop].channelId);
+        for (let prop in templates) {
+            let tab = container.find('.tab-pane#' + templates[prop].channelId);
             let keyword = templates[prop].keyword;
             let status = templates[prop].status;
-            let btnClass = status=="open" ? "btn-success" : "btn-danger";
-            tab.append('<button class="btn '+btnClass+' template-btn" id="'+prop+'">'+keyword+'</button>');
+            let btnClass = status == "open" ? "btn-success" : "btn-danger";
+            tab.append('<button class="btn ' + btnClass + ' template-btn" id="' + prop + '">' + keyword + '</button>');
         }
     });
 }
@@ -58,6 +62,7 @@ function loadTemplate() {
 
 // =====view template start=====
 $(document).on('click', '#show-template-modal', clearModal);
+
 function clearModal() {
     let modal = $('#template-modal');
     console.log("clear");
@@ -69,16 +74,16 @@ function clearModal() {
     modal.find('.carousel-inner').find('.item:first').addClass('active').siblings('.item').removeClass('active');
     checkCarouselSide();
 }
+
 function toggleTemplateStatus(e) {
     e.preventDefault();
     let id = $(this).attr('id');
     let channelId = $(this).parents('.tab-pane').attr('id');
     let status = "";
-    if( $(this).hasClass('btn-success') ) {
+    if ($(this).hasClass('btn-success')) {
         // $(this).removeClass('btn-success').addClass('btn-danger');
         status = "close";
-    }
-    else {
+    } else {
         // $(this).addClass('btn-success').removeClass('btn-danger');
         status = "open";
     }
@@ -86,6 +91,7 @@ function toggleTemplateStatus(e) {
         "status": status
     }, loadTemplate);
 }
+
 function showTemplate() {
     $('#show-template-modal').click();
 
@@ -104,25 +110,28 @@ function showTemplate() {
     $('#template-status').val(status);
     $('#template-type').val(type).trigger('change');
     $('#template-altText').val(data.template.altText);
-    if( type=="text" ) showText();
-    else if( type=="confirm" ) showConfirm();
-    else if( type=="buttons" ) showButtons();
-    else if( type=="carousel" ) showCarousel();
+    if (type == "text") showText();
+    else if (type == "confirm") showConfirm();
+    else if (type == "buttons") showButtons();
+    else if (type == "carousel") showCarousel();
 
     function showText() {
         $('#template-text').val(data.template.text);
     }
+
     function showConfirm() {
         let container = $('.template-view[rel="confirm"] .rounded-border');
         container.find('.line-text').val(template.text);
         showAction(container, template.actions);
     }
+
     function showCarousel() {
         let items = $('#carousel-container .item .rounded-border');
-        for( let i=0; i<template.columns.length; i++ ) {
+        for (let i = 0; i < template.columns.length; i++) {
             showColumn(items.eq(i), template.columns[i]);
         }
     }
+
     function showButtons() {
         let container = $('#carousel-container .item.active .rounded-border');
         showColumn(container, template);
@@ -135,9 +144,10 @@ function showTemplate() {
         container.find('.line-text').val(column.text);
         showAction(container, column.actions);
     }
+
     function showAction(container, action) {
         let $actions = container.find('.line-action');
-        for( let i=0; i<action.length; i++ ) {
+        for (let i = 0; i < action.length; i++) {
             let dom = $actions.eq(i);
             let data = action[i];
             dom.find('.row-label').val(data.label);
@@ -151,14 +161,16 @@ function showTemplate() {
 function switchTemplateType() {
     let type = $(this).val();
     let viewClass = '.template-view';
-    let typeSelect = '[rel~="'+type+'"]';
-    $(viewClass+':not('+typeSelect+')').hide();
-    $(viewClass+typeSelect).show();
-    if( type=="carousel" ) checkCarouselSide();
+    let typeSelect = '[rel~="' + type + '"]';
+    $(viewClass + ':not(' + typeSelect + ')').hide();
+    $(viewClass + typeSelect).show();
+    if (type == "carousel") checkCarouselSide();
 }
+
 function clickImageUpload() {
     let imageGhost = $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
 }
+
 function uploadImage() {
     let input = this;
     if (input.files && input.files[0]) {
@@ -166,38 +178,37 @@ function uploadImage() {
         let storageRef = firebase.storage().ref();
         let fileRef = storageRef.child(file.lastModified + '_' + file.name);
         fileRef.put(file).then(function(snapshot) {
-          let url = snapshot.downloadURL;
-          $(input).parents('.line-thumbnailImageUrl').val(url);
-          $(input).siblings('img').attr('src', url);
+            let url = snapshot.downloadURL;
+            $(input).parents('.line-thumbnailImageUrl').val(url);
+            $(input).siblings('img').attr('src', url);
         });
     }
 }
+
 function checkCarouselSide() {
     let container = $('#carousel-container');
     if ($('.carousel-inner .item:first').hasClass('active')) {
         container.find('.left.carousel-control').hide();
         container.find('.right.carousel-control').show();
-    }
-    else if ($('.carousel-inner .item:last').hasClass('active')) {
+    } else if ($('.carousel-inner .item:last').hasClass('active')) {
         container.find('.right.carousel-control').hide();
         container.find('.left.carousel-control').show();
-    }
-    else {
+    } else {
         container.find('.carousel-control').show();
     }
 }
+
 function saveTemplate() {
     let propId = $('#template-id').val();
     let channelId = $('#template-channelId').val();
     let keyword = $('#template-keyword').val();
     let status = $('#template-status').val();
     let type = $('#template-type').val();
-    if( !channelId || !keyword || !type ) {
+    if (!channelId || !keyword || !type) {
         alert("發送群組、觸發關鍵字及類型不可為空");
-    }
-    else {
+    } else {
         let template = createTemplate(type);
-        if( template ) {
+        if (template) {
             let data = {
                 "channelId": channelId,
                 "keyword": keyword,
@@ -205,41 +216,38 @@ function saveTemplate() {
                 "template": template
             };
             console.log(data);
-            if( propId ) {
-                socket.emit('change template', userId, propId, data, loadTemplate );
-            }
-            else {
-                socket.emit('create template', userId, data, loadTemplate );
+            if (propId) {
+                socket.emit('change template', userId, propId, data, loadTemplate);
+            } else {
+                socket.emit('create template', userId, data, loadTemplate);
             }
             $('#template-modal').modal('toggle');
         }
     }
 }
+
 function createTemplate(type) {
-    if( type=="text" ) {
+    if (type == "text") {
         let text = $('.template-view[rel="text"] #template-text').val();
-        if( !text ) {
+        if (!text) {
             alert('文字不可為空');
             return null;
-        }
-        else return {
+        } else return {
             "type": "text",
             "text": text
         };
-    }
-    else {
+    } else {
         let altText = $('#template-altText').val();
-        if( !altText ) {
+        if (!altText) {
             alert('電腦版替代文字不可為空');
             return null;
-        }
-        else {
+        } else {
             let template = null;
-            if( type=="confirm" ) template = createConfirm();
-            else if( type=="buttons" ) template = createButtons();
-            else if( type=="carousel" ) template = createCarousel();
+            if (type == "confirm") template = createConfirm();
+            else if (type == "buttons") template = createButtons();
+            else if (type == "carousel") template = createCarousel();
 
-            if( !template ) return null;
+            if (!template) return null;
             else return {
                 "type": "template",
                 "altText": altText,
@@ -251,11 +259,10 @@ function createTemplate(type) {
     function createConfirm() {
         let container = $('.template-view[rel="confirm"] .rounded-border');
         let text = container.find('.line-text').val();
-        if( !text ) {
+        if (!text) {
             alert('說明文字不可為空');
             return null;
-        }
-        else {
+        } else {
             let actions = getAction(container);
             let template = {
                 "type": "confirm",
@@ -265,59 +272,61 @@ function createTemplate(type) {
             return template;
         }
     }
+
     function createButtons() {
         let container = $('#carousel-container .item.active .rounded-border');
         let template = getColumn(container);
-        if( !template ) {
+        if (!template) {
             alert('說明文字不可為空');
             return null;
-        }
-        else {
+        } else {
             template["type"] = "buttons";
             return template;
         }
     }
+
     function createCarousel() {
         let items = $('#carousel-container .item .rounded-border');
         let columns = [];
         items.each(function() {
             let col = getColumn($(this));
-            if( col ) columns.push(col);
+            if (col) columns.push(col);
         });
-        if( columns.length>0 ) {
+        if (columns.length > 0) {
             let template = {
                 "type": "carousel",
                 "columns": columns
             };
             return template;
-        }
-        else return null;
+        } else return null;
     }
+
     function getColumn(container) {
         let thumbnailImageUrl = container.find('.line-thumbnailImageUrl').val();
         let title = container.find('.line-title').val();
         let text = container.find('.line-text').val();
-        if( !text ) return null;
+        if (!text) return null;
         else {
             let actions = getAction(container);
             let column = {
                 "text": text,
                 "actions": actions
             };
-            if( thumbnailImageUrl ) column["thumbnailImageUrl"] = thumbnailImageUrl;
-            if( title ) column["title"] = title;
+            if (thumbnailImageUrl) column["thumbnailImageUrl"] = thumbnailImageUrl;
+            if (title) column["title"] = title;
             return column;
         }
     }
+
     function getAction(container) {
         let $actions = container.find('.line-action');
         let actionArr = [];
         $actions.each(function() {
             let label = $(this).find('.row-label').val();
             let text = $(this).find('.row-text').val();
-            if( !label ) label = "---";
-            if( label=="---" ) text = " ";
-            else if( !text ) text = label;
+            if (!label) label = "---";
+            if (label == "---") text = " ";
+            else if (!text) text = label;
             actionArr.push({
                 "type": "message",
                 "label": label,
@@ -342,13 +351,12 @@ function showTemplateChart() {
 }
 
 function getDeepProperty(obj, property) {
-    if( typeof obj!="object" || !property ) return [];
+    if (typeof obj != "object" || !property) return [];
     let list = [];
-    for( let prop in obj ) {
-        if( prop == property ) {
+    for (let prop in obj) {
+        if (prop == property) {
             list.push(obj[prop]);
-        }
-        else {
+        } else {
             let aList = getDeepProperty(obj[prop], property);
             list = list.concat(aList);
         }
@@ -356,7 +364,7 @@ function getDeepProperty(obj, property) {
     return list;
 }
 
-    // mermaid.init({}, ".mermaidd");
+// mermaid.init({}, ".mermaidd");
 
 
 // =====chart end=====

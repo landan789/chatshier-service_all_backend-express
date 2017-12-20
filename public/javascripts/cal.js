@@ -11,6 +11,7 @@ var nowEventId = "invalid";
 //   // $('#details').val('');
 //
 // });
+window.dispatchEvent(firbaseEvent);
 
 
 
@@ -131,9 +132,9 @@ var loadCalTable = setInterval(function() { //loop until loading is done
         eventDrop: (event, delta, revertFunc, jsEvent, ui, view) => {
             let time_gap = delta.asMilliseconds();
             let start = Date.parse(event.start._i);
-            start = ISODateTimeString(start + time_gap).date+'T'+ISODateTimeString(start + time_gap).time;
+            start = ISODateTimeString(start + time_gap).date + 'T' + ISODateTimeString(start + time_gap).time;
             let end = Date.parse(event.end._i);
-            end = ISODateTimeString(end + time_gap).date+'T'+ISODateTimeString(end + time_gap).time;
+            end = ISODateTimeString(end + time_gap).date + 'T' + ISODateTimeString(end + time_gap).time;
 
             let keyId = event.keyId;
             let obj = {
@@ -169,7 +170,7 @@ function set_cal() { //確定新增或更改事件
 
     // start time error
     let current_date = new Date();
-    if(Date.parse(start_date) < Date.parse(current_date)) {
+    if (Date.parse(start_date) < Date.parse(current_date)) {
         $('#start-time-error-msg').addClass('font-red').show();
         flag = false;
     } else {
@@ -246,24 +247,24 @@ socket.on('pop up reminder', (title) => { //接收WWW的訊息 前端pop up提�
 function ISOEndDate(d) {
     // console.log('iso end');
     // console.log(d);
-  d = new Date(d);
+    d = new Date(d);
     // console.log(d);
 
-  if( d.getHours()==0 && d.getMinutes()==0 ) {
-    return ISODateString( d );
-  }
-  else {
-    return ISODateString( moment(d).add('days', 1) );
-  }
+    if (d.getHours() == 0 && d.getMinutes() == 0) {
+        return ISODateString(d);
+    } else {
+        return ISODateString(moment(d).add('days', 1));
+    }
 }
 
 function ISODateString(d) {
-  d = new Date(d);
-  function pad(n) {return n<10 ? '0'+n : n}
-  return d.getFullYear()+'-'
-       + pad(d.getMonth()+1)+'-'
-       + pad(d.getDate())+'T'
-       + '00:00';
+    d = new Date(d);
+
+    function pad(n) { return n < 10 ? '0' + n : n }
+    return d.getFullYear() + '-' +
+        pad(d.getMonth() + 1) + '-' +
+        pad(d.getDate()) + 'T' +
+        '00:00';
 }
 
 function ISODateTimeString(d) { //轉換時間
@@ -282,9 +283,9 @@ function ISODateTimeString(d) { //轉換時間
 }
 
 function convertTime(date) {
-  let newDate = new Date(date.getTime()+date.getTimezoneOffset()*60*1000);
-  let finalDate = ISODateTimeString(newDate);
-  return finalDate;
+    let newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
+    let finalDate = ISODateTimeString(newDate);
+    return finalDate;
 }
 
 function convertShow(dateString) { //資料轉換成輸出格式
