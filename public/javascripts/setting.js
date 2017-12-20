@@ -175,17 +175,13 @@ $(document).ready(function() {
         auth.onAuthStateChanged(current => {
             if (current) {
                 userId = current.uid;
-                console.log(userId);
-                runProgram.then(function() {
-                    return new Promise(function(resolve, reject) {
-                        getDB('users', userId, '', profInfo => {
+                runProgram
+                .then(function() {
+                    return new Promise(function(resolve,reject) {
+                        getDB('users',userId,'', profInfo => {
                             $('#prof-id').text(userId);
                             $('.panel-title').text(profInfo.name);
-                            $('#prof-name').text(profInfo.name);
-                            $('#prof-dob').text(profInfo.dob);
                             $('#prof-email').text(profInfo.email);
-                            $('#prof-gender').text(profInfo.gender);
-                            $('#prof-phone').text(profInfo.phone);
                             $('#prof-IDnumber').text(userId);
                             $('#prof-company').text(profInfo.company);
                             $('#prof-phonenumber').text(profInfo.phonenumber);
@@ -193,45 +189,75 @@ $(document).ready(function() {
                             resolve();
                         });
                     });
-                }).then(() => {
-                    return new Promise(function(resolve, reject) {
-                        getDB('apps', userId, '/ids', appsInfo => {
-                            $('#prof-name1').text(appsInfo.name1);
-                            $('#prof-channelId_1').text(appsInfo.chanId_1);
-                            $('#prof-name2').text(appsInfo.name2);
-                            $('#prof-channelId_2').text(appsInfo.chanId_2);
-                            $('#prof-fbPageName').text(appsInfo.fbName);
-                            $('#prof-fbPageId').text(appsInfo.fbPageId);
-                            $('#prof-fbAppId').text(appsInfo.fbAppId);
+                })
+                .then(() => {
+                    return new Promise(function(resolve,reject) {
+                        sortGroup(userId, appsInfo => {
+                            resolve(appsInfo);
+                        });
+                    });
+                })
+                .then((appKeys) => {
+                    return new Promise(function(resolve,reject) {
+                        getDB('apps',userId,'/' + appKeys[0], appsInfo => {
+                            $('#prof-name1').text(appsInfo.name);
+                            $('#prof-channelId_1').text(appsInfo.id1);
+                            $('#prof-channelSecret_1').text(appsInfo.secret);
+                            $('#prof-channelAccessToken_1').text(appsInfo.token1);
+                            resolve(appKeys);
+                        });
+                    });
+                })
+                .then((appKeys) => {
+                    return new Promise(function(resolve,reject) {
+                        getDB('apps',userId,'/'+appKeys[1], appsInfo => {
+                            $('#prof-name2').text(appsInfo.name);
+                            $('#prof-channelId_2').text(appsInfo.id1);
+                            $('#prof-channelSecret_2').text(appsInfo.secret);
+                            $('#prof-channelAccessToken_2').text(appsInfo.token1);
+                            resolve(appKeys);
+                        });
+                    });
+                })
+                .then((appKeys) => {
+                    return new Promise(function(resolve,reject) {
+                        getDB('apps',userId,'/'+appKeys[2], appsInfo => {
+                            $('#prof-fbPageName').text(appsInfo.name);
+                            $('#prof-fbPageId').text(appsInfo.id1);
+                            $('#prof-fbAppId').text(appsInfo.id2);
+                            $('#prof-fbAppSecret').text(appsInfo.secret);
+                            $('#prof-fbValidToken').text(appsInfo.token1);
+                            $('#prof-fbPageToken').text(appsInfo.token2);                            
                             resolve();
                         });
                     });
-                }).then(() => {
-                    return new Promise(function(resolve, reject) {
-                        getDB('apps', userId, '/secrets', appsInfo => {
-                            $('#prof-channelSecret_1').text(appsInfo.chanSecret_1);
-                            $('#prof-channelSecret_2').text(appsInfo.chanSecret_2);
-                            $('#prof-fbAppSecret').text(appsInfo.fbAppSecret);
-                            resolve();
-                        });
-                    });
-                }).then(() => {
-                    getDB('apps', userId, '/tokens', appsInfo => {
-                        $('#prof-channelAccessToken_1').text(appsInfo.chanAT_1);
-                        $('#prof-channelAccessToken_2').text(appsInfo.chanAT_2);
-                        $('#prof-fbValidToken').text(appsInfo.fbValidToken);
-                        $('#prof-fbPageToken').text(appsInfo.fbPageToken);
-                    });
+                })
+                .then(() => {
+                    console.log('finished');
+                })
+                .catch(() => {
+                    console.log('running error');
                 });
             }
         });
     }
 
-    function getDB(collection, userId, ref, callback) {
+    function getDB(collection,userId,ref,callback) {
+        let info;
         database.ref(collection + '/' + userId + ref).once('value', snap => {
-            info = snap.val();
-            if (info !== null) {
+            if(snap.val() !== null) {
+                info = snap.val();
                 callback(info);
+            }
+        });
+    }
+
+    function sortGroup(userId,callback){
+        let infoKeys = [];
+        database.ref('apps/' + userId).on('child_added', snapshot => {
+            if(snapshot.val() !== null) {
+                infoKeys.push(snapshot.key);
+                callback(infoKeys);
             }
         });
     }
@@ -355,49 +381,136 @@ $(document).ready(function() {
         let fbAppSecret = $('#prof-edit-fbAppSecret').val();
         let fbValidToken = $('#prof-edit-fbValidToken').val();
         let fbPageToken = $('#prof-edit-fbPageToken').val();
-        database.ref('apps/' + userId + '/ids').update({
-            name1: name1,
-            chanId_1: chanId_1,
-            name2: name2,
-            chanId_2: chanId_2,
-            fbName: fbName,
-            fbPageId: fbPageId,
-            fbAppId: fbAppId
+        let list = []; // 存app_id進users集合用的陣列
+        let appsKeysArr = []; // 存app_id進users集合用的陣列
+
+        var runApps = new Promise((resolve,reject) => {
+            console.log('start');
+            resolve();
         });
-        database.ref('apps/' + userId + '/secrets').update({
-            chanSecret_1: chanSecret_1,
-            chanSecret_2: chanSecret_2,
-            fbAppSecret: fbAppSecret
+
+        runApps
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                console.log('start1');
+                getAppHash([name1,chanId_1,chanSecret_1,chanAT_1], lineKey1 => {
+                    // console.log(lineKey1);
+                    appsKeysArr.push(lineKey1);
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                getAppHash([name2,chanId_2,chanSecret_2,chanAT_2], lineKey2 => {
+                    appsKeysArr.push(lineKey2);
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                getAppHash([fbName,fbPageId,fbAppId,fbAppSecret,fbValidToken,fbPageToken], fbKey => {
+                    appsKeysArr.push(fbKey);
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                getUserList(userId,appsKeysArr,() => {
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                socket.emit('update bot', {
+                    line_1: {
+                        channelId: chanId_1,
+                        channelSecret: chanSecret_1,
+                        channelAccessToken: chanAT_1
+                    },
+                    line_2: {
+                        channelId: chanId_2,
+                        channelSecret: chanSecret_2,
+                        channelAccessToken: chanAT_2
+                    },
+                    fb: {
+                        pageID: fbPageId,
+                        appID: fbAppId,
+                        appSecret: fbAppSecret,
+                        validationToken: fbValidToken,
+                        pageToken: fbPageToken
+                    }
+                });
+                resolve();
+            });
+        })
+        .then(() => {
+            $('#error-message').hide();
+            $('#profModal').modal('hide');
+            profClear();
+            loadProf();
+        })
+        .catch((reason) => {
+            console.log("loading Failed");
+            console.log(reason)
         });
-        database.ref('apps/' + userId + '/tokens').update({
-            chanAT_1,
-            chanAT_2,
-            fbValidToken,
-            fbPageToken
-        });
-        socket.emit('update bot', {
-            line_1: {
-                channelId: chanId_1,
-                channelSecret: chanSecret_1,
-                channelAccessToken: chanAT_1
-            },
-            line_2: {
-                channelId: chanId_2,
-                channelSecret: chanSecret_2,
-                channelAccessToken: chanAT_2
-            },
-            fb: {
-                pageID: fbPageId,
-                appID: fbAppId,
-                appSecret: fbAppSecret,
-                validationToken: fbValidToken,
-                pageToken: fbPageToken
-            }
-        });
-        $('#error-message').hide();
-        profClear();
-        loadProf();
-        $('#profModal').modal('hide');
+    }
+
+    function getAppHash(group,callback) {
+        // console.log(args.length);
+        // console.log(args[0]);
+        let userId = auth.currentUser.uid;
+        let newVal; // 存的物件
+        let hashKey;
+        switch(group.length) {
+            case 6: // facebook
+                newVal = {
+                    type: 'facebook',
+                    name: group[0],
+                    id1: group[1],
+                    id2: group[2],
+                    secret: group[3],
+                    token1: group[4],
+                    token2: group[5],
+                    order: 1
+                }
+                database.ref('apps/' + userId).push(newVal);
+                database.ref('apps/' + userId).on('child_added', snapshot => {
+                  // console.log(snapshot.key)
+                  hashKey = snapshot.key;
+                });
+                callback(hashKey);
+                break;
+            case 4: // line
+                newVal = {
+                    type: 'line',
+                    name: group[0],
+                    id1: group[1],
+                    id2: '',
+                    secret: group[2],
+                    token1: group[3],
+                    token2: '',
+                    order: 1
+                }
+                database.ref('apps/' + userId).push(newVal);
+                database.ref('apps/' + userId).on('child_added', snapshot => {
+                  // console.log(snapshot.val())
+                  hashKey = snapshot.key;
+                });
+                callback(hashKey);
+                break;
+            default:
+                console.log('cannot identify app type.');
+                callback();
+        }
+    }
+
+    function getUserList(userId,listArr,callback) {
+        database.ref('users/' + userId).update({app_ids:listArr});
+        callback();
     }
 
     function profClear() {
@@ -411,7 +524,7 @@ $(document).ready(function() {
         $('#prof-edit-channelId_1').val('');
         $('#prof-edit-channelSecret_1').val('');
         $('#prof-edit-channelAccessToken_1').val('');
-        $('#prof-edit-name2').val('');
+        $('#prof-edit-name2').val(''); 
         $('#prof-edit-channelId_2').val('');
         $('#prof-edit-channelSecret_2').val('');
         $('#prof-edit-channelAccessToken_2').val('');
