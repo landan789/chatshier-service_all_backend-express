@@ -38,11 +38,17 @@ var addTicketModal = $('#add-ticket-modal');
 
 $(document).ready(function() {
     // start the loading works
+    window.dispatchEvent(firbaseEvent);
+
     if (window.location.pathname === '/chat') {
+        // socket.emit("request tags", responseTags);
         $infoPanel.hide();
         auth.onAuthStateChanged(currentUser => {
             agentId = currentUser.uid;
             socket.emit('develop update bot', agentId); //should only for developer
+            // socket.emit('new user', agentId, checkNickName);
+            // socket.emit('request channels', agentId, responseChannels);
+            // socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
             socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         });
     }
@@ -88,7 +94,12 @@ $(document).ready(function() {
         //=====end ticket event=====
 
     //=====start utility event=====
-    $(document).on('click', '#signoutBtn', logout); // 登出
+    $(document).on('click', '#signout-btn', function() {
+        event.preventDefault();
+        logout(function() {
+            location = '/login';
+        });
+    }); // 登出
     $(document).on('change', '.multi-select-container', multiSelectChange);
     $(document).on('click', '.dropdown-menu', function(event) {
         event.stopPropagation();
@@ -103,13 +114,21 @@ $(document).ready(function() {
     //==========start initialize function========== //
     function responseChatInitData(data) {
         console.log(data);
-        if( data.reject ) {
+        if (data.reject) {
             alert(data.reject);
-        }
-        else {
+        } else {
+            checkNickName(data.checkNickName);
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
             responseChannels(data.channelsData);
+        }
+    }
+
+    function checkNickName(check) {
+        if (!check) {
+            //enter agent name
+            let person = prompt("Please enter your name");
+            socket.emit('new nickname', agentId, person);
         }
     }
 
@@ -125,9 +144,9 @@ $(document).ready(function() {
             $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
             $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
             $('.chat-app-item#FB').attr('rel', data.fbPageId);
-            $('#Line_1').attr('data-original-title',data.name1);
-            $('#Line_2').attr('data-original-title',data.name2);
-            $('#FB').attr('data-original-title',data.fbName);
+            $('#Line_1').attr('data-original-title', data.name1);
+            $('#Line_2').attr('data-original-title', data.name2);
+            $('#FB').attr('data-original-title', data.fbName);
             room_list.push(data.chanId_1);
             room_list.push(data.chanId_2);
             room_list.push(data.fbPageId);
@@ -518,7 +537,7 @@ $(document).ready(function() {
     });
     socket.on('new user profile', function(data) {
         userProfiles[data.userId] = data;
-        pushInfo({"Profile": data});
+        pushInfo({ "Profile": data });
     });
     //=====end socket function=====
 
@@ -543,7 +562,7 @@ $(document).ready(function() {
                 // console.log($(this).attr('rel') === '');
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
-                if(rel !== '') {
+                if (rel !== '') {
                     let id = $(this).parent().parent().parent().parent().parent().parent().parent().parent().attr('id');
                     let newId = id.substring(0, id.indexOf('-'));
                     // console.log(id);
@@ -556,7 +575,7 @@ $(document).ready(function() {
             $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
-                if(rel === '') {
+                if (rel === '') {
                     let id = $(this).parent().parent().parent().parent().parent().parent().parent().parent().attr('id');
                     let newId = id.substring(0, id.indexOf('-'));
                     console.log(newId);
@@ -574,7 +593,7 @@ $(document).ready(function() {
         let channelId = $(this).attr('rel'); // channelId
         $('#send-message').show();
         $infoPanel.show();
-        if(channelId === 'internal') {
+        if (channelId === 'internal') {
             $('#show-todo').hide();
         } else {
             $('#show-todo').show();
@@ -978,21 +997,22 @@ $(document).ready(function() {
     }
 
     function loadAgentList() {
-      let Ainfo = [];
-      socket.emit('get agents profile', loadAgentsInfo)
-      function loadAgentsInfo(data) {
-        // console.log(data);
-        let agentInfo = data;
-        let agentKey = Object.keys(agentInfo);
-        let optionStr;
-        agentKey.map(agent => {
-            Ainfo.push({ name: agentInfo[agent].name, id: agent })
-        });
-        Ainfo.map(info => {
-          optionStr += '<option value="'+info.id+'">'+info.name+'</option>';
-        })
-        $('#add-form-agents').append(optionStr);
-      }
+        let Ainfo = [];
+        socket.emit('get agents profile', loadAgentsInfo)
+
+        function loadAgentsInfo(data) {
+            // console.log(data);
+            let agentInfo = data;
+            let agentKey = Object.keys(agentInfo);
+            let optionStr;
+            agentKey.map(agent => {
+                Ainfo.push({ name: agentInfo[agent].name, id: agent })
+            });
+            Ainfo.map(info => {
+                optionStr += '<option value="' + info.id + '">' + info.name + '</option>';
+            })
+            $('#add-form-agents').append(optionStr);
+        }
     }
 
     function addTicket() {
@@ -1049,13 +1069,13 @@ $(document).ready(function() {
                     console.log('tickt created');
                     //把事件儲存到calendar database，到期時間和ticket一樣設定三天
                     database.ref('cal-events/' + userId + '/t' + data.id).set({
-                      title: name + ": " + description.substring(0, 10) + "...",
-                      start: start,
-                      end: end,
-                      description: description,
-                      allDay: false
+                        title: name + ": " + description.substring(0, 10) + "...",
+                        start: start,
+                        end: end,
+                        description: description,
+                        allDay: false
                     }).then(() => {
-                      database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent });
+                        database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent });
                     }).then(() => {
                         $('#form-name').val('');
                         $('#form-uid').val('');
@@ -1107,7 +1127,8 @@ $(document).ready(function() {
             input = $("input"),
             timeInput = $('.time-edit');
         let name, value, json = '{';
-        let timeInputText = timeInput.text(), timeInputValue = timeInput.siblings('td').find('.display-date-input.form-control').val();
+        let timeInputText = timeInput.text(),
+            timeInputValue = timeInput.siblings('td').find('.display-date-input.form-control').val();
         let obj = {};
         let id = $(this).parent().siblings('.modal-header').find('#ID-num').text();
         let clientName, clientId, clientOwner, clientPriority, clientStatus, clientDescription, clientDue;
@@ -1140,20 +1161,20 @@ $(document).ready(function() {
         if (obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
         else clientDue = obj.到期時間即期;
         console.log(clientDue)
-        // var time_list = clientDue.split("/");
-        // var new_time = [];
-        // var new_time2 = [];
-        // time_list.map(function(i) {
-        //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
-        //     new_time.push(i);
-        // });
-        // new_time = new_time.join("-").split(" ");
-        // if (new_time[1].length < 8) {
-        //     new_time[1].split(":").map(function(x) {
-        //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
-        //     });
-        // };
-        // new_time = new_time.join("T") + "Z";
+            // var time_list = clientDue.split("/");
+            // var new_time = [];
+            // var new_time2 = [];
+            // time_list.map(function(i) {
+            //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
+            //     new_time.push(i);
+            // });
+            // new_time = new_time.join("-").split(" ");
+            // if (new_time[1].length < 8) {
+            //     new_time[1].split(":").map(function(x) {
+            //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
+            //     });
+            // };
+            // new_time = new_time.join("T") + "Z";
         clientDue += ':00Z';
         // console.log(new_time)
         obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
@@ -1171,14 +1192,14 @@ $(document).ready(function() {
                 data: obj,
                 success: function(data, textStatus, jqXHR) {
                     database.ref('tickets/' + userId + '/t' + id).set({ owner: clientOwner })
-                    .then(() => {
-                      database.ref('cal-events/' + userId + '/t' + id).update({
-                        title: clientName + ": " + clientDescription.substring(0, 10) + "...",
-                        end: clientDue,
-                        description: clientDescription,
-                        allDay: false
-                      })
-                    });
+                        .then(() => {
+                            database.ref('cal-events/' + userId + '/t' + id).update({
+                                title: clientName + ": " + clientDescription.substring(0, 10) + "...",
+                                end: clientDue,
+                                description: clientDescription,
+                                allDay: false
+                            })
+                        });
                     alert("表單已更新");
                     location.reload();
                 },
@@ -1250,7 +1271,7 @@ $(document).ready(function() {
         let yy = gmt8.getFullYear(),
             mm = gmt8.getMonth() + 1,
             dd = gmt8.getDate(),
-            hr = gmt8.getHours() < 10 ? '0'+gmt8.getHours() : gmt8.getHours(),
+            hr = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours(),
             min = gmt8.getMinutes();
         return yy + "-" + mm + "-" + dd + "T" + hr + ":" + min;
     } // end of displayDate
@@ -1577,14 +1598,14 @@ $(document).ready(function() {
 
     //=====start utility function
     function toAgentStr(msg, name, time) {
-        if (msg.startsWith("<a") || msg.startsWith("<img")|| msg.startsWith("<audio")|| msg.startsWith("<video")) {
+        if (msg.startsWith("<a") || msg.startsWith("<img") || msg.startsWith("<audio") || msg.startsWith("<video")) {
             return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content stikcer">  ' + msg + '</span><strong></strong><br/></p>';
         } else {
             return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content words">  ' + msg + '</span><strong></strong><br/></p>';
         }
     } // end of toAgentStr
     function toUserStr(msg, name, time) {
-        if (msg.startsWith("<a") || msg.startsWith("<img")|| msg.startsWith("<audio")|| msg.startsWith("<video")) {
+        if (msg.startsWith("<a") || msg.startsWith("<img") || msg.startsWith("<audio") || msg.startsWith("<video")) {
             return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content sticker">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
         } else {
             return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content words">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';

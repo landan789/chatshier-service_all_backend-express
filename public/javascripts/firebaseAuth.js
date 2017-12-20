@@ -1,10 +1,10 @@
-const IS_COOKIES = '001';
-const IS_USER = '010';
-const IS_LOGIN_SIGNUP_PAGE = '100';
+const IS_COOKIES = parseInt('001', 2);
+const IS_USER = parseInt('010', 2);
+const IS_LOGIN_SIGNUP_PAGE = parseInt('100', 2);
 
-const NOT_COOKIES = '000';
-const NOT_USER = '000';
-const NOT_LOGIN_SIGNUP_PAGE = '000';
+const NOT_COOKIES = parseInt('000', 2);
+const NOT_USER = parseInt('000', 2);
+const NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
 var serviceUrl = location.host;
 var domain = serviceUrl.replace(/^[\w\-]+\./i, '.').replace(/\:\d+$/i, '');
@@ -54,10 +54,11 @@ window.addEventListener('firebaseAuth', function(e) {
 
 // functions
 function logout(callback) {
+    clearCookie('name', domain);
+    clearCookie('email', domain);
     auth.signOut()
         .then(response => {
-            clearCookie('name', domain);
-            clearCookie('email', domain);
+
             callback();
         })
 }
@@ -80,21 +81,21 @@ function getCookie(cName) {
 }
 
 function getState(user) {
-    var state = '000';
+    var state = parseInt('000', 2);
     var name = getCookie('name');
     var email = getCookie('email');
     var pathname = location.pathname;
 
     if ('' !== name && '' !== email) {
-        state = state | '001';
+        state = state | parseInt('001', 2);
     }
 
     if (user) {
-        state = state | '010';
+        state = state | parseInt('010', 2);
     }
 
     if ('/login' === pathname || '/signup' === pathname) {
-        state = state | '100';
+        state = state | parseInt('100', 2);
     }
 
     return state;
