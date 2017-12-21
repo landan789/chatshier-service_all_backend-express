@@ -41,14 +41,10 @@ $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
 
     if (window.location.pathname === '/chat') {
-        // socket.emit("request tags", responseTags);
         $infoPanel.hide();
         auth.onAuthStateChanged(currentUser => {
             agentId = currentUser.uid;
             socket.emit('develop update bot', agentId); //should only for developer
-            // socket.emit('new user', agentId, checkNickName);
-            // socket.emit('request channels', agentId, responseChannels);
-            // socket.emit('request internal chat data', { id: agentId }, responseInternalChatData);
             socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         });
     }
@@ -117,18 +113,9 @@ $(document).ready(function() {
         if (data.reject) {
             alert(data.reject);
         } else {
-            checkNickName(data.checkNickName);
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
             responseChannels(data.channelsData);
-        }
-    }
-
-    function checkNickName(check) {
-        if (!check) {
-            //enter agent name
-            let person = prompt("Please enter your name");
-            socket.emit('new nickname', agentId, person);
         }
     }
 
