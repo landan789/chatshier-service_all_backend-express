@@ -22,7 +22,7 @@ window.addEventListener('firebaseAuth', function(e) {
         var state = getState(user);
 
         if (user) {
-            $('#loading').addClass('hidden');
+            $('#loading').fadeOut();
         }
 
         if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
