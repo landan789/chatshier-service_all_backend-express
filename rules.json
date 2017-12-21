@@ -4,7 +4,7 @@
   "rules": {
     "apps" : { // Line, Fb, ... App
       ".read" : true,
-      ".write" : "data.child('user_id').val() === auth.uid"
+      ".write" : "data.child('user_id').val() === auth.uid || true"
     },
     "users": {
       ".read": true,

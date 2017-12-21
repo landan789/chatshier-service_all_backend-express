@@ -476,7 +476,8 @@ $(document).ready(function() {
             id2: '',
             secret: group1[2],
             token1: group1[3],
-            token2: ''
+            token2: '',
+            user_id: userId
         }
         let line2 = {
             type: 'line',
@@ -485,7 +486,8 @@ $(document).ready(function() {
             id2: '',
             secret: group2[2],
             token1: group2[3],
-            token2: ''
+            token2: '',
+            user_id: userId
         }
         let fb = {
             type: 'facebook',
@@ -494,7 +496,8 @@ $(document).ready(function() {
             id2: group3[2],
             secret: group3[3],
             token1: group3[4],
-            token2: group3[5]
+            token2: group3[5],
+            user_id: userId
         }
         if(status === 'new') {
             line1Key = database.ref('apps').push().key;
