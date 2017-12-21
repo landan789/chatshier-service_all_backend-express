@@ -9,7 +9,7 @@ $(document).ready(function() {
     var allCancelBtn = $('#all-cancel');
     var rowsCount = 0; //dynamic load count in db ref
     tagTableBody.sortable();
-    socket.emit("get tags from tags");
+    socket.emit('request chat init data');
     socket.on("push tags to tags", data => {
         console.log("data:");
         console.log(data);

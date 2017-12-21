@@ -35,11 +35,8 @@ $(document).ready(function() {
     var allCancelBtn = $('.all-cancel');
     var rowsCount = 0; //dynamic load count in db ref
     tagTableBody.sortable();
-    socket.emit('request tags', (tagsData) => {
-        // console.log("data:");
-        // console.log(tagsData);
-        window.dispatchEvent(firbaseEvent);
-
+    socket.emit('request tags', tagsData => {
+        console.log(tagsData);
         for (let i = 0; i < tagsData.length; i++) {
             appendNewTag(tagsData[i].id);
             let data = tagsData[i].data;
@@ -166,99 +163,95 @@ $(document).ready(function() {
     });
     //-------------end TAG--------------------
     function loadProf() {
-        let userId;
+        let userId = auth.currentUser.uid;
         var runProgram = new Promise(function(resolve, reject) {
             resolve();
         });
-        auth.onAuthStateChanged(current => {
-            if (current) {
-                userId = current.uid;
-
-
-
-                // database.ref('apps').once('value', data => {
-                //     // let k = data.key;
-                //     let k = data.val();
-                //     for(let i in k) {
-                //         console.log(i);
-                //     }
-                    
-                // });
-
-                // database.ref('users/' + userId + '/app_ids').on('value', data => {
-                //     console.log(data.val());
-                // });
-
-                runProgram
-                .then(function() {
-                    return new Promise(function(resolve,reject) {
-                        getUserDB('users',userId, data => {
-                            $('#prof-id').text(userId);
-                            $('.panel-title').text(data.name);
-                            $('#prof-email').text(data.email);
-                            $('#prof-IDnumber').text(userId);
-                            $('#prof-company').text(data.company);
-                            $('#prof-phonenumber').text(data.phonenumber);
-                            $('#prof-address').text(data.address);
-                            resolve();
-                        });
-                    });
-                })
-                .then(() => {
-                    return new Promise(function(resolve,reject) {
-                        sortGroup(data => {
-                            resolve(data);
-                        });
-                    });
-                })
-                .then((appIds) => {
-                    return new Promise(function(resolve,reject) {
-                        getAppDB('apps',appIds[0], data => {
-                            $('#prof-name1').text(data.name);
-                            $('#prof-channelId_1').text(data.id1);
-                            $('#prof-channelSecret_1').text(data.secret);
-                            $('#prof-channelAccessToken_1').text(data.token1);
-                            resolve(appIds);
-                        });
-                    });
-                })
-                .then((appIds) => {
-                    return new Promise(function(resolve,reject) {
-                        getAppDB('apps',appIds[1], data => {
-                            $('#prof-name2').text(data.name);
-                            $('#prof-channelId_2').text(data.id1);
-                            $('#prof-channelSecret_2').text(data.secret);
-                            $('#prof-channelAccessToken_2').text(data.token1);
-                            resolve(appIds);
-                        });
-                    });
-                })
-                .then((appIds) => {
-                    return new Promise(function(resolve,reject) {
-                        getAppDB('apps',appIds[2], data => {
-                            $('#prof-fbPageName').text(data.name);
-                            $('#prof-fbPageId').text(data.id1);
-                            $('#prof-fbAppId').text(data.id2);
-                            $('#prof-fbAppSecret').text(data.secret);
-                            $('#prof-fbValidToken').text(data.token1);
-                            $('#prof-fbPageToken').text(data.token2);                            
-                            resolve();
-                        });
-                    });
-                })
-                .then(() => {
-                    console.log('finished');
-                })
-                .catch(() => {
-                    console.log('running error');
+        runProgram
+        .then(function() {
+            return new Promise(function(resolve,reject) {
+                getUserDB('users',userId,'', data => {
+                    $('#prof-id').text(userId);
+                    $('.panel-title').text(data.name);
+                    $('#prof-email').text(data.email);
+                    $('#prof-IDnumber').text(userId);
+                    $('#prof-company').text(data.company);
+                    $('#prof-phonenumber').text(data.phonenumber);
+                    $('#prof-address').text(data.address);
+                    resolve();
                 });
-            }
+            });
+        })
+        .then(() => {
+            return new Promise(function(resolve,reject) {
+                sortGroup(userId,data => {
+                    resolve(data);
+                });
+            });
+        })
+        .then((appIds) => {
+            return new Promise(function(resolve,reject) {
+                if(appIds.length === 0) {
+                    console.log('empty')
+                    resolve(appIds);
+                } else {
+                    getAppDB('apps',appIds[0], data => {
+                        $('#prof-name1').text(data.name);
+                        $('#prof-channelId_1').text(data.id1);
+                        $('#prof-channelSecret_1').text(data.secret);
+                        $('#prof-channelAccessToken_1').text(data.token1);
+                        resolve(appIds);
+                    });
+                }
+                
+            });
+        })
+        .then((appIds) => {
+            return new Promise(function(resolve,reject) {
+                if(appIds.length === 0) {
+                    console.log('empty')
+                    resolve(appIds);
+                } else {
+                    getAppDB('apps',appIds[1], data => {
+                        $('#prof-name2').text(data.name);
+                        $('#prof-channelId_2').text(data.id1);
+                        $('#prof-channelSecret_2').text(data.secret);
+                        $('#prof-channelAccessToken_2').text(data.token1);
+                        resolve(appIds);
+                    });
+                }
+                
+            });
+        })
+        .then((appIds) => {
+            return new Promise(function(resolve,reject) {
+                if(appIds.length === 0) {
+                    console.log('empty')
+                    resolve(appIds);
+                } else {
+                    getAppDB('apps',appIds[2], data => {
+                        $('#prof-fbPageName').text(data.name);
+                        $('#prof-fbPageId').text(data.id1);
+                        $('#prof-fbAppId').text(data.id2);
+                        $('#prof-fbAppSecret').text(data.secret);
+                        $('#prof-fbValidToken').text(data.token1);
+                        $('#prof-fbPageToken').text(data.token2);                            
+                        resolve();
+                    });
+                }
+            });
+        })
+        .then(() => {
+            console.log('finished');
+        })
+        .catch(() => {
+            console.log('running error');
         });
     }
 
-    function getUserDB(collection,userId,callback) {
+    function getUserDB(collection,userId,ref,callback) {
         let info;
-        database.ref(collection + '/' + userId).once('value', snap => {
+        database.ref(collection + '/' + userId + ref).once('value', snap => {
             if(snap.val() !== null) {
                 info = snap.val();
                 callback(info);
@@ -276,11 +269,13 @@ $(document).ready(function() {
         });
     }
 
-    function sortGroup(callback){
+    function sortGroup(userId,callback){
         let infoKeys = [];
-        database.ref('apps').on('child_added', data => {
+        database.ref('users/' + userId + '/app_ids').on('value', data => {
             if(data.val() !== null) {
-                infoKeys.push(data.key);
+                infoKeys = data.val();
+                callback(infoKeys);
+            } else {
                 callback(infoKeys);
             }
         });

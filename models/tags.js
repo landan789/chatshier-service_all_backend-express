@@ -1,7 +1,7 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var utility = require('../helpers/utility');
 var tags = {};
-tags.getDefault = function(callback){
+tags.getDefault = (callback) => {
   admin.database().ref().child('tags/default').once('value', snapshot=> {
     let tagsData = {};
     if(snapshot.val() !== null){
@@ -17,7 +17,7 @@ tags.getDefault = function(callback){
     callback(tagsData);
   });
 };
-tags.getCustom = function(callback){
+tags.getCustom = (callback) => {
   admin.database().ref().child('tags/custom').once('value', snapshot=> {
     let tagsData = {};
     if(snapshot.val() !== null){
@@ -42,7 +42,7 @@ tags.getOrder = (callback) => {
 
 }
 
-tags.get = function(callback){
+tags.get = (callback) => {
     tags.getCustom( (customData) => {
         tags.getDefault( (defaultData) => {
             tags.getOrder( (orderData) => {

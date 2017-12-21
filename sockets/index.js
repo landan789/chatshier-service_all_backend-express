@@ -99,7 +99,10 @@ function init(server) {
         // 按照程式流程順序
         // 1.更新標籤
         socket.on('request tags', (callback) => {
-            requestTags(callback);
+            console.log('data requested')
+            tags.get(function(tagsData) {
+                callback(tagsData);
+            });
         });
 
         function requestTags(callback) {
