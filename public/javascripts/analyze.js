@@ -1,7 +1,5 @@
 const socket = io.connect();
 $(function() {
-    window.dispatchEvent(firbaseEvent);
-
     socket.emit('request message time'); //向後端取得所有訊息的時間
 
     $(document).on('change', '.select-time', selectTime); //取得USER要分析的時間區間
@@ -18,6 +16,10 @@ const DATE = 86400000;
 var startTime; //決定圖表從哪個時間點開始畫
 var endTime; //決定圖表畫到那個時間點結束
 var FIRST_MSG_TIME = 0; //預設的startTime
+$(document).ready(function() {
+    window.dispatchEvent(firbaseEvent);
+});
+
 
 socket.on('response message time', (data) => {
     if (data) {

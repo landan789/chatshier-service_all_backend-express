@@ -2,6 +2,9 @@ const socket = io.connect();
 var templateForm = $('#template-form');
 var templateData = {};
 var userId = "";
+$(document).ready(function() {
+    window.dispatchEvent(firbaseEvent);
+});
 $(function() {
     window.dispatchEvent(firbaseEvent);
 

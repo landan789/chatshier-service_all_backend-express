@@ -7,6 +7,7 @@ $(document).ready(function() {
 
     $('#Appointment').show();
     loadClientData();
+    window.dispatchEvent(firbaseEvent);
     socket.emit("get tags from chat");
     let timer_1 = setInterval(function() {
         if (!auth.currentUser) {

@@ -39,7 +39,6 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     window.dispatchEvent(firbaseEvent);
-
     if (window.location.pathname === '/chat') {
         $infoPanel.hide();
         auth.onAuthStateChanged(currentUser => {
@@ -113,6 +112,7 @@ $(document).ready(function() {
         if (data.reject) {
             alert(data.reject);
         } else {
+            checkNickName(data.checkNickName);
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
             responseChannels(data.channelsData);

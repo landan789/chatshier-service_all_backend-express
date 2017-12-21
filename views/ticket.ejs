@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -16,42 +17,45 @@
     <link rel="stylesheet" href="stylesheets/main.css">
     <link rel='stylesheet' href='/stylesheets/ticket.css' />
 </head>
+
 <body>
     <% include ../views/partials/wrapper.ejs %>
-    <div class="add-btn">
-        <a href="/tform" class="btn btn-default inner-add-complete">
-            <span class="fa fa-plus fa-fw"></span> 新增表單
-        </a>
-    </div>
-    <input type="text" class="ticket_search_bar" id="exampleInputAmount" value="" placeholder="搜尋">
-    <div class="main">
-        <div class="ticket">
-            <table>
-                <thead>
-                    <tr>
-                        <th onclick="sortCloseTable(0)"> ID </th>
-                        <th onclick="sortCloseTable(1)"> 客戶姓名 </th>
-                        <th onclick="sortCloseTable(2)"> 內容 </th>
-                        <th onclick="sortCloseTable(3)"> 狀態 </th>
-                        <th onclick="sortCloseTable(4)"> 優先 </th>
-                        <th onclick="sortCloseTable(5)"> 到期時間 </th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody class="ticket-content">
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <% include ../views/partials/ticket_info_modal.ejs %>
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-    <script src="config/firebaseConfig.js"></script>
-    <script src="javascripts/navigation.js"></script>
-    <script src="javascripts/firebaseAuth.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="javascripts/ticket.js"></script>
-    <script src="javascripts/navigation.js"></script>
+        <% include ../views/partials/loading.ejs %>
+            <div class="add-btn">
+                <a href="/tform" class="btn btn-default inner-add-complete">
+                    <span class="fa fa-plus fa-fw"></span> 新增表單
+                </a>
+            </div>
+            <input type="text" class="ticket_search_bar" id="exampleInputAmount" value="" placeholder="搜尋">
+            <div class="main">
+                <div class="ticket">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortCloseTable(0)"> ID </th>
+                                <th onclick="sortCloseTable(1)"> 客戶姓名 </th>
+                                <th onclick="sortCloseTable(2)"> 內容 </th>
+                                <th onclick="sortCloseTable(3)"> 狀態 </th>
+                                <th onclick="sortCloseTable(4)"> 優先 </th>
+                                <th onclick="sortCloseTable(5)"> 到期時間 </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="ticket-content">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <% include ../views/partials/ticket_info_modal.ejs %>
+                <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+                <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+                <script src="config/firebaseConfig.js"></script>
+                <script src="javascripts/navigation.js"></script>
+                <script src="javascripts/firebaseAuth.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+                <script src="javascripts/ticket.js"></script>
+                <script src="javascripts/navigation.js"></script>
 </body>
+
 </html>

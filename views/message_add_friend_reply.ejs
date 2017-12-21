@@ -21,29 +21,30 @@
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
-        <div id="home">
-            <h3> 加好友回覆</h3>
-            <p>新增、編輯、測試傳送到LINE@的訊息</p>
-            <table id="MsgCanvas"></table>
-            <table>
-                <td style="padding:5% 5% 5% 15%">
-                    <p id="error" style="color:red;display:none;">已經達到訊息則數上限</p>
-                    <p>一次可傳送五則訊息，請選擇訊息種類</p>
-                    <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">文字</button>
-                </td>
-            </table>
-            <button id="save" style="padding:1%; width: 15%; float:left; margin-left:40%; margin-top:1%">儲存</button>
-        </div>
-        <% include ../views/partials/firebase_disable.ejs %>
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
-        <script src="config/firebaseConfig.js"></script>
-        <script src="javascripts/firebaseAuth.js"></script>
-        <script src="javascripts/navigation.js"></script>
-        <script src="javascripts/message_add_friend_reply.js"></script>
-        <script src="javascripts/partials/firebase-disable.js"></script>
+        <% include ../views/partials/loading.ejs %>
+            <div id="home">
+                <h3> 加好友回覆</h3>
+                <p>新增、編輯、測試傳送到LINE@的訊息</p>
+                <table id="MsgCanvas"></table>
+                <table>
+                    <td style="padding:5% 5% 5% 15%">
+                        <p id="error" style="color:red;display:none;">已經達到訊息則數上限</p>
+                        <p>一次可傳送五則訊息，請選擇訊息種類</p>
+                        <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="addbtn">文字</button>
+                    </td>
+                </table>
+                <button id="save" style="padding:1%; width: 15%; float:left; margin-left:40%; margin-top:1%">儲存</button>
+            </div>
+            <% include ../views/partials/firebase_disable.ejs %>
+                <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+                <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+                <script src="config/firebaseConfig.js"></script>
+                <script src="javascripts/firebaseAuth.js"></script>
+                <script src="javascripts/navigation.js"></script>
+                <script src="javascripts/message_add_friend_reply.js"></script>
+                <script src="javascripts/partials/firebase-disable.js"></script>
 </body>
 
 </html>

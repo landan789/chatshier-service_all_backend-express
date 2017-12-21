@@ -7,11 +7,9 @@ var calendar = $('#calendar');
 var nowEventId = "invalid";
 
 // jQuery
-// $(document).ready(function() {
-//   // $('#details').val('');
-//
-// });
-window.dispatchEvent(firbaseEvent);
+$(document).ready(function() {
+    window.dispatchEvent(firbaseEvent);
+});
 
 
 

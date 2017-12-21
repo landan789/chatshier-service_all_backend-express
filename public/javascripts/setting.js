@@ -106,6 +106,24 @@ $(document).ready(function() {
     $(document).on('click', '.tag-delete-btn', function() {
         $(this).parent().parent().remove();
     });
+
+    function toTypeValue(type) {
+        if (type == "text") return 0;
+        // else if( type=="date" ) return 1;
+        else if (type == "time") return 2;
+        else if (type == "single-select") return 3;
+        else if (type == "multi-select") return 3;
+        else console.log("ERROR 1");
+    }
+
+
+    function appendNewTag(id) {
+        tagTableBody.append('<tr class="tag-content" id="' + id + '">' + '<td class="tag-name"></td>' +
+            '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' +
+            '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>' +
+            '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' +
+            '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
+    }
     allConfirmBtn.on('click', function() {
         if (!confirm("Confirm???")) return;
         let sendObj = [];
@@ -146,26 +164,6 @@ $(document).ready(function() {
             return true;
         }
     });
-    allCancelBtn.on('click', function() {
-        if (confirm("Cancel change??")) location.reload();
-    })
-
-    function toTypeValue(type) {
-        if (type == "text") return 0;
-        // else if( type=="date" ) return 1;
-        else if (type == "time") return 2;
-        else if (type == "single-select") return 3;
-        else if (type == "multi-select") return 3;
-        else console.log("ERROR 1");
-    }
-
-    function appendNewTag(id) {
-        tagTableBody.append('<tr class="tag-content" id="' + id + '">' + '<td class="tag-name"></td>' +
-            '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' +
-            '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>' +
-            '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' +
-            '<td class="tag-move"><p id="moveup"><i class="fa fa-caret-up" style="font-size:16px"></i></p><p id="movedown"><i class="fa fa-caret-down" style="font-size:16px"></i></p></td>' + '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
-    }
     //-------------end TAG--------------------
     function loadProf() {
         let userId;

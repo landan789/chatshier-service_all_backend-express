@@ -43,6 +43,9 @@ function init(server) {
             console.log("Enter channel_2 information first");
         }
     ];
+    app.get('/loading', (req, res) => {
+        res.send(303);
+    });
     //==============FACEBOOK MESSAGE==============
     app.post('/webhook', function(req, res) {
         var data = req.body;
@@ -1078,7 +1081,7 @@ function init(server) {
         }
     } // end of update_line_bot
     function send_to_FB(msg, receiver) {
-        if(Object.keys(fb_bot).length > 0) {
+        if (Object.keys(fb_bot).length > 0) {
             if (msg.startsWith('/image')) {
                 let link = msg.substr(7);
                 fb_bot.sendImageMessage(receiver, link, true);

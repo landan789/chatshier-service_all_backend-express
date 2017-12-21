@@ -1,7 +1,6 @@
 // jQuery
 $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
-
     $(document).on('click', '#signout-btn', logout); //登出
     // $(document).on('click', '#search-btn', filterChart);
     // $(document).on('click', '#message', subMessage);//Message 導覽標籤 subtags

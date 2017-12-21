@@ -7,12 +7,12 @@ var api_key = 'UMHU5oqRvapqkIWuOdT8';
 var ticket_content = $('.ticket-content');
 $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
-
     if (location.pathname === '/ticket') {
         setTimeout(loadTable, 2000);
     } else if (location.pathname === '/tform') {
         setTimeout(loadAgentList, 1000);
     }
+
     $(document).on('click', '#add-form-submit', submitAdd); //新增ticket
     $(document).on('click', '#form-goback', function() { location.href = '/ticket'; }); //返回ticket
     $(document).on('click', '.ticketContent', moreInfo);

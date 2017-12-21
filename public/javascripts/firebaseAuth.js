@@ -21,6 +21,10 @@ window.addEventListener('firebaseAuth', function(e) {
     auth.onAuthStateChanged(user => {
         var state = getState(user);
 
+        if (user) {
+            $('#loading').addClass('hidden');
+        }
+
         if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
             location = '/login';
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
