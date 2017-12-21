@@ -1,0 +1,71 @@
+// These rules grant access to a node matching the authenticated
+// user's ID from the Firebase auth token
+{
+  "rules": {
+    "apps" : { // Line, Fb, ... App
+      ".read" : true,
+      ".write" : "data.child('user_id').val() === auth.uid"
+    },
+    "users": {
+      ".read": true,
+      ".write": true,
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "tickets": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "cal-events": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },      
+    "chats": {
+      ".read": true,
+      ".write": true,
+      "Data": {
+        ".read": true,
+        ".write": true
+      },
+      "AgentChatData": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    
+    "tags": {
+      ".read": true,
+      ".write": true
+    },
+  	"message-autoreply": {
+      ".read": true,
+      ".write": true
+    },
+    "message-overview": {
+      ".read": true,
+      ".write": true
+    },
+    "message-addfriendsreply": {
+      ".read": true,
+      ".write": true
+    },
+    "message-keywordsreply": {
+      ".read": true,
+      ".write": true
+    },
+    "hooks":{
+      ".read": true,
+      ".write": true
+    },
+    "contacts":{
+      ".read": false,
+      ".write": true
+    }
+  }
+}
