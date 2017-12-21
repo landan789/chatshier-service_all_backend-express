@@ -175,59 +175,75 @@ $(document).ready(function() {
         auth.onAuthStateChanged(current => {
             if (current) {
                 userId = current.uid;
+
+
+
+                // database.ref('apps').once('value', data => {
+                //     // let k = data.key;
+                //     let k = data.val();
+                //     for(let i in k) {
+                //         console.log(i);
+                //     }
+                    
+                // });
+
+                // database.ref('users/' + userId + '/app_ids').on('value', data => {
+                //     console.log(data.val());
+                // });
+
                 runProgram
                 .then(function() {
                     return new Promise(function(resolve,reject) {
-                        getDB('users',userId,'', profInfo => {
+                        getUserDB('users',userId, data => {
                             $('#prof-id').text(userId);
-                            $('.panel-title').text(profInfo.name);
-                            $('#prof-email').text(profInfo.email);
+                            $('.panel-title').text(data.name);
+                            $('#prof-email').text(data.email);
                             $('#prof-IDnumber').text(userId);
-                            $('#prof-company').text(profInfo.company);
-                            $('#prof-phonenumber').text(profInfo.phonenumber);
-                            $('#prof-address').text(profInfo.address);
+                            $('#prof-company').text(data.company);
+                            $('#prof-phonenumber').text(data.phonenumber);
+                            $('#prof-address').text(data.address);
                             resolve();
                         });
                     });
                 })
                 .then(() => {
                     return new Promise(function(resolve,reject) {
-                        sortGroup(userId, appsInfo => {
-                            resolve(appsInfo);
+                        sortGroup(data => {
+                            resolve(data);
                         });
                     });
                 })
-                .then((appKeys) => {
+                .then((appIds) => {
                     return new Promise(function(resolve,reject) {
-                        getDB('apps',userId,'/' + appKeys[0], appsInfo => {
-                            $('#prof-name1').text(appsInfo.name);
-                            $('#prof-channelId_1').text(appsInfo.id1);
-                            $('#prof-channelSecret_1').text(appsInfo.secret);
-                            $('#prof-channelAccessToken_1').text(appsInfo.token1);
-                            resolve(appKeys);
+                        getAppDB('apps',appIds[0], data => {
+                            $('#prof-name1').text(data.name);
+                            $('#prof-channelId_1').text(data.id1);
+                            $('#prof-channelSecret_1').text(data.secret);
+                            $('#prof-channelAccessToken_1').text(data.token1);
+                            resolve(appIds);
                         });
                     });
                 })
-                .then((appKeys) => {
+                .then((appIds) => {
                     return new Promise(function(resolve,reject) {
-                        getDB('apps',userId,'/'+appKeys[1], appsInfo => {
-                            $('#prof-name2').text(appsInfo.name);
-                            $('#prof-channelId_2').text(appsInfo.id1);
-                            $('#prof-channelSecret_2').text(appsInfo.secret);
-                            $('#prof-channelAccessToken_2').text(appsInfo.token1);
-                            resolve(appKeys);
+                        getAppDB('apps',appIds[1], data => {
+                            $('#prof-name2').text(data.name);
+                            $('#prof-channelId_2').text(data.id1);
+                            $('#prof-channelSecret_2').text(data.secret);
+                            $('#prof-channelAccessToken_2').text(data.token1);
+                            resolve(appIds);
                         });
                     });
                 })
-                .then((appKeys) => {
+                .then((appIds) => {
                     return new Promise(function(resolve,reject) {
-                        getDB('apps',userId,'/'+appKeys[2], appsInfo => {
-                            $('#prof-fbPageName').text(appsInfo.name);
-                            $('#prof-fbPageId').text(appsInfo.id1);
-                            $('#prof-fbAppId').text(appsInfo.id2);
-                            $('#prof-fbAppSecret').text(appsInfo.secret);
-                            $('#prof-fbValidToken').text(appsInfo.token1);
-                            $('#prof-fbPageToken').text(appsInfo.token2);                            
+                        getAppDB('apps',appIds[2], data => {
+                            $('#prof-fbPageName').text(data.name);
+                            $('#prof-fbPageId').text(data.id1);
+                            $('#prof-fbAppId').text(data.id2);
+                            $('#prof-fbAppSecret').text(data.secret);
+                            $('#prof-fbValidToken').text(data.token1);
+                            $('#prof-fbPageToken').text(data.token2);                            
                             resolve();
                         });
                     });
@@ -242,9 +258,9 @@ $(document).ready(function() {
         });
     }
 
-    function getDB(collection,userId,ref,callback) {
+    function getUserDB(collection,userId,callback) {
         let info;
-        database.ref(collection + '/' + userId + ref).once('value', snap => {
+        database.ref(collection + '/' + userId).once('value', snap => {
             if(snap.val() !== null) {
                 info = snap.val();
                 callback(info);
@@ -252,11 +268,21 @@ $(document).ready(function() {
         });
     }
 
-    function sortGroup(userId,callback){
+    function getAppDB(collection,ref,callback) {
+        let info;
+        database.ref(collection + '/' + ref).once('value', data => {
+            if(data.val() !== null) {
+                info = data.val();
+                callback(info);
+            }
+        });
+    }
+
+    function sortGroup(callback){
         let infoKeys = [];
-        database.ref('apps/' + userId).on('child_added', snapshot => {
-            if(snapshot.val() !== null) {
-                infoKeys.push(snapshot.key);
+        database.ref('apps').on('child_added', data => {
+            if(data.val() !== null) {
+                infoKeys.push(data.key);
                 callback(infoKeys);
             }
         });
@@ -381,44 +407,32 @@ $(document).ready(function() {
         let fbAppSecret = $('#prof-edit-fbAppSecret').val();
         let fbValidToken = $('#prof-edit-fbValidToken').val();
         let fbPageToken = $('#prof-edit-fbPageToken').val();
-        let list = []; // 存app_id進users集合用的陣列
+        let line1Arr = [name1,chanId_1,chanSecret_1,chanAT_1];
+        let line2Arr = [name2,chanId_2,chanSecret_2,chanAT_2];
+        let fbArr = [fbName,fbPageId,fbAppId,fbAppSecret,fbValidToken,fbPageToken];
         let appsKeysArr = []; // 存app_id進users集合用的陣列
 
         var runApps = new Promise((resolve,reject) => {
-            console.log('start');
-            resolve();
+            database.ref('users/' + userId + '/app_ids').once('value', data => {
+                let usersIds = data.val();
+                resolve(usersIds);
+            });
         });
 
         runApps
-        .then(() => {
+        .then(data => {
             return new Promise((resolve,reject) => {
-                console.log('start1');
-                getAppHash([name1,chanId_1,chanSecret_1,chanAT_1], lineKey1 => {
-                    // console.log(lineKey1);
-                    appsKeysArr.push(lineKey1);
-                    resolve();
-                });
+                if(data === null) {
+                    // database.ref('users/' + userId + '/app_ids').update(data);
+                    resolve('new');
+                } else {
+                    resolve('modify');
+                }
             });
         })
-        .then(() => {
+        .then(data => {
             return new Promise((resolve,reject) => {
-                getAppHash([name2,chanId_2,chanSecret_2,chanAT_2], lineKey2 => {
-                    appsKeysArr.push(lineKey2);
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            return new Promise((resolve,reject) => {
-                getAppHash([fbName,fbPageId,fbAppId,fbAppSecret,fbValidToken,fbPageToken], fbKey => {
-                    appsKeysArr.push(fbKey);
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            return new Promise((resolve,reject) => {
-                getUserList(userId,appsKeysArr,() => {
+                getAppHash(line1Arr,line2Arr,fbArr,data, () => {
                     resolve();
                 });
             });
@@ -459,58 +473,58 @@ $(document).ready(function() {
         });
     }
 
-    function getAppHash(group,callback) {
-        // console.log(args.length);
-        // console.log(args[0]);
+    function getAppHash(group1,group2,group3,status,callback) {
         let userId = auth.currentUser.uid;
-        let newVal; // 存的物件
-        let hashKey;
-        switch(group.length) {
-            case 6: // facebook
-                newVal = {
-                    type: 'facebook',
-                    name: group[0],
-                    id1: group[1],
-                    id2: group[2],
-                    secret: group[3],
-                    token1: group[4],
-                    token2: group[5],
-                    order: 1
-                }
-                database.ref('apps/' + userId).push(newVal);
-                database.ref('apps/' + userId).on('child_added', snapshot => {
-                  // console.log(snapshot.key)
-                  hashKey = snapshot.key;
-                });
-                callback(hashKey);
-                break;
-            case 4: // line
-                newVal = {
-                    type: 'line',
-                    name: group[0],
-                    id1: group[1],
-                    id2: '',
-                    secret: group[2],
-                    token1: group[3],
-                    token2: '',
-                    order: 1
-                }
-                database.ref('apps/' + userId).push(newVal);
-                database.ref('apps/' + userId).on('child_added', snapshot => {
-                  // console.log(snapshot.val())
-                  hashKey = snapshot.key;
-                });
-                callback(hashKey);
-                break;
-            default:
-                console.log('cannot identify app type.');
+        let line1Key,line2Key,fbKey;
+        let line1 = {
+            type: 'line',
+            name: group1[0],
+            id1: group1[1],
+            id2: '',
+            secret: group1[2],
+            token1: group1[3],
+            token2: ''
+        }
+        let line2 = {
+            type: 'line',
+            name: group2[0],
+            id1: group2[1],
+            id2: '',
+            secret: group2[2],
+            token1: group2[3],
+            token2: ''
+        }
+        let fb = {
+            type: 'facebook',
+            name: group3[0],
+            id1: group3[1],
+            id2: group3[2],
+            secret: group3[3],
+            token1: group3[4],
+            token2: group3[5]
+        }
+        if(status === 'new') {
+            line1Key = database.ref('apps').push().key;
+            line2Key = database.ref('apps').push().key;
+            fbKey = database.ref('apps').push().key;
+            database.ref('apps/' + line1Key).update(line1);
+            database.ref('apps/' + line2Key).update(line2);
+            database.ref('apps/' + fbKey).update(fb);
+            getUserList(userId,[line1Key,line2Key,fbKey]);
+            callback();
+        } else {
+            database.ref('users/' + userId + '/app_ids').once('value', data => {
+                let usersIds = data.val();
+                database.ref('apps/' + usersIds[0]).update(line1);
+                database.ref('apps/' + usersIds[1]).update(line2);
+                database.ref('apps/' + usersIds[2]).update(fb);
                 callback();
+            });
         }
     }
 
-    function getUserList(userId,listArr,callback) {
+    function getUserList(userId,listArr) {
         database.ref('users/' + userId).update({app_ids:listArr});
-        callback();
     }
 
     function profClear() {
