@@ -41,11 +41,11 @@ $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
     if (window.location.pathname === '/chat') {
         $infoPanel.hide();
-        auth.onAuthStateChanged(currentUser => {
-            agentId = currentUser.uid;
+        setTimeout(() => {
+            agentId = auth.currentUser.uid;
             socket.emit('develop update bot', agentId); //should only for developer
             socket.emit('request chat init data', { id: agentId }, responseChatInitData);
-        });
+        },2000);
     }
 
     //=====start chat event=====

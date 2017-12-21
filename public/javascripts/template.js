@@ -17,10 +17,10 @@ $(function() {
     $(document).on('contextmenu', '.template-btn', toggleTemplateStatus);
     $(document).on('dblclick', '.template-btn', showTemplate);
     // $(document).on('click', '.template-btn', showTemplateChart); //not done
-    auth.onAuthStateChanged(currentUser => {
-        userId = currentUser.uid;
+    setTimeout(() => {
+        userId = auth.currentUser.uid;
         loadChannelInfo();
-    });
+    },2000);
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
     });
