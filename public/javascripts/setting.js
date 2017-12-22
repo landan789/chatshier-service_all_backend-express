@@ -16,6 +16,7 @@ $(document).ready(function() {
     $('[data-toggle="tooltip"]').tooltip('show'); //避免蓋掉"請填寫這個欄位"
     $('[data-toggle="tooltip"]').tooltip('destroy'); //避免蓋掉"請填寫這個欄位"
     setTimeout(loadProf, 1000);
+    window.dispatchEvent(firbaseEvent);
     $(document).on('click', '#prof-edit', profEdit); //打開modal
     $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
     $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic
@@ -168,111 +169,111 @@ $(document).ready(function() {
             resolve();
         });
         runProgram
-        .then(function() {
-            return new Promise(function(resolve,reject) {
-                getUserDB('users',userId,'', data => {
-                    $('#prof-id').text(userId);
-                    $('.panel-title').text(data.name);
-                    $('#prof-email').text(data.email);
-                    $('#prof-IDnumber').text(userId);
-                    $('#prof-company').text(data.company);
-                    $('#prof-phonenumber').text(data.phonenumber);
-                    $('#prof-address').text(data.address);
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            return new Promise(function(resolve,reject) {
-                sortGroup(userId,data => {
-                    resolve(data);
-                });
-            });
-        })
-        .then((appIds) => {
-            return new Promise(function(resolve,reject) {
-                if(appIds.length === 0) {
-                    console.log('empty')
-                    resolve(appIds);
-                } else {
-                    getAppDB('apps',appIds[0], data => {
-                        $('#prof-name1').text(data.name);
-                        $('#prof-channelId_1').text(data.id1);
-                        $('#prof-channelSecret_1').text(data.secret);
-                        $('#prof-channelAccessToken_1').text(data.token1);
-                        resolve(appIds);
-                    });
-                }
-                
-            });
-        })
-        .then((appIds) => {
-            return new Promise(function(resolve,reject) {
-                if(appIds.length === 0) {
-                    console.log('empty')
-                    resolve(appIds);
-                } else {
-                    getAppDB('apps',appIds[1], data => {
-                        $('#prof-name2').text(data.name);
-                        $('#prof-channelId_2').text(data.id1);
-                        $('#prof-channelSecret_2').text(data.secret);
-                        $('#prof-channelAccessToken_2').text(data.token1);
-                        resolve(appIds);
-                    });
-                }
-                
-            });
-        })
-        .then((appIds) => {
-            return new Promise(function(resolve,reject) {
-                if(appIds.length === 0) {
-                    console.log('empty')
-                    resolve(appIds);
-                } else {
-                    getAppDB('apps',appIds[2], data => {
-                        $('#prof-fbPageName').text(data.name);
-                        $('#prof-fbPageId').text(data.id1);
-                        $('#prof-fbAppId').text(data.id2);
-                        $('#prof-fbAppSecret').text(data.secret);
-                        $('#prof-fbValidToken').text(data.token1);
-                        $('#prof-fbPageToken').text(data.token2);                            
+            .then(function() {
+                return new Promise(function(resolve, reject) {
+                    getUserDB('users', userId, '', data => {
+                        $('#prof-id').text(userId);
+                        $('.panel-title').text(data.name);
+                        $('#prof-email').text(data.email);
+                        $('#prof-IDnumber').text(userId);
+                        $('#prof-company').text(data.company);
+                        $('#prof-phonenumber').text(data.phonenumber);
+                        $('#prof-address').text(data.address);
                         resolve();
                     });
-                }
+                });
+            })
+            .then(() => {
+                return new Promise(function(resolve, reject) {
+                    sortGroup(userId, data => {
+                        resolve(data);
+                    });
+                });
+            })
+            .then((appIds) => {
+                return new Promise(function(resolve, reject) {
+                    if (appIds.length === 0) {
+                        console.log('empty')
+                        resolve(appIds);
+                    } else {
+                        getAppDB('apps', appIds[0], data => {
+                            $('#prof-name1').text(data.name);
+                            $('#prof-channelId_1').text(data.id1);
+                            $('#prof-channelSecret_1').text(data.secret);
+                            $('#prof-channelAccessToken_1').text(data.token1);
+                            resolve(appIds);
+                        });
+                    }
+
+                });
+            })
+            .then((appIds) => {
+                return new Promise(function(resolve, reject) {
+                    if (appIds.length === 0) {
+                        console.log('empty')
+                        resolve(appIds);
+                    } else {
+                        getAppDB('apps', appIds[1], data => {
+                            $('#prof-name2').text(data.name);
+                            $('#prof-channelId_2').text(data.id1);
+                            $('#prof-channelSecret_2').text(data.secret);
+                            $('#prof-channelAccessToken_2').text(data.token1);
+                            resolve(appIds);
+                        });
+                    }
+
+                });
+            })
+            .then((appIds) => {
+                return new Promise(function(resolve, reject) {
+                    if (appIds.length === 0) {
+                        console.log('empty')
+                        resolve(appIds);
+                    } else {
+                        getAppDB('apps', appIds[2], data => {
+                            $('#prof-fbPageName').text(data.name);
+                            $('#prof-fbPageId').text(data.id1);
+                            $('#prof-fbAppId').text(data.id2);
+                            $('#prof-fbAppSecret').text(data.secret);
+                            $('#prof-fbValidToken').text(data.token1);
+                            $('#prof-fbPageToken').text(data.token2);
+                            resolve();
+                        });
+                    }
+                });
+            })
+            .then(() => {
+                console.log('finished');
+            })
+            .catch(() => {
+                console.log('running error');
             });
-        })
-        .then(() => {
-            console.log('finished');
-        })
-        .catch(() => {
-            console.log('running error');
-        });
     }
 
-    function getUserDB(collection,userId,ref,callback) {
+    function getUserDB(collection, userId, ref, callback) {
         let info;
         database.ref(collection + '/' + userId + ref).once('value', snap => {
-            if(snap.val() !== null) {
+            if (snap.val() !== null) {
                 info = snap.val();
                 callback(info);
             }
         });
     }
 
-    function getAppDB(collection,ref,callback) {
+    function getAppDB(collection, ref, callback) {
         let info;
         database.ref(collection + '/' + ref).once('value', data => {
-            if(data.val() !== null) {
+            if (data.val() !== null) {
                 info = data.val();
                 callback(info);
             }
         });
     }
 
-    function sortGroup(userId,callback){
+    function sortGroup(userId, callback) {
         let infoKeys = [];
         database.ref('users/' + userId + '/app_ids').on('value', data => {
-            if(data.val() !== null) {
+            if (data.val() !== null) {
                 infoKeys = data.val();
                 callback(infoKeys);
             } else {
@@ -400,12 +401,12 @@ $(document).ready(function() {
         let fbAppSecret = $('#prof-edit-fbAppSecret').val();
         let fbValidToken = $('#prof-edit-fbValidToken').val();
         let fbPageToken = $('#prof-edit-fbPageToken').val();
-        let line1Arr = [name1,chanId_1,chanSecret_1,chanAT_1];
-        let line2Arr = [name2,chanId_2,chanSecret_2,chanAT_2];
-        let fbArr = [fbName,fbPageId,fbAppId,fbAppSecret,fbValidToken,fbPageToken];
+        let line1Arr = [name1, chanId_1, chanSecret_1, chanAT_1];
+        let line2Arr = [name2, chanId_2, chanSecret_2, chanAT_2];
+        let fbArr = [fbName, fbPageId, fbAppId, fbAppSecret, fbValidToken, fbPageToken];
         let appsKeysArr = []; // 存app_id進users集合用的陣列
 
-        var runApps = new Promise((resolve,reject) => {
+        var runApps = new Promise((resolve, reject) => {
             database.ref('users/' + userId + '/app_ids').once('value', data => {
                 let usersIds = data.val();
                 resolve(usersIds);
@@ -413,62 +414,62 @@ $(document).ready(function() {
         });
 
         runApps
-        .then(data => {
-            return new Promise((resolve,reject) => {
-                if(data === null) {
-                    // database.ref('users/' + userId + '/app_ids').update(data);
-                    resolve('new');
-                } else {
-                    resolve('modify');
-                }
-            });
-        })
-        .then(data => {
-            return new Promise((resolve,reject) => {
-                getAppHash(line1Arr,line2Arr,fbArr,data, () => {
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            return new Promise((resolve,reject) => {
-                socket.emit('update bot', {
-                    line_1: {
-                        channelId: chanId_1,
-                        channelSecret: chanSecret_1,
-                        channelAccessToken: chanAT_1
-                    },
-                    line_2: {
-                        channelId: chanId_2,
-                        channelSecret: chanSecret_2,
-                        channelAccessToken: chanAT_2
-                    },
-                    fb: {
-                        pageID: fbPageId,
-                        appID: fbAppId,
-                        appSecret: fbAppSecret,
-                        validationToken: fbValidToken,
-                        pageToken: fbPageToken
+            .then(data => {
+                return new Promise((resolve, reject) => {
+                    if (data === null) {
+                        // database.ref('users/' + userId + '/app_ids').update(data);
+                        resolve('new');
+                    } else {
+                        resolve('modify');
                     }
                 });
-                resolve();
+            })
+            .then(data => {
+                return new Promise((resolve, reject) => {
+                    getAppHash(line1Arr, line2Arr, fbArr, data, () => {
+                        resolve();
+                    });
+                });
+            })
+            .then(() => {
+                return new Promise((resolve, reject) => {
+                    socket.emit('update bot', {
+                        line_1: {
+                            channelId: chanId_1,
+                            channelSecret: chanSecret_1,
+                            channelAccessToken: chanAT_1
+                        },
+                        line_2: {
+                            channelId: chanId_2,
+                            channelSecret: chanSecret_2,
+                            channelAccessToken: chanAT_2
+                        },
+                        fb: {
+                            pageID: fbPageId,
+                            appID: fbAppId,
+                            appSecret: fbAppSecret,
+                            validationToken: fbValidToken,
+                            pageToken: fbPageToken
+                        }
+                    });
+                    resolve();
+                });
+            })
+            .then(() => {
+                $('#error-message').hide();
+                $('#profModal').modal('hide');
+                profClear();
+                loadProf();
+            })
+            .catch((reason) => {
+                console.log("loading Failed");
+                console.log(reason)
             });
-        })
-        .then(() => {
-            $('#error-message').hide();
-            $('#profModal').modal('hide');
-            profClear();
-            loadProf();
-        })
-        .catch((reason) => {
-            console.log("loading Failed");
-            console.log(reason)
-        });
     }
 
-    function getAppHash(group1,group2,group3,status,callback) {
+    function getAppHash(group1, group2, group3, status, callback) {
         let userId = auth.currentUser.uid;
-        let line1Key,line2Key,fbKey;
+        let line1Key, line2Key, fbKey;
         let line1 = {
             type: 'line',
             name: group1[0],
@@ -496,14 +497,14 @@ $(document).ready(function() {
             token1: group3[4],
             token2: group3[5]
         }
-        if(status === 'new') {
+        if (status === 'new') {
             line1Key = database.ref('apps').push().key;
             line2Key = database.ref('apps').push().key;
             fbKey = database.ref('apps').push().key;
             database.ref('apps/' + line1Key).update(line1);
             database.ref('apps/' + line2Key).update(line2);
             database.ref('apps/' + fbKey).update(fb);
-            getUserList(userId,[line1Key,line2Key,fbKey]);
+            getUserList(userId, [line1Key, line2Key, fbKey]);
             callback();
         } else {
             database.ref('users/' + userId + '/app_ids').once('value', data => {
@@ -516,8 +517,8 @@ $(document).ready(function() {
         }
     }
 
-    function getUserList(userId,listArr) {
-        database.ref('users/' + userId).update({app_ids:listArr});
+    function getUserList(userId, listArr) {
+        database.ref('users/' + userId).update({ app_ids: listArr });
     }
 
     function profClear() {
@@ -531,7 +532,7 @@ $(document).ready(function() {
         $('#prof-edit-channelId_1').val('');
         $('#prof-edit-channelSecret_1').val('');
         $('#prof-edit-channelAccessToken_1').val('');
-        $('#prof-edit-name2').val(''); 
+        $('#prof-edit-name2').val('');
         $('#prof-edit-channelId_2').val('');
         $('#prof-edit-channelSecret_2').val('');
         $('#prof-edit-channelAccessToken_2').val('');
