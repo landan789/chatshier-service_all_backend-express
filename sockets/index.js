@@ -17,10 +17,12 @@ var users = require('../models/users');
 var chatapps = require('../models/chatapps');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
+var webhooks = require('../models/webhooks');
+var apps = require('../models/apps');
 var messageHandle = require('../message_handle');
 
 const WAIT_TIME = 10000;
-
+const LINE = 'line';
 var fb_bot = {};
 var linebotParser;
 var globalLineMessageArray = [];
@@ -85,6 +87,72 @@ function init(server) {
         }
     }); //app.post
     //==============FACEBOOK MESSAGE END==============
+    app.post('/webhook/:webhookId', (req, res, next) => {
+        var webhookId = req.params.webhookId;
+        var p = new Promise((resolve, reject) => {
+            resolve();
+        });
+
+        p.then(() => {
+            return new Promise((resolve, reject) => {
+                webhooks.getById(webhookId, (webhook) => {
+                    var appId = webhook.app_id;
+
+                    if (false === webhook || null === webhook) {
+                        reject();
+                        return;
+                    }
+
+                    if (!webhook.hasOwnProperty('app_id')) {
+                        reject();
+                        return;
+                    }
+                    resolve(webhook);
+                });
+            });
+        }).then((data) => {
+            var appId = data.app_id;
+            return new Promise((resolve, reject) => {
+                apps.getById(appId, (app) => {
+
+                    resolve(app);
+                });
+            });
+
+
+        }).then((data) => {
+            var app = data;
+
+            return new Promise((resolve, reject) => {
+                if (LINE === app.type) {
+                    var line = {
+                        channelId: data.id1,
+                        channelSecret: data.secret,
+                        channelAccessToken: data.token1
+                    };
+
+                    var bot = linebot(line);
+                    bot.on('message', bot_on_message);
+                    bot.on('follow', bot_on_follow);
+                    req.parser = bot.parser;
+
+                    resolve();
+                }
+
+            });
+        }).then(() => {
+            console.log('149....');
+
+            next();
+        }).catch((error) => {
+            res.send(404);
+        });
+    }, (req, res, next) => {
+        var parser = req.parser;
+        parser(req, res, next);
+    }, (req, res, next) => {
+        res.send(200);
+    });
     app.post('/linehook1', function() {
         linebotParser[0](arguments[0], arguments[1], arguments[2]);
         console.log(channelIds);
@@ -109,7 +177,7 @@ function init(server) {
             tags.get(function(tagsData) {
                 callback(tagsData);
             });
-        } 
+        }
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
@@ -124,7 +192,7 @@ function init(server) {
             });
             let loadChannels = new Promise((resolve, reject) => {
                 console.log("chan start");
-                chatapps.getApps(userId,data => {
+                chatapps.getApps(userId, data => {
                     res.channelsData = data;
                     resolve();
                 });
@@ -188,8 +256,8 @@ function init(server) {
         function requestChannels(userId, callback) {
             let appsArr = [];
             chatapps.getApps(chatInfo => {
-                for(let i in chatInfo) {
-                    if(chatInfo[i].user_id === userId) {
+                for (let i in chatInfo) {
+                    if (chatInfo[i].user_id === userId) {
                         appsArr.push(chatInfo);
                         console.log(appsArr);
                     }
@@ -216,11 +284,11 @@ function init(server) {
             let nowTime = vendor.msgtime;
             let channel = vendor.channelId === undefined ? vendor.pageId : vendor.channelId;
 
-            let sendToClient = new Promise((resolve,reject) => {
+            let sendToClient = new Promise((resolve, reject) => {
                 // 傳到shield chat
                 var msgObj = {
                     owner: "agent",
-                    name: agentName, 
+                    name: agentName,
                     time: nowTime,
                     message: "undefined_message"
                 };
@@ -228,99 +296,99 @@ function init(server) {
                 if (msg.includes('/image')) {
                     var src = msg.split(' ')[1];
                     msgObj.message = `<img src="${src}" />`;
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 } else if (msg.includes('/audio')) {
                     var src = msg.split(' ')[1];
                     msgObj.message = `<audio controls="controls">
                                         <source src="${src}" type="audio/ogg">
                                       </audio>`;
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 } else if (msg.includes('/video')) {
                     var src = msg.split(' ')[1];
                     msgObj.message = `<video controls="controls">
                                         <source src="${src}" type="video/mp4">
                                       </video> `;
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 } else if (utility.isUrl(msg)) {
                     let urlStr = '<a href=';
                     if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
                         urlStr += '"http://';
                     }
                     msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 } else if (msg.includes('/sticker')) {
                     msgObj.message = 'Send sticker to user';
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 } else {
                     msgObj.message = msg;
-                    resolve([msgObj,vendor]);
+                    resolve([msgObj, vendor]);
                 }
             });
 
             sendToClient
-            .then(data => {
-                return new Promise((resolve,reject) => {
-                    // console.log(data[1].channelId,data[1].pageId);
-                    if(data[1].channelId !== undefined) {
-                        let lineObj = {
-                            channelId: data[1].channelId,
-                            channelSecret: data[1].channelSecret,
-                            channelAccessToken: data[1].channelToken
+                .then(data => {
+                    return new Promise((resolve, reject) => {
+                        // console.log(data[1].channelId,data[1].pageId);
+                        if (data[1].channelId !== undefined) {
+                            let lineObj = {
+                                channelId: data[1].channelId,
+                                channelSecret: data[1].channelSecret,
+                                channelAccessToken: data[1].channelToken
+                            }
+                            let bot = linebot(lineObj);
+                            linebotParser = bot.parser();
+                            send_to_Line(msg, data => {
+                                bot.push(receiver, data);
+                            });
+                            resolve([data[0], 'line']);
+                        } else if (data[1].pageId !== undefined) {
+                            let fbObj = {
+                                pageID: data[1].pageId,
+                                appID: data[1].appId,
+                                appSecret: data[1].appSecret,
+                                validationToken: data[1].clientToken,
+                                pageToken: data[1].pageToken
+                            }
+                            let bot = MessengerPlatform.create(fbObj);
+                            if (Object.keys(bot).length > 0) {
+                                if (msg.startsWith('/image')) {
+                                    let link = msg.substr(7);
+                                    bot.sendImageMessage(receiver, link, true);
+                                    resolve([data[0], 'facebook']);
+                                } else if (msg.startsWith('/video')) {
+                                    let link = msg.substr(7);
+                                    bot.sendVideoMessage(receiver, link, true);
+                                    resolve([data[0], 'facebook']);
+                                } else if (msg.startsWith('/audio')) {
+                                    let link = msg.substr(7);
+                                    bot.sendAudioMessage(receiver, link, true);
+                                    resolve([data[0], 'facebook']);
+                                } else {
+                                    bot.sendTextMessage(receiver, msg);
+                                    resolve([data[0], 'facebook']);
+                                }
+                            }
+                        } else {
+                            reject('app not detected');
                         }
-                        let bot = linebot(lineObj);
-                        linebotParser = bot.parser();
-                        send_to_Line(msg, data => {
-                            bot.push(receiver, data);
-                        });
-                        resolve([data[0],'line']);
-                    } else if(data[1].pageId !== undefined) {
-                        let fbObj = {
-                            pageID: data[1].pageId,
-                            appID: data[1].appId,
-                            appSecret: data[1].appSecret,
-                            validationToken: data[1].clientToken,
-                            pageToken: data[1].pageToken
-                        }
-                        let bot = MessengerPlatform.create(fbObj);
-                        if (Object.keys(bot).length > 0) {
-                            if (msg.startsWith('/image')) {
-                                let link = msg.substr(7);
-                                bot.sendImageMessage(receiver, link, true);
-                                resolve([data[0],'facebook']);
-                            } else if (msg.startsWith('/video')) {
-                                let link = msg.substr(7);
-                                bot.sendVideoMessage(receiver, link, true);
-                                resolve([data[0],'facebook']);
-                            } else if (msg.startsWith('/audio')) {
-                                let link = msg.substr(7);
-                                bot.sendAudioMessage(receiver, link, true);
-                                resolve([data[0],'facebook']);
-                            } else {
-                                bot.sendTextMessage(receiver, msg);
-                                resolve([data[0],'facebook']);
+                    });
+                })
+                .then(data => {
+                    chats.get(chatData => {
+                        for (let prop in chatData) {
+                            let client = chatData[prop];
+                            if (utility.isSameUser(client.Profile, receiver, channel)) {
+                                let length = client.Messages.length;
+                                let updateObj = {};
+                                updateObj['/' + prop + '/Messages/' + length] = data[0];
+                                chats.update(updateObj);
                             }
                         }
-                    } else {
-                        reject('app not detected');
-                    }
+                    });
+                })
+                .catch(reason => {
+                    console.log(reason);
                 });
-            })
-            .then(data => {
-                chats.get(chatData => {
-                    for( let prop in chatData ) {
-                        let client = chatData[prop];
-                        if( utility.isSameUser(client.Profile, receiver, channel) ) {
-                            let length = client.Messages.length;
-                            let updateObj = {};
-                            updateObj['/'+prop+'/Messages/'+length] = data[0];
-                            chats.update(updateObj);
-                        }
-                    }
-                });
-            })
-            .catch(reason => {
-                console.log(reason);
-            });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data, callback) => {

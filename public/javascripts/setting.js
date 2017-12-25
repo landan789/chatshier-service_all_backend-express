@@ -478,7 +478,8 @@ $(document).ready(function() {
             secret: group1[2],
             token1: group1[3],
             token2: '',
-            user_id: userId
+            user_id: userId,
+            webhook_id: ""
         }
         let line2 = {
             type: 'line',
@@ -488,7 +489,8 @@ $(document).ready(function() {
             secret: group2[2],
             token1: group2[3],
             token2: '',
-            user_id: userId
+            user_id: userId,
+            webhook_id: ""
         }
         let fb = {
             type: 'facebook',
@@ -498,23 +500,66 @@ $(document).ready(function() {
             secret: group3[3],
             token1: group3[4],
             token2: group3[5],
-            user_id: userId
+            user_id: userId,
+            webhook_id: ""
         }
         if (status === 'new') {
             line1Key = database.ref('apps').push().key;
             line2Key = database.ref('apps').push().key;
+            webhook1Key = database.ref('webhooks').push().key;
+            webhook2Key = database.ref('webhooks').push().key;
+            webhook3Key = database.ref('webhooks').push().key;
+
             fbKey = database.ref('apps').push().key;
+            debugger;
+            line1.webhook_id = webhook1Key;
+            line2.webhook_id = webhook2Key;
+            fb.webhook_id = webhook3Key;
+
             database.ref('apps/' + line1Key).update(line1);
             database.ref('apps/' + line2Key).update(line2);
             database.ref('apps/' + fbKey).update(fb);
+            var webhook1 = {
+                app_id: line1Key
+            }
+
+            var webhook2 = {
+                app_id: line2Key
+            }
+
+            var webhook3 = {
+                app_id: fbKey
+            }
+
+            database.ref('webhooks/' + webhook1Key).update(webhook1);
+            database.ref('webhooks/' + webhook2Key).update(webhook2);
+            database.ref('webhooks/' + webhook3Key).update(webhook3);
             getUserList(userId, [line1Key, line2Key, fbKey]);
             callback();
         } else {
             database.ref('users/' + userId + '/app_ids').once('value', data => {
                 let usersIds = data.val();
-                database.ref('apps/' + usersIds[0]).update(line1);
-                database.ref('apps/' + usersIds[1]).update(line2);
-                database.ref('apps/' + usersIds[2]).update(fb);
+                database.ref('apps/' + +usersIds[0]).once('value', data => {
+                    let _line1 = data.val();
+                    line1.webhook_id = _line1.webhook_id;
+                    database.ref('apps/' + usersIds[0]).update(line1);
+
+                });
+
+                database.ref('apps/' + +usersIds[1]).once('value', data => {
+                    let _line2 = data.val();
+                    line12.webhook_id = _line2.webhook_id;
+                    database.ref('apps/' + usersIds[0]).update(line2);
+
+                });
+
+                database.ref('apps/' + +usersIds[2]).once('value', data => {
+                    let _fb = data.val();
+                    fb.webhook_id = _fb.webhook_id;
+                    database.ref('apps/' + usersIds[0]).update(fb);
+
+                });
+
                 callback();
             });
         }
