@@ -116,7 +116,7 @@ $(document).ready(function() {
 
 
     function appendNewTag(id) {
-        tagTableBody.append('<tr class="tag-content" id="' + id + '">' + '<td class="tag-name"></td>' +
+        tagTableBody.append('<tr class="tag-content" id="' + id + '">' + '<td class="tag-name  long-token"></td>' +
             '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' +
             '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>' +
             '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' +
@@ -362,12 +362,12 @@ $(document).ready(function() {
         // console.log(id);
         // database.ref('users/' + userId).remove();
         if (phonenumber === "") {
-            $('#prof-edit-phonenumber').tooltip('show'); //show 
+            $('#prof-edit-phonenumber').tooltip('show'); //show
             setTimeout(function() {
                 $('#prof-edit-phonenumber').tooltip('destroy');
             }, 3000);
         } else if (!phonenumber.match(phoneRule)) {
-            $('#prof-edit-phonenumber').tooltip('show'); //show 
+            $('#prof-edit-phonenumber').tooltip('show'); //show
             setTimeout(function() {
                 $('#prof-edit-phonenumber').tooltip('destroy');
             }, 3000);
