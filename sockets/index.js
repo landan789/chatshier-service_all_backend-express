@@ -2,7 +2,6 @@ var app = require('../app');
 var moment = require('moment');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
-var fb_bot = {};
 var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
 var admin = require("firebase-admin"); //firebase admin SDK
 var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
@@ -22,6 +21,8 @@ var messageHandle = require('../message_handle');
 
 const WAIT_TIME = 10000;
 
+var fb_bot = {};
+var linebotParser;
 var globalLineMessageArray = [];
 
 admin.initializeApp({
@@ -49,7 +50,7 @@ function init(server) {
     //==============FACEBOOK MESSAGE==============
     app.post('/webhook', function(req, res) {
         var data = req.body;
-        console.log('data on line 91');
+        console.log('data on line 52');
         console.log(data);
 
         // Make sure this is a page subscription
@@ -89,7 +90,6 @@ function init(server) {
         console.log(channelIds);
     });
     app.post('/linehook2', function() {
-        console.log("HOHO");
         linebotParser[1](arguments[0], arguments[1], arguments[2]);
         console.log(channelIds);
     });
@@ -109,7 +109,7 @@ function init(server) {
             tags.get(function(tagsData) {
                 callback(tagsData);
             });
-        }
+        } 
         socket.on('request chat init data', (req, callback) => {
             let userId = req.id;
             let res = {};
@@ -124,8 +124,7 @@ function init(server) {
             });
             let loadChannels = new Promise((resolve, reject) => {
                 console.log("chan start");
-                requestChannels(userId, (data) => {
-                    console.log("chan end");
+                chatapps.getApps(userId,data => {
                     res.channelsData = data;
                     resolve();
                 });
@@ -141,7 +140,7 @@ function init(server) {
                 setTimeout(reject, WAIT_TIME, "internal network too slow");
             });
 
-            Promise.all([loadTags, loadChannels, loadInternals]).then(() => {
+            Promise.all([loadTags, loadInternals, loadChannels]).then(() => {
                 console.log("all done ! print res");
                 console.log(res);
                 callback(res);
@@ -187,10 +186,14 @@ function init(server) {
         });
 
         function requestChannels(userId, callback) {
-            chatapps.getApps(userId, chatInfo => {
-                utility.updateChannel(chatInfo, (channelObj) => {
-                    callback(channelObj);
-                });
+            let appsArr = [];
+            chatapps.getApps(chatInfo => {
+                for(let i in chatInfo) {
+                    if(chatInfo[i].user_id === userId) {
+                        appsArr.push(chatInfo);
+                        console.log(appsArr);
+                    }
+                }
             });
         }
         // 4.撈出歷史訊息
@@ -205,52 +208,119 @@ function init(server) {
         });
         // 從SHIELD chat傳送訊息
         socket.on('send message', data => {
-            let msg = data.msg;
-            let agent_sendTo_receiver = data.id === undefined ? "agent_sendTo_receiver undefined!" : data.id
-            let chanId = data.channelId;
-            let agent_nickname = socket.nickname ? socket.nickname : 'agent';
-            var message;
-            let nowTime = Date.now();
-            //====send to fb or line====//
-            if (chanId == channelIds[2]) {
-                send_to_FB(msg, agent_sendTo_receiver);
-            } else {
-                send_to_Line(msg, agent_sendTo_receiver, chanId);
-            }
-            // 傳到shield chat
-            var msgObj = {
-                owner: "agent",
-                name: agent_nickname,
-                time: nowTime,
-                message: "undefined_message"
-            };
-            let channelId = -1;
-            if (channelIds.indexOf(chanId) !== -1) channelId = chanId;
-            if (msg.includes('/image')) {
-                var src = msg.split(' ')[1];
-                msgObj.message = `<img src="${src}" />`;
-            } else if (msg.includes('/audio')) {
-                var src = msg.split(' ')[1];
-                msgObj.message = `<audio controls="controls">
-                                    <source src="${src}" type="audio/ogg">
-                                  </audio>`;
-            } else if (msg.includes('/video')) {
-                var src = msg.split(' ')[1];
-                msgObj.message = `<video controls="controls">
-                                    <source src="${src}" type="video/mp4">
-                                  </video> `;
-            } else if (utility.isUrl(msg)) {
-                let urlStr = '<a href=';
-                if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
-                    urlStr += '"http://';
+            // console.log(data);
+            let vendor = data;
+            let msg = vendor.msg;
+            let receiver = data.id === undefined ? "receiver undefined!" : vendor.id
+            let agentName = socket.nickname ? socket.nickname : 'agent';
+            let nowTime = vendor.msgtime;
+            let channel = vendor.channelId === undefined ? vendor.pageId : vendor.channelId;
+
+            let sendToClient = new Promise((resolve,reject) => {
+                // 傳到shield chat
+                var msgObj = {
+                    owner: "agent",
+                    name: agentName, 
+                    time: nowTime,
+                    message: "undefined_message"
+                };
+                // console.log(msgObj,'function going through')
+                if (msg.includes('/image')) {
+                    var src = msg.split(' ')[1];
+                    msgObj.message = `<img src="${src}" />`;
+                    resolve([msgObj,vendor]);
+                } else if (msg.includes('/audio')) {
+                    var src = msg.split(' ')[1];
+                    msgObj.message = `<audio controls="controls">
+                                        <source src="${src}" type="audio/ogg">
+                                      </audio>`;
+                    resolve([msgObj,vendor]);
+                } else if (msg.includes('/video')) {
+                    var src = msg.split(' ')[1];
+                    msgObj.message = `<video controls="controls">
+                                        <source src="${src}" type="video/mp4">
+                                      </video> `;
+                    resolve([msgObj,vendor]);
+                } else if (utility.isUrl(msg)) {
+                    let urlStr = '<a href=';
+                    if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
+                        urlStr += '"http://';
+                    }
+                    msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
+                    resolve([msgObj,vendor]);
+                } else if (msg.includes('/sticker')) {
+                    msgObj.message = 'Send sticker to user';
+                    resolve([msgObj,vendor]);
+                } else {
+                    msgObj.message = msg;
+                    resolve([msgObj,vendor]);
                 }
-                msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-            } else if (msg.includes('/sticker')) {
-                msgObj.message = 'Send sticker to user';
-            } else {
-                msgObj.message = msg;
-            }
-            pushAndEmit(msgObj, null, channelId, agent_sendTo_receiver, 0);
+            });
+
+            sendToClient
+            .then(data => {
+                return new Promise((resolve,reject) => {
+                    // console.log(data[1].channelId,data[1].pageId);
+                    if(data[1].channelId !== undefined) {
+                        let lineObj = {
+                            channelId: data[1].channelId,
+                            channelSecret: data[1].channelSecret,
+                            channelAccessToken: data[1].channelToken
+                        }
+                        let bot = linebot(lineObj);
+                        linebotParser = bot.parser();
+                        send_to_Line(msg, data => {
+                            bot.push(receiver, data);
+                        });
+                        resolve([data[0],'line']);
+                    } else if(data[1].pageId !== undefined) {
+                        let fbObj = {
+                            pageID: data[1].pageId,
+                            appID: data[1].appId,
+                            appSecret: data[1].appSecret,
+                            validationToken: data[1].clientToken,
+                            pageToken: data[1].pageToken
+                        }
+                        let bot = MessengerPlatform.create(fbObj);
+                        if (Object.keys(bot).length > 0) {
+                            if (msg.startsWith('/image')) {
+                                let link = msg.substr(7);
+                                bot.sendImageMessage(receiver, link, true);
+                                resolve([data[0],'facebook']);
+                            } else if (msg.startsWith('/video')) {
+                                let link = msg.substr(7);
+                                bot.sendVideoMessage(receiver, link, true);
+                                resolve([data[0],'facebook']);
+                            } else if (msg.startsWith('/audio')) {
+                                let link = msg.substr(7);
+                                bot.sendAudioMessage(receiver, link, true);
+                                resolve([data[0],'facebook']);
+                            } else {
+                                bot.sendTextMessage(receiver, msg);
+                                resolve([data[0],'facebook']);
+                            }
+                        }
+                    } else {
+                        reject('app not detected');
+                    }
+                });
+            })
+            .then(data => {
+                chats.get(chatData => {
+                    for( let prop in chatData ) {
+                        let client = chatData[prop];
+                        if( utility.isSameUser(client.Profile, receiver, channel) ) {
+                            let length = client.Messages.length;
+                            let updateObj = {};
+                            updateObj['/'+prop+'/Messages/'+length] = data[0];
+                            chats.update(updateObj);
+                        }
+                    }
+                });
+            })
+            .catch(reason => {
+                console.log(reason);
+            });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data, callback) => {
@@ -1046,7 +1116,7 @@ function init(server) {
     function bot_on_follow(event) {
         // console.log(bot[0].options.channelId);
         let follow_message = [];
-        let currentChannel = bot[0].options.channelId;
+        let currentChannel = bot.options.channelId;
         globalLineMessageArray.map(item => {
             console.log('LOOPING...')
             console.log(currentChannel + ":" + item.chanId)
@@ -1083,24 +1153,9 @@ function init(server) {
             channelIds[2] = chanInfo.fb.pageID;
         }
     } // end of update_line_bot
-    function send_to_FB(msg, receiver) {
-        if (Object.keys(fb_bot).length > 0) {
-            if (msg.startsWith('/image')) {
-                let link = msg.substr(7);
-                fb_bot.sendImageMessage(receiver, link, true);
-            } else if (msg.startsWith('/video')) {
-                let link = msg.substr(7);
-                fb_bot.sendVideoMessage(receiver, link, true);
-            } else if (msg.startsWith('/audio')) {
-                let link = msg.substr(7);
-                fb_bot.sendAudioMessage(receiver, link, true);
-            } else {
-                fb_bot.sendTextMessage(receiver, msg);
-            }
-        }
-    }
 
-    function send_to_Line(msg, receiver, chanId) {
+
+    function send_to_Line(msg, callback) {
         let message = {};
         if (msg.startsWith('/image')) {
             let link = msg.substr(7);
@@ -1138,11 +1193,7 @@ function init(server) {
                 text: msg
             };
         }
-        if (chanId === channelIds[0]) {
-            bot[0].push(receiver, message);
-        } else if (chanId === channelIds[1]) {
-            bot[1].push(receiver, message);
-        }
+        callback(message);
     }
 
     function emitIO_and_pushDB_internal(obj, roomId, agentNick) {

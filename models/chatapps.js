@@ -1,9 +1,15 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var chatappsModel = {};
 chatappsModel.getApps = (userId,callback) => {
-    admin.database().ref('apps/' + userId).once('value', snap => {
+    admin.database().ref('apps').on('value', snap => {
+    	let dataArr = [];
         let Data = snap.val();
-        callback(Data);
+        for(let i in Data) {
+        	if(Data[i].user_id === userId) {
+        		dataArr.push(Data[i]);
+        		callback(dataArr);
+        	}
+        }
     });
 }
 module.exports = chatappsModel;

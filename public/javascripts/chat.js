@@ -39,14 +39,11 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     window.dispatchEvent(firbaseEvent);
-    if (window.location.pathname === '/chat') {
-        $infoPanel.hide();
-        setTimeout(() => {
-            agentId = auth.currentUser.uid;
-            socket.emit('develop update bot', agentId); //should only for developer
-            socket.emit('request chat init data', { id: agentId }, responseChatInitData);
-        },2000);
-    }
+    $infoPanel.hide();
+    setTimeout(() => {
+        agentId = auth.currentUser.uid;
+        socket.emit('request chat init data', { id: agentId }, responseChatInitData);
+    },2000);
 
     //=====start chat event=====
     openChatAppItem.click(showChatApp);
@@ -112,7 +109,6 @@ $(document).ready(function() {
         if (data.reject) {
             alert(data.reject);
         } else {
-            checkNickName(data.checkNickName);
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
             responseChannels(data.channelsData);
@@ -120,23 +116,22 @@ $(document).ready(function() {
     }
 
     function responseChannels(data) {
-        if (data.chanId_1 === '' && data.chanId_2 === '' && data.fbPageId === '') {
+        if (data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
             if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
                 $('#notifyModal').modal("show");
                 window.sessionStorage["notifyModal"] = 1;
             }
-
         } else {
-            socket.emit('request chat data', [data.chanId_1, data.chanId_2, data.fbPageId], responseChatData);
-            $('.chat-app-item#Line_1').attr('rel', data.chanId_1);
-            $('.chat-app-item#Line_2').attr('rel', data.chanId_2);
-            $('.chat-app-item#FB').attr('rel', data.fbPageId);
-            $('#Line_1').attr('data-original-title', data.name1);
-            $('#Line_2').attr('data-original-title', data.name2);
-            $('#FB').attr('data-original-title', data.fbName);
-            room_list.push(data.chanId_1);
-            room_list.push(data.chanId_2);
-            room_list.push(data.fbPageId);
+            socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
+            $('.chat-app-item#Line_1').attr('rel', data[0].id1);
+            $('.chat-app-item#Line_2').attr('rel', data[1].id1);
+            $('.chat-app-item#FB').attr('rel', data[2].id1);
+            $('#Line_1').attr('data-original-title', data[0].name);
+            $('#Line_2').attr('data-original-title', data[1].name);
+            $('#FB').attr('data-original-title', data[2].name);
+            room_list.push(data[0].id1); // line1
+            room_list.push(data[1].id1); // line2
+            room_list.push(data[2].id1); // facebook
 
         }
     }
@@ -179,7 +174,6 @@ $(document).ready(function() {
     }
 
     function responseInternalChatData(data) {
-        // console.log(data);
         internalTagsData = data.internalTagsData;
         agentIdToName = data.agentIdToName;
         for (i in data.data) {
@@ -623,45 +617,126 @@ $(document).ready(function() {
     } // end of detecetScrollTop
     function submitMsg(e) {
         e.preventDefault();
+        let vendorId = auth.currentUser.uid;
         let email = auth.currentUser.email;
-        let channelId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel');
-        let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id');
+        let channelId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel'); // 客戶的聊天室ID
+        let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id'); // 客戶的user ID
+        let msgStr = messageInput.val();
         if (userId !== undefined || channelId !== undefined) {
             if (channelId == "internal") {
+                messageInput.val('');
                 let sendObj = {
                     agentId: auth.currentUser.uid,
                     time: Date.now(),
-                    message: messageInput.val()
+                    message: msgStr
                 };
                 socket.emit('send internal message', {
                     sendObj: sendObj,
                     roomId: userId
                 });
             } else {
-                let sendObj = {
-                    id: userId,
-                    msg: messageInput.val(),
-                    msgtime: Date.now(),
-                    channelId: channelId
-                };
-                // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
-                database.ref('chats/Data').once('value', outsnap => {
-                    let outInfo = outsnap.val();
-                    let outId = Object.keys(outInfo);
-                    for (let i in outId) {
-                        database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
-                            let innInfo = innsnap.val();
-                            if (innInfo.channelId === undefined) {} else if (innInfo.channelId === channelId && innInfo.userId === userId) {
-                                database.ref('chats/Data/' + outId[i] + '/Profile').update({
-                                    "lastTalkedTo": email
+                var getAppsInfo = new Promise((resolve,reject) => {
+                    database.ref('users/' + vendorId).once('value', data => {
+                        if(data.val() !== null) {
+                            let user = data.val();
+                            let str = toAgentStr(msgStr, data.name, Date.now());
+                            $("#" + userId + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
+                            $('#' + userId + '-content' + "[rel='" + channelId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
+                            messageInput.val('');
+                            resolve();
+                        } else {
+                            reject('vendor not found!')
+                        }
+                    });
+                });
+
+                getAppsInfo
+                .then(() => {
+                    return new Promise((resolve,reject) => {
+                        database.ref('apps').once('value', data => {
+                            if(data.val() === null) {
+                                reject('data is empty');
+                            } else {
+                                let appsInfo = data.val();
+                                resolve(appsInfo);
+                            }
+                        });
+                    });
+                })
+                .then(data => {
+                    return new Promise((resolve,reject) => {
+                        database.ref('users/' + vendorId + '/app_ids').once('value', userApps => {
+                            let sendObj = {};
+                            if(userApps.val() === null) {
+                                reject('vendor does not have apps setup');
+                            } else {
+                                let hashId = userApps.val();
+                                if(data[hashId[0]].id1 === channelId) {
+                                    sendObj.id = userId;
+                                    sendObj.msg = msgStr;
+                                    sendObj.msgtime = Date.now();
+                                    sendObj.channelId = data[hashId[0]].id1;
+                                    sendObj.channelSecret = data[hashId[0]].secret;
+                                    sendObj.channelToken = data[hashId[0]].token1;
+                                    resolve(sendObj);
+                                } else if(data[hashId[1]].id1 === channelId) {
+                                    sendObj.id = userId;
+                                    sendObj.msg = msgStr;
+                                    sendObj.msgtime = Date.now();
+                                    sendObj.channelId = data[hashId[0]].id1;
+                                    sendObj.channelSecret = data[hashId[0]].secret;
+                                    sendObj.channelToken = data[hashId[0]].token1;
+                                    resolve(sendObj);
+                                } else if(data[hashId[2]].id2 === channelId) {
+                                    sendObj.id = userId;
+                                    sendObj.msg = msgStr;
+                                    sendObj.msgtime = Date.now();
+                                    sendObj.pageId = data[hashId[0]].id1;
+                                    sendObj.appId = data[hashId[0]].id2;
+                                    sendObj.appSecret = data[hashId[0]].secret;
+                                    sendObj.clientToken = data[hashId[0]].token1;
+                                    sendObj.pageToken = data[hashId[0]].token2;
+                                    resolve(sendObj);
+                                }
+                            }
+                        });
+                    })
+                })
+                .then(data => {
+                    return new Promise((resolve,reject) => {
+                        socket.emit('send message', data);
+                        resolve(data);
+                    });
+                })
+                .then(data => {
+                    return new Promise((resolve,reject) => {
+                        // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
+                        database.ref('chats/Data').once('value', outsnap => {
+                            let outInfo = outsnap.val();
+                            let outId = Object.keys(outInfo);
+                            for (let i in outId) {
+                                database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
+                                    let innInfo = innsnap.val();
+                                    if (innInfo.channelId === undefined) {
+                                        reject('no such record under chats/Data');
+                                    } else if (innInfo.channelId === channelId && innInfo.userId === userId) {
+                                        database.ref('chats/Data/' + outId[i] + '/Profile').update({
+                                            "lastTalkedTo": email
+                                        });
+                                        resolve();
+                                    }
                                 });
                             }
                         });
-                    }
+                    });
+                })
+                .then(() => {
+                    console.log('sent')
+                })
+                .catch(reason => {
+                    console.log(reason);
                 });
-                socket.emit('send message', sendObj); //emit到server (www)
             }
-            messageInput.val('');
         } else {
             console.log('either room id or channel id is undefined');
         }
