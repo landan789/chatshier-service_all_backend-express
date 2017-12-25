@@ -1,3 +1,35 @@
+@media (min-width: 1px) and (max-width: 414px) {
+  .padding-left-right {
+      padding: 0 25px;
+  }
+  .chsr.signin-logo,
+  .chsr.signup-logo{
+    margin-top: 30px;
+    margin-bottom: 20px;
+  }
+}
+@media (min-width: 415px) and (max-width: 767px) {
+  .padding-left-right {
+      padding: 0 50px;
+  }
+  .chsr.signin-logo,
+  .chsr.signup-logo{
+    margin-top: 80px;
+    margin-bottom: 40px;
+  }
+}
+
+@media (min-width: 768px) {
+  .padding-left-right {
+      padding: 0 50px;
+  }
+  .chsr.signin-logo,
+  .chsr.signup-logo{
+    margin-top: 80px;
+    margin-bottom: 40px;
+  }
+}
+
 /*SIGNUP SIGNIN*/
 
 .signin-logo img,
@@ -13,17 +45,13 @@
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.padding-left-right {
-    padding: 0 50px;
-}
-
 .login-title,
 .signup-title {
-    line-height: 300%;
+    margin:50px 0px;
 }
 
 .forget-password {
-    line-height: 200%;
+    margin:30px 0px;
 }
 
 .top-blue-down-white {
