@@ -31,7 +31,7 @@
 
 .long-token {
     max-width: 100px;
-    overflow-x: scroll;
+    word-wrap: break-word;
 }
 
 .margin-top-twenty {
