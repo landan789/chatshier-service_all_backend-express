@@ -1,3 +1,26 @@
+@media (min-width: 1px) and (max-width: 414px) {
+  .padding-left-right {
+      padding: 0 25px;
+  }
+}
+@media (min-width: 415px) and (max-width: 767px) {
+  .padding-left-right {
+      padding: 0 50px;
+  }
+  .chsr.row{
+    margin-top: 80px;
+  }
+}
+
+@media (min-width: 768px) {
+  .padding-left-right {
+      padding: 0 50px;
+  }
+  .chsr.row{
+    margin-top: 80px;
+  }
+}
+
 /*SIGNUP SIGNIN*/
 
 .signin-logo img,
@@ -11,10 +34,6 @@
     background-color: #ffffff;
     border-radius: 15px;
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.padding-left-right {
-    padding: 0 50px;
 }
 
 .login-title,
