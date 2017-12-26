@@ -23,6 +23,9 @@ var messageHandle = require('../message_handle');
 
 const WAIT_TIME = 10000;
 const LINE = 'line';
+const REPLY_TOKEN_0 = '00000000000000000000000000000000';
+const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
+
 var fb_bot = {};
 var linebotParser;
 var globalLineMessageArray = [];
@@ -89,12 +92,28 @@ function init(server) {
     //==============FACEBOOK MESSAGE END==============
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
+        var events = req.body.events;
+
+        if ('' === webhookId) {
+            req.noWebhookId = true;
+
+            next();
+            return;
+        }
+        if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
+            req.verify = true;
+
+            next();
+            return;
+        }
         var p = new Promise((resolve, reject) => {
+
             resolve();
         });
 
         p.then(() => {
             return new Promise((resolve, reject) => {
+
                 webhooks.getById(webhookId, (webhook) => {
                     var appId = webhook.app_id;
 
@@ -141,17 +160,25 @@ function init(server) {
 
             });
         }).then(() => {
-
             next();
         }).catch((error) => {
-            res.send(404);
+            res.sendStatus(404);
         });
     }, (req, res, next) => {
 
+        if (true === req.verify || true === req.noWebhookId) {
+            next();
+            return;
+        }
         var parser = req.parser;
         parser(req, res, next);
     }, (req, res, next) => {
-        res.send(200);
+
+        if (true === req.noWebhookId) {
+            res.sendStatus(404);
+            return;
+        }
+        res.sendStatus(200);
     });
     app.post('/linehook1', function(req, res, next) {
         linebotParser[0](req, res, next);
