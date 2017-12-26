@@ -134,31 +134,31 @@ function init(server) {
                     var bot = linebot(line);
                     bot.on('message', bot_on_message);
                     bot.on('follow', bot_on_follow);
-                    req.parser = bot.parser;
+                    req.parser = bot.parser();
 
                     resolve();
                 }
 
             });
         }).then(() => {
-            console.log('149....');
 
             next();
         }).catch((error) => {
             res.send(404);
         });
     }, (req, res, next) => {
+
         var parser = req.parser;
         parser(req, res, next);
     }, (req, res, next) => {
         res.send(200);
     });
-    app.post('/linehook1', function() {
-        linebotParser[0](arguments[0], arguments[1], arguments[2]);
+    app.post('/linehook1', function(req, res, next) {
+        linebotParser[0](req, res, next);
         console.log(channelIds);
     });
-    app.post('/linehook2', function() {
-        linebotParser[1](arguments[0], arguments[1], arguments[2]);
+    app.post('/linehook2', function(req, res, next) {
+        linebotParser[1](req, res, next);
         console.log(channelIds);
     });
     io.on('connection', function(socket) {
