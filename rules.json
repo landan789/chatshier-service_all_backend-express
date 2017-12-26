@@ -59,7 +59,7 @@
       ".read": true,
       ".write": true
     },
-    "hooks":{
+    "webhooks":{
       ".read": true,
       ".write": true
     },
