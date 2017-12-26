@@ -90,6 +90,13 @@ function init(server) {
         }
     }); //app.post
     //==============FACEBOOK MESSAGE END==============
+
+    // if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
+    //     req.verify = true;
+
+    //     next();
+    //     return;
+    // }
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
         var events = req.body.events;
@@ -100,12 +107,7 @@ function init(server) {
             next();
             return;
         }
-        if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
-            req.verify = true;
 
-            next();
-            return;
-        }
         var p = new Promise((resolve, reject) => {
 
             resolve();
@@ -116,7 +118,6 @@ function init(server) {
 
                 webhooks.getById(webhookId, (webhook) => {
                     var appId = webhook.app_id;
-
                     if (false === webhook || null === webhook) {
                         reject();
                         return;
@@ -133,7 +134,10 @@ function init(server) {
             var appId = data.app_id;
             return new Promise((resolve, reject) => {
                 apps.getById(appId, (app) => {
-
+                    if (null === app) {
+                        reject();
+                        return;
+                    }
                     resolve(app);
                 });
             });
@@ -160,6 +164,9 @@ function init(server) {
 
             });
         }).then(() => {
+            if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
+                req.verify = true;
+            }
             next();
         }).catch((error) => {
             res.sendStatus(404);
