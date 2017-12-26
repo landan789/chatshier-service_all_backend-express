@@ -21,10 +21,6 @@ window.addEventListener('firebaseAuth', function(e) {
     auth.onAuthStateChanged(user => {
         var state = getState(user);
 
-        if (user) {
-            $('#loading').fadeOut();
-        }
-
         if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
             location = '/login';
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
@@ -37,9 +33,10 @@ window.addEventListener('firebaseAuth', function(e) {
             });
 
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
-            //
+            $('#loading').fadeOut();
+
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
-            //
+
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
             clearCookie('name', domain);
             clearCookie('email', domain);
