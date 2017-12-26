@@ -6,6 +6,14 @@
     height:700px;
 }
 
+.chsr.alert{
+    display: none;
+    position: fixed;
+    top: 250px;
+    right: 570px;
+    z-index: 99;
+}
+
 #form-wrap {
   position: relative;
   padding: 0 30%;

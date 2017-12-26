@@ -14,15 +14,15 @@ $(document).ready(function() {
     }
 
     $(document).on('click', '#add-form-submit', submitAdd); //新增ticket
-    $(document).on('click', '#form-goback', function() { location.href = '/ticket'; }); //返回ticket
-    $(document).on('click', '.ticketContent', moreInfo);
-    $(document).on('click', '#ticket-info-modify', modifyTicket)
-    $(document).on('click', '.edit', showInput);
-    $(document).on('click', '.inner', function(event) {
-        event.stopPropagation();
-    });
-    $(document).on('focusout', '.inner', hideInput);
-    $(document).on('keypress', '.inner', function(e) {
+    $(document).on('click', '#add-form-goback', function() { location.href = '/ticket'; }); //返回ticket
+    $(document).on('click', '.ticketContent', moreInfo);//查看待辦事項細節
+    $(document).on('click', '#ticket-info-modify', modifyTicket);//修改待辦事項
+    // $(document).on('click', '.edit', showInput);
+    // $(document).on('click', '.inner-text', function(event) {
+    //     event.stopPropagation();
+    // });
+    $(document).on('focusout', '.inner-text', hideInput);
+    $(document).on('keypress', '.inner-text', function(e) {
         if (e.which == 13) $(this).blur();
     });
     $("#exampleInputAmount").keyup(searchBar);
@@ -68,7 +68,7 @@ function loadTable() {
         success: function(data, textStatus, jqXHR) {
             for (let i = 0; i < data.length; i++) {
                 ticketInfo = data;
-                ticket_content.append('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td>' + data[i].description.substring(0, 10) + '</td>' + '<td class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td>' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
+                ticket_content.append('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td id="description">' + data[i].description.substring(0, 10) + '</td>' + '<td id="status" class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td id="priority" class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td id="time">' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
             }
         },
         error: function(jqXHR, tranStatus) {
@@ -96,34 +96,34 @@ function loadAgentList() {
     }
 }
 
-function showInput() {
-    let prop = $(this).parent().children("th").text();
-    let original = $(this).text();
-    if (prop.indexOf('due date') != -1) {
-        let day = new Date(original);
-        day = Date.parse(day) + 8 * 60 * 60 * 1000;
-        day = new Date(day);
-        // console.log(day);
-        $(this).html("<input type='datetime-local' class='inner' value='" + day.toJSON().substring(0, 23) + "'></input>");
-    } else if (prop == 'description') {
-        $(this).html("<textarea  class='inner' rows=4' cols='50'>" + original + "</textarea>");
-    } else {
-        $(this).html("<input type='text' class='inner' value='" + original + "' autofocus>");
-    }
-}
+// function showInput() {
+//     let prop = $(this).parent().children("th").attr("class");
+//     let original = $(this).text();
+//     if (prop.indexOf('due date') != -1) {
+//         let day = new Date(original);
+//         day = Date.parse(day) + 8 * 60 * 60 * 1000;
+//         day = new Date(day);
+//         // console.log(day);
+//         $(this).html("<input type='datetime-local' class='inner-text' value='" + day.toJSON().substring(0, 23) + "'></input>");
+//     } else if (prop == 'description') {
+//         $(this).html("<textarea  class='inner-text form-control'>" + original + "</textarea>");
+//     } else {
+//         $(this).html("<input type='text' class='inner-text' value='" + original + "' autofocus>");
+//     }
+// }
 
 function hideInput() {
     let change = $(this).val();
     if ($(this).attr('type') == 'datetime-local') {
         $(this).parent().html(displayDate(change));
     }
-    $(this).parent().html(change);
+    $(this).parent().html("<textarea  class='inner-text form-control'>"+change+"</textarea>");
 }
 
 function showSelect(prop, n) {
     // let prop = $(this).parent().children("th").text() ;
     // alert(prop) ;
-    let html = "<select class='select form-control'>";
+    let html = "<select class='selected form-control'>";
     if (prop == 'priority') {
         html += "<option value=" + n + ">" + priorityNumberToText(n) + "</option>";
         for (let i = 1; i < 5; i++) {
@@ -177,7 +177,7 @@ function moreInfo() {
         // console.log(Tinfo)
         $("#ID-num").text(Tinfo.id);
         $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
-        display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Ainfo) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="time-edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(Tinfo.due_by) + '">' + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
+        display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td class="form-group">' + showSelect('responder', Ainfo) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td class="form-group">' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td class="form-group">' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th class="description">描述</th>' + '<td class="edit form-group"><textarea class="inner-text form-control">' + Tinfo.description_text + '</textarea></td>' + '</tr><tr>' + '<th class="time-edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td class="form-group">' + '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(Tinfo.due_by) + '">' + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
         $(".info_input_table").empty();
         $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
         $(".modal-title").text(Tinfo.requester.name);
@@ -192,9 +192,9 @@ function displayDate(date) {
     let yy = gmt8.getFullYear(),
         mm = gmt8.getMonth() + 1,
         dd = gmt8.getDate(),
-        hr = gmt8.getHours(),
-        min = gmt8.getMinutes(),
-        sec = gmt8.getSeconds();
+        hr = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours(),
+        min = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes(),
+        sec = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
     return yy + "/" + mm + "/" + dd + " " + hr + ":" + min + ":" + sec;
 }
 
@@ -336,7 +336,7 @@ function submitAdd() {
 
 function modifyTicket() {
     let userId = auth.currentUser.uid;
-    let select = $(".select"),
+    let select = $(".selected"),
         editable = $(".edit"),
         input = $("input"),
         timeInput = $('.time-edit');
@@ -393,7 +393,7 @@ function modifyTicket() {
     // console.log(new_time)
     obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
     // console.log(obj);
-    if (confirm("確定變更表單？")) {
+    // if (confirm("確定變更表單？")) {
         $.ajax({
             url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + id,
             type: 'PUT',
@@ -413,15 +413,35 @@ function modifyTicket() {
                             allDay: false
                         })
                     });
-                alert("表單已更新");
-                location.reload();
+                    ticket_content.empty();
+                    $.ajax({
+                        url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets?include=requester",
+                        type: 'GET',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        headers: {
+                            "Authorization": "Basic " + btoa(api_key + ":x")
+                        },
+                        success: function(data, textStatus, jqXHR) {
+                            for (let i = 0; i < data.length; i++) {
+                                ticketInfo = data;
+                                ticket_content.append('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td id="description">' + data[i].description.substring(0, 10) + '</td>' + '<td id="status" class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td id="priority" class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td id="time">' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
+                            }
+                            $('#alert-success').show();
+                            setTimeout(function(){$('#alert-success').hide();},3000);
+                        },
+                        error: function(jqXHR, tranStatus) {
+                            console.log('error');
+                        }
+                    });
             },
             error: function(jqXHR, tranStatus) {
-                alert("表單更新失敗，請重試");
+                $('#alert-error').show();
+                setTimeout(function(){$('#alert-error').hide();},3000);
                 console.log(jqXHR.responseText)
             }
         });
-    }
+    // }
 
     function wrapQuotes(msg) {
         return '"' + msg + '"';
