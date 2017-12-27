@@ -15,4 +15,10 @@ usersModel.getUser = (userId,callback) => {
 usersModel.updateUser = (userId, obj) => {
     admin.database().ref('users/' + userId).update(obj);
 }
+usersModel.getAppIdFromUsers = (userId,callback) => {
+	admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
+		let Data = snap.val();
+		callback(Data);
+	});
+}
 module.exports = usersModel;

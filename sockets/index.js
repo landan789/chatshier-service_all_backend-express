@@ -14,7 +14,6 @@ var chats = require('../models/chats');
 var keywords = require('../models/keywords');
 var tags = require('../models/tags');
 var users = require('../models/users');
-var chatapps = require('../models/chatapps');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhooks = require('../models/webhooks');
@@ -198,10 +197,66 @@ function init(server) {
     io.on('connection', function(socket) {
         console.log('connected');
         /*===聊天室start===*/
-        // 按照程式流程順序
-        // 1.更新標籤
+        socket.on('request chat init data', (frontData, callback) => {
+            let userId = frontData.id;
+            let allObj = {};
+            let loadTags = new Promise((resolve, reject) => {
+                requestTags((data) => {
+                    allObj.tagsData = data;
+                    resolve();
+                });
+                setTimeout(reject, WAIT_TIME, "tag network too slow");
+            });
+
+            loadTags
+            .then(() => {
+                return new Promise((resolve,reject) => {
+                    requestInternalChatData(userId, (data) => {
+                        allObj.internalChatData = data;
+                        resolve();
+                    });
+                    setTimeout(reject, WAIT_TIME, "internal network too slow");
+                });
+            })
+            .then(() => {
+                return new Promise((resolve,reject) => {
+                    users.getAppIdFromUsers(userId, data => {
+                        resolve(data);
+                    });
+                    setTimeout(reject, WAIT_TIME, "user network too slow");
+                });
+            })
+            .then(data => {
+                return new Promise((resolve,reject) => {
+                    apps.getDataById(snap => {
+
+                        let infoArr = [];
+                        data.map(item => {
+                            infoArr.push(snap[item]);
+                            if(infoArr.length >= data.length) {
+                                resolve(infoArr);
+                            }
+                        });
+                    });
+                    setTimeout(reject, WAIT_TIME, "app network too slow");
+                });
+            })
+            .then(data => {
+                return new Promise((resolve,reject) => {
+                    allObj.appsData = data;
+                    resolve();
+                    setTimeout(reject, WAIT_TIME, "app network too slow");
+                });
+            })
+            .then(() => {
+                callback(allObj);
+            })
+            .catch(reason => {
+                callback(reason);
+            });
+        });
+
         socket.on('request tags', (callback) => {
-            console.log('data requested')
             tags.get(function(tagsData) {
                 callback(tagsData);
             });
@@ -211,101 +266,60 @@ function init(server) {
             tags.get(function(tagsData) {
                 callback(tagsData);
             });
-        }
-        socket.on('request chat init data', (req, callback) => {
-            let userId = req.id;
-            let res = {};
-            let loadTags = new Promise((resolve, reject) => {
-                console.log("tag start");
-                requestTags((data) => {
-                    console.log("tag end");
-                    res.tagsData = data;
-                    resolve();
-                });
-                setTimeout(reject, WAIT_TIME, "tag network too slow");
-            });
-            let loadChannels = new Promise((resolve, reject) => {
-                console.log("chan start");
-                chatapps.getApps(userId, data => {
-                    res.channelsData = data;
-                    resolve();
-                });
-                setTimeout(reject, WAIT_TIME, "chan network too slow");
-            });
-            let loadInternals = new Promise((resolve, reject) => {
-                console.log("internal start");
-                requestInternalChatData(userId, (data) => {
-                    console.log("internal end");
-                    res.internalChatData = data;
-                    resolve();
-                });
-                setTimeout(reject, WAIT_TIME, "internal network too slow");
-            });
+        } // end of requestTags
 
-            Promise.all([loadTags, loadInternals, loadChannels]).then(() => {
-                console.log("all done ! print res");
-                console.log(res);
-                callback(res);
-            }).catch((reason) => {
-                console.log("promise faied! print reason");
-                console.log(reason);
-                callback({ "reject": "Failed!\nNetwork too slow, or not supported!" });
-            });
-
-        });
-        // 2.更新群組
-        // SERVER上線後，不應有這步驟，否則只要有agent未填setting的channel，整台server的line_bot, fb_bot就會變空
-        // 但for developer，此步驟可讓npm重開機時，不用再去setting提交channel config
-        socket.on('develop update bot', (userId) => {
-            chatapps.getApps(userId, chatInfo => {
-                if (chatInfo) {
-                    let data = {
-                        line_1: {
-                            channelId: chatInfo.ids.chanId_1,
-                            channelSecret: chatInfo.secrets.chanSecret_1,
-                            channelAccessToken: chatInfo.tokens.chanAT_1
-                        },
-                        line_2: {
-                            channelId: chatInfo.ids.chanId_2,
-                            channelSecret: chatInfo.secrets.chanSecret_2,
-                            channelAccessToken: chatInfo.tokens.chanAT_2
-                        },
-                        fb: {
-                            pageID: chatInfo.ids.fbPageId,
-                            appID: chatInfo.ids.fbAppId,
-                            appSecret: chatInfo.secrets.fbAppSecret,
-                            validationToken: chatInfo.tokens.fbValidToken,
-                            pageToken: chatInfo.tokens.fbPageToken
-                        }
-                    };
-                    update_line_bot(data);
-                }
-            });
-        });
-        // 3.更新群組頻道
-        socket.on('request channels', (userId, callback) => {
-            requestChannels(userId, callback);
-        });
-
-        function requestChannels(userId, callback) {
-            let appsArr = [];
-            chatapps.getApps(chatInfo => {
-                for (let i in chatInfo) {
-                    if (chatInfo[i].user_id === userId) {
-                        appsArr.push(chatInfo);
-                        console.log(appsArr);
+        function requestInternalChatData(userId, callback) {
+            let thisAgentData = [];
+            agents.get(function(agentChatData) {
+                for (let i in agentChatData) {
+                    if (agentChatData[i].Profile.agent.indexOf(userId) != -1) {
+                        thisAgentData.push(agentChatData[i]);
                     }
                 }
-            });
-        }
-        // 4.撈出歷史訊息
-        socket.on('request chat data', (channelIdArr, callback) => {
-            chats.get(function(chatData) {
-                messageHandle.filterUser(channelIdArr, chatData, function(filterData) {
-                    messageHandle.loadChatHistory(filterData, (data) => {
-                        callback(data);
+                users.get(agentData => {
+                    let agentIdToName = { "0": "System" };
+                    for (let prop in agentData) {
+                        agentIdToName[prop] = agentData[prop].name;
+                    }
+                    let internalTagsData = [
+                        { "name": "roomName", "type": "text", "set": "single", "modify": true },
+                        { "name": "description", "type": "text", "set": "multi", "modify": true },
+                        { "name": "owner", "type": "single-select", "set": [], "modify": true },
+                        { "name": "agent", "type": "multi-select", "set": [], "modify": true },
+                        { "name": "recentChat", "type": "time", "set": "", "modify": false },
+                        { "name": "firstChat", "type": "time", "set": "", "modify": false }
+                    ]
+                    callback({
+                        data: thisAgentData,
+                        agentIdToName: agentIdToName,
+                        internalTagsData: internalTagsData
                     });
                 });
+            });
+        } // end of requestInternalChatData
+
+        socket.on('request chat data', (channelIdArr, callback) => {
+            let runChatData = new Promise((resolve,reject) => {
+                chats.get(chatData => {
+                    resolve(chatData);
+                });
+            });
+
+            runChatData
+            .then(data => {
+                return new Promise((resolve,reject) => {
+                    utility.filterUser(channelIdArr, data, filterData => {
+                        resolve(filterData);
+                    });
+                });
+            })
+            .then(data => {
+                chats.loadChatHistory(data, result => {
+                    callback(result);
+                });
+            })
+            .catch(reason => {
+                console.log(reason)
             });
         });
         // 從SHIELD chat傳送訊息
@@ -317,7 +331,6 @@ function init(server) {
             let agentName = socket.nickname ? socket.nickname : 'agent';
             let nowTime = vendor.msgtime;
             let channel = vendor.channelId === undefined ? vendor.pageId : vendor.channelId;
-
             let sendToClient = new Promise((resolve, reject) => {
                 // 傳到shield chat
                 var msgObj = {
@@ -360,69 +373,33 @@ function init(server) {
             });
 
             sendToClient
-                .then(data => {
-                    return new Promise((resolve, reject) => {
-                        // console.log(data[1].channelId,data[1].pageId);
-                        if (data[1].channelId !== undefined) {
-                            let lineObj = {
-                                channelId: data[1].channelId,
-                                channelSecret: data[1].channelSecret,
-                                channelAccessToken: data[1].channelToken
-                            }
-                            let bot = linebot(lineObj);
-                            linebotParser = bot.parser();
-                            send_to_Line(msg, data => {
-                                bot.push(receiver, data);
-                            });
-                            resolve([data[0], 'line']);
-                        } else if (data[1].pageId !== undefined) {
-                            let fbObj = {
-                                pageID: data[1].pageId,
-                                appID: data[1].appId,
-                                appSecret: data[1].appSecret,
-                                validationToken: data[1].clientToken,
-                                pageToken: data[1].pageToken
-                            }
-                            let bot = MessengerPlatform.create(fbObj);
-                            if (Object.keys(bot).length > 0) {
-                                if (msg.startsWith('/image')) {
-                                    let link = msg.substr(7);
-                                    bot.sendImageMessage(receiver, link, true);
-                                    resolve([data[0], 'facebook']);
-                                } else if (msg.startsWith('/video')) {
-                                    let link = msg.substr(7);
-                                    bot.sendVideoMessage(receiver, link, true);
-                                    resolve([data[0], 'facebook']);
-                                } else if (msg.startsWith('/audio')) {
-                                    let link = msg.substr(7);
-                                    bot.sendAudioMessage(receiver, link, true);
-                                    resolve([data[0], 'facebook']);
-                                } else {
-                                    bot.sendTextMessage(receiver, msg);
-                                    resolve([data[0], 'facebook']);
-                                }
-                            }
+            .then(data => {
+                return new Promise((resolve, reject) => {
+                    pushMessage(data,msg,receiver, result => {
+                        if(result === 'app not detected') {
+                            reject(result);
                         } else {
-                            reject('app not detected');
-                        }
+                            resolve(result);
+                        }                            
                     });
-                })
-                .then(data => {
-                    chats.get(chatData => {
-                        for (let prop in chatData) {
-                            let client = chatData[prop];
-                            if (utility.isSameUser(client.Profile, receiver, channel)) {
-                                let length = client.Messages.length;
-                                let updateObj = {};
-                                updateObj['/' + prop + '/Messages/' + length] = data[0];
-                                chats.update(updateObj);
-                            }
-                        }
-                    });
-                })
-                .catch(reason => {
-                    console.log(reason);
                 });
+            })
+            .then(data => {
+                chats.get(chatData => {
+                    for (let prop in chatData) {
+                        let client = chatData[prop];
+                        if (utility.isSameUser(client.Profile, receiver, channel)) {
+                            let length = client.Messages.length;
+                            let updateObj = {};
+                            updateObj['/' + prop + '/Messages/' + length] = data[0];
+                            chats.update(updateObj);
+                        }
+                    }
+                });
+            })
+            .catch(reason => {
+                console.log(reason);
+            });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data, callback) => {
@@ -509,35 +486,6 @@ function init(server) {
             requestInternalChatData(data, callback);
         });
 
-        function requestInternalChatData(userId, callback) {
-            let thisAgentData = [];
-            agents.get(function(agentChatData) {
-                for (let i in agentChatData) {
-                    if (agentChatData[i].Profile.agent.indexOf(userId) != -1) {
-                        thisAgentData.push(agentChatData[i]);
-                    }
-                }
-                users.get(agentData => {
-                    let agentIdToName = { "0": "System" };
-                    for (let prop in agentData) {
-                        agentIdToName[prop] = agentData[prop].name;
-                    }
-                    let internalTagsData = [
-                        { "name": "roomName", "type": "text", "set": "single", "modify": true },
-                        { "name": "description", "type": "text", "set": "multi", "modify": true },
-                        { "name": "owner", "type": "single-select", "set": [], "modify": true },
-                        { "name": "agent", "type": "multi-select", "set": [], "modify": true },
-                        { "name": "recentChat", "type": "time", "set": "", "modify": false },
-                        { "name": "firstChat", "type": "time", "set": "", "modify": false }
-                    ]
-                    callback({
-                        data: thisAgentData,
-                        agentIdToName: agentIdToName,
-                        internalTagsData: internalTagsData
-                    });
-                });
-            });
-        }
         // 內部聊天室傳訊息
         socket.on('send internal message', (data) => {
             let roomId = data.roomId;
@@ -1256,8 +1204,58 @@ function init(server) {
         }
     } // end of update_line_bot
 
+    function pushMessage(data,msg,receiver,callback) {
+        if (data[1].channelId !== undefined) {
+            let lineObj = {
+                channelId: data[1].channelId,
+                channelSecret: data[1].channelSecret,
+                channelAccessToken: data[1].channelToken
+            }
+            let bot = linebot(lineObj);
+            linebotParser = bot.parser();
+            determineLineType(msg, data => {
+                bot.push(receiver, data);
+            });
+            callback([data[0], 'line']);
+        } else if (data[1].pageId !== undefined) {
+            let fbObj = {
+                pageID: data[1].pageId,
+                appID: data[1].appId,
+                appSecret: data[1].appSecret,
+                validationToken: data[1].clientToken,
+                pageToken: data[1].pageToken
+            }
+            let bot = MessengerPlatform.create(fbObj);
+            if (Object.keys(bot).length > 0) {
+                determineFacebookType(msg,bot,receiver,() => {
+                    callback([data[0],'facebook']);
+                });
+            }
+        } else {
+            callback('app not detected');
+        }
+    }
 
-    function send_to_Line(msg, callback) {
+    function determineFacebookType(msg,bot,receiver,callback) {
+        if (msg.startsWith('/image')) {
+            let link = msg.substr(7);
+            bot.sendImageMessage(receiver,link,true);
+            callback();
+        } else if (msg.startsWith('/video')) {
+            let link = msg.substr(7);
+            bot.sendVideoMessage(receiver,link,true);
+            callback();
+        } else if (msg.startsWith('/audio')) {
+            let link = msg.substr(7);
+            bot.sendAudioMessage(receiver,link,true);
+            callback();
+        } else {
+            bot.sendTextMessage(receiver, msg);
+            callback();
+        }
+    }
+
+    function determineLineType(msg,callback) {
         let message = {};
         if (msg.startsWith('/image')) {
             let link = msg.substr(7);

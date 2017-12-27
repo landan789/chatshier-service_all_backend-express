@@ -40,10 +40,13 @@ $(document).ready(function() {
     // start the loading works
     window.dispatchEvent(firbaseEvent);
     $infoPanel.hide();
-    setTimeout(() => {
-        agentId = auth.currentUser.uid;
-        socket.emit('request chat init data', { id: agentId }, responseChatInitData);
-    },2000);
+    var startUserId = setInterval(() => {
+        if(auth.currentUser) {
+            clearInterval(startUserId);
+            agentId = auth.currentUser.uid;
+            socket.emit('request chat init data', { id: agentId }, responseChatInitData);
+        }
+    },1000);
 
     //=====start chat event=====
     openChatAppItem.click(showChatApp);
@@ -75,9 +78,7 @@ $(document).ready(function() {
     $(document).on('click', '.ticketContent', moreInfo);
     $(document).on('click', '.edit', showInput);
     $(document).on('focusout', '.inner', hideInput);
-    $(document).on('keypress', '.inner', function(e) {
-        if (e.which === 13) $(this).blur();
-    });
+    $(document).on('keypress', '.inner', function(e) { if (e.which === 13) $(this).blur(); });
     $(document).on('keyup', '.ticketSearchBar', ticketSearch);
     addTicketModal.on('show.bs.modal', openTicketModal);
     $(document).on('click', '#form-submit', addTicket);
@@ -88,9 +89,7 @@ $(document).ready(function() {
     //=====start utility event=====
     $(document).on('click', '#signout-btn', function() {
         event.preventDefault();
-        logout(function() {
-            location = '/login';
-        });
+        logout(function() { location = '/login'; });
     }); // 登出
     $(document).on('change', '.multi-select-container', multiSelectChange);
     $(document).on('click', '.dropdown-menu', function(event) {
@@ -111,9 +110,29 @@ $(document).ready(function() {
         } else {
             responseInternalChatData(data.internalChatData);
             responseTags(data.tagsData);
-            responseChannels(data.channelsData);
+            responseUserAppIds(data.appsData);
         }
     }
+
+    function responseUserAppIds(data) {
+        if(data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
+            if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
+                $('#notifyModal').modal("show");
+                window.sessionStorage["notifyModal"] = 1;
+            }
+        } else {
+            socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
+            $('.chat-app-item#Line_1').attr('rel', data[0].id1);
+            $('.chat-app-item#Line_2').attr('rel', data[1].id1);
+            $('.chat-app-item#FB').attr('rel', data[2].id1);
+            $('#Line_1').attr('data-original-title', data[0].name);
+            $('#Line_2').attr('data-original-title', data[1].name);
+            $('#FB').attr('data-original-title', data[2].name);
+            room_list.push(data[0].id1); // line1
+            room_list.push(data[1].id1); // line2
+            room_list.push(data[2].id1); // facebook
+        }
+    } // end of responseUserAppIds
 
     function responseChannels(data) {
         if (data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
@@ -134,7 +153,7 @@ $(document).ready(function() {
             room_list.push(data[2].id1); // facebook
 
         }
-    }
+    } // end of responseChannels
 
     function responseChatData(data) {
         for (i in data) pushMsg(data[i], () => {
@@ -143,7 +162,7 @@ $(document).ready(function() {
         sortUsers("recentTime", sortRecentBool, function(a, b) {
             return a < b;
         }); //照時間排列 新到舊
-    }
+    } // end of responseChatData
 
     function responseHistoryMsg(data) {
         let msgContent = $('#' + data.userId + '-content' + '[rel="' + data.channelId + '"]');
@@ -704,6 +723,7 @@ $(document).ready(function() {
                 })
                 .then(data => {
                     return new Promise((resolve,reject) => {
+                        console.log(data);
                         socket.emit('send message', data);
                         resolve(data);
                     });
@@ -765,6 +785,14 @@ $(document).ready(function() {
                     room: rel,
                     channelId: rel,
                 }
+                // var data = { // 需要的格式 以後收到的訊息
+                //     channelId: '',
+                //     channelSecret: '',
+                //     channelToken: '',
+                //     id: id,
+                //     msg: '/' + type + ' ' + url,
+                //     msgtime: Date.now()
+                // }
                 socket.emit('send message', data);
             });
         }
@@ -791,6 +819,7 @@ $(document).ready(function() {
             $('#user-rooms').append('<option value="' + data.id + '">' + data.name + '</option>'); //new a option in select bar
         }
     } // end of displayMessage
+
     function displayClient(data, channelId) {
         if (name_list.indexOf(channelId + data.id) == -1) {
             console.log(data);

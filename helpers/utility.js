@@ -151,6 +151,18 @@ utility.checkMessageLength = (data, callback) => {
         }
     });
 }
+utility.filterUser = (channelIdArr, chatData, callback) => {
+  let newData = {};
+  for( let i in chatData ) {
+    let profile = chatData[i].Profile;
+    if( !profile ) continue;
+    let chanId = profile.channelId;
+    if( channelIdArr.indexOf(chanId)!=-1 ) {
+      newData[i] = chatData[i];
+    }
+  }
+  callback(newData);
+}
 
 function URL(str) {
     if (str.indexOf('.com') !== -1) return true;
