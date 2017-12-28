@@ -104,7 +104,7 @@ $(document).ready(function() {
 
     //==========start initialize function========== //
     function responseChatInitData(data) {
-        console.log(data);
+        // console.log(data);
         if (data.reject) {
             alert(data.reject);
         } else {
@@ -115,22 +115,24 @@ $(document).ready(function() {
     }
 
     function responseUserAppIds(data) {
-        if(data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
-            if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
-                $('#notifyModal').modal("show");
-                window.sessionStorage["notifyModal"] = 1;
+        if(data !== undefined) {
+            if(data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
+                if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
+                    $('#notifyModal').modal("show");
+                    window.sessionStorage["notifyModal"] = 1;
+                }
+            } else {
+                socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
+                $('.chat-app-item#Line_1').attr('rel', data[0].id1);
+                $('.chat-app-item#Line_2').attr('rel', data[1].id1);
+                $('.chat-app-item#FB').attr('rel', data[2].id1);
+                $('#Line_1').attr('data-original-title', data[0].name);
+                $('#Line_2').attr('data-original-title', data[1].name);
+                $('#FB').attr('data-original-title', data[2].name);
+                room_list.push(data[0].id1); // line1
+                room_list.push(data[1].id1); // line2
+                room_list.push(data[2].id1); // facebook
             }
-        } else {
-            socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
-            $('.chat-app-item#Line_1').attr('rel', data[0].id1);
-            $('.chat-app-item#Line_2').attr('rel', data[1].id1);
-            $('.chat-app-item#FB').attr('rel', data[2].id1);
-            $('#Line_1').attr('data-original-title', data[0].name);
-            $('#Line_2').attr('data-original-title', data[1].name);
-            $('#FB').attr('data-original-title', data[2].name);
-            room_list.push(data[0].id1); // line1
-            room_list.push(data[1].id1); // line2
-            room_list.push(data[2].id1); // facebook
         }
     } // end of responseUserAppIds
 

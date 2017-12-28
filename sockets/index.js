@@ -231,19 +231,25 @@ function init(server) {
                         apps.getAll(snap => {
 
                             let infoArr = [];
-                            data.map(item => {
-                                infoArr.push(snap[item]);
-                                if (infoArr.length >= data.length) {
-                                    resolve(infoArr);
-                                }
-                            });
+                            if(data) {
+                                data.map(item => {
+                                    infoArr.push(snap[item]);
+                                    if (infoArr.length >= data.length) {
+                                        resolve(infoArr);
+                                    }
+                                });
+                            } else {
+                                resolve();
+                            }
                         });
                         setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        allObj.appsData = data;
+                        if(data) {
+                            allObj.appsData = data;
+                        }
                         resolve();
                         setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
