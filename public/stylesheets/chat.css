@@ -117,7 +117,7 @@ p {
         width: 20px;
         background-color: red;
         border-radius: 50%;
-        z-index: 999;
+        /*z-index: 999;*/
         display: none;
         text-align: center;
     }
@@ -126,8 +126,8 @@ p {
         border: 1px solid #33CCFF;
     }
 
-    .chat-app-item + .tooltip.bottom > .tooltip-arrow {
-        border-bottom-color: #33CCFF;
+    .chat-app-item + .tooltip.right > .tooltip-arrow {
+        border-right-color: #33CCFF;
     }
 }
 
