@@ -29,10 +29,10 @@
             <div class="container-fluid">
                 <div class="col-md-2 left margin-top-twenty">
                     <ul class="nav nav-pills nav-stacked">
-                        <li class="active"><a data-toggle="pill" href="#menu2">聊天室帳號</a></li>
+                        <li class="active"><a data-toggle="pill" href="#menu2">聊天應用程式</a></li>
                         <li><a data-toggle="pill" href="#menu0">基本設定</a></li>
                         <li><a data-toggle="pill" href="#menu3">標籤</a></li>
-                        <li><a data-toggle="pill" href="#create-internal-room">新建內部聊天室</a></li>
+                        <li><a data-toggle="pill" href="#create-internal-room">內部聊天室</a></li>
                     </ul>
                 </div>
                 <div class="tab-content">
@@ -77,19 +77,19 @@
                         </div>
                     </div>
                     <div id="menu2" class="tab-pane fade in active">
-                        <h3>聊天室帳號
+                        <h3 class="margin-left-15">聊天應用程式
                             <button type="button" class="btn btn-default" id="prof-add" data-toggle="modal" data-target="#profModal-add" disabled="disabled">
                         <span class="fa fa-plus"></span> 新增
                         </button>
                         </h3>
-                        <div class="col-md-8 col-lg-8 panel-info prof-wid">
+                        <div class="col-md-10 col-lg-10 panel-info prof-wid">
+                          <div class="panel-heading">
+                              <h3 class="panel-title"></h3>
+                          </div>
                             <div id="error-message" hidden>
                                 請按編輯帳戶資料按鈕編輯檔案
                             </div>
-                            <div class="col-md-11 col-lg-11 panel-info prof-wid">
-                                <div class="panel-heading">
-                                    <h3 class="panel-title"></h3>
-                                </div>
+                            <div class="col-md-12 col-lg-12 panel-info prof-wid">
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class=" col-md-12 col-lg-12 ">
@@ -100,35 +100,46 @@
                                                         <td id="prof-id"></td>
                                                     </tr>
                                                     <tr class="active">
-                                                        <th class="col-md-3 col-lg-3">群組1</th>
+                                                        <th class="col-md-3 col-lg-3">應用程式 1</th>
                                                         <th class="col-md-9 col-lg-9">
                                                             <div id="group1" class="line"><button type="button" class="btn btn-default pull-right" id="prof-edit" data-toggle="modal" data-target="#profModal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>
                                                         </th>
                                                     </tr>
                                                     <tr>
-                                                        <td>群組名:</td>
+                                                        <td>應用程式名稱:</td>
                                                         <td class="long-token" id="prof-name1"></td>
+
                                                     </tr>
                                                     <tr>
                                                         <td>Channel Id 1: </td>
                                                         <td class="long-token" id="prof-channelId_1"></td>
+
                                                     </tr>
                                                     <tr>
                                                         <td>Channel Secret 1: </td>
                                                         <td class="long-token" id="prof-channelSecret_1"></td>
+
                                                     </tr>
                                                     <tr>
                                                         <td>Channel Access Token 1: </td>
                                                         <td class="long-token" id="prof-channelAccessToken_1"></td>
+
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Webhook URL: </td>
+                                                        <td class="long-token">
+                                                           <span id="prof-webhookUrl-1"></span>
+                                                          <!-- <button type="button" class="btn btn-default pull-right"><span class="fa fa-refresh"></span>&nbsp;&nbsp;重置</button> -->
+                                                        </td>
                                                     </tr>
                                                     <tr class="active">
-                                                        <th class="col-md-3 col-lg-3">群組2</th>
+                                                        <th class="col-md-3 col-lg-3">應用程式 2</th>
                                                         <th class="col-md-9 col-lg-9">
                                                             <div id="group2" class="line"><button type="button" class="btn btn-default pull-right" id="prof-edit" data-toggle="modal" data-target="#profModal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>
                                                         </th>
                                                     </tr>
                                                     <tr>
-                                                        <td>群組名:</td>
+                                                        <td>應用程式名稱:</td>
                                                         <td class="long-token" id="prof-name2"></td>
                                                     </tr>
                                                     <tr>
@@ -144,13 +155,20 @@
                                                         <td class="long-token" id="prof-channelAccessToken_2"></td>
                                                     </tr>
                                                     <tr>
-                                                        <tr class="active">
-                                                            <th class="col-md-3 col-lg-3">群組3</th>
-                                                            <th class="col-md-9 col-lg-9">
-                                                                <div id="group3" class="fb"><button type="button" class="btn btn-default pull-right" id="prof-edit" data-toggle="modal" data-target="#profModal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>
-                                                            </th>
-                                                        </tr>
-                                                        <td>Facebook群組名:</td>
+                                                        <td>Webhook URL: </td>
+                                                        <td class="long-token">
+                                                          <span id="prof-webhookUrl-2"></span>
+                                                        <!-- <button type="button" class="btn btn-default pull-right"><span class="fa fa-refresh"></span>&nbsp;&nbsp;重置</button> -->
+                                                      </td>
+                                                    </tr>
+                                                    <tr class="active">
+                                                        <th class="col-md-3 col-lg-3">應用程式 3</th>
+                                                        <th class="col-md-9 col-lg-9">
+                                                            <div id="group3" class="fb"><button type="button" class="btn btn-default pull-right" id="prof-edit" data-toggle="modal" data-target="#profModal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Facebook應用程式名稱:</td>
                                                         <td class="long-token" id="prof-fbPageName"></td>
                                                     </tr>
                                                     <tr>
@@ -158,8 +176,9 @@
                                                         <td class="long-token" id="prof-fbPageId"></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>App ID: </td>
+                                                        <td>App Id: </td>
                                                         <td class="long-token" id="prof-fbAppId"></td>
+
                                                     </tr>
                                                     <tr>
                                                         <td>App Secret: </td>
@@ -173,6 +192,13 @@
                                                         <td>Page Token: </td>
                                                         <td class="long-token" id="prof-fbPageToken"></td>
                                                     </tr>
+                                                    <tr>
+                                                        <td>Webhook URL: </td>
+                                                        <td class="long-token">
+                                                          <span id="prof-fbwebhookUrl"></span>
+                                                          <!-- <button type="button" class="btn btn-default pull-right"><span class="fa fa-refresh"></span>&nbsp;&nbsp;重置</button> -->
+                                                        </td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -182,12 +208,12 @@
                         </div>
                     </div>
                     <div id="menu3" class="tab-pane fade">
-                        <h3>標籤
+                        <h3 class="margin-left-15">標籤
                             <button type="button" class="btn btn-default add-tag scrolldown" href=".tag-name:last">
                             <span class="fa fa-plus fa-fw"></span> 新增
                         </button>
                         </h3>
-                        <div class="col-md-8 col-lg-8 panel-info prof-wid">
+                        <div class="col-md-10 col-lg-10 panel-info prof-wid">
                             <div class="float-down">
                                 <div id="tag-tab" class="col-md-11 col-lg-11 panel-info prof-wid padding-zero">
                                     <div class="panel-heading">
@@ -222,11 +248,11 @@
                         </div>
                     </div>
                     <div id="create-internal-room" class="tab-pane fade">
-                        <h3>新建內部聊天室
+                        <h3 class="margin-left-15">內部聊天室
                         </h3>
                         <div class="col-md-8 col-lg-8 panel-info prof-wid">
                             <div class="float-down">
-                                <div class="col-md-11 col-lg-11 panel-info prof-wid padding-zero">
+                                <div class="col-md-12 col-lg-12 panel-info prof-wid padding-zero">
                                     <div class="panel-heading">
                                         <h3 class="panel-title"></h3>
                                     </div>
@@ -483,6 +509,7 @@
             <script src="config/firebaseConfig.js"></script>
             <script src="javascripts/firebaseAuth.js"></script>
             <script src="javascripts/navigation.js"></script>
+            <script src="config/url-config.js"></script>
             <script src="javascripts/setting.js"></script>
             <script src="javascripts/sb-admin-2.js"></script>
             <script src="javascripts/partials/firebase-disable.js"></script>

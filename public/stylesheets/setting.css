@@ -30,7 +30,7 @@
 }
 
 .long-token {
-    max-width: 100px;
+    max-width: 600px;
     word-wrap: break-word;
 }
 
@@ -59,4 +59,8 @@ p:empty:not(:focus)::before {
     padding: 5px 5px;
     top: auto;
     left: auto;
+}
+
+.margin-left-15{
+    margin-left: 15px;
 }
