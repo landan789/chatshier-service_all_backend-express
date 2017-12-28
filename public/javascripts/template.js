@@ -19,15 +19,15 @@ $(function() {
     // $(document).on('click', '.template-btn', showTemplateChart); //not done
     setTimeout(() => {
         userId = auth.currentUser.uid;
-        loadChannelInfo();
-    },2000);
+        loadChannelInfo(userId);
+    }, 2000);
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
     });
 });
 
 // =====load template start=====
-function loadChannelInfo(callback) {
+function loadChannelInfo(userId, callback) {
     socket.emit('request channels', userId, (data) => {
         console.log(data);
         if (data.chanId_1 && data.name1) appendToView(data.chanId_1, data.name1);
@@ -53,7 +53,7 @@ function loadTemplate() {
         templateData = templates;
         let container = $('#view-all');
         for (let prop in templates) {
-            let tab = container.find('.tab-pane#' + templates[prop].channelId);
+            let tab = container.find('.tab-pane' + templates[prop].channelId);
             let keyword = templates[prop].keyword;
             let status = templates[prop].status;
             let btnClass = status == "open" ? "btn-success" : "btn-danger";
@@ -207,7 +207,8 @@ function saveTemplate() {
     let keyword = $('#template-keyword').val();
     let status = $('#template-status').val();
     let type = $('#template-type').val();
-    if (!channelId || !keyword || !type) {
+    // if (!channelId || !keyword || !type) {
+    if (!keyword || !type) { //test
         alert("發送群組、觸發關鍵字及類型不可為空");
     } else {
         let template = createTemplate(type);

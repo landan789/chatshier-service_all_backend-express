@@ -209,51 +209,51 @@ function init(server) {
             });
 
             loadTags
-            .then(() => {
-                return new Promise((resolve,reject) => {
-                    requestInternalChatData(userId, (data) => {
-                        allObj.internalChatData = data;
-                        resolve();
-                    });
-                    setTimeout(reject, WAIT_TIME, "internal network too slow");
-                });
-            })
-            .then(() => {
-                return new Promise((resolve,reject) => {
-                    users.getAppIdFromUsers(userId, data => {
-                        resolve(data);
-                    });
-                    setTimeout(reject, WAIT_TIME, "user network too slow");
-                });
-            })
-            .then(data => {
-                return new Promise((resolve,reject) => {
-                    apps.getDataById(snap => {
-
-                        let infoArr = [];
-                        data.map(item => {
-                            infoArr.push(snap[item]);
-                            if(infoArr.length >= data.length) {
-                                resolve(infoArr);
-                            }
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        requestInternalChatData(userId, (data) => {
+                            allObj.internalChatData = data;
+                            resolve();
                         });
+                        setTimeout(reject, WAIT_TIME, "internal network too slow");
                     });
-                    setTimeout(reject, WAIT_TIME, "app network too slow");
+                })
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        users.getAppIdFromUsers(userId, data => {
+                            resolve(data);
+                        });
+                        setTimeout(reject, WAIT_TIME, "user network too slow");
+                    });
+                })
+                .then(data => {
+                    return new Promise((resolve, reject) => {
+                        apps.getDataById(snap => {
+
+                            let infoArr = [];
+                            data.map(item => {
+                                infoArr.push(snap[item]);
+                                if (infoArr.length >= data.length) {
+                                    resolve(infoArr);
+                                }
+                            });
+                        });
+                        setTimeout(reject, WAIT_TIME, "app network too slow");
+                    });
+                })
+                .then(data => {
+                    return new Promise((resolve, reject) => {
+                        allObj.appsData = data;
+                        resolve();
+                        setTimeout(reject, WAIT_TIME, "app network too slow");
+                    });
+                })
+                .then(() => {
+                    callback(allObj);
+                })
+                .catch(reason => {
+                    callback(reason);
                 });
-            })
-            .then(data => {
-                return new Promise((resolve,reject) => {
-                    allObj.appsData = data;
-                    resolve();
-                    setTimeout(reject, WAIT_TIME, "app network too slow");
-                });
-            })
-            .then(() => {
-                callback(allObj);
-            })
-            .catch(reason => {
-                callback(reason);
-            });
         });
 
         socket.on('request tags', (callback) => {
@@ -298,29 +298,41 @@ function init(server) {
             });
         } // end of requestInternalChatData
 
+        function requestChannels(userId, callback) {
+            let appsArr = [];
+            chatapps.getApps(chatInfo => {
+                for (let i in chatInfo) {
+                    if (chatInfo[i].user_id === userId) {
+                        appsArr.push(chatInfo);
+                        callback(appsArr);
+                    }
+                }
+            });
+        }
+        // 4.撈出歷史訊息
         socket.on('request chat data', (channelIdArr, callback) => {
-            let runChatData = new Promise((resolve,reject) => {
+            let runChatData = new Promise((resolve, reject) => {
                 chats.get(chatData => {
                     resolve(chatData);
                 });
             });
 
             runChatData
-            .then(data => {
-                return new Promise((resolve,reject) => {
-                    utility.filterUser(channelIdArr, data, filterData => {
-                        resolve(filterData);
+                .then(data => {
+                    return new Promise((resolve, reject) => {
+                        utility.filterUser(channelIdArr, data, filterData => {
+                            resolve(filterData);
+                        });
                     });
+                })
+                .then(data => {
+                    chats.loadChatHistory(data, result => {
+                        callback(result);
+                    });
+                })
+                .catch(reason => {
+                    console.log(reason)
                 });
-            })
-            .then(data => {
-                chats.loadChatHistory(data, result => {
-                    callback(result);
-                });
-            })
-            .catch(reason => {
-                console.log(reason)
-            });
         });
         // 從SHIELD chat傳送訊息
         socket.on('send message', data => {
@@ -373,33 +385,33 @@ function init(server) {
             });
 
             sendToClient
-            .then(data => {
-                return new Promise((resolve, reject) => {
-                    pushMessage(data,msg,receiver, result => {
-                        if(result === 'app not detected') {
-                            reject(result);
-                        } else {
-                            resolve(result);
-                        }                            
+                .then(data => {
+                    return new Promise((resolve, reject) => {
+                        pushMessage(data, msg, receiver, result => {
+                            if (result === 'app not detected') {
+                                reject(result);
+                            } else {
+                                resolve(result);
+                            }
+                        });
                     });
-                });
-            })
-            .then(data => {
-                chats.get(chatData => {
-                    for (let prop in chatData) {
-                        let client = chatData[prop];
-                        if (utility.isSameUser(client.Profile, receiver, channel)) {
-                            let length = client.Messages.length;
-                            let updateObj = {};
-                            updateObj['/' + prop + '/Messages/' + length] = data[0];
-                            chats.update(updateObj);
+                })
+                .then(data => {
+                    chats.get(chatData => {
+                        for (let prop in chatData) {
+                            let client = chatData[prop];
+                            if (utility.isSameUser(client.Profile, receiver, channel)) {
+                                let length = client.Messages.length;
+                                let updateObj = {};
+                                updateObj['/' + prop + '/Messages/' + length] = data[0];
+                                chats.update(updateObj);
+                            }
                         }
-                    }
+                    });
+                })
+                .catch(reason => {
+                    console.log(reason);
                 });
-            })
-            .catch(reason => {
-                console.log(reason);
-            });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data, callback) => {
@@ -1204,7 +1216,7 @@ function init(server) {
         }
     } // end of update_line_bot
 
-    function pushMessage(data,msg,receiver,callback) {
+    function pushMessage(data, msg, receiver, callback) {
         if (data[1].channelId !== undefined) {
             let lineObj = {
                 channelId: data[1].channelId,
@@ -1227,8 +1239,8 @@ function init(server) {
             }
             let bot = MessengerPlatform.create(fbObj);
             if (Object.keys(bot).length > 0) {
-                determineFacebookType(msg,bot,receiver,() => {
-                    callback([data[0],'facebook']);
+                determineFacebookType(msg, bot, receiver, () => {
+                    callback([data[0], 'facebook']);
                 });
             }
         } else {
@@ -1236,18 +1248,18 @@ function init(server) {
         }
     }
 
-    function determineFacebookType(msg,bot,receiver,callback) {
+    function determineFacebookType(msg, bot, receiver, callback) {
         if (msg.startsWith('/image')) {
             let link = msg.substr(7);
-            bot.sendImageMessage(receiver,link,true);
+            bot.sendImageMessage(receiver, link, true);
             callback();
         } else if (msg.startsWith('/video')) {
             let link = msg.substr(7);
-            bot.sendVideoMessage(receiver,link,true);
+            bot.sendVideoMessage(receiver, link, true);
             callback();
         } else if (msg.startsWith('/audio')) {
             let link = msg.substr(7);
-            bot.sendAudioMessage(receiver,link,true);
+            bot.sendAudioMessage(receiver, link, true);
             callback();
         } else {
             bot.sendTextMessage(receiver, msg);
@@ -1255,7 +1267,7 @@ function init(server) {
         }
     }
 
-    function determineLineType(msg,callback) {
+    function determineLineType(msg, callback) {
         let message = {};
         if (msg.startsWith('/image')) {
             let link = msg.substr(7);
