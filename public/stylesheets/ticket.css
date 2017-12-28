@@ -9,9 +9,17 @@
 .chsr.alert{
     display: none;
     position: fixed;
-    top: 250px;
-    right: 570px;
+    top: 30%;
+    right: 44%;
     z-index: 99;
+}
+
+.chsr.alert-warning{
+    padding-right: 15px;
+}
+
+.chsr.alert-warning>button{
+    margin: 10px 10px 5px 10px;
 }
 
 #form-wrap {

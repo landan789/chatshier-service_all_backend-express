@@ -28,7 +28,10 @@ $(document).ready(function() {
     $("#exampleInputAmount").keyup(searchBar);
     $('#ticket-info-delete').click(function() {
         let userId = auth.currentUser.uid;
-        if (confirm("確認刪除表單？")) {
+        $('#alert-warning').find('p').html("是否要刪除表單?");
+        $('#alert-warning').show();
+        $('#alert-warning').find("#yes").click(function(){
+            $('#alert-warning').hide();
             var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
             $.ajax({
                 url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + ticket_id,
@@ -41,18 +44,22 @@ $(document).ready(function() {
                 success: function(data, textStatus, jqXHR) {
                     database.ref('cal-events/' + userId + '/t' + ticket_id).remove()
                         .then(() => {
-                            alert("表單已刪除");
-                        })
-                        .then(() => {
-                            location.reload();
+                            ticket_content.empty();
+                            loadTable();
+                            $('#alert-danger').children('span').text("表單已刪除");
+                            setTimeout(function(){$('#alert-danger').show();},1000);
+                            setTimeout(function(){$('#alert-danger').hide();},4000);
                         });
                 },
                 error: function(jqXHR, tranStatus) {
-                    alert("表單刪除失敗，請重試");
+                    $('#alert-warning').find('p').html("表單刪除失敗，請重試");
+                    $('#alert-warning').show();
+                    setTimeout(function(){$('#alert-delete').hide();},4000);
                     console.log(jqXHR)
                 }
             });
-        }
+        });
+        $('#alert-warning').find('#no').click(function(){$('#alert-warning').hide();});
     })
 });
 
@@ -412,32 +419,19 @@ function modifyTicket() {
                             description: clientDescription,
                             allDay: false
                         })
-                    });
-                    ticket_content.empty();
-                    $.ajax({
-                        url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets?include=requester",
-                        type: 'GET',
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        headers: {
-                            "Authorization": "Basic " + btoa(api_key + ":x")
-                        },
-                        success: function(data, textStatus, jqXHR) {
-                            for (let i = 0; i < data.length; i++) {
-                                ticketInfo = data;
-                                ticket_content.append('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td id="description">' + data[i].description.substring(0, 10) + '</td>' + '<td id="status" class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td id="priority" class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td id="time">' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
-                            }
-                            $('#alert-success').show();
-                            setTimeout(function(){$('#alert-success').hide();},3000);
-                        },
-                        error: function(jqXHR, tranStatus) {
-                            console.log('error');
-                        }
+                    })
+                    .then(() => {
+                      ticket_content.empty();
+                      loadTable();
+                      $('#alert-success').children('span').text("表單已更新");
+                      setTimeout(function(){$('#alert-success').show();},1000);
+                      setTimeout(function(){$('#alert-success').hide();},4000);
                     });
             },
             error: function(jqXHR, tranStatus) {
-                $('#alert-error').show();
-                setTimeout(function(){$('#alert-error').hide();},3000);
+                $('#alert-danger').children('span').text("表單更新失敗，請重試");
+                $('#alert-danger').show();
+                setTimeout(function(){$('#alert-danger').hide();},4000);
                 console.log(jqXHR.responseText)
             }
         });
