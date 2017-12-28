@@ -228,7 +228,7 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        apps.getDataById(snap => {
+                        apps.getAll(snap => {
 
                             let infoArr = [];
                             data.map(item => {
