@@ -168,7 +168,7 @@ $(document).ready(function() {
     //-------------end TAG--------------------
     function loadProf() {
         let userId = auth.currentUser.uid;
-        var baseWebhookUrl= urlConfig.webhookUrl;
+        var webhookBaseUrl = urlConfig.webhookUrl;
         let webhookUrl;
         var runProgram = new Promise(function(resolve, reject) {
             resolve();
@@ -206,7 +206,7 @@ $(document).ready(function() {
                             $('#prof-channelId_1').text(data.id1);
                             $('#prof-channelSecret_1').text(data.secret);
                             $('#prof-channelAccessToken_1').text(data.token1);
-                            webhookUrl = createWebhookUrl(baseWebhookUrl ,data.webhook_id);
+                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
                             $('#prof-webhookUrl-1').text(webhookUrl);
                             resolve(appIds);
                         });
@@ -225,7 +225,7 @@ $(document).ready(function() {
                             $('#prof-channelId_2').text(data.id1);
                             $('#prof-channelSecret_2').text(data.secret);
                             $('#prof-channelAccessToken_2').text(data.token1);
-                            webhookUrl = createWebhookUrl(baseWebhookUrl ,data.webhook_id);
+                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
                             $('#prof-webhookUrl-2').text(webhookUrl);
                             resolve(appIds);
                         });
@@ -246,7 +246,7 @@ $(document).ready(function() {
                             $('#prof-fbAppSecret').text(data.secret);
                             $('#prof-fbValidToken').text(data.token1);
                             $('#prof-fbPageToken').text(data.token2);
-                            webhookUrl = createWebhookUrl(baseWebhookUrl ,data.webhook_id);
+                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
                             $('#prof-fbwebhookUrl').text(webhookUrl);
                             resolve();
                         });
@@ -293,10 +293,10 @@ $(document).ready(function() {
         });
     }
 
-    function createWebhookUrl(baseWebhookUrl,webhookId){
+    function createWebhookUrl(webhookBaseUrl, webhookId) {
         let webhookUrl;
-        baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
-        webhookUrl= baseWebhookUrl + "/" + webhookId;
+        webhookBaseUrl = webhookBaseUrl.replace(/\/+$/, '');
+        webhookUrl = webhookBaseUrl + "/" + webhookId;
         return webhookUrl;
     }
 
