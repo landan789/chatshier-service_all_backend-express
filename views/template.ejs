@@ -23,84 +23,102 @@
     <% include ../views/partials/wrapper.ejs %>
         <% include ../views/partials/loading.ejs %>
             <div id="home">
+                <div class="container margin-top">
+                    <div class="row panel">
+                        <!-- <div class="col-md-6" id="view-all"> -->
+                        <div class="title title-top">
+                            <h3 class="padding-lr h3-padding"> 自訂Line Template</h3>
+                            <hr class="hr-margin-bottom">
+                            <p class="address padding-lr"> 首頁 / 訊息 / 自訂聊天模板</p>
 
-                <div class="row panel">
-                    <!-- <div class="col-md-6" id="view-all"> -->
-                    <div id="title">
-                        <h3> 自訂Line Template</h3>
-                        <hr>
-                        <p> 首頁 / 訊息 / 自訂聊天模板</p>
-
-                    </div>
-                    <div class="" id="view-all">
-                        <div class="search-add">
-                            <input type="text" class="template_search_bar" id="exampleInputAmount" value="" placeholder="搜尋">
-                            <button type="button" class="btn btn-default fa fa-plus" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
                         </div>
-                        <div class="tab-content">
-                            <div class="table tabcontent">
-                                <table class="chsr table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">標題</th>
-                                            <th scope="col">類型 </th>
-                                            <th scope="col">關鍵字</th>
-                                            <th scope="col">狀態</th>
-                                            <th scope="col">到期時間</th>
-                                            <th scope="col">操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th scope="row">聖誕節</th>
-                                            <td>文字</td>
-                                            <td>聖誕節</td>
-                                            <td>開放</td>
-                                            <td>12/28~12/29</td>
-                                            <td>
-                                                <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                                <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">聖誕節</th>
-                                            <td>文字</td>
-                                            <td>聖誕節</td>
-                                            <td>開放</td>
-                                            <td>12/28~12/29</td>
-                                            <td>
-                                                <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                                <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">聖誕節</th>
-                                            <td>文字</td>
-                                            <td>聖誕節</td>
-                                            <td>開放</td>
-                                            <td>12/28~12/29</td>
-                                            <td>
-                                                <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                                <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">聖誕節</th>
-                                            <td>文字</td>
-                                            <td>聖誕節</td>
-                                            <td>開放</td>
-                                            <td>12/28~12/29</td>
-                                            <td>
-                                                <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                                <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div class="padding-lr" id="view-all">
+                            <div class="search-add">
+                                <span class="icon"><i class="fa fa-search"></i></span>
+                                <input type="text" class="template_search_bar " id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                                <button type="button" class="btn btn-default fa fa-plus" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                            </div>
+                            <div class="tab-content">
+                                <div class="table tabcontent">
+                                    <table class="table row-color">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">標題</th>
+                                                <th scope="col">類型 </th>
+                                                <th scope="col">關鍵字</th>
+                                                <th scope="col">狀態</th>
+                                                <th scope="col">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">聖誕節</th>
+                                                <td>文字</td>
+                                                <td>聖誕節</td>
+                                                <td>開放</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                    <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">聖誕節</th>
+                                                <td>文字</td>
+                                                <td>聖誕節</td>
+                                                <td>開放</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                    <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">聖誕節</th>
+                                                <td>文字</td>
+                                                <td>聖誕節</td>
+                                                <td>開放</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                    <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">聖誕節</th>
+                                                <td>文字</td>
+                                                <td>聖誕節</td>
+                                                <td>開放</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                    <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">聖誕節</th>
+                                                <td>文字</td>
+                                                <td>聖誕節</td>
+                                                <td>開放</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-default fa fa-pencil" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                    <button type="button" class="btn btn-default fa fa-trash-o" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="pagebtn">
+                                        <nav aria-label="Page navigation example">
+                                            <ul class="chsr pagination">
+                                                <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                                                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
-                    <!-- <div class="col-md-6 mermaidd" id="sample">
+                        <!-- <div class="col-md-6 mermaidd" id="sample">
                 graph TD
                 a(This is the text in the box)
                 class a buttons
@@ -110,6 +128,8 @@
 
                 style buttons fill:#f9f,stroke:#333,stroke-width:4px
             </div> -->
+                    </div>
+                    </duv>
                 </div>
             </div>
 
@@ -130,23 +150,16 @@
                                     <input id="template-id"></span>
                                 </div>
                                 <!-- channelId -->
-                                <!-- <div class="form-group">
+                                <div class="form-group">
                                     <label class="col-2 col-form-label"><strong>發送群組:</strong>
                                     <div class="col-4"> 
-                                        <select class="form-control channel-select" id="template-channelId">
-                                            <option disabled selected value> -- 請選擇 -- </option>
-                                        </select>
+                                            <input type="checkbox" value="1" name="product-1"> A
+                                            <input type="checkbox" value="2" name="product-2">B
+                                            <input type="checkbox" value="3" name="product-3">C
                                     </div>
                                 </label>
-                                </div> -->
-                                <!-- title -->
-                                <div class="form-group">
-                                    <label class="col-2 col-form-label template-title"><strong>標題:</strong>
-                                        <div class="col-4">
-                                            <input class="form-control" type="text" value="" id="template-title">
-                                        </div>
-                                    </label>
                                 </div>
+
                                 <!-- Keyword -->
                                 <div class="form-group">
                                     <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong><p class="keyword-duplicate hidden">關鍵字重複，請重新輸入</p>

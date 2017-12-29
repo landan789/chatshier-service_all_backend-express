@@ -231,7 +231,7 @@ function init(server) {
                         apps.getAll(snap => {
 
                             let infoArr = [];
-                            if(data) {
+                            if (data) {
                                 data.map(item => {
                                     infoArr.push(snap[item]);
                                     if (infoArr.length >= data.length) {
@@ -247,7 +247,7 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        if(data) {
+                        if (data) {
                             allObj.appsData = data;
                         }
                         resolve();
