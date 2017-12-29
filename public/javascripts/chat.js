@@ -122,16 +122,22 @@ $(document).ready(function() {
                     window.sessionStorage["notifyModal"] = 1;
                 }
             } else {
-                socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
-                $('.chat-app-item#Line_1').attr('rel', data[0].id1);
-                $('.chat-app-item#Line_2').attr('rel', data[1].id1);
-                $('.chat-app-item#FB').attr('rel', data[2].id1);
-                $('#Line_1').attr('data-original-title', data[0].name);
-                $('#Line_2').attr('data-original-title', data[1].name);
-                $('#FB').attr('data-original-title', data[2].name);
-                room_list.push(data[0].id1); // line1
-                room_list.push(data[1].id1); // line2
-                room_list.push(data[2].id1); // facebook
+                let line1Id = data[0] !== undefined ? data[0].id1 : '';
+                let line2Id = data[1] !== undefined ? data[1].id1 : '';
+                let fbId = data[2] !== undefined ? data[2].id1 : '';
+                let line1Name = data[0] !== undefined ? data[0].name : '';
+                let line2Name = data[1] !== undefined ? data[1].name : '';
+                let fbName = data[2] !== undefined ? data[2].name : '';
+                socket.emit('request chat data', [line1Id, line2Id, fbId], responseChatData);
+                $('.chat-app-item#Line_1').attr('rel', line1Id);
+                $('.chat-app-item#Line_2').attr('rel', line2Id);
+                $('.chat-app-item#FB').attr('rel', fbId);
+                $('#Line_1').attr('data-original-title', line1Name);
+                $('#Line_2').attr('data-original-title', line2Name);
+                $('#FB').attr('data-original-title', fbName);
+                room_list.push(line1Id); // line1
+                room_list.push(line2Id); // line2
+                room_list.push(fbId); // facebook
             }
         }
     } // end of responseUserAppIds

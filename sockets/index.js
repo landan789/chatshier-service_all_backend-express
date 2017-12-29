@@ -228,20 +228,33 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        apps.getAll(snap => {
-
-                            let infoArr = [];
-                            if(data) {
-                                data.map(item => {
-                                    infoArr.push(snap[item]);
-                                    if (infoArr.length >= data.length) {
-                                        resolve(infoArr);
-                                    }
-                                });
-                            } else {
-                                resolve();
-                            }
+                        let appsArr = [];
+                        data.map((item) => {
+                            apps.getById(item, (app) => {
+                                if (null === app) {
+                                    reject('no app_ids');
+                                } 
+                                if((appsArr.length + 1) === data.length) {
+                                    resolve(appsArr);
+                                } else {
+                                    appsArr.push(app);
+                                }
+                            });
                         });
+                        
+                        // data.map((item) => {
+                        //     let appsArr = [];
+                        //     apps.getById(item, (app) => {
+                        //         if (null === app) {
+                        //             reject('no app_ids');
+                        //         } else if(appsArr.length < data.length) {
+                        //             appsArr.push(app);
+                        //             return;
+                        //         } else {
+                        //             resolve(appsArr);
+                        //         } 
+                        //     });
+                        // });
                         setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
                 })
@@ -249,6 +262,7 @@ function init(server) {
                     return new Promise((resolve, reject) => {
                         if(data) {
                             allObj.appsData = data;
+                            console.log(allObj.appsData)
                         }
                         resolve();
                         setTimeout(reject, WAIT_TIME, "app network too slow");
