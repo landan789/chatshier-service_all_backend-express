@@ -1,4 +1,5 @@
 {
     "ERROR_USER_NOT_EXISTS": { "MSG": "user does not exists", "CODE": "1" },
-    "ERROR_APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" }
+    "ERROR_APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" },
+    "ERROR_USERID_NOT_EXISTS": { "MSG": "userid does not exists", "CODE": "3" }
 }
