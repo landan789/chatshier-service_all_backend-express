@@ -1,7 +1,10 @@
 // jQuery
 $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
-    $(document).on('click', '#signout-btn', logout); //登出
+    $(document).on('click', '#signout-btn', (event)=>{
+        event.preventDefault();
+        location = '/logout';
+    }); //登出
     // $(document).on('click', '#search-btn', filterChart);
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#csv', noCsv);
@@ -203,10 +206,4 @@ function deleteRow() {
         loadKeywordsReply();
         alert('已成功刪除');
     }
-}
-
-function logout() {
-    auth.signOut().then(response => {
-        window.location.assign("/login");
-    })
 }

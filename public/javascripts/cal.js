@@ -11,9 +11,6 @@ $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
 });
 
-
-
-$(document).on('click', '#signout-btn', logout); //登出
 $(document).on('click', '#add-cal-btn', set_cal); //新增事件
 $(document).on('click', '#save-cal-btn', set_cal); //更新事件
 $(document).on('click', '#del-cal-btn', del_cal); //刪除事件

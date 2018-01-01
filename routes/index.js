@@ -36,6 +36,11 @@ router.get('/tform', function(req, res, next) {
 router.get('/login', function(req, res, next) {
   res.render('login', { title: '登入' });
 });
+
+router.get('/logout', function(req, res, next) {
+  res.render('logout', { title: '登出' });
+});
+
 router.get('/signup', function(req, res, next) {
   res.render('signup', { title: '註冊' });
 });

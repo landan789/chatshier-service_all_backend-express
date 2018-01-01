@@ -1,7 +1,6 @@
 // jQuery
 $(document).ready(function() {
     window.dispatchEvent(firbaseEvent);
-    $(document).on('click', '#signout-btn', logout); //登出
     // $(document).on('click', '#search-btn', filterChart);
     // $(document).on('click', '#message', subMessage);//Message 導覽標籤 subtags
     $(document).on('click', '.tablinks', clickMsg);
@@ -200,14 +199,6 @@ function deleteRow() {
     // console.log(userId, key);
     database.ref('message-autoreply/' + userId + '/' + key).remove();
     loadAutoReply();
-}
-
-
-function logout() {
-    auth.signOut()
-        .then(response => {
-            window.location.assign("/login");
-        })
 }
 
 function ISODateTimeString(d) {

@@ -87,10 +87,7 @@ $(document).ready(function() {
         //=====end ticket event=====
 
     //=====start utility event=====
-    $(document).on('click', '#signout-btn', function() {
-        event.preventDefault();
-        logout(function() { location = '/login'; });
-    }); // 登出
+
     $(document).on('change', '.multi-select-container', multiSelectChange);
     $(document).on('click', '.dropdown-menu', function(event) {
         event.stopPropagation();

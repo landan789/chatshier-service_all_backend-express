@@ -20,17 +20,13 @@ window.addEventListener('firebaseAuth', function(e) {
 
     auth.onAuthStateChanged(user => {
         var state = getState(user);
-
+        
         if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
-            location = '/login';
+            location = '/logout';
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-            clearCookie('name', domain);
-            clearCookie('email', domain);
-            location = '/login';
+            location = '/logout';
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-            logout(() => {
-                location = '/login';
-            });
+            location = '/logout';
 
         } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
             $('#loading').fadeOut();
@@ -38,10 +34,10 @@ window.addEventListener('firebaseAuth', function(e) {
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
 
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-            clearCookie('name', domain);
-            clearCookie('email', domain);
+            location = '/logout';
+
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-            logout();
+            location = '/logout';
         } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
             location = '/chat';
 
@@ -50,23 +46,9 @@ window.addEventListener('firebaseAuth', function(e) {
     });
 }, false);
 
-
-
-
 // functions
-function logout(callback) {
-    clearCookie('name', domain);
-    clearCookie('email', domain);
-    auth.signOut()
-        .then(response => {
 
-            callback();
-        })
-}
 
-function clearCookie(name, domain) {
-    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; " + "domain=" + domain;
-}
 
 function getCookie(cName) {
     if (document.cookie.length > 0) {
@@ -78,7 +60,7 @@ function getCookie(cName) {
             return unescape(document.cookie.substring(cStart, cEnd));
         }
     }
-    return "";
+    return '';
 }
 
 function getState(user) {
