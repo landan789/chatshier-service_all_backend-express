@@ -308,6 +308,10 @@
     #tim-error-msg {
         color: red;
     }
+
+    .edit {
+        color: black;
+    }
     /*Login and register*/
     
     .bg-login,

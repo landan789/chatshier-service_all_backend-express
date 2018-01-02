@@ -37,8 +37,8 @@
                 <table>
                     <thead>
                         <tr>
+                            <th style="width:15%; padding:2%" hidden>ID</th>
                             <th style="width:10%; padding:2%">狀態</th>
-                            <th style="width:15%; padding:2%">預約</th>
                             <th style="width:15%; padding:2%">訊息標題</th>
                             <th style="width:20%; padding:2%">有效期限</th>
                             <th style="width:20%; padding:2%">訊息內容</th>
@@ -130,11 +130,6 @@
                                         <label for="task-name" class="col-2 col-form-label">訊息內容:  </label>
                                         <span id="view-textinput"></span>
                                     </div>
-                                    <!-- 負責人 -->
-                                    <div class="form-group">
-                                        <label for="owner" class="col-2 col-form-label">負責人:  </label>
-                                        <span id="view-owner"></span>
-                                    </div>
                                 </form>
                             </div>
                             <div class="modal-footer">
@@ -156,7 +151,7 @@
                             <div class="modal-body">
                                 <form>
                                     <!-- 編號 -->
-                                    <div class="form-group">
+                                    <div class="form-group" hidden>
                                         <label for="task-name" class="col-2 col-form-label">ID</label>
                                         <span id="edit-id"></span>
                                     </div>
@@ -190,14 +185,6 @@
                                             <input class="form-control" type="text" value="" id="edit-taskContent">
                                         </div>
                                     </div>
-                                    <!-- 負責人 -->
-                                    <div class="form-group">
-                                        <label for="edit-owner" class="col-2 col-form-label">負責人:  </label>
-                                        <div class="col-4">
-                                            <input class="form-control" type="text" value="" id="edit-owner">
-                                        </div>
-                                    </div>
-
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
