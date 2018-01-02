@@ -16,13 +16,6 @@ apps.getById = (appId, callback) => {
     });
 }
 
-apps.getAutoById = (appId, callback) => {
-    admin.database().ref('apps/' + appId + '/autoreplies').once('value', snap => {
-        var app = snap.val();
-        callback(app);
-    });
-}
-
 apps.getAppsByUserId = (userId, callback) => {
     var p = new Promise((resolve, reject) => {
         resolve();
@@ -97,30 +90,6 @@ apps.getAppsByAppIds = (appIds, callback) => {
 
 }
 
-apps.updateKeyFromAutoreplies = (key,element) => {
-    admin.database().ref('apps/' + key + '/autoreplies').once('value', (data) => {
-        let arr = data.val();
-        // console.log(arr)
-        if(arr === null) {
-            admin.database().ref('apps/' + key + '/autoreplies/0').set(element);
-        } else {
-            arr.push(element);
-            admin.database().ref('apps/' + key + '/autoreplies').set(arr);
-        }
-    });
-}
 
-apps.removeAutoInAppsById = (appId, hash, callback) => {
-    admin.database().ref('apps/' + appId + '/autoreplies').once('value', (snap) => {
-        let arr = snap.val();
-        let filteredArr = arr.filter((key) => ( key != hash));
-        if(filteredArr.length !== 0) {
-            admin.database().ref('apps/' + appId + '/autoreplies').set(filteredArr);
-        } else {
-            admin.database().ref('apps/' + appId + '/autoreplies').remove();
-        }
-        callback();
-    });
-}
 
 module.exports = apps;

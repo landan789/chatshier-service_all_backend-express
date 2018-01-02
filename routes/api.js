@@ -60,8 +60,8 @@ router.get('/apps/userid/:userid', (req, res, next) => {
 });
 
 // 自動回覆
-router.get('/autoreplies/:autosUserId', (req, res, next) => {
-    var autosUserId = req.params.autosUserId;
+router.get('/autoreplies/:userid', (req, res, next) => {
+    var userId = req.params.userid;
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -70,11 +70,11 @@ router.get('/autoreplies/:autosUserId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            if ('' === autosUserId || null === autosUserId) {
+            if ('' === userId || null === userId) {
                 reject(API_ERROR.USERID_NOT_EXISTS);
                 return;
             }
-            users.getAppIdFromUsers(autosUserId, (data) => {
+            users.getAppIdFromUsers(userId, (data) => {
                 if(data === null) {
                     reject(API_ERROR.USER_NOT_EXISTS);
                 } else {
@@ -85,41 +85,15 @@ router.get('/autoreplies/:autosUserId', (req, res, next) => {
     })
     .then((data) => {
         return new Promise((resolve,reject) => {
-            if(data) {
-                apps.getAutoById(data[0], (snap) => {
-                    let id = snap;
-                    if(snap !== null) {
-                        resolve(id);
-                    } else {
-                        resolve();
-                    }
-                });
-            } else {
-                resolve();
-            }
+            let appId = data[0];
+            autoreplies.find(appId,(info) => {
+                if(info === null) {
+                    reject();
+                } else {
+                    resolve(info);
+                }
+            });
         })
-    })
-    .then((data) => {
-        return new Promise((resolve,reject) => {
-            if(data !== undefined) {
-                let id = data
-                let arr = [];
-                id.map((item) => {
-                    autoreplies.getAutoInfoById(item, snap => {
-                        if(snap !== null) {
-                            arr.push(snap);
-                            if(arr.length === id.length) {
-                                resolve(arr);
-                            }
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-            } else {
-                resolve();
-            }
-        });
     })
     .then((data) => {
         let result = data !== undefined ? data : {};
@@ -139,11 +113,11 @@ router.get('/autoreplies/:autosUserId', (req, res, next) => {
     });
 });
 
-router.post('/autoreplies/:autosUserId', (req, res, next) => {
+router.post('/autoreplies/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    var autosUserId = req.params.autosUserId;
+    var userId = req.params.userid;
     var dataObj = {
-        autosUserId: autosUserId,
+        userId: userId,
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
@@ -157,44 +131,24 @@ router.post('/autoreplies/:autosUserId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            autoreplies.post(dataObj, (data) => {
-                let autosKey = data;
-                if(autosKey !== null && autosKey !== undefined) {
-                    resolve(autosKey);
-                } else {
-                    reject();
-                }
-            });
-        });
-    })
-    .then((data) => {
-        return new Promise((resolve,reject) => {
-            if ('' === autosUserId || null === autosUserId) {
+            if ('' === userId || null === userId) {
                 reject(API_ERROR.USERID_NOT_EXISTS);
                 return;
             }
-            users.getAppIdFromUsers(autosUserId, (snap) => {
-                let hashArr = snap;
-                if(hashArr !== null && hashArr !== undefined) {
-                    var obj = {
-                        hashArr: hashArr,
-                        key: data
-                    }
-                    resolve(obj);
-                } else {
+            users.getAppIdFromUsers(userId, (data) => {
+                if(data === null) {
                     reject(API_ERROR.USER_NOT_EXISTS);
+                } else {
+                    resolve(data);
                 }
-            });
+            })
         });
     })
     .then((data) => {
         return new Promise((resolve,reject) => {
-            let hashArr = data.hashArr;
-            let key = data.key;
-            hashArr.map((item) => {
-                apps.updateKeyFromAutoreplies(item,key);
+            autoreplies.insert(data[0], dataObj, () => {
+                resolve();
             });
-            resolve();
         });
     })
     .then(() => {
@@ -214,11 +168,13 @@ router.post('/autoreplies/:autosUserId', (req, res, next) => {
     });
 });
 
-router.put('/autoreplies/:autosHashId', (req, res, next) => {
+router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    var autosHashId = req.params.autosHashId;
+    var userId = req.params.userid;
+    var autoreplyId = req.params.autoreplyid;
     var dataObj = {
-        autosHashId: autosHashId,
+        userId: userId,
+        autoreplyId: autoreplyId,
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
@@ -232,8 +188,26 @@ router.put('/autoreplies/:autosHashId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            autoreplies.update(dataObj,autosHashId,() => {
-                resolve();
+            if ('' === userId || null === userId) {
+                reject(API_ERROR.USERID_NOT_EXISTS);
+                return;
+            }
+            users.getAppIdFromUsers(userId, (data) => {
+                if(data === null) {
+                    reject(API_ERROR.USER_NOT_EXISTS);
+                } else {
+                    resolve(data);
+                }
+            })
+        });
+    })
+    .then((data) => {
+        return new Promise((resolve,reject) => {
+            let appIds = data;
+            appIds.map((appId) => {
+                autoreplies.update(appId,autoreplyId,dataObj,() => {
+                    resolve();
+                });
             });
         });
     })
@@ -254,9 +228,9 @@ router.put('/autoreplies/:autosHashId', (req, res, next) => {
     });
 });
 
-router.delete('/autoreplies/:autosUserId/:autosHashId', (req, res, next) => {
-    var autosUserId = req.params.autosUserId;
-    var autosHashId = req.params.autosHashId;
+router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
+    var userId = req.params.userid;
+    var autoreplyId = req.params.autoreplyid;
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -265,33 +239,27 @@ router.delete('/autoreplies/:autosUserId/:autosHashId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            if ('' === autosUserId || null === autosUserId) {
+            if ('' === userId || null === userId) {
                 reject(API_ERROR.USERID_NOT_EXISTS);
                 return;
             }
-            users.getAppIdFromUsers(autosUserId, (data) => {
-                if(data !== null) {
-                    resolve(data)
-                } else {
+            users.getAppIdFromUsers(userId, (data) => {
+                if(data === null) {
                     reject(API_ERROR.USER_NOT_EXISTS);
+                } else {
+                    resolve(data);
                 }
             })
         });
     })
     .then((data) => {
         return new Promise((resolve,reject) => {
-            data.map((item) => {
-                apps.removeAutoInAppsById(item,autosHashId,() => {
+            let appIds = data;
+            appIds.map((appId) => {
+                autoreplies.del(appId,autoreplyId, () => {
                     resolve();
                 });
             });
-        });
-    })
-    .then(() => {
-        return new Promise((resolve,reject) => {
-            autoreplies.del(autosHashId, () => {
-                resolve();
-            })
         });
     })
     .then(() => {

@@ -19,16 +19,20 @@ function read() {
         type: 'GET',
         url: 'http://' + domain + '/api/autoreplies/' + id,
         success: (data) => {
+            let keyArr = Object.keys(data.data)
             let obj = data.data;
-            $.each(obj, (index,item) => {
+            console.log(keyArr);
+            
+            console.log(obj[keyArr]);
+            $.each(keyArr, (index,item) => {
                 if(item !== null) {
                     let str = 
                     '<tr>' + 
-                        '<td rel="' + item.autosHashId + '" hidden></td>' +
+                        '<td rel="' + item + '" hidden></td>' +
                         '<td>Open</td>' +
-                        '<td rel="' + item.name + '">' + item.name + '</td>' +
-                        '<td rel="' + item.start + ' ' + item.end + '">' + item.start + ' - ' + item.end + '</td>' +
-                        '<td rel="' + item.content + '">' + item.content + '</td>' +
+                        '<td rel="' + obj[item].name + '">' + obj[item].name + '</td>' +
+                        '<td rel="' + obj[item].start + ' ' + obj[item].end + '">' + obj[item].start + ' - ' + obj[item].end + '</td>' +
+                        '<td rel="' + obj[item].content + '">' + obj[item].content + '</td>' +
                         '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
                     '</tr>';
                     $('#autoreply-list').append(str);
@@ -44,8 +48,6 @@ function read() {
 
 function create(data) {
     var id = auth.currentUser.uid;
-    console.log(id)
-    console.log(data);
     $.ajax({
         type: 'POST',
         url: 'http://' + domain + '/api/autoreplies/' + id,
@@ -69,10 +71,10 @@ function create(data) {
     });
 }
 
-function update(autosHashId,data) {
+function update(userId,autosHashId,data) {
     $.ajax({
         type: 'PUT',
-        url: 'http://' + domain + '/api/autoreplies/' + autosHashId,
+        url: 'http://' + domain + '/api/autoreplies/' + userId + '/' + autosHashId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -165,6 +167,7 @@ function openEdit() {
     });
 } //end open edit
 function modalEdit() {
+    var id = auth.currentUser.uid;
     let key = $(this).parent().parent().find('#edit-id').text();
     console.log(key)
     var name = $('#edit-taskTitle').val(); //標題
@@ -179,7 +182,7 @@ function modalEdit() {
         content: textInput
     }
 
-    update(key,data);
+    update(id,key,data);
 } //end modal edit
 
 function deleteRow() {
