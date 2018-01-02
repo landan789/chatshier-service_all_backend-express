@@ -39,6 +39,13 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     $infoPanel.hide();
+    var ref = firebase.database().ref('users/NfO3a14q7RhSytPvngevDluRzG32/name');
+    ref.transaction(function(name) {
+        return name + '1';
+        // If users/ada/rank has never been set, currentRank will be `null`.
+    });
+
+    debugger;
     var startUserId = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(startUserId);
@@ -219,10 +226,9 @@ $(document).ready(function() {
         let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
         if ((profile.unRead > 0) && (profile.unRead <= 99)) {
             tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-         } else if(profile.unRead > 99){
+        } else if (profile.unRead > 99) {
             tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + "99+" + "</div>" + "</button><hr/></b>";
-         }
-        else {
+        } else {
             tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
         }
         if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
@@ -610,7 +616,7 @@ $(document).ready(function() {
                 channelId: channelId,
                 userId: userId
             }); //tell socket that this user isnt unRead
-         }
+        }
         $('#user-rooms').val(userId); //change value in select bar
         $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
         $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
@@ -636,7 +642,7 @@ $(document).ready(function() {
             socket.emit('upload history msg from front', request, responseHistoryMsg);
         }
     } // end of detecetScrollTop
-    function readClientMsg(){
+    function readClientMsg() {
         let userId = $('.tablinks#selected').attr('name'); // ID
         let channelId = $('.tablinks#selected').attr('rel'); // channelId
         $('.tablinks#selected').find('.unread-msg').text('0').hide();
@@ -850,11 +856,10 @@ $(document).ready(function() {
         // update tablnks's last msg
         if (data.owner === "agent") {
             target.find('.unread-msg').text("0").css("display", "none");
-        } else if((data.unRead+currentUnread) > 99){
+        } else if ((data.unRead + currentUnread) > 99) {
             target.find('.unread-msg').text("99+").css("display", "block");
-        }
-        else {
-            target.find('.unread-msg').html(data.unRead+currentUnread).css("display", "block"); // 未讀訊息數顯示出來
+        } else {
+            target.find('.unread-msg').html(data.unRead + currentUnread).css("display", "block"); // 未讀訊息數顯示出來
         }
         let ele = target.parents('b'); //buttons to b
         ele.remove();

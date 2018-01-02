@@ -10,8 +10,7 @@ router.get('/apps/appid/:appid', (req, res, next) => {
 
 });
 
-router.get('/apps/userid/:userid', (req, res, next) => {
-
+router.get('/apps/users/:userid', (req, res, next) => {
 
     var p = new Promise((resolve, reject) => {
         resolve();
@@ -21,12 +20,12 @@ router.get('/apps/userid/:userid', (req, res, next) => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;
             if ('' === userId || null === userId) {
-                reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                reject(API_ERROR.USERID_NOT_EXISTS);
                 return;
             }
             users.getUser(userId, (data) => {
                 if (null === data) {
-                    reject(API_ERROR.ERROR_USER_NOT_EXISTS);
+                    reject(API_ERROR.USER_NOT_EXISTS);
                     return;
                 }
 
@@ -53,11 +52,11 @@ router.get('/apps/userid/:userid', (req, res, next) => {
             "data": apps
         };
         res.status(200).json(json);
-    }).catch((ERR) => {
+    }).catch((ERROR) => {
         var json = {
             "status": 0,
-            "mgs": ERR.MSG,
-            "code": ERR.CODE
+            "msg": ERROR.MSG,
+            "code": ERROR.CODE
         };
         res.status(403).json(json);
     });
