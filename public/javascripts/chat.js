@@ -50,6 +50,7 @@ $(document).ready(function() {
     //=====start chat event=====
     openChatAppItem.click(showChatApp);
     $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    $(document).on('focus', '#message', readClientMsg); //已讀客戶訊息
     $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
@@ -216,10 +217,13 @@ $(document).ready(function() {
         let lastMsgStr = lastMsgToStr(lastMsg);
 
         let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
-        if (profile.unRead > 0) {
-            tablinkHtml += "<div class='unread-msg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-        } else {
-            tablinkHtml += "</div>" + "<div class='unread-msg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+        if ((profile.unRead > 0) && (profile.unRead <= 99)) {
+            tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+         } else if(profile.unRead > 99){
+            tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + "99+" + "</div>" + "</button><hr/></b>";
+         }
+        else {
+            tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
         }
         if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
             $('#vip_list').prepend(tablinkHtml);
@@ -395,9 +399,9 @@ $(document).ready(function() {
         let lastMsg = historyMsg[historyMsg.length - 1];
         let lastMsgStr = lastMsgToStr(lastMsg);
         if (profile.unRead > 0) {
-            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unread-msg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
         } else {
-            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unread-msg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
         }
         // 依照不同的channel ID做分類
         canvas.append( //push string into canvas
@@ -606,7 +610,7 @@ $(document).ready(function() {
                 channelId: channelId,
                 userId: userId
             }); //tell socket that this user isnt unRead
-        }
+         }
         $('#user-rooms').val(userId); //change value in select bar
         $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
         $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
@@ -632,6 +636,15 @@ $(document).ready(function() {
             socket.emit('upload history msg from front', request, responseHistoryMsg);
         }
     } // end of detecetScrollTop
+    function readClientMsg(){
+        let userId = $('.tablinks#selected').attr('name'); // ID
+        let channelId = $('.tablinks#selected').attr('rel'); // channelId
+        $('.tablinks#selected').find('.unread-msg').text('0').hide();
+        socket.emit("read message", {
+            channelId: channelId,
+            userId: userId
+        }); //tell socket that this user isnt unRead
+    } //end of readClientMsg
     function submitMsg(e) {
         e.preventDefault();
         let vendorId = auth.currentUser.uid;
@@ -825,6 +838,7 @@ $(document).ready(function() {
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + data.id + "'][rel='" + channelId + "']");
+        let currentUnread = parseInt(target.find('.unread-msg').text());
         if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(data.time) + '檔案');
         } else if (data.message.startsWith('<img')) {
@@ -836,7 +850,12 @@ $(document).ready(function() {
         // update tablnks's last msg
         if (data.owner === "agent") {
             target.find('.unread-msg').text("0").css("display", "none");
-        } else target.find('.unread-msg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
+        } else if((data.unRead+currentUnread) > 99){
+            target.find('.unread-msg').text("99+").css("display", "block");
+        }
+        else {
+            target.find('.unread-msg').html(data.unRead+currentUnread).css("display", "block"); // 未讀訊息數顯示出來
+        }
         let ele = target.parents('b'); //buttons to b
         ele.remove();
         $('.tablinks-area>#clients').prepend(ele);
