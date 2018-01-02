@@ -19,13 +19,12 @@ function read() {
         type: 'GET',
         url: 'http://' + domain + '/api/autoreplies/' + id,
         success: (data) => {
-            console.log(data);
             let obj = data.data;
             $.each(obj, (index,item) => {
                 if(item !== null) {
                     let str = 
                     '<tr>' + 
-                        '<td rel="' + item.hash + '" hidden></td>' +
+                        '<td rel="' + item.autosHashId + '" hidden></td>' +
                         '<td>Open</td>' +
                         '<td rel="' + item.name + '">' + item.name + '</td>' +
                         '<td rel="' + item.start + ' ' + item.end + '">' + item.start + ' - ' + item.end + '</td>' +
@@ -38,12 +37,15 @@ function read() {
         },
         error: (error) => {
             alert('載入失敗: ' + error);
+            console.log(error);
         }
     })
 }
 
 function create(data) {
     var id = auth.currentUser.uid;
+    console.log(id)
+    console.log(data);
     $.ajax({
         type: 'POST',
         url: 'http://' + domain + '/api/autoreplies/' + id,
@@ -51,17 +53,6 @@ function create(data) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: () => {
-            // let str = 
-            // '<tr>' + 
-            //     '<td rel="' + data.hash + '" hidden></td>' +
-            //     '<td>Open</td>' +
-            //     '<td rel="' + data.name + '">' + data.name + '</td>' +
-            //     '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
-            //     '<td rel="' + data.content + '">' + data.content + '</td>' +
-            //     '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-            // '</tr>';
-            // $('#autoreply-list').append(str);
-            //塞入資料庫並初始化
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
@@ -78,18 +69,18 @@ function create(data) {
     });
 }
 
-function update(hash,data) {
+function update(autosHashId,data) {
     $.ajax({
         type: 'PUT',
-        url: 'http://' + domain + '/api/autoreplies/' + hash,
+        url: 'http://' + domain + '/api/autoreplies/' + autosHashId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: () => {
-            $('[rel="' + hash + '"]').parent().remove();
+            $('[rel="' + autosHashId + '"]').parent().remove();
             let str = 
             '<tr>' + 
-                '<td rel="' + hash + '" hidden></td>' +
+                '<td rel="' + autosHashId + '" hidden></td>' +
                 '<td>Open</td>' +
                 '<td rel="' + data.name + '">' + data.name + '</td>' +
                 '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
@@ -112,13 +103,13 @@ function update(hash,data) {
     });
 }
 
-function del(hash) {
+function del(autosHashId) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: 'http://' + domain + '/api/autoreplies/' + id + '/' + hash,
+        url: 'http://' + domain + '/api/autoreplies/' + id + '/' + autosHashId,
         success: () => {
-            $('[rel="' + hash + '"]').parent().remove();
+            $('[rel="' + autosHashId + '"]').parent().remove();
             alert('刪除成功!');
         },
         error: (error) => {
@@ -175,6 +166,7 @@ function openEdit() {
 } //end open edit
 function modalEdit() {
     let key = $(this).parent().parent().find('#edit-id').text();
+    console.log(key)
     var name = $('#edit-taskTitle').val(); //標題
     var starttime = $('#edit-taskStart').val(); //開始時間
     var endtime = $('#edit-taskEnd').val(); //結束時間
