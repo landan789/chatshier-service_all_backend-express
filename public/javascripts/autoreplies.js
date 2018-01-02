@@ -1,14 +1,12 @@
 var domain = location.host;
 // jQuery
 $(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
     var startUserId = setInterval(() => {
         if(auth.currentUser) {
             clearInterval(startUserId);
             read();
         }
     },1000);
-    $(document).on('click', '#signout-btn', logout); //登出
     $(document).on('click', '#modal-submit', modalSubmit); //新增
     $(document).on('click', '#editBtn', openEdit); //打開編輯modal
     $(document).on('click', '#edit-submit', modalEdit);
@@ -21,18 +19,21 @@ function read() {
         type: 'GET',
         url: 'http://' + domain + '/api/autoreplies/' + id,
         success: (data) => {
-            let obj = data.Data;
+            console.log(data);
+            let obj = data.data;
             $.each(obj, (index,item) => {
-                let str = 
-                '<tr>' + 
-                    '<td rel="' + item.hash + '" hidden></td>' +
-                    '<td>Open</td>' +
-                    '<td rel="' + item.name + '">' + item.name + '</td>' +
-                    '<td rel="' + item.start + ' ' + item.end + '">' + item.start + ' - ' + item.end + '</td>' +
-                    '<td rel="' + item.content + '">' + item.content + '</td>' +
-                    '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-                '</tr>';
-                $('#autoreply-list').append(str);
+                if(item !== null) {
+                    let str = 
+                    '<tr>' + 
+                        '<td rel="' + item.hash + '" hidden></td>' +
+                        '<td>Open</td>' +
+                        '<td rel="' + item.name + '">' + item.name + '</td>' +
+                        '<td rel="' + item.start + ' ' + item.end + '">' + item.start + ' - ' + item.end + '</td>' +
+                        '<td rel="' + item.content + '">' + item.content + '</td>' +
+                        '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
+                    '</tr>';
+                    $('#autoreply-list').append(str);
+                }
             });
         },
         error: (error) => {

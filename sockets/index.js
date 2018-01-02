@@ -8,7 +8,7 @@ var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase adm
 var databaseURL = require("../config/firebaseAdminDatabaseUrl.js");
 
 var agents = require('../models/agents');
-var autos = require('../models/autos');
+var autoreplies = require('../models/autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
 var keywords = require('../models/keywords');
@@ -767,7 +767,7 @@ function init(server) {
             function autoReply(msg) {
                 replyMsgObj.name = "Auto Reply";
                 sent = false;
-                autos.get(function(autoreplyData) {
+                autoreplies.get(function(autoreplyData) {
                     for (let i in autoreplyData) {
                         for (let j in autoreplyData[i]) {
                             thisAutoReply = autoreplyData[i][j];

@@ -3,17 +3,13 @@ var express = require('express');
 var admin = require('firebase-admin');
 var users = require('../models/users');
 var apps = require('../models/apps');
-var autos = require('../models/autos');
+var autoreplies = require('../models/autoreplies');
 var router = express.Router();
 
 router.get('/apps/appid/:appid', (req, res, next) => {
-
-
 });
 
 router.get('/apps/userid/:userid', (req, res, next) => {
-
-
     var p = new Promise((resolve, reject) => {
         resolve();
     });
@@ -30,7 +26,6 @@ router.get('/apps/userid/:userid', (req, res, next) => {
                     reject(API_ERROR.ERROR_USER_NOT_EXISTS);
                     return;
                 }
-
                 resolve(data);
             });
         });
@@ -65,8 +60,8 @@ router.get('/apps/userid/:userid', (req, res, next) => {
 });
 
 // 自動回覆
-router.get('/autoreplies/:userid', (req, res, next) => {
-    var userId = req.params.userid;
+router.get('/autoreplies/:autosUserId', (req, res, next) => {
+    var autosUserId = req.params.autosUserId;
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -75,11 +70,15 @@ router.get('/autoreplies/:userid', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            users.getAppIdFromUsers(userId, (data) => {
+            if ('' === autosUserId || null === autosUserId) {
+                reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                return;
+            }
+            users.getAppIdFromUsers(autosUserId, (data) => {
                 if(data !== null) {
-                    resolve(data)
+                    resolve(data);
                 } else {
-                    reject('App ID document is empty')
+                    reject(API_ERROR.ERROR_USER_NOT_EXISTS);
                 }
             })
         });
@@ -89,7 +88,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         return new Promise((resolve,reject) => {
             apps.getAutoById(data[0], (snap) => {
                 let id = snap;
-                resolve(id)
+                resolve(id);
             });
         })
     })
@@ -98,7 +97,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
             let id = data
             let arr = [];
             id.map((item) => {
-                autos.getAutoInfoById(item, snap => {
+                autoreplies.getAutoInfoById(item, snap => {
                     arr.push(snap);
                     if(arr.length === id.length) {
                         resolve(arr);
@@ -108,18 +107,27 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         });
     })
     .then((data) => {
-        res.json({Data:data});
+        var json = {
+            "status": 1,
+            "data": data
+        };
+        res.status(200).json(json);
     })
-    .catch((reason) => {
-        res.json({message:reason});
+    .catch((ERR) => {
+        var json = {
+            "status": 0,
+            "mgs": ERR.MSG,
+            "code": ERR.CODE
+        };
+        res.status(403).json(json);
     });
 });
 
-router.post('/autoreplies/:userid', (req, res, next) => {
+router.post('/autoreplies/:autosUserId', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    var userId = req.params.userid;
+    var autosUserId = req.params.autosUserId;
     var dataObj = {
-        userId: userId,
+        autosUserId: autosUserId,
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
@@ -133,19 +141,23 @@ router.post('/autoreplies/:userid', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            autos.post(dataObj, (data) => {
-                let key = data;
-                if(key !== null && key !== undefined) {
-                    resolve(key);
+            autoreplies.post(dataObj, (data) => {
+                let autosKey = data;
+                if(autosKey !== null && autosKey !== undefined) {
+                    resolve(autosKey);
                 } else {
-                    reject('no key return after post');
+                    reject();
                 }
             });
         });
     })
     .then((data) => {
         return new Promise((resolve,reject) => {
-            users.getAppIdFromUsers(userId, (snap) => {
+            if ('' === autosUserId || null === autosUserId) {
+                reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                return;
+            }
+            users.getAppIdFromUsers(autosUserId, (snap) => {
                 let hashArr = snap;
                 if(hashArr !== null && hashArr !== undefined) {
                     var obj = {
@@ -154,7 +166,7 @@ router.post('/autoreplies/:userid', (req, res, next) => {
                     }
                     resolve(obj);
                 } else {
-                    reject('user does not have any app initialized');
+                    reject(API_ERROR.ERROR_USER_NOT_EXISTS);
                 }
             });
         });
@@ -173,18 +185,27 @@ router.post('/autoreplies/:userid', (req, res, next) => {
         });
     })
     .then(() => {
-        res.json({message:'Data Sent!'});
+        var json = {
+            "status": 1,
+            "data": 'Data Created!'
+        };
+        res.status(200).json(json);
     })
-    .catch((reason) => {
-        console.log(reason);
+    .catch((ERR) => {
+        var json = {
+            "status": 0,
+            "mgs": ERR.MSG,
+            "code": ERR.CODE
+        };
+        res.status(403).json(json);
     });
 });
 
-router.put('/autoreplies/:hashId', (req, res, next) => {
+router.put('/autoreplies/:autosHashId', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    var hashId = req.params.hashId;
+    var autosHashId = req.params.autosHashId;
     var dataObj = {
-        hash: hashId,
+        autosHashId: autosHashId,
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
@@ -198,22 +219,31 @@ router.put('/autoreplies/:hashId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            autos.update(dataObj,hashId,(data) => {
+            autoreplies.update(dataObj,autosHashId,(data) => {
                 resolve();
             });
         });
     })
     .then(() => {
-        res.json({message:'Data Updated!'});
+        var json = {
+            "status": 1,
+            "data": 'Data Updated!'
+        };
+        res.status(200).json(json);
     })
-    .catch((reason) => {
-        res.json({message:reason});
+    .catch((ERR) => {
+        var json = {
+            "status": 0,
+            "mgs": ERR.MSG,
+            "code": ERR.CODE
+        };
+        res.status(403).json(json);
     });
 });
 
-router.delete('/autoreplies/:userId/:hashId', (req, res, next) => {
-    var userId = req.params.userId;
-    var hashId = req.params.hashId;
+router.delete('/autoreplies/:autosUserId/:autosHashId', (req, res, next) => {
+    var autosUserId = req.params.autosUserId;
+    var autosHashId = req.params.autosHashId;
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -222,11 +252,15 @@ router.delete('/autoreplies/:userId/:hashId', (req, res, next) => {
     proceed
     .then(() => {
         return new Promise((resolve,reject) => {
-            users.getAppIdFromUsers(userId, (data) => {
+            if ('' === autosUserId || null === autosUserId) {
+                reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                return;
+            }
+            users.getAppIdFromUsers(autosUserId, (data) => {
                 if(data !== null) {
                     resolve(data)
                 } else {
-                    reject('App ID document is empty')
+                    reject(API_ERROR.ERROR_USER_NOT_EXISTS);
                 }
             })
         });
@@ -234,7 +268,7 @@ router.delete('/autoreplies/:userId/:hashId', (req, res, next) => {
     .then((data) => {
         return new Promise((resolve,reject) => {
             data.map((item) => {
-                apps.removeAutoInAppsById(item,hashId,() => {
+                apps.removeAutoInAppsById(item,autosHashId,() => {
                     resolve();
                 });
             });
@@ -242,16 +276,25 @@ router.delete('/autoreplies/:userId/:hashId', (req, res, next) => {
     })
     .then(() => {
         return new Promise((resolve,reject) => {
-            autos.del(hashId, () => {
+            autoreplies.del(autosHashId, () => {
                 resolve();
             })
         });
     })
     .then(() => {
-        res.json({message:'Data Deleted!'});
+        var json = {
+            "status": 1,
+            "data": 'Data Deleted!'
+        };
+        res.status(200).json(json);
     })
-    .catch((reason) => {
-        res.json({message:reason});
+    .catch((ERR) => {
+        var json = {
+            "status": 0,
+            "mgs": ERR.MSG,
+            "code": ERR.CODE
+        };
+        res.status(403).json(json);
     });
 });
 
