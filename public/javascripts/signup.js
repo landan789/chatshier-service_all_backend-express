@@ -7,7 +7,13 @@ const TOOLTIP = {
     'SIGNUP_NAME': '請輸入姓名',
     'SIGNUP_EMAIL': '請輸入電子郵件',
     'SIGNUP_PASSWORD': '請輸入密碼',
-    'SIGNUP_PASSWORD_CONFIRM': '與密碼不相符'
+    'SIGNUP_PASSWORD_CONFIRM': '與密碼不相符',
+    'EMAIL_ALREADY_IN_USE': '此電子郵件已註冊',
+    'INVALID_EMAIL': '無效電子郵件',
+    'OPERATION_NOT_ALLOWED': '操作不允許',
+    'WEAK_PASSWORD': '密碼強度低'
+
+
 }
 
 var serviceUrl = location.host;
@@ -74,11 +80,27 @@ function signup(event) {
             }).then(() => {
 
             }).catch(error => {
+                var errorCode = error.code;
+                if("auth/email-already-in-use" === errorCode){
+                    $('#signup-email').tooltip({ title: TOOLTIP.EMAIL_ALREADY_IN_USE });
+                    $('#signup-email').tooltip('show'); //show 此電子郵件已註冊
+                }
+                if("auth/invalid-email" === errorCode){
+                    $('#signup-email').tooltip({ title: TOOLTIP.INVALID_EMAIL });
+                    $('#signup-email').tooltip('show'); //show 無效電子郵件
+                }
+                if("auth/operation-not-allowed" === errorCode){
+                    $('#signup-email').tooltip({ title: TOOLTIP.OPERATION_NOT_ALLOWED });
+                    $('#signup-email').tooltip('show'); //show 操作不允許
+                }
+                if("auth/weak-password" === errorCode){
+                    $('#signup-password').tooltip({ title: TOOLTIP.WEAK_PASSWORD });
+                    $('#signup-password').tooltip('show'); //show 密碼強度低
+                }
                 $(this).button('reset');
-                $('#signup-email').tooltip('show'); //show 請輸入電子郵件
-                $('#signup-email').tooltip('show');
                 setTimeout(function() {
                     $('#signup-email').tooltip('destroy');
+                    $('#signup-password').tooltip('destroy');
                 }, 10000);
             });
     }
