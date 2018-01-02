@@ -6,7 +6,6 @@ var newMsgArray = []; // insert each new message id
 var currentCount = 0; // existing message count
 var newCount = 0; // new message count from addMsgCanvas
 $(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
 
     $(document).on('click', '#save', modalSubmit);
     $(document).on('click', '#addbtn', addMsgCanvas);

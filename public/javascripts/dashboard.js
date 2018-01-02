@@ -1,7 +1,6 @@
 // jQuery
 $(document).ready(function() {
     $("#a").hide(); //隱藏選單
-    window.dispatchEvent(firbaseEvent);
 
     // $(document).on('click', '#search-btn', filterChart);
 

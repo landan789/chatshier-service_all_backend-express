@@ -7,16 +7,13 @@ var calendar = $('#calendar');
 var nowEventId = "invalid";
 
 // jQuery
-$(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
-});
+$(document).ready(function() {});
 
 $(document).on('click', '#add-cal-btn', set_cal); //新增事件
 $(document).on('click', '#save-cal-btn', set_cal); //更新事件
 $(document).on('click', '#del-cal-btn', del_cal); //刪除事件
 
 var getAuth = setInterval(function() {
-    console.log("loading auth...");
     if (auth.currentUser) {
         clearInterval(getAuth);
 

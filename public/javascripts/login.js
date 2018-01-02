@@ -27,16 +27,14 @@ function login(event) {
     emailRule = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
     //validate ok or not
     auth.signInWithEmailAndPassword(email, password)
-        .then(result => {
+        .then((result) => {
+
             let uid = auth.currentUser.uid;
-            database.ref('users/' + uid).once('value', data => {
-                let profile = data.val();
-                let name = profile.name;
-                let email = profile.email;
-                document.cookie = "name=" + name + ";domain=" + domain;
-                document.cookie = "email=" + email + ";domain=" + domain;
-                window.dispatchEvent(firbaseEvent);
-            });
+            name = auth.currentUser.displayName;
+            email = auth.currentUser.email;
+
+            document.cookie = "name=" + name + ";domain=" + domain;
+            document.cookie = "email=" + email + ";domain=" + domain;
         })
 
 

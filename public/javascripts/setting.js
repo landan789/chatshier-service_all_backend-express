@@ -19,7 +19,6 @@ $(document).ready(function() {
     $('[data-toggle="tooltip"]').tooltip('show'); //避免蓋掉"請填寫這個欄位"
     $('[data-toggle="tooltip"]').tooltip('destroy'); //避免蓋掉"請填寫這個欄位"
     setTimeout(loadProf, 1000);
-    window.dispatchEvent(firbaseEvent);
     $(document).on('click', '#prof-edit', profEdit); //打開modal
     $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
     $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic

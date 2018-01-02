@@ -1,4 +1,11 @@
-logout(()=>{
+if ('undefined' === typeof window.urlConfig) {
+    console.warn('Please set up the configuration file of /config/url-config.js');
+}
+
+var serviceUrl = location.host;
+var domain = serviceUrl.replace(/^[\w\-]+\./i, '.').replace(/\:\d+$/i, '');
+
+logout(() => {
     location = '/login';
 });
 

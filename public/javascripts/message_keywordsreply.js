@@ -1,17 +1,11 @@
 // jQuery
 $(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
-    $(document).on('click', '#signout-btn', (event)=>{
-        event.preventDefault();
-        location = '/logout';
-    }); //登出
-    // $(document).on('click', '#search-btn', filterChart);
+
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#csv', noCsv);
-    // $(document).on('click','.addSubKey', addSubKey);
     $(document).on('click', '#modal-submit', modalSubmit); //新增
     $(document).on('click', '#viewBtn', loadView);
-    $(document).on('click', '#editBtn', openEdit); //打開編輯modal
+    $(document).on('click', '#editBtn', openEdit);
     $(document).on('click', '#deleBtn', deleteRow); //刪除
     $(document).on('click', '#edit-submit', modalEdit);
 

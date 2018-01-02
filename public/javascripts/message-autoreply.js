@@ -1,8 +1,5 @@
 // jQuery
 $(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
-    // $(document).on('click', '#search-btn', filterChart);
-    // $(document).on('click', '#message', subMessage);//Message 導覽標籤 subtags
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '.addTopics', addTopics);
     $(document).on('click', '#modal-submit', modalSubmit); //新增
@@ -13,21 +10,14 @@ $(document).ready(function() {
     if (window.location.pathname === '/message_autoreply') {
         setTimeout(loadAutoReply, 1000);
     }
-    // var socket = io.connect();
-    // socket.on('reply keywords to front', (data)=>{
-    //   socket.emit('send message', data);
-    //   console.log('socket emit send message from js');
-    // })
+
 });
 
 function modalSubmit() {
     let starttime = $('#starttime').val();
     let endtime = $('#endtime').val();
-    //console.log('starttime = '+starttime);
-    //console.log('endtime = '+endtime);
     let name = $('#modal-task-name').val();
     let textInput = $('#enter-text').val();
-    //console.log(textInput);
 
     writeUserData(auth.currentUser.uid, name, starttime, endtime, textInput);
 

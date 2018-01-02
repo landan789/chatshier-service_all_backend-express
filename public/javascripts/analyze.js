@@ -16,9 +16,7 @@ const DATE = 86400000;
 var startTime; //決定圖表從哪個時間點開始畫
 var endTime; //決定圖表畫到那個時間點結束
 var FIRST_MSG_TIME = 0; //預設的startTime
-$(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
-});
+$(document).ready(function() {});
 
 
 socket.on('response message time', (data) => {
