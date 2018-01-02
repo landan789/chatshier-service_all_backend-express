@@ -134,17 +134,54 @@ label *:not(strong) {
 
 .title {
     text-align: left;
-    margin: 0px;
+    background-color: #F4F4F4;
 }
 
 .panel {
     background-color: #ffffff;
     margin-top: 30px;
-    box-shadow: 1px 1px 1px 1px #cccccc;
+    box-shadow: 1px 1px 1px 3px #dddddd;
+    height: 950px;
 }
 
 .chsr.table {
     border-left: #ffffff;
     padding-left: 20px;
     padding-right: 20px;
+}
+
+.pagebtn {
+    text-align: right;
+}
+
+.margin-top {
+    margin-top: 30px;
+}
+
+.padding-lr {
+    padding: 0px 50px;
+}
+
+tr:nth-child(even) {
+    background: #F4F4F4;
+}
+
+.address {
+    padding-bottom: 20px;
+}
+
+.title-top {
+    margin-top: -20px;
+}
+
+.hr-margin-bottom {
+    margin: 0;
+}
+
+.h3-padding {
+    padding-top: 15px;
+}
+
+.chsr.pagination {
+    margin-top: 0px;
 }

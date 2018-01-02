@@ -1,9 +1,6 @@
 // jQuery
 $(document).ready(function() {
     $("#a").hide(); //隱藏選單
-    window.dispatchEvent(firbaseEvent);
-
-    $(document).on('click', '#signout-btn', logout); //登出
 
     // $(document).on('click', '#search-btn', filterChart);
 
@@ -80,10 +77,3 @@ function getG() {
     $('#search-input').val('聊天室');
     filterChart();
 };
-
-function logout() {
-    auth.signOut()
-        .then(response => {
-            window.location.assign("/login");
-        })
-}

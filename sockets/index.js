@@ -260,7 +260,7 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        if(data) {
+                        if (data) {
                             allObj.appsData = data;
                             console.log(allObj.appsData)
                         }

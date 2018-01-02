@@ -200,15 +200,22 @@ p {
         min-width: 50px
     }
     .unread-msg {
-        border: 1px solid #33CCFF;
+        /* border: 1px solid #33CCFF;
         border-radius: 50px;
         width: 20px;
         height: 20px;
         background-color: #33CCFF;
         color: white;
         text-align: center;
-        float: right;
+        float: right; */
+        /* margin-top: 20px;
+        margin-left: 350px; */
+        position: fixed;
+        left: 27%;
         margin-top: 20px;
+    }
+    .chsr.badge{
+        background-color: #33CCFF;
     }
 }
 
@@ -494,6 +501,9 @@ div.loading-img {
         justify-content: center;
         text-align: center;
     }
+    .photo-container img {
+        border-radius: 50%;
+    }
 }
 
 /*ticket*/
@@ -609,6 +619,7 @@ button.multi-button {
 .profile-confirm {
     margin-top: 10px;
     margin-bottom: 60px;
+    padding-right: 105px;
 }
 
 .choose {

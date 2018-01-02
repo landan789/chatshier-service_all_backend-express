@@ -19,7 +19,6 @@ $(document).ready(function() {
     $('[data-toggle="tooltip"]').tooltip('show'); //避免蓋掉"請填寫這個欄位"
     $('[data-toggle="tooltip"]').tooltip('destroy'); //避免蓋掉"請填寫這個欄位"
     setTimeout(loadProf, 1000);
-    window.dispatchEvent(firbaseEvent);
     $(document).on('click', '#prof-edit', profEdit); //打開modal
     $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
     $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic
@@ -28,7 +27,6 @@ $(document).ready(function() {
     $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); //檢查內部群聊的擁有者是否為群組成員
     $(document).on('change', 'select#create-internal-owner', checkInternalOwner); //檢查內部群聊的擁有者是否為群組成員
     $('#profModal').on('hidden.bs.modal', profClear); //viewModal 收起來
-    $(document).on('click', '#signout-btn', logout); //登出
     //----------------TAG---------------
     var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
     var socket = io.connect();

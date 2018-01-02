@@ -38,19 +38,19 @@ var addTicketModal = $('#add-ticket-modal');
 
 $(document).ready(function() {
     // start the loading works
-    window.dispatchEvent(firbaseEvent);
     $infoPanel.hide();
     var startUserId = setInterval(() => {
-        if(auth.currentUser) {
+        if (auth.currentUser) {
             clearInterval(startUserId);
             agentId = auth.currentUser.uid;
             socket.emit('request chat init data', { id: agentId }, responseChatInitData);
         }
-    },1000);
+    }, 1000);
 
     //=====start chat event=====
     openChatAppItem.click(showChatApp);
     $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    $(document).on('focus', '#message', readClientMsg); //已讀客戶訊息
     $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
@@ -87,10 +87,7 @@ $(document).ready(function() {
         //=====end ticket event=====
 
     //=====start utility event=====
-    $(document).on('click', '#signout-btn', function() {
-        event.preventDefault();
-        logout(function() { location = '/login'; });
-    }); // 登出
+
     $(document).on('change', '.multi-select-container', multiSelectChange);
     $(document).on('click', '.dropdown-menu', function(event) {
         event.stopPropagation();
@@ -115,8 +112,8 @@ $(document).ready(function() {
     }
 
     function responseUserAppIds(data) {
-        if(data !== undefined) {
-            if(data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
+        if (data !== undefined) {
+            if (data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
                 if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
                     $('#notifyModal').modal("show");
                     window.sessionStorage["notifyModal"] = 1;
@@ -226,10 +223,13 @@ $(document).ready(function() {
         let lastMsgStr = lastMsgToStr(lastMsg);
 
         let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
-        if (profile.unRead > 0) {
-            tablinkHtml += "<div class='unread-msg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-        } else {
-            tablinkHtml += "</div>" + "<div class='unread-msg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+        if ((profile.unRead > 0) && (profile.unRead <= 99)) {
+            tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+         } else if(profile.unRead > 99){
+            tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + "99+" + "</div>" + "</button><hr/></b>";
+         }
+        else {
+            tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
         }
         if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
             $('#vip_list').prepend(tablinkHtml);
@@ -405,9 +405,9 @@ $(document).ready(function() {
         let lastMsg = historyMsg[historyMsg.length - 1];
         let lastMsgStr = lastMsgToStr(lastMsg);
         if (profile.unRead > 0) {
-            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unread-msg' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
         } else {
-            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='unread-msg' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
+            $('#clients').append("<b><button style='text-align:left' class='tablinks'" + "name='" + profile.roomId + "' rel='internal'" + "data-avgTime='" + profile.avgChat + "' " + "data-totalTime='" + profile.totalChat + "' " + "data-chatTimeCount='" + profile.chatTimeCount + "' " + "data-firstTime='" + profile.firstChat + "' " + "data-recentTime='" + lastMsg.time + "' >" + "<div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.roomName + "</span>" + lastMsgStr + "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>"); //new a tablinks
         }
         // 依照不同的channel ID做分類
         canvas.append( //push string into canvas
@@ -616,7 +616,7 @@ $(document).ready(function() {
                 channelId: channelId,
                 userId: userId
             }); //tell socket that this user isnt unRead
-        }
+         }
         $('#user-rooms').val(userId); //change value in select bar
         $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
         $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
@@ -642,6 +642,15 @@ $(document).ready(function() {
             socket.emit('upload history msg from front', request, responseHistoryMsg);
         }
     } // end of detecetScrollTop
+    function readClientMsg(){
+        let userId = $('.tablinks#selected').attr('name'); // ID
+        let channelId = $('.tablinks#selected').attr('rel'); // channelId
+        $('.tablinks#selected').find('.unread-msg').text('0').hide();
+        socket.emit("read message", {
+            channelId: channelId,
+            userId: userId
+        }); //tell socket that this user isnt unRead
+    } //end of readClientMsg
     function submitMsg(e) {
         e.preventDefault();
         let vendorId = auth.currentUser.uid;
@@ -662,9 +671,9 @@ $(document).ready(function() {
                     roomId: userId
                 });
             } else {
-                var getAppsInfo = new Promise((resolve,reject) => {
+                var getAppsInfo = new Promise((resolve, reject) => {
                     database.ref('users/' + vendorId).once('value', data => {
-                        if(data.val() !== null) {
+                        if (data.val() !== null) {
                             let user = data.val();
                             let str = toAgentStr(msgStr, data.name, Date.now());
                             $("#" + userId + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
@@ -678,92 +687,92 @@ $(document).ready(function() {
                 });
 
                 getAppsInfo
-                .then(() => {
-                    return new Promise((resolve,reject) => {
-                        database.ref('apps').once('value', data => {
-                            if(data.val() === null) {
-                                reject('data is empty');
-                            } else {
-                                let appsInfo = data.val();
-                                resolve(appsInfo);
-                            }
-                        });
-                    });
-                })
-                .then(data => {
-                    return new Promise((resolve,reject) => {
-                        database.ref('users/' + vendorId + '/app_ids').once('value', userApps => {
-                            let sendObj = {};
-                            if(userApps.val() === null) {
-                                reject('vendor does not have apps setup');
-                            } else {
-                                let hashId = userApps.val();
-                                if(data[hashId[0]].id1 === channelId) {
-                                    sendObj.id = userId;
-                                    sendObj.msg = msgStr;
-                                    sendObj.msgtime = Date.now();
-                                    sendObj.channelId = data[hashId[0]].id1;
-                                    sendObj.channelSecret = data[hashId[0]].secret;
-                                    sendObj.channelToken = data[hashId[0]].token1;
-                                    resolve(sendObj);
-                                } else if(data[hashId[1]].id1 === channelId) {
-                                    sendObj.id = userId;
-                                    sendObj.msg = msgStr;
-                                    sendObj.msgtime = Date.now();
-                                    sendObj.channelId = data[hashId[0]].id1;
-                                    sendObj.channelSecret = data[hashId[0]].secret;
-                                    sendObj.channelToken = data[hashId[0]].token1;
-                                    resolve(sendObj);
-                                } else if(data[hashId[2]].id2 === channelId) {
-                                    sendObj.id = userId;
-                                    sendObj.msg = msgStr;
-                                    sendObj.msgtime = Date.now();
-                                    sendObj.pageId = data[hashId[0]].id1;
-                                    sendObj.appId = data[hashId[0]].id2;
-                                    sendObj.appSecret = data[hashId[0]].secret;
-                                    sendObj.clientToken = data[hashId[0]].token1;
-                                    sendObj.pageToken = data[hashId[0]].token2;
-                                    resolve(sendObj);
+                    .then(() => {
+                        return new Promise((resolve, reject) => {
+                            database.ref('apps').once('value', data => {
+                                if (data.val() === null) {
+                                    reject('data is empty');
+                                } else {
+                                    let appsInfo = data.val();
+                                    resolve(appsInfo);
                                 }
-                            }
+                            });
                         });
                     })
-                })
-                .then(data => {
-                    return new Promise((resolve,reject) => {
-                        console.log(data);
-                        socket.emit('send message', data);
-                        resolve(data);
-                    });
-                })
-                .then(data => {
-                    return new Promise((resolve,reject) => {
-                        // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
-                        database.ref('chats/Data').once('value', outsnap => {
-                            let outInfo = outsnap.val();
-                            let outId = Object.keys(outInfo);
-                            for (let i in outId) {
-                                database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
-                                    let innInfo = innsnap.val();
-                                    if (innInfo.channelId === undefined) {
-                                        reject('no such record under chats/Data');
-                                    } else if (innInfo.channelId === channelId && innInfo.userId === userId) {
-                                        database.ref('chats/Data/' + outId[i] + '/Profile').update({
-                                            "lastTalkedTo": email
-                                        });
-                                        resolve();
+                    .then(data => {
+                        return new Promise((resolve, reject) => {
+                            database.ref('users/' + vendorId + '/app_ids').once('value', userApps => {
+                                let sendObj = {};
+                                if (userApps.val() === null) {
+                                    reject('vendor does not have apps setup');
+                                } else {
+                                    let hashId = userApps.val();
+                                    if (data[hashId[0]].id1 === channelId) {
+                                        sendObj.id = userId;
+                                        sendObj.msg = msgStr;
+                                        sendObj.msgtime = Date.now();
+                                        sendObj.channelId = data[hashId[0]].id1;
+                                        sendObj.channelSecret = data[hashId[0]].secret;
+                                        sendObj.channelToken = data[hashId[0]].token1;
+                                        resolve(sendObj);
+                                    } else if (data[hashId[1]].id1 === channelId) {
+                                        sendObj.id = userId;
+                                        sendObj.msg = msgStr;
+                                        sendObj.msgtime = Date.now();
+                                        sendObj.channelId = data[hashId[0]].id1;
+                                        sendObj.channelSecret = data[hashId[0]].secret;
+                                        sendObj.channelToken = data[hashId[0]].token1;
+                                        resolve(sendObj);
+                                    } else if (data[hashId[2]].id2 === channelId) {
+                                        sendObj.id = userId;
+                                        sendObj.msg = msgStr;
+                                        sendObj.msgtime = Date.now();
+                                        sendObj.pageId = data[hashId[0]].id1;
+                                        sendObj.appId = data[hashId[0]].id2;
+                                        sendObj.appSecret = data[hashId[0]].secret;
+                                        sendObj.clientToken = data[hashId[0]].token1;
+                                        sendObj.pageToken = data[hashId[0]].token2;
+                                        resolve(sendObj);
                                     }
-                                });
-                            }
+                                }
+                            });
+                        })
+                    })
+                    .then(data => {
+                        return new Promise((resolve, reject) => {
+                            console.log(data);
+                            socket.emit('send message', data);
+                            resolve(data);
                         });
+                    })
+                    .then(data => {
+                        return new Promise((resolve, reject) => {
+                            // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
+                            database.ref('chats/Data').once('value', outsnap => {
+                                let outInfo = outsnap.val();
+                                let outId = Object.keys(outInfo);
+                                for (let i in outId) {
+                                    database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
+                                        let innInfo = innsnap.val();
+                                        if (innInfo.channelId === undefined) {
+                                            reject('no such record under chats/Data');
+                                        } else if (innInfo.channelId === channelId && innInfo.userId === userId) {
+                                            database.ref('chats/Data/' + outId[i] + '/Profile').update({
+                                                "lastTalkedTo": email
+                                            });
+                                            resolve();
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    })
+                    .then(() => {
+                        console.log('sent')
+                    })
+                    .catch(reason => {
+                        console.log(reason);
                     });
-                })
-                .then(() => {
-                    console.log('sent')
-                })
-                .catch(reason => {
-                    console.log(reason);
-                });
             }
         } else {
             console.log('either room id or channel id is undefined');
@@ -788,19 +797,19 @@ $(document).ready(function() {
                 let url = snapshot.downloadURL;
                 var type = $(self).data('type');
                 var data = {
-                    msg: '/' + type + ' ' + url,
-                    id: id,
-                    room: rel,
-                    channelId: rel,
-                }
-                // var data = { // 需要的格式 以後收到的訊息
-                //     channelId: '',
-                //     channelSecret: '',
-                //     channelToken: '',
-                //     id: id,
-                //     msg: '/' + type + ' ' + url,
-                //     msgtime: Date.now()
-                // }
+                        msg: '/' + type + ' ' + url,
+                        id: id,
+                        room: rel,
+                        channelId: rel,
+                    }
+                    // var data = { // 需要的格式 以後收到的訊息
+                    //     channelId: '',
+                    //     channelSecret: '',
+                    //     channelToken: '',
+                    //     id: id,
+                    //     msg: '/' + type + ' ' + url,
+                    //     msgtime: Date.now()
+                    // }
                 socket.emit('send message', data);
             });
         }
@@ -835,6 +844,7 @@ $(document).ready(function() {
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + data.id + "'][rel='" + channelId + "']");
+        let currentUnread = parseInt(target.find('.unread-msg').text());
         if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(data.time) + '檔案');
         } else if (data.message.startsWith('<img')) {
@@ -846,7 +856,12 @@ $(document).ready(function() {
         // update tablnks's last msg
         if (data.owner === "agent") {
             target.find('.unread-msg').text("0").css("display", "none");
-        } else target.find('.unread-msg').html(data.unRead).css("display", "block"); // 未讀訊息數顯示出來
+        } else if((data.unRead+currentUnread) > 99){
+            target.find('.unread-msg').text("99+").css("display", "block");
+        }
+        else {
+            target.find('.unread-msg').html(data.unRead+currentUnread).css("display", "block"); // 未讀訊息數顯示出來
+        }
         let ele = target.parents('b'); //buttons to b
         ele.remove();
         $('.tablinks-area>#clients').prepend(ele);

@@ -3,11 +3,9 @@ var inputNum = 0; //計算訊息的數量
 var clientIntoArray = [];
 $(document).ready(function() {
     // EXECUTION
-    window.dispatchEvent(firbaseEvent);
 
     $('#Appointment').show();
     loadClientData();
-    window.dispatchEvent(firbaseEvent);
     socket.emit("get tags from chat");
     let timer_1 = setInterval(function() {
         if (!auth.currentUser) {

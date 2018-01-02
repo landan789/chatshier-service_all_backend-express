@@ -6,7 +6,6 @@ var yourdomain = 'fongyu';
 var api_key = 'UMHU5oqRvapqkIWuOdT8';
 var ticket_content = $('.ticket-content');
 $(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
     if (location.pathname === '/ticket') {
         setTimeout(loadTable, 2000);
     } else if (location.pathname === '/tform') {
@@ -15,8 +14,8 @@ $(document).ready(function() {
 
     $(document).on('click', '#add-form-submit', submitAdd); //新增ticket
     $(document).on('click', '#add-form-goback', function() { location.href = '/ticket'; }); //返回ticket
-    $(document).on('click', '.ticketContent', moreInfo);//查看待辦事項細節
-    $(document).on('click', '#ticket-info-modify', modifyTicket);//修改待辦事項
+    $(document).on('click', '.ticketContent', moreInfo); //查看待辦事項細節
+    $(document).on('click', '#ticket-info-modify', modifyTicket); //修改待辦事項
     // $(document).on('click', '.edit', showInput);
     // $(document).on('click', '.inner-text', function(event) {
     //     event.stopPropagation();
@@ -30,7 +29,7 @@ $(document).ready(function() {
         let userId = auth.currentUser.uid;
         $('#alert-warning').find('p').html("是否要刪除表單?");
         $('#alert-warning').show();
-        $('#alert-warning').find("#yes").click(function(){
+        $('#alert-warning').find("#yes").click(function() {
             $('#alert-warning').hide();
             var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
             $.ajax({
@@ -47,19 +46,19 @@ $(document).ready(function() {
                             ticket_content.empty();
                             loadTable();
                             $('#alert-danger').children('span').text("表單已刪除");
-                            setTimeout(function(){$('#alert-danger').show();},1000);
-                            setTimeout(function(){$('#alert-danger').hide();},4000);
+                            setTimeout(function() { $('#alert-danger').show(); }, 1000);
+                            setTimeout(function() { $('#alert-danger').hide(); }, 4000);
                         });
                 },
                 error: function(jqXHR, tranStatus) {
                     $('#alert-warning').find('p').html("表單刪除失敗，請重試");
                     $('#alert-warning').show();
-                    setTimeout(function(){$('#alert-delete').hide();},4000);
+                    setTimeout(function() { $('#alert-delete').hide(); }, 4000);
                     console.log(jqXHR)
                 }
             });
         });
-        $('#alert-warning').find('#no').click(function(){$('#alert-warning').hide();});
+        $('#alert-warning').find('#no').click(function() { $('#alert-warning').hide(); });
     })
 });
 
@@ -124,7 +123,7 @@ function hideInput() {
     if ($(this).attr('type') == 'datetime-local') {
         $(this).parent().html(displayDate(change));
     }
-    $(this).parent().html("<textarea  class='inner-text form-control'>"+change+"</textarea>");
+    $(this).parent().html("<textarea  class='inner-text form-control'>" + change + "</textarea>");
 }
 
 function showSelect(prop, n) {
@@ -401,40 +400,40 @@ function modifyTicket() {
     obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
     // console.log(obj);
     // if (confirm("確定變更表單？")) {
-        $.ajax({
-            url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + id,
-            type: 'PUT',
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            headers: {
-                "Authorization": "Basic " + btoa(api_key + ":x")
-            },
-            data: obj,
-            success: function(data, textStatus, jqXHR) {
-                database.ref('tickets/' + userId + '/t' + id).set({ owner: clientOwner })
-                    .then(() => {
-                        database.ref('cal-events/' + userId + '/t' + id).update({
-                            title: clientName + ": " + clientDescription.substring(0, 10) + "...",
-                            end: clientDue,
-                            description: clientDescription,
-                            allDay: false
-                        })
+    $.ajax({
+        url: "https://" + yourdomain + ".freshdesk.com/api/v2/tickets/" + id,
+        type: 'PUT',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        headers: {
+            "Authorization": "Basic " + btoa(api_key + ":x")
+        },
+        data: obj,
+        success: function(data, textStatus, jqXHR) {
+            database.ref('tickets/' + userId + '/t' + id).set({ owner: clientOwner })
+                .then(() => {
+                    database.ref('cal-events/' + userId + '/t' + id).update({
+                        title: clientName + ": " + clientDescription.substring(0, 10) + "...",
+                        end: clientDue,
+                        description: clientDescription,
+                        allDay: false
                     })
-                    .then(() => {
-                      ticket_content.empty();
-                      loadTable();
-                      $('#alert-success').children('span').text("表單已更新");
-                      setTimeout(function(){$('#alert-success').show();},1000);
-                      setTimeout(function(){$('#alert-success').hide();},4000);
-                    });
-            },
-            error: function(jqXHR, tranStatus) {
-                $('#alert-danger').children('span').text("表單更新失敗，請重試");
-                $('#alert-danger').show();
-                setTimeout(function(){$('#alert-danger').hide();},4000);
-                console.log(jqXHR.responseText)
-            }
-        });
+                })
+                .then(() => {
+                    ticket_content.empty();
+                    loadTable();
+                    $('#alert-success').children('span').text("表單已更新");
+                    setTimeout(function() { $('#alert-success').show(); }, 1000);
+                    setTimeout(function() { $('#alert-success').hide(); }, 4000);
+                });
+        },
+        error: function(jqXHR, tranStatus) {
+            $('#alert-danger').children('span').text("表單更新失敗，請重試");
+            $('#alert-danger').show();
+            setTimeout(function() { $('#alert-danger').hide(); }, 4000);
+            console.log(jqXHR.responseText)
+        }
+    });
     // }
 
     function wrapQuotes(msg) {

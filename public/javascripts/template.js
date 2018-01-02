@@ -2,11 +2,8 @@ const socket = io.connect();
 var templateForm = $('#template-form');
 var templateData = {};
 var userId = "";
-$(document).ready(function() {
-    window.dispatchEvent(firbaseEvent);
-});
+$(document).ready(function() {});
 $(function() {
-    window.dispatchEvent(firbaseEvent);
 
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').hide();

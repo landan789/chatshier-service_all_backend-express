@@ -24,12 +24,11 @@ $(document).ready(function() {
     $('#privacy').attr('href', privacyUrl);
     $('[data-toggle="tooltip"]').tooltip('show'); //避免蓋掉 "請填寫這個欄位"
     $('[data-toggle="tooltip"]').tooltip('destroy'); //避免蓋掉 "請填寫這個欄位"
-    $(document).on('click', '#signup', register); //註冊
+    $(document).on('click', '#signup', signup); //註冊
 });
 
-function register(event) {
+function signup(event) {
     // Button loading
-    var $this = $(this);
     emailRule = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
     event.preventDefault();
     let name = document.getElementById('signup-name').value;
@@ -62,22 +61,20 @@ function register(event) {
             $('#signup-password-confirm').tooltip('destroy');
         }, 3000);
     } else {
-        $this.button('loading');
-
+        $(this).button('loading');
+        var userInfo = {
+            displayName: name
+        };
         auth.createUserWithEmailAndPassword(email, password)
-            .then(() => {
+            .then((user) => {
+                document.cookie = "name=" + name + ";domain=" + domain;
+                document.cookie = "email=" + email + ";domain=" + domain;
+                return user.updateProfile(userInfo);
 
-                database.ref('users/' + auth.currentUser.uid).set({
-                    name: name,
-                    email: email
-                }).then(() => {
-                    document.cookie = "name=" + name + ";domain=" + domain;
-                    document.cookie = "email=" + email + ";domain=" + domain;
-                    window.dispatchEvent(firbaseEvent);
+            }).then(() => {
 
-                });
             }).catch(error => {
-                $this.button('reset');
+                $(this).button('reset');
                 $('#signup-email').tooltip('show'); //show 請輸入電子郵件
                 $('#signup-email').tooltip('show');
                 setTimeout(function() {
