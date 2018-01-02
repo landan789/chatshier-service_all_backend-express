@@ -49,11 +49,11 @@ router.get('/apps/userid/:userid', (req, res, next) => {
             "data": apps
         };
         res.status(200).json(json);
-    }).catch((ERR) => {
+    }).catch((ERROR) => {
         var json = {
             "status": 0,
-            "mgs": ERR.MSG,
-            "code": ERR.CODE
+            "msg": ERROR.MSG,
+            "code": ERROR.CODE
         };
         res.status(403).json(json);
     });

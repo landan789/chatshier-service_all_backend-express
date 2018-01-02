@@ -71,7 +71,7 @@ p {
         display: flex;
         flex-direction: column;
         background-color: #f7f8f9;
-        width: 70px;
+        width: 60px;
         text-align: left;
         padding: 5px 0;
         z-index: 10;
@@ -141,7 +141,7 @@ p {
         background-color: #f7f8f9;
         width: 30%;
         text-align: center;
-        padding-left: 70px;
+        padding-left: 60px;
         transition: .5s ease-in-out;
     }
     #user hr {
@@ -200,16 +200,6 @@ p {
         min-width: 50px
     }
     .unread-msg {
-        /* border: 1px solid #33CCFF;
-        border-radius: 50px;
-        width: 20px;
-        height: 20px;
-        background-color: #33CCFF;
-        color: white;
-        text-align: center;
-        float: right; */
-        /* margin-top: 20px;
-        margin-left: 350px; */
         position: fixed;
         left: 27%;
         margin-top: 20px;
