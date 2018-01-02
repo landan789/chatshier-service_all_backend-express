@@ -63,19 +63,18 @@ function register(event) {
         }, 3000);
     } else {
         $this.button('loading');
-
+        var userInfo = {
+            displayName: name
+        };
         auth.createUserWithEmailAndPassword(email, password)
-            .then(() => {
+            .then((user) => {
 
-                database.ref('users/' + auth.currentUser.uid).set({
-                    name: name,
-                    email: email
-                }).then(() => {
-                    document.cookie = "name=" + name + ";domain=" + domain;
-                    document.cookie = "email=" + email + ";domain=" + domain;
-                    window.dispatchEvent(firbaseEvent);
+                return user.updateProfile(userInfo);
 
-                });
+            }).then(() => {
+                document.cookie = "name=" + name + ";domain=" + domain;
+                document.cookie = "email=" + email + ";domain=" + domain;
+                window.dispatchEvent(firbaseEvent);
             }).catch(error => {
                 $this.button('reset');
                 $('#signup-email').tooltip('show'); //show 請輸入電子郵件
