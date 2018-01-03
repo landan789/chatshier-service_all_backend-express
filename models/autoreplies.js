@@ -19,7 +19,7 @@ autoreplies.update = function(appId,autoreplyId,obj,callback) {
   callback();
 }
 
-autoreplies.del = function(appId,autoreplyId,callback) {
+autoreplies.remove = function(appId,autoreplyId,callback) {
   admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).remove();
   callback();
 }

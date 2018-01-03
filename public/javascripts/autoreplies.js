@@ -4,49 +4,16 @@ $(document).ready(function() {
     var startUserId = setInterval(() => {
         if(auth.currentUser) {
             clearInterval(startUserId);
-            read();
+            find();
         }
     },1000);
-    $(document).on('click', '#modal-submit', modalSubmit); //新增
+    $(document).on('click', '#modal-submit', dataInsert); //新增
     $(document).on('click', '#editBtn', openEdit); //打開編輯modal
-    $(document).on('click', '#edit-submit', modalEdit);
-    $(document).on('click', '#deleBtn', deleteRow); //刪除
+    $(document).on('click', '#edit-submit', dataUpdate);
+    $(document).on('click', '#deleBtn', dataRemove); //刪除
 });
 
-function read() {
-    var id = auth.currentUser.uid;
-    $.ajax({
-        type: 'GET',
-        url: 'http://' + domain + '/api/autoreplies/' + id,
-        success: (data) => {
-            let keyArr = Object.keys(data.data)
-            let obj = data.data;
-            console.log(keyArr);
-            
-            console.log(obj[keyArr]);
-            $.each(keyArr, (index,item) => {
-                if(item !== null) {
-                    let str = 
-                    '<tr>' + 
-                        '<td rel="' + item + '" hidden></td>' +
-                        '<td>Open</td>' +
-                        '<td rel="' + obj[item].name + '">' + obj[item].name + '</td>' +
-                        '<td rel="' + obj[item].start + ' ' + obj[item].end + '">' + obj[item].start + ' - ' + obj[item].end + '</td>' +
-                        '<td rel="' + obj[item].content + '">' + obj[item].content + '</td>' +
-                        '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-                    '</tr>';
-                    $('#autoreply-list').append(str);
-                }
-            });
-        },
-        error: (error) => {
-            alert('載入失敗: ' + error);
-            console.log(error);
-        }
-    })
-}
-
-function create(data) {
+function insert(data) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
@@ -77,6 +44,39 @@ function create(data) {
             console.log(error);
         }
     });
+}
+
+function find() {
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + domain + '/api/autoreplies/' + id,
+        success: (data) => {
+            let keyArr = Object.keys(data.data)
+            let obj = data.data;
+            console.log(keyArr);
+            
+            console.log(obj[keyArr]);
+            $.each(keyArr, (index,item) => {
+                if(item !== null) {
+                    let str = 
+                    '<tr>' + 
+                        '<td rel="' + item + '" hidden></td>' +
+                        '<td>Open</td>' +
+                        '<td rel="' + obj[item].name + '">' + obj[item].name + '</td>' +
+                        '<td rel="' + obj[item].start + ' ' + obj[item].end + '">' + obj[item].start + ' - ' + obj[item].end + '</td>' +
+                        '<td rel="' + obj[item].content + '">' + obj[item].content + '</td>' +
+                        '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
+                    '</tr>';
+                    $('#autoreply-list').append(str);
+                }
+            });
+        },
+        error: (error) => {
+            alert('載入失敗: ' + error);
+            console.log(error);
+        }
+    })
 }
 
 function update(userId,autosHashId,data) {
@@ -113,7 +113,7 @@ function update(userId,autosHashId,data) {
     });
 }
 
-function del(autosHashId) {
+function remove(autosHashId) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
@@ -129,7 +129,7 @@ function del(autosHashId) {
     });
 }
 
-function modalSubmit() {
+function dataInsert() {
     let starttime = $('#starttime').val();
     let endtime = $('#endtime').val();
     let name = $('#modal-task-name').val();
@@ -140,7 +140,7 @@ function modalSubmit() {
         end: endtime,
         content: textInput
     }
-    create(obj);
+    insert(obj);
 }
 
 function openEdit() {
@@ -174,7 +174,7 @@ function openEdit() {
         }
     });
 } //end open edit
-function modalEdit() {
+function dataUpdate() {
     var id = auth.currentUser.uid;
     let key = $(this).parent().parent().find('#edit-id').text();
     console.log(key)
@@ -193,11 +193,11 @@ function modalEdit() {
     update(id,key,data);
 } //end modal edit
 
-function deleteRow() {
+function dataRemove() {
     let confirmDel = confirm("確定要刪除?");
     if(confirmDel) {
         let key = $(this).parent().parent().find('td:first').attr('rel');
-        del(key);
+        remove(key);
     }
 }
 

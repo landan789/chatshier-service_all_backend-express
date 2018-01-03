@@ -256,7 +256,7 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         return new Promise((resolve,reject) => {
             let appIds = data;
             appIds.map((appId) => {
-                autoreplies.del(appId,autoreplyId, () => {
+                autoreplies.remove(appId,autoreplyId, () => {
                     resolve();
                 });
             });
