@@ -1,13 +1,20 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var apps = {};
 
+apps.findByAppId = (appId, callback) =>{
+    var ref = 'apps/' + appId;
+    admin.database().ref(ref).once('value', snap => {
+        var app = snap.val();
+        callback(app);
+    });
+}
+
 apps.getAll = (callback) => {
     admin.database().ref('apps').once('value', snap => {
         var app = snap.val();
         callback(app);
     });
 }
-
 
 apps.getById = (appId, callback) => {
     admin.database().ref('apps/' + appId).once('value', snap => {
