@@ -54,15 +54,23 @@ function create(data) {
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: () => {
+        success: (id) => {
+            let str = 
+            '<tr>' + 
+                '<td rel="' + id.data + '" hidden></td>' +
+                '<td>Open</td>' +
+                '<td rel="' + data.name + '">' + data.name + '</td>' +
+                '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
+                '<td rel="' + data.content + '">' + data.content + '</td>' +
+                '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
+            '</tr>';
+            $('#autoreply-list').append(str);
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
             $('#endtime').val('');
             $('#enter-text').val('');
             alert('新增成功!');
-
-            location.reload();
         },
         error: (error) => {
             alert('新增失敗: ' + error);

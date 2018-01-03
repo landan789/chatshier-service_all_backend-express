@@ -4,7 +4,7 @@ var autoreplies = {};
 autoreplies.insert = (appId,obj,callback) => {
   let autorepliesId = admin.database().ref('apps/' + appId + '/autoreplies').push().key;
   admin.database().ref('apps/' + appId + '/autoreplies/' + autorepliesId).update(obj);
-  callback();
+  callback(autorepliesId);
 }
 
 autoreplies.find = (appId,callback) => {

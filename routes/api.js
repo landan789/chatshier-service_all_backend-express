@@ -146,15 +146,15 @@ router.post('/autoreplies/:userid', (req, res, next) => {
     })
     .then((data) => {
         return new Promise((resolve,reject) => {
-            autoreplies.insert(data[0], dataObj, () => {
-                resolve();
+            autoreplies.insert(data[0], dataObj, (autorepliesid) => {
+                resolve(autorepliesid);
             });
         });
     })
-    .then(() => {
+    .then((data) => {
         var json = {
             "status": 1,
-            "data": 'Data Created!'
+            "data": data
         };
         res.status(200).json(json);
     })
