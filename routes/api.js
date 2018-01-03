@@ -117,6 +117,47 @@ router.get('/apps/:appid/users/:userid', (req, res, next) => {
 
 });
 
+router.post('/apps/users/:userid', (req, res, next) => {
+    var userId = req.params.userid;
+    var id1 = req.body.id1;
+    var id2 = req.body.id2;
+    var name = req.body.name;
+    var secret = req.body.secret;
+    var token1 = req.body.token1;
+    var token2 = req.body.token2;
+    var type = req.body.type;
+
+    var postData = {
+        id1: req.body.id1,
+        id2: req.body.id2,
+        name: req.body.name,
+        secret: req.body.secret,
+        token1: req.body.token1,
+        token2: req.body.token2,
+        type: req.body.type
+    }
+
+    var proceed = new Promise((resolve, reject) => {
+        resolve();
+    });
+
+    proceed
+    .then(() => {
+        return new Promise((resolve, reject)=>{
+            if ('' === userId || null === userId) {
+                reject(API_ERROR.USERID_NOT_EXISTS);
+                return;
+            }
+            resolve();
+        });
+
+    }).then(() => {
+
+    }).catch(() => {
+
+    });
+});
+
 // 自動回覆
 router.get('/autoreplies/:userid', (req, res, next) => {
     var userId = req.params.userid;
