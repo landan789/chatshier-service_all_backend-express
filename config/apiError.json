@@ -3,5 +3,4 @@
     "APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" },
     "USERID_NOT_EXISTS": { "MSG": "userid does not exists", "CODE": "3" },
     "APPID_NOT_EXISTS": { "MSG": "appid does not exists", "CODE": "4" }
-
 }

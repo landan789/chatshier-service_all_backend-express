@@ -1,4 +1,5 @@
 var API_ERROR = require('../config/apiError');
+var API_SUCCESS = require('../config/apiSuccess');
 var express = require('express');
 var users = require('../models/users');
 var apps = require('../models/apps');
@@ -46,6 +47,7 @@ router.get('/apps/users/:userid', (req, res, next) => {
         }).then((apps) => {
             var json = {
                 "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
                 "data": apps
             };
             res.status(200).json(json);
@@ -101,6 +103,7 @@ router.get('/apps/:appid/users/:userid', (req, res, next) => {
             var app = data;
             var json = {
                 "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
                 "data": app
             };
             res.status(200).json(json);
@@ -197,6 +200,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
             let result = data !== undefined ? data : {};
             var json = {
                 "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
                 "data": result
             };
             res.status(200).json(json);
@@ -204,7 +208,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -252,14 +256,14 @@ router.post('/autoreplies/:userid', (req, res, next) => {
         .then((data) => {
             var json = {
                 "status": 1,
-                "data": data
+                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS
             };
             res.status(200).json(json);
         })
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -312,14 +316,14 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "data": 'Data Updated!'
+                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS
             };
             res.status(200).json(json);
         })
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -363,14 +367,14 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "data": 'Data Deleted!'
+                "msg": API_SUCCESS.DATA_DELETED_SUCCESS
             };
             res.status(200).json(json);
         })
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -388,12 +392,12 @@ router.get('/templates/:userid', (req, res, next) => {
 
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.ERROR_USERID_NOT_EXISTS)
+                        reject(API_ERROR.USERID_NOT_EXISTS)
                     } else
                         resolve(data);
                 });
@@ -415,6 +419,7 @@ router.get('/templates/:userid', (req, res, next) => {
             let result = info !== undefined ? info : {};
             var json = {
                 "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
                 "data": result
 
             }
@@ -422,7 +427,7 @@ router.get('/templates/:userid', (req, res, next) => {
         }).catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -463,14 +468,14 @@ router.post('/templates/:userid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "data": 'Data Created! '
+                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS
             };
             res.status(200).json(json);
         })
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -523,14 +528,14 @@ router.put('/templates/:userid/:templatesid', (req, res, next) => {
         }).then(() => {
             var json = {
                 "status": 1,
-                "data": 'Data Update!'
+                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS
             };
             res.status(200).json(json);
         })
         .catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
@@ -551,12 +556,12 @@ router.delete('/templates/:userid/:templateid', (req, res, next) => {
     proceed.then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.ERROR_USERID_NOT_EXISTS);
+                        reject(API_ERROR.USERID_NOT_EXISTS);
                     } else
                         resolve(data);
                 })
@@ -574,14 +579,14 @@ router.delete('/templates/:userid/:templateid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "data": 'Data Remove!'
+                "msg": API_SUCCESS.DATA_DELETED_SUCCESS
 
             }
             res.status(200).json(json);
         }).catch((ERR) => {
             var json = {
                 "status": 0,
-                "mgs": ERR.MSG,
+                "msg": ERR.MSG,
                 "code": ERR.CODE
             };
             res.status(403).json(json);
