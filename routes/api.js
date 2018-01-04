@@ -484,13 +484,13 @@ router.post('/templates/:userid', (req, res, next) => {
 
 });
 //update
-router.put('/templates/:userid/:templatesid', (req, res, next) => {
+router.put('/templates/:userid/:templateid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
-    var templatesId = req.params.templatesid;
+    var templateId = req.params.templateid;
     var dataObj = {
         userId: userId,
-        templatesId: templatesId,
+        templateId: templateId,
         name: req.body.name,
         content: req.body.content
     }
@@ -516,7 +516,7 @@ router.put('/templates/:userid/:templatesid', (req, res, next) => {
             return new Promise((resolve, reject) => {
                 let appIds = Data;
                 appIds.map((appId) => {
-                    templates.updateByAppIdByTemplateId(appId, templatesId, dataObj, () => {
+                    templates.updateByAppIdByTemplateId(appId, templateId, dataObj, () => {
                         resolve();
                     })
                 });
