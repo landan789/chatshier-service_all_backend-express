@@ -1,0 +1,6 @@
+{
+    "DATA_UPDATED_SUCCESS": { "MSG": "data updated success!" },
+    "DATA_INSERTED_SUCCESS": { "MSG": "data inserted success!" },
+    "DATA_DELETED_SUCCESS": { "MSG": "data deleted success!" },
+    "DATA_FINDED_SUCCESS": { "MSG": "data finded success!" }
+}

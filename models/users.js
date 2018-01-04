@@ -6,7 +6,7 @@ usersModel.get = callback => {
         callback(Data);
     });
 }
-usersModel.getUser = (userId,callback) => {
+usersModel.getUser = (userId, callback) => {
     admin.database().ref('users/' + userId).once('value', snap => {
         let Data = snap.val();
         callback(Data);
@@ -15,10 +15,10 @@ usersModel.getUser = (userId,callback) => {
 usersModel.updateUser = (userId, obj) => {
     admin.database().ref('users/' + userId).update(obj);
 }
-usersModel.getAppIdFromUsers = (userId,callback) => {
-	admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
-		let Data = snap.val();
-		callback(Data);
-	});
+usersModel.findAppIdsByUserId = (userId, callback) => {
+    admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
+        let Data = snap.val();
+        callback(Data);
+    });
 }
 module.exports = usersModel;
