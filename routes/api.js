@@ -47,7 +47,7 @@ router.get('/apps/users/:userid', (req, res, next) => {
         }).then((apps) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
                 "data": apps
             };
             res.status(200).json(json);
@@ -103,7 +103,7 @@ router.get('/apps/:appid/users/:userid', (req, res, next) => {
             var app = data;
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
                 "data": app
             };
             res.status(200).json(json);
@@ -200,7 +200,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
             let result = data !== undefined ? data : {};
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
                 "data": result
             };
             res.status(200).json(json);
@@ -256,7 +256,7 @@ router.post('/autoreplies/:userid', (req, res, next) => {
         .then((data) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS
+                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
             };
             res.status(200).json(json);
         })
@@ -316,7 +316,7 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS
+                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
             };
             res.status(200).json(json);
         })
@@ -367,7 +367,7 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_DELETED_SUCCESS
+                "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
             };
             res.status(200).json(json);
         })
@@ -419,7 +419,7 @@ router.get('/templates/:userid', (req, res, next) => {
             let result = info !== undefined ? info : {};
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
                 "data": result
 
             }
@@ -468,7 +468,7 @@ router.post('/templates/:userid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS
+                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
             };
             res.status(200).json(json);
         })
@@ -528,7 +528,7 @@ router.put('/templates/:userid/:templatesid', (req, res, next) => {
         }).then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS
+                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
             };
             res.status(200).json(json);
         })
@@ -579,7 +579,7 @@ router.delete('/templates/:userid/:templateid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_DELETED_SUCCESS
+                "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
 
             }
             res.status(200).json(json);
