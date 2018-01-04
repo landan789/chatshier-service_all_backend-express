@@ -76,7 +76,7 @@ router.get('/apps/:appid/users/:userid', (req, res, next) => {
 
 
                 if ('' === appId || null === appId) {
-                    reject(API_ERROR.APPID_NOT_EXISTS);
+                    reject(API_ERROR.APPID_UNFILLED);
                     return;
                 }
 
