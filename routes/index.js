@@ -11,8 +11,8 @@ router.get('/chat', function(req, res, next) {
 router.get('/setting', function(req, res, next) {
   res.render('setting', { title: '設定' });
 });
-router.get('/message_autoreply', function(req, res, next) {
-  res.render('message_autoreply', { title: '自動回覆' });
+router.get('/autoreplies', function(req, res, next) {
+  res.render('autoreplies', { title: '自動回覆' });
 });
 router.get('/message_keywordsreply', function(req, res, next) {
   res.render('message_keywordsreply', { title: '關鍵字回覆' });

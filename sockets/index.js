@@ -8,7 +8,7 @@ var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase adm
 var databaseURL = require("../config/firebaseAdminDatabaseUrl.js");
 
 var agents = require('../models/agents');
-var autos = require('../models/autos');
+var autoreplies = require('../models/autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
 var keywords = require('../models/keywords');
@@ -228,20 +228,33 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        apps.getAll(snap => {
-
-                            let infoArr = [];
-                            if (data) {
-                                data.map(item => {
-                                    infoArr.push(snap[item]);
-                                    if (infoArr.length >= data.length) {
-                                        resolve(infoArr);
-                                    }
-                                });
-                            } else {
-                                resolve();
-                            }
+                        let appsArr = [];
+                        data.map((item) => {
+                            apps.getById(item, (app) => {
+                                if (null === app) {
+                                    reject('no app_ids');
+                                } 
+                                if((appsArr.length + 1) === data.length) {
+                                    resolve(appsArr);
+                                } else {
+                                    appsArr.push(app);
+                                }
+                            });
                         });
+                        
+                        // data.map((item) => {
+                        //     let appsArr = [];
+                        //     apps.getById(item, (app) => {
+                        //         if (null === app) {
+                        //             reject('no app_ids');
+                        //         } else if(appsArr.length < data.length) {
+                        //             appsArr.push(app);
+                        //             return;
+                        //         } else {
+                        //             resolve(appsArr);
+                        //         } 
+                        //     });
+                        // });
                         setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
                 })
@@ -249,6 +262,7 @@ function init(server) {
                     return new Promise((resolve, reject) => {
                         if (data) {
                             allObj.appsData = data;
+                            console.log(allObj.appsData)
                         }
                         resolve();
                         setTimeout(reject, WAIT_TIME, "app network too slow");
@@ -753,7 +767,7 @@ function init(server) {
             function autoReply(msg) {
                 replyMsgObj.name = "Auto Reply";
                 sent = false;
-                autos.get(function(autoreplyData) {
+                autoreplies.get(function(autoreplyData) {
                     for (let i in autoreplyData) {
                         for (let j in autoreplyData[i]) {
                             thisAutoReply = autoreplyData[i][j];

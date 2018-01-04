@@ -13,71 +13,70 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
-    <%# 自己的code%>
-        <link rel="stylesheet" href="stylesheets/_main.css" />
-        <link rel="stylesheet" href="stylesheets/analyze.css" />
-        <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
+    <link rel="stylesheet" href="stylesheets/_main.css" />
+    <link rel="stylesheet" href="stylesheets/analyze.css" />
+    <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
-        <% include ../views/partials/loading.ejs %>
-            <div id="home">
-                <h3> 分析頁面</h3>
-                <div class="row" id="time-container">
-                    <div class="col-sm-3">
-                        <p>請選擇時段，無選擇代表全選</p>
-                    </div>
-                    <div class="col-sm-3">
-                        <p>從: </p>
-                        <input type="date" class="select-time" id="start" />
-                    </div>
-                    <div class="col-sm-3">
-                        <p>至: </p>
-                        <input type="date" class="select-time" id="end" />
-                    </div>
-                    <div class="col-sm-2" id="error-message" hidden>
-                        <p>開始時段須比結束時段早</p>
-                    </div>
-                </div>
-                <div class="row" id="btn-container">
-                    <div class="col-sm-2">
-                        <button class="btn btn-info" id="view-month" disabled>以月份為最小單位</button>
-                    </div>
-                    <div class="col-sm-2">
-                        <button class="btn btn-info" id="view-date" disabled>以一日為最小單位</button>
-                    </div>
-                    <div class="col-sm-2">
-                        <button class="btn btn-info" id="view-hour" disabled>以小時為最小單位</button>
-                    </div>
-                    <div class="col-sm-2">
-                        <button class="btn btn-info" id="view-time" disabled>只顯示小時</button>
-                    </div>
-                    <div class="col-sm-2">
-                        <button class="btn btn-info" id="view-cloud" disabled>文字雲</button>
-                    </div>
-                </div>
-                <div class="container" id="chart-container">
-                    <div id="chartdiv">
-                    </div>
-                </div>
+    <% include ../views/partials/loading.ejs %>
+    <div id="home">
+        <h3> 分析頁面</h3>
+        <div class="row" id="time-container">
+            <div class="col-sm-3">
+                <p>請選擇時段，無選擇代表全選</p>
             </div>
-            <% include ../views/partials/firebase_disable.ejs %>
-                <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-                <script src="https://www.amcharts.com/lib/3/serial.js"></script>
-                <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-                <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-                <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-                <script src="bendors/wordcloud/wordfreq.worker.js"></script>
-                <script src="bendors/wordcloud/wordcloud2.js"></script>
-                <script src="config/firebaseConfig.js"></script>
-                <script src="javascripts/_firebase-auth-init.js"></script>
-                <script src="javascripts/_firebase-auth.js"></script>
-                <script src="javascripts/navigation.js"></script>
-                <script src="javascripts/analyze.js"></script>
-                <script src="javascripts/partials/firebase-disable.js"></script>
+            <div class="col-sm-3">
+                <p>從: </p>
+                <input type="date" class="select-time" id="start" />
+            </div>
+            <div class="col-sm-3">
+                <p>至: </p>
+                <input type="date" class="select-time" id="end" />
+            </div>
+            <div class="col-sm-2" id="error-message" hidden>
+                <p>開始時段須比結束時段早</p>
+            </div>
+        </div>
+        <div class="row" id="btn-container">
+            <div class="col-sm-2">
+                <button class="btn btn-info" id="view-month" disabled>以月份為最小單位</button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-info" id="view-date" disabled>以一日為最小單位</button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-info" id="view-hour" disabled>以小時為最小單位</button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-info" id="view-time" disabled>只顯示小時</button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-info" id="view-cloud" disabled>文字雲</button>
+            </div>
+        </div>
+        <div class="container" id="chart-container">
+            <div id="chartdiv">
+            </div>
+        </div>
+    </div>
+    <% include ../views/partials/firebase_disable.ejs %>
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="bendors/wordcloud/wordfreq.worker.js"></script>
+    <script src="bendors/wordcloud/wordcloud2.js"></script>
+    <script src="config/firebaseConfig.js"></script>
+    <script src="javascripts/_firebase-auth-init.js"></script>
+    <script src="javascripts/_firebase-auth.js"></script>
+    <script src="javascripts/navigation.js"></script>
+    <script src="javascripts/analyze.js"></script>
+    <script src="javascripts/partials/firebase-disable.js"></script>
 </body>
 
 </html>
