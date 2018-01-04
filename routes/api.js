@@ -172,7 +172,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
                     reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
-                users.getAppIdFromUsers(userId, (data) => {
+                users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_NOT_EXISTS);
                     } else {
@@ -233,7 +233,7 @@ router.post('/autoreplies/:userid', (req, res, next) => {
                     reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
-                users.getAppIdFromUsers(userId, (data) => {
+                users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_NOT_EXISTS);
                     } else {
@@ -290,7 +290,7 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
                     reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
-                users.getAppIdFromUsers(userId, (data) => {
+                users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_NOT_EXISTS);
                     } else {
@@ -341,7 +341,7 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
                     reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
-                users.getAppIdFromUsers(userId, (data) => {
+                users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_NOT_EXISTS);
                     } else {
