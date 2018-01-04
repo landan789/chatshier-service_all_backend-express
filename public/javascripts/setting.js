@@ -1,32 +1,18 @@
+var domain = location.host;
 if ('undefined' === typeof window.urlConfig) {
     console.warn('Please set up the configuration file of /config/url-config.js');
 }
 $(document).ready(function() {
-    $('.panel-title').text('');
-    $('#prof-name').text('');
-    $('#prof-dob').text('');
-    $('#prof-email').text('');
-    $('#prof-gender').text('');
-    $('#prof-phone').text('');
-    $('#prof-name1').text('');
-    $('#prof-channelId_1').text('');
-    $('#prof-channelSecret_1').text('');
-    $('#prof-channelAccessToken_1').text('');
-    $('#prof-name2').text('');
-    $('#prof-channelId_2').text('');
-    $('#prof-channelSecret_2').text('');
-    $('#prof-channelAccessToken_2').text('');
-    $('[data-toggle="tooltip"]').tooltip('show'); //避免蓋掉"請填寫這個欄位"
-    $('[data-toggle="tooltip"]').tooltip('destroy'); //避免蓋掉"請填寫這個欄位"
-    setTimeout(loadProf, 1000);
-    $(document).on('click', '#prof-edit', profEdit); //打開modal
-    $(document).on('click', '#prof-submit-profile', profSubmitProfile); //完成編輯-profile
-    $(document).on('click', '#prof-submit-basic', profSubmitBasic); //完成編輯-basic
-    $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
-    $(document).on('change', '.multi-select-container', multiSelectChange); //複選選項改變
-    $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); //檢查內部群聊的擁有者是否為群組成員
-    $(document).on('change', 'select#create-internal-owner', checkInternalOwner); //檢查內部群聊的擁有者是否為群組成員
-    $('#profModal').on('hidden.bs.modal', profClear); //viewModal 收起來
+    
+
+    var loadSetting = setInterval(() => { 
+        if (auth.currentUser) {
+            clearInterval(loadSetting);
+            findAllApps(); // 列出所有設定的APPs
+            loadProf();
+        }
+    }, 1000);
+
     //----------------TAG---------------
     var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
     var socket = io.connect();
@@ -38,7 +24,6 @@ $(document).ready(function() {
     var rowsCount = 0; //dynamic load count in db ref
     tagTableBody.sortable();
     socket.emit('request tags', tagsData => {
-        console.log(tagsData);
         for (let i = 0; i < tagsData.length; i++) {
             appendNewTag(tagsData[i].id);
             let data = tagsData[i].data;
@@ -164,448 +149,7 @@ $(document).ready(function() {
         }
     });
     //-------------end TAG--------------------
-    function loadProf() {
-        let userId = auth.currentUser.uid;
-        var webhookBaseUrl = urlConfig.webhookUrl;
-        let webhookUrl;
-        var runProgram = new Promise(function(resolve, reject) {
-            resolve();
-        });
-        runProgram
-            .then(function() {
-                return new Promise(function(resolve, reject) {
-                    getUserDB('users', userId, '', data => {
-                        $('#prof-id').text(userId);
-                        $('.panel-title').text(data.name);
-                        $('#prof-email').text(data.email);
-                        $('#prof-IDnumber').text(userId);
-                        $('#prof-company').text(data.company);
-                        $('#prof-phonenumber').text(data.phonenumber);
-                        $('#prof-address').text(data.address);
-                        resolve();
-                    });
-                });
-            })
-            .then(() => {
-                return new Promise(function(resolve, reject) {
-                    sortGroup(userId, data => {
-                        resolve(data);
-                    });
-                });
-            })
-            .then((appIds) => {
-                return new Promise(function(resolve, reject) {
-                    if (appIds.length === 0) {
-                        console.log('empty')
-                        resolve(appIds);
-                    } else {
-                        getAppDB('apps', appIds[0], data => {
-                            $('#prof-name1').text(data.name);
-                            $('#prof-channelId_1').text(data.id1);
-                            $('#prof-channelSecret_1').text(data.secret);
-                            $('#prof-channelAccessToken_1').text(data.token1);
-                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
-                            $('#prof-webhookUrl-1').text(webhookUrl);
-                            resolve(appIds);
-                        });
-                    }
-
-                });
-            })
-            .then((appIds) => {
-                return new Promise(function(resolve, reject) {
-                    if (appIds.length === 0) {
-                        console.log('empty')
-                        resolve(appIds);
-                    } else {
-                        getAppDB('apps', appIds[1], data => {
-                            $('#prof-name2').text(data.name);
-                            $('#prof-channelId_2').text(data.id1);
-                            $('#prof-channelSecret_2').text(data.secret);
-                            $('#prof-channelAccessToken_2').text(data.token1);
-                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
-                            $('#prof-webhookUrl-2').text(webhookUrl);
-                            resolve(appIds);
-                        });
-                    }
-
-                });
-            })
-            .then((appIds) => {
-                return new Promise(function(resolve, reject) {
-                    if (appIds.length === 0) {
-                        console.log('empty')
-                        resolve(appIds);
-                    } else {
-                        getAppDB('apps', appIds[2], data => {
-                            $('#prof-fbPageName').text(data.name);
-                            $('#prof-fbPageId').text(data.id1);
-                            $('#prof-fbAppId').text(data.id2);
-                            $('#prof-fbAppSecret').text(data.secret);
-                            $('#prof-fbValidToken').text(data.token1);
-                            $('#prof-fbPageToken').text(data.token2);
-                            webhookUrl = createWebhookUrl(webhookBaseUrl, data.webhook_id);
-                            $('#prof-fbwebhookUrl').text(webhookUrl);
-                            resolve();
-                        });
-                    }
-                });
-            })
-            .then(() => {
-                console.log('finished');
-            })
-            .catch(() => {
-                console.log('running error');
-            });
-    }
-
-    function getUserDB(collection, userId, ref, callback) {
-        let info;
-        database.ref(collection + '/' + userId + ref).once('value', snap => {
-            if (snap.val() !== null) {
-                info = snap.val();
-                callback(info);
-            }
-        });
-    }
-
-    function getAppDB(collection, ref, callback) {
-        let info;
-        database.ref(collection + '/' + ref).once('value', data => {
-            if (data.val() !== null) {
-                info = data.val();
-                callback(info);
-            }
-        });
-    }
-
-    function sortGroup(userId, callback) {
-        let infoKeys = [];
-        database.ref('users/' + userId + '/app_ids').on('value', data => {
-            if (data.val() !== null) {
-                infoKeys = data.val();
-                callback(infoKeys);
-            } else {
-                callback(infoKeys);
-            }
-        });
-    }
-
-    function createWebhookUrl(webhookBaseUrl, webhookId) {
-        let webhookUrl;
-        webhookBaseUrl = webhookBaseUrl.replace(/\/+$/, '');
-        webhookUrl = webhookBaseUrl + "/" + webhookId;
-        return webhookUrl;
-    }
-
-    function profEdit() {
-        //移到最上面了
-        let id = $('#prof-id').text();
-        let name = $('#prof-name').text();
-        let dob = $('#prof-dob').text();
-        let email = $('#prof-email').text();
-        let gender = $('#prof-gender').text();
-        let phone = $('#prof-phone').text();
-        let name1 = $('#prof-name1').text();
-        let chanId_1 = $('#prof-channelId_1').text();
-        let chanSecret_1 = $('#prof-channelSecret_1').text();
-        let chanAT_1 = $('#prof-channelAccessToken_1').text();
-        let name2 = $('#prof-name2').text();
-        let chanId_2 = $('#prof-channelId_2').text();
-        let chanSecret_2 = $('#prof-channelSecret_2').text();
-        let chanAT_2 = $('#prof-channelAccessToken_2').text();
-        let fbName = $('#prof-fbPageName').text();
-        let fbPageId = $('#prof-fbPageId').text();
-        let fbAppId = $('#prof-fbAppId').text();
-        let fbAppSecret = $('#prof-fbAppSecret').text();
-        let fbValidToken = $('#prof-fbValidToken').text();
-        let fbPageToken = $('#prof-fbPageToken').text();
-        let IDnumber = $('#prof-IDnumber').text();
-        let company = $('#prof-company').text();
-        let phonenumber = $('#prof-phonenumber').text();
-        let address = $('#prof-address').text();
-        //let logo = $('#prof-logo img').attr('src');
-        $('#prof-edit-id').val(id);
-        $('#prof-edit-name').val(name);
-        $('#prof-edit-dob').val(dob);
-        $('#prof-edit-email').val(email);
-        $('#prof-edit-gender').val(gender);
-        $('#prof-edit-phone').val(phone);
-        $('#prof-edit-name1').val(name1);
-        $('#prof-edit-channelId_1').val(chanId_1);
-        $('#prof-edit-channelSecret_1').val(chanSecret_1);
-        $('#prof-edit-channelAccessToken_1').val(chanAT_1);
-        $('#prof-edit-name2').val(name2);
-        $('#prof-edit-channelId_2').val(chanId_2);
-        $('#prof-edit-channelSecret_2').val(chanSecret_2);
-        $('#prof-edit-channelAccessToken_2').val(chanAT_2);
-        $('#prof-edit-fbPageName').val(fbName);
-        $('#prof-edit-fbPageId').val(fbPageId);
-        $('#prof-edit-fbAppId').val(fbAppId);
-        $('#prof-edit-fbAppSecret').val(fbAppSecret);
-        $('#prof-edit-fbValidToken').val(fbValidToken);
-        $('#prof-edit-fbPageToken').val(fbPageToken);
-        $('#prof-edit-IDnumber').val(IDnumber);
-        $('#prof-edit-company').val(company);
-        $('#prof-edit-phonenumber').val(phonenumber);
-        $('#prof-edit-address').val(address);
-        if ($(this).parent().attr('class') == "line") {
-            if ($(this).parent().attr('id') == "group1") {
-                $('#prof-edit-line-1').show();
-                $('#prof-edit-line-2').hide();
-                $('#prof-edit-fb').hide();
-            } else {
-                $('#prof-edit-line-1').hide();
-                $('#prof-edit-line-2').show();
-                $('#prof-edit-fb').hide();
-            }
-        } else {
-            $('#prof-edit-line-1').hide();
-            $('#prof-edit-line-2').hide();
-            $('#prof-edit-fb').show();
-        }
-    }
-
-    function profSubmitBasic(event) {
-        var $this = $(this);
-        let userId = auth.currentUser.uid;
-        // console.log(id, name, dob, email, gender,phone);
-        let IDnumber = $('#prof-edit-IDnumber').val();
-        let company = $('#prof-edit-company').val();
-        let phonenumber = $('#prof-edit-phonenumber').val();
-        let address = $('#prof-edit-address').val();
-        phoneRule = /^09\d{8}$/;
-        // console.log(id);
-        // database.ref('users/' + userId).remove();
-        if (phonenumber === "") {
-            $('#prof-edit-phonenumber').tooltip('show'); //show
-            setTimeout(function() {
-                $('#prof-edit-phonenumber').tooltip('destroy');
-            }, 3000);
-        } else if (!phonenumber.match(phoneRule)) {
-            $('#prof-edit-phonenumber').tooltip('show'); //show
-            setTimeout(function() {
-                $('#prof-edit-phonenumber').tooltip('destroy');
-            }, 3000);
-        } else {
-            database.ref('users/' + userId).update({
-                IDnumber: IDnumber,
-                company: company,
-                phonenumber: phonenumber,
-                address: address
-            });
-            $('#error-message').hide();
-            $('#basicModal').modal('hide');
-            profClear();
-            loadProf();
-        }
-    }
-
-    function profSubmitProfile() {
-        let userId = auth.currentUser.uid;
-        let name1 = $('#prof-edit-name1').val();
-        let chanId_1 = $('#prof-edit-channelId_1').val();
-        let chanSecret_1 = $('#prof-edit-channelSecret_1').val();
-        let chanAT_1 = $('#prof-edit-channelAccessToken_1').val();
-        let name2 = $('#prof-edit-name2').val();
-        let chanId_2 = $('#prof-edit-channelId_2').val();
-        let chanSecret_2 = $('#prof-edit-channelSecret_2').val();
-        let chanAT_2 = $('#prof-edit-channelAccessToken_2').val();
-        let fbName = $('#prof-edit-fbPageName').val();
-        let fbPageId = $('#prof-edit-fbPageId').val();
-        let fbAppId = $('#prof-edit-fbAppId').val();
-        let fbAppSecret = $('#prof-edit-fbAppSecret').val();
-        let fbValidToken = $('#prof-edit-fbValidToken').val();
-        let fbPageToken = $('#prof-edit-fbPageToken').val();
-        let line1Arr = [name1, chanId_1, chanSecret_1, chanAT_1];
-        let line2Arr = [name2, chanId_2, chanSecret_2, chanAT_2];
-        let fbArr = [fbName, fbPageId, fbAppId, fbAppSecret, fbValidToken, fbPageToken];
-        let appsKeysArr = []; // 存app_id進users集合用的陣列
-
-        var runApps = new Promise((resolve, reject) => {
-            database.ref('users/' + userId + '/app_ids').once('value', data => {
-                let usersIds = data.val();
-                resolve(usersIds);
-            });
-        });
-
-        runApps
-            .then(data => {
-                return new Promise((resolve, reject) => {
-                    if (data === null) {
-                        // database.ref('users/' + userId + '/app_ids').update(data);
-                        resolve('new');
-                    } else {
-                        resolve('modify');
-                    }
-                });
-            })
-            .then(data => {
-                return new Promise((resolve, reject) => {
-                    getAppHash(line1Arr, line2Arr, fbArr, data, () => {
-                        resolve();
-                    });
-                });
-            })
-            .then(() => {
-                return new Promise((resolve, reject) => {
-                    socket.emit('update bot', {
-                        line_1: {
-                            channelId: chanId_1,
-                            channelSecret: chanSecret_1,
-                            channelAccessToken: chanAT_1
-                        },
-                        line_2: {
-                            channelId: chanId_2,
-                            channelSecret: chanSecret_2,
-                            channelAccessToken: chanAT_2
-                        },
-                        fb: {
-                            pageID: fbPageId,
-                            appID: fbAppId,
-                            appSecret: fbAppSecret,
-                            validationToken: fbValidToken,
-                            pageToken: fbPageToken
-                        }
-                    });
-                    resolve();
-                });
-            })
-            .then(() => {
-                $('#error-message').hide();
-                $('#profModal').modal('hide');
-                profClear();
-                loadProf();
-            })
-            .catch((reason) => {
-                console.log("loading Failed");
-                console.log(reason)
-            });
-    }
-
-    function getAppHash(group1, group2, group3, status, callback) {
-        let userId = auth.currentUser.uid;
-        let line1Key, line2Key, fbKey;
-        let line1 = {
-            type: 'line',
-            name: group1[0],
-            id1: group1[1],
-            id2: '',
-            secret: group1[2],
-            token1: group1[3],
-            token2: '',
-            user_id: userId,
-            webhook_id: ""
-        }
-        let line2 = {
-            type: 'line',
-            name: group2[0],
-            id1: group2[1],
-            id2: '',
-            secret: group2[2],
-            token1: group2[3],
-            token2: '',
-            user_id: userId,
-            webhook_id: ""
-        }
-        let fb = {
-            type: 'facebook',
-            name: group3[0],
-            id1: group3[1],
-            id2: group3[2],
-            secret: group3[3],
-            token1: group3[4],
-            token2: group3[5],
-            user_id: userId,
-            webhook_id: ""
-        }
-        if (status === 'new') {
-            line1Key = database.ref('apps').push().key;
-            line2Key = database.ref('apps').push().key;
-            webhook1Key = database.ref('webhooks').push().key;
-            webhook2Key = database.ref('webhooks').push().key;
-            webhook3Key = database.ref('webhooks').push().key;
-
-            fbKey = database.ref('apps').push().key;
-            debugger;
-            line1.webhook_id = webhook1Key;
-            line2.webhook_id = webhook2Key;
-            fb.webhook_id = webhook3Key;
-
-            database.ref('apps/' + line1Key).update(line1);
-            database.ref('apps/' + line2Key).update(line2);
-            database.ref('apps/' + fbKey).update(fb);
-            var webhook1 = {
-                app_id: line1Key
-            }
-
-            var webhook2 = {
-                app_id: line2Key
-            }
-
-            var webhook3 = {
-                app_id: fbKey
-            }
-
-            database.ref('webhooks/' + webhook1Key).update(webhook1);
-            database.ref('webhooks/' + webhook2Key).update(webhook2);
-            database.ref('webhooks/' + webhook3Key).update(webhook3);
-            getUserList(userId, [line1Key, line2Key, fbKey]);
-            callback();
-        } else {
-            database.ref('users/' + userId + '/app_ids').once('value', data => {
-                let usersIds = data.val();
-                database.ref('apps/' + +usersIds[0]).once('value', data => {
-                    let _line1 = data.val();
-                    line1.webhook_id = _line1.webhook_id;
-                    database.ref('apps/' + usersIds[0]).update(line1);
-
-                });
-
-                database.ref('apps/' + +usersIds[1]).once('value', data => {
-                    let _line2 = data.val();
-                    line12.webhook_id = _line2.webhook_id;
-                    database.ref('apps/' + usersIds[0]).update(line2);
-
-                });
-
-                database.ref('apps/' + +usersIds[2]).once('value', data => {
-                    let _fb = data.val();
-                    fb.webhook_id = _fb.webhook_id;
-                    database.ref('apps/' + usersIds[0]).update(fb);
-
-                });
-
-                callback();
-            });
-        }
-    }
-
-    function getUserList(userId, listArr) {
-        database.ref('users/' + userId).update({ app_ids: listArr });
-    }
-
-    function profClear() {
-        $('#prof-edit-id').val('');
-        $('#prof-edit-name').val('');
-        $('#prof-edit-dob').val('');
-        $('#prof-edit-email').val('');
-        $('#prof-edit-gender').val('Male');
-        $('#prof-edit-phone').val('');
-        $('#prof-edit-name1').val('');
-        $('#prof-edit-channelId_1').val('');
-        $('#prof-edit-channelSecret_1').val('');
-        $('#prof-edit-channelAccessToken_1').val('');
-        $('#prof-edit-name2').val('');
-        $('#prof-edit-channelId_2').val('');
-        $('#prof-edit-channelSecret_2').val('');
-        $('#prof-edit-channelAccessToken_2').val('');
-        $('#prof-edit-IDnumber').val('');
-        $('#prof-edit-company').val('');
-        $('#prof-edit-phonenumber').val('');
-        $('#prof-edit-address').val('');
-    }
-
+    // 內部聊天室
     socket.emit('get agentIdToName list');
     socket.on('send agentIdToName list', data => {
         // console.log("send!");
@@ -618,7 +162,7 @@ $(document).ready(function() {
         }
         select.val('');
     });
-
+    $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
     function multiSelectChange() {
         changeMultiSelectText($(this));
     }
@@ -729,4 +273,499 @@ $(document).ready(function() {
         fileContainer.val('');
         fileText.text('');
     });
+    // 內部聊天室
+    // ACTIONS
+    $('#setting-modal').on('hidden.bs.modal', function() {
+        clearModalBody();
+    });
+    $(document).on('click', '#edit', function() {
+        let appId = $(this).attr('rel');
+        findOneApp(appId); // 點選編輯後根據appId列出指定的APP
+    });
+    $('#setting-modal-submit-btn').click(function(event) {
+        event.preventDefault();
+        let type = $(this).parent().parent().find('#type').text();
+        // console.log($type);
+        // insertNewApp, updateProfile, updateApp
+        switch(type) {
+            case 'insertNewApp':
+                let app = $(this).parent().parent().find('#app-group-select option:selected').val();
+                console.log(app);
+                break;
+            case 'updateProfile':
+                profSubmitBasic();
+                break;
+            case 'updateApp':
+                let appId = $(this).parent().parent().find('#edit-app-id').text();
+                updateOneApp(appId); // 點送出後更新APP的資訊
+                break;
+        }        
+    });
+    $('#add-new-btn').click(function() {
+        let formStr =
+        '<form>' +
+            '<div id="type" hidden>insertNewApp</div>' +
+            '<br/>' +
+            '<label class="col-2 col-form-label">新增群組: </label>' +
+			'<select id="app-group-select" class="form-control">' +
+			  '<option value="line" selected>LINE</option>' +
+			  '<option value="facebook">臉書</option>' +
+            '</select>' +
+            '<br/>' +
+            '<div id="line-form">' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">名稱: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="name"/>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">ID: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">Secret: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' + 
+                    '<label class="col-2 col-form-label">Token: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="channel-token"/>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div id="facebook-form" hidden>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">Facebook粉絲頁名稱: </label>' +
+                ' <div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-name">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">Page ID: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">App ID: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">App Secret: </label>' +
+                ' <div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">Validation Token:: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-2 col-form-label">Page Token: </label>' +
+                    '<div class="col-4">' +
+                        '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+		'</form>';
+        $('.modal-body').append(formStr);
+    });
+    $(document).on('change','#app-group-select', function() { // 切換模式 LINE或是臉書
+        // console.log($(this).find('option:selected').val());
+        let type = $(this).find('option:selected').val();
+        switch(type) {
+            case 'line':
+                $('#line-form').hide();
+                $('#facebook-form').hide();
+                $('#line-form').show();
+                break;
+            case 'facebook':
+                $('#line-form').hide();
+                $('#facebook-form').hide();
+                $('#facebook-form').show();
+                break;
+        }
+    });
+    $('#profile').click(function() {
+        let company = $('#prof-company').text();
+        let phone = $('#prof-phonenumber').text();
+        let location = $('#prof-address').text();
+        let str = 
+        '<div id="line-form">' +
+            '<div id="type" hidden>updateProfile</div>' +
+            '<div class="form-group">' +
+                '<label class="col-2 col-form-label">公司名稱: </label>' +
+                '<div class="col-4">' +
+                    '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
+                '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+                '<label class="col-2 col-form-label">手機: </label>' +
+                '<div class="col-4">' +
+                    '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
+                '</div>' +
+            '</div>' +
+            '<div class="form-group">' + 
+                '<label class="col-2 col-form-label">地區: </label>' +
+                '<div class="col-4">' +
+                    '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+        $('.modal-body').append(str);
+    });
 });
+
+function findAllApps() {
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + domain + '/api/apps/users/' + id,
+        success: (data) => {
+            if(data !== null && data !== undefined) {
+                let appIds = data.data;
+                let appKeyArr = Object.keys(appIds);
+                for(let i in appIds) {
+                    $('#prof-id').append(appIds[i].user_id);
+                    // groupType(appKeyArr[i],appIds[i]);
+                    groupType(i,appIds[i]);
+                }
+                $('#add-new-btn').attr('disabled',false);
+            }
+        },
+        error: (error) => {
+            alert('載入失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function findOneApp(appId) {
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        success: (data) => {
+            if(data !== null && data !== undefined) {
+                let appInfo = data.data;
+                formModalBody(appId,appInfo[appId]);
+            }
+        },
+        error: (error) => {
+            alert('載入失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function insertOneApp(data) { // 未完成
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'POST',
+        url: 'http://' + domain + '/api/users/' + id,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: (id) => {
+            let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+            alert('新增成功!');
+            clearModalBody();
+            $('#app-group').empty();
+            $('#app-group').append(str);
+            findAllApps();
+        },
+        error: (error) => {
+            alert('新增失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function updateOneApp(appId,data) { // 未完成
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'PUT',
+        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: () => {
+            let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+            alert('修改成功!');
+            clearModalBody();
+            $('#app-group').empty();
+            $('#app-group').append(str);
+            findAllApps();
+        },
+        error: (error) => {
+            alert('修改失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function removeOneApp(appId) { // 未完成
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'DELETE',
+        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        success: () => {
+            let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+            alert('成功刪除!');
+            clearModalBody();
+            $('#app-group').empty();
+            $('#app-group').append(str);
+            findAllApps();
+        },
+        error: (error) => {
+            alert('刪除失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function groupType(index,item) {
+    let appStr
+    switch(item.type) {
+        case 'line':
+            appStr = 
+            '<tr class="active">'+
+                '<th class="col-md-3 col-lg-3">LINE</th>'+
+                '<th class="col-md-9 col-lg-9">'+
+                    '<div id="group1" class="line"><button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>'+
+                '</th>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>LINE應用程式名稱:</td>'+
+                '<td class="long-token" id="prof-name1">' + item.name + '</td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Channel Id 1: </td>'+
+                '<td class="long-token" id="prof-channelId_1">' + item.id1 + '</td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Channel Secret 1: </td>'+
+                '<td class="long-token" id="prof-channelSecret_1">' + item.secret + '</td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Channel Access Token 1: </td>'+
+                '<td class="long-token" id="prof-channelAccessToken_1">' + item.token1 + '</td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Webhook URL: </td>'+
+                '<td class="long-token">'+
+                    '<span id="prof-webhookUrl-1">' + 'http://' + domain + '/webhook/' + item.webhook_id + '</span>'+
+                '</td>'+
+            '</tr>';
+            $('#app-group').append(appStr);
+            break;
+        case 'facebook':
+            appStr = 
+            '<tr class="active">' +
+                '<th class="col-md-3 col-lg-3">Facebook</th>' +
+                '<th class="col-md-9 col-lg-9">' +
+                    '<div id="group3" class="fb"><button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>' +
+                '</th>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>Facebook應用程式名稱:</td>' +
+                '<td class="long-token" id="prof-fbPageName">' + item.name + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>Page Id: </td>' +
+                '<td class="long-token" id="prof-fbPageId">' + item.id1 + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>App Id: </td>' +
+                '<td class="long-token" id="prof-fbAppId">' + item.id2 + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>App Secret: </td>' +
+                '<td class="long-token" id="prof-fbAppSecret">' + item.secret + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>Validation Token: </td>' +
+                '<td class="long-token" id="prof-fbValidToken">' + item.token1 + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>Page Token: </td>' +
+                '<td class="long-token" id="prof-fbPageToken">' + item.token2 + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td>Webhook URL: </td>' +
+                '<td class="long-token">' +
+                    '<span id="prof-fbwebhookUrl">' + 'http://' + domain + '/webhook/' + item.webhook_id + '</span>' +
+                '</td>' +
+            '</tr>';
+            $('#app-group').append(appStr);
+            break;
+    }
+}
+
+function formModalBody(id,item) {
+    let appStr
+    switch(item.type) {
+        case 'line':
+            appStr = 
+            '<form>' +
+                '<div id="type" hidden>updateApp</div>' +
+                '<div class="form-group" hidden>' +
+                    '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
+                    '<span id="edit-app-id">' + id + '</span>' +
+                '</div>' +
+                '<div id="prof-edit-line-1">' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">Channel Name 1: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.name + '" id="name"/>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.id1 + '" id="channel-id"/>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.secret + '" id="channel-secret"/>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' + 
+                        '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.token1 + '" id="channel-token"/>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</form>';
+            $('.modal-body').append(appStr);
+            break;
+        case 'facebook':
+            appStr = 
+            '<form>' +
+                '<div id="type" hidden>updateApp</div>' +
+                '<div class="form-group" hidden>' +
+                    '<label class="col-2 col-form-label">ID</label>' +
+                    '<span id="webhook-id">' + id + '</span>' +
+                '</div>' +
+                '<div id="prof-edit-fb">' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
+                    ' <div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.name + '" id="facebook-name">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">Page Id: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.id1 + '" id="facebook-page-id">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">App ID: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.id2 + '" id="facebook-app-id">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">App Secret: </label>' +
+                    ' <div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.secret + '" id="facebook-app-secret">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">Validation Token:: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.token1 + '" id="facebook-valid-token">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                        '<label class="col-2 col-form-label">Page Token: </label>' +
+                        '<div class="col-4">' +
+                            '<input class="form-control" type="tel" value="' + item.token2 + '" id="facebook-page-token">' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</form>';
+            $('.modal-body').append(appStr);
+            break;
+    }
+}
+
+function clearModalBody() {
+    $('.modal-body').empty();
+}
+
+function loadProf() {
+    let userId = auth.currentUser.uid;
+    var proceed = new Promise(function(resolve, reject) {
+        resolve();
+    });
+    proceed
+        .then(function() {
+            return new Promise(function(resolve, reject) {
+                getUserDB('users', userId, '', data => {
+                    $('#prof-id').text(userId);
+                    $('.panel-title').text(data.name);
+                    $('#prof-email').text(data.email);
+                    $('#prof-IDnumber').text(userId);
+                    $('#prof-company').text(data.company);
+                    $('#prof-phonenumber').text(data.phonenumber);
+                    $('#prof-address').text(data.address);
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            console.log('finished');
+        })
+        .catch(() => {
+            console.log('running error');
+        });
+}
+
+function getUserDB(collection, userId, ref, callback) {
+    let info;
+    database.ref(collection + '/' + userId + ref).once('value', snap => {
+        if (snap.val() !== null) {
+            info = snap.val();
+            callback(info);
+        }
+    });
+}
+
+function profSubmitBasic(event) {
+    var $this = $(this);
+    let userId = auth.currentUser.uid;
+    let company = $('#company').val();
+    let phonenumber = $('#phone').val();
+    let location = $('#location').val();
+    phoneRule = /^09\d{8}$/;
+    // console.log(id);
+    // database.ref('users/' + userId).remove();
+    if (!phonenumber.match(phoneRule)) {
+        $('#prof-edit-phonenumber').tooltip('show'); //show
+        setTimeout(function() {
+            $('#prof-edit-phonenumber').tooltip('destroy');
+        }, 3000);
+    } else {
+        database.ref('users/' + userId).update({
+            company: company,
+            phonenumber: phonenumber,
+            address: location
+        });
+        $('#setting-modal').modal('hide');
+        loadProf();
+    }
+}

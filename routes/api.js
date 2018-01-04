@@ -32,9 +32,8 @@ router.get('/apps/users/:userid', (req, res, next) => {
             });
         }).then((data) => {
             var appIds = data.app_ids;
-
             return new Promise((resolve, reject) => {
-                apps.findAppIdsByUserId(appIds, (data) => {
+                apps.getAppsByAppIds(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APPID_UNFILLED);
@@ -45,6 +44,7 @@ router.get('/apps/users/:userid', (req, res, next) => {
             });
 
         }).then((apps) => {
+            console.log('entered 3')
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
@@ -187,21 +187,17 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         .then((data) => {
             return new Promise((resolve, reject) => {
                 let appId = data[0];
-                autoreplies.find(appId, (info) => {
-                    if (info === null) {
-                        reject();
-                    } else {
-                        resolve(info);
-                    }
+                autoreplies.find(appId, (data) => {
+                    let result = data !== null ? data : {};
+                    resolve(result);
                 });
             })
         })
         .then((data) => {
-            let result = data !== undefined ? data : {};
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-                "data": result
+                "data": data
             };
             res.status(200).json(json);
         })
