@@ -37,7 +37,7 @@ router.get('/apps/users/:userid', (req, res, next) => {
                 apps.findAppIdsByUserId(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject();
+                        reject(API_ERROR.APPID_UNFILLED);
                     }
 
                     resolve(apps);
@@ -177,7 +177,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else {
                         resolve(data);
                     }
@@ -239,7 +239,7 @@ router.post('/autoreplies/:userid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else {
                         resolve(data);
                     }
@@ -296,7 +296,7 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else {
                         resolve(data);
                     }
@@ -347,7 +347,7 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else {
                         resolve(data);
                     }
@@ -397,7 +397,7 @@ router.get('/templates/:userid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USERID_NOT_EXISTS)
+                        reject(API_ERROR.APPID_UNFILLED)
                     } else
                         resolve(data);
                 });
@@ -453,7 +453,7 @@ router.post('/templates/:userid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else
                         resolve(data);
                 });
@@ -506,7 +506,7 @@ router.put('/templates/:userid/:templatesid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (Data) => {
                     if (Data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else {
                         resolve(Data);
                     }
@@ -561,7 +561,7 @@ router.delete('/templates/:userid/:templateid', (req, res, next) => {
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USERID_NOT_EXISTS);
+                        reject(API_ERROR.APPID_UNFILLED);
                     } else
                         resolve(data);
                 })

@@ -2,5 +2,5 @@
     "USER_NOT_EXISTS": { "MSG": "user does not exists", "CODE": "1" },
     "APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" },
     "USERID_NOT_EXISTS": { "MSG": "userid does not exists", "CODE": "3" },
-    "APPID_NOT_EXISTS": { "MSG": "appid does not exists", "CODE": "4" }
+    "APPID_UNFILLED": { "MSG": "appid does unfilled", "CODE": "4" }
 }
