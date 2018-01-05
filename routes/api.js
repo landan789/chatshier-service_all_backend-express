@@ -187,7 +187,7 @@ router.get('/autoreplies/users/:userid', (req, res, next) => {
         .then((data) => {
             return new Promise((resolve, reject) => {
                 let appId = data[0];
-                autoreplies.find(appId, (info) => {
+                autoreplies.find(appId, (data) => {
                     let result = data !== null ? data : {};
                     resolve(result);
                 });
