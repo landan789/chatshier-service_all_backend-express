@@ -188,11 +188,8 @@ router.get('/autoreplies/users/:userid', (req, res, next) => {
             return new Promise((resolve, reject) => {
                 let appId = data[0];
                 autoreplies.find(appId, (info) => {
-                    if (info === null) {
-                        reject();
-                    } else {
-                        resolve(info);
-                    }
+                    let result = data !== null ? data : {};
+                    resolve(result);
                 });
             })
         })
@@ -201,7 +198,7 @@ router.get('/autoreplies/users/:userid', (req, res, next) => {
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-                "data": result
+                "data": data
             };
             res.status(200).json(json);
         })
@@ -439,7 +436,8 @@ router.post('/templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var dataObj = {
         userId: userId,
-        name: req.body.name,
+        keyword: req.body.keyword,
+        type: req.body.type,
         content: req.body.content
     }
     var proceed = new Promise((resolve, reject) => {
@@ -492,7 +490,8 @@ router.put('/templates/:templateid/users/:userid', (req, res, next) => {
     var dataObj = {
         userId: userId,
         templateId: templateId,
-        name: req.body.name,
+        keyword: req.body.keyword,
+        type: req.body.type,
         content: req.body.content
     }
     var proceed = new Promise((resolve, reject) => {
