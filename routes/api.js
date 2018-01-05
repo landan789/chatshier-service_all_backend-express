@@ -19,7 +19,7 @@ router.get('/apps/users/:userid', (req, res, next) => {
             return new Promise((resolve, reject) => {
                 var userId = req.params.userid;
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.getUser(userId, (data) => {
@@ -32,11 +32,12 @@ router.get('/apps/users/:userid', (req, res, next) => {
             });
         }).then((data) => {
             var appIds = data.app_ids;
+
             return new Promise((resolve, reject) => {
-                apps.getAppsByAppIds(appIds, (data) => {
+                apps.findAppIdsByUserId(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     }
 
                     resolve(apps);
@@ -44,7 +45,6 @@ router.get('/apps/users/:userid', (req, res, next) => {
             });
 
         }).then((apps) => {
-            console.log('entered 3')
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
@@ -76,12 +76,12 @@ router.get('/apps/:appid/users/:userid', (req, res, next) => {
 
 
                 if ('' === appId || null === appId) {
-                    reject(API_ERROR.APPID_UNFILLED);
+                    reject(API_ERROR.APPID_IS_EMPTY);
                     return;
                 }
 
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
 
@@ -147,7 +147,7 @@ router.post('/apps/users/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 resolve();
@@ -161,7 +161,7 @@ router.post('/apps/users/:userid', (req, res, next) => {
 });
 
 // 自動回覆
-router.get('/autoreplies/:userid', (req, res, next) => {
+router.get('/autoreplies/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
 
     var proceed = new Promise((resolve, reject) => {
@@ -172,12 +172,12 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else {
                         resolve(data);
                     }
@@ -187,17 +187,21 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         .then((data) => {
             return new Promise((resolve, reject) => {
                 let appId = data[0];
-                autoreplies.find(appId, (data) => {
-                    let result = data !== null ? data : {};
-                    resolve(result);
+                autoreplies.find(appId, (info) => {
+                    if (info === null) {
+                        reject();
+                    } else {
+                        resolve(info);
+                    }
                 });
             })
         })
         .then((data) => {
+            let result = data !== undefined ? data : {};
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-                "data": data
+                "data": result
             };
             res.status(200).json(json);
         })
@@ -211,7 +215,7 @@ router.get('/autoreplies/:userid', (req, res, next) => {
         });
 });
 
-router.post('/autoreplies/:userid', (req, res, next) => {
+router.post('/autoreplies/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var dataObj = {
@@ -230,12 +234,12 @@ router.post('/autoreplies/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else {
                         resolve(data);
                     }
@@ -266,7 +270,7 @@ router.post('/autoreplies/:userid', (req, res, next) => {
         });
 });
 
-router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
+router.put('/autoreplies/:autoreplyid/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var autoreplyId = req.params.autoreplyid;
@@ -287,12 +291,12 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else {
                         resolve(data);
                     }
@@ -326,7 +330,7 @@ router.put('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         });
 });
 
-router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
+router.delete('/autoreplies/:autoreplyid/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var autoreplyId = req.params.autoreplyid;
 
@@ -338,12 +342,12 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else {
                         resolve(data);
                     }
@@ -378,7 +382,7 @@ router.delete('/autoreplies/:userid/:autoreplyid', (req, res, next) => {
 });
 
 //template 樣板   //find
-router.get('/templates/:userid', (req, res, next) => {
+router.get('/templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -388,12 +392,12 @@ router.get('/templates/:userid', (req, res, next) => {
 
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED)
+                        reject(API_ERROR.APPID_IS_EMPTY)
                     } else
                         resolve(data);
                 });
@@ -430,7 +434,7 @@ router.get('/templates/:userid', (req, res, next) => {
         })
 });
 // insert
-router.post('/templates/:userid', (req, res, next) => {
+router.post('/templates/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var dataObj = {
@@ -443,13 +447,14 @@ router.post('/templates/:userid', (req, res, next) => {
     });
     proceed.then(() => {
             return new Promise((resolve, reject) => {
+
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else
                         resolve(data);
                 });
@@ -480,7 +485,7 @@ router.post('/templates/:userid', (req, res, next) => {
 
 });
 //update
-router.put('/templates/:userid/:templateid', (req, res, next) => {
+router.put('/templates/:templateid/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var templateId = req.params.templateid;
@@ -497,12 +502,12 @@ router.put('/templates/:userid/:templateid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (Data) => {
                     if (Data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else {
                         resolve(Data);
                     }
@@ -542,7 +547,7 @@ router.put('/templates/:userid/:templateid', (req, res, next) => {
 });
 
 //delete
-router.delete('/templates/:userid/:templateid', (req, res, next) => {
+router.delete('/templates/:templateid/users/:userid', (req, res, next) => {
 
     var userId = req.params.userid;
     var templateId = req.params.templateid;
@@ -552,12 +557,12 @@ router.delete('/templates/:userid/:templateid', (req, res, next) => {
     proceed.then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_UNFILLED);
+                        reject(API_ERROR.APPID_IS_EMPTY);
                     } else
                         resolve(data);
                 })
