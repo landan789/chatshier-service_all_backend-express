@@ -3,6 +3,7 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var formData = require("express-form-data");
 var cors = require('cors');
 var index = require('./routes/index');
 var api = require('./routes/api');
@@ -12,12 +13,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 // need raw buffer for signature validation
-app.use(bodyParser.json({
-    verify(req, res, buf) {
-        req.rawBody = buf
-    }
+app.use(bodyParser.urlencoded({
+    extended: true
 }));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(formData.parse({
+    autoFiles: true
+}));
+app.use(formData.format());
+app.use(formData.stream());
+app.use(formData.union());
 app.use(cors());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public'))); // to import css and javascript
