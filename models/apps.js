@@ -205,6 +205,24 @@ apps.updateByAppId = (appId, putApp, callback) => {
 
     procced
         .then(() => {
+            return new Promise((resolve, reject) => {
+                admin.database().ref('apps/' + appId).once('value', snap => {
+                    var app = snap.val();
+                    if (undefined === app || '' === app || null === app) {
+                        reject();
+                        return;
+                    }
+
+                    // 已刪除資料不能更新
+                    if (1 === app.delete) {
+                        reject();
+                        return;
+                    }
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
 
             return admin.database().ref('apps/' + appId).update(putApp);
 
