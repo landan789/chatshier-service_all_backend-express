@@ -21,8 +21,12 @@ apps._schema = (callback) => {
 apps.findByAppId = (appId, callback) => {
     var ref = 'apps/' + appId;
     admin.database().ref(ref).once('value', snap => {
+        var app = snap.val();
+        delete app.autoreplies;
+        delete app.templates;
+
         var apps = {};
-        apps[snap.key] = snap.val();
+        apps[snap.key] = app;
         callback(apps);
     });
 }
@@ -95,6 +99,8 @@ apps.findAppsByAppIds = (appIds, callback) => {
                 var appId = appIds[i];
                 admin.database().ref('apps/' + appId).once('value', snap => {
                     var app = snap.val();
+                    delete app.autoreplies;
+                    delete app.templates;
                     var key = snap.key;
                     if (null === app || undefined === app || '' === app) {
                         resolve(apps);
