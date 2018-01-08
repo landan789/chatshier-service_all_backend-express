@@ -87,6 +87,20 @@ apps.get = (req, res, next) => {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
+                userMdl.findAppIdsByUserId(userId, (data) => {
+                    var appIds = data;
+                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+
+                    resolve();
+
+                });
+            });
+
+        }).then(() => {
+            return new Promise((resolve, reject) => {
                 appMdl.findByAppId(appId, (data) => {
                     var app = data;
                     if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
@@ -176,6 +190,20 @@ apps.post = (req, res, next) => {
                 }
 
                 resolve();
+            });
+
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                userMdl.findAppIdsByUserId(userId, (data) => {
+                    var appIds = data;
+                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+
+                    resolve();
+
+                });
             });
 
         }).then(() => {
