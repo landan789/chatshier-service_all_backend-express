@@ -194,7 +194,7 @@ apps.post = (req, res, next) => {
         }).then(() => {
             var json = {
                 "status": 1,
-                "msg": 'data inserted success'
+                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
             }
             res.status(200).json(json);
 
@@ -208,11 +208,162 @@ apps.post = (req, res, next) => {
         });
 }
 apps.put = (req, res, next) => {
+    var userId = req.params.userid;
+    var appId = req.params.appid;
+    var id1 = req.body.id1;
+    var id2 = req.body.id2;
+    var name = req.body.name;
+    var secret = req.body.secret;
+    var token1 = req.body.token1;
+    var token2 = req.body.token2;
+    var type = req.body.type;
 
+    var putApp = {
+        id1: req.body.id1,
+        id2: req.body.id2,
+        name: req.body.name,
+        secret: req.body.secret,
+        token1: req.body.token1,
+        token2: req.body.token2,
+        type: req.body.type,
+        user_id: req.params.userid
+    }
+
+    var proceed = new Promise((resolve, reject) => {
+        resolve();
+    });
+
+    proceed
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId || undefined === userId) {
+                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    return;
+                }
+
+                if ('' === id1 || null === id1 || undefined === id1) {
+                    reject(API_ERROR.ID1_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === name || null === name || undefined === name) {
+                    reject(API_ERROR.NAME_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === secret || null === secret || undefined === secret) {
+                    reject(API_ERROR.SECRET_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === token1 || null === token1 || undefined === token1) {
+                    reject(API_ERROR.TOKEN1_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === type || null === type || undefined === type) {
+                    reject(API_ERROR.TYPE_IS_EMPTY);
+                    return;
+                }
+
+                resolve();
+            });
+
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                userMdl.findAppIdsByUserId(userId, (data) => {
+                    var appIds = data;
+                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+
+                    resolve();
+
+                });
+            });
+
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                appMdl.updateByAppId(appId, putApp, (data) => {
+                    if (false === data) {
+                        reject(API_ERROR.APP_UPDATED_FAIL);
+                        return;
+                    }
+
+                    resolve();
+
+                });
+            });
+
+        }).then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
+            }
+            res.status(200).json(json);
+
+        }).catch((ERROR) => {
+            var json = {
+                "status": 0,
+                "msg": ERROR.MSG,
+                "code": ERROR.CODE
+            };
+            res.status(403).json(json);
+        });
 }
 
 apps.delete = (req, res, next) => {
+    var userId = req.params.userid;
+    var appId = req.params.appid;
 
+    var proceed = new Promise((resolve, reject) => {
+        resolve();
+    });
+
+    proceed
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                userMdl.findAppIdsByUserId(userId, (data) => {
+                    var appIds = data;
+                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+
+                    resolve();
+
+                });
+            });
+
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                appMdl.removeByAppId(appId, (result) => {
+                    if (false === result) {
+                        reject(API_ERROR.APP_REMOVED_FAIL);
+                        return;
+                    }
+
+                    resolve();
+
+                });
+            });
+
+        }).then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_REMOVED_SUCCESS.MSG
+            }
+            res.status(200).json(json);
+
+        }).catch((ERROR) => {
+            var json = {
+                "status": 0,
+                "msg": ERROR.MSG,
+                "code": ERROR.CODE
+            };
+            res.status(403).json(json);
+        });
 }
 
 module.exports = apps;

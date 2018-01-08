@@ -17,8 +17,8 @@ usersModel.updateUser = (userId, obj) => {
 }
 usersModel.findAppIdsByUserId = (userId, callback) => {
     admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
-        let Data = snap.val();
-        callback(Data);
+        let data = snap.val();
+        callback(data);
     });
 }
 module.exports = usersModel;

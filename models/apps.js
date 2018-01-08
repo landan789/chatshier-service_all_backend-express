@@ -198,5 +198,43 @@ apps.insertByUserid = (userid, postApp, callback) => {
         });
 }
 
+apps.updateByAppId = (appId, putApp, callback) => {
+    var procced = new Promise((resolve, reject) => {
+        resolve();
+    });
+
+    procced
+        .then(() => {
+
+            return admin.database().ref('apps/' + appId).update(putApp);
+
+        }).then(() => {
+            callback(true);
+
+        }).catch(() => {
+            callback(false);
+        });
+
+}
+
+apps.removeByAppId = (appId, callback) => {
+    var procced = new Promise((resolve, reject) => {
+        resolve();
+    });
+
+    deleteApp = {
+        delete: 1
+    }
+
+    procced
+        .then(() => {
+            return admin.database().ref('apps/' + appId).update(deleteApp);
+        }).then(() => {
+            callback(true);
+        }).catch(() => {
+            callback(false);
+        });
+
+}
 
 module.exports = apps;

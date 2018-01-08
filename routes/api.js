@@ -8,14 +8,11 @@ var autoreplies = require('../models/autoreplies');
 var appCtl = require('../controllers/apps');
 var router = express.Router();
 
-
 router.get('/apps/users/:userid', appCtl.getAll);
-
 router.get('/apps/:appid/users/:userid', appCtl.get);
-
 router.post('/apps/users/:userid', appCtl.post);
-
 router.put('/apps/:appid/users/:userid', appCtl.put);
+router.delete('/apps/:appid/users/:userid', appCtl.delete);
 
 // 自動回覆
 router.get('/autoreplies/users/:userid', (req, res, next) => {

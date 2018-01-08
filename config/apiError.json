@@ -8,5 +8,7 @@
     "NAME_IS_EMPTY": { "MSG": "name is empty", "CODE": "6" },
     "TOKEN1_IS_EMPTY": { "MSG": "token1 is empty", "CODE": "7" },
     "TYPE_IS_EMPTY": { "MSG": "type is empty", "CODE": "8" },
-    "APP_INSERTED_FAIL": { "MSG": "app inserted fail", "CODE": "9" }
+    "APP_INSERTED_FAIL": { "MSG": "app inserted fail", "CODE": "9" },
+    "APP_UPDATED_FAIL": { "MSG": "app updated fail", "CODE": "10" },
+    "USER_DOES_NOT_HAVE_THIS_APP": { "MSG": "user does not have this app", "CODE": "11" }
 }
