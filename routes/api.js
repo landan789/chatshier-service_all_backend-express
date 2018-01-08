@@ -54,8 +54,8 @@ router.get('/apps/users/:userid', (req, res, next) => {
         }).catch((ERROR) => {
             var json = {
                 "status": 0,
-                "msg": 'ERROR.MSG',
-                "code": 'ERROR.CODE'
+                "msg": ERROR.MSG,
+                "code": ERROR.CODE
             };
             res.status(403).json(json);
         });
@@ -129,14 +129,15 @@ router.post('/apps/users/:userid', (req, res, next) => {
     var token2 = req.body.token2;
     var type = req.body.type;
 
-    var postData = {
+    var postApp = {
         id1: req.body.id1,
         id2: req.body.id2,
         name: req.body.name,
         secret: req.body.secret,
         token1: req.body.token1,
         token2: req.body.token2,
-        type: req.body.type
+        type: req.body.type,
+        user_id: req.params.userid
     }
 
     var proceed = new Promise((resolve, reject) => {
@@ -146,17 +147,66 @@ router.post('/apps/users/:userid', (req, res, next) => {
     proceed
         .then(() => {
             return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                if ('' === userId || null === userId || undefined === userId) {
+                    reject(API_ERROR.USERID_NOT_EXISTS);
                     return;
                 }
+
+                if ('' === id1 || null === id1 || undefined === id1) {
+                    reject(API_ERROR.ID1_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === name || null === name || undefined === name) {
+                    reject(API_ERROR.NAME_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === secret || null === secret || undefined === secret) {
+                    reject(API_ERROR.SECRET_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === token1 || null === token1 || undefined === token1) {
+                    reject(API_ERROR.TOKEN1_IS_EMPTY);
+                    return;
+                }
+
+                if ('' === type || null === type || undefined === type) {
+                    reject(API_ERROR.TYPE_IS_EMPTY);
+                    return;
+                }
+
                 resolve();
             });
 
         }).then(() => {
+            return new Promise((resolve, reject) => {
+                apps.insertByUserid(userId, postApp, (result) => {
+                    if (false === result) {
+                        reject(API_ERROR.APP_INSERTED_FAIL);
+                        return;
+                    }
 
-        }).catch(() => {
+                    resolve();
 
+                });
+            });
+
+        }).then(() => {
+            var json = {
+                "status": 1,
+                "msg": 'data inserted success'
+            }
+            res.status(200).json(json);
+
+        }).catch((ERROR) => {
+            var json = {
+                "status": 0,
+                "msg": ERROR.MSG,
+                "code": ERROR.CODE
+            };
+            res.status(403).json(json);
         });
 });
 
@@ -483,6 +533,7 @@ router.post('/templates/users/:userid', (req, res, next) => {
 
 });
 //update
+
 router.put('/templates/:templateid/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;

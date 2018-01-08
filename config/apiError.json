@@ -1,6 +1,12 @@
 {
+    "UNKNOWN": { "MSG": "unknown error", "CODE": "0" },
     "USER_NOT_EXISTS": { "MSG": "user does not exists", "CODE": "1" },
     "APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" },
     "USERID_IS_EMPTY": { "MSG": "userid is empty", "CODE": "3" },
-    "APPID_IS_EMPTY": { "MSG": "appid is empty", "CODE": "4" }
+    "APPID_IS_EMPTY": { "MSG": "appid is empty", "CODE": "4" },
+    "ID1_IS_EMPTY": { "MSG": "id1 is empty", "CODE": "5" },
+    "NAME_IS_EMPTY": { "MSG": "name is empty", "CODE": "6" },
+    "TOKEN1_IS_EMPTY": { "MSG": "token1 is empty", "CODE": "7" },
+    "TYPE_IS_EMPTY": { "MSG": "type is empty", "CODE": "8" },
+    "APP_INSERTED_FAIL": { "MSG": "app inserted fail", "CODE": "9" }
 }
