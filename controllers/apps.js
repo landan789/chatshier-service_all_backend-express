@@ -32,7 +32,7 @@ apps.getAll = (req, res, next) => {
             var appIds = data.app_ids;
 
             return new Promise((resolve, reject) => {
-                appMdl.findAppIdsByUserId(appIds, (data) => {
+                appMdl.findAppsByAppIds(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APPID_IS_EMPTY);

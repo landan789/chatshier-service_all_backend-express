@@ -68,7 +68,7 @@ apps.getAppsByUserId = (userId, callback) => {
 }
 
 
-apps.getAppsByAppIds = (appIds, callback) => {
+apps.findAppsByAppIds = (appIds, callback) => {
     var a = appIds;
 
     var apps = {};
