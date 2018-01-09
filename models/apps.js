@@ -155,6 +155,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
 };
 
 apps.updateByAppId = (appId, putApp, callback) => {
+    console.log(putApp)
     var procced = new Promise((resolve, reject) => {
         resolve();
     });

@@ -143,11 +143,11 @@ apps.post = (req, res, next) => {
 
     var postApp = {
         id1: req.body.id1,
-        id2: req.body.id2,
+        id2: req.body.id2 ? req.body.id2 : '',
         name: req.body.name,
         secret: req.body.secret,
         token1: req.body.token1,
-        token2: req.body.token2,
+        token2: req.body.token2 ? req.body.token2 : '',
         type: req.body.type,
         user_id: req.params.userid
     }
@@ -194,20 +194,6 @@ apps.post = (req, res, next) => {
 
         }).then(() => {
             return new Promise((resolve, reject) => {
-                userMdl.findAppIdsByUserId(userId, (data) => {
-                    var appIds = data;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                        return;
-                    }
-
-                    resolve();
-
-                });
-            });
-
-        }).then(() => {
-            return new Promise((resolve, reject) => {
                 appMdl.insertByUserid(userId, postApp, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_INSERTED_FAIL);
@@ -248,11 +234,11 @@ apps.put = (req, res, next) => {
 
     var putApp = {
         id1: req.body.id1,
-        id2: req.body.id2,
+        id2: req.body.id2 ? req.body.id2 : '',
         name: req.body.name,
         secret: req.body.secret,
         token1: req.body.token1,
-        token2: req.body.token2,
+        token2: req.body.token2 ? req.body.token2 : '',
         type: req.body.type,
         user_id: req.params.userid
     }

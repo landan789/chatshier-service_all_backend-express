@@ -9,7 +9,7 @@ $(document).ready(function() {
         if (auth.currentUser) {
             clearInterval(loadSetting);
             findAllApps(); // 列出所有設定的APPs
-            loadProf();
+            findUserProfile();
         }
     }, 1000);
 
@@ -290,16 +290,60 @@ $(document).ready(function() {
         switch(type) {
             case 'insertNewApp':
                 let app = $(this).parent().parent().find('#app-group-select option:selected').val();
-                console.log(app);
+                // console.log(app);
+                insertType(app, (data) => {
+                    insertOneApp(data);
+                });
                 break;
             case 'updateProfile':
                 profSubmitBasic();
                 break;
             case 'updateApp':
-                let appId = $(this).parent().parent().find('#edit-app-id').text();
-                updateOneApp(appId); // 點送出後更新APP的資訊
+                let appId = $(this).parent().parent().find('#webhook-id').text();
+                // console.log($('#facebook-name').val())
+                if($('#facebook-name').val() === undefined) {
+                    let name = $('#name').val();
+                    let id1 = $('#channel-id').val();
+                    let secret = $('#channel-secret').val();
+                    let token1 = $('#channel-token').val();
+                    let type = 'line';
+                    let updateObj = {
+                        name,
+                        id1,
+                        secret,
+                        token1,
+                        type
+                    }
+                    updateOneApp(appId,updateObj); // 點送出後更新APP的資訊
+                } else {
+                    let name = $('#facebook-name').val();
+                    let id1 = $('#facebook-page-id').val();
+                    let id2 = $('#facebook-app-id').val();
+                    let secret = $('#facebook-app-secret').val();
+                    let token1 = $('#facebook-valid-token').val();
+                    let token2 = $('#facebook-page-token').val();
+                    let type = 'facebook';
+                    let updateObj = {
+                        name,
+                        id1,
+                        id2,
+                        secret,
+                        token1,
+                        token2,
+                        type
+                    }
+                    updateOneApp(appId,updateObj); // 點送出後更新APP的資訊
+                }
                 break;
         }        
+    });
+    $(document).on('click', '#del', function() {
+        let autoreplyId = $(this).attr('rel');
+        let confirmDelete = confirm('確定刪除?');
+        // console.log(autoreplyId);
+        if(confirmDelete) {
+            removeOneApp(autoreplyId);
+        }
     });
     $('#add-new-btn').click(function() {
         let formStr =
@@ -435,9 +479,11 @@ function findAllApps() {
                 let appIds = data.data;
                 let appKeyArr = Object.keys(appIds);
                 for(let i in appIds) {
-                    $('#prof-id').append(appIds[i].user_id);
-                    // groupType(appKeyArr[i],appIds[i]);
-                    groupType(i,appIds[i]);
+                    if(appIds[i].delete !== 1) {
+                        $('#prof-id').append(appIds[i].user_id);
+                        // groupType(appKeyArr[i],appIds[i]);
+                        groupType(i,appIds[i]);
+                    }
                 }
                 $('#add-new-btn').attr('disabled',false);
             }
@@ -467,17 +513,55 @@ function findOneApp(appId) {
     });
 }
 
+function insertType(type,callback) {
+    switch(type) {
+        case 'line':
+            let lineName = $('#name').val();
+            let lineId = $('#channel-id').val();
+            let lineSecret = $('#channel-secret').val();
+            let lineToken = $('#channel-token').val();
+            let lineObj = {
+                name: lineName,
+                id1: lineId,
+                secret: lineSecret,
+                token1: lineToken,
+                type: type
+            }
+            callback(lineObj);
+            break;
+        case 'facebook':
+            let fbName = $('#facebook-name').val();
+            let fbPageId = $('#facebook-page-id').val();
+            let fbAppId = $('#facebook-app-id').val();
+            let fbSecret = $('#facebook-app-secret').val();
+            let fbValidToken = $('#facebook-valid-token').val();
+            let fbPageToken = $('#facebook-page-token').val();
+            let fbObj = {
+                name: fbName,
+                id1: fbPageId,
+                id2: fbAppId,
+                secret: fbSecret,
+                token1: fbValidToken,
+                token2: fbPageToken,
+                type: type
+            }
+            callback(fbObj);
+            break;
+    }
+}
+
 function insertOneApp(data) { // 未完成
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
-        url: 'http://' + domain + '/api/users/' + id,
+        url: 'http://' + domain + '/api/apps/users/' + id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: (id) => {
+        success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('新增成功!');
+            $('#setting-modal').modal('hide');
             clearModalBody();
             $('#app-group').empty();
             $('#app-group').append(str);
@@ -492,6 +576,7 @@ function insertOneApp(data) { // 未完成
 
 function updateOneApp(appId,data) { // 未完成
     var id = auth.currentUser.uid;
+    console.log(id,appId,data)
     $.ajax({
         type: 'PUT',
         url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
@@ -501,6 +586,7 @@ function updateOneApp(appId,data) { // 未完成
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('修改成功!');
+            $('#setting-modal').modal('hide');
             clearModalBody();
             $('#app-group').empty();
             $('#app-group').append(str);
@@ -513,7 +599,7 @@ function updateOneApp(appId,data) { // 未完成
     });
 }
 
-function removeOneApp(appId) { // 未完成
+function removeOneApp(appId) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
@@ -521,7 +607,6 @@ function removeOneApp(appId) { // 未完成
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('成功刪除!');
-            clearModalBody();
             $('#app-group').empty();
             $('#app-group').append(str);
             findAllApps();
@@ -541,7 +626,10 @@ function groupType(index,item) {
             '<tr class="active">'+
                 '<th class="col-md-3 col-lg-3">LINE</th>'+
                 '<th class="col-md-9 col-lg-9">'+
-                    '<div id="group1" class="line"><button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>'+
+                    '<div id="group1" class="line">' +
+                    '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                    '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                    '</div>'+
                 '</th>'+
             '</tr>'+
             '<tr>'+
@@ -573,7 +661,10 @@ function groupType(index,item) {
             '<tr class="active">' +
                 '<th class="col-md-3 col-lg-3">Facebook</th>' +
                 '<th class="col-md-9 col-lg-9">' +
-                    '<div id="group3" class="fb"><button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button></div>' +
+                    '<div id="group3" class="fb">' +
+                    '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                    '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                    '</div>' +
                 '</th>' +
             '</tr>' +
             '<tr>' +
@@ -620,7 +711,7 @@ function formModalBody(id,item) {
                 '<div id="type" hidden>updateApp</div>' +
                 '<div class="form-group" hidden>' +
                     '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
-                    '<span id="edit-app-id">' + id + '</span>' +
+                    '<span id="webhook-id">' + id + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-line-1">' +
                     '<div class="form-group">' +
@@ -707,65 +798,66 @@ function clearModalBody() {
     $('.modal-body').empty();
 }
 
-function loadProf() {
-    let userId = auth.currentUser.uid;
-    var proceed = new Promise(function(resolve, reject) {
-        resolve();
-    });
-    proceed
-        .then(function() {
-            return new Promise(function(resolve, reject) {
-                getUserDB('users', userId, '', data => {
-                    $('#prof-id').text(userId);
-                    $('.panel-title').text(data.name);
-                    $('#prof-email').text(data.email);
-                    $('#prof-IDnumber').text(userId);
-                    $('#prof-company').text(data.company);
-                    $('#prof-phonenumber').text(data.phonenumber);
-                    $('#prof-address').text(data.address);
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            console.log('finished');
-        })
-        .catch(() => {
-            console.log('running error');
-        });
-}
-
-function getUserDB(collection, userId, ref, callback) {
-    let info;
-    database.ref(collection + '/' + userId + ref).once('value', snap => {
-        if (snap.val() !== null) {
-            info = snap.val();
-            callback(info);
+function findUserProfile() {
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + domain + '/api/users/' + id,
+        success: (data) => {
+            let profile = data.data;
+            $('#prof-id').text(id);
+            $('.panel-title').text(profile.name);
+            $('#prof-email').text(profile.email);
+            $('#prof-IDnumber').text(id);
+            $('#prof-company').text(profile.company);
+            $('#prof-phonenumber').text(profile.phonenumber);
+            $('#prof-address').text(profile.address);
+        },
+        error: (error) => {
+            alert('載入失敗: ' + error);
+            console.log(error);
         }
     });
 }
 
-function profSubmitBasic(event) {
-    var $this = $(this);
+function updateUserProfile(data) {
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'PUT',
+        url: 'http://' + domain + '/api/users/' + id,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: () => {
+            $('#prof-company').text(data.company);
+            $('#prof-phonenumber').text(data.phonenumber);
+            $('#prof-address').text(data.address);
+        },
+        error: (error) => {
+            alert('修改失敗: ' + error);
+            console.log(error);
+        }
+    });
+}
+
+function profSubmitBasic() {
     let userId = auth.currentUser.uid;
     let company = $('#company').val();
     let phonenumber = $('#phone').val();
-    let location = $('#location').val();
+    let address = $('#location').val();
+    let obj = {
+        company,
+        phonenumber,
+        address
+    }
     phoneRule = /^09\d{8}$/;
-    // console.log(id);
-    // database.ref('users/' + userId).remove();
     if (!phonenumber.match(phoneRule)) {
         $('#prof-edit-phonenumber').tooltip('show'); //show
         setTimeout(function() {
             $('#prof-edit-phonenumber').tooltip('destroy');
         }, 3000);
     } else {
-        database.ref('users/' + userId).update({
-            company: company,
-            phonenumber: phonenumber,
-            address: location
-        });
+        updateUserProfile(obj)
         $('#setting-modal').modal('hide');
-        loadProf();
     }
 }

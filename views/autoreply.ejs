@@ -13,9 +13,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
-    <%# 自己的code%>
-        <link rel="stylesheet" href="stylesheets/_main.css" />
-        <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
+    <link rel="stylesheet" href="stylesheets/_main.css" />
+    <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
 </head>
 
 <body>
@@ -27,19 +26,6 @@
         <button type="button" class="btn btn-default inner-add" data-toggle="modal" data-target="#quickAdd">
             <span class="fa fa-plus fa-fw"></span> 新增自動回覆
         </button>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:15%; padding:2%" hidden>ID</th>
-                    <th style="width:10%; padding:2%">狀態</th>
-                    <th style="width:15%; padding:2%">訊息標題</th>
-                    <th style="width:20%; padding:2%">有效期限</th>
-                    <th style="width:20%; padding:2%">訊息內容</th>
-                    <th style="width:15%; padding:2%">編輯/刪除</th>
-                </tr>
-            </thead>
-            <tbody id="autoreply-list"></tbody>
-        </table>
         <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -49,6 +35,13 @@
                     </div>
                     <div class="modal-body">
                         <form>
+                            <div class="form-group">
+                                <label class="col-2 col-form-label">App:</label>
+                                <div class="col-4">
+                                    <select class="form-control" id="app-select">
+                                    </select>
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label for="modal-task-name" class="col-2 col-form-label">事件名稱(不可重複):</label>
                                 <div class="col-4">
@@ -76,43 +69,6 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="viewModalTitle" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="viewModalTitle"></h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <!-- 標題 -->
-                            <div class="form-group">
-                                <label for="task-title" class="col-2 col-form-label">訊息標題:  </label>
-                                <span id="view-title"></span>
-                            </div>
-                            <!-- 開始時間 -->
-                            <div class="form-group">
-                                <label for="task-time" class="col-2 col-form-label">開始時間:  </label>
-                                <span id="view-start"></span>
-                            </div>
-                            <!-- 結束時間 -->
-                            <div class="form-group">
-                                <label for="task-time" class="col-2 col-form-label">結束時間:  </label>
-                                <span id="view-end"></span>
-                            </div>
-                            <!-- 任務內容 -->
-                            <div class="form-group">
-                                <label for="task-name" class="col-2 col-form-label">訊息內容:  </label>
-                                <span id="view-textinput"></span>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -122,35 +78,32 @@
                     </div>
                     <div class="modal-body">
                         <form>
-                            <!-- 編號 -->
                             <div class="form-group" hidden>
-                                <label for="task-name" class="col-2 col-form-label">ID</label>
-                                <span id="edit-id"></span>
+                                <label class="col-2 col-form-label">APP ID</label>
+                                <span id="edit-appid"></span>
                             </div>
-                            <!-- 標題 -->
+                            <div class="form-group" hidden>
+                                <label class="col-2 col-form-label">Autoreply ID</label>
+                                <span id="edit-autoreplyid"></span>
+                            </div>
                             <div class="form-group">
                                 <label for="edit-task-title" class="col-2 col-form-label">標題:  </label>
                                 <div class="col-4">
                                     <input class="form-control" type="text" value="" id="edit-taskTitle">
                                 </div>
                             </div>
-                            <!-- 開始時間 -->
                             <div class="form-group">
                                 <label for="edit-task-time" class="col-2 col-form-label">開始時間:  </label>
                                 <div class="col-4">
                                     <input class="form-control" type="datetime-local" id="edit-taskStart" style="width:50%" />
-                                    <!--<input class="form-control" type="text" value="" id="edit-taskTime">-->
                                 </div>
                             </div>
-                            <!-- 結束時間 -->
                             <div class="form-group">
                                 <label for="edit-task-time" class="col-2 col-form-label">結束時間:  </label>
                                 <div class="col-4">
                                     <input class="form-control" type="datetime-local" id="edit-taskEnd" style="width:50%" />
-                                    <!--<input class="form-control" type="text" value="" id="edit-taskTime">-->
                                 </div>
                             </div>
-                            <!-- 任務內容 -->
                             <div class="form-group">
                                 <label for="edit-task-content" class="col-2 col-form-label">訊息內容:  </label>
                                 <div class="col-4">
@@ -239,6 +192,11 @@
         .topright:hover {
             color: red;
         }
+
+        .table-header {
+            width: 15%;
+            padding: 2%;
+        }
     </style>
     <% include ../views/partials/firebase_disable.ejs %>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
@@ -249,7 +207,7 @@
     <script src="javascripts/_firebase-auth.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="javascripts/navigation.js"></script>
-    <script src="javascripts/autoreplies.js"></script>
+    <script src="javascripts/autoreply.js"></script>
     <script src="javascripts/partials/firebase-disable.js"></script>
 </body>
 
