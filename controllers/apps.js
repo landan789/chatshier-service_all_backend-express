@@ -16,10 +16,12 @@ apps.getAll = (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 var userId = req.params.userid;
+
                 if ('' === userId || null === userId) {
                     reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
+
                 userMdl.getUser(userId, (data) => {
                     if (null === data) {
                         reject(API_ERROR.USER_NOT_EXISTS);

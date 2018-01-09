@@ -20,6 +20,12 @@ auth.onAuthStateChanged((user) => {
 
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
         $('#loading').fadeOut();
+        firebase.auth().currentUser.getIdToken(false)
+            .then((jwt) => {
+                localStorage.setItem("jwt", jwt);
+            }).catch(function(error) {
+                // Handle error
+            });
 
     } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
 

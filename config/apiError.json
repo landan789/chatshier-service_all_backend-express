@@ -1,4 +1,6 @@
 {
+    "USER_NOT_PERMITTED": { "MSG": "user is not be permitted", "CODE": "-2" },
+    "USER_NOT_AUTH": { "MSG": "user is not be authorized", "CODE": "-1" },
     "UNKNOWN": { "MSG": "unknown error", "CODE": "0" },
     "USER_NOT_EXISTS": { "MSG": "user does not exists", "CODE": "1" },
     "APP_NOT_EXISTS": { "MSG": "app does not exists", "CODE": "2" },

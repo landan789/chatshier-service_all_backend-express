@@ -45,7 +45,6 @@ $(document).ready(function() {
         // If users/ada/rank has never been set, currentRank will be `null`.
     });
 
-    debugger;
     var startUserId = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(startUserId);
