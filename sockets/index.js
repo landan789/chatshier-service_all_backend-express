@@ -16,8 +16,8 @@ var tags = require('../models/tags');
 var users = require('../models/users');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
-var webhooks = require('../models/webhooks');
-var apps = require('../models/apps');
+var webhookMdl = require('../models/webhooks');
+var appMdl = require('../models/apps');
 var messageHandle = require('../message_handle');
 
 const WAIT_TIME = 10000;
@@ -107,17 +107,20 @@ function init(server) {
             return;
         }
 
-        var p = new Promise((resolve, reject) => {
+        var proceed = new Promise((resolve, reject) => {
 
             resolve();
         });
 
-        p.then(() => {
+        proceed.then(() => {
             return new Promise((resolve, reject) => {
 
-                webhooks.getById(webhookId, (webhook) => {
+                webhookMdl.findByWebhookId(webhookId, (webhooks) => {
+                    var keys = Object.keys(webhooks);
+                    var webhookId = keys[0];
+                    var webhook = webhooks[webhookId];
                     var appId = webhook.app_id;
-                    if (false === webhook || null === webhook) {
+                    if (false === webhook || null === webhook || undefined === webhook) {
                         reject();
                         return;
                     }
@@ -130,23 +133,27 @@ function init(server) {
                 });
             });
         }).then((data) => {
-            var appId = data.app_id;
+            var webhook = data;
+            var appId = webhook.app_id;
             return new Promise((resolve, reject) => {
-                apps.getById(appId, (app) => {
-                    if (null === app) {
+                appMdl.findByAppId(appId, (apps) => {
+                    var keys = Object.keys(apps);
+                    var appId = keys[0];
+                    var _app = apps[appId];
+                    if (null === _app || null === _app || undefined === _app) {
                         reject();
                         return;
                     }
-                    resolve(app);
+                    resolve(_app);
                 });
             });
 
 
         }).then((data) => {
-            var app = data;
+            var _app = data;
 
             return new Promise((resolve, reject) => {
-                if (LINE === app.type) {
+                if (LINE === _app.type) {
                     var line = {
                         channelId: data.id1,
                         channelSecret: data.secret,
@@ -233,15 +240,15 @@ function init(server) {
                             apps.getById(item, (app) => {
                                 if (null === app) {
                                     reject('no app_ids');
-                                } 
-                                if((appsArr.length + 1) === data.length) {
+                                }
+                                if ((appsArr.length + 1) === data.length) {
                                     resolve(appsArr);
                                 } else {
                                     appsArr.push(app);
                                 }
                             });
                         });
-                        
+
                         // data.map((item) => {
                         //     let appsArr = [];
                         //     apps.getById(item, (app) => {
