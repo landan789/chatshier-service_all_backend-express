@@ -227,56 +227,32 @@ function init(server) {
                 })
                 .then(() => {
                     return new Promise((resolve, reject) => {
-                        users.findAppIdsByUserId(userId, data => {
+                        users.findUserByUserId(userId, data => {
                             resolve(data);
                         });
-                        setTimeout(reject, WAIT_TIME, "user network too slow");
+                        setTimeout(reject, WAIT_TIME, "get user network too slow");
                     });
                 })
-                .then(data => {
+                .then((data) => {
+                    var appIds = data.app_ids;
                     return new Promise((resolve, reject) => {
-                        let appsArr = [];
-                        data.map((item) => {
-                            appMdl.findByAppId(item, (app) => {
-                                if (null === app) {
-                                    reject('no app_ids');
-                                }
-                                if ((appsArr.length + 1) === data.length) {
-                                    resolve(appsArr);
-                                } else {
-                                    appsArr.push(app);
-                                }
-                            });
+                        appMdl.findAppsByAppIds(appIds, (data) => {
+                            var apps = data;
+                            if (null === apps || '' === apps || undefined === apps) {
+                                reject(API_ERROR.APPID_IS_EMPTY);
+                            }
+                            resolve(apps);
                         });
-
-                        // data.map((item) => {
-                        //     let appsArr = [];
-                        //     apps.getById(item, (app) => {
-                        //         if (null === app) {
-                        //             reject('no app_ids');
-                        //         } else if(appsArr.length < data.length) {
-                        //             appsArr.push(app);
-                        //             return;
-                        //         } else {
-                        //             resolve(appsArr);
-                        //         } 
-                        //     });
-                        // });
-                        setTimeout(reject, WAIT_TIME, "app network too slow");
+                        setTimeout(reject, WAIT_TIME, "find app network too slow");
                     });
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        console.log('5')
-                        if (data) {
-                            allObj.appsData = data;
-                        }
+                        allObj.appsData = data;
                         resolve();
-                        setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
                 })
                 .then(() => {
-                    console.log(allObj);
                     callback(allObj);
                 })
                 .catch(reason => {
@@ -564,7 +540,7 @@ function init(server) {
                     }
                 });
             } else {
-                users.getUser(id, dbData => {
+                users.findUserByUserId(id, dbData => {
                     if (dbData.ids.chanId_1 === '' && dbData.ids.chanId_2 === '') {
                         callback('帳號未設定');
                     } else {
@@ -718,9 +694,9 @@ function init(server) {
                 if (keywordsReply(msgObj.message) !== -1) {
                     console.log('keywordsreply bot replied!');
                 }
-                if (autoReply(msgObj.message) !== -1) {
-                    console.log("autoreply bot replyed!");
-                }
+                // if (autoReply(msgObj.message) !== -1) {
+                //     console.log("autoreply bot replyed!");
+                // }
                 if (lineTemplateReply(msgObj.message) !== -1) {
                     console.log("line template bot replyed!");
                 }
@@ -768,27 +744,27 @@ function init(server) {
                 });
             }
 
-            function autoReply(msg) {
-                replyMsgObj.name = "Auto Reply";
-                sent = false;
-                autoreplies.get(function(autoreplyData) {
-                    for (let i in autoreplyData) {
-                        for (let j in autoreplyData[i]) {
-                            thisAutoReply = autoreplyData[i][j];
-                            var starttime = new Date(thisAutoReply.taskStart).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
-                            var endtime = new Date(thisAutoReply.taskEnd).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
-                            var nowtime = new Date().getTime();
-                            if (nowtime >= starttime && nowtime < endtime) {
-                                replyMsgObj.message = thisAutoReply.taskText;
-                                pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
-                                send_to_Line(thisAutoReply.taskText, receiverId, channelId);
-                                sent = true;
-                            }
-                        }
-                    }
-                    if (!sent) return -1;
-                });
-            }
+            // function autoReply(msg) {
+            //     replyMsgObj.name = "Auto Reply";
+            //     sent = false;
+            //     autoreplies.get(function(autoreplyData) {
+            //         for (let i in autoreplyData) {
+            //             for (let j in autoreplyData[i]) {
+            //                 thisAutoReply = autoreplyData[i][j];
+            //                 var starttime = new Date(thisAutoReply.taskStart).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
+            //                 var endtime = new Date(thisAutoReply.taskEnd).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
+            //                 var nowtime = new Date().getTime();
+            //                 if (nowtime >= starttime && nowtime < endtime) {
+            //                     replyMsgObj.message = thisAutoReply.taskText;
+            //                     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+            //                     send_to_Line(thisAutoReply.taskText, receiverId, channelId);
+            //                     sent = true;
+            //                 }
+            //             }
+            //         }
+            //         if (!sent) return -1;
+            //     });
+            // }
 
             function lineTemplateReply(msg) {
                 linetemplate.getMsg(channelId, msg, function(data) {

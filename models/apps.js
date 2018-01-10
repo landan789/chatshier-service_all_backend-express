@@ -29,6 +29,16 @@ apps.findByAppId = (appId, callback) => {
     });
 };
 
+apps.findObjByAppId = (appId, callback) => {
+    var ref = "apps/" + appId;
+    admin.database().ref(ref).once("value", snap => {
+        var app = snap.val();
+        delete app.autoreplies;
+        delete app.templates;
+        callback(app);
+    });
+};
+
 apps.findAppsByAppIds = (appIds, callback) => {
     var a = appIds;
 

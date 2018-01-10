@@ -36,11 +36,11 @@ var openChatAppItem = $('.chat-app-item[open="true"]');
 var searchBox = $('#searchBox');
 var addTicketModal = $('#add-ticket-modal');
 
-$(document).ready(function() {
+$(document).ready(function () {
     // start the loading works
     $infoPanel.hide();
     var ref = firebase.database().ref('users/NfO3a14q7RhSytPvngevDluRzG32/name');
-    ref.transaction(function(name) {
+    ref.transaction(function (name) {
         return name + '1';
         // If users/ada/rank has never been set, currentRank will be `null`.
     });
@@ -49,7 +49,9 @@ $(document).ready(function() {
         if (auth.currentUser) {
             clearInterval(startUserId);
             agentId = auth.currentUser.uid;
-            socket.emit('request chat init data', { id: agentId }, responseChatInitData);
+            socket.emit('request chat init data', {
+                id: agentId
+            }, responseChatInitData);
         }
     }, 1000);
 
@@ -61,7 +63,7 @@ $(document).ready(function() {
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
-    messageInput.on('keydown', function(e) { // 按enter可以發送訊息
+    messageInput.on('keydown', function (e) { // 按enter可以發送訊息
         if (e.keyCode === 13) {
             $('#submitMsg').click();
         }
@@ -84,22 +86,24 @@ $(document).ready(function() {
     $(document).on('click', '.ticketContent', moreInfo);
     $(document).on('click', '.edit', showInput);
     $(document).on('focusout', '.inner', hideInput);
-    $(document).on('keypress', '.inner', function(e) { if (e.which === 13) $(this).blur(); });
+    $(document).on('keypress', '.inner', function (e) {
+        if (e.which === 13) $(this).blur();
+    });
     $(document).on('keyup', '.ticketSearchBar', ticketSearch);
     addTicketModal.on('show.bs.modal', openTicketModal);
     $(document).on('click', '#form-submit', addTicket);
     $(document).on('click', '#ticket-info-delete', deleteTicket);
     $(document).on('click', '#ticket-info-modify', modifyTicket)
-        //=====end ticket event=====
+    //=====end ticket event=====
 
     //=====start utility event=====
 
     $(document).on('change', '.multi-select-container', multiSelectChange);
-    $(document).on('click', '.dropdown-menu', function(event) {
+    $(document).on('click', '.dropdown-menu', function (event) {
         event.stopPropagation();
     });
     $.extend($.expr[':'], {
-        'containsi': function(elem, i, match, array) {
+        'containsi': function (elem, i, match, array) {
             return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
         }
     });
@@ -117,32 +121,70 @@ $(document).ready(function() {
     }
 
     function responseUserAppIds(data) {
-        if (data !== undefined) {
-            if (data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
-                if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
-                    $('#notifyModal').modal("show");
-                    window.sessionStorage["notifyModal"] = 1;
-                }
-            } else {
-                let line1Id = data[0] !== undefined ? data[0].id1 : '';
-                let line2Id = data[1] !== undefined ? data[1].id1 : '';
-                let fbId = data[2] !== undefined ? data[2].id1 : '';
-                let line1Name = data[0] !== undefined ? data[0].name : '';
-                let line2Name = data[1] !== undefined ? data[1].name : '';
-                let fbName = data[2] !== undefined ? data[2].name : '';
-                socket.emit('request chat data', [line1Id, line2Id, fbId], responseChatData);
-                $('.chat-app-item#Line_1').attr('rel', line1Id);
-                $('.chat-app-item#Line_2').attr('rel', line2Id);
-                $('.chat-app-item#FB').attr('rel', fbId);
-                $('#Line_1').attr('data-original-title', line1Name);
-                $('#Line_2').attr('data-original-title', line2Name);
-                $('#FB').attr('data-original-title', fbName);
-                room_list.push(line1Id); // line1
-                room_list.push(line2Id); // line2
-                room_list.push(fbId); // facebook
+        let appsInfo = data;
+        if (appsInfo !== undefined || Object.getOwnPropertyNames(appsInfo).length !== 0) {
+            let newData = Object.values(appsInfo);
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        let newArr = newData.filter((item) => {
+                            return item.delete === 0;
+                        });
+                        resolve(newArr);
+                    });
+                })
+                .then((data) => {
+                    let allActiveApps = data;
+                    return new Promise((resolve, reject) => {
+                        let idArr = [];
+                        allActiveApps.map((item) => {
+                            idArr.push(item.id1);
+                            room_list.push(item.id1);
+                            appGroupSort(item);
+                            if (idArr.length === allActiveApps.length){
+                                resolve(idArr);
+                            } 
+                        });
+                    });
+                })
+                .then((data) => {
+                    let allAppIds = data;
+                    socket.emit('request chat data', allAppIds, responseChatData);
+                })
+                .catch((error) => {
+                    console.log('loading apps error');
+                });
+        } else {
+            if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
+                $('#notifyModal').modal("show");
+                window.sessionStorage["notifyModal"] = 1;
             }
         }
     } // end of responseUserAppIds
+
+    function appGroupSort(data) {
+        switch (data.type) {
+            case 'line':
+                let lineStr =
+                    '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + data.name + '" rel="' + data.id1 + '">' +
+                    '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
+                    '<div class="unread-count"></div>' +
+                    '</div>';
+                $('#chat_App').append(lineStr);
+                break;
+            case 'facebook':
+                let fbStr =
+                    '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + data.name + '" rel="' + data.id1 + '">' +
+                    '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
+                    '<div class="unread-count"></div>' +
+                    '</div>';
+                $('#chat_App').append(fbStr);
+                break;
+        }
+    }
 
     function responseChannels(data) {
         if (data[0].id1 === '' && data[1].id2 === '' && data[2].id1 === '') {
@@ -169,7 +211,7 @@ $(document).ready(function() {
         for (i in data) pushMsg(data[i], () => {
             pushInfo(data[i]);
         }); //聊天記錄
-        sortUsers("recentTime", sortRecentBool, function(a, b) {
+        sortUsers("recentTime", sortRecentBool, function (a, b) {
             return a < b;
         }); //照時間排列 新到舊
     } // end of responseChatData
@@ -235,7 +277,7 @@ $(document).ready(function() {
         } else {
             tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
         }
-        if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
+        if (typeof (profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
             $('#vip_list').prepend(tablinkHtml);
         } else {
             $('#clients').append(tablinkHtml);
@@ -243,7 +285,7 @@ $(document).ready(function() {
         canvas.append( //push string into canvas
             '<div id="' + profile.userId + '" rel="' + profile.channelId + '" class="tabcontent">' + "<div id='" + profile.userId + "-content' rel='" + profile.channelId + "' class='messagePanel' data-position='" + data.position + "'>" + historyMsgStr + "</div>" + "</div>"
         ); // close append
-        if (data.position != 0) $('#' + profile.userId + '-content' + '[rel="' + profile.channelId + '"]').on('scroll', function() {
+        if (data.position != 0) $('#' + profile.userId + '-content' + '[rel="' + profile.channelId + '"]').on('scroll', function () {
             detecetScrollTop($(this));
         });
         name_list.push(profile.channelId + profile.userId); //make a name list of all chated user
@@ -496,7 +538,7 @@ $(document).ready(function() {
                 if (!data) data = "";
                 if (name == "agent") {
                     let selected = data.split(',');
-                    let names = selected.map(function(e) {
+                    let names = selected.map(function (e) {
                         return agentIdToName[e];
                     });
                     if (names.length == Object.keys(agentIdToName).length) tdHtml += '<span class="multi-select-text" rel="' + data + '">' + "全選" + '</span>';
@@ -527,6 +569,7 @@ $(document).ready(function() {
 
     //=====start socket function=====
     socket.on('new message', (data) => {
+        console.log(data);
         if (!data.channelId) {
             console.log("data miss channelId");
             return;
@@ -547,9 +590,11 @@ $(document).ready(function() {
             displayClientInternal(data.sendObj, data.roomId);
         }
     });
-    socket.on('new user profile', function(data) {
+    socket.on('new user profile', function (data) {
         userProfiles[data.userId] = data;
-        pushInfo({ "Profile": data });
+        pushInfo({
+            "Profile": data
+        });
     });
     //=====end socket function=====
 
@@ -560,7 +605,7 @@ $(document).ready(function() {
         if (thisRel === 'All') {
             $('.tablinks-area').find('b').show();
         } else if (thisRel === 'unread') {
-            $('.tablinks-area').find('.unread-msg').each(function(index, el) {
+            $('.tablinks-area').find('.unread-msg').each(function (index, el) {
                 if ($(this).text() === '0') {
                     $(this).parent().parent().hide();
                 } else {
@@ -569,7 +614,7 @@ $(document).ready(function() {
             });
         } else if (thisRel === 'assigned') {
             $('.tablinks-area').find('b').hide();
-            $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
+            $('#td-inner .multi-button .multi-select-text').each(function (index, el) {
                 // console.log($(this).attr('rel'));
                 // console.log($(this).attr('rel') === '');
                 str = $(this).attr('rel').split(',');
@@ -584,7 +629,7 @@ $(document).ready(function() {
             });
         } else if (thisRel === 'unassigned') {
             $('.tablinks-area').find('b').hide();
-            $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
+            $('#td-inner .multi-button .multi-select-text').each(function (index, el) {
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
                 if (rel === '') {
@@ -797,23 +842,23 @@ $(document).ready(function() {
             var self = this;
             var storageRef = firebase.storage().ref();
             var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
+            fileRef.put(file).then(function (snapshot) {
                 let url = snapshot.downloadURL;
                 var type = $(self).data('type');
                 var data = {
-                        msg: '/' + type + ' ' + url,
-                        id: id,
-                        room: rel,
-                        channelId: rel,
-                    }
-                    // var data = { // 需要的格式 以後收到的訊息
-                    //     channelId: '',
-                    //     channelSecret: '',
-                    //     channelToken: '',
-                    //     id: id,
-                    //     msg: '/' + type + ' ' + url,
-                    //     msgtime: Date.now()
-                    // }
+                    msg: '/' + type + ' ' + url,
+                    id: id,
+                    room: rel,
+                    channelId: rel,
+                }
+                // var data = { // 需要的格式 以後收到的訊息
+                //     channelId: '',
+                //     channelSecret: '',
+                //     channelToken: '',
+                //     id: id,
+                //     msg: '/' + type + ' ' + url,
+                //     msgtime: Date.now()
+                // }
                 socket.emit('send message', data);
             });
         }
@@ -831,6 +876,7 @@ $(document).ready(function() {
             $("#" + data.id + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
             $('#' + data.id + '-content' + "[rel='" + channelId + "']").scrollTop($('#' + data.id + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
         } else { //if its new user
+            console.log('new user')
             let historyMsgStr = NO_HISTORY_MSG;
             if (data.owner === "agent") historyMsgStr += toAgentStr(data.message, data.name, data.time);
             else historyMsgStr += toUserStr(data.message, data.name, data.time);
@@ -913,7 +959,7 @@ $(document).ready(function() {
                     channelId: channelId
                 };
                 let tds = $(this).parents('.card-group').find('.panel-table tbody td');
-                tds.each(function() {
+                tds.each(function () {
                     let prop = $(this).attr('id');
                     let type = $(this).attr('type');
                     let value;
@@ -952,7 +998,7 @@ $(document).ready(function() {
             headers: {
                 "Authorization": "Basic " + btoa(api_key + ":x")
             },
-            success: function(data, textStatus, jqXHR) {
+            success: function (data, textStatus, jqXHR) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].subject === userId) {
                         ticketInfo = data;
@@ -961,7 +1007,7 @@ $(document).ready(function() {
                     }
                 }
             },
-            error: function(jqXHR, tranStatus) {
+            error: function (jqXHR, tranStatus) {
                 console.log('error');
             }
         });
@@ -989,7 +1035,10 @@ $(document).ready(function() {
             agentKey = Object.keys(agentInfo);
 
             agentKey.map(agent => {
-                Ainfo.push({ name: agentInfo[agent].name, id: agent })
+                Ainfo.push({
+                    name: agentInfo[agent].name,
+                    id: agent
+                })
             });
             console.log(Tinfo)
             $("#ID-num").text(Tinfo.id);
@@ -1081,7 +1130,7 @@ $(document).ready(function() {
     function ticketSearch(e) {
         let searchStr = $(this).val();
         let trs = $(this).parents('table').find('tbody').find('tr');
-        trs.each(function() {
+        trs.each(function () {
             let text = $(this).text();
             if (text.indexOf(searchStr) === -1) $(this).hide();
             else $(this).show();
@@ -1104,7 +1153,10 @@ $(document).ready(function() {
             agentInfo = data;
             agentKey = Object.keys(agentInfo);
             agentKey.map(agent => {
-                Ainfo.push({ name: agentInfo[agent].name, id: agent })
+                Ainfo.push({
+                    name: agentInfo[agent].name,
+                    id: agent
+                })
             });
             Ainfo.map(agent => {
                 agentList += "<option value=" + agent.id + ">" + agent.name + "</option>";
@@ -1123,7 +1175,10 @@ $(document).ready(function() {
             let agentKey = Object.keys(agentInfo);
             let optionStr;
             agentKey.map(agent => {
-                Ainfo.push({ name: agentInfo[agent].name, id: agent })
+                Ainfo.push({
+                    name: agentInfo[agent].name,
+                    id: agent
+                })
             });
             Ainfo.map(info => {
                 optionStr += '<option value="' + info.id + '">' + info.name + '</option>';
@@ -1181,7 +1236,7 @@ $(document).ready(function() {
                     "Authorization": "Basic " + btoa(api_key + ":x")
                 },
                 data: ticket_data,
-                success: function(data, textStatus, jqXHR) {
+                success: function (data, textStatus, jqXHR) {
                     console.log(data);
                     console.log('tickt created');
                     //把事件儲存到calendar database，到期時間和ticket一樣設定三天
@@ -1192,7 +1247,9 @@ $(document).ready(function() {
                         description: description,
                         allDay: false
                     }).then(() => {
-                        database.ref('tickets/' + userId + '/t' + data.id).set({ owner: ownerAgent });
+                        database.ref('tickets/' + userId + '/t' + data.id).set({
+                            owner: ownerAgent
+                        });
                     }).then(() => {
                         $('#form-name').val('');
                         $('#form-uid').val('');
@@ -1205,7 +1262,7 @@ $(document).ready(function() {
                         location = '/chat';
                     });
                 },
-                error: function(jqXHR, tranStatus) {
+                error: function (jqXHR, tranStatus) {
                     x_request_id = jqXHR.getResponseHeader('X-Request-Id');
                     response_text = jqXHR.responseText;
                     console.log(response_text)
@@ -1225,11 +1282,11 @@ $(document).ready(function() {
                 headers: {
                     "Authorization": "Basic " + btoa(api_key + ":x")
                 },
-                success: function(data, textStatus, jqXHR) {
+                success: function (data, textStatus, jqXHR) {
                     alert("表單已刪除");
                     location.reload();
                 },
-                error: function(jqXHR, tranStatus) {
+                error: function (jqXHR, tranStatus) {
                     alert("表單刪除失敗，請重試");
                     console.log(jqXHR)
                 }
@@ -1249,7 +1306,7 @@ $(document).ready(function() {
         let obj = {};
         let id = $(this).parent().siblings('.modal-header').find('#ID-num').text();
         let clientName, clientId, clientOwner, clientPriority, clientStatus, clientDescription, clientDue;
-        input.each(function() {
+        input.each(function () {
             $(this).blur();
         });
         for (let i = 0; i < editable.length; i++) {
@@ -1278,20 +1335,20 @@ $(document).ready(function() {
         if (obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
         else clientDue = obj.到期時間即期;
         console.log(clientDue)
-            // var time_list = clientDue.split("/");
-            // var new_time = [];
-            // var new_time2 = [];
-            // time_list.map(function(i) {
-            //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
-            //     new_time.push(i);
-            // });
-            // new_time = new_time.join("-").split(" ");
-            // if (new_time[1].length < 8) {
-            //     new_time[1].split(":").map(function(x) {
-            //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
-            //     });
-            // };
-            // new_time = new_time.join("T") + "Z";
+        // var time_list = clientDue.split("/");
+        // var new_time = [];
+        // var new_time2 = [];
+        // time_list.map(function(i) {
+        //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
+        //     new_time.push(i);
+        // });
+        // new_time = new_time.join("-").split(" ");
+        // if (new_time[1].length < 8) {
+        //     new_time[1].split(":").map(function(x) {
+        //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
+        //     });
+        // };
+        // new_time = new_time.join("T") + "Z";
         clientDue += ':00Z';
         // console.log(new_time)
         obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
@@ -1307,8 +1364,10 @@ $(document).ready(function() {
                     "Authorization": "Basic " + btoa(api_key + ":x")
                 },
                 data: obj,
-                success: function(data, textStatus, jqXHR) {
-                    database.ref('tickets/' + userId + '/t' + id).set({ owner: clientOwner })
+                success: function (data, textStatus, jqXHR) {
+                    database.ref('tickets/' + userId + '/t' + id).set({
+                            owner: clientOwner
+                        })
                         .then(() => {
                             database.ref('cal-events/' + userId + '/t' + id).update({
                                 title: clientName + ": " + clientDescription.substring(0, 10) + "...",
@@ -1320,7 +1379,7 @@ $(document).ready(function() {
                     alert("表單已更新");
                     location.reload();
                 },
-                error: function(jqXHR, tranStatus) {
+                error: function (jqXHR, tranStatus) {
                     alert("表單更新失敗，請重試");
                     console.log(jqXHR.responseText)
                 }
@@ -1509,7 +1568,7 @@ $(document).ready(function() {
             let file = this.files[0];
             let storageRef = firebase.storage().ref();
             let fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
+            fileRef.put(file).then(function (snapshot) {
                 let url = snapshot.downloadURL;
                 img.attr('src', url);
             });
@@ -1529,7 +1588,7 @@ $(document).ready(function() {
                     photo: photo.attr('src')
                 };
                 let tds = cardGroup.find('.panel-table tbody td');
-                tds.each(function() {
+                tds.each(function () {
                     let prop = $(this).attr('id');
                     let type = $(this).attr('type');
                     let value;
@@ -1553,7 +1612,7 @@ $(document).ready(function() {
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    searchBox.on('keypress', function(e) {
+    searchBox.on('keypress', function (e) {
         let count = 0;
         $tablinks = [];
         $panels = [];
@@ -1564,17 +1623,17 @@ $(document).ready(function() {
         if (searchStr === "") {
             $('#search-right').addClass('invisible');
             displayAll();
-            $('.tablinks').each(function() {
+            $('.tablinks').each(function () {
                 let id = $(this).attr('name');
                 let room = $(this).attr('rel');
                 let panel = $("div #" + id + "-content[rel='" + room + "']");
-                panel.find(".message").each(function() {
+                panel.find(".message").each(function () {
                     $(this).find('.content').removeClass('found');
                 });
             });
         } else {
 
-            $('.tablinks').each(function() {
+            $('.tablinks').each(function () {
                 $self = $(this);
                 let id = $(this).attr('name');
                 let room = $(this).attr('rel');
@@ -1583,7 +1642,7 @@ $(document).ready(function() {
                 let display = false;
 
                 // 客戶名單搜尋
-                $(this).find('.clientName').each(function() {
+                $(this).find('.clientName').each(function () {
                     let text = $(this).text();
                     if (text.toLowerCase().indexOf(searchStr) != -1) {
                         if (0 === count) {
@@ -1601,7 +1660,7 @@ $(document).ready(function() {
                     }
                 });
                 // 聊天室搜尋
-                panel.find(".message").each(function() {
+                panel.find(".message").each(function () {
                     let text = $(this).find('.content').text();
                     var $content = $(this).find('.content');
                     if (text.toLowerCase().indexOf(searchStr) != -1) {
@@ -1682,7 +1741,7 @@ $(document).ready(function() {
     });
 
     function displayAll() {
-        $('.tablinks').each(function() {
+        $('.tablinks').each(function () {
             let id = $(this).attr('name');
             let rel = $(this).attr('rel');
             $(this).find('#msg').text($("div #" + id + "-content" + "[rel='" + rel + "']" + " .message:last").find('.content').text().trim()).css('color', 'black');
@@ -1765,7 +1824,7 @@ $(document).ready(function() {
         let valArr = [];
         let textArr = [];
         let boxes = $(this).find('input');
-        boxes.each(function() {
+        boxes.each(function () {
             if ($(this).is(':checked')) {
                 valArr.push($(this).val());
                 textArr.push($(this).parents('li').text());

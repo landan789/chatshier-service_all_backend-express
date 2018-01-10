@@ -22,7 +22,7 @@ apps.getAll = (req, res, next) => {
                     return;
                 }
 
-                userMdl.getUser(userId, (data) => {
+                userMdl.findUserByUserId(userId, (data) => {
                     if (null === data) {
                         reject(API_ERROR.USER_NOT_EXISTS);
                         return;
@@ -36,7 +36,7 @@ apps.getAll = (req, res, next) => {
             return new Promise((resolve, reject) => {
                 appMdl.findAppsByAppIds(appIds, (data) => {
                     var apps = data;
-                    if (null === apps || '' === apps || undefined === apps) {
+                    if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
                         reject(API_ERROR.APPID_IS_EMPTY);
                     }
 
