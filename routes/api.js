@@ -6,6 +6,7 @@ var apps = require('../models/apps');
 var templates = require('../models/templates');
 var autorepliesCtl = require('../controllers/autoreplies');
 var appCtl = require('../controllers/apps');
+var richmenuCtl =require('../controllers/richmenus')
 var router = express.Router();
 
 router.get('/apps/users/:userid', appCtl.getAll);
@@ -13,6 +14,12 @@ router.get('/apps/:appid/users/:userid', appCtl.get);
 router.post('/apps/users/:userid', appCtl.post);
 router.put('/apps/:appid/users/:userid', appCtl.put);
 router.delete('/apps/:appid/users/:userid', appCtl.delete);
+
+router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getAll);
+router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);
+router.post('/richmenus/apps/:appid/users/:userid', richmenuCtl.post);
+router.put('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.put);
+router.delete('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.delete);
 
 // 自動回覆
 router.get('/autoreplies/users/:userid', autorepliesCtl.getAll);

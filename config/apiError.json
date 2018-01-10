@@ -12,5 +12,9 @@
     "TYPE_IS_EMPTY": { "MSG": "type is empty", "CODE": "8" },
     "APP_INSERTED_FAIL": { "MSG": "app inserted fail", "CODE": "9" },
     "APP_UPDATED_FAIL": { "MSG": "app updated fail", "CODE": "10" },
-    "USER_DOES_NOT_HAVE_THIS_APP": { "MSG": "user does not have this app", "CODE": "11" }
+    "USER_DOES_NOT_HAVE_THIS_APP": { "MSG": "user does not have this app", "CODE": "11" },
+    "RICHMENU_NOT_EXISTS": { "MSG": "richmenus does not exists", "CODE": "61" },
+    "RICHMENU_INSERT_FAIL": { "MSG":"richmenu insert fail", "CODE": "62"},
+    "RICHMENU_UPDATE_FAIL": { "MSG":"richmenu update fail", "CODE": "63"},
+    "RICHMENU_DELETE_FAIL": { "MSG":"richmenu delete fail", "CODE": "64"}
 }
