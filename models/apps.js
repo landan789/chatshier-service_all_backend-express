@@ -1,7 +1,7 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var apps = {};
 
-apps._schema = callback => {
+apps._schema = (callback) => {
     var json = {
         id1: "",
         id2: "",
@@ -91,7 +91,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 });
             });
         })
-        .then(initApp => {
+        .then((initApp) => {
             var app = Object.assign(initApp, postApp);
 
             return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 resolve(appId);
             });
         })
-        .then(appId => {
+        .then((appId) => {
             return new Promise((resolve, reject) => {
                 admin.database().ref("users/" + userid).once("value", snap => {
                     var user = snap.val();
@@ -122,7 +122,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 });
             });
         })
-        .then(appIds => {
+        .then((appIds) => {
             return new Promise((resolve, reject) => {
                 var webhook = {
                     app_id: appIds[0]
@@ -155,7 +155,6 @@ apps.insertByUserid = (userid, postApp, callback) => {
 };
 
 apps.updateByAppId = (appId, putApp, callback) => {
-    console.log(putApp)
     var procced = new Promise((resolve, reject) => {
         resolve();
     });

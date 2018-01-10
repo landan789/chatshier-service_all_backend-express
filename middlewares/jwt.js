@@ -21,9 +21,8 @@ jwt.verify = (req, res, next) => {
         }).then((tokenObj) => {
             return new Promise((resolve, reject) => {
 
-                for (key in tokenObj) {
-                    req[key] = tokenObj[key];
-                }
+                req = Object.assign(req, tokenObj);
+
                 var uid = req.uid;
                 var userId = req.params.userid;
                 if (uid !== userId) {
