@@ -32,9 +32,8 @@ app.use('/', index);
 app.use('/api/*/users/:userid', jwt.verify); // API 權限驗證
 app.use('/api', api);
 //facebook connection
-app.get('/webhook', function(req, res) {
-    if (req.query['hub.mode'] === 'subscribe' &&
-        req.query['hub.verify_token'] === 'verify_token') {
+app.get('/webhook/:webhookId', function(req, res) {
+    if (req.query['hub.verify_token'] === 'verify_token') {
         console.log("Validating webhook");
         res.status(200).send(req.query['hub.challenge']);
     } else {

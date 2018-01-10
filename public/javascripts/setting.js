@@ -634,6 +634,7 @@ function removeOneApp(appId) {
 }
 
 function groupType(index,item) {
+    var baseWebhookUrl= urlConfig.webhookUrl;
     let appStr
     switch(item.type) {
         case 'line':
@@ -666,7 +667,7 @@ function groupType(index,item) {
             '<tr>'+
                 '<td>Webhook URL: </td>'+
                 '<td class="long-token">'+
-                    '<span id="prof-webhookUrl-1">' + 'http://' + domain + '/webhook/' + item.webhook_id + '</span>'+
+                    '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl,item.webhook_id) + '</span>'+
                 '</td>'+
             '</tr>';
             $('#app-group').append(appStr);
@@ -709,7 +710,7 @@ function groupType(index,item) {
             '<tr>' +
                 '<td>Webhook URL: </td>' +
                 '<td class="long-token">' +
-                    '<span id="prof-fbwebhookUrl">' + 'http://' + domain + '/webhook/' + item.webhook_id + '</span>' +
+                    '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl,item.webhook_id) + '</span>' +
                 '</td>' +
             '</tr>';
             $('#app-group').append(appStr);
@@ -881,4 +882,11 @@ function profSubmitBasic() {
         updateUserProfile(obj)
         $('#setting-modal').modal('hide');
     }
+}
+
+function createWebhookUrl(baseWebhookUrl,webhookId){
+    let webhookUrl;
+    baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
+    webhookUrl= baseWebhookUrl + "/" + webhookId;
+    return webhookUrl;
 }
