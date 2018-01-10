@@ -1,6 +1,7 @@
 var API_ERROR = require('../config/apiError');
 
 var admin = require('firebase-admin');
+
 var jwt = {};
 
 jwt.verify = (req, res, next) => {
@@ -18,14 +19,13 @@ jwt.verify = (req, res, next) => {
             }
             return admin.auth().verifyIdToken(idToken);
         }).then((tokenObj) => {
-            return new Promise((resolve, require) => {
+            return new Promise((resolve, reject) => {
 
                 for (key in tokenObj) {
                     req[key] = tokenObj[key];
                 }
                 var uid = req.uid;
                 var userId = req.params.userid;
-
                 if (uid !== userId) {
                     reject(API_ERROR.USER_NOT_PERMITTED);
                     return;
@@ -47,6 +47,5 @@ jwt.verify = (req, res, next) => {
             res.status(401).json(json);
         });
 }
-
 
 module.exports = jwt;

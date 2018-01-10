@@ -470,10 +470,14 @@ $(document).ready(function() {
 });
 
 function findAllApps() {
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: 'http://' + domain + '/api/apps/users/' + id,
+        headers: {
+            "Authorization": jwt
+        },
         success: (data) => {
             if(data !== null && data !== undefined) {
                 let appIds = data.data;
@@ -489,17 +493,20 @@ function findAllApps() {
             }
         },
         error: (error) => {
-            alert('載入失敗: ' + error);
             console.log(error);
         }
     });
 }
 
 function findOneApp(appId) {
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        headers: {
+            "Authorization": jwt
+        },
         success: (data) => {
             if(data !== null && data !== undefined) {
                 let appInfo = data.data;
@@ -507,7 +514,6 @@ function findOneApp(appId) {
             }
         },
         error: (error) => {
-            alert('載入失敗: ' + error);
             console.log(error);
         }
     });
@@ -551,6 +557,7 @@ function insertType(type,callback) {
 }
 
 function insertOneApp(data) { // 未完成
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
@@ -558,6 +565,9 @@ function insertOneApp(data) { // 未完成
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('新增成功!');
@@ -568,13 +578,13 @@ function insertOneApp(data) { // 未完成
             findAllApps();
         },
         error: (error) => {
-            alert('新增失敗: ' + error);
             console.log(error);
         }
     });
 }
 
 function updateOneApp(appId,data) { // 未完成
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     console.log(id,appId,data)
     $.ajax({
@@ -583,6 +593,9 @@ function updateOneApp(appId,data) { // 未完成
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('修改成功!');
@@ -593,17 +606,20 @@ function updateOneApp(appId,data) { // 未完成
             findAllApps();
         },
         error: (error) => {
-            alert('修改失敗: ' + error);
             console.log(error);
         }
     });
 }
 
 function removeOneApp(appId) {
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
         url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             alert('成功刪除!');
@@ -612,7 +628,6 @@ function removeOneApp(appId) {
             findAllApps();
         },
         error: (error) => {
-            alert('刪除失敗: ' + error);
             console.log(error);
         }
     });
@@ -799,10 +814,14 @@ function clearModalBody() {
 }
 
 function findUserProfile() {
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: 'http://' + domain + '/api/users/' + id,
+        headers: {
+            "Authorization": jwt
+        },
         success: (data) => {
             let profile = data.data;
             $('#prof-id').text(id);
@@ -814,13 +833,13 @@ function findUserProfile() {
             $('#prof-address').text(profile.address);
         },
         error: (error) => {
-            alert('載入失敗: ' + error);
             console.log(error);
         }
     });
 }
 
 function updateUserProfile(data) {
+    var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
@@ -828,13 +847,15 @@ function updateUserProfile(data) {
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             $('#prof-company').text(data.company);
             $('#prof-phonenumber').text(data.phonenumber);
             $('#prof-address').text(data.address);
         },
         error: (error) => {
-            alert('修改失敗: ' + error);
             console.log(error);
         }
     });

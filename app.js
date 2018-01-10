@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var formData = require("express-form-data");
 var cors = require('cors');
+
 var jwt = require('./middlewares/jwt');
 var index = require('./routes/index');
 var api = require('./routes/api');
@@ -28,7 +29,7 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public'))); // to import css and javascript
 app.use('/', index);
-app.use('/api', jwt.verify);
+app.use('/api/*/users/:userid', jwt.verify); // API 權限驗證
 app.use('/api', api);
 //facebook connection
 app.get('/webhook', function(req, res) {
