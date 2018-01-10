@@ -3,9 +3,9 @@ if ('undefined' === typeof window.urlConfig) {
     console.warn('Please set up the configuration file of /config/url-config.js');
 }
 $(document).ready(function() {
-    
 
-    var loadSetting = setInterval(() => { 
+
+    var loadSetting = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(loadSetting);
             findAllApps(); // 列出所有設定的APPs
@@ -287,7 +287,7 @@ $(document).ready(function() {
         let type = $(this).parent().parent().find('#type').text();
         // console.log($type);
         // insertNewApp, updateProfile, updateApp
-        switch(type) {
+        switch (type) {
             case 'insertNewApp':
                 let app = $(this).parent().parent().find('#app-group-select option:selected').val();
                 // console.log(app);
@@ -301,7 +301,7 @@ $(document).ready(function() {
             case 'updateApp':
                 let appId = $(this).parent().parent().find('#webhook-id').text();
                 // console.log($('#facebook-name').val())
-                if($('#facebook-name').val() === undefined) {
+                if ($('#facebook-name').val() === undefined) {
                     let name = $('#name').val();
                     let id1 = $('#channel-id').val();
                     let secret = $('#channel-secret').val();
@@ -314,7 +314,7 @@ $(document).ready(function() {
                         token1,
                         type
                     }
-                    updateOneApp(appId,updateObj); // 點送出後更新APP的資訊
+                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 } else {
                     let name = $('#facebook-name').val();
                     let id1 = $('#facebook-page-id').val();
@@ -332,101 +332,101 @@ $(document).ready(function() {
                         token2,
                         type
                     }
-                    updateOneApp(appId,updateObj); // 點送出後更新APP的資訊
+                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 }
                 break;
-        }        
+        }
     });
     $(document).on('click', '#del', function() {
         let autoreplyId = $(this).attr('rel');
         let confirmDelete = confirm('確定刪除?');
         // console.log(autoreplyId);
-        if(confirmDelete) {
+        if (confirmDelete) {
             removeOneApp(autoreplyId);
         }
     });
     $('#add-new-btn').click(function() {
         let formStr =
-        '<form>' +
+            '<form>' +
             '<div id="type" hidden>insertNewApp</div>' +
             '<br/>' +
             '<label class="col-2 col-form-label">新增群組: </label>' +
-			'<select id="app-group-select" class="form-control">' +
-			  '<option value="line" selected>LINE</option>' +
-			  '<option value="facebook">臉書</option>' +
+            '<select id="app-group-select" class="form-control">' +
+            '<option value="line" selected>LINE</option>' +
+            '<option value="facebook">臉書</option>' +
             '</select>' +
             '<br/>' +
             '<div id="line-form">' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">名稱: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="name"/>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">ID: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="channel-id"/>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">Secret: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' + 
-                    '<label class="col-2 col-form-label">Token: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="channel-token"/>' +
-                    '</div>' +
-                '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">名稱: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="name"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Secret: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Token: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-token"/>' +
+            '</div>' +
+            '</div>' +
             '</div>' +
             '<div id="facebook-form" hidden>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">Facebook粉絲頁名稱: </label>' +
-                ' <div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-name">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">Page ID: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">App ID: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">App Secret: </label>' +
-                ' <div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">Validation Token:: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-2 col-form-label">Page Token: </label>' +
-                    '<div class="col-4">' +
-                        '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
-                    '</div>' +
-                '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Facebook粉絲頁名稱: </label>' +
+            ' <div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-name">' +
             '</div>' +
-		'</form>';
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Page ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">App ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">App Secret: </label>' +
+            ' <div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Validation Token:: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Page Token: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>';
         $('.modal-body').append(formStr);
     });
-    $(document).on('change','#app-group-select', function() { // 切換模式 LINE或是臉書
+    $(document).on('change', '#app-group-select', function() { // 切換模式 LINE或是臉書
         // console.log($(this).find('option:selected').val());
         let type = $(this).find('option:selected').val();
-        switch(type) {
+        switch (type) {
             case 'line':
                 $('#line-form').hide();
                 $('#facebook-form').hide();
@@ -443,28 +443,28 @@ $(document).ready(function() {
         let company = $('#prof-company').text();
         let phone = $('#prof-phonenumber').text();
         let location = $('#prof-address').text();
-        let str = 
-        '<div id="line-form">' +
+        let str =
+            '<div id="line-form">' +
             '<div id="type" hidden>updateProfile</div>' +
             '<div class="form-group">' +
-                '<label class="col-2 col-form-label">公司名稱: </label>' +
-                '<div class="col-4">' +
-                    '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
-                '</div>' +
+            '<label class="col-2 col-form-label">公司名稱: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
+            '</div>' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="col-2 col-form-label">手機: </label>' +
-                '<div class="col-4">' +
-                    '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
-                '</div>' +
+            '<label class="col-2 col-form-label">手機: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
             '</div>' +
-            '<div class="form-group">' + 
-                '<label class="col-2 col-form-label">地區: </label>' +
-                '<div class="col-4">' +
-                    '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
-                '</div>' +
             '</div>' +
-        '</div>';
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">地區: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
         $('.modal-body').append(str);
     });
 });
@@ -479,17 +479,17 @@ function findAllApps() {
             "Authorization": jwt
         },
         success: (data) => {
-            if(data !== null && data !== undefined) {
+            if (data !== null && data !== undefined) {
                 let appIds = data.data;
                 let appKeyArr = Object.keys(appIds);
-                for(let i in appIds) {
-                    if(appIds[i].delete !== 1) {
+                for (let i in appIds) {
+                    if (appIds[i].delete !== 1) {
                         $('#prof-id').append(appIds[i].user_id);
                         // groupType(appKeyArr[i],appIds[i]);
-                        groupType(i,appIds[i]);
+                        groupType(i, appIds[i]);
                     }
                 }
-                $('#add-new-btn').attr('disabled',false);
+                $('#add-new-btn').attr('disabled', false);
             }
         },
         error: (error) => {
@@ -508,9 +508,9 @@ function findOneApp(appId) {
             "Authorization": jwt
         },
         success: (data) => {
-            if(data !== null && data !== undefined) {
+            if (data !== null && data !== undefined) {
                 let appInfo = data.data;
-                formModalBody(appId,appInfo[appId]);
+                formModalBody(appId, appInfo[appId]);
             }
         },
         error: (error) => {
@@ -519,8 +519,8 @@ function findOneApp(appId) {
     });
 }
 
-function insertType(type,callback) {
-    switch(type) {
+function insertType(type, callback) {
+    switch (type) {
         case 'line':
             let lineName = $('#name').val();
             let lineId = $('#channel-id').val();
@@ -583,10 +583,10 @@ function insertOneApp(data) { // 未完成
     });
 }
 
-function updateOneApp(appId,data) { // 未完成
+function updateOneApp(appId, data) { // 未完成
     var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
-    console.log(id,appId,data)
+    console.log(id, appId, data)
     $.ajax({
         type: 'PUT',
         url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
@@ -633,178 +633,178 @@ function removeOneApp(appId) {
     });
 }
 
-function groupType(index,item) {
-    var baseWebhookUrl= urlConfig.webhookUrl;
+function groupType(index, item) {
+    var baseWebhookUrl = urlConfig.webhookUrl;
     let appStr
-    switch(item.type) {
+    switch (item.type) {
         case 'line':
-            appStr = 
-            '<tr class="active">'+
-                '<th class="col-md-3 col-lg-3">LINE</th>'+
-                '<th class="col-md-9 col-lg-9">'+
-                    '<div id="group1" class="line">' +
-                    '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                    '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                    '</div>'+
-                '</th>'+
-            '</tr>'+
-            '<tr>'+
-                '<td>LINE應用程式名稱:</td>'+
-                '<td class="long-token" id="prof-name1">' + item.name + '</td>'+
-            '</tr>'+
-            '<tr>'+
-                '<td>Channel Id 1: </td>'+
-                '<td class="long-token" id="prof-channelId_1">' + item.id1 + '</td>'+
-            '</tr>'+
-            '<tr>'+
-                '<td>Channel Secret 1: </td>'+
-                '<td class="long-token" id="prof-channelSecret_1">' + item.secret + '</td>'+
-            '</tr>'+
-            '<tr>'+
-                '<td>Channel Access Token 1: </td>'+
-                '<td class="long-token" id="prof-channelAccessToken_1">' + item.token1 + '</td>'+
-            '</tr>'+
-            '<tr>'+
-                '<td>Webhook URL: </td>'+
-                '<td class="long-token">'+
-                    '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl,item.webhook_id) + '</span>'+
-                '</td>'+
-            '</tr>';
+            appStr =
+                '<tr class="active">' +
+                '<th class="col-md-3 col-lg-3">LINE</th>' +
+                '<th class="col-md-9 col-lg-9">' +
+                '<div id="group1" class="line">' +
+                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                '</div>' +
+                '</th>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>LINE應用程式名稱:</td>' +
+                '<td class="long-token" id="prof-name1">' + item.name + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>Channel Id 1: </td>' +
+                '<td class="long-token" id="prof-channelId_1">' + item.id1 + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>Channel Secret 1: </td>' +
+                '<td class="long-token" id="prof-channelSecret_1">' + item.secret + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>Channel Access Token 1: </td>' +
+                '<td class="long-token" id="prof-channelAccessToken_1">' + item.token1 + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>Webhook URL: </td>' +
+                '<td class="long-token">' +
+                '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
+                '</td>' +
+                '</tr>';
             $('#app-group').append(appStr);
             break;
         case 'facebook':
-            appStr = 
-            '<tr class="active">' +
+            appStr =
+                '<tr class="active">' +
                 '<th class="col-md-3 col-lg-3">Facebook</th>' +
                 '<th class="col-md-9 col-lg-9">' +
-                    '<div id="group3" class="fb">' +
-                    '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                    '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                    '</div>' +
+                '<div id="group3" class="fb">' +
+                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                '</div>' +
                 '</th>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>Facebook應用程式名稱:</td>' +
                 '<td class="long-token" id="prof-fbPageName">' + item.name + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>Page Id: </td>' +
                 '<td class="long-token" id="prof-fbPageId">' + item.id1 + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>App Id: </td>' +
                 '<td class="long-token" id="prof-fbAppId">' + item.id2 + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>App Secret: </td>' +
                 '<td class="long-token" id="prof-fbAppSecret">' + item.secret + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>Validation Token: </td>' +
                 '<td class="long-token" id="prof-fbValidToken">' + item.token1 + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>Page Token: </td>' +
                 '<td class="long-token" id="prof-fbPageToken">' + item.token2 + '</td>' +
-            '</tr>' +
-            '<tr>' +
+                '</tr>' +
+                '<tr>' +
                 '<td>Webhook URL: </td>' +
                 '<td class="long-token">' +
-                    '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl,item.webhook_id) + '</span>' +
+                '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
                 '</td>' +
-            '</tr>';
+                '</tr>';
             $('#app-group').append(appStr);
             break;
     }
 }
 
-function formModalBody(id,item) {
+function formModalBody(id, item) {
     let appStr
-    switch(item.type) {
+    switch (item.type) {
         case 'line':
-            appStr = 
-            '<form>' +
+            appStr =
+                '<form>' +
                 '<div id="type" hidden>updateApp</div>' +
                 '<div class="form-group" hidden>' +
-                    '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
-                    '<span id="webhook-id">' + id + '</span>' +
+                '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
+                '<span id="webhook-id">' + id + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-line-1">' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">Channel Name 1: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.name + '" id="name"/>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.id1 + '" id="channel-id"/>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.secret + '" id="channel-secret"/>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' + 
-                        '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.token1 + '" id="channel-token"/>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">Channel Name 1: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.name + '" id="name"/>' +
                 '</div>' +
-            '</form>';
+                '</div>' +
+                '<div class="form-group">' +
+                '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.id1 + '" id="channel-id"/>' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.secret + '" id="channel-secret"/>' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.token1 + '" id="channel-token"/>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</form>';
             $('.modal-body').append(appStr);
             break;
         case 'facebook':
-            appStr = 
-            '<form>' +
+            appStr =
+                '<form>' +
                 '<div id="type" hidden>updateApp</div>' +
                 '<div class="form-group" hidden>' +
-                    '<label class="col-2 col-form-label">ID</label>' +
-                    '<span id="webhook-id">' + id + '</span>' +
+                '<label class="col-2 col-form-label">ID</label>' +
+                '<span id="webhook-id">' + id + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-fb">' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
-                    ' <div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.name + '" id="facebook-name">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">Page Id: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.id1 + '" id="facebook-page-id">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">App ID: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.id2 + '" id="facebook-app-id">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">App Secret: </label>' +
-                    ' <div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.secret + '" id="facebook-app-secret">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">Validation Token:: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.token1 + '" id="facebook-valid-token">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-2 col-form-label">Page Token: </label>' +
-                        '<div class="col-4">' +
-                            '<input class="form-control" type="tel" value="' + item.token2 + '" id="facebook-page-token">' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
+                ' <div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.name + '" id="facebook-name">' +
                 '</div>' +
-            '</form>';
+                '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">Page Id: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.id1 + '" id="facebook-page-id">' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">App ID: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.id2 + '" id="facebook-app-id">' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">App Secret: </label>' +
+                ' <div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.secret + '" id="facebook-app-secret">' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">Validation Token:: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.token1 + '" id="facebook-valid-token">' +
+                '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label class="col-2 col-form-label">Page Token: </label>' +
+                '<div class="col-4">' +
+                '<input class="form-control" type="tel" value="' + item.token2 + '" id="facebook-page-token">' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</form>';
             $('.modal-body').append(appStr);
             break;
     }
@@ -884,9 +884,10 @@ function profSubmitBasic() {
     }
 }
 
-function createWebhookUrl(baseWebhookUrl,webhookId){
+function createWebhookUrl(baseWebhookUrl, webhookId) {
     let webhookUrl;
+    baseWebhookUrl = baseWebhookUrl.replace(/^https?\:\/\//, '');
     baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
-    webhookUrl= baseWebhookUrl + "/" + webhookId;
+    webhookUrl = 'https://' + baseWebhookUrl + "/" + webhookId;
     return webhookUrl;
 }
