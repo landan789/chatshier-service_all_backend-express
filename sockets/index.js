@@ -227,7 +227,7 @@ function init(server) {
                 })
                 .then(() => {
                     return new Promise((resolve, reject) => {
-                        users.getAppIdFromUsers(userId, data => {
+                        users.findAppIdsByUserId(userId, data => {
                             resolve(data);
                         });
                         setTimeout(reject, WAIT_TIME, "user network too slow");
@@ -237,7 +237,7 @@ function init(server) {
                     return new Promise((resolve, reject) => {
                         let appsArr = [];
                         data.map((item) => {
-                            apps.getById(item, (app) => {
+                            appMdl.findByAppId(item, (app) => {
                                 if (null === app) {
                                     reject('no app_ids');
                                 }
@@ -267,15 +267,16 @@ function init(server) {
                 })
                 .then(data => {
                     return new Promise((resolve, reject) => {
+                        console.log('5')
                         if (data) {
                             allObj.appsData = data;
-                            console.log(allObj.appsData)
                         }
                         resolve();
                         setTimeout(reject, WAIT_TIME, "app network too slow");
                     });
                 })
                 .then(() => {
+                    console.log(allObj);
                     callback(allObj);
                 })
                 .catch(reason => {
@@ -689,9 +690,7 @@ function init(server) {
     }
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
-        console.log(event);
         let channelId = this.options.channelId; // line群組ID
-        console.log(390 + channelId);
         let message_type = event.message.type; // line訊息類別 text, location, image, video...
         let receiverId = event.source.userId; // line客戶ID
         let nowTime = Date.now(); // 現在時間
@@ -713,8 +712,6 @@ function init(server) {
             };
             //  ===================  訊息類別 ==================== //
             utility.lineMsgType(event, message_type, (msgData) => {
-
-                console.log(413 + pictureUrl);
                 msgObj.message = msgData;
                 pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
 
@@ -789,8 +786,6 @@ function init(server) {
                             }
                         }
                     }
-
-                    console.log(sent);
                     if (!sent) return -1;
                 });
             }
