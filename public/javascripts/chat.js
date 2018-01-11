@@ -32,7 +32,6 @@ var canvas = $("#canvas"); // 聊天室空間
 var infoCanvas = $("#infoCanvas"); // 個人資料空間
 var error = $('.error');
 var ocClickShow = $('.on-click-show');
-var openChatAppItem = $('.chat-app-item[open="true"]');
 var searchBox = $('#searchBox');
 var addTicketModal = $('#add-ticket-modal');
 
@@ -56,7 +55,7 @@ $(document).ready(function () {
     }, 1000);
 
     //=====start chat event=====
-    openChatAppItem.click(showChatApp);
+    $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
     $(document).on('focus', '#message', readClientMsg); //已讀客戶訊息
     $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
@@ -173,7 +172,7 @@ $(document).ready(function () {
                     '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
                     '<div class="unread-count"></div>' +
                     '</div>';
-                $('#chat_App').append(lineStr);
+                $('#chat_App').prepend(lineStr);
                 break;
             case 'facebook':
                 let fbStr =
@@ -181,7 +180,7 @@ $(document).ready(function () {
                     '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
                     '<div class="unread-count"></div>' +
                     '</div>';
-                $('#chat_App').append(fbStr);
+                $('#chat_App').prepend(fbStr);
                 break;
         }
     }
@@ -569,7 +568,6 @@ $(document).ready(function () {
 
     //=====start socket function=====
     socket.on('new message', (data) => {
-        console.log(data);
         if (!data.channelId) {
             console.log("data miss channelId");
             return;
@@ -622,8 +620,6 @@ $(document).ready(function () {
                 if (rel !== '') {
                     let id = $(this).parent().parent().parent().parent().parent().parent().parent().parent().attr('id');
                     let newId = id.substring(0, id.indexOf('-'));
-                    // console.log(id);
-                    console.log(newId);
                     $('.tablinks[name="' + newId + '"]').parent().show();
                 }
             });
@@ -635,7 +631,6 @@ $(document).ready(function () {
                 if (rel === '') {
                     let id = $(this).parent().parent().parent().parent().parent().parent().parent().parent().attr('id');
                     let newId = id.substring(0, id.indexOf('-'));
-                    console.log(newId);
                     $('.tablinks[name="' + newId + '"]').parent().show();
                 }
             });
@@ -1742,12 +1737,15 @@ $(document).ready(function () {
 
     function displayAll() {
         $('.tablinks').each(function () {
+            $(this).css('display','block');
+            $(this).css('background-color','');
+            $(this).attr('id','');
             let id = $(this).attr('name');
             let rel = $(this).attr('rel');
             $(this).find('#msg').text($("div #" + id + "-content" + "[rel='" + rel + "']" + " .message:last").find('.content').text().trim()).css('color', 'black');
             $("div #" + id + "-content" + "[rel='" + rel + "']" + " .message").find('.content').css({
                 "color": "black",
-                "background-color": "lightgrey"
+                "background-color": "#b5e7a0"
             });
             $(this).find('.clientName').css({
                 "color": "black",
