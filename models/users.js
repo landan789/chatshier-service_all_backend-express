@@ -12,6 +12,14 @@ usersModel.findUserByUserId = (userId, callback) => {
         callback(data);
     });
 }
+
+usersModel.findAppIdsByUserId = (userId, callback) => {
+    admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
+        let data = snap.val();
+        callback(data);
+    });
+}
+
 usersModel.findUserByUserId = (userId, callback) => {
     admin.database().ref('users/' + userId).once('value', snap => {
         let data = snap.val();
