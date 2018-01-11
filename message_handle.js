@@ -78,9 +78,8 @@ messageHandle.loadChatHistory = (chatData,callback) => {
 function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callback){
     let flag = true;
     let count_unread = unRead;    //0 or 1
-    chats.get(function(chatData){
-      console.log("chats. get");
-      console.log(channelId);
+    chats.findChatData(function(chatData){
+      console.log(chatData);
         for( let prop in chatData ) {
           let data = chatData[prop];
           if( utility.isSameUser(data.Profile, receiverId, channelId) ) {
@@ -99,7 +98,7 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
         if( flag ) {
             let newData = {
                 Profile: {
-                    nickname: obj.name,
+                    name: obj.name,
                     userId: receiverId ? receiverId : obj.id,
                     channelId: channelId ? channelId : 'unassigned',
                     gender: obj.gend ? obj.gend : "",

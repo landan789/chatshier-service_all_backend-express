@@ -19,9 +19,11 @@ var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
 var messageHandle = require('../message_handle');
+var messagingBot = require('../middlewares/bot');
 
 const WAIT_TIME = 10000;
 const LINE = 'line';
+const FACEBOOK = 'facebook';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -52,133 +54,99 @@ function init(server) {
         res.send(303);
     });
     //==============FACEBOOK MESSAGE==============
-    app.post('/webhook', function(req, res) {
-        var data = req.body;
-        console.log('data on line 52');
-        console.log(data);
-
-        // Make sure this is a page subscription
-        if (data.object === 'page') {
-
-            // Iterate over each entry - there may be multiple if batched
-            data.entry.forEach(function(entry) {
-                var pageID = entry.id;
-                var timeOfEvent = entry.time;
-
-                // Iterate over each messaging event
-                entry.messaging.forEach(function(event) {
-                    console.log('this is event');
-                    console.log(event);
-                    if (event.message) {
-                        console.log('Entered');
-                        loadFbProfile(event, event.sender.id);
-                    } else {
-                        console.log("Webhook received unknown event: ", event);
-                    }
-                });
-            });
-
-            // Assume all went well.
-            //
-            // You must send back a 200, within 20 seconds, to let us know
-            // you've successfully received the callback. Otherwise, the request
-            // will time out and we will keep trying to resend.
-            res.sendStatus(200);
-        } else {
-            console.log('on line 124');
-        }
-    }); //app.post
+    // app.post('/webhook/:webhookId', messagingBot.parse, (req, res, next) => {
+    //     if (true === req.verify || true === req.noWebhookId) {
+    //         next();
+    //         return;
+    //     }
+    //     var parser = req.parser;
+    //     parser(req, res, next);
+    // }, (req, res, next) => {
+    //     if (true === req.noWebhookId) {
+    //         res.sendStatus(404);
+    //         return;
+    //     }
+    //     res.sendStatus(200);
+    // }); //app.post
     //==============FACEBOOK MESSAGE END==============
 
-    // if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
-    //     req.verify = true;
-
-    //     next();
-    //     return;
-    // }
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
-        var events = req.body.events;
-
-        if ('' === webhookId) {
-            req.noWebhookId = true;
-
-            next();
-            return;
-        }
+        var body = req.body;
 
         var proceed = new Promise((resolve, reject) => {
-
             resolve();
         });
 
-        proceed.then(() => {
-            return new Promise((resolve, reject) => {
-
-                webhookMdl.findByWebhookId(webhookId, (webhooks) => {
-                    var keys = Object.keys(webhooks);
-                    var webhookId = keys[0];
-                    var webhook = webhooks[webhookId];
-                    var appId = webhook.app_id;
-                    if (false === webhook || null === webhook || undefined === webhook) {
-                        reject();
-                        return;
-                    }
-
-                    if (!webhook.hasOwnProperty('app_id')) {
-                        reject();
-                        return;
-                    }
-                    resolve(webhook);
+        proceed
+            .then(() => {
+                return new Promise((resolve,reject) => {
+                    messagingBot.parse(webhookId, body, (data) => {
+                        let appInfo = data;
+                        resolve(appInfo);
+                    });
                 });
-            });
-        }).then((data) => {
-            var webhook = data;
-            var appId = webhook.app_id;
-            return new Promise((resolve, reject) => {
-                appMdl.findByAppId(appId, (apps) => {
-                    var keys = Object.keys(apps);
-                    var appId = keys[0];
-                    var _app = apps[appId];
-                    if (null === _app || null === _app || undefined === _app) {
-                        reject();
-                        return;
-                    }
-                    resolve(_app);
-                });
-            });
+            })
+            .then((data) => {
+                let appInfo = data;
+                switch(appInfo.type) {
+                    case LINE:
+                        var line = {
+                            channelId: appInfo.id1,
+                            channelSecret: appInfo.secret,
+                            channelAccessToken: appInfo.token1
+                        };
+                        var lbot = linebot(line);
+                        lbot.on('message', bot_on_message);
+                        lbot.on('follow', bot_on_follow);
+                        req.parser = lbot.parser();
+                        if (REPLY_TOKEN_0 === body.events[0].replyToken && REPLY_TOKEN_F === body.events[1].replyToken) {
+                            req.verify = true;
+                        }
+                        next();
+                        break;
+                    case FACEBOOK:
+                        let psid = body.entry[0].messaging[0].sender.id;
+                        let obj = body.entry[0].messaging[0];
+                        let text = body.entry[0].messaging[0].message.text;
 
+                        var facebook = {
+                            pageID: appInfo.id1,
+                            appID: appInfo.id2,
+                            appSecret: appInfo.secret,
+                            validationToken: appInfo.token1,
+                            pageToken: appInfo.token2
+                        };
 
-        }).then((data) => {
-            var _app = data;
+                        var fbbot = MessengerPlatform.create(facebook);
 
-            return new Promise((resolve, reject) => {
-                if (LINE === _app.type) {
-                    var line = {
-                        channelId: data.id1,
-                        channelSecret: data.secret,
-                        channelAccessToken: data.token1
-                    };
-
-                    var bot = linebot(line);
-                    bot.on('message', bot_on_message);
-                    bot.on('follow', bot_on_follow);
-                    req.parser = bot.parser();
-
-                    resolve();
+                        fbbot.getProfile(psid).then(function(data) {
+                            utility.fbMsgType(obj.message, (fbMsg) => {
+                                var fb_user_name = data.first_name + ' ' + data.last_name;
+                                var fb_user_profilePic = data.profile_pic;
+                                let msgObj = {
+                                    message: fbMsg,
+                                    name: fb_user_name,
+                                    owner: "user",
+                                    time: Date.now(),
+                                    locale: data.locale,
+                                    gender: data.gender
+                                };
+                                pushAndEmit(msgObj, fb_user_profilePic, obj.recipient.id, obj.sender.id, 1);
+                                req.verify = true;
+                                next();
+                            });
+                        }).catch(function(error) {
+                            console.log('error: loadFbProfile');
+                            callback(false);
+                        }); //fb_bot
+                        break;
                 }
-
+            })
+            .catch((error) => {
+                res.sendStatus(404);
             });
-        }).then(() => {
-            if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
-                req.verify = true;
-            }
-            next();
-        }).catch((error) => {
-            res.sendStatus(404);
-        });
     }, (req, res, next) => {
-
         if (true === req.verify || true === req.noWebhookId) {
             next();
             return;
@@ -186,13 +154,96 @@ function init(server) {
         var parser = req.parser;
         parser(req, res, next);
     }, (req, res, next) => {
-
         if (true === req.noWebhookId) {
             res.sendStatus(404);
             return;
         }
         res.sendStatus(200);
     });
+
+    // app.post('/webhook/:webhookId', (req, res, next) => {
+    //     var webhookId = req.params.webhookId;
+    //     var events = req.body.events;
+    //     if ('' === webhookId) {
+    //         req.noWebhookId = true;
+    //         next();
+    //         return;
+    //     }
+    //     var proceed = new Promise((resolve, reject) => {
+    //         resolve();
+    //     });
+    //     proceed.then(() => {
+    //         return new Promise((resolve, reject) => {
+    //             webhookMdl.findByWebhookId(webhookId, (webhooks) => {
+    //                 var keys = Object.keys(webhooks);
+    //                 var webhookId = keys[0];
+    //                 var webhook = webhooks[webhookId];
+    //                 var appId = webhook.app_id;
+    //                 if (false === webhook || null === webhook || undefined === webhook) {
+    //                     reject();
+    //                     return;
+    //                 }
+    //                 if (!webhook.hasOwnProperty('app_id')) {
+    //                     reject();
+    //                     return;
+    //                 }
+    //                 resolve(webhook);
+    //             });
+    //         });
+    //     }).then((data) => {
+    //         var webhook = data;
+    //         var appId = webhook.app_id;
+    //         return new Promise((resolve, reject) => {
+    //             appMdl.findByAppId(appId, (apps) => {
+    //                 var keys = Object.keys(apps);
+    //                 var appId = keys[0];
+    //                 var _app = apps[appId];
+    //                 if (null === _app || null === _app || undefined === _app) {
+    //                     reject();
+    //                     return;
+    //                 }
+    //                 resolve(_app);
+    //             });
+    //         });
+    //     }).then((data) => {
+    //         var _app = data;
+    //         return new Promise((resolve, reject) => {
+    //             if (LINE === _app.type) {
+    //                 var line = {
+    //                     channelId: data.id1,
+    //                     channelSecret: data.secret,
+    //                     channelAccessToken: data.token1
+    //                 };
+    //                 var bot = linebot(line);
+    //                 bot.on('message', bot_on_message);
+    //                 bot.on('follow', bot_on_follow);
+    //                 req.parser = bot.parser();
+    //                 resolve();
+    //             }
+
+    //         });
+    //     }).then(() => {
+    //         if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
+    //             req.verify = true;
+    //         }
+    //         next();
+    //     }).catch((error) => {
+    //         res.sendStatus(404);
+    //     });
+    // }, (req, res, next) => {
+    //     if (true === req.verify || true === req.noWebhookId) {
+    //         next();
+    //         return;
+    //     }
+    //     var parser = req.parser;
+    //     parser(req, res, next);
+    // }, (req, res, next) => {
+    //     if (true === req.noWebhookId) {
+    //         res.sendStatus(404);
+    //         return;
+    //     }
+    //     res.sendStatus(200);
+    // });
     app.post('/linehook1', function(req, res, next) {
         linebotParser[0](req, res, next);
         console.log(channelIds);
@@ -316,7 +367,7 @@ function init(server) {
         // 4.撈出歷史訊息
         socket.on('request chat data', (channelIdArr, callback) => {
             let runChatData = new Promise((resolve, reject) => {
-                chats.get(chatData => {
+                chats.findChatData(chatData => {
                     resolve(chatData);
                 });
             });
@@ -342,11 +393,12 @@ function init(server) {
         socket.on('send message', data => {
             // console.log(data);
             let vendor = data;
-            let msg = vendor.msg;
-            let receiver = data.id === undefined ? "receiver undefined!" : vendor.id
+            let msg = vendor.msgText;
+            let receiver = vendor.clientId;
             let agentName = socket.nickname ? socket.nickname : 'agent';
-            let nowTime = vendor.msgtime;
-            let channel = vendor.channelId === undefined ? vendor.pageId : vendor.channelId;
+            let nowTime = vendor.msgTime;
+            // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
+            let channel = vendor.id1;
             let sendToClient = new Promise((resolve, reject) => {
                 // 傳到shield chat
                 var msgObj = {
@@ -390,28 +442,35 @@ function init(server) {
 
             sendToClient
                 .then(data => {
+                    let objArr = data;
                     return new Promise((resolve, reject) => {
-                        pushMessage(data, msg, receiver, result => {
-                            if (result === 'app not detected') {
-                                reject(result);
-                            } else {
-                                resolve(result);
-                            }
+                        pushMessage(objArr, msg, receiver, result => {
+                            resolve(result);
                         });
                     });
                 })
                 .then(data => {
-                    chats.get(chatData => {
-                        for (let prop in chatData) {
-                            let client = chatData[prop];
-                            if (utility.isSameUser(client.Profile, receiver, channel)) {
-                                let length = client.Messages.length;
-                                let updateObj = {};
-                                updateObj['/' + prop + '/Messages/' + length] = data[0];
-                                chats.update(updateObj);
-                            }
-                        }
+                    let info = data;
+                    return new Promise((resolve,reject) => {
+                        chats.findChatData((data) => {
+                            let chatData = data;
+                            resolve([chatData,info]);
+                        });
                     });
+                })
+                .then(data => {
+                    let chatData = data[0];
+                    let chatObj = data[1];
+                    console.log(receiver,channel);
+                    for (let prop in chatData) {
+                        let client = chatData[prop];
+                        if (utility.isSameUser(client.Profile, receiver, channel)) {
+                            let length = client.Messages.length;
+                            let updateObj = {};
+                            updateObj['/' + prop + '/Messages/' + length] = chatObj;
+                            admin.database().ref().child('chats/Data').update(updateObj);
+                        }
+                    }
                 })
                 .catch(reason => {
                     console.log(reason);
@@ -420,7 +479,7 @@ function init(server) {
         // 更新客戶資料
         socket.on('update profile', (data, callback) => {
             console.log("update profile");
-            chats.get(function(chatData) {
+            chats.findChatData(function(chatData) {
                 for (let i in chatData) {
                     if (utility.isSameUser(chatData[i].Profile, data.userId, data.channelId)) {
                         let updateObj = {};
@@ -440,7 +499,7 @@ function init(server) {
             let head = data.head;
             let tail = data.tail;
             let sendData = [];
-            chats.get(function(chatData) {
+            chats.findChatData(function(chatData) {
                 for (let i in chatData) {
                     if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
                         for (let j = head; j < tail + 1; j++) {
@@ -459,7 +518,7 @@ function init(server) {
         });
         // 訊息已讀
         socket.on('read message', data => {
-            chats.get(function(chatData) {
+            chats.findChatData(function(chatData) {
                 for (let i in chatData) {
                     if (utility.isSameUser(chatData[i].Profile, data.userId, data.channelId)) {
                         chats.updateObj(i, { "unRead": 0 });
@@ -587,7 +646,7 @@ function init(server) {
 
         /*===分析start===*/
         socket.on('request message time', () => {
-            chats.get((data) => {
+            chats.findChatData((data) => {
                 let msgTimeData = [];
                 for (let prop in data) {
                     let msg = data[prop].Messages;
@@ -680,38 +739,32 @@ function init(server) {
                 time: nowTime,
                 message: "undefined_message"
             };
-            let replyMsgObj = {
-                owner: "agent",
-                name: "undefined name",
-                time: nowTime,
-                message: "undefined message"
-            };
             //  ===================  訊息類別 ==================== //
             utility.lineMsgType(event, message_type, (msgData) => {
                 msgObj.message = msgData;
                 pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
 
-                if (keywordsReply(msgObj.message) !== -1) {
-                    console.log('keywordsreply bot replied!');
-                }
+                // if (keywordsReply(msgObj.message) !== -1) {
+                //     console.log('keywordsreply bot replied!');
+                // }
                 // if (autoReply(msgObj.message) !== -1) {
                 //     console.log("autoreply bot replyed!");
                 // }
-                if (lineTemplateReply(msgObj.message) !== -1) {
-                    console.log("line template bot replyed!");
-                }
-                if (lineTemplateReplyDemo(msgObj.message) !== -1) {
-                    console.log("linebotdemo bot replyed!");
-                }
-                if (surveyReply(msgObj.message) !== -1) {
-                    console.log("surveyReply bot replyed!");
-                }
-                if (appointmentReply(msgObj.message) !== -1) {
-                    console.log("appointment bot replyed!");
-                }
-                if (apiai(msgObj.message) !== -1) {
-                    console.log("api.ai bot replyed!");
-                }
+                // if (lineTemplateReply(msgObj.message) !== -1) {
+                //     console.log("line template bot replyed!");
+                // }
+                // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
+                //     console.log("linebotdemo bot replyed!");
+                // }
+                // if (surveyReply(msgObj.message) !== -1) {
+                //     console.log("surveyReply bot replyed!");
+                // }
+                // if (appointmentReply(msgObj.message) !== -1) {
+                //     console.log("appointment bot replyed!");
+                // }
+                // if (apiai(msgObj.message) !== -1) {
+                //     console.log("api.ai bot replyed!");
+                // }
                 // else {
                 //   console.log("no auto reply bot work! wait for agent reply");
                 // }
@@ -1215,34 +1268,32 @@ function init(server) {
     } // end of update_line_bot
 
     function pushMessage(data, msg, receiver, callback) {
-        if (data[1].channelId !== undefined) {
+        if (data[1].id2 === '') {
             let lineObj = {
-                channelId: data[1].channelId,
-                channelSecret: data[1].channelSecret,
-                channelAccessToken: data[1].channelToken
+                channelId: data[1].id1,
+                channelSecret: data[1].secret,
+                channelAccessToken: data[1].token1
             }
             let bot = linebot(lineObj);
             linebotParser = bot.parser();
             determineLineType(msg, data => {
                 bot.push(receiver, data);
             });
-            callback([data[0], 'line']);
-        } else if (data[1].pageId !== undefined) {
+            callback(data[0]);
+        } else {
             let fbObj = {
-                pageID: data[1].pageId,
-                appID: data[1].appId,
-                appSecret: data[1].appSecret,
-                validationToken: data[1].clientToken,
-                pageToken: data[1].pageToken
+                pageID: data[1].id1,
+                appID: data[1].id2,
+                appSecret: data[1].secret,
+                validationToken: data[1].token1,
+                pageToken: data[1].token2
             }
             let bot = MessengerPlatform.create(fbObj);
             if (Object.keys(bot).length > 0) {
                 determineFacebookType(msg, bot, receiver, () => {
-                    callback([data[0], 'facebook']);
+                    callback(data[0]);
                 });
             }
-        } else {
-            callback('app not detected');
         }
     }
 

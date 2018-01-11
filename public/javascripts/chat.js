@@ -110,6 +110,7 @@ $(document).ready(function () {
 
     //==========start initialize function========== //
     function responseChatInitData(data) {
+        console.log(data);
         if (data.reject) {
             alert(data.reject);
         } else {
@@ -192,7 +193,6 @@ $(document).ready(function () {
                 window.sessionStorage["notifyModal"] = 1;
             }
         } else {
-            socket.emit('request chat data', [data[0].id1, data[1].id1, data[2].id1], responseChatData);
             $('.chat-app-item#Line_1').attr('rel', data[0].id1);
             $('.chat-app-item#Line_2').attr('rel', data[1].id1);
             $('.chat-app-item#FB').attr('rel', data[2].id1);
@@ -207,6 +207,7 @@ $(document).ready(function () {
     } // end of responseChannels
 
     function responseChatData(data) {
+        console.log(data);
         for (i in data) pushMsg(data[i], () => {
             pushInfo(data[i]);
         }); //聊天記錄
@@ -263,12 +264,12 @@ $(document).ready(function () {
         }
         historyMsgStr += historyMsgToStr(historyMsg);
         // end of history message
-        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
+        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.name + '</option>'); //new a option in select bar
 
         let lastMsg = historyMsg[historyMsg.length - 1];
         let lastMsgStr = lastMsgToStr(lastMsg);
 
-        let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.nickname + "</span>" + lastMsgStr + "</div>";
+        let tablinkHtml = "<b><button class='tablinks'" + "name='" + profile.userId + "' rel='" + profile.channelId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
         if ((profile.unRead > 0) && (profile.unRead <= 99)) {
             tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
         } else if (profile.unRead > 99) {
@@ -289,6 +290,7 @@ $(document).ready(function () {
         });
         name_list.push(profile.channelId + profile.userId); //make a name list of all chated user
         userProfiles[profile.userId] = profile;
+        console.log(userProfiles);
         callback();
     } // end of pushMsg
     function historyMsgToStr(messages) {
@@ -317,13 +319,14 @@ $(document).ready(function () {
     } // end of historyMsgToStr
     function pushInfo(data) {
         let profile = data.Profile;
+        console.log(profile);
         for (let i in profile.email) {
             socket.emit('get ticket', {
                 email: profile.email[i],
                 id: profile.userId
             });
         }
-        if (room_list.indexOf(profile.channelId) != -1) {
+        if (room_list.indexOf(profile.channelId) !== -1) {
             infoCanvas.append('<div class="card-group" id="' + profile.userId + '-info" rel="' + profile.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + profile.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
         }
     } // end of pushInfo
@@ -346,7 +349,7 @@ $(document).ready(function () {
             if (tagSource == "default") {
                 let profData = profile[tagId];
                 let dom = {};
-                if (tagId == "nickname" || tagId == "email" || tagId == "age" || tagId == "remark" || tagId == "telephone") {
+                if (tagId == "name" || tagId == "email" || tagId == "age" || tagId == "remark" || tagId == "telephone") {
                     dom = getSingleTextDom(tagData, profData);
                 } else if (tagId == "gender") {
                     dom = getSingleSelectDom(tagData, profData);
@@ -356,10 +359,12 @@ $(document).ready(function () {
                     dom = getSingleTextDom(tagData, profData);
                     let text = $(dom).text();
                     text = parseFloat(text).toFixed(2).toString();
-                    $(dom).text(text + " 分鐘");
+                    let newText = text == 'NaN' ? '0' : text;
+                    $(dom).text(newText + " 分鐘");
                 } else if (tagId == "chatTimeCount") {
                     dom = getSingleTextDom(tagData, profData);
-                    $(dom).text($(dom).text() + " 次");
+                    let text = $(dom).text() === '尚未輸入' ? '1' :  $(dom).text();
+                    $(dom).text(text + " 次");
                 } else if (tagId == "assigned") {
                     dom = getMultiSelectDom(tagData, profData);
                 }
@@ -446,7 +451,7 @@ $(document).ready(function () {
         let historyMsgStr = "";
         historyMsgStr += internalHistoryMsgToStr(historyMsg);
         // end of history message
-        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.nickname + '</option>'); //new a option in select bar
+        $('#user-rooms').append('<option value="' + profile.userId + '">' + profile.name + '</option>'); //new a option in select bar
         let lastMsg = historyMsg[historyMsg.length - 1];
         let lastMsgStr = lastMsgToStr(lastMsg);
         if (profile.unRead > 0) {
@@ -589,6 +594,7 @@ $(document).ready(function () {
         }
     });
     socket.on('new user profile', function (data) {
+        console.log(data)
         userProfiles[data.userId] = data;
         pushInfo({
             "Profile": data
@@ -665,10 +671,8 @@ $(document).ready(function () {
         $("#" + userId + "-info" + "[rel='" + channelId + "-info']").show().siblings().hide(); //show it, and close others
         $("#" + userId + "[rel='" + channelId + "']").show().siblings().hide(); //show it, and close others
         $("#" + userId + "[rel='" + channelId + "']" + '>#' + userId + '-content' + '[rel="' + channelId + '"]').scrollTop($('#' + userId + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
-        let profile = userProfiles[userId];
-        // console.log("targetId = " + userId);
-        if (profile.hasOwnProperty("nickname")) $('#prof-nick').text(profile.nickname); //如果是一般的聊天
-        else $('#prof-nick').text(profile.roomName); //如果是內部聊天
+        let clientName = $(this).find('.clientName').text();
+        $('#prof-nick').text(clientName);
     } // end of clickUserTablink
     function detecetScrollTop(ele) {
         if (ele.scrollTop() === 0) {
@@ -744,75 +748,49 @@ $(document).ready(function () {
                         });
                     })
                     .then(data => {
+                        let info = data;
                         return new Promise((resolve, reject) => {
-                            database.ref('users/' + vendorId + '/app_ids').once('value', userApps => {
+                            database.ref('users/' + vendorId + '/app_ids').once('value', data => {
+                                let userApps = data.val();
                                 let sendObj = {};
-                                if (userApps.val() === null) {
+                                if (userApps === null) {
                                     reject('vendor does not have apps setup');
                                 } else {
-                                    let hashId = userApps.val();
-                                    if (data[hashId[0]].id1 === channelId) {
-                                        sendObj.id = userId;
-                                        sendObj.msg = msgStr;
-                                        sendObj.msgtime = Date.now();
-                                        sendObj.channelId = data[hashId[0]].id1;
-                                        sendObj.channelSecret = data[hashId[0]].secret;
-                                        sendObj.channelToken = data[hashId[0]].token1;
-                                        resolve(sendObj);
-                                    } else if (data[hashId[1]].id1 === channelId) {
-                                        sendObj.id = userId;
-                                        sendObj.msg = msgStr;
-                                        sendObj.msgtime = Date.now();
-                                        sendObj.channelId = data[hashId[0]].id1;
-                                        sendObj.channelSecret = data[hashId[0]].secret;
-                                        sendObj.channelToken = data[hashId[0]].token1;
-                                        resolve(sendObj);
-                                    } else if (data[hashId[2]].id2 === channelId) {
-                                        sendObj.id = userId;
-                                        sendObj.msg = msgStr;
-                                        sendObj.msgtime = Date.now();
-                                        sendObj.pageId = data[hashId[0]].id1;
-                                        sendObj.appId = data[hashId[0]].id2;
-                                        sendObj.appSecret = data[hashId[0]].secret;
-                                        sendObj.clientToken = data[hashId[0]].token1;
-                                        sendObj.pageToken = data[hashId[0]].token2;
-                                        resolve(sendObj);
-                                    }
-                                }
-                            });
-                        })
-                    })
-                    .then(data => {
-                        return new Promise((resolve, reject) => {
-                            console.log(data);
-                            socket.emit('send message', data);
-                            resolve(data);
-                        });
-                    })
-                    .then(data => {
-                        return new Promise((resolve, reject) => {
-                            // 新增功能：把最後送出訊息的客服人員的編號放在客戶的Profile裡面
-                            database.ref('chats/Data').once('value', outsnap => {
-                                let outInfo = outsnap.val();
-                                let outId = Object.keys(outInfo);
-                                for (let i in outId) {
-                                    database.ref('chats/Data/' + outId[i] + '/Profile').once('value', innsnap => {
-                                        let innInfo = innsnap.val();
-                                        if (innInfo.channelId === undefined) {
-                                            reject('no such record under chats/Data');
-                                        } else if (innInfo.channelId === channelId && innInfo.userId === userId) {
-                                            database.ref('chats/Data/' + outId[i] + '/Profile').update({
-                                                "lastTalkedTo": email
-                                            });
-                                            resolve();
+                                    let hashId = userApps;
+                                    
+                                    hashId.map((item) => {
+                                        if(info[item].id1 === channelId) {
+                                            resolve(item);
                                         }
                                     });
                                 }
                             });
+                        })
+                    })
+                    .then((data) => {
+                        let appId = data;
+                        return new Promise((resolve,reject) => {
+                            database.ref('apps/' + appId).once('value', (data) => {
+                                let appInfo = data.val();
+                                let obj = {
+                                    ...appInfo,
+                                    msgText: msgStr,
+                                    msgTime: Date.now(),
+                                    clientId: userId
+                                }
+                                resolve(obj);
+                            });
+                        });
+                    })
+                    .then((data) => {
+                        return new Promise((resolve, reject) => {
+                            let sendObj = data;
+                            socket.emit('send message', sendObj);
+                            resolve();
                         });
                     })
                     .then(() => {
-                        console.log('sent')
+                        console.log('sent');
                     })
                     .catch(reason => {
                         console.log(reason);
@@ -859,6 +837,11 @@ $(document).ready(function () {
         }
     }
 
+    function displayInfo(data) {
+        let str = '<div class="card-group" id="' + data.id + '-info" rel="' + data.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(data) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+        infoCanvas.append(str);
+    }
+
     function displayMessage(data, channelId) {
         if (name_list.indexOf(channelId + data.id) !== -1) { //if its chated user
             let str;
@@ -871,7 +854,6 @@ $(document).ready(function () {
             $("#" + data.id + "-content" + "[rel='" + channelId + "']").append(str); //push message into right canvas
             $('#' + data.id + '-content' + "[rel='" + channelId + "']").scrollTop($('#' + data.id + '-content' + '[rel="' + channelId + '"]')[0].scrollHeight); //scroll to down
         } else { //if its new user
-            console.log('new user')
             let historyMsgStr = NO_HISTORY_MSG;
             if (data.owner === "agent") historyMsgStr += toAgentStr(data.message, data.name, data.time);
             else historyMsgStr += toUserStr(data.message, data.name, data.time);
@@ -883,7 +865,7 @@ $(document).ready(function () {
     } // end of displayMessage
 
     function displayClient(data, channelId) {
-        if (name_list.indexOf(channelId + data.id) == -1) {
+        if (name_list.indexOf(channelId + data.id) === -1) {
             console.log(data);
             let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.id + "' rel='" + channelId + "'><div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + '</span><br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);

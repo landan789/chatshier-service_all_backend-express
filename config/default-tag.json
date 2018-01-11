@@ -1,7 +1,7 @@
 {
-    "nickname": {
+    "name": {
         "modify" : false,
-        "name" : "nickname",
+        "name" : "name",
         "set" : "single",
         "type" : "text"
     },

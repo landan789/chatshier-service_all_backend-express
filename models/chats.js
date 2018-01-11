@@ -1,11 +1,8 @@
 var admin = require("firebase-admin"); //firebase admin SDK
 var chats = {}; // 宣告物件因為module需要物件
-chats.get = callback => {
+chats.findChatData = callback => {
   admin.database().ref().child('chats/Data').once('value', snapshot=> {
-    let chatData;
-    if(snapshot.val() !== null){
-      chatData = snapshot.val();
-    }
+    let chatData = snapshot.val();
     callback(chatData);
   });
 }

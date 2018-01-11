@@ -3,7 +3,7 @@ var languageList = require("../config/tag-language.json");
 utility.translateTag = (prop, langA, langB) => {
     for (let i = 0; i < languageList.length; i++) {
         let data = languageList[i];
-        if (data[langA] == prop) {
+        if (data[langA] === prop) {
             if (data[langB]) return data[langB];
             else return prop;
         }
