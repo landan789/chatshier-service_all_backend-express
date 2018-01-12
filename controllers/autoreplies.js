@@ -1,6 +1,7 @@
 var API_ERROR = require('../config/apiError');
 var API_SUCCESS = require('../config/apiSuccess');
 var userMdl = require('../models/users');
+var appMdl = require('../models/apps');
 var autorepliesMdl = require('../models/autoreplies');
 var autoreplies = {};
 
@@ -14,39 +15,17 @@ autoreplies.getAll = function(req, res, next) {
     proceed
         .then(() => {
             return new Promise((resolve, reject) => {
-                userMdl.findAppIdsByUserId(userId, (data) => {
-                    var appIds = data;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                        return;
-                    }
-
-                    resolve();
-
+                appMdl.findActiveAppsByUserId(userId, (data) => {
+                    resolve(data);
                 });
-            });
-
-        })
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
-                    return;
-                }
-                userMdl.findAppIdsByUserId(userId, (data) => {
-                    if (data === null) {
-                        reject(API_ERROR.APPID_IS_EMPTY);
-                    } else {
-                        resolve(data);
-                    }
-                })
             });
         })
         .then((data) => {
+            let apps = data;
             var json = {
                 "status": 1,
                 "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-                "data": data
+                "data": apps
             };
             res.status(200).json(json);
         })

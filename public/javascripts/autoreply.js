@@ -14,13 +14,17 @@ $(document).ready(function() {
 });
 
 function insert(appId,data) {
+    var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
-        url: 'http://' + domain + '/api/autoreplies/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
         success: (id) => {
             let str = 
             '<tr>' + 
@@ -47,12 +51,17 @@ function insert(appId,data) {
 }
 
 function find() {
+    var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: 'http://' + domain + '/api/autoreplies/users/' + userId,
+        url:  '/api/autoreplies/users/' + userId,
+        headers: {
+            "Authorization": jwt
+        },
         success: (data) => {
             let appids = data.data;
+            console.log(appids)
             appids.map((item,index) => {
                 var proceed = new Promise((resolve,reject) => {
                     resolve();
@@ -69,6 +78,8 @@ function find() {
                 .then(() => {
                     return new Promise((resolve,reject) => {
                         let tableContent = 
+                        '<div class="col-md-6 space-top-down">' +
+                        '<label class="col-2 col-form-label">APP ' + (index+1) + '</label>' +
                         '<table id="' + item + '">' +
                             '<thead>' +
                                 '<tr>' +
@@ -81,8 +92,9 @@ function find() {
                                 '</tr>' +
                             '</thead>' +
                             '<tbody id="autoreply-list"></tbody>' +
-                        '</table>';
-                        $('#home').append(tableContent);
+                        '</table>' + 
+                        '</div>';
+                        $('#autoreply-tables').append(tableContent);
                         resolve(item);
                     });
                 })
@@ -118,10 +130,14 @@ function find() {
 }
 
 function findOne(appId,autosHashId) {
+    var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: 'http://' + domain + '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        headers: {
+            "Authorization": jwt
+        },
         success: (data) => {
             let info = data.data;
             $('#edit-appid').text(appId);
@@ -139,13 +155,17 @@ function findOne(appId,autosHashId) {
 }
 
 function update(appId,autosHashId,data) {
+    var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: 'http://' + domain + '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             $('[rel="' + autosHashId + '"]').parent().remove();
             let str = 
@@ -176,10 +196,14 @@ function update(appId,autosHashId,data) {
 }
 
 function remove(appId,autosHashId) {
+    var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: 'http://' + domain + '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        headers: {
+            "Authorization": jwt
+        },
         success: () => {
             $('[rel="' + autosHashId + '"]').parent().remove();
             alert('刪除成功!');
