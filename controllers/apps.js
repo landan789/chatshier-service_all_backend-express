@@ -137,7 +137,8 @@ apps.post = (req, res, next) => {
     var userId = req.params.userid;
     var id1 = req.body.id1;
     var id2 = req.body.id2;
-    var name = req.body.name;
+    var name = req.body.cname;
+    console.log(name);
     var secret = req.body.secret;
     var token1 = req.body.token1;
     var token2 = req.body.token2;
@@ -146,7 +147,7 @@ apps.post = (req, res, next) => {
     var postApp = {
         id1: req.body.id1,
         id2: req.body.id2 ? req.body.id2 : '',
-        name: req.body.name,
+        name: req.body.cname,
         secret: req.body.secret,
         token1: req.body.token1,
         token2: req.body.token2 ? req.body.token2 : '',
