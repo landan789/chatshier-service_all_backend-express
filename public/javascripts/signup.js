@@ -69,16 +69,14 @@ function signup(event) {
     } else {
         $(this).button('loading');
         var userInfo = {
-            displayName: name
+            name,
+            email
         };
         auth.createUserWithEmailAndPassword(email, password)
-            .then((user) => {
+            .then(() => {
                 document.cookie = "name=" + name + ";domain=" + domain;
                 document.cookie = "email=" + email + ";domain=" + domain;
-                return user.updateProfile(userInfo);
-
-            }).then(() => {
-
+                database.ref('users/' + auth.currentUser.uid).update(userInfo);
             }).catch(error => {
                 var errorCode = error.code;
                 if("auth/email-already-in-use" === errorCode){
