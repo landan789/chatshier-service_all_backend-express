@@ -475,7 +475,7 @@ function findAllApps() {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: 'http://' + domain + '/api/apps/users/' + id,
+        url: '/api/apps/users/' + id,
         headers: {
             "Authorization": jwt
         },
@@ -504,7 +504,7 @@ function findOneApp(appId) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/' + appId + '/users/' + id,
         headers: {
             "Authorization": jwt
         },
@@ -562,7 +562,7 @@ function insertOneApp(data) { // 未完成
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
-        url: 'http://' + domain + '/api/apps/users/' + id,
+        url: '/api/apps/users/' + id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -590,7 +590,7 @@ function updateOneApp(appId, data) { // 未完成
     console.log(id, appId, data)
     $.ajax({
         type: 'PUT',
-        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/' + appId + '/users/' + id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -617,7 +617,7 @@ function removeOneApp(appId) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: 'http://' + domain + '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/' + appId + '/users/' + id,
         headers: {
             "Authorization": jwt
         },
@@ -820,7 +820,7 @@ function findUserProfile() {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: 'http://' + domain + '/api/users/' + id,
+        url: '/api/users/' + id,
         headers: {
             "Authorization": jwt
         },
@@ -845,7 +845,7 @@ function updateUserProfile(data) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: 'http://' + domain + '/api/users/' + id,
+        url: '/api/users/' + id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
