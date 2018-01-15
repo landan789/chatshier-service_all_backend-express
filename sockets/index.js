@@ -367,7 +367,7 @@ function init(server) {
             });
         }
         // 4.撈出歷史訊息
-        socket.on('find_apps_messegers_chats', (userId, callback) => {
+        socket.on('find_apps_messengers_chats', (userId, callback) => {
 
             var proceed = new Promise((resolve, reject) => {
                 resolve();
