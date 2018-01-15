@@ -391,7 +391,7 @@ function init(server) {
         });
         // 從SHIELD chat傳送訊息
         socket.on('send message', data => {
-            // console.log(data);
+            console.log(data);
             let vendor = data;
             let msg = vendor.msgText;
             let receiver = vendor.clientId;
