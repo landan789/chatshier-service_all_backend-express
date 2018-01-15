@@ -18,6 +18,8 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
+var appsMessegenrsChatsMdl = require('../models/appsMessengersChats');
+
 var messageHandle = require('../message_handle');
 var messagingBot = require('../middlewares/bot');
 
@@ -80,7 +82,7 @@ function init(server) {
 
         proceed
             .then(() => {
-                return new Promise((resolve,reject) => {
+                return new Promise((resolve, reject) => {
                     messagingBot.parse(webhookId, body, (data) => {
                         let appInfo = data;
                         resolve(appInfo);
@@ -89,7 +91,7 @@ function init(server) {
             })
             .then((data) => {
                 let appInfo = data;
-                switch(appInfo.type) {
+                switch (appInfo.type) {
                     case LINE:
                         var line = {
                             channelId: appInfo.id1,
@@ -365,28 +367,28 @@ function init(server) {
             });
         }
         // 4.撈出歷史訊息
-        socket.on('request chat data', (channelIdArr, callback) => {
-            let runChatData = new Promise((resolve, reject) => {
-                chats.findChatData(chatData => {
-                    resolve(chatData);
-                });
+        socket.on('find_apps_messegers_chats', (userId, callback) => {
+
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
             });
 
-            runChatData
+            proceed
                 .then(data => {
                     return new Promise((resolve, reject) => {
-                        utility.filterUser(channelIdArr, data, filterData => {
-                            resolve(filterData);
+                        appsMessegenrsChatsMdl.findByUserId(userId, (result) => {
+                            if (false === result || null === result || '' === result || undefined === result) {
+                                reject();
+                                return;
+                            }
+                            console.log(result);
+                            callback(result);
                         });
                     });
+
                 })
-                .then(data => {
-                    chats.loadChatHistory(data, result => {
-                        callback(result);
-                    });
-                })
-                .catch(reason => {
-                    console.log(reason)
+                .catch((error) => {
+                    console.log(error)
                 });
         });
         // 從SHIELD chat傳送訊息
@@ -451,17 +453,17 @@ function init(server) {
                 })
                 .then(data => {
                     let info = data;
-                    return new Promise((resolve,reject) => {
+                    return new Promise((resolve, reject) => {
                         chats.findChatData((data) => {
                             let chatData = data;
-                            resolve([chatData,info]);
+                            resolve([chatData, info]);
                         });
                     });
                 })
                 .then(data => {
                     let chatData = data[0];
                     let chatObj = data[1];
-                    console.log(receiver,channel);
+                    console.log(receiver, channel);
                     for (let prop in chatData) {
                         let client = chatData[prop];
                         if (utility.isSameUser(client.Profile, receiver, channel)) {
