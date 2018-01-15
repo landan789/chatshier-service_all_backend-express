@@ -737,7 +737,10 @@ $(document).ready(function () {
                 getAppsInfo
                     .then(() => {
                         return new Promise((resolve, reject) => {
+                            debugger;
                             database.ref('apps').once('value', data => {
+                                debugger;
+
                                 if (data.val() === null) {
                                     reject('data is empty');
                                 } else {
@@ -749,6 +752,9 @@ $(document).ready(function () {
                     })
                     .then(data => {
                         let info = data;
+                        console.log(info);
+                        debugger;
+
                         return new Promise((resolve, reject) => {
                             database.ref('users/' + vendorId + '/app_ids').once('value', data => {
                                 let userApps = data.val();
