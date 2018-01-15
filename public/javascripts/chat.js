@@ -147,7 +147,7 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allAppIds = data;
-                    socket.emit('request chat data', allAppIds, responseChatData);
+                    socket.emit('find_apps_messengers_chats', auth.currentUser.uid, responseChatData);
                 })
                 .catch((error) => {
                     console.log('loading apps error');
