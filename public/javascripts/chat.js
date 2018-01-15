@@ -38,11 +38,6 @@ var addTicketModal = $('#add-ticket-modal');
 $(document).ready(function() {
     // start the loading works
     $infoPanel.hide();
-    var ref = firebase.database().ref('users/NfO3a14q7RhSytPvngevDluRzG32/name');
-    ref.transaction(function(name) {
-        return name + '1';
-        // If users/ada/rank has never been set, currentRank will be `null`.
-    });
 
     var startUserId = setInterval(() => {
         if (auth.currentUser) {
@@ -152,7 +147,7 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allAppIds = data;
-                    socket.emit('find_apps_messegers_chats', auth.currentUser.uid, responseChatData);
+                    socket.emit('request chat data', allAppIds, responseChatData);
                 })
                 .catch((error) => {
                     console.log('loading apps error');
