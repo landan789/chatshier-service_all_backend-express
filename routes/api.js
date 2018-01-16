@@ -6,7 +6,9 @@ var apps = require('../models/apps');
 var templates = require('../models/templates');
 var autorepliesCtl = require('../controllers/autoreplies');
 var appCtl = require('../controllers/apps');
-var richmenuCtl =require('../controllers/richmenus')
+var appsTicketsCtl = require('../controllers/appsTickets');
+
+var richmenuCtl = require('../controllers/richmenus')
 var router = express.Router();
 
 router.get('/apps/users/:userid', appCtl.getAll);
@@ -14,6 +16,13 @@ router.get('/apps/:appid/users/:userid', appCtl.get);
 router.post('/apps/users/:userid', appCtl.post);
 router.put('/apps/:appid/users/:userid', appCtl.put);
 router.delete('/apps/:appid/users/:userid', appCtl.delete);
+
+router.get('/appstickets/users/:userid', appsTicketsCtl.getAllByUserid);
+router.get('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);
+router.get('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
+router.post('/appstickets/apps/users/:userid', appsTicketsCtl.postOne);
+router.put('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.putOne);
+router.delete('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.deleteOne);
 
 router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getAll);
 router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);
@@ -250,37 +259,37 @@ router.get('/users/:userid', (req, res, next) => {
     });
 
     proceed
-    .then(() => {
-        return new Promise((resolve,reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_NOT_EXISTS);
-                return;
-            }
-            users.findUserByUserId(userId, (data) => {
-                if(data === null) {
-                    reject(API_ERROR.USER_NOT_EXISTS);
-                } else {
-                    resolve(data);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    return;
                 }
-            })
+                users.findUserByUserId(userId, (data) => {
+                    if (data === null) {
+                        reject(API_ERROR.USER_NOT_EXISTS);
+                    } else {
+                        resolve(data);
+                    }
+                })
+            });
+        })
+        .then((data) => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "data": data
+            };
+            res.status(200).json(json);
+        })
+        .catch((ERR) => {
+            var json = {
+                "status": 0,
+                "mgs": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
         });
-    })
-    .then((data) => {
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-            "data": data
-        };
-        res.status(200).json(json);
-    })
-    .catch((ERR) => {
-        var json = {
-            "status": 0,
-            "mgs": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    });
 });
 
 router.put('/users/:userid', (req, res, next) => {
@@ -297,31 +306,31 @@ router.put('/users/:userid', (req, res, next) => {
     });
 
     proceed
-    .then(() => {
-        return new Promise((resolve,reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_NOT_EXISTS);
-                return;
-            }
-            users.updateUserByUserId(userId,userObj);
-            resolve();
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    return;
+                }
+                users.updateUserByUserId(userId, userObj);
+                resolve();
+            });
+        })
+        .then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG
+            };
+            res.status(200).json(json);
+        })
+        .catch((ERR) => {
+            var json = {
+                "status": 0,
+                "mgs": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
         });
-    })
-    .then(() => {
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG
-        };
-        res.status(200).json(json);
-    })
-    .catch((ERR) => {
-        var json = {
-            "status": 0,
-            "mgs": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    });
 });
 
 module.exports = router

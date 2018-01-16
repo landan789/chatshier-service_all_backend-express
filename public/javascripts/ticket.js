@@ -72,6 +72,7 @@ function loadTable() {
             "Authorization": "Basic " + btoa(api_key + ":x")
         },
         success: function(data, textStatus, jqXHR) {
+            console.log(data);
             for (let i = 0; i < data.length; i++) {
                 ticketInfo = data;
                 ticket_content.append('<tr id="' + i + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' + '<td style="border-left: 5px solid ' + priorityColor(data[i].priority) + '">' + data[i].id + '</td>' + '<td>' + data[i].requester.name + '</td>' + '<td id="description">' + data[i].description.substring(0, 10) + '</td>' + '<td id="status" class="status">' + statusNumberToText(data[i].status) + '</td>' + '<td id="priority" class="priority">' + priorityNumberToText(data[i].priority) + '</td>' + '<td id="time">' + displayDate(data[i].due_by) + '</td>' + '<td>' + dueDate(data[i].due_by) + '</td>' + '</tr>')
