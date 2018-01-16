@@ -147,7 +147,7 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allAppIds = data;
-                    socket.emit('request chat data', allAppIds, responseChatData);
+                    socket.emit('find_apps_messengers_chats', auth.currentUser.uid, responseChatData);
                 })
                 .catch((error) => {
                     console.log('loading apps error');
@@ -202,7 +202,15 @@ $(document).ready(function() {
     } // end of responseChannels
 
     function responseChatData(data) {
-        console.log(data);
+        var apps = data;
+        var messengers = {};
+        for (var index in apps) {
+            var app = apps[index];
+            var _messengers = app.messengers;
+            Object.assign(messengers, _messengers);
+
+        }
+        console.log(messengers); // 請使用 messengers 變數
         for (i in data) pushMsg(data[i], () => {
             pushInfo(data[i]);
         }); //聊天記錄
