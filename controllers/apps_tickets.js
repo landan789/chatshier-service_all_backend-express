@@ -1,5 +1,5 @@
-var API_ERROR = require('../config/apiError');
-var API_SUCCESS = require('../config/apiSuccess');
+var API_ERROR = require('../config/api_error');
+var API_SUCCESS = require('../config/api_success');
 var usersMdl = require('../models/users');
 
 var appsTicketsMdl = require('../models/apps_tickets');
