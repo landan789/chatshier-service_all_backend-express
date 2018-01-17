@@ -5,24 +5,24 @@ var users = require('../models/users');
 var apps = require('../models/apps');
 var templates = require('../models/templates');
 var autorepliesCtl = require('../controllers/autoreplies');
-var appCtl = require('../controllers/apps');
+var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 
 var richmenuCtl = require('../controllers/richmenus')
 var router = express.Router();
 
-router.get('/apps/users/:userid', appCtl.getAll);
-router.get('/apps/apps/:appid/users/:userid', appCtl.getOne);
-router.post('/apps/users/:userid', appCtl.postOne);
-router.put('/apps/apps/:appid/users/:userid', appCtl.putOne);
-router.delete('/apps/apps/:appid/users/:userid', appCtl.deleteOne);
+router.get('/apps/users/:userid', appsCtl.getAll);
+router.get('/apps/apps/:appid/users/:userid', appsCtl.getOne);
+router.post('/apps/users/:userid', appsCtl.postOne);
+router.put('/apps/apps/:appid/users/:userid', appsCtl.putOne);
+router.delete('/apps/apps/:appid/users/:userid', appsCtl.deleteOne);
 
-router.get('/appstickets/users/:userid', appsTicketsCtl.getAllByUserid);
-router.get('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);
-router.get('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
-router.post('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
-router.put('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
-router.delete('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
+router.get('/apps-tickets/users/:userid', appsTicketsCtl.getAllByUserid);
+router.get('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);
+router.get('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
+router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
+router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
+router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getAll);
 router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);
