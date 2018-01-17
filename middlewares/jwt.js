@@ -1,4 +1,4 @@
-var API_ERROR = require('../config/apiError');
+var API_ERROR = require('../config/api_error');
 
 var admin = require('firebase-admin');
 

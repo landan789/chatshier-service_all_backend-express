@@ -1,5 +1,5 @@
-var API_ERROR = require('../config/apiError');
-var API_SUCCESS = require('../config/apiSuccess');
+var API_ERROR = require('../config/api_error');
+var API_SUCCESS = require('../config/api_success');
 var express = require('express');
 var users = require('../models/users');
 var apps = require('../models/apps');
