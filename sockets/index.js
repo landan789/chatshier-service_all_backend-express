@@ -96,7 +96,8 @@ function init(server) {
                         var line = {
                             channelId: appInfo.id1,
                             channelSecret: appInfo.secret,
-                            channelAccessToken: appInfo.token1
+                            channelAccessToken: appInfo.token1,
+                            webhookId: webhookId
                         };
                         var lbot = linebot(line);
                         lbot.on('message', bot_on_message);
@@ -381,7 +382,6 @@ function init(server) {
                                 reject();
                                 return;
                             }
-                            console.log(result);
                             callback(result);
                         });
                     });
@@ -393,106 +393,114 @@ function init(server) {
         });
         // 從SHIELD chat傳送訊息
         socket.on('send message', data => {
-            console.log(data);
-            let vendor = data;
+            let vendor = data.sendObj;
             let msg = vendor.msgText;
-            let receiver = vendor.clientId;
+            let receiver = data.appId;
             let agentName = socket.nickname ? socket.nickname : 'agent';
             let nowTime = vendor.msgTime;
+            let appId = data.userId;
             // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
             let channel = vendor.id1;
-            let sendToClient = new Promise((resolve, reject) => {
-                // 傳到shield chat
-                var msgObj = {
-                    owner: "agent",
-                    name: agentName,
-                    time: nowTime,
-                    message: "undefined_message"
-                };
-                // console.log(msgObj,'function going through')
-                if (msg.includes('/image')) {
-                    var src = msg.split(' ')[1];
-                    msgObj.message = `<img src="${src}" />`;
-                    resolve([msgObj, vendor]);
-                } else if (msg.includes('/audio')) {
-                    var src = msg.split(' ')[1];
-                    msgObj.message = `<audio controls="controls">
-                                        <source src="${src}" type="audio/ogg">
-                                      </audio>`;
-                    resolve([msgObj, vendor]);
-                } else if (msg.includes('/video')) {
-                    var src = msg.split(' ')[1];
-                    msgObj.message = `<video controls="controls">
-                                        <source src="${src}" type="video/mp4">
-                                      </video> `;
-                    resolve([msgObj, vendor]);
-                } else if (utility.isUrl(msg)) {
-                    let urlStr = '<a href=';
-                    if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
-                        urlStr += '"http://';
-                    }
-                    msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-                    resolve([msgObj, vendor]);
-                } else if (msg.includes('/sticker')) {
-                    msgObj.message = 'Send sticker to user';
-                    resolve([msgObj, vendor]);
-                } else {
-                    msgObj.message = msg;
-                    resolve([msgObj, vendor]);
-                }
+
+            let proceed = new Promise((resolve,reject) => {
+                resolve();
             });
 
-            sendToClient
-                .then(data => {
-                    let objArr = data;
-                    return new Promise((resolve, reject) => {
-                        pushMessage(objArr, msg, receiver, result => {
-                            resolve(result);
-                        });
-                    });
+            proceed
+                .then(() => {
+                    return new Promise((resolve,reject) => {
+                        let msgObj = {
+                            owner: "agent",
+                            name: agentName,
+                            time: nowTime,
+                            message: "undefined_message"
+                        };
+                        resolve(msgObj);
+                    })
                 })
-                .then(data => {
-                    let info = data;
-                    return new Promise((resolve, reject) => {
-                        chats.findChatData((data) => {
-                            let chatData = data;
-                            resolve([chatData, info]);
-                        });
-                    });
-                })
-                .then(data => {
-                    let chatData = data[0];
-                    let chatObj = data[1];
-                    console.log(receiver, channel);
-                    for (let prop in chatData) {
-                        let client = chatData[prop];
-                        if (utility.isSameUser(client.Profile, receiver, channel)) {
-                            let length = client.Messages.length;
-                            let updateObj = {};
-                            updateObj['/' + prop + '/Messages/' + length] = chatObj;
-                            admin.database().ref().child('chats/Data').update(updateObj);
+                .then((data) => {
+                    let msgObj = data;
+                    return new Promise((resolve,reject) => {
+                        if (msg.includes('/image')) {
+                            var src = msg.split(' ')[1];
+                            msgObj.message = `<img src="${src}" />`;
+                            resolve({msgObj, vendor});
+                        } else if (msg.includes('/audio')) {
+                            var src = msg.split(' ')[1];
+                            msgObj.message = `<audio controls="controls">
+                                                <source src="${src}" type="audio/ogg">
+                                              </audio>`;
+                            resolve({msgObj, vendor});
+                        } else if (msg.includes('/video')) {
+                            var src = msg.split(' ')[1];
+                            msgObj.message = `<video controls="controls">
+                                                <source src="${src}" type="video/mp4">
+                                              </video> `;
+                            resolve({msgObj, vendor});
+                        } else if (utility.isUrl(msg)) {
+                            let urlStr = '<a href=';
+                            if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
+                                urlStr += '"http://';
+                            }
+                            msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
+                            resolve({msgObj, vendor});
+                        } else if (msg.includes('/sticker')) {
+                            msgObj.message = 'Send sticker to user';
+                            resolve({msgObj, vendor});
+                        } else {
+                            msgObj.message = msg;
+                            resolve({msgObj, vendor});
                         }
-                    }
+                    });
                 })
-                .catch(reason => {
-                    console.log(reason);
+                .then((data) => {
+                    let msgObj = data.msgObj;
+                    let vendorObj = data.vendor;
+                    return new Promise((resolve,reject) => {
+                        if (vendorObj.id2 === '') {
+                            let lineObj = {
+                                channelId: vendorObj.id1,
+                                channelSecret: vendorObj.secret,
+                                channelAccessToken: vendorObj.token1
+                            }
+                            let bot = linebot(lineObj);
+                            linebotParser = bot.parser();
+                            determineLineType(msg, data => {
+                                bot.push(receiver, data);
+                                resolve(msgObj);
+                            });
+                        } else {
+                            let fbObj = {
+                                pageID: vendorObj.id1,
+                                appID: vendorObj.id2,
+                                appSecret: vendorObj.secret,
+                                validationToken: vendorObj.token1,
+                                pageToken: vendorObj.token2
+                            }
+                            let bot = MessengerPlatform.create(fbObj);
+                            if (Object.keys(bot).length > 0) {
+                                determineFacebookType(msg, bot, receiver, () => {
+                                    resolve(msgObj);
+                                });
+                            }
+                        }
+                    });
+                })
+                .then((data) => {
+                    let msgObj = data;
+                    return new Promise((resolve,reject) => {
+                        chats.insertMessageByMessengerIdAndAppId(appId,receiver,msgObj);
+                    });
+                })
+                .catch((ERR) => {
                 });
         }); //sent message
         // 更新客戶資料
-        socket.on('update profile', (data, callback) => {
-            console.log("update profile");
-            chats.findChatData(function(chatData) {
-                for (let i in chatData) {
-                    if (utility.isSameUser(chatData[i].Profile, data.userId, data.channelId)) {
-                        let updateObj = {};
-                        for (let prop in data) {
-                            updateObj[prop] = data[prop];
-                        }
-                        chats.updateObj(i, updateObj);
-                        break;
-                    }
-                }
-            });
+        socket.on('update profile', (data) => {
+            let appId = data.appId;
+            let userId = data.userId;
+            let profObj = data.data
+            chats.updateProfileByMessengerIdAndAppId(appId,userId,profObj);
         });
         // 當使用者要看客戶之前的聊天記錄時要向上滾動
         socket.on('upload history msg from front', (data, callback) => {
@@ -727,6 +735,7 @@ function init(server) {
     }
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
+        let webhookId = this.options.webhookId
         let channelId = this.options.channelId; // line群組ID
         let message_type = event.message.type; // line訊息類別 text, location, image, video...
         let receiverId = event.source.userId; // line客戶ID
@@ -741,10 +750,69 @@ function init(server) {
                 time: nowTime,
                 message: "undefined_message"
             };
-            //  ===================  訊息類別 ==================== //
-            utility.lineMsgType(event, message_type, (msgData) => {
-                msgObj.message = msgData;
-                pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
+
+            let proceed = new Promise((resolve,reject) => {
+                resolve();
+            });
+
+            proceed
+            .then(() => {
+                return new Promise((resolve,reject) => {
+                    utility.lineMsgType(event, message_type, (msgData) => {
+                        msgObj.message = msgData;
+                        resolve();
+                    });
+                });
+            })
+            .then(() => {
+                return new Promise((resolve,reject) => {
+                    appsMessegenrsChatsMdl.findByWebhookId(webhookId, (data) => {
+                        let appId = data;
+                        if(appId === false) {
+                            reject();
+                            return;
+                        }
+                        resolve(appId);
+                    });
+                });
+            })
+            .then((data) => {
+                let appId = data.app_id;
+                return new Promise((resolve,reject) => {
+                    appsMessegenrsChatsMdl.insertChats(appId,receiverId,msgObj,(data) => {
+                        let result = data;
+                        if(result === false) {
+                            reject();
+                            return;
+                        }
+                        resolve({appId: appId,userId: receiverId,channelId: channelId});
+                    });
+                });
+            })
+            .then((data) => {
+                let appId = data.appId;
+                let userId = data.userId;
+                let channelId = data.channelId;
+                
+                return new Promise((resolve,reject) => {
+                    let infoObj = {
+                        name: receiver_name,
+                        photo: pictureUrl,
+                        recentChat: nowTime
+                    }
+                    appsMessegenrsChatsMdl.insertMessengerInfo(appId,receiverId,infoObj,(data) => {
+                        let profile = data;
+                        resolve({appId,userId,channelId,profile});
+                    })
+                });
+            })
+            .then((data) => {
+                io.sockets.emit('new message', data);
+                console.log('finished');
+            })
+            .catch((error) => {
+                console.log('Error ' + error)
+            });
 
                 // if (keywordsReply(msgObj.message) !== -1) {
                 //     console.log('keywordsreply bot replied!');
@@ -770,7 +838,6 @@ function init(server) {
                 // else {
                 //   console.log("no auto reply bot work! wait for agent reply");
                 // }
-            });
 
             function keywordsReply(msg) {
                 replyMsgObj.name = "KeyWords Reply";

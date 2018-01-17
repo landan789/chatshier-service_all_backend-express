@@ -15,6 +15,35 @@ chats.update = obj => {
 chats.updateObj = (i,obj) => {
   admin.database().ref().child('chats/Data').child(i).child("Profile").update(obj);
 }
+chats.insertMessageByMessengerIdAndAppId = (appId,msgId,msgObj) => {
+  let proceed = new Promise((resolve,reject) => {
+    resolve();
+  });
+
+  proceed
+    .then(() => {
+      return new Promise((resolve,reject) => {
+        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).on('value', (data) => {
+          let chats = data.val().chats;
+          resolve(chats);
+        });
+      });
+    })
+    .then((data) => {
+      let chats = data;
+      if(null === chats || undefined === chats || 0 === chats.length) {
+        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId + '/chats/0').set(msgObj);
+        return;
+      }
+      admin.database().ref().child('apps/' + appId + '/messengers/' + msgId + '/chats/' + chats.length).set(msgObj);
+    })
+    .catch(() => {
+      console.log('Insert Failed');
+    });
+}
+chats.updateProfileByMessengerIdAndAppId = (appId,msgId,profObj) => {
+  admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).update(profObj);
+}
 chats.loadChatHistory = (chatData,callback) => {
   let sendData = [];
     for( let i in chatData ) {
