@@ -501,10 +501,10 @@ function findAllApps() {
 
 function findOneApp(appId) {
     var jwt = localStorage.getItem("jwt");
-    var id = auth.currentUser.uid;
+    var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -586,11 +586,10 @@ function insertOneApp(data) { // 未完成
 
 function updateOneApp(appId, data) { // 未完成
     var jwt = localStorage.getItem("jwt");
-    var id = auth.currentUser.uid;
-    console.log(id, appId, data)
+    var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -606,18 +605,16 @@ function updateOneApp(appId, data) { // 未完成
             $('#app-group').append(str);
             findAllApps();
         },
-        error: (error) => {
-            console.log(error);
-        }
+        error: (error) => {}
     });
 }
 
 function removeOneApp(appId) {
     var jwt = localStorage.getItem("jwt");
-    var id = auth.currentUser.uid;
+    var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: '/api/apps/' + appId + '/users/' + id,
+        url: '/api/apps/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -628,9 +625,7 @@ function removeOneApp(appId) {
             $('#app-group').append(str);
             findAllApps();
         },
-        error: (error) => {
-            console.log(error);
-        }
+        error: (error) => {}
     });
 }
 

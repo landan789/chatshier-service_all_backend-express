@@ -12,10 +12,10 @@ var richmenuCtl = require('../controllers/richmenus')
 var router = express.Router();
 
 router.get('/apps/users/:userid', appCtl.getAll);
-router.get('/apps/:appid/users/:userid', appCtl.get);
-router.post('/apps/users/:userid', appCtl.post);
-router.put('/apps/:appid/users/:userid', appCtl.put);
-router.delete('/apps/:appid/users/:userid', appCtl.delete);
+router.get('/apps/apps/:appid/users/:userid', appCtl.getOne);
+router.post('/apps/users/:userid', appCtl.postOne);
+router.put('/apps/apps/:appid/users/:userid', appCtl.putOne);
+router.delete('/apps/apps/:appid/users/:userid', appCtl.deleteOne);
 
 router.get('/appstickets/users/:userid', appsTicketsCtl.getAllByUserid);
 router.get('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);

@@ -61,7 +61,7 @@ apps.getAll = (req, res, next) => {
         });
 }
 
-apps.get = (req, res, next) => {
+apps.getOne = (req, res, next) => {
     var appId = req.params.appid;
     var userId = req.params.userid;
 
@@ -133,7 +133,7 @@ apps.get = (req, res, next) => {
 
 }
 
-apps.post = (req, res, next) => {
+apps.postOne = (req, res, next) => {
     var userId = req.params.userid;
     var id1 = req.body.id1;
     var id2 = req.body.id2;
@@ -222,7 +222,7 @@ apps.post = (req, res, next) => {
         res.status(403).json(json);
     });
 }
-apps.put = (req, res, next) => {
+apps.putOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
     var id1 = req.body.id1;
@@ -327,7 +327,7 @@ apps.put = (req, res, next) => {
     });
 }
 
-apps.delete = (req, res, next) => {
+apps.deleteOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
 
