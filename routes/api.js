@@ -20,9 +20,9 @@ router.delete('/apps/:appid/users/:userid', appCtl.delete);
 router.get('/appstickets/users/:userid', appsTicketsCtl.getAllByUserid);
 router.get('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);
 router.get('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
-router.post('/appstickets/apps/users/:userid', appsTicketsCtl.postOne);
-router.put('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.putOne);
-router.delete('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.deleteOne);
+router.post('/appstickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
+router.put('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
+router.delete('/appstickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getAll);
 router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);

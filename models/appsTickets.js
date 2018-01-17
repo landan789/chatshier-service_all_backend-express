@@ -5,31 +5,24 @@ var appsTickets = {};
 appsTickets._schema = (callback) => {
     var json = {
         ccEmails: [],
-        company_id: '', // 可能移除
         createdAt: '',
-        custom_fields: {}, // 可能移除
         description: '',
         dueBy: '',
-        emailConfigId: '', // 可能移除
         frDueBy: '',
         frEscalated: '',
         fwdEmails: [],
-        groupId: '', // 可能移除
-        id: '',
         isEscalated: false,
         priority: 1,
-        productId: '', // 可能移除
         replyCcEmails: [],
         requester: '',
         requesterId: '',
-        responder_id: null,
         source: 2,
         spam: false,
         status: 2,
-        subject: "2017",
+        subject: "2017-0101",
         toEmails: null,
         type: null,
-        updateAt: '2017',
+        updateAt: '2017-0101',
         delete: 0
     };
     callback(json);
@@ -121,7 +114,7 @@ appsTickets.findAppTicketByAppIdByTicketId = (appId, ticketId, callback) => {
 
 }
 
-appsTickets.insertByAppid = (appId, postApp, callback) => {
+appsTickets.insertByAppid = (appId, postTicket, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
@@ -129,59 +122,18 @@ appsTickets.insertByAppid = (appId, postApp, callback) => {
     procced.then(() => {
         return new Promise((resolve, reject) => {
             appsTickets._schema(initTicket => {
-                resolve(initTicket);
-            });
-        });
-    }).then((initApp) => {
-        var app = Object.assign(initApp, postApp);
-
-        return new Promise((resolve, reject) => {
-            var appId = admin.database().ref("apps").push(app).key;
-            resolve(appId);
-        });
-    }).then((appId) => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref("users/" + userid).once("value", snap => {
-                var user = snap.val();
-                var appIds = !user.hasOwnProperty("app_ids") ? [] : user.app_ids;
-                if (null === user || "" === user || undefined === user) {
+                if (null === initTicket || undefined === initTicket || '' === initTicket) {
                     reject();
                     return;
                 }
-                var n = appIds.length;
-                var i;
-                for (i = 0; i < n; i++) {
-                    var _appId = appIds[i];
-                    if (_appId == appId) {
-                        appIds.slice(i, 1);
-                    }
-                }
-
-                appIds.unshift(appId);
-                resolve(appIds);
+                resolve(initTicket);
             });
         });
-    }).then((appIds) => {
-        return new Promise((resolve, reject) => {
-            var webhook = {
-                app_id: appIds[0]
-            };
+    }).then((initTicket) => {
+        var ticket = Object.assign(initTicket, postTicket);
 
-            var webhookId = admin.database().ref("webhooks").push(webhook).key;
+        return admin.database().ref('apps/' + appId + '/tickets').push(ticket);
 
-            var user = {
-                app_ids: appIds
-            };
-
-            var app = {
-                webhook_id: webhookId
-            };
-            admin.database().ref("users/" + userid).update(user).then(() => {
-                return admin.database().ref("apps/" + appIds[0]).update(app);
-            }).then(() => {
-                resolve();
-            });
-        });
     }).then(() => {
         callback(true);
     }).catch(() => {
@@ -189,30 +141,13 @@ appsTickets.insertByAppid = (appId, postApp, callback) => {
     });
 };
 
-appsTickets.updateByAppId = (appId, putApp, callback) => {
+appsTickets.updateByAppIdByticketId = (appId, ticketId, putTicket, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
 
     procced.then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref("apps/" + appId).once("value", snap => {
-                var app = snap.val();
-                if (undefined === app || "" === app || null === app) {
-                    reject();
-                    return;
-                }
-
-                // 已刪除資料不能更新
-                if (1 === app.delete) {
-                    reject();
-                    return;
-                }
-                resolve();
-            });
-        });
-    }).then(() => {
-        return admin.database().ref("apps/" + appId).update(putApp);
+        return admin.database().ref("apps/" + appId + '/tickets/' + ticketId).update(putTicket);
     }).then(() => {
         callback(true);
     }).catch(() => {
@@ -220,17 +155,17 @@ appsTickets.updateByAppId = (appId, putApp, callback) => {
     });
 };
 
-appsTickets.removeByAppId = (appId, callback) => {
+appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
 
-    deleteApp = {
+    deleteTicket = {
         delete: 1
     };
 
     procced.then(() => {
-        return admin.database().ref("apps/" + appId).update(deleteApp);
+        return admin.database().ref("apps/" + appId + '/tickets/' + ticketId).update(deleteTicket);
     }).then(() => {
         callback(true);
     }).catch(() => {
