@@ -5,7 +5,7 @@ var linebot = require('linebot'); // line串接
 var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
 var admin = require("firebase-admin"); //firebase admin SDK
 var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
-var databaseURL = require("../config/firebaseAdminDatabaseUrl.js");
+var databaseURL = require("../config/firebase_admin_database_url.js");
 
 var agents = require('../models/agents');
 var autoreplies = require('../models/autoreplies');
@@ -18,7 +18,7 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
-var appsMessegenrsChatsMdl = require('../models/appsMessengersChats');
+var appsMessegenrsChatsMdl = require('../models/apps_messengers_chats');
 
 var messageHandle = require('../message_handle');
 var messagingBot = require('../middlewares/bot');
@@ -402,13 +402,13 @@ function init(server) {
             // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
             let channel = vendor.id1;
 
-            let proceed = new Promise((resolve,reject) => {
+            let proceed = new Promise((resolve, reject) => {
                 resolve();
             });
 
             proceed
                 .then(() => {
-                    return new Promise((resolve,reject) => {
+                    return new Promise((resolve, reject) => {
                         let msgObj = {
                             owner: "agent",
                             name: agentName,
@@ -420,43 +420,43 @@ function init(server) {
                 })
                 .then((data) => {
                     let msgObj = data;
-                    return new Promise((resolve,reject) => {
+                    return new Promise((resolve, reject) => {
                         if (msg.includes('/image')) {
                             var src = msg.split(' ')[1];
                             msgObj.message = `<img src="${src}" />`;
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         } else if (msg.includes('/audio')) {
                             var src = msg.split(' ')[1];
                             msgObj.message = `<audio controls="controls">
                                                 <source src="${src}" type="audio/ogg">
                                               </audio>`;
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         } else if (msg.includes('/video')) {
                             var src = msg.split(' ')[1];
                             msgObj.message = `<video controls="controls">
                                                 <source src="${src}" type="video/mp4">
                                               </video> `;
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         } else if (utility.isUrl(msg)) {
                             let urlStr = '<a href=';
                             if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
                                 urlStr += '"http://';
                             }
                             msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         } else if (msg.includes('/sticker')) {
                             msgObj.message = 'Send sticker to user';
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         } else {
                             msgObj.message = msg;
-                            resolve({msgObj, vendor});
+                            resolve({ msgObj, vendor });
                         }
                     });
                 })
                 .then((data) => {
                     let msgObj = data.msgObj;
                     let vendorObj = data.vendor;
-                    return new Promise((resolve,reject) => {
+                    return new Promise((resolve, reject) => {
                         if (vendorObj.id2 === '') {
                             let lineObj = {
                                 channelId: vendorObj.id1,
@@ -488,19 +488,18 @@ function init(server) {
                 })
                 .then((data) => {
                     let msgObj = data;
-                    return new Promise((resolve,reject) => {
-                        chats.insertMessageByMessengerIdAndAppId(appId,receiver,msgObj);
+                    return new Promise((resolve, reject) => {
+                        chats.insertMessageByMessengerIdAndAppId(appId, receiver, msgObj);
                     });
                 })
-                .catch((ERR) => {
-                });
+                .catch((ERR) => {});
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data) => {
             let appId = data.appId;
             let userId = data.userId;
             let profObj = data.data
-            chats.updateProfileByMessengerIdAndAppId(appId,userId,profObj);
+            chats.updateProfileByMessengerIdAndAppId(appId, userId, profObj);
         });
         // 當使用者要看客戶之前的聊天記錄時要向上滾動
         socket.on('upload history msg from front', (data, callback) => {
@@ -751,93 +750,93 @@ function init(server) {
                 message: "undefined_message"
             };
 
-            let proceed = new Promise((resolve,reject) => {
+            let proceed = new Promise((resolve, reject) => {
                 resolve();
             });
 
             proceed
-            .then(() => {
-                return new Promise((resolve,reject) => {
-                    utility.lineMsgType(event, message_type, (msgData) => {
-                        msgObj.message = msgData;
-                        resolve();
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        utility.lineMsgType(event, message_type, (msgData) => {
+                            msgObj.message = msgData;
+                            resolve();
+                        });
                     });
-                });
-            })
-            .then(() => {
-                return new Promise((resolve,reject) => {
-                    appsMessegenrsChatsMdl.findByWebhookId(webhookId, (data) => {
-                        let appId = data;
-                        if(appId === false) {
-                            reject();
-                            return;
-                        }
-                        resolve(appId);
+                })
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        appsMessegenrsChatsMdl.findByWebhookId(webhookId, (data) => {
+                            let appId = data;
+                            if (appId === false) {
+                                reject();
+                                return;
+                            }
+                            resolve(appId);
+                        });
                     });
-                });
-            })
-            .then((data) => {
-                let appId = data.app_id;
-                return new Promise((resolve,reject) => {
-                    appsMessegenrsChatsMdl.insertChats(appId,receiverId,msgObj,(data) => {
-                        let result = data;
-                        if(result === false) {
-                            reject();
-                            return;
-                        }
-                        resolve({appId: appId,userId: receiverId,channelId: channelId});
+                })
+                .then((data) => {
+                    let appId = data.app_id;
+                    return new Promise((resolve, reject) => {
+                        appsMessegenrsChatsMdl.insertChats(appId, receiverId, msgObj, (data) => {
+                            let result = data;
+                            if (result === false) {
+                                reject();
+                                return;
+                            }
+                            resolve({ appId: appId, userId: receiverId, channelId: channelId });
+                        });
                     });
-                });
-            })
-            .then((data) => {
-                let appId = data.appId;
-                let userId = data.userId;
-                let channelId = data.channelId;
-                
-                return new Promise((resolve,reject) => {
-                    let infoObj = {
-                        name: receiver_name,
-                        photo: pictureUrl,
-                        recentChat: nowTime
-                    }
-                    appsMessegenrsChatsMdl.insertMessengerInfo(appId,receiverId,infoObj,(data) => {
-                        let profile = data;
-                        resolve({appId,userId,channelId,profile});
-                    })
-                });
-            })
-            .then((data) => {
-                io.sockets.emit('new message', data);
-                console.log('finished');
-            })
-            .catch((error) => {
-                console.log('Error ' + error)
-            });
+                })
+                .then((data) => {
+                    let appId = data.appId;
+                    let userId = data.userId;
+                    let channelId = data.channelId;
 
-                // if (keywordsReply(msgObj.message) !== -1) {
-                //     console.log('keywordsreply bot replied!');
-                // }
-                // if (autoReply(msgObj.message) !== -1) {
-                //     console.log("autoreply bot replyed!");
-                // }
-                // if (lineTemplateReply(msgObj.message) !== -1) {
-                //     console.log("line template bot replyed!");
-                // }
-                // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
-                //     console.log("linebotdemo bot replyed!");
-                // }
-                // if (surveyReply(msgObj.message) !== -1) {
-                //     console.log("surveyReply bot replyed!");
-                // }
-                // if (appointmentReply(msgObj.message) !== -1) {
-                //     console.log("appointment bot replyed!");
-                // }
-                // if (apiai(msgObj.message) !== -1) {
-                //     console.log("api.ai bot replyed!");
-                // }
-                // else {
-                //   console.log("no auto reply bot work! wait for agent reply");
-                // }
+                    return new Promise((resolve, reject) => {
+                        let infoObj = {
+                            name: receiver_name,
+                            photo: pictureUrl,
+                            recentChat: nowTime
+                        }
+                        appsMessegenrsChatsMdl.insertMessengerInfo(appId, receiverId, infoObj, (data) => {
+                            let profile = data;
+                            resolve({ appId, userId, channelId, profile });
+                        })
+                    });
+                })
+                .then((data) => {
+                    io.sockets.emit('new message', data);
+                    console.log('finished');
+                })
+                .catch((error) => {
+                    console.log('Error ' + error)
+                });
+
+            // if (keywordsReply(msgObj.message) !== -1) {
+            //     console.log('keywordsreply bot replied!');
+            // }
+            // if (autoReply(msgObj.message) !== -1) {
+            //     console.log("autoreply bot replyed!");
+            // }
+            // if (lineTemplateReply(msgObj.message) !== -1) {
+            //     console.log("line template bot replyed!");
+            // }
+            // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
+            //     console.log("linebotdemo bot replyed!");
+            // }
+            // if (surveyReply(msgObj.message) !== -1) {
+            //     console.log("surveyReply bot replyed!");
+            // }
+            // if (appointmentReply(msgObj.message) !== -1) {
+            //     console.log("appointment bot replyed!");
+            // }
+            // if (apiai(msgObj.message) !== -1) {
+            //     console.log("api.ai bot replyed!");
+            // }
+            // else {
+            //   console.log("no auto reply bot work! wait for agent reply");
+            // }
 
             function keywordsReply(msg) {
                 replyMsgObj.name = "KeyWords Reply";

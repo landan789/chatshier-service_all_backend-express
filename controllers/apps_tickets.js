@@ -2,7 +2,7 @@ var API_ERROR = require('../config/apiError');
 var API_SUCCESS = require('../config/apiSuccess');
 var usersMdl = require('../models/users');
 
-var appsTicketsMdl = require('../models/appsTickets');
+var appsTicketsMdl = require('../models/apps_tickets');
 
 var appsTickets = {};
 
@@ -25,7 +25,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.USER_DOES_NOT_EXIST);
                         return;
                     }
                     resolve(user);
@@ -49,7 +49,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
         }).then((apps) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": apps
             };
             res.status(200).json(json);
@@ -90,7 +90,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.USER_DOES_NOT_EXIST);
                         return;
                     }
                     resolve(user);
@@ -115,7 +115,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 appsTicketsMdl.findAppTicketsByAppIds([appId], (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_NOT_EXISTS);
+                        reject(API_ERROR.APP_DOES_NOT_EXIST);
                         return;
                     }
 
@@ -125,7 +125,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
         }).then((apps) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": apps
             };
             res.status(200).json(json);
@@ -175,7 +175,7 @@ appsTickets.getOne = (req, res, next) => {
             usersMdl.findUserByUserId(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
-                    reject(API_ERROR.USER_NOT_EXISTS);
+                    reject(API_ERROR.USER_DOES_NOT_EXIST);
                     return;
                 }
                 resolve(user);
@@ -202,7 +202,7 @@ appsTickets.getOne = (req, res, next) => {
             appsTicketsMdl.findAppTicketByAppIdByTicketId(appId, ticketId, (data) => {
                 var apps = data;
                 if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
-                    reject(API_ERROR.APP_NOT_EXISTS);
+                    reject(API_ERROR.APP_DOES_NOT_EXIST);
                     return;
                 }
 
@@ -213,7 +213,7 @@ appsTickets.getOne = (req, res, next) => {
         var apps = data;
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
             "data": apps
         };
         res.status(200).json(json);
@@ -279,7 +279,7 @@ appsTickets.postOne = (req, res, next) => {
             return new Promise((resolve, reject) => {
                 appsTicketsMdl.insertByAppid(userId, postTikeck, (result) => {
                     if (false === result || null === result || undefined === result) {
-                        reject(API_ERROR.APP_TICKET_FAILED_INSERTING);
+                        reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                         return;
                     }
 
@@ -291,7 +291,7 @@ appsTickets.postOne = (req, res, next) => {
         }).then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
             }
             res.status(200).json(json);
 
@@ -368,7 +368,7 @@ appsTickets.putOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.updateByAppIdByticketId(appId, ticketId, putTikcket, (result) => {
                 if (false === result || null === result || undefined === result) {
-                    reject(API_ERROR.APP_TICKET_FAILED_UPDATING);
+                    reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
                     return;
                 }
 
@@ -380,7 +380,7 @@ appsTickets.putOne = (req, res, next) => {
     }).then(() => {
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
         }
         res.status(200).json(json);
 
@@ -440,7 +440,7 @@ appsTickets.deleteOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.removeByAppIdByTicketId(appId, ticketId, (result) => {
                 if (false === result || null === result || undefined === result) {
-                    reject(API_ERROR.APP_TICKET_FAILED_UPDATING);
+                    reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
                     return;
                 }
 
@@ -452,7 +452,7 @@ appsTickets.deleteOne = (req, res, next) => {
     }).then(() => {
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_REMOVED_SUCCESS.MSG
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
         }
         res.status(200).json(json);
 

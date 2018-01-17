@@ -24,7 +24,7 @@ apps.getAll = (req, res, next) => {
 
                 userMdl.findUserByUserId(userId, (data) => {
                     if (null === data) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.USER_DOES_NOT_EXIST);
                         return;
                     }
                     resolve(data);
@@ -47,7 +47,7 @@ apps.getAll = (req, res, next) => {
         }).then((apps) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": apps
             };
             res.status(200).json(json);
@@ -106,7 +106,7 @@ apps.getOne = (req, res, next) => {
                 appMdl.findByAppId(appId, (data) => {
                     var app = data;
                     if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
-                        reject(API_ERROR.APP_NOT_EXISTS);
+                        reject(API_ERROR.APP_DOES_NOT_EXIST);
                         return;
                     }
 
@@ -117,7 +117,7 @@ apps.getOne = (req, res, next) => {
             var app = data;
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": app
             };
             res.status(200).json(json);
@@ -197,7 +197,7 @@ apps.postOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appMdl.insertByUserid(userId, postApp, (result) => {
                 if (false === result) {
-                    reject(API_ERROR.APP_INSERTED_FAIL);
+                    reject(API_ERROR.APP_FAILED_TO_INSERT);
                     return;
                 }
 
@@ -209,7 +209,7 @@ apps.postOne = (req, res, next) => {
     }).then(() => {
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
         }
         res.status(200).json(json);
 
@@ -301,7 +301,7 @@ apps.putOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appMdl.updateByAppId(appId, putApp, (data) => {
                 if (false === data) {
-                    reject(API_ERROR.APP_UPDATED_FAIL);
+                    reject(API_ERROR.APP_FAILED_UPDATE);
                     return;
                 }
 
@@ -313,7 +313,7 @@ apps.putOne = (req, res, next) => {
     }).then(() => {
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
         }
         res.status(200).json(json);
 
@@ -353,7 +353,7 @@ apps.deleteOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appMdl.removeByAppId(appId, (result) => {
                 if (false === result) {
-                    reject(API_ERROR.APP_REMOVED_FAIL);
+                    reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     return;
                 }
 
@@ -365,7 +365,7 @@ apps.deleteOne = (req, res, next) => {
     }).then(() => {
         var json = {
             "status": 1,
-            "msg": API_SUCCESS.DATA_REMOVED_SUCCESS.MSG
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
         }
         res.status(200).json(json);
 

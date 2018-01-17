@@ -1,0 +1,1 @@
+exports.url = "https://fea-chatshier.firebaseio.com";

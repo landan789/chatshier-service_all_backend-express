@@ -6,7 +6,7 @@ var apps = require('../models/apps');
 var templates = require('../models/templates');
 var autorepliesCtl = require('../controllers/autoreplies');
 var appCtl = require('../controllers/apps');
-var appsTicketsCtl = require('../controllers/appsTickets');
+var appsTicketsCtl = require('../controllers/apps_tickets');
 
 var richmenuCtl = require('../controllers/richmenus')
 var router = express.Router();
@@ -73,7 +73,7 @@ router.get('/templates/users/:userid', (req, res, next) => {
             let result = info !== undefined ? info : {};
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": result
 
             }
@@ -124,7 +124,7 @@ router.post('/templates/users/:userid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
             };
             res.status(200).json(json);
         })
@@ -186,7 +186,7 @@ router.put('/templates/:templateid/users/:userid', (req, res, next) => {
         }).then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
             };
             res.status(200).json(json);
         })
@@ -236,7 +236,7 @@ router.delete('/templates/:templateid/users/:userid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
 
             }
             res.status(200).json(json);
@@ -267,7 +267,7 @@ router.get('/users/:userid', (req, res, next) => {
                 }
                 users.findUserByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_NOT_EXISTS);
+                        reject(API_ERROR.USER_DOES_NOT_EXIST);
                     } else {
                         resolve(data);
                     }
@@ -277,7 +277,7 @@ router.get('/users/:userid', (req, res, next) => {
         .then((data) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": data
             };
             res.status(200).json(json);
@@ -319,7 +319,7 @@ router.put('/users/:userid', (req, res, next) => {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG
             };
             res.status(200).json(json);
         })

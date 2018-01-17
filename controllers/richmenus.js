@@ -15,57 +15,57 @@ richmenus.getAll = (req, res, next) => {
         resolve();
     });
     proceed
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
-                return;
-            }
-            userMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (null === appIds || undefined === appIds) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
-                resolve(appIds);
-            })
-        });
-    })
-    .then((appIds) => {
-        return new Promise((resolve, reject) => {
-            if(false === appIds.includes(appId)){
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                return;
-            }
-            resolve();
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.findAllByAppId(appId, (data) => {
-                if (null === data || '' === data || undefined === data) {
-                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
-                    return;
-                }
-                resolve(data);
+                userMdl.findAppIdsByUserId(userId, (appIds) => {
+                    if (null === appIds || undefined === appIds) {
+                        reject(API_ERROR.APPID_IS_EMPTY);
+                        return;
+                    }
+                    resolve(appIds);
+                })
             });
-        });
-    })
-    .then((richmenus) => {
-        let result = richmenus !== undefined ? richmenus : {};
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-            "data": result
-        }
-        res.status(200).json(json);
-    }).catch((ERR) => {
-        var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    })
+        })
+        .then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (false === appIds.includes(appId)) {
+                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    return;
+                }
+                resolve();
+            });
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.findAllByAppId(appId, (data) => {
+                    if (null === data || '' === data || undefined === data) {
+                        reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                        return;
+                    }
+                    resolve(data);
+                });
+            });
+        })
+        .then((richmenus) => {
+            let result = richmenus !== undefined ? richmenus : {};
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                "data": result
+            }
+            res.status(200).json(json);
+        }).catch((ERR) => {
+            var json = {
+                "status": 0,
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
+        })
 
 }
 
@@ -74,62 +74,62 @@ richmenus.get = (req, res, next) => {
     var userId = req.params.userid;
     var richmenuId = req.params.richmenuid;
     var appId = req.params.appid;
-    
+
     var proceed = new Promise((resolve, reject) => {
         resolve();
     });
     proceed
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
-                return;
-            }
-            userMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (null === appIds || undefined === appIds) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_IS_EMPTY);
                     return;
                 }
-                resolve(appIds);
-            })
-        });
-    })
-    .then((appIds) => {
-        return new Promise((resolve, reject) => {
-            if(false === appIds.includes(appId)){
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                return;
-            }
-            resolve();
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
-                if (null === data || undefined === data || '' === data) {
-                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
-                    return;
-                }
-                resolve(data);
+                userMdl.findAppIdsByUserId(userId, (appIds) => {
+                    if (null === appIds || undefined === appIds) {
+                        reject(API_ERROR.APPID_IS_EMPTY);
+                        return;
+                    }
+                    resolve(appIds);
+                })
             });
-        });
-    })
-    .then((richmenu) => {
-        let result = richmenu !== undefined ? richmenu : {};
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
-            "data": result
-        }
-        res.status(200).json(json);
-    }).catch((ERR) => {
-        var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    })
+        })
+        .then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (false === appIds.includes(appId)) {
+                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    return;
+                }
+                resolve();
+            });
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                    if (null === data || undefined === data || '' === data) {
+                        reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                        return;
+                    }
+                    resolve(data);
+                });
+            });
+        })
+        .then((richmenu) => {
+            let result = richmenu !== undefined ? richmenu : {};
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                "data": result
+            }
+            res.status(200).json(json);
+        }).catch((ERR) => {
+            var json = {
+                "status": 0,
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
+        })
 }
 
 // insert
@@ -155,56 +155,56 @@ richmenus.post = (req, res, next) => {
         resolve();
     });
     proceed
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
-                return;
-            }
-            userMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (null === appIds || undefined === appIds) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
-                } else {
-                    resolve(appIds);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_IS_EMPTY);
+                    return;
                 }
-            })
-        });
-    })
-    .then((appIds) => {
-        return new Promise((resolve, reject) => {
-            if(false === appIds.includes(appId)){
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                return;
-            }
-            resolve();
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.insertByAppId(appId, postRichmenu, (result) => {
-                if( false === result){
-                    reject(API_ERROR.RICHMENU_INSERT_FAIL);
+                userMdl.findAppIdsByUserId(userId, (appIds) => {
+                    if (null === appIds || undefined === appIds) {
+                        reject(API_ERROR.APPID_IS_EMPTY);
+                    } else {
+                        resolve(appIds);
+                    }
+                })
+            });
+        })
+        .then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (false === appIds.includes(appId)) {
+                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.insertByAppId(appId, postRichmenu, (result) => {
+                    if (false === result) {
+                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
+                        return;
+                    }
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
+            };
+            res.status(200).json(json);
+        })
+        .catch((ERR) => {
+            var json = {
+                "status": 0,
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
         });
-    })
-    .then(() => {
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG
-        };
-        res.status(200).json(json);
-    })
-    .catch((ERR) => {
-        var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    });
 }
 
 //update
@@ -231,66 +231,66 @@ richmenus.put = (req, res, next) => {
         resolve();
     });
     proceed
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
-                return;
-            }
-            userMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (null === appIds || undefined === appIds) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
-                } else {
-                    resolve(appIds);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_IS_EMPTY);
+                    return;
                 }
-            })
-        });
-    })
-    .then((appIds) => {
-        return new Promise((resolve, reject) => {
-            if(false === appIds.includes(appId)){
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                return;
-            }
-            resolve();
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
-                if (null === data || undefined === data || '' === data || 1 === data.delete) {
-                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                userMdl.findAppIdsByUserId(userId, (appIds) => {
+                    if (null === appIds || undefined === appIds) {
+                        reject(API_ERROR.APPID_IS_EMPTY);
+                    } else {
+                        resolve(appIds);
+                    }
+                })
+            });
+        })
+        .then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (false === appIds.includes(appId)) {
+                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.updateByAppIdByRichmenuId(appId, richmenuId, dataObj, (result) => {
-                if( false === result){
-                    reject(API_ERROR.RICHMENU_UPDATE_FAIL);
-                }
-                resolve();
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                    if (null === data || undefined === data || '' === data || 1 === data.delete) {
+                        reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                        return;
+                    }
+                    resolve();
+                });
             });
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.updateByAppIdByRichmenuId(appId, richmenuId, dataObj, (result) => {
+                    if (false === result) {
+                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                    }
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+            };
+            res.status(200).json(json);
+        })
+        .catch((ERR) => {
+            var json = {
+                "status": 0,
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
         });
-    })
-    .then(() => {
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
-        };
-        res.status(200).json(json);
-    })
-    .catch((ERR) => {
-        var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    });
 }
 
 //remove
@@ -299,72 +299,72 @@ richmenus.delete = (req, res, next) => {
     var userId = req.params.userid;
     var richmenuId = req.params.richmenuid;
     var appId = req.params.appid;
-    
+
     var proceed = new Promise((resolve, reject) => {
         resolve();
-    }); 
+    });
 
     proceed
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
-                return;
-            }
-            userMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (null === appIds || undefined === appIds) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
-                } else {
-                    resolve(appIds);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_IS_EMPTY);
+                    return;
                 }
-            })
-        });
-    })
-    .then((appIds) => {
-        return new Promise((resolve, reject) => {
-            if(false === appIds.includes(appId)){
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
-                return;
-            }
-            resolve();
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
-                if (null === data || undefined === data || '' === data) {
-                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                userMdl.findAppIdsByUserId(userId, (appIds) => {
+                    if (null === appIds || undefined === appIds) {
+                        reject(API_ERROR.APPID_IS_EMPTY);
+                    } else {
+                        resolve(appIds);
+                    }
+                })
+            });
+        })
+        .then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (false === appIds.includes(appId)) {
+                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
-        });
-    })
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenuMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
-                if( false === result){
-                    reject(API_ERROR.RICHMENU_DELETE_FAIL);
-                }
-                resolve();
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                    if (null === data || undefined === data || '' === data) {
+                        reject(API_ERROR.APP_RICHMENU_DOES_NOT_EXIST);
+                        return;
+                    }
+                    resolve();
+                });
             });
+        })
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenuMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
+                    if (false === result) {
+                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
+                    }
+                    resolve();
+                });
+            });
+        })
+        .then(() => {
+            var json = {
+                "status": 1,
+                "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
+            };
+            res.status(200).json(json);
+        })
+        .catch((ERR) => {
+            var json = {
+                "status": 0,
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+            res.status(403).json(json);
         });
-    })
-    .then(() => {
-        var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
-        };
-        res.status(200).json(json);
-    })
-    .catch((ERR) => {
-        var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
-        };
-        res.status(403).json(json);
-    });
 }
 
 module.exports = richmenus;

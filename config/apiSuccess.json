@@ -1,7 +1,6 @@
 {
-    "DATA_UPDATED_SUCCESS": { "MSG": "data updated success!" },
-    "DATA_INSERTED_SUCCESS": { "MSG": "data inserted success!" },
-    "DATA_DELETED_SUCCESS": { "MSG": "data deleted success!" },
-    "DATA_FINDED_SUCCESS": { "MSG": "data finded success!" },
-    "DATA_REMOVED_SUCCESS": { "MSG": "data removed success!" }
+    "DATA_SUCCEEDED_TO_UPDATE": { "MSG": "data succeeded to update!" },
+    "DATA_SUCCEEDED_TO_INSERT": { "MSG": "data succeeded to insert!" },
+    "DATA_SUCCEEDED_TO_FIND": { "MSG": "data succeeded to find!" },
+    "DATA_SUCCEEDED_TO_REMOVE": { "MSG": "dat succeeded to remove!" }
 }

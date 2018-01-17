@@ -24,7 +24,7 @@ autoreplies.getAll = function(req, res, next) {
             let apps = data;
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": apps
             };
             res.status(200).json(json);
@@ -66,7 +66,7 @@ autoreplies.get = function(req, res, next) {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                autorepliesMdl.findOne(appId,autoreplyId,(data) => {
+                autorepliesMdl.findOne(appId, autoreplyId, (data) => {
                     resolve(data);
                 });
             });
@@ -74,7 +74,7 @@ autoreplies.get = function(req, res, next) {
         .then((data) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_FINDED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 "data": data
             };
             res.status(200).json(json);
@@ -131,7 +131,7 @@ autoreplies.post = function(req, res, next) {
         .then((data) => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_INSERTED_SUCCESS.MSG,
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 "data": data
             };
             res.status(200).json(json);
@@ -190,7 +190,7 @@ autoreplies.put = function(req, res, next) {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_UPDATED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
             };
             res.status(200).json(json);
         })
@@ -229,7 +229,7 @@ autoreplies.delete = function(req, res, next) {
         .then((data) => {
             return new Promise((resolve, reject) => {
                 autorepliesMdl.removeByAutoreplyId(appId, autoreplyId, (data) => {
-                    if(data === false) {
+                    if (data === false) {
                         reject('刪除失敗');
                         return;
                     }
