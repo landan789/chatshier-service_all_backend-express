@@ -50,5 +50,7 @@ router.get('/analyze', function(req, res, next) {
 router.get('/template', function(req, res, next) {
   res.render('template', { title: '自訂Line Template' });
 });
-
+router.get('/richmenus', function(req, res, next) {
+  res.render('richmenus', { title: '圖文選單' });
+});
 module.exports = router;

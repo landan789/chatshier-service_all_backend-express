@@ -38,12 +38,12 @@ richmenus.findAllByAppId = (appId, callback) => {
 }
 
 richmenus.findOneByAppIdByRichmenuId = (appId, richmenuId, callback) => {
-    var richMenu = {};
+    var richmenu = {};
     admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).once('value', snap => {
         let data = snap.val();
         let key = snap.key;
-        richMenu[key] = data;
-        callback(richMenu);
+        richmenu[key] = data;
+        callback(richmenu);
     });
 }
 
@@ -66,8 +66,11 @@ richmenus.insertByAppId = (appId, postRichmenu, callback) => {
         });
     })
     .then((richmenu) => {
-        let richmenusId = admin.database().ref('apps/' + appId + '/richmenus').push().key;
-        return admin.database().ref('apps/' + appId + '/richmenus/' + richmenusId).update(richmenu);
+        return admin.database().ref('apps/' + appId + '/richmenus').push()
+        .then((ref) => {
+            var richmenusId = ref.key;
+            return admin.database().ref('apps/' + appId + '/richmenus/' + richmenusId).update(richmenu);
+        })
     })
     .then(() => {
         callback(true);

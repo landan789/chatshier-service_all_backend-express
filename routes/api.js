@@ -24,7 +24,9 @@ router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
 router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
-router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getAll);
+//圖文選單
+router.get('/richmenus/users/:userid', richmenuCtl.getByUserId);
+router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getByAppIdByuserId);
 router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);
 router.post('/richmenus/apps/:appid/users/:userid', richmenuCtl.post);
 router.put('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.put);
