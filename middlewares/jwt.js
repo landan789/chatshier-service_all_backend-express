@@ -15,7 +15,7 @@ jwt.verify = (req, res, next) => {
     procced
         .then(() => {
             if ('' === idToken || undefined === idToken || null === idToken) {
-                return Promise.reject(API_ERROR.USER_IS_NOT_AUTHORIZED);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_AUTHORIZED);
             }
             return admin.auth().verifyIdToken(idToken);
         }).then((tokenObj) => {
@@ -26,7 +26,7 @@ jwt.verify = (req, res, next) => {
                 var uid = req.uid;
                 var userId = req.params.userid;
                 if (uid !== userId) {
-                    reject(API_ERROR.USER_IS_NOT_PERMITTED);
+                    reject(API_ERROR.USER_WAS_NOT_PERMITTED);
                     return;
                 }
                 resolve();

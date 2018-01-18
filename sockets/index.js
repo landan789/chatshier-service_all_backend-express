@@ -117,7 +117,7 @@ function init(server) {
                                     chatTimeCount: 1,
                                     unRead: 1,
                                 };
-                                let msgObj =  {
+                                let msgObj = {
                                     name: fb_user_name,
                                     message: fbMsg, // 訊息
                                     owner: "user", // 身分
@@ -165,12 +165,12 @@ function init(server) {
                 .then(() => {
                     return new Promise((resolve, reject) => {
                         if ('' === userId || null === userId) {
-                            reject(API_ERROR.USERID_IS_EMPTY);
+                            reject(API_ERROR.USERID_WAS_EMPTY);
                             return;
                         }
                         users.findAppIdsByUserId(userId, (appIds) => {
                             if (null === appIds || undefined === appIds) {
-                                reject(API_ERROR.APPID_IS_EMPTY);
+                                reject(API_ERROR.APPID_WAS_EMPTY);
                             } else {
                                 resolve(appIds);
                             }
@@ -233,7 +233,7 @@ function init(server) {
                         appMdl.findAppsByAppIds(appIds, (data) => {
                             var apps = data;
                             if (null === apps || '' === apps || undefined === apps) {
-                                reject(API_ERROR.APPID_IS_EMPTY);
+                                reject(API_ERROR.APPID_WAS_EMPTY);
                             }
                             resolve(apps);
                         });
@@ -428,8 +428,8 @@ function init(server) {
                 })
                 .then((data) => {
                     let msgObj = data;
-                    return new Promise((resolve,reject) => {
-                        appsMessegenrsChatsMdl.insertMessengerChats(appId,receiver,msgObj,() => {
+                    return new Promise((resolve, reject) => {
+                        appsMessegenrsChatsMdl.insertMessengerChats(appId, receiver, msgObj, () => {
                             console.log('agent sent message');
                         });
                     });
@@ -471,7 +471,7 @@ function init(server) {
         socket.on('read message', data => {
             let appId = data.appId;
             let userId = data.msgId;
-            appsMessegenrsChatsMdl.updateUnreadStatus(appId,userId);
+            appsMessegenrsChatsMdl.updateUnreadStatus(appId, userId);
         });
         /*===聊天室end===*/
 
@@ -669,16 +669,17 @@ function init(server) {
             io.sockets.emit('new message', data);
         });
     }
+
     function facebookMessage(msgObj, chatObj, webhookId, userId, pageId) {
         let proceed = new Promise((resolve, reject) => {
             resolve();
         });
 
         proceed.then(() => {
-            return new Promise((resolve,reject) => {
+            return new Promise((resolve, reject) => {
                 appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
                     let appId = data;
-                    if(appId === false) {
+                    if (appId === false) {
                         reject();
                         return;
                     }
@@ -687,23 +688,23 @@ function init(server) {
             });
         }).then((data) => {
             let appId = data.app_id;
-            return new Promise((resolve,reject) => {
-                appsMessegenrsChatsMdl.insertMessengerChats(appId,userId,msgObj,(data) => {
+            return new Promise((resolve, reject) => {
+                appsMessegenrsChatsMdl.insertMessengerChats(appId, userId, msgObj, (data) => {
                     let result = data;
-                    if(result === false) {
+                    if (result === false) {
                         reject();
                         return;
                     }
-                    resolve({appId: appId,userId: userId,channelId: pageId});
+                    resolve({ appId: appId, userId: userId, channelId: pageId });
                 });
             });
         }).then((data) => {
             let appId = data.appId;
             let channelId = data.channelId;
-            return new Promise((resolve,reject) => {
-                appsMessegenrsChatsMdl.updateMessenger(appId,userId,chatObj,(data) => {
+            return new Promise((resolve, reject) => {
+                appsMessegenrsChatsMdl.updateMessenger(appId, userId, chatObj, (data) => {
                     let messengers = data;
-                    resolve({appId,userId,channelId,messengers});
+                    resolve({ appId, userId, channelId, messengers });
                 })
             });
         }).then((data) => {
@@ -767,17 +768,17 @@ function init(server) {
             });
 
             proceed.then(() => {
-                return new Promise((resolve,reject) => {
+                return new Promise((resolve, reject) => {
                     utility.lineMsgType(event, message_type, (msgData) => {
                         msgObj.message = msgData;
                         resolve();
                     });
                 });
             }).then(() => {
-                return new Promise((resolve,reject) => {
+                return new Promise((resolve, reject) => {
                     appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
                         let appId = data;
-                        if(appId === false) {
+                        if (appId === false) {
                             reject();
                             return;
                         }
@@ -786,32 +787,32 @@ function init(server) {
                 });
             }).then((data) => {
                 let appId = data.app_id;
-                return new Promise((resolve,reject) => {
-                    appsMessegenrsChatsMdl.insertMessengerChats(appId,receiverId,msgObj,(data) => {
-                        let result = data;
-                        if(result === false) {
-                            reject();
-                            return;
-                        }
-                        appsMessegenrsChatsMdl.insertMessengerInfo(appId, receiverId, infoObj, (data) => {
-                            let profile = data;
-                            resolve({ appId, userId, channelId, profile });
-                        })
+                return new Promise((resolve, reject) => {
+                        appsMessegenrsChatsMdl.insertMessengerChats(appId, receiverId, msgObj, (data) => {
+                            let result = data;
+                            if (result === false) {
+                                reject();
+                                return;
+                            }
+                            appsMessegenrsChatsMdl.insertMessengerInfo(appId, receiverId, infoObj, (data) => {
+                                let profile = data;
+                                resolve({ appId, userId, channelId, profile });
+                            })
+                        });
+                    })
+                    .then((data) => {
+                        io.sockets.emit('new message', data);
+                        console.log('finished');
+                    })
+                    .catch((error) => {
+                        console.log('Error ' + error)
                     });
-                })
-                .then((data) => {
-                    io.sockets.emit('new message', data);
-                    console.log('finished');
-                })
-                .catch((error) => {
-                    console.log('Error ' + error)
-                });
             }).then((data) => {
                 let appId = data.appId;
                 let userId = data.userId;
                 let channelId = data.channelId;
-                
-                return new Promise((resolve,reject) => {
+
+                return new Promise((resolve, reject) => {
                     let chatObj = {
                         name: receiver_name,
                         photo: pictureUrl,
@@ -823,7 +824,7 @@ function init(server) {
                     }
                     appsMessegenrsChatsMdl.updateMessenger(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
-                        resolve({appId,userId,channelId,messengers});
+                        resolve({ appId, userId, channelId, messengers });
                     })
                 });
             }).then((data) => {

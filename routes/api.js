@@ -48,12 +48,12 @@ router.get('/templates/users/:userid', (req, res, next) => {
 
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_IS_EMPTY)
+                        reject(API_ERROR.APPID_WAS_EMPTY)
                     } else
                         resolve(data);
                 });
@@ -106,12 +106,12 @@ router.post('/templates/users/:userid', (req, res, next) => {
             return new Promise((resolve, reject) => {
 
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_IS_EMPTY);
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                     } else
                         resolve(data);
                 });
@@ -161,12 +161,12 @@ router.put('/templates/:templateid/users/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (Data) => {
                     if (Data === null) {
-                        reject(API_ERROR.APPID_IS_EMPTY);
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                     } else {
                         resolve(Data);
                     }
@@ -215,12 +215,12 @@ router.delete('/templates/:templateid/users/:userid', (req, res, next) => {
     proceed.then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.findAppIdsByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.APPID_IS_EMPTY);
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                     } else
                         resolve(data);
                 })
@@ -269,7 +269,7 @@ router.get('/users/:userid', (req, res, next) => {
                 }
                 users.findUserByUserId(userId, (data) => {
                     if (data === null) {
-                        reject(API_ERROR.USER_DOES_NOT_EXIST);
+                        reject(API_ERROR.USER_DID_NOT_EXIST);
                     } else {
                         resolve(data);
                     }

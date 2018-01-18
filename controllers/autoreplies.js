@@ -54,7 +54,7 @@ autoreplies.get = function(req, res, next) {
                 userMdl.findAppIdsByUserId(userId, (data) => {
                     var appIds = data;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
 
@@ -111,7 +111,7 @@ autoreplies.post = function(req, res, next) {
                 userMdl.findAppIdsByUserId(userId, (data) => {
                     var appIds = data;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
 
@@ -170,7 +170,7 @@ autoreplies.put = function(req, res, next) {
                 userMdl.findAppIdsByUserId(userId, (data) => {
                     var appIds = data;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
 
@@ -219,7 +219,7 @@ autoreplies.delete = function(req, res, next) {
                 userMdl.findAppIdsByUserId(userId, (data) => {
                     var appIds = data;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
                     resolve();

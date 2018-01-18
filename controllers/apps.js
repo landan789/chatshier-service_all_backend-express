@@ -18,13 +18,13 @@ apps.getAll = (req, res, next) => {
                 var userId = req.params.userid;
 
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
                 userMdl.findUserByUserId(userId, (data) => {
                     if (null === data) {
-                        reject(API_ERROR.USER_DOES_NOT_EXIST);
+                        reject(API_ERROR.USER_DID_NOT_EXIST);
                         return;
                     }
                     resolve(data);
@@ -37,7 +37,7 @@ apps.getAll = (req, res, next) => {
                 appMdl.findAppsByAppIds(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
-                        reject(API_ERROR.APPID_IS_EMPTY);
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                     }
 
                     resolve(apps);
@@ -76,12 +76,12 @@ apps.getOne = (req, res, next) => {
 
 
                 if ('' === appId || null === appId) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
+                    reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 }
 
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
@@ -92,7 +92,7 @@ apps.getOne = (req, res, next) => {
                 userMdl.findAppIdsByUserId(userId, (data) => {
                     var appIds = data;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
 
@@ -106,7 +106,7 @@ apps.getOne = (req, res, next) => {
                 appMdl.findByAppId(appId, (data) => {
                     var app = data;
                     if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
-                        reject(API_ERROR.APP_DOES_NOT_EXIST);
+                        reject(API_ERROR.APP_DID_NOT_EXIST);
                         return;
                     }
 
@@ -161,17 +161,17 @@ apps.postOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
+                reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
 
             if ('' === id1 || null === id1 || undefined === id1) {
-                reject(API_ERROR.ID1_IS_EMPTY);
+                reject(API_ERROR.ID1_WAS_EMPTY);
                 return;
             }
 
             if ('' === name || null === name || undefined === name) {
-                reject(API_ERROR.NAME_IS_EMPTY);
+                reject(API_ERROR.NAME_WAS_EMPTY);
                 return;
             }
 
@@ -181,12 +181,12 @@ apps.postOne = (req, res, next) => {
             }
 
             if ('' === token1 || null === token1 || undefined === token1) {
-                reject(API_ERROR.TOKEN1_IS_EMPTY);
+                reject(API_ERROR.TOKEN1_WAS_EMPTY);
                 return;
             }
 
             if ('' === type || null === type || undefined === type) {
-                reject(API_ERROR.TYPE_IS_EMPTY);
+                reject(API_ERROR.TYPE_WAS_EMPTY);
                 return;
             }
 
@@ -256,12 +256,12 @@ apps.putOne = (req, res, next) => {
             }
 
             if ('' === id1 || null === id1 || undefined === id1) {
-                reject(API_ERROR.ID1_IS_EMPTY);
+                reject(API_ERROR.ID1_WAS_EMPTY);
                 return;
             }
 
             if ('' === name || null === name || undefined === name) {
-                reject(API_ERROR.NAME_IS_EMPTY);
+                reject(API_ERROR.NAME_WAS_EMPTY);
                 return;
             }
 
@@ -271,12 +271,12 @@ apps.putOne = (req, res, next) => {
             }
 
             if ('' === token1 || null === token1 || undefined === token1) {
-                reject(API_ERROR.TOKEN1_IS_EMPTY);
+                reject(API_ERROR.TOKEN1_WAS_EMPTY);
                 return;
             }
 
             if ('' === type || null === type || undefined === type) {
-                reject(API_ERROR.TYPE_IS_EMPTY);
+                reject(API_ERROR.TYPE_WAS_EMPTY);
                 return;
             }
 
@@ -288,7 +288,7 @@ apps.putOne = (req, res, next) => {
             userMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
 
@@ -340,7 +340,7 @@ apps.deleteOne = (req, res, next) => {
             userMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
 

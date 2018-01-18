@@ -18,14 +18,14 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 var userId = req.params.userid;
 
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_DOES_NOT_EXIST);
+                        reject(API_ERROR.USER_DID_NOT_EXIST);
                         return;
                     }
                     resolve(user);
@@ -39,7 +39,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 appsTicketsMdl.findAppTicketsByAppIds(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_DOES_NOT_EXIST);
+                        reject(API_ERROR.APP_DID_NOT_EXIST);
                         return;
                     }
 
@@ -78,20 +78,20 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 var appId = req.params.appid;
 
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
 
                 if ('' === appId || null === appId || undefined === appId) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
+                    reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 }
 
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_DOES_NOT_EXIST);
+                        reject(API_ERROR.USER_DID_NOT_EXIST);
                         return;
                     }
                     resolve(user);
@@ -103,7 +103,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
             var appId = req.params.appid;
             return new Promise((resolve, reject) => {
                 if (!appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
@@ -116,7 +116,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 appsTicketsMdl.findAppTicketsByAppIds([appId], (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_DOES_NOT_EXIST);
+                        reject(API_ERROR.APP_DID_NOT_EXIST);
                         return;
                     }
 
@@ -148,24 +148,22 @@ appsTickets.getOne = (req, res, next) => {
         resolve();
     });
 
-    console.log('get');
-
     proceed.then(() => {
         return new Promise((resolve, reject) => {
 
 
             if ('' === appId || null === appId || undefined === appId) {
-                reject(API_ERROR.APPID_IS_EMPTY);
+                reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
             }
 
             if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
+                reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
 
             if ('' === ticketId || null === ticketId || undefined === ticketId) {
-                reject(API_ERROR.TICKETID_IS_EMPTY);
+                reject(API_ERROR.TICKETID_WAS_EMPTY);
                 return;
             }
 
@@ -176,7 +174,7 @@ appsTickets.getOne = (req, res, next) => {
             usersMdl.findUserByUserId(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
-                    reject(API_ERROR.USER_DOES_NOT_EXIST);
+                    reject(API_ERROR.USER_DID_NOT_EXIST);
                     return;
                 }
                 resolve(user);
@@ -189,7 +187,7 @@ appsTickets.getOne = (req, res, next) => {
         var appId = req.params.appid;
         return new Promise((resolve, reject) => {
             if (!appIds.includes(appId)) {
-                reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                 return;
             }
             resolve();
@@ -203,7 +201,7 @@ appsTickets.getOne = (req, res, next) => {
             appsTicketsMdl.findAppTicketByAppIdByTicketId(appId, ticketId, (data) => {
                 var apps = data;
                 if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
-                    reject(API_ERROR.APP_DOES_NOT_EXIST);
+                    reject(API_ERROR.APP_DID_NOT_EXIST);
                     return;
                 }
 
@@ -264,12 +262,12 @@ appsTickets.postOne = (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_IS_EMPTY);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
 
                 if ('' === appId || null === appId || undefined === appId) {
-                    reject(API_ERROR.APPID_IS_EMPTY);
+                    reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 }
 
@@ -339,12 +337,12 @@ appsTickets.putOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
+                reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
 
             if ('' === appId || null === appId || undefined === appId) {
-                reject(API_ERROR.APPID_IS_EMPTY);
+                reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
             }
 
@@ -356,7 +354,7 @@ appsTickets.putOne = (req, res, next) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
 
@@ -411,12 +409,12 @@ appsTickets.deleteOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_IS_EMPTY);
+                reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
 
             if ('' === appId || null === appId || undefined === appId) {
-                reject(API_ERROR.APPID_IS_EMPTY);
+                reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
             }
 
@@ -428,7 +426,7 @@ appsTickets.deleteOne = (req, res, next) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
 
