@@ -42,6 +42,9 @@ function init(server) {
     var io = socketio(server);
     var addFriendBroadcastMsg; // 加好友參數
     var bot = []; // LINE bot設定
+    var lbot;
+    var userId;
+    let appData = [];
     var channelIds = [-1, -1, -1];
     var overview = {};
 
@@ -76,7 +79,7 @@ function init(server) {
                             channelAccessToken: appInfo.token1,
                             webhookId: webhookId
                         };
-                        var lbot = linebot(line);
+                        lbot = linebot(line);
                         lbot.on('message', bot_on_message);
                         lbot.on('follow', bot_on_follow);
                         req.parser = lbot.parser();
@@ -153,7 +156,50 @@ function init(server) {
         console.log('connected');
         /*===聊天室start===*/
         socket.on('request chat init data', (frontData, callback) => {
-            let userId = frontData.id;
+            userId = frontData.id;
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+
+            proceed
+                .then(() => {
+                    return new Promise((resolve, reject) => {
+                        if ('' === userId || null === userId) {
+                            reject(API_ERROR.USERID_IS_EMPTY);
+                            return;
+                        }
+                        users.findAppIdsByUserId(userId, (appIds) => {
+                            if (null === appIds || undefined === appIds) {
+                                reject(API_ERROR.APPID_IS_EMPTY);
+                            } else {
+                                resolve(appIds);
+                            }
+                        })
+                    });
+                })
+                .then((appIds) => {
+                    return new Promise((resolve, reject) => {
+                        appMdl.findAppsByAppIds(appIds, (data) => {
+                            if (null === data || undefined === data || "" === data) {
+                                reject();
+                                return;
+                            }
+                            resolve(data);
+                            console.log(292);
+                            console.log(data);
+                            appData = [];
+                            for (let i in appIds) {
+                                appData[i] = {
+                                    id: data[appIds[i]].id1,
+                                    token: data[appIds[i]].token1,
+                                    secret: data[appIds[i]].secret,
+                                    type: data[appIds[i]].type
+                                };
+                            }
+
+                        })
+                    })
+                })
             let allObj = {};
             let loadTags = new Promise((resolve, reject) => {
                 requestTags((data) => {
@@ -685,6 +731,36 @@ function init(server) {
                 time: nowTime,
                 message: "undefined_message"
             };
+            //  ===================  訊息類別 ==================== //
+            utility.lineMsgType(event, message_type, (msgData) => {
+                    msgObj.message = msgData;
+                    pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
+                    if (keywordsReply(msgObj.message) !== -1) {
+                        console.log('keywordsreply bot replied!');
+
+                    }
+                })
+                // if (autoReply(msgObj.message) !== -1) {
+                //     console.log("autoreply bot replyed!");
+                // }
+                // if (lineTemplateReply(msgObj.message) !== -1) {
+                //     console.log("line template bot replyed!");
+                // }
+                // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
+                //     console.log("linebotdemo bot replyed!");
+                // }
+                // if (surveyReply(msgObj.message) !== -1) {
+                //     console.log("surveyReply bot replyed!");
+                // }
+                // if (appointmentReply(msgObj.message) !== -1) {
+                //     console.log("appointment bot replyed!");
+                // }
+                // if (apiai(msgObj.message) !== -1) {
+                //     console.log("api.ai bot replyed!");
+                // }
+                // else {
+                //   console.log("no auto reply bot work! wait for agent reply");
+                // }
 
             let proceed = new Promise((resolve, reject) => {
                 resolve();
@@ -784,12 +860,16 @@ function init(server) {
             // }
 
             function keywordsReply(msg) {
-                replyMsgObj.name = "KeyWords Reply";
+
+                msgObj.name = "KeyWords Reply";
                 let sent = false;
                 keywords.get(function(keywordData) {
                     for (let i in keywordData) {
                         for (let j in keywordData[i]) {
                             let thisData = keywordData[i][j];
+                            console.log(788)
+                            console.log(thisData)
+                            console.log(thisData.taskText)
                             if (thisData.taskCate == "開放") {
                                 let keywords = thisData.taskSubK ? JSON.parse(JSON.stringify(thisData.taskSubK)) : [];
                                 keywords.push(thisData.taskMainK);
@@ -797,8 +877,8 @@ function init(server) {
                                     if (msg.trim().toLowerCase() == word.trim().toLowerCase()) {
                                         sent = true;
                                         for (let k in thisData.taskText) {
-                                            replyMsgObj.message = thisData.taskText[k];
-                                            pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+                                            msgObj.message = thisData.taskSubK[k];
+                                            pushAndEmit(msgObj, null, channelId, receiverId, 1);
                                             send_to_Line(thisData.taskText[k], receiverId, channelId);
                                         }
                                     }
@@ -810,6 +890,50 @@ function init(server) {
                 });
             }
 
+            function send_to_Line(msg, receiver, chanId) {
+                let message = {};
+                if (msg.startsWith('/image')) {
+                    let link = msg.substr(7);
+                    message = {
+                        type: "image",
+                        originalContentUrl: link,
+                        previewImageUrl: link
+                    };
+                } else if (msg.startsWith('/audio')) {
+                    let link = msg.substr(7);
+                    message = {
+                        type: "audio",
+                        originalContentUrl: link,
+                        duration: 240000
+                    };
+                } else if (msg.startsWith('/video')) {
+                    let link = msg.substr(7);
+                    message = {
+                        type: "video",
+                        originalContentUrl: link,
+                        previewImageUrl: "https://tinichats.com/assets/images/tab.png"
+                    };
+                } else if (msg.startsWith('/sticker')) {
+                    message = {
+                        type: "sticker",
+                        packageId: parseInt(msg.substr(msg.indexOf(' '))),
+                        stickerId: parseInt(msg.substr(msg.lastIndexOf(' ')))
+                    };
+                } else if (msg.startsWith('/template')) {
+                    let obj = msg.substr(msg.indexOf(' ') + 1);
+                    message = JSON.parse(obj);
+                } else {
+                    message = {
+                        type: "text",
+                        text: msg
+                    };
+                }
+                for (let i in appData) {
+                    if (chanId === appData[i].id) {
+                        lbot.push(receiver, message);
+                    }
+                }
+            }
             // function autoReply(msg) {
             //     replyMsgObj.name = "Auto Reply";
             //     sent = false;
