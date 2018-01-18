@@ -264,7 +264,7 @@ router.get('/users/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.findUserByUserId(userId, (data) => {
@@ -311,7 +311,7 @@ router.put('/users/:userid', (req, res, next) => {
         .then(() => {
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_NOT_EXISTS);
+                    reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
                 users.updateUserByUserId(userId, userObj);

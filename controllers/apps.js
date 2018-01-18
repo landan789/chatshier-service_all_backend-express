@@ -176,7 +176,7 @@ apps.postOne = (req, res, next) => {
             }
 
             if ('' === secret || null === secret || undefined === secret) {
-                reject(API_ERROR.SECRET_IS_EMPTY);
+                reject(API_ERROR.TYPE_WAS_EMPTY);
                 return;
             }
 
@@ -251,7 +251,7 @@ apps.putOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_NOT_EXISTS);
+                reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
 
@@ -266,7 +266,7 @@ apps.putOne = (req, res, next) => {
             }
 
             if ('' === secret || null === secret || undefined === secret) {
-                reject(API_ERROR.SECRET_IS_EMPTY);
+                reject(API_ERROR.TYPE_WAS_EMPTY);
                 return;
             }
 
