@@ -44,33 +44,10 @@ function init(server) {
     var bot = []; // LINE bot設定
     var channelIds = [-1, -1, -1];
     var overview = {};
-    var linebotParser = [
-        function() {
-            console.log("Enter channel_1 information first");
-        },
-        function() {
-            console.log("Enter channel_2 information first");
-        }
-    ];
+
     app.get('/loading', (req, res) => {
         res.send(303);
     });
-    //==============FACEBOOK MESSAGE==============
-    // app.post('/webhook/:webhookId', messagingBot.parse, (req, res, next) => {
-    //     if (true === req.verify || true === req.noWebhookId) {
-    //         next();
-    //         return;
-    //     }
-    //     var parser = req.parser;
-    //     parser(req, res, next);
-    // }, (req, res, next) => {
-    //     if (true === req.noWebhookId) {
-    //         res.sendStatus(404);
-    //         return;
-    //     }
-    //     res.sendStatus(200);
-    // }); //app.post
-    //==============FACEBOOK MESSAGE END==============
 
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
@@ -125,23 +102,31 @@ function init(server) {
 
                         fbbot.getProfile(psid).then(function(data) {
                             utility.fbMsgType(obj.message, (fbMsg) => {
+                                console.log(fbMsg);
                                 var fb_user_name = data.first_name + ' ' + data.last_name;
                                 var fb_user_profilePic = data.profile_pic;
-                                let msgObj = {
-                                    message: fbMsg,
-                                    name: fb_user_name,
-                                    owner: "user",
-                                    time: Date.now(),
-                                    locale: data.locale,
-                                    gender: data.gender
+                                let chatObj = {
+                                    name: fb_user_name, // 客戶名稱
+                                    photo: fb_user_profilePic, // 客戶profile圖片
+                                    recentChat: Date.now(),
+                                    avgChat: 1,
+                                    totalChat: 1,
+                                    chatTimeCount: 1,
+                                    unRead: 1,
                                 };
-                                pushAndEmit(msgObj, fb_user_profilePic, obj.recipient.id, obj.sender.id, 1);
+                                let msgObj =  {
+                                    name: fb_user_name,
+                                    message: fbMsg, // 訊息
+                                    owner: "user", // 身分
+                                    time: Date.now(), // 傳輸時間
+                                };
+                                facebookMessage(msgObj, chatObj, webhookId, psid, appInfo.id1);
                                 req.verify = true;
                                 next();
                             });
                         }).catch(function(error) {
                             console.log('error: loadFbProfile');
-                            callback(false);
+                            console.log(error);
                         }); //fb_bot
                         break;
                 }
@@ -164,97 +149,6 @@ function init(server) {
         res.sendStatus(200);
     });
 
-    // app.post('/webhook/:webhookId', (req, res, next) => {
-    //     var webhookId = req.params.webhookId;
-    //     var events = req.body.events;
-    //     if ('' === webhookId) {
-    //         req.noWebhookId = true;
-    //         next();
-    //         return;
-    //     }
-    //     var proceed = new Promise((resolve, reject) => {
-    //         resolve();
-    //     });
-    //     proceed.then(() => {
-    //         return new Promise((resolve, reject) => {
-    //             webhookMdl.findByWebhookId(webhookId, (webhooks) => {
-    //                 var keys = Object.keys(webhooks);
-    //                 var webhookId = keys[0];
-    //                 var webhook = webhooks[webhookId];
-    //                 var appId = webhook.app_id;
-    //                 if (false === webhook || null === webhook || undefined === webhook) {
-    //                     reject();
-    //                     return;
-    //                 }
-    //                 if (!webhook.hasOwnProperty('app_id')) {
-    //                     reject();
-    //                     return;
-    //                 }
-    //                 resolve(webhook);
-    //             });
-    //         });
-    //     }).then((data) => {
-    //         var webhook = data;
-    //         var appId = webhook.app_id;
-    //         return new Promise((resolve, reject) => {
-    //             appMdl.findByAppId(appId, (apps) => {
-    //                 var keys = Object.keys(apps);
-    //                 var appId = keys[0];
-    //                 var _app = apps[appId];
-    //                 if (null === _app || null === _app || undefined === _app) {
-    //                     reject();
-    //                     return;
-    //                 }
-    //                 resolve(_app);
-    //             });
-    //         });
-    //     }).then((data) => {
-    //         var _app = data;
-    //         return new Promise((resolve, reject) => {
-    //             if (LINE === _app.type) {
-    //                 var line = {
-    //                     channelId: data.id1,
-    //                     channelSecret: data.secret,
-    //                     channelAccessToken: data.token1
-    //                 };
-    //                 var bot = linebot(line);
-    //                 bot.on('message', bot_on_message);
-    //                 bot.on('follow', bot_on_follow);
-    //                 req.parser = bot.parser();
-    //                 resolve();
-    //             }
-
-    //         });
-    //     }).then(() => {
-    //         if (REPLY_TOKEN_0 === events[0].replyToken && REPLY_TOKEN_F === events[1].replyToken) {
-    //             req.verify = true;
-    //         }
-    //         next();
-    //     }).catch((error) => {
-    //         res.sendStatus(404);
-    //     });
-    // }, (req, res, next) => {
-    //     if (true === req.verify || true === req.noWebhookId) {
-    //         next();
-    //         return;
-    //     }
-    //     var parser = req.parser;
-    //     parser(req, res, next);
-    // }, (req, res, next) => {
-    //     if (true === req.noWebhookId) {
-    //         res.sendStatus(404);
-    //         return;
-    //     }
-    //     res.sendStatus(200);
-    // });
-    app.post('/linehook1', function(req, res, next) {
-        linebotParser[0](req, res, next);
-        console.log(channelIds);
-    });
-    app.post('/linehook2', function(req, res, next) {
-        linebotParser[1](req, res, next);
-        console.log(channelIds);
-    });
     io.on('connection', function(socket) {
         console.log('connected');
         /*===聊天室start===*/
@@ -374,22 +268,22 @@ function init(server) {
                 resolve();
             });
 
-            proceed
-                .then(data => {
-                    return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.findByUserId(userId, (result) => {
-                            if (false === result || null === result || '' === result || undefined === result) {
-                                reject();
-                                return;
-                            }
-                            callback(result);
-                        });
+            proceed.then(data => {
+                return new Promise((resolve, reject) => {
+                    appsMessegenrsChatsMdl.findByUserId(userId, (result) => {
+                        if (false === result || null === result || '' === result || undefined === result) {
+                            reject();
+                            return;
+                        }
+                        resolve(result);
                     });
-
-                })
-                .catch((error) => {
-                    console.log(error)
                 });
+            }).then((data) => {
+                let appsMessengers = data;
+                callback(appsMessengers);
+            }).catch((error) => {
+                console.log(error);
+            });
         });
         // 從SHIELD chat傳送訊息
         socket.on('send message', data => {
@@ -488,8 +382,10 @@ function init(server) {
                 })
                 .then((data) => {
                     let msgObj = data;
-                    return new Promise((resolve, reject) => {
-                        chats.insertMessageByMessengerIdAndAppId(appId, receiver, msgObj);
+                    return new Promise((resolve,reject) => {
+                        appsMessegenrsChatsMdl.insertMessengerChats(appId,receiver,msgObj,() => {
+                            console.log('agent sent message');
+                        });
                     });
                 })
                 .catch((ERR) => {});
@@ -527,14 +423,9 @@ function init(server) {
         });
         // 訊息已讀
         socket.on('read message', data => {
-            chats.findChatData(function(chatData) {
-                for (let i in chatData) {
-                    if (utility.isSameUser(chatData[i].Profile, data.userId, data.channelId)) {
-                        chats.updateObj(i, { "unRead": 0 });
-                        break;
-                    }
-                }
-            });
+            let appId = data.appId;
+            let userId = data.msgId;
+            appsMessegenrsChatsMdl.updateUnreadStatus(appId,userId);
         });
         /*===聊天室end===*/
 
@@ -732,6 +623,51 @@ function init(server) {
             io.sockets.emit('new message', data);
         });
     }
+    function facebookMessage(msgObj, chatObj, webhookId, userId, pageId) {
+        let proceed = new Promise((resolve, reject) => {
+            resolve();
+        });
+
+        proceed.then(() => {
+            return new Promise((resolve,reject) => {
+                appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
+                    let appId = data;
+                    if(appId === false) {
+                        reject();
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((data) => {
+            let appId = data.app_id;
+            return new Promise((resolve,reject) => {
+                appsMessegenrsChatsMdl.insertMessengerChats(appId,userId,msgObj,(data) => {
+                    let result = data;
+                    if(result === false) {
+                        reject();
+                        return;
+                    }
+                    resolve({appId: appId,userId: userId,channelId: pageId});
+                });
+            });
+        }).then((data) => {
+            let appId = data.appId;
+            let channelId = data.channelId;
+            return new Promise((resolve,reject) => {
+                appsMessegenrsChatsMdl.updateMessenger(appId,userId,chatObj,(data) => {
+                    let messengers = data;
+                    resolve({appId,userId,channelId,messengers});
+                })
+            });
+        }).then((data) => {
+            let obj = data
+            io.sockets.emit('new message', obj);
+            console.log('finished');
+        }).catch((error) => {
+            console.log('Error ' + error)
+        });
+    }
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
         let webhookId = this.options.webhookId
@@ -754,50 +690,32 @@ function init(server) {
                 resolve();
             });
 
-            proceed
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        utility.lineMsgType(event, message_type, (msgData) => {
-                            msgObj.message = msgData;
-                            resolve();
-                        });
+            proceed.then(() => {
+                return new Promise((resolve,reject) => {
+                    utility.lineMsgType(event, message_type, (msgData) => {
+                        msgObj.message = msgData;
+                        resolve();
                     });
-                })
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.findByWebhookId(webhookId, (data) => {
-                            let appId = data;
-                            if (appId === false) {
-                                reject();
-                                return;
-                            }
-                            resolve(appId);
-                        });
+                });
+            }).then(() => {
+                return new Promise((resolve,reject) => {
+                    appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
+                        let appId = data;
+                        if(appId === false) {
+                            reject();
+                            return;
+                        }
+                        resolve(appId);
                     });
-                })
-                .then((data) => {
-                    let appId = data.app_id;
-                    return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.insertChats(appId, receiverId, msgObj, (data) => {
-                            let result = data;
-                            if (result === false) {
-                                reject();
-                                return;
-                            }
-                            resolve({ appId: appId, userId: receiverId, channelId: channelId });
-                        });
-                    });
-                })
-                .then((data) => {
-                    let appId = data.appId;
-                    let userId = data.userId;
-                    let channelId = data.channelId;
-
-                    return new Promise((resolve, reject) => {
-                        let infoObj = {
-                            name: receiver_name,
-                            photo: pictureUrl,
-                            recentChat: nowTime
+                });
+            }).then((data) => {
+                let appId = data.app_id;
+                return new Promise((resolve,reject) => {
+                    appsMessegenrsChatsMdl.insertMessengerChats(appId,receiverId,msgObj,(data) => {
+                        let result = data;
+                        if(result === false) {
+                            reject();
+                            return;
                         }
                         appsMessegenrsChatsMdl.insertMessengerInfo(appId, receiverId, infoObj, (data) => {
                             let profile = data;
@@ -812,6 +730,33 @@ function init(server) {
                 .catch((error) => {
                     console.log('Error ' + error)
                 });
+            }).then((data) => {
+                let appId = data.appId;
+                let userId = data.userId;
+                let channelId = data.channelId;
+                
+                return new Promise((resolve,reject) => {
+                    let chatObj = {
+                        name: receiver_name,
+                        photo: pictureUrl,
+                        recentChat: nowTime,
+                        avgChat: 1,
+                        totalChat: 1,
+                        chatTimeCount: 1,
+                        unRead: 1
+                    }
+                    appsMessegenrsChatsMdl.updateMessenger(appId, receiverId, chatObj, (data) => {
+                        let messengers = data;
+                        resolve({appId,userId,channelId,messengers});
+                    })
+                });
+            }).then((data) => {
+                let obj = data
+                io.sockets.emit('new message', obj);
+                console.log('finished');
+            }).catch((error) => {
+                console.log('Error ' + error)
+            });
 
             // if (keywordsReply(msgObj.message) !== -1) {
             //     console.log('keywordsreply bot replied!');

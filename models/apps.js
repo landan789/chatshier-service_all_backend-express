@@ -16,6 +16,7 @@ apps._schema = (callback) => {
     };
     callback(json);
 };
+
 apps.findByAppId = (appId, callback) => {
     var ref = "apps/" + appId;
     admin.database().ref(ref).once("value", snap => {

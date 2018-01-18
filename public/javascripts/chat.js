@@ -139,7 +139,6 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allActiveApps = data;
-                    console.log(allActiveApps)
                     return new Promise((resolve,reject) => {
                         appGroupSort(allActiveApps);
                         resolve(allActiveApps);
@@ -222,15 +221,17 @@ $(document).ready(function() {
 
     function responseChatData(data) {
         var apps = data;
+        console.log(apps)
         var messengers = {};
         var app_id = {};
         for (var index in apps) {
             var app = apps[index];
-            var _messengers = app.messengers;
+            console.log(app)
+            var _messengers = app.messengers; 
             Object.assign(messengers, _messengers);
             app_id.appId = index;
         }
-        // console.log(messengers); // 請使用 messengers 變數
+        console.log(messengers); // 請使用 messengers 變數
         for (i in messengers) {
             pushMsg({obj:messengers[i], userId: i, appId: app_id.appId}, () => {
                 pushInfo({obj:messengers[i], userId: i, appId: app_id.appId});
@@ -285,26 +286,34 @@ $(document).ready(function() {
             let profile = data.obj;
             let historyMsgStr = "";
             
-            if (historyMsg.length < 10) {
+            if (Object.keys(historyMsg).length < 10) {
                 historyMsgStr += NO_HISTORY_MSG; //history message string head
             }
             historyMsgStr += historyMsgToStr(historyMsg);
             $('#user-rooms').append('<option value="' + data.userId + '">' + profile.name + '</option>'); //new a option in select bar
             // 左邊的客戶清單排列
-            let lastMsg = historyMsg[historyMsg.length - 1];
+            let lastMsg = historyMsg[Object.keys(historyMsg)[Object.keys(historyMsg).length -1]];
             let lastMsgStr = lastMsgToStr(lastMsg);
             let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.appId + "' rel='" + data.userId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
+            if ((profile.unRead > 0) && (profile.unRead <= 99)) {
+                tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+            } else if (profile.unRead > 99) {
+                tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + "99+" + "</div>" + "</button><hr/></b>";
+            } else {
+                tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
+            }
+
             if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
                 $('#vip_list').prepend(tablinkHtml);
             } else {
                 $('#clients').append(tablinkHtml);
             }
-
             // 中間聊天室
             canvas.append( //push string into canvas
                 '<div id="' + data.appId + '" rel="' + data.userId + '" class="tabcontent">' + "<div id='" + data.appId + "-content' rel='" + data.userId + "' class='messagePanel'>" + historyMsgStr + "</div>" + "</div>"
             ); // close append
-            // if (data.position != 0) $('#' + profile.appId + '-content' + '[rel="' + profile.userId + '"]').on('scroll', function() {
+            
+            // if (data.position != 0) $('#' + data.appId + '-content' + '[rel="' + data.userId + '"]').on('scroll', function() {
             //     detecetScrollTop($(this));
             // });
 
@@ -312,16 +321,6 @@ $(document).ready(function() {
             userProfiles[data.appId] = profile;
             callback();
         }
-        
-        // historyMsgStr += historyMsgToStr(historyMsg);
-        // end of history message
-        // if ((profile.unRead > 0) && (profile.unRead <= 99)) {
-        //     tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-        // } else if (profile.unRead > 99) {
-        //     tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + "99+" + "</div>" + "</button><hr/></b>";
-        // } else {
-        //     tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
-        // }
     } // end of pushMsg
     function historyMsgToStr(messages) {
         let returnStr = "";
@@ -349,12 +348,6 @@ $(document).ready(function() {
     } // end of historyMsgToStr
     function pushInfo(data) {
         let profile = data.obj;
-        for (let i in profile.email) {
-            socket.emit('get ticket', {
-                email: profile.email,
-                id: data.userId
-            });
-        }
         infoCanvas.append('<div class="card-group" id="' + data.appId + '-info" rel="' + data.userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
     } // end of pushInfo
     function loadPanelProfile(profile) {
@@ -391,7 +384,7 @@ $(document).ready(function() {
                 } else if (tagId == "chatTimeCount") {
                     dom = getSingleTextDom(tagData, profData);
                     let text = $(dom).text() === '尚未輸入' ? '1' : $(dom).text();
-                    $(dom).text(text + " 次");
+                    $(dom).text(text);
                 } else if (tagId == "assigned") {
                     dom = getMultiSelectDom(tagData, profData);
                 }
@@ -600,16 +593,18 @@ $(document).ready(function() {
 
     //=====start socket function=====
     socket.on('new message', (data) => {
+        console.log(data);
         if (!data.userId) {
-            console.log("data miss channelId");
+            console.log("data miss user id");
             return;
         }
-        let $room = $('.chat-app-item[rel="' + data.channelId + '"]');
+        let $room = $('.chat-app-item[rel="' + data.appId + '"]');
         if ($room.length != 0) {
-            displayMessage(data.profile, data.userId, data.appId); //update 聊天室
-            displayClient(data.profile, data.userId, data.appId); //update 客戶清單
+            displayMessage(data.messengers, data.userId, data.appId); //update 聊天室
+            displayClient(data.messengers, data.userId, data.appId); //update 客戶清單
             if (name_list.indexOf(data.userId + data.appId) === -1) { // 新客戶
                 name_list.push(data.userId + data.appId);
+                displayInfo(data.messengers, data.userId, data.appId);
             }
         }
     });
@@ -689,7 +684,7 @@ $(document).ready(function() {
         if ($(this).find('.unread-msg').text() !== '0') { //如果未讀的話
             $(this).find('.unread-msg').text('0').hide(); // 已讀 把未讀的區塊隱藏
             $(this).find("#msg").css("font-weight", "normal"); // 取消未讀粗體
-            socket.emit("read message", {
+            socket.emit('read message', {
                 msgId,
                 appId
             }); //tell socket that this user isnt unRead
@@ -753,6 +748,7 @@ $(document).ready(function() {
                             let str = toAgentStr(msgStr, data.name, Date.now());
                             $("#" + userId + "-content" + "[rel='" + appId + "']").append(str); //push message into right canvas
                             $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); //scroll to down
+                            $('[name="' + userId  + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
                             messageInput.val('');
                             resolve();
                         } else {
@@ -864,14 +860,15 @@ $(document).ready(function() {
         }
     }
 
-    function displayInfo(data) {
-        let str = '<div class="card-group" id="' + data.id + '-info" rel="' + data.channelId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(data) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+    function displayInfo(data, userId, appId) {
+        let chats = data.chats;
+        let str = '<div class="card-group" id="' + appId + '-info" rel="' + userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(data) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
         infoCanvas.append(str);
     }
 
     function displayMessage(data, userId, appId) {
-        // console.log(data.chats[data.chats.length - 1])
-        let lastMsgObj = data.chats[data.chats.length - 1];
+        let chats = data.chats;
+        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
         if (name_list.indexOf(userId + appId) !== -1) { //if its chated user
             let str;
             let designated_chat_room_msg_time = $("#" + appId + "-content" + "[rel='" + userId + "']").find(".message:last").attr('rel');
@@ -893,13 +890,14 @@ $(document).ready(function() {
         }
     } // end of displayMessage
 
-    function displayClient(data, channelId, appId) {
-        let lastMsgObj = data.chats[data.chats.length - 1];
-        if (name_list.indexOf(channelId + appId) === -1) {
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + channelId + "'><div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + '</span><br><div id="msg"></div></div>';
+    function displayClient(data, userId, appId) {
+        let chats = data.chats;
+        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
+        if (name_list.indexOf(userId + appId) === -1) {
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + '</span><br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
-        let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + channelId + "']");
+        let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + userId + "']");
         let currentUnread = parseInt(target.find('.unread-msg').text());
         if (lastMsgObj.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(lastMsgObj.time) + '檔案');
