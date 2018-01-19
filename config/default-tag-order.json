@@ -1,6 +1,5 @@
 [
     "name",
-    "avgChat",
     "age",
     "assigned",
     "chatTimeCount",
@@ -9,6 +8,5 @@
     "gender",
     "recentChat",
     "remark",
-    "telephone",
-    "totalChat"
+    "telephone"
 ]

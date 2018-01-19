@@ -47,21 +47,9 @@
         "set" : "",
         "type" : "time"
     },
-    "totalChat": {
-        "modify" : false,
-        "name" : "totalChat",
-        "set" : "single",
-        "type" : "text"
-    },
     "chatTimeCount": {
         "modify" : false,
         "name" : "chatTimeCount",
-        "set" : "single",
-        "type" : "text"
-    },
-    "avgChat": {
-        "modify" : false,
-        "name" : "avgChat",
         "set" : "single",
         "type" : "text"
     },

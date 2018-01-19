@@ -20,13 +20,17 @@ var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
 var appsMessegenrsChatsMdl = require('../models/apps_messengers_chats');
+var appsGroupChatsMdl = require('../models/apps_group_chats');
 
 var messageHandle = require('../message_handle');
-var messagingBot = require('../middlewares/bot');
+var middlewareBot = require('../middlewares/bot');
+
+var API_ERROR = require('../config/api_error');
+var API_SUCCESS = require('../config/api_success');
 
 const WAIT_TIME = 10000;
 const LINE = 'line';
-const FACEBOOK = 'facebook';
+const FACEBOOK = 'facbeook';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -57,20 +61,23 @@ function init(server) {
         var webhookId = req.params.webhookId;
         var body = req.body;
 
-        var proceed = new Promise((resolve, reject) => {
-            resolve();
-        });
+        var proceed = Promise.resolve();
 
-        proceed
-            .then(() => {
+        proceed.then(() => {
                 return new Promise((resolve, reject) => {
-                    messagingBot.parse(webhookId, body, (data) => {
+                    middlewareBot.parse(webhookId, body, (data) => {
                         let appInfo = data;
                         resolve(appInfo);
                     });
                 });
-            })
-            .then((data) => {
+            }).then((data) => {
+
+                // 1. 取得傳入 mesenge 的編碼
+                // 2. 到 models/apps_mesenges.js 找到 keywordreply_ids
+                // 3. 到 models/apps_keywordreplies.js 找到需要轉給 line 的字串
+                // 4. 呼叫 line bot service 把 字串傳給之
+                // 5. 到 models/apps_chatrooms_messenges.insertMessenge() 寫入聊天紀錄，如果首次聊天，此方法並能夠新增 一筆 /apps/chatrooms/messengers
+                // 6. 使用 socket.emit 將訊息回傳到 web前端 顯示
                 let appInfo = data;
                 switch (appInfo.type) {
                     case LINE:
@@ -123,6 +130,7 @@ function init(server) {
                                     message: fbMsg, // 訊息
                                     owner: "user", // 身分
                                     time: Date.now(), // 傳輸時間
+                                    from: 'facebook'
                                 };
                                 facebookMessage(msgObj, chatObj, webhookId, psid, appInfo.id1);
                                 req.verify = true;
@@ -134,8 +142,7 @@ function init(server) {
                         }); //fb_bot
                         break;
                 }
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 res.sendStatus(404);
             });
     }, (req, res, next) => {
@@ -185,9 +192,8 @@ function init(server) {
                                 reject();
                                 return;
                             }
-                            resolve(data);
-                            console.log(292);
                             console.log(data);
+                            resolve(data);
                             appData = [];
                             for (let i in appIds) {
                                 appData[i] = {
@@ -354,7 +360,8 @@ function init(server) {
                             owner: "agent",
                             name: agentName,
                             time: nowTime,
-                            message: "undefined_message"
+                            message: "undefined_message",
+                            from: 'chatshier'
                         };
                         resolve(msgObj);
                     })
@@ -430,7 +437,7 @@ function init(server) {
                 .then((data) => {
                     let msgObj = data;
                     return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.insertMessengerChats(appId, receiver, msgObj, () => {
+                        appsMessegenrsChatsMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
                             console.log('agent sent message');
                         });
                     });
@@ -490,18 +497,19 @@ function init(server) {
         // 新增內部聊天室
         socket.on('create internal room', (Profile) => {
             let time = Date.now();
-            Profile.roomId = time;
             Profile.firstChat = time;
             Profile.recentChat = time;
-            let data = {
-                "Messages": [{
-                    "agentId": "0",
-                    "message": Profile.roomName + "已建立",
-                    "time": time
-                }],
-                "Profile": Profile
-            };
-            agents.create(data);
+            console.log(Profile);
+            // appsGroupChatsMdl.insertGroup(Profile);
+            // let data = {
+            //     "Messages": [{
+            //         "agentId": "0",
+            //         "message": Profile.roomName + "已建立",
+            //         "time": time
+            //     }],
+            //     "Profile": Profile
+            // };
+            // agents.create(data);
         });
         // 5.撈出內部聊天室紀錄
         socket.on('request internal chat data', (data, callback) => {
@@ -690,7 +698,8 @@ function init(server) {
         }).then((data) => {
             let appId = data.app_id;
             return new Promise((resolve, reject) => {
-                appsMessegenrsChatsMdl.insertMessengerChats(appId, userId, msgObj, (data) => {
+                // 訊息
+                appsMessegenrsChatsMdl.insertChatroomMessage(appId, userId, msgObj, (data) => {
                     let result = data;
                     if (result === false) {
                         reject();
@@ -703,7 +712,8 @@ function init(server) {
             let appId = data.appId;
             let channelId = data.channelId;
             return new Promise((resolve, reject) => {
-                appsMessegenrsChatsMdl.updateMessenger(appId, userId, chatObj, (data) => {
+                // 客戶資料
+                appsMessegenrsChatsMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
                     let messengers = data;
                     resolve({ appId, userId, channelId, messengers });
                 })
@@ -731,38 +741,9 @@ function init(server) {
                 owner: "user",
                 name: receiver_name,
                 time: nowTime,
-                message: "undefined_message"
+                message: "undefined_message",
+                from: 'line'
             };
-            //  ===================  訊息類別 ==================== //
-            utility.lineMsgType(event, message_type, (msgData) => {
-                    msgObj.message = msgData;
-                    pushAndEmit(msgObj, pictureUrl, channelId, receiverId, 1);
-                    if (keywordsReply(msgObj.message) !== -1) {
-                        console.log('keywordsreply bot replied!');
-
-                    }
-                })
-                // if (autoReply(msgObj.message) !== -1) {
-                //     console.log("autoreply bot replyed!");
-                // }
-                // if (lineTemplateReply(msgObj.message) !== -1) {
-                //     console.log("line template bot replyed!");
-                // }
-                // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
-                //     console.log("linebotdemo bot replyed!");
-                // }
-                // if (surveyReply(msgObj.message) !== -1) {
-                //     console.log("surveyReply bot replyed!");
-                // }
-                // if (appointmentReply(msgObj.message) !== -1) {
-                //     console.log("appointment bot replyed!");
-                // }
-                // if (apiai(msgObj.message) !== -1) {
-                //     console.log("api.ai bot replyed!");
-                // }
-                // else {
-                //   console.log("no auto reply bot work! wait for agent reply");
-                // }
 
             let proceed = new Promise((resolve, reject) => {
                 resolve();
@@ -788,26 +769,17 @@ function init(server) {
                 });
             }).then((data) => {
                 let appId = data.app_id;
-                return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.insertMessengerChats(appId, receiverId, msgObj, (data) => {
-                            let result = data;
-                            if (result === false) {
-                                reject();
-                                return;
-                            }
-                            appsMessegenrsChatsMdl.insertMessengerInfo(appId, receiverId, infoObj, (data) => {
-                                let profile = data;
-                                resolve({ appId, userId, channelId, profile });
-                            })
-                        });
-                    })
-                    .then((data) => {
-                        io.sockets.emit('new message', data);
-                        console.log('finished');
-                    })
-                    .catch((error) => {
-                        console.log('Error ' + error)
+                return new Promise((resolve,reject) => {
+                    // 訊息
+                    appsMessegenrsChatsMdl.insertChatroomMessage(appId,receiverId,msgObj,(data) => {
+                        let result = data;
+                        if(result === false) {
+                            reject();
+                            return;
+                        }
+                        resolve({appId: appId,userId: receiverId,channelId: channelId});
                     });
+                });
             }).then((data) => {
                 let appId = data.appId;
                 let userId = data.userId;
@@ -823,7 +795,8 @@ function init(server) {
                         chatTimeCount: 1,
                         unRead: 1
                     }
-                    appsMessegenrsChatsMdl.updateMessenger(appId, receiverId, chatObj, (data) => {
+                    // 客戶資料
+                    appsMessegenrsChatsMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
                         resolve({ appId, userId, channelId, messengers });
                     })
@@ -835,31 +808,6 @@ function init(server) {
             }).catch((error) => {
                 console.log('Error ' + error)
             });
-
-            // if (keywordsReply(msgObj.message) !== -1) {
-            //     console.log('keywordsreply bot replied!');
-            // }
-            // if (autoReply(msgObj.message) !== -1) {
-            //     console.log("autoreply bot replyed!");
-            // }
-            // if (lineTemplateReply(msgObj.message) !== -1) {
-            //     console.log("line template bot replyed!");
-            // }
-            // if (lineTemplateReplyDemo(msgObj.message) !== -1) {
-            //     console.log("linebotdemo bot replyed!");
-            // }
-            // if (surveyReply(msgObj.message) !== -1) {
-            //     console.log("surveyReply bot replyed!");
-            // }
-            // if (appointmentReply(msgObj.message) !== -1) {
-            //     console.log("appointment bot replyed!");
-            // }
-            // if (apiai(msgObj.message) !== -1) {
-            //     console.log("api.ai bot replyed!");
-            // }
-            // else {
-            //   console.log("no auto reply bot work! wait for agent reply");
-            // }
 
             function keywordsReply(msg) {
 

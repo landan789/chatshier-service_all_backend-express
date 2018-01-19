@@ -223,25 +223,42 @@ $(document).ready(function() {
 
     function responseChatData(data) {
         var apps = data;
-        console.log(apps)
-        var messengers = {};
-        var app_id = {};
-        for (var index in apps) {
-            var app = apps[index];
-            console.log(app)
-            var _messengers = app.messengers; 
-            Object.assign(messengers, _messengers);
-            app_id.appId = index;
-        }
-        console.log(messengers); // 請使用 messengers 變數
-        for (i in messengers) {
-            pushMsg({obj:messengers[i], userId: i, appId: app_id.appId}, () => {
-                pushInfo({obj:messengers[i], userId: i, appId: app_id.appId});
+        var proceed = new Promise((resolve, reject) => {
+            resolve();
+        });
+
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                var app_ids = Object.keys(apps);
+                resolve({app_ids,apps})
             });
-        }
-        sortUsers("recentTime", sortRecentBool, function(a, b) {
-            return a < b;
-        }); //照時間排列 新到舊
+        }).then((data) => {
+            let messengers = data.apps;
+            let app_ids = data.app_ids;
+            return new Promise((resolve, reject) => {
+                let activeAppKeys = [];
+                let activeUserIds = [];
+                let activeMessengers = [];
+                for(let m in messengers) {
+                    if(Object.keys(messengers[m].chatrooms).length !== 0) {
+                        activeAppKeys.push(m);
+                        activeUserIds.push(Object.keys(messengers[m].chatrooms)[0]);
+                        activeMessengers.push(Object.values(messengers[m].chatrooms)[0]);
+                    }
+                }
+
+                resolve({activeAppKeys, activeUserIds, activeMessengers});
+            });
+        }).then((data) => {
+            let app_ids = data.activeAppKeys;
+            let user_ids = data.activeUserIds;
+            let messengers = data.activeMessengers;
+            for(let a in app_ids) {
+                pushMsg({obj:messengers[a], userId: user_ids[a], appId: app_ids[a]}, () => {
+                    pushInfo({obj:messengers[a], userId: user_ids[a], appId: app_ids[a]});
+                });
+            }
+        })
     } // end of responseChatData
 
     function responseHistoryMsg(data) {
@@ -288,7 +305,7 @@ $(document).ready(function() {
     function pushMsg(data, callback) {
         let emptyResult = Object.keys(data.obj).length !== 0;
         if(emptyResult) {
-            let historyMsg = data.obj.chats;
+            let historyMsg = data.obj.messenges;
             let profile = data.obj;
             let historyMsgStr = "";
             
@@ -873,7 +890,7 @@ $(document).ready(function() {
     }
 
     function displayMessage(data, userId, appId) {
-        let chats = data.chats;
+        let chats = data.messenges;
         let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
         if (name_list.indexOf(userId + appId) !== -1) { //if its chated user
             let str;
@@ -897,7 +914,7 @@ $(document).ready(function() {
     } // end of displayMessage
 
     function displayClient(data, userId, appId) {
-        let chats = data.chats;
+        let chats = data.messenges;
         let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
         if (name_list.indexOf(userId + appId) === -1) {
             let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + '</span><br><div id="msg"></div></div>';

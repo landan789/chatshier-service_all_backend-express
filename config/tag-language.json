@@ -32,16 +32,8 @@
         "english": "recentChat"
     },
     {
-        "chinese": "總共聊天時間",
-        "english": "totalChat"
-    },
-    {
         "chinese": "聊天次數",
         "english": "chatTimeCount"
-    },
-    {
-        "chinese": "平均每次聊天時間",
-        "english": "avgChat"
     },
     {
         "chinese": "指派負責人",

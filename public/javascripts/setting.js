@@ -163,6 +163,10 @@ $(document).ready(function() {
         select.val('');
     });
     $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
+    $(document).on('change', '.multi-select-container', multiSelectChange); //複選選項改變
+    $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); //檢查內部群聊的擁有者是否為群組成員
+    $(document).on('change', 'select#create-internal-owner', checkInternalOwner); //檢查內部群聊的擁有者是否為群組成員
+
     function multiSelectChange() {
         changeMultiSelectText($(this));
     }
@@ -217,6 +221,7 @@ $(document).ready(function() {
             let photo = $('#create-internal-photo').val();
             let owner = $('#create-internal-owner').val();
             let agent = $('#create-internal-agents').attr('rel');
+            let agents = agent.split(",");
 
             if (!roomName) alert('群組名稱不可為空');
             else if (!owner || owner == "0") alert('請指定擁有者'); //如果擁有者為ID=="0"的System，一樣不給過
@@ -227,7 +232,8 @@ $(document).ready(function() {
                     "description": description,
                     "photo": photo ? photo : DEFAULT_INTERNAL_PHOTO,
                     "owner": owner,
-                    "agent": agent
+                    "agent": agents,
+                    "type": "chatshier"
                 }
                 socket.emit('create internal room', data);
                 alert('成功!');
@@ -290,9 +296,7 @@ $(document).ready(function() {
         switch (type) {
             case 'insertNewApp':
                 let app = $(this).parent().parent().find('#app-group-select option:selected').val();
-                console.log(app);
                 insertType(app, (data) => {
-                    console.log(data);
                     insertOneApp(data);
                 });
                 break;
