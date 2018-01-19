@@ -1,7 +1,7 @@
 var admin = require("firebase-admin"); //firebase admin SDK
-var appsMessengersChats = {}; // 宣告物件因為module需要物件
+var appsMessagersChats = {}; // 宣告物件因為module需要物件
 
-appsMessengersChats._schema = (callback) => {
+appsMessagersChats._schema = (callback) => {
     var json = {
         name: "",
         photo: "",
@@ -20,7 +20,7 @@ appsMessengersChats._schema = (callback) => {
     callback(json);
 };
 
-appsMessengersChats.insertChatroomMessage = (appId,crId,msgObj,callback) => {
+appsMessagersChats.insertChatroomMessage = (appId,crId,msgObj,callback) => {
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
@@ -43,7 +43,7 @@ appsMessengersChats.insertChatroomMessage = (appId,crId,msgObj,callback) => {
     });
 }
 
-appsMessengersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {    
+appsMessagersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {    
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
@@ -58,7 +58,7 @@ appsMessengersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {
     }).then((data) => {
         let messenger = data;
         return new Promise((resolve,reject) => {
-            appsMessengersChats._schema((initApp) => {
+            appsMessagersChats._schema((initApp) => {
                 resolve({messenger,initApp});
             });
         });
@@ -101,11 +101,11 @@ appsMessengersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {
     });
 }
 
-appsMessengersChats.updateUnreadStatus = (appId, msgId) => {
+appsMessagersChats.updateUnreadStatus = (appId, msgId) => {
     admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).update({unRead: 0});
 }
 
-appsMessengersChats.findByUserId = (userId, callback) => {
+appsMessagersChats.findByUserId = (userId, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
@@ -124,7 +124,7 @@ appsMessengersChats.findByUserId = (userId, callback) => {
         });
     }).then((user) => {
         var appIds = user.app_ids;
-        appsMessengersChats.findByAppIds(appIds, (data) => {
+        appsMessagersChats.findByAppIds(appIds, (data) => {
             var appsMessengers = data;
             callback(appsMessengers);
         });
@@ -133,7 +133,7 @@ appsMessengersChats.findByUserId = (userId, callback) => {
     });
 }
 
-appsMessengersChats.findByAppIds = (appIds, callback) => {
+appsMessagersChats.findByAppIds = (appIds, callback) => {
     var appsMessengers = {};
     next(0, callback);
 
@@ -177,7 +177,7 @@ appsMessengersChats.findByAppIds = (appIds, callback) => {
     }
 }
 
-appsMessengersChats.findAppByWebhookId = (webhookId,callback) => {
+appsMessagersChats.findAppByWebhookId = (webhookId,callback) => {
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
@@ -201,4 +201,4 @@ appsMessengersChats.findAppByWebhookId = (webhookId,callback) => {
     });
 }
 
-module.exports = appsMessengersChats;
+module.exports = appsMessagersChats;

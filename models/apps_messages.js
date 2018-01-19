@@ -1,11 +1,11 @@
-var appsMessenges = {}
-appsMessenges.findKeywordreplyIds = (appId, messengeId, callback) =>{
+var appsMessages = {}
+appsMessages.findKeywordreplyIds = (appId, messengeId, callback) =>{
 
 };
 
-appsMessenges.findTemplateIds = (appId, messengeId, callback) =>{
+appsMessages.findTemplateIds = (appId, messengeId, callback) =>{
 
 };
 
 
-export.module = appsMessenges;
+export.module = appsMessages;
