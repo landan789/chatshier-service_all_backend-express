@@ -2,12 +2,13 @@ var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 var express = require('express');
 var users = require('../models/users');
+var apps = require('../models/apps');
 var appsTemplatesMdl = require('../models/apps_templates');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
-var appsRichmenusCtl = require('../controllers/apps_richmenus');
 
+var richmenuCtl = require('../controllers/richmenus')
 var router = express.Router();
 
 router.get('/apps/users/:userid', appsCtl.getAll);
@@ -24,12 +25,12 @@ router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 //圖文選單
-router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getByUserId);
-router.get('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.getByAppIdByuserId);
-router.get('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.getOne);
-router.post('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.postOne);
-router.put('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.putOne);
-router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.deleteOne);
+router.get('/richmenus/users/:userid', richmenuCtl.getByUserId);
+router.get('/richmenus/apps/:appid/users/:userid', richmenuCtl.getByAppIdByuserId);
+router.get('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.get);
+router.post('/richmenus/apps/:appid/users/:userid', richmenuCtl.post);
+router.put('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.put);
+router.delete('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.delete);
 
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
@@ -38,7 +39,7 @@ router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.po
 router.put('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.putOne);
 router.delete('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.deleteOne);
 
-router.get('/apps-templates/users/:userid', (req, res, next) => {
+router.get('/templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -90,7 +91,7 @@ router.get('/apps-templates/users/:userid', (req, res, next) => {
         })
 });
 // insert
-router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
+router.post('/templates/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var dataObj = {
@@ -143,7 +144,7 @@ router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
 });
 //update
 
-router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (req, res, next) => {
+router.put('/templates/:templateid/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var templateId = req.params.templateid;
@@ -205,7 +206,7 @@ router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (r
 
 });
 //delete
-router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (req, res, next) => {
+router.delete('/templates/:templateid/users/:userid', (req, res, next) => {
 
     var userId = req.params.userid;
     var templateId = req.params.templateid;
@@ -253,7 +254,7 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 })
 
 // Vendor的個人資料
-router.get('/users/users/:userid', (req, res, next) => {
+router.get('/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
 
     var proceed = new Promise((resolve, reject) => {
@@ -294,7 +295,7 @@ router.get('/users/users/:userid', (req, res, next) => {
         });
 });
 
-router.put('/users/users/:userid', (req, res, next) => {
+router.put('/users/:userid', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var userObj = {

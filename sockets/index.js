@@ -10,6 +10,8 @@ var databaseURL = require("../config/firebase_admin_database_url.js");
 var API_ERROR = require('../config/api_error');
 var agents = require('../models/agents');
 var appsAutoreplies = require('../models/apps_autoreplies');
+var linetemplate = require('../models/linetemplate');
+var chats = require('../models/chats');
 var appsKeywordreplies = require('../models/apps_keywordreplies');
 var tags = require('../models/tags');
 var users = require('../models/users');
@@ -20,6 +22,7 @@ var appMdl = require('../models/apps');
 var appsChatroomsMessengesMdl = require('../models/apps_chatrooms_messenges');
 var groupsMdl = require('../models/groups');
 
+var messageHandle = require('../message_handle');
 var middlewareBot = require('../middlewares/bot');
 
 var API_ERROR = require('../config/api_error');
@@ -446,6 +449,7 @@ function init(server) {
             let appId = data.appId;
             let userId = data.userId;
             let profObj = data.data
+            chats.updateProfileByMessengerIdAndAppId(appId, userId, profObj);
         });
         // 當使用者要看客戶之前的聊天記錄時要向上滾動
         socket.on('upload history msg from front', (data, callback) => {
@@ -454,7 +458,22 @@ function init(server) {
             let head = data.head;
             let tail = data.tail;
             let sendData = [];
-
+            chats.findChatData(function(chatData) {
+                for (let i in chatData) {
+                    if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
+                        for (let j = head; j < tail + 1; j++) {
+                            sendData.push(chatData[i].Messages[j]);
+                        }
+                        break;
+                    }
+                }
+                let obj = {
+                    userId: userId,
+                    channelId: channelId,
+                    messages: sendData
+                };
+                callback(obj);
+            });
         });
         // 訊息已讀
         socket.on('read message', data => {
@@ -582,7 +601,19 @@ function init(server) {
 
         /*===分析start===*/
         socket.on('request message time', () => {
-
+            chats.findChatData((data) => {
+                let msgTimeData = [];
+                for (let prop in data) {
+                    let msg = data[prop].Messages;
+                    for (let i = 0; i < msg.length; i++) {
+                        msgTimeData.push({
+                            "time": msg[i].time,
+                            "message": msg[i].message
+                        });
+                    }
+                }
+                socket.emit('response message time', msgTimeData);
+            });
         });
         /*===分析end===*/
         // 推播全部人
@@ -613,12 +644,39 @@ function init(server) {
                 }
             });
         });
-
-
+        /*===ticket start===*/
+        socket.on('get agents profile', (callback) => {
+            users.get(data => {
+                callback(data);
+            });
+        });
+        /*===ticket end===*/
+        /*===template start===*/
+        socket.on('create template', (userId, data, callback) => {
+            console.log(data);
+            linetemplate.create(userId, data);
+            callback();
+        });
+        socket.on('request template', (userId, callback) => {
+            linetemplate.get(userId, callback);
+        });
+        socket.on('get template', (userId, channelId, keyword, callback) => {
+            linetemplate.getTemplate(channelId, keyword, callback);
+        });
+        socket.on('change template', (userId, id, updateObj, callback) => {
+            linetemplate.set(userId, id, updateObj);
+            callback();
+        });
+        /*===template end===*/
     });
     // FUNCTIONS
     function pushAndEmit(obj, pictureUrl, channelId, receiverId, unRead) {
-
+        messageHandle.toDB(obj, pictureUrl, channelId, receiverId, unRead, profile => {
+            io.sockets.emit('new user profile', profile);
+        });
+        messageHandle.toFront(obj, pictureUrl, channelId, receiverId, unRead, data => {
+            io.sockets.emit('new message', data);
+        });
     }
 
     function facebookMessage(msgObj, chatObj, webhookId, userId, pageId) {
@@ -825,6 +883,53 @@ function init(server) {
                         lbot.push(receiver, message);
                     }
                 }
+            }
+            // function autoReply(msg) {
+            //     replyMsgObj.name = "Auto Reply";
+            //     sent = false;
+            //     appsAutoreplies.get(function(autoreplyData) {
+            //         for (let i in autoreplyData) {
+            //             for (let j in autoreplyData[i]) {
+            //                 thisAutoReply = autoreplyData[i][j];
+            //                 var starttime = new Date(thisAutoReply.taskStart).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
+            //                 var endtime = new Date(thisAutoReply.taskEnd).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
+            //                 var nowtime = new Date().getTime();
+            //                 if (nowtime >= starttime && nowtime < endtime) {
+            //                     replyMsgObj.message = thisAutoReply.taskText;
+            //                     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+            //                     send_to_Line(thisAutoReply.taskText, receiverId, channelId);
+            //                     sent = true;
+            //                 }
+            //             }
+            //         }
+            //         if (!sent) return -1;
+            //     });
+            // }
+
+            function lineTemplateReply(msg) {
+                linetemplate.getMsg(channelId, msg, function(data) {
+                    if (data) {
+                        replyMsgObj.name = "Line Template Demo Reply";
+                        replyMsgObj.message = data.altText ? data.altText : data.text;
+                        pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+                        templateToStr = JSON.stringify(data);
+                        send_to_Line("/template " + templateToStr, receiverId, channelId);
+                    } else return -1;
+                });
+            }
+
+            function lineTemplateReplyDemo(msg) {
+                // replyMsgObj.name = "Line Template Demo Reply";
+                // linetemplate.get( function( templateData ) {
+                //   let data = templateData[msg];
+                //   if( data ) {
+                //     replyMsgObj.message = data.altText;
+                //     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
+                //     templateToStr = JSON.stringify(data);
+                //     send_to_Line("/template "+templateToStr, receiverId, channelId);
+                //   }
+                //   else return -1;
+                // });
             }
 
             function surveyReply(msg) {
