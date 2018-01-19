@@ -38,5 +38,12 @@
         "unirest": "^0.5.1",
         "yelp": "^1.0.2",
         "yelp-fusion": "^1.0.3"
+    },
+    "devDependencies": {
+        "eslint": "^4.15.0",
+        "eslint-plugin-import": "^2.8.0",
+        "eslint-plugin-node": "^5.2.1",
+        "eslint-plugin-promise": "^3.6.0",
+        "eslint-plugin-standard": "^3.0.1"
     }
 }
