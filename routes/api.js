@@ -3,8 +3,8 @@ var API_SUCCESS = require('../config/api_success');
 var express = require('express');
 var users = require('../models/users');
 var apps = require('../models/apps');
-var templates = require('../models/templates');
-var autorepliesCtl = require('../controllers/autoreplies');
+var appsTemplatesMdl = require('../models/apps_templates');
+var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 
@@ -33,11 +33,12 @@ router.put('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.put);
 router.delete('/richmenus/:richmenuid/apps/:appid/users/:userid', richmenuCtl.delete);
 
 // 自動回覆
-router.get('/autoreplies/users/:userid', autorepliesCtl.getAll);
-router.get('/autoreplies/:autoreplyid/apps/:appid/users/:userid', autorepliesCtl.get);
-router.post('/autoreplies/apps/:appid/users/:userid', autorepliesCtl.post);
-router.put('/autoreplies/:autoreplyid/apps/:appid/users/:userid', autorepliesCtl.put);
-router.delete('/autoreplies/:autoreplyid/apps/:appid/users/:userid', autorepliesCtl.delete);
+router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
+router.get('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.getOne);
+router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
+router.put('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.putOne);
+router.delete('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.deleteOne);
+
 router.get('/templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var proceed = new Promise((resolve, reject) => {
@@ -63,7 +64,7 @@ router.get('/templates/users/:userid', (req, res, next) => {
         .then((data) => {
             return new Promise((resolve, reject) => {
                 let appid = data[0];
-                templates.findByAppId(appid, (info) => {
+                appsTemplatesMdl.findByAppId(appid, (info) => {
                     if (info === null) {
                         reject();
                     } else
@@ -118,7 +119,7 @@ router.post('/templates/users/:userid', (req, res, next) => {
             });
         }).then((data) => {
             return new Promise((resolve, reject) => {
-                templates.insertByAppId(data[0], dataObj, () => {
+                appsTemplatesMdl.insertByAppId(data[0], dataObj, () => {
                     resolve();
                 });
             });
@@ -176,7 +177,7 @@ router.put('/templates/:templateid/users/:userid', (req, res, next) => {
             return new Promise((resolve, reject) => {
                 let appIds = Data;
                 appIds.map((appId) => {
-                    templates.updateByAppIdByTemplateId(appId, templateId, dataObj, () => {
+                    appsTemplatesMdl.updateByAppIdByTemplateId(appId, templateId, dataObj, () => {
                         resolve();
                     })
                 });
@@ -229,7 +230,7 @@ router.delete('/templates/:templateid/users/:userid', (req, res, next) => {
             return new Promise((resolve, reject) => {
                 var appIds = data;
                 appIds.map((appId) => {
-                    templates.removeByAppIdByTemplateId(appId, templateId, () => {
+                    appsTemplatesMdl.removeByAppIdByTemplateId(appId, templateId, () => {
                         resolve();
                     });
                 });

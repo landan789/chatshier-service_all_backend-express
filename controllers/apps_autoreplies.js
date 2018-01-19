@@ -2,10 +2,10 @@ var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 var userMdl = require('../models/users');
 var appMdl = require('../models/apps');
-var autorepliesMdl = require('../models/autoreplies');
-var autoreplies = {};
+var autorepliesMdl = require('../models/apps_autoreplies');
+var appsAutoreplies = {};
 
-autoreplies.getAll = function(req, res, next) {
+appsAutoreplies.getAll = function(req, res, next) {
     var userId = req.params.userid;
 
     var proceed = new Promise((resolve, reject) => {
@@ -39,7 +39,7 @@ autoreplies.getAll = function(req, res, next) {
         });
 }
 
-autoreplies.get = function(req, res, next) {
+appsAutoreplies.getOne = function(req, res, next) {
     var appId = req.params.appid;
     var autoreplyId = req.params.autoreplyid;
     var userId = req.params.userid;
@@ -89,7 +89,7 @@ autoreplies.get = function(req, res, next) {
         });
 }
 
-autoreplies.post = function(req, res, next) {
+appsAutoreplies.postOne = function(req, res, next) {
     res.setHeader('Content-Type', 'application/json');
     var appId = req.params.appid;
     var userId = req.params.userid;
@@ -146,7 +146,7 @@ autoreplies.post = function(req, res, next) {
         });
 }
 
-autoreplies.put = function(req, res, next) {
+appsAutoreplies.putOne = function(req, res, next) {
     res.setHeader('Content-Type', 'application/json');
     var appId = req.params.appid;
     var autoreplyId = req.params.autoreplyid;
@@ -204,7 +204,7 @@ autoreplies.put = function(req, res, next) {
         });
 }
 
-autoreplies.delete = function(req, res, next) {
+appsAutoreplies.deleteOne = function(req, res, next) {
     var appId = req.params.appid;
     var autoreplyId = req.params.autoreplyid;
     var userId = req.params.userid;
@@ -254,4 +254,4 @@ autoreplies.delete = function(req, res, next) {
         });
 }
 
-module.exports = autoreplies;
+module.exports = appsAutoreplies;

@@ -9,18 +9,18 @@ var databaseURL = require("../config/firebase_admin_database_url.js");
 
 var API_ERROR = require('../config/api_error');
 var agents = require('../models/agents');
-var autoreplies = require('../models/autoreplies');
+var appsAutoreplies = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
-var keywords = require('../models/keywords');
+var appsKeywordreplies = require('../models/apps_keywordreplies');
 var tags = require('../models/tags');
 var users = require('../models/users');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
-var appsMessegenrsChatsMdl = require('../models/apps_messengers_chats');
-var appsGroupChatsMdl = require('../models/apps_group_chats');
+var appsChatroomsMessengesMdl = require('../models/apps_chatrooms_messenges');
+var groupsMdl = require('../models/groups');
 
 var messageHandle = require('../message_handle');
 var middlewareBot = require('../middlewares/bot');
@@ -64,87 +64,87 @@ function init(server) {
         var proceed = Promise.resolve();
 
         proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    middlewareBot.parse(webhookId, body, (data) => {
-                        let appInfo = data;
-                        resolve(appInfo);
-                    });
+            return new Promise((resolve, reject) => {
+                middlewareBot.parse(webhookId, body, (data) => {
+                    let appInfo = data;
+                    resolve(appInfo);
                 });
-            }).then((data) => {
-
-                // 1. 取得傳入 mesenge 的編碼
-                // 2. 到 models/apps_mesenges.js 找到 keywordreply_ids
-                // 3. 到 models/apps_keywordreplies.js 找到需要轉給 line 的字串
-                // 4. 呼叫 line bot service 把 字串傳給之
-                // 5. 到 models/apps_chatrooms_messenges.insertMessenge() 寫入聊天紀錄，如果首次聊天，此方法並能夠新增 一筆 /apps/chatrooms/messengers
-                // 6. 使用 socket.emit 將訊息回傳到 web前端 顯示
-                let appInfo = data;
-                switch (appInfo.type) {
-                    case LINE:
-                        var line = {
-                            channelId: appInfo.id1,
-                            channelSecret: appInfo.secret,
-                            channelAccessToken: appInfo.token1,
-                            webhookId: webhookId
-                        };
-                        lbot = linebot(line);
-                        lbot.on('message', bot_on_message);
-                        lbot.on('follow', bot_on_follow);
-                        req.parser = lbot.parser();
-                        if (REPLY_TOKEN_0 === body.events[0].replyToken && REPLY_TOKEN_F === body.events[1].replyToken) {
-                            req.verify = true;
-                        }
-                        next();
-                        break;
-                    case FACEBOOK:
-                        let psid = body.entry[0].messaging[0].sender.id;
-                        let obj = body.entry[0].messaging[0];
-                        let text = body.entry[0].messaging[0].message.text;
-
-                        var facebook = {
-                            pageID: appInfo.id1,
-                            appID: appInfo.id2,
-                            appSecret: appInfo.secret,
-                            validationToken: appInfo.token1,
-                            pageToken: appInfo.token2
-                        };
-
-                        var fbbot = MessengerPlatform.create(facebook);
-
-                        fbbot.getProfile(psid).then(function(data) {
-                            utility.fbMsgType(obj.message, (fbMsg) => {
-                                console.log(fbMsg);
-                                var fb_user_name = data.first_name + ' ' + data.last_name;
-                                var fb_user_profilePic = data.profile_pic;
-                                let chatObj = {
-                                    name: fb_user_name, // 客戶名稱
-                                    photo: fb_user_profilePic, // 客戶profile圖片
-                                    recentChat: Date.now(),
-                                    avgChat: 1,
-                                    totalChat: 1,
-                                    chatTimeCount: 1,
-                                    unRead: 1,
-                                };
-                                let msgObj = {
-                                    name: fb_user_name,
-                                    message: fbMsg, // 訊息
-                                    owner: "user", // 身分
-                                    time: Date.now(), // 傳輸時間
-                                    from: 'facebook'
-                                };
-                                facebookMessage(msgObj, chatObj, webhookId, psid, appInfo.id1);
-                                req.verify = true;
-                                next();
-                            });
-                        }).catch(function(error) {
-                            console.log('error: loadFbProfile');
-                            console.log(error);
-                        }); //fb_bot
-                        break;
-                }
-            }).catch((error) => {
-                res.sendStatus(404);
             });
+        }).then((data) => {
+
+            // 1. 取得傳入 mesenge 的編碼
+            // 2. 到 models/apps_mesenges.js 找到 keywordreply_ids
+            // 3. 到 models/apps_keywordreplies.js 找到需要轉給 line 的字串
+            // 4. 呼叫 line bot service 把 字串傳給之
+            // 5. 到 models/apps_chatrooms_messenges.insertMessenge() 寫入聊天紀錄，如果首次聊天，此方法並能夠新增 一筆 /apps/chatrooms/messengers
+            // 6. 使用 socket.emit 將訊息回傳到 web前端 顯示
+            let appInfo = data;
+            switch (appInfo.type) {
+                case LINE:
+                    var line = {
+                        channelId: appInfo.id1,
+                        channelSecret: appInfo.secret,
+                        channelAccessToken: appInfo.token1,
+                        webhookId: webhookId
+                    };
+                    lbot = linebot(line);
+                    lbot.on('message', bot_on_message);
+                    lbot.on('follow', bot_on_follow);
+                    req.parser = lbot.parser();
+                    if (REPLY_TOKEN_0 === body.events[0].replyToken && REPLY_TOKEN_F === body.events[1].replyToken) {
+                        req.verify = true;
+                    }
+                    next();
+                    break;
+                case FACEBOOK:
+                    let psid = body.entry[0].messaging[0].sender.id;
+                    let obj = body.entry[0].messaging[0];
+                    let text = body.entry[0].messaging[0].message.text;
+
+                    var facebook = {
+                        pageID: appInfo.id1,
+                        appID: appInfo.id2,
+                        appSecret: appInfo.secret,
+                        validationToken: appInfo.token1,
+                        pageToken: appInfo.token2
+                    };
+
+                    var fbbot = MessengerPlatform.create(facebook);
+
+                    fbbot.getProfile(psid).then(function(data) {
+                        utility.fbMsgType(obj.message, (fbMsg) => {
+                            console.log(fbMsg);
+                            var fb_user_name = data.first_name + ' ' + data.last_name;
+                            var fb_user_profilePic = data.profile_pic;
+                            let chatObj = {
+                                name: fb_user_name, // 客戶名稱
+                                photo: fb_user_profilePic, // 客戶profile圖片
+                                recentChat: Date.now(),
+                                avgChat: 1,
+                                totalChat: 1,
+                                chatTimeCount: 1,
+                                unRead: 1,
+                            };
+                            let msgObj = {
+                                name: fb_user_name,
+                                message: fbMsg, // 訊息
+                                owner: "user", // 身分
+                                time: Date.now(), // 傳輸時間
+                                from: 'facebook'
+                            };
+                            facebookMessage(msgObj, chatObj, webhookId, psid, appInfo.id1);
+                            req.verify = true;
+                            next();
+                        });
+                    }).catch(function(error) {
+                        console.log('error: loadFbProfile');
+                        console.log(error);
+                    }); //fb_bot
+                    break;
+            }
+        }).catch((error) => {
+            res.sendStatus(404);
+        });
     }, (req, res, next) => {
         if (true === req.verify || true === req.noWebhookId) {
             next();
@@ -323,7 +323,7 @@ function init(server) {
 
             proceed.then(data => {
                 return new Promise((resolve, reject) => {
-                    appsMessegenrsChatsMdl.findByUserId(userId, (result) => {
+                    appsChatroomsMessengesMdl.findByUserId(userId, (result) => {
                         if (false === result || null === result || '' === result || undefined === result) {
                             reject();
                             return;
@@ -437,7 +437,7 @@ function init(server) {
                 .then((data) => {
                     let msgObj = data;
                     return new Promise((resolve, reject) => {
-                        appsMessegenrsChatsMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
+                        appsChatroomsMessengesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
                             console.log('agent sent message');
                         });
                     });
@@ -479,7 +479,7 @@ function init(server) {
         socket.on('read message', data => {
             let appId = data.appId;
             let userId = data.msgId;
-            appsMessegenrsChatsMdl.updateUnreadStatus(appId, userId);
+            appsChatroomsMessengesMdl.updateUnreadStatus(appId, userId);
         });
         /*===聊天室end===*/
 
@@ -686,7 +686,7 @@ function init(server) {
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
-                appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
+                appsChatroomsMessengesMdl.findAppByWebhookId(webhookId, (data) => {
                     let appId = data;
                     if (appId === false) {
                         reject();
@@ -699,7 +699,7 @@ function init(server) {
             let appId = data.app_id;
             return new Promise((resolve, reject) => {
                 // 訊息
-                appsMessegenrsChatsMdl.insertChatroomMessage(appId, userId, msgObj, (data) => {
+                appsChatroomsMessengesMdl.insertChatroomMessage(appId, userId, msgObj, (data) => {
                     let result = data;
                     if (result === false) {
                         reject();
@@ -713,7 +713,7 @@ function init(server) {
             let channelId = data.channelId;
             return new Promise((resolve, reject) => {
                 // 客戶資料
-                appsMessegenrsChatsMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
+                appsChatroomsMessengesMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
                     let messengers = data;
                     resolve({ appId, userId, channelId, messengers });
                 })
@@ -758,7 +758,7 @@ function init(server) {
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    appsMessegenrsChatsMdl.findAppByWebhookId(webhookId, (data) => {
+                    appsChatroomsMessengesMdl.findAppByWebhookId(webhookId, (data) => {
                         let appId = data;
                         if (appId === false) {
                             reject();
@@ -769,15 +769,15 @@ function init(server) {
                 });
             }).then((data) => {
                 let appId = data.app_id;
-                return new Promise((resolve,reject) => {
+                return new Promise((resolve, reject) => {
                     // 訊息
-                    appsMessegenrsChatsMdl.insertChatroomMessage(appId,receiverId,msgObj,(data) => {
+                    appsChatroomsMessengesMdl.insertChatroomMessage(appId, receiverId, msgObj, (data) => {
                         let result = data;
-                        if(result === false) {
+                        if (result === false) {
                             reject();
                             return;
                         }
-                        resolve({appId: appId,userId: receiverId,channelId: channelId});
+                        resolve({ appId: appId, userId: receiverId, channelId: channelId });
                     });
                 });
             }).then((data) => {
@@ -787,16 +787,16 @@ function init(server) {
 
                 return new Promise((resolve, reject) => {
                     let chatObj = {
-                        name: receiver_name,
-                        photo: pictureUrl,
-                        recentChat: nowTime,
-                        avgChat: 1,
-                        totalChat: 1,
-                        chatTimeCount: 1,
-                        unRead: 1
-                    }
-                    // 客戶資料
-                    appsMessegenrsChatsMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
+                            name: receiver_name,
+                            photo: pictureUrl,
+                            recentChat: nowTime,
+                            avgChat: 1,
+                            totalChat: 1,
+                            chatTimeCount: 1,
+                            unRead: 1
+                        }
+                        // 客戶資料
+                    appsChatroomsMessengesMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
                         resolve({ appId, userId, channelId, messengers });
                     })
@@ -887,7 +887,7 @@ function init(server) {
             // function autoReply(msg) {
             //     replyMsgObj.name = "Auto Reply";
             //     sent = false;
-            //     autoreplies.get(function(autoreplyData) {
+            //     appsAutoreplies.get(function(autoreplyData) {
             //         for (let i in autoreplyData) {
             //             for (let j in autoreplyData[i]) {
             //                 thisAutoReply = autoreplyData[i][j];
