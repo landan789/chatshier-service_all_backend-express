@@ -3,12 +3,11 @@ var API_SUCCESS = require('../config/api_success');
 
 var appMdl = require('../models/apps');
 var userMdl = require('../models/users');
-var richmenuMdl = require('../models/richmenus');
+var appsRichmenusMdl = require('../models/apps_richmenus');
 
-var richmenus = {};
+var appsRichmenus = {};
 
-//取得user下所有app_ids
-richmenus.getByUserId = (req, res, next) => {
+appsRichmenus.getByUserId = (req, res, next) => {
     var userId = req.params.userid;
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -48,8 +47,7 @@ richmenus.getByUserId = (req, res, next) => {
         })
 }
 
-//取得appid下全部rich menus
-richmenus.getByAppIdByuserId = (req, res, next) => {
+appsRichmenus.getByAppIdByuserId = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
     var proceed = new Promise((resolve, reject) => {
@@ -83,7 +81,7 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
         })
         .then(() => { //取得目前appId下所有richmenus
             return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
+                appsRichmenusMdl.findAllByAppId(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -94,7 +92,7 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
+                appsRichmenusMdl.findAllByAppId(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -122,8 +120,7 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
 
 }
 
-//取得appid下單筆rich menu
-richmenus.get = (req, res, next) => {
+appsRichmenus.getOne = (req, res, next) => {
     var userId = req.params.userid;
     var richmenuId = req.params.richmenuid;
     var appId = req.params.appid;
@@ -159,7 +156,7 @@ richmenus.get = (req, res, next) => {
         })
         .then(() => { //取得目前appId下所有richmenuIds
             return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
+                appsRichmenusMdl.findAllByAppId(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -180,7 +177,7 @@ richmenus.get = (req, res, next) => {
         })
         .then(() => { //取得目前richmenu
             return new Promise((resolve, reject) => {
-                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                appsRichmenusMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -191,7 +188,7 @@ richmenus.get = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                appsRichmenusMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
                     if (null === data || undefined === data || '' === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -218,8 +215,7 @@ richmenus.get = (req, res, next) => {
         })
 }
 
-// insert
-richmenus.post = (req, res, next) => {
+appsRichmenus.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var appId = req.params.appid;
@@ -268,7 +264,7 @@ richmenus.post = (req, res, next) => {
         })
         .then(() => { //新增richmenu到目前appId
             return new Promise((resolve, reject) => {
-                richmenuMdl.insertByAppId(appId, postRichmenu, (result) => {
+                appsRichmenusMdl.insertByAppId(appId, postRichmenu, (result) => {
                     if (false === result) {
                         reject(API_ERROR.RICHMENU_INSERT_FAIL);
                         return;
@@ -279,7 +275,7 @@ richmenus.post = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.insertByAppId(appId, postRichmenu, (result) => {
+                appsRichmenusMdl.insertByAppId(appId, postRichmenu, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                         return;
@@ -305,8 +301,7 @@ richmenus.post = (req, res, next) => {
         });
 }
 
-//update
-richmenus.put = (req, res, next) => {
+appsRichmenus.putOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var richmenuId = req.params.richmenuid;
@@ -356,7 +351,7 @@ richmenus.put = (req, res, next) => {
         })
         .then(() => { //取得目前appId下所有richmenuIds
             return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
+                appsRichmenusMdl.findAllByAppId(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -377,7 +372,7 @@ richmenus.put = (req, res, next) => {
         })
         .then(() => { //更新目前richmenu
             return new Promise((resolve, reject) => {
-                richmenuMdl.updateByAppIdByRichmenuId(appId, richmenuId, postRichmenu, (result) => {
+                appsRichmenusMdl.updateByAppIdByRichmenuId(appId, richmenuId, postRichmenu, (result) => {
                     if (false === result) {
                         reject(API_ERROR.RICHMENU_UPDATE_FAIL);
                     }
@@ -387,7 +382,7 @@ richmenus.put = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                appsRichmenusMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
                     if (null === data || undefined === data || '' === data || 1 === data.delete) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -398,7 +393,7 @@ richmenus.put = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.updateByAppIdByRichmenuId(appId, richmenuId, dataObj, (result) => {
+                appsRichmenusMdl.updateByAppIdByRichmenuId(appId, richmenuId, dataObj, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                     }
@@ -423,8 +418,7 @@ richmenus.put = (req, res, next) => {
         });
 }
 
-//remove
-richmenus.delete = (req, res, next) => {
+appsRichmenus.deleteOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     var userId = req.params.userid;
     var richmenuId = req.params.richmenuid;
@@ -462,7 +456,7 @@ richmenus.delete = (req, res, next) => {
         })
         .then(() => { //取得目前appId下所有richmenuIds
             return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
+                appsRichmenusMdl.findAllByAppId(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.RICHMENU_NOT_EXISTS);
                         return;
@@ -483,7 +477,7 @@ richmenus.delete = (req, res, next) => {
         })
         .then(() => { //刪除目前richmenu
             return new Promise((resolve, reject) => {
-                richmenuMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
+                appsRichmenusMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
                     if (false === result) {
                         reject(API_ERROR.RICHMENU_DELETE_FAIL);
                     }
@@ -493,7 +487,7 @@ richmenus.delete = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
+                appsRichmenusMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
                     if (null === data || undefined === data || '' === data) {
                         reject(API_ERROR.APP_RICHMENU_DOES_NOT_EXIST);
                         return;
@@ -504,7 +498,7 @@ richmenus.delete = (req, res, next) => {
         })
         .then(() => {
             return new Promise((resolve, reject) => {
-                richmenuMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
+                appsRichmenusMdl.removeByAppIdByRichmenuId(appId, richmenuId, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                     }
@@ -529,4 +523,4 @@ richmenus.delete = (req, res, next) => {
         });
 }
 
-module.exports = richmenus;
+module.exports = appsRichmenus;
