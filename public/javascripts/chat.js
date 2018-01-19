@@ -115,6 +115,8 @@ $(document).ready(function() {
     }
 
     function responseUserAppIds(data) {
+        if (!data) { return; }
+
         let appsInfo = data;
         if (appsInfo !== undefined || Object.getOwnPropertyNames(appsInfo).length !== 0) {
             let newData = Object.values(appsInfo);
@@ -128,9 +130,9 @@ $(document).ready(function() {
                         //     return item.delete === 0;
                         // });
                         let newArr = [];
-                        let appKeys = Object.keys(appsInfo)
-                        newData.map((item,index) => {
-                            if(item.delete === 0) {
+                        let appKeys = Object.keys(appsInfo);
+                        newData.map((item, index) => {
+                            if (item.delete === 0) {
                                 newArr.push({info: item, key: appKeys[index]});
                             }
                         });
@@ -257,8 +259,10 @@ $(document).ready(function() {
     }
 
     function responseTags(data) {
+        if (!data) { return; }
+
         for (let i = 0; i < data.length; i++) {
-            if (data[i].id == "assigned") {
+            if (data[i].id === 'assigned') {
                 let list = [];
                 for (let prop in agentIdToName) {
                     list.push(agentIdToName[prop]);
@@ -271,10 +275,12 @@ $(document).ready(function() {
     }
 
     function responseInternalChatData(data) {
+        if (!data) { return; }
+
         internalTagsData = data.internalTagsData;
         agentIdToName = data.agentIdToName;
-        for (i in data.data) {
-            pushInternalMsg(data.data[i]); //聊天記錄
+        for (var i in data.data) {
+            pushInternalMsg(data.data[i]); // 聊天記錄
             pushInternalInfo(data.data[i].Profile);
         }
     }

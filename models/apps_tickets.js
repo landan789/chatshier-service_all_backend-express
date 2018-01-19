@@ -5,7 +5,7 @@ var appsTickets = {};
 appsTickets._schema = (callback) => {
     var json = {
         ccEmails: [],
-        createdAt: '',
+        createdTime: '',
         description: '',
         dueBy: '',
         frDueBy: '',
@@ -14,15 +14,20 @@ appsTickets._schema = (callback) => {
         isEscalated: false,
         priority: 1,
         replyCcEmails: [],
-        requester: '',
+        requester: {
+            email: '',
+            id: '',
+            name: '',
+            phone: ''
+        },
         requesterId: '',
         source: 2,
         spam: false,
         status: 2,
-        subject: "2017-0101",
+        subject: '2017-0101',
         toEmails: null,
         type: null,
-        updateAt: '2017-0101',
+        updatedTime: '2017-0101',
         delete: 0
     };
     callback(json);
@@ -160,7 +165,7 @@ appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
         resolve();
     });
 
-    deleteTicket = {
+    var deleteTicket = {
         delete: 1
     };
 

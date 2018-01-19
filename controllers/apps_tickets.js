@@ -234,7 +234,7 @@ appsTickets.postOne = (req, res, next) => {
 
     var postTikeck = {
         ccEmails: req.body.ccEmails === undefined ? '' : req.body.ccEmails,
-        createdAt: req.body.createdAttype === undefined ? '' : req.body.createdAttype,
+        createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
         description: req.body.description === undefined ? '' : req.body.description,
         dueBy: req.body.dueBy === undefined ? '' : req.body.dueBy,
         frDueBy: req.body.frDueBy === undefined ? '' : req.body.frDueBy,
@@ -251,8 +251,8 @@ appsTickets.postOne = (req, res, next) => {
         subject: req.body.subject === undefined ? '' : req.body.subject,
         toEmails: req.body.toEmails === undefined ? '' : req.body.toEmails,
         type: req.body.type === undefined ? '' : req.body.type,
-        updateAt: req.body.updateAt === undefined ? '' : req.body.updateAt
-    }
+        updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime
+    };
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -276,7 +276,7 @@ appsTickets.postOne = (req, res, next) => {
 
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.insertByAppid(userId, postTikeck, (result) => {
+                appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
                     if (false === result || null === result || undefined === result) {
                         reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                         return;
@@ -310,7 +310,7 @@ appsTickets.putOne = (req, res, next) => {
 
     var putTikcket = {
         ccEmails: req.body.ccEmails === undefined ? '' : req.body.ccEmails,
-        createdAt: req.body.createdAttype === undefined ? '' : req.body.createdAttype,
+        createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
         description: req.body.description === undefined ? '' : req.body.description,
         dueBy: req.body.dueBy === undefined ? '' : req.body.dueBy,
         frDueBy: req.body.frDueBy === undefined ? '' : req.body.frDueBy,
@@ -327,7 +327,7 @@ appsTickets.putOne = (req, res, next) => {
         subject: req.body.subject === undefined ? '' : req.body.subject,
         toEmails: req.body.toEmails === undefined ? '' : req.body.toEmails,
         type: req.body.type === undefined ? '' : req.body.type,
-        updateAt: req.body.updateAt === undefined ? '' : req.body.updateAt
+        updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime
     };
 
     var proceed = new Promise((resolve, reject) => {
@@ -397,10 +397,6 @@ appsTickets.deleteOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
     var ticketId = req.params.ticketid;
-
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
