@@ -34,10 +34,15 @@ apps.getAll = (req, res, next) => {
             var appIds = data.app_ids;
 
             return new Promise((resolve, reject) => {
+                if(undefined === appIds || '' === appIds || (appIds instanceof Array && 0 === appIds.length)){
+                    var apps = {};
+                    resolve(apps);
+                    return;
+                }
                 appMdl.findAppsByAppIds(appIds, (data) => {
                     var apps = data;
-                    if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                    if (null === apps || '' === apps || undefined === apps ) {
+                        apps = {};
                     }
 
                     resolve(apps);
