@@ -1,6 +1,6 @@
 var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
-var calendarMdl = require('../models/calendars_events');
+var calendarsEventsMdl = require('../models/calendars_events');
 var userMdl = require('../models/users');
 var calendarsEvents = {};
 
@@ -10,7 +10,7 @@ calendarsEvents.getAll = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarMdl.findCalendarEventsByUserId(userId, (data) => {
+            calendarsEventsMdl.findCalendarEventsByUserId(userId, (data) => {
                 var events = data;
                 if (false === events || undefined === events || '' === events) {
                     resolve();
@@ -36,7 +36,7 @@ calendarsEvents.getAll = function(req, res, next) {
     });
 }
 
-calendarsEvents.postOne = function(req, res, next) {
+calendarsEvents.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
     let dataObj = {
@@ -51,7 +51,7 @@ calendarsEvents.postOne = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarMdl.insertCalendarByUserId(userId, dataObj, (data) => {
+            calendarsEventsMdl.insertCalendarEventByUserId(userId, dataObj, (data) => {
                 let obj = data;
                 resolve(obj);
             });
@@ -73,7 +73,7 @@ calendarsEvents.postOne = function(req, res, next) {
     });
 }
 
-calendarsEvents.putOne = function(req, res, next) {
+calendarsEvents.putOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
     let eventId = req.params.eventid;
@@ -82,8 +82,7 @@ calendarsEvents.putOne = function(req, res, next) {
         start: req.body.start,
         end: req.body.end,
         description: req.body.description,
-        allDay: req.body.allDay,
-        keyId: eventId
+        allDay: req.body.allDay
     }
 
     let proceed = new Promise((resolve, reject) => {
@@ -103,7 +102,7 @@ calendarsEvents.putOne = function(req, res, next) {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarMdl.updateCalendarByUserIdAndEventId(userId, eventId, dataObj, (data) => {
+            calendarsEventsMdl.updateCalendarEventByUserIdByEventId(userId, eventId, dataObj, (data) => {
                 let obj = data;
                 resolve(obj);
             });
@@ -125,7 +124,7 @@ calendarsEvents.putOne = function(req, res, next) {
     });
 }
 
-calendarsEvents.deleteOne = function(req, res, next) {
+calendarsEvents.deleteOne = (req, res, next) => {
     let userId = req.params.userid;
     let eventId = req.params.eventid;
 
@@ -144,7 +143,7 @@ calendarsEvents.deleteOne = function(req, res, next) {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarMdl.removeCalendarByUserIdAndEventId(userId, eventId, () => {
+            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, () => {
                 resolve();
             });
         });

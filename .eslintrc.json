@@ -27,7 +27,7 @@
         "document": true,
         "navigator": true,
         "window": true,
-
+        "auth": true,
         "urlConfig": true,
         "io": true,
         "database": true
@@ -177,7 +177,7 @@
         "valid-typeof": ["error", { "requireStringLiterals": true }],
         "wrap-iife": ["error", "any", { "functionPrototypeMethods": true }],
         "yield-star-spacing": ["error", "both"],
-        "yoda": ["error", "never"],
+        "yoda": ["error", "always"],
 
         "import/export": "error",
         "import/first": "error",

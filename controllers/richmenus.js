@@ -55,70 +55,65 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
     var proceed = new Promise((resolve, reject) => {
         resolve();
     });
-    proceed
-        .then(() => { //取得目前user下所有appIds
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
+    proceed.then(() => { //取得目前user下所有appIds
+        return new Promise((resolve, reject) => {
+            if ('' === userId || null === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
+            userMdl.findUserByUserId(userId, (user) => {
+                var appIds = user.app_ids;
+                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
+                    reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
-                    var appIds = user.app_ids;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                        return;
-                    }
-                    resolve(appIds);
-                })
-            });
-        })
-        .then((appIds) => { //判斷user中是否有目前appId
-            return new Promise((resolve, reject) => {
-                if (false === appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                resolve(appIds);
+            })
+        });
+    }).then((appIds) => { //判斷user中是否有目前appId
+        return new Promise((resolve, reject) => {
+            if (false === appIds.includes(appId)) {
+                reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                return;
+            }
+            resolve();
+        });
+    }).then(() => { //取得目前appId下所有richmenus
+        return new Promise((resolve, reject) => {
+            richmenuMdl.findAllByAppId(appId, (data) => {
+                if (null === data || '' === data || undefined === data) {
+                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
                     return;
                 }
                 resolve();
             });
-        })
-        .then(() => { //取得目前appId下所有richmenus
-            return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
-                        reject(API_ERROR.RICHMENU_NOT_EXISTS);
-                        return;
-                    }
-                    resolve();
-                });
+        });
+    }).then(() => {
+        return new Promise((resolve, reject) => {
+            richmenuMdl.findAllByAppId(appId, (data) => {
+                if (null === data || '' === data || undefined === data) {
+                    reject(API_ERROR.RICHMENU_NOT_EXISTS);
+                    return;
+                }
+                resolve(data);
             });
-        })
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                richmenuMdl.findAllByAppId(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
-                        reject(API_ERROR.RICHMENU_NOT_EXISTS);
-                        return;
-                    }
-                    resolve(data);
-                });
-            });
-        })
-        .then((richmenus) => {
-            let result = richmenus !== undefined ? richmenus : {};
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                "data": result
-            }
-            res.status(200).json(json);
-        }).catch((ERR) => {
-            var json = {
-                "status": 0,
-                "msg": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(403).json(json);
-        })
+        });
+    }).then((richmenus) => {
+        let result = richmenus !== undefined ? richmenus : {};
+        var json = {
+            "status": 1,
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            "data": result
+        }
+        res.status(200).json(json);
+    }).catch((ERR) => {
+        var json = {
+            "status": 0,
+            "msg": ERR.MSG,
+            "code": ERR.CODE
+        };
+        res.status(403).json(json);
+    })
 
 }
 

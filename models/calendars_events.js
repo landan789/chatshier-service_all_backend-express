@@ -4,7 +4,7 @@ var calendarsEvents = {};
 calendarsEvents.findCalendarIdByUserId = (userId, callback) => {
     admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
         let calendarId = snap.val();
-        if(null === calendarId || undefined === calendarId || '' === calendarId) {
+        if (null === calendarId || undefined === calendarId || '' === calendarId) {
             callback();
             return;
         }
@@ -20,20 +20,20 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             calendarsEvents.findCalendarIdByUserId(userId, (data) => {
-              let calendarId = data;
-              if(null === calendarId || undefined === calendarId) {
-                callback(false);
-                return;
-              }
-              resolve(data);
+                let calendarId = data;
+                if (null === calendarId || undefined === calendarId) {
+                    callback();
+                    return;
+                }
+                resolve(data);
             });
         });
     }).then((data) => {
         let calendarId = data;
         admin.database().ref('calendars/' + calendarId + '/events').once('value', (snap) => {
             let events = snap.val();
-            if(null === events || undefined === events || '' === events) {
-                callback(false);
+            if (null === events || undefined === events || '' === events) {
+                callback();
                 return;
             }
             callback(events);
@@ -43,7 +43,7 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
     });
 };
 
-calendarsEvents.findCalendarEventByCalendarIdAndEventId = (userId, calendarId, eventId, callback) => {
+calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eventId, callback) => {
     let proceed = new Promise((resolve, reject) => {
         resolve();
     });
@@ -51,25 +51,34 @@ calendarsEvents.findCalendarEventByCalendarIdAndEventId = (userId, calendarId, e
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             calendarsEvents.findCalendarIdByUserId(userId, (data) => {
+                if (null === data || undefined === data || '' === data) {
+                    reject(null);
+                    return;
+                }
                 resolve(data);
             });
         });
     }).then((data) => {
         let calendarId = data;
-        admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value', (snap) => {
-            let event = snap.val();
-            if(null === event || undefined === event || '' === event) {
-                callback(false);
-                return;
-            }
-            callback(event);
+        return new Promise((resolve, reject) => {
+            admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value', (snap) => {
+                let event = snap.val();
+                if (null === event || undefined === event || '' === event) {
+                    reject(null);
+                    return;
+                }
+                resolve(event);
+            });
         });
+
+    }).then((event) => {
+        callback(event);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
-calendarsEvents.insertCalendarByUserId = (userId, obj, callback) => {
+calendarsEvents.insertCalendarEventByUserId = (userId, obj, callback) => {
     let proceed = new Promise((resolve, reject) => {
         resolve();
     });
@@ -107,7 +116,7 @@ calendarsEvents.insertCalendarByUserId = (userId, obj, callback) => {
     });
 };
 
-calendarsEvents.updateCalendarByUserIdAndEventId = (userId, eventId, calendarObj, callback) => {
+calendarsEvents.updateCalendarEventByUserIdByEventId = (userId, eventId, calendarObj, callback) => {
     let proceed = new Promise((resolve, reject) => {
         resolve();
     });
@@ -131,7 +140,7 @@ calendarsEvents.updateCalendarByUserIdAndEventId = (userId, eventId, calendarObj
     });
 };
 
-calendarsEvents.removeCalendarByUserIdAndEventId = (userId, eventId, callback) => {
+calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callback) => {
     let proceed = new Promise((resolve, reject) => {
         resolve();
     });
@@ -141,15 +150,19 @@ calendarsEvents.removeCalendarByUserIdAndEventId = (userId, eventId, callback) =
             calendarsEvents.findCalendarIdByUserId(userId, (data) => {
                 let calendarId = data;
                 if (null !== calendarId || undefined !== calendarId || '' !== calendarId) {
-                    resolve(calendarId);
+                    reject();
+                    return;
                 }
+                resolve(calendarId);
+
             });
         });
     }).then((data) => {
         let calendarId = data;
-        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).update({delete: 1});
+        var event = { delete: 1 };
+        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).update(event);
     }).then(() => {
-        callback();
+        callback(true);
     }).catch(() => {
         callback(false);
     });
