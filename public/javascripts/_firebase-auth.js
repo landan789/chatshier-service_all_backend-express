@@ -9,37 +9,54 @@ const NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 var serviceUrl = location.host;
 var domain = serviceUrl.replace(/^[\w\-]+\./i, '.').replace(/\:\d+$/i, '');
 
-auth.onAuthStateChanged((user) => {
-    var state = getState(user);
-    if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
-        location = '/logout';
-    } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-        location = '/logout';
-    } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-        location = '/logout';
+auth.ready = (function() {
+    var readyPromiseResolver;
+    var readyPromiseRejecter;
+    var readyPromise = new Promise((resolve, reject) => {
+        readyPromiseResolver = resolve;
+        readyPromiseRejecter = reject;
+    });
 
-    } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
-        $('#loading').fadeOut();
-        firebase.auth().currentUser.getIdToken(false)
-            .then((jwt) => {
-                localStorage.setItem("jwt", jwt);
+    var authStateListener = auth.onAuthStateChanged((user) => {
+        var state = getState(user);
+        if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
+            location = '/logout';
+            readyPromiseResolver(user);
+        } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
+            location = '/logout';
+            readyPromiseResolver(user);
+        } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
+            location = '/logout';
+            readyPromiseResolver(user);
+        } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
+            $('#loading').fadeOut();
+            firebase.auth().currentUser.getIdToken(false).then((jwt) => {
+                localStorage.setItem('jwt', jwt);
+                readyPromiseResolver(user);
             }).catch(function(error) {
                 // Handle error
+                if (error) {
+                    readyPromiseRejecter(error);
+                }
             });
+        } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
+            readyPromiseResolver(user);
+        } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
+            location = '/logout';
+            readyPromiseResolver(user);
+        } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
+            location = '/logout';
+            readyPromiseResolver(user);
+        } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
+            location = '/chat';
+            readyPromiseResolver(user);
+        }
+        authStateListener(); // Release event listener
+        readyPromiseResolver(user);
+    });
 
-    } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
-
-    } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-        location = '/logout';
-
-    } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-        location = '/logout';
-    } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
-        location = '/chat';
-
-    }
-
-});
+    return readyPromise;
+})();
 
 function getCookie(cName) {
     if (document.cookie.length > 0) {
