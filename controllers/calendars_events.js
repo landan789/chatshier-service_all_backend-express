@@ -111,7 +111,7 @@ calendarsEvents.putOne = (req, res, next) => {
         var json = {
             "status": 1,
             "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-            "obj": data
+            "data": data
         };
         res.status(200).json(json);
     }).catch((ERR) => {

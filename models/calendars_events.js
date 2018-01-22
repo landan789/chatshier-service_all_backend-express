@@ -19,13 +19,13 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEvents.findCalendarIdByUserId(userId, (data) => {
-                let calendarId = data;
-                if (null === calendarId || undefined === calendarId) {
-                    callback();
+            admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
+                let calendarId = snap.val();
+                if (null === calendarId || undefined === calendarId || '' === calendarId) {
+                    reject();
                     return;
                 }
-                resolve(data);
+                resolve(calendarId);
             });
         });
     }).then((data) => {
@@ -33,10 +33,13 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
         admin.database().ref('calendars/' + calendarId + '/events').once('value', (snap) => {
             let events = snap.val();
             if (null === events || undefined === events || '' === events) {
-                callback();
-                return;
+                events = {};
             }
-            callback(events);
+            var calendarsEvents = {};
+            calendarsEvents[calendarId] = {
+                events: events
+            };
+            callback(calendarsEvents);
         });
     }).catch(() => {
         callback(false);
