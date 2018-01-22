@@ -4,13 +4,17 @@
 
     var userId = '';
     var socket = io.connect();
-    var ticketContent = $('.ticket-content');
-    var lastSelectedTicket = null;
     var jqDoc = $(document);
+    var lastSelectedTicket = null;
+    var ticketContent = null;
+
+    !urlConfig && (urlConfig = {}); // undefined error handle
+    !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
 
     jqDoc.ready(function() {
+        ticketContent = $('.ticket-content');
+
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        // *** 有時會發生 401 Unauthorized (未知 issue)
         window.firebase.auth().onAuthStateChanged(function(currentUser) {
             userId = currentUser.uid; // 儲存全域用變數 userId
 
@@ -53,7 +57,6 @@
                             if (respJson.status !== 1) {
                                 return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
                             }
-                            ticketContent.empty();
                             loadTable();
 
                             let alertDanger = $('#alert-danger');
@@ -83,6 +86,8 @@
     });
 
     function loadTable() {
+        ticketContent.empty();
+
         let jwt = window.localStorage.getItem('jwt');
         let reqHeaders = new Headers();
         reqHeaders.append('Authorization', jwt);
@@ -154,10 +159,11 @@
                 }
             }
         }).catch(function(error) {
-            // 只有發送失敗或網路請求中斷才會進到 error, 收到 http error code 並不會產生 error
-            console.error(error);
+            // window.fetch 只有發送失敗或網路請求中斷才會進到 error, 收到 http error code 並不會產生 error
             if (error.message === '401 Unauthorized') {
-                loadTable();
+                // 只有在 promise reject 會收到 401，代表 firebase 登入失敗，等待 100ms 後重新執行
+                console.log('firebase retrying...');
+                window.setTimeout(function() { loadTable(); }, 100);
             }
         });
     }
@@ -173,11 +179,11 @@
                 let agentKey = Object.keys(agentInfo);
                 let optionStr;
 
-                agentKey.map(agent => {
+                agentKey.map(function(agent) {
                     agentList.push({ name: agentInfo[agent].name, id: agent });
                 });
 
-                agentList.map(info => {
+                agentList.map(function(info) {
                     optionStr += '<option value="' + info.id + '">' + info.name + '</option>';
                 });
                 $('#add-form-agents').append(optionStr);
@@ -265,7 +271,7 @@
             }
         } else if (prop === 'responder') {
             html += "<option value='未指派'>請選擇</option>";
-            n.map(agent => {
+            n.map(function(agent) {
                 html += '<option value=' + agent.id + '>' + agent.name + '</option>';
             });
         }
@@ -291,9 +297,9 @@
             //     }
             //     let agentList = [];
             //     agentInfo = socketData; // 所有 agent 的名單物件
-            //     Object.keys(agentInfo).map(agent => agentList.push({ name: agentInfo[agent].name, id: agent }));
+            //     Object.keys(agentInfo).map(function(agent) agentList.push({ name: agentInfo[agent].name, id: agent }));
 
-            //     return database.ref('tickets/' + userId + '/t' + idNum).once('value', snapshot => {
+            //     return database.ref('tickets/' + userId + '/t' + idNum).once('value', function(snapshot) {
             //         let value = snapshot.val();
             //         if (value) {
             //             $('option[value="' + value.owner + '"]').attr('selected', 'selected');
@@ -439,7 +445,7 @@
 
             let formSubject = $('#form-subject');
             formSubject.css('border', '1px solid red');
-            window.setTimeout(() => {
+            window.setTimeout(function() {
                 errorElem.empty();
                 formSubject.css('border', '1px solid #ccc');
             }, 3000);
@@ -573,8 +579,6 @@
             if (apiRespJson.status !== 1) {
                 return Promise.reject(new Error(apiRespJson.status + ' ' + apiRespJson.msg));
             }
-
-            ticketContent.empty();
             loadTable();
 
             let alertSuccess = $('#alert-success');
