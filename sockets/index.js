@@ -19,7 +19,7 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
-var appsChatroomsMessengesMdl = require('../models/apps_chatrooms_messages');
+var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 var groupsMdl = require('../models/groups');
 
 var messageHandle = require('../message_handle');
@@ -323,7 +323,7 @@ function init(server) {
 
             proceed.then(data => {
                 return new Promise((resolve, reject) => {
-                    appsChatroomsMessengesMdl.findByUserId(userId, (result) => {
+                    appsChatroomsMessagesMdl.findByUserId(userId, (result) => {
                         if (false === result || null === result || '' === result || undefined === result) {
                             reject();
                             return;
@@ -437,7 +437,7 @@ function init(server) {
                 .then((data) => {
                     let msgObj = data;
                     return new Promise((resolve, reject) => {
-                        appsChatroomsMessengesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
+                        appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
                             console.log('agent sent message');
                         });
                     });
@@ -479,7 +479,7 @@ function init(server) {
         socket.on('read message', data => {
             let appId = data.appId;
             let userId = data.msgId;
-            appsChatroomsMessengesMdl.updateUnreadStatus(appId, userId);
+            appsChatroomsMessagesMdl.updateUnreadStatus(appId, userId);
         });
         /*===聊天室end===*/
 
@@ -686,7 +686,7 @@ function init(server) {
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
-                appsChatroomsMessengesMdl.findAppByWebhookId(webhookId, (data) => {
+                appsChatroomsMessagesMdl.findAppByWebhookId(webhookId, (data) => {
                     let appId = data;
                     if (appId === false) {
                         reject();
@@ -699,7 +699,7 @@ function init(server) {
             let appId = data.app_id;
             return new Promise((resolve, reject) => {
                 // 訊息
-                appsChatroomsMessengesMdl.insertChatroomMessage(appId, userId, msgObj, (data) => {
+                appsChatroomsMessagesMdl.insertChatroomMessage(appId, userId, msgObj, (data) => {
                     let result = data;
                     if (result === false) {
                         reject();
@@ -713,7 +713,7 @@ function init(server) {
             let channelId = data.channelId;
             return new Promise((resolve, reject) => {
                 // 客戶資料
-                appsChatroomsMessengesMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
+                appsChatroomsMessagesMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
                     let messengers = data;
                     resolve({ appId, userId, channelId, messengers });
                 })
@@ -758,7 +758,7 @@ function init(server) {
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    appsChatroomsMessengesMdl.findAppByWebhookId(webhookId, (data) => {
+                    appsChatroomsMessagesMdl.findAppByWebhookId(webhookId, (data) => {
                         let appId = data;
                         if (appId === false) {
                             reject();
@@ -771,7 +771,7 @@ function init(server) {
                 let appId = data.app_id;
                 return new Promise((resolve, reject) => {
                     // 訊息
-                    appsChatroomsMessengesMdl.insertChatroomMessage(appId, receiverId, msgObj, (data) => {
+                    appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiverId, msgObj, (data) => {
                         let result = data;
                         if (result === false) {
                             reject();
@@ -796,7 +796,7 @@ function init(server) {
                             unRead: 1
                         }
                         // 客戶資料
-                    appsChatroomsMessengesMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
+                    appsChatroomsMessagesMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
                         resolve({ appId, userId, channelId, messengers });
                     })
