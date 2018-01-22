@@ -6,6 +6,7 @@ var appsTemplatesMdl = require('../models/apps_templates');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
+var calendarCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
 
 var router = express.Router();
@@ -335,4 +336,11 @@ router.put('/users/users/:userid', (req, res, next) => {
         });
 });
 
-module.exports = router
+router.get('/calendars/users/:userid', calendarCtl.getAll);
+
+router.post('/calendars-events/users/:userid', calendarCtl.postOne);
+router.put('/calendars-events/calendars/events/:eventid/users/:userid', calendarCtl.putOne);
+router.delete('/calendars-events/calendars/events/:eventid/users/:userid', calendarCtl.deleteOne);
+
+
+module.exports = router;

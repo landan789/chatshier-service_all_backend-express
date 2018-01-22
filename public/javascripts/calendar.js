@@ -16,28 +16,15 @@ $(document).on('click', '#del-cal-btn', del_cal); //刪除事件
 var getAuth = setInterval(function() {
     if (auth.currentUser) {
         clearInterval(getAuth);
+        let userId = auth.currentUser.uid
 
-        userId = auth.currentUser.uid;
-        database.ref('cal-events/' + userId).once('value', snap => {
-            event_list = [];
-            let data = snap.val();
-            console.log(data);
-            for (let prop in data) {
-                let obj = data[prop];
-                obj.keyId = prop;
-                event_list.push(obj);
-            }
-        });
+        findAll(userId);
     }
 }, 200);
 
 var loadCalTable = setInterval(function() { //loop until loading is done
-    console.log("loading calendar...");
     if (!event_list) return; //check event_list
     clearInterval(loadCalTable); //end loop
-
-    //reminder每10秒check一次
-    var Reminder = setInterval(reminder, 10000);
 
     //Initialize fullCalendar.
     calendar.fullCalendar({
@@ -81,7 +68,7 @@ var loadCalTable = setInterval(function() { //loop until loading is done
             $('#cal-error-msg').hide();
             $('#tim-error-msg').hide();
             // 新增視窗
-            $('#myModal').modal('show');
+            $('#calendar-modal').modal('show');
             // 按鈕設定
             $('#add-cal-btn').show();
             $('#save-cal-btn').hide();
@@ -111,7 +98,7 @@ var loadCalTable = setInterval(function() { //loop until loading is done
             $('#cal-error-msg').hide();
             $('#tim-error-msg').hide();
             // 新增視窗
-            $('#myModal').modal('show');
+            $('#calendar-modal').modal('show');
             // 按鈕設定
             $('#add-cal-btn').hide();
             $('#save-cal-btn').show();
@@ -135,9 +122,10 @@ var loadCalTable = setInterval(function() { //loop until loading is done
                 end: end,
                 description: event.description,
                 allDay: event.allDay,
-                remind: false
+                remind: false,
+                keyId: keyId
             };
-            database.ref('cal-events/' + userId + '/' + keyId).set(obj);
+            update(keyId, obj);
         },
 
         eventDurationEditable: true
@@ -194,53 +182,155 @@ function set_cal() { //確定新增或更改事件
         remind: false
     };
     if (!keyId) { //新增事件
-        // console.log(obj);
-        let key = database.ref('cal-events/' + userId).push(obj).key;
-        obj.keyId = key;
-        calendar.fullCalendar('renderEvent', obj, true); // make the event "stick"
+        let proceed = Promise.resolve();
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                insert(obj, () => {
+                    resolve();
+                });
+            });
+        }).then(() => {
+            clearInputs();
+            $('#calendar-modal').modal('hide');
+        }).catch(() => {
+            alert('post error');
+        });
     } else { //更改事件
-        calendar.fullCalendar('removeEvents', nowEventId);
-        calendar.fullCalendar('renderEvent', obj, true); // make the event "stick"
-        database.ref('cal-events/' + userId + '/' + keyId).set(obj);
+        let proceed = Promise.resolve();
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                update(keyId, obj, () => {
+                    resolve();
+                });
+            });
+        }).then(() => {
+            calendar.fullCalendar('removeEvents', nowEventId);
+            clearInputs();
+            $('#calendar-modal').modal('hide');
+        }).catch(() => {
+            alert('edit error');
+        });
     }
-
-    $('#myModal').modal('hide');
 }; //end on click
 
 function del_cal() { //確定刪除事件
-    calendar.fullCalendar('removeEvents', nowEventId);
     let keyId = $('#keyId').text();
-    database.ref('cal-events/' + userId + '/' + keyId).remove();
-    $('#myModal').modal('hide');
-}
-
-// function del_cal() { //確定刪除事件
-//     calendar.fullCalendar('removeEvents', nowEventId);
-//     let keyId = $('#keyId').text();
-//     database.ref('cal-events/' + userId + '/' + keyId).remove();
-//     $('#myModal').modal('hide');
-// }
-
-function reminder() { //事件開始時提醒
-    //console.log('Check the reminder...');
-    let current_datetime = new Date();
-    let nowtime = ISODateTimeString(current_datetime).date + 'T' + ISODateTimeString(current_datetime).time; //convertTime(current_datetime)-8hours
-    //console.log('nowtime= ' + nowtime);
-    socket.emit('reminder of calendar', { //呼叫www的判斷function
-        userId: userId,
-        nowtime: nowtime,
-        email: auth.currentUser.email
+    let proceed = Promise.resolve();
+    proceed.then(() => {
+        remove(keyId, () => {
+            calendar.fullCalendar('removeEvents', nowEventId);
+            clearInputs();
+            $('#calendar-modal').modal('hide');
+        });
     });
 }
-socket.on('pop up reminder', (title) => { //接收WWW的訊息 前端pop up提醒視窗
-    alert('您的事件 "' + title + '" 已經開始, 系統將對您的登入Email寄出通知信');
-});
+
+function insert(data, callback) {
+    var jwt = localStorage.getItem("jwt");
+    let userId = auth.currentUser.uid;
+    $.ajax({
+        type: 'POST',
+        url: '/api/calendars-events/users/' + userId,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
+        success: (data) => {
+            let obj = data.obj;
+            calendar.fullCalendar('renderEvent', obj, true); // make the event "stick"
+            callback();
+        },
+        error: (error) => {
+          console.log(error);
+        }
+    });
+}
+
+function findAll(userId) {
+    var jwt = localStorage.getItem("jwt");
+    var userId = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url:  '/api/calendars/users/' + userId,
+        headers: {
+            "Authorization": jwt
+        },
+        success: (data) => {
+            event_list = [];
+            let events = data.data;
+            for (let e in events) {
+                if (events[e].delete === 0) {
+                    event_list.push(events[e]);
+                }
+            }
+        },
+        error: (error) => {
+            console.log(error);
+            event_list = [];
+        }
+    });
+}
+
+function update(eventId, data, callback) {
+    var jwt = localStorage.getItem("jwt");
+    var userId = auth.currentUser.uid;
+    $.ajax({
+        type: 'PUT',
+        url: '/api/calendars-events/calendars/events/' + eventId + '/users/' + userId,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        headers: {
+            "Authorization": jwt
+        },
+        success: (data) => {
+            let obj = data.obj;
+            calendar.fullCalendar('renderEvent', obj, true); // make the event "stick"
+            callback();
+        },
+        error: (error) => {
+            console.log(error);
+        }
+    });
+}
+
+function remove(eventId, callback) {
+    var jwt = localStorage.getItem("jwt");
+    var userId = auth.currentUser.uid;
+    $.ajax({
+        type: 'DELETE',
+        url: '/api/calendars-events/calendars/events/' + eventId + '/users/' + userId,
+        headers: {
+            "Authorization": jwt
+        },
+        success: () => {
+            callback();
+        },
+        error: (error) => {
+            console.log(error);
+        }
+    });
+}
+
+// function reminder() { //事件開始時提醒
+//     //console.log('Check the reminder...');
+//     let current_datetime = new Date();
+//     let nowtime = ISODateTimeString(current_datetime).date + 'T' + ISODateTimeString(current_datetime).time; //convertTime(current_datetime)-8hours
+//     //console.log('nowtime= ' + nowtime);
+//     socket.emit('reminder of calendar', { //呼叫www的判斷function
+//         userId: userId,
+//         nowtime: nowtime,
+//         email: auth.currentUser.email
+//     });
+// }
+// socket.on('pop up reminder', (title) => { //接收WWW的訊息 前端pop up提醒視窗
+//     alert('您的事件 "' + title + '" 已經開始, 系統將對您的登入Email寄出通知信');
+// });
 
 function ISOEndDate(d) {
-    // console.log('iso end');
-    // console.log(d);
     d = new Date(d);
-    // console.log(d);
 
     if (d.getHours() == 0 && d.getMinutes() == 0) {
         return ISODateString(d);
@@ -296,6 +386,16 @@ function show_allday() { //勾選allday時，時間會hide
     }
 }
 
-$("#myModal").on("shown.bs.modal", function() { //在show form之後做allday判斷
+$("#calendar-modal").on("shown.bs.modal", function() { //在show form之後做allday判斷
     show_allday();
 });
+
+function clearInputs() {
+  $('#title').val('');
+  $('#startDate').val('');
+  $('#startTime').val(''); //把user輸入的日期和時間串起來
+  $('#endDate').val('')
+  $('#endTime').val('');
+  $('#description').val('');
+  $('#allday').attr('checked', false);
+}

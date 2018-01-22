@@ -19,7 +19,7 @@ var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appMdl = require('../models/apps');
-var appsChatroomsMessengesMdl = require('../models/apps_chatrooms_messenges');
+var appsChatroomsMessengesMdl = require('../models/apps_chatrooms_messages');
 var groupsMdl = require('../models/groups');
 
 var messageHandle = require('../message_handle');

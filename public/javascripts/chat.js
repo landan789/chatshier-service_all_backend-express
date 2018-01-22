@@ -308,7 +308,7 @@ $(document).ready(function() {
             let historyMsg = data.obj.messenges;
             let profile = data.obj;
             let historyMsgStr = "";
-            
+            console.log(data)
             if (Object.keys(historyMsg).length < 10) {
                 historyMsgStr += NO_HISTORY_MSG; //history message string head
             }

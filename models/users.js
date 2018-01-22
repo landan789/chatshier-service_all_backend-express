@@ -20,6 +20,13 @@ usersModel.findAppIdsByUserId = (userId, callback) => {
     });
 }
 
+usersModel.findCalendarIdsByUserId = (userId, callback) => {
+    admin.database().ref('users/' + userId + '/calendar_id').on('value', snap => {
+        let data = snap.val();
+        callback(data);
+    });
+}
+
 usersModel.findUserByUserId = (userId, callback) => {
     admin.database().ref('users/' + userId).once('value', snap => {
         let data = snap.val();

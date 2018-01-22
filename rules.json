@@ -20,11 +20,9 @@
                 ".write": "$uid === auth.uid"
             }
         },
-        "cal-events": {
-            "$uid": {
-                ".read": "$uid === auth.uid",
-                ".write": "$uid === auth.uid"
-            }
+        "calendars": {
+            ".read": true,
+            ".write": true
         },
         "chats": {
             ".read": true,
@@ -43,7 +41,7 @@
             ".read": true,
             ".write": true
         },
-        "message-autoreply": {
+        "autoreplies": {
             ".read": true,
             ".write": true
         },

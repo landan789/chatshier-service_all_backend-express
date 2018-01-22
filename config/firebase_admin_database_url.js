@@ -1,0 +1,1 @@
+exports.url = "https://teds-a89d5.firebaseio.com";
