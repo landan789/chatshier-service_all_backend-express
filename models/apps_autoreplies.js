@@ -21,7 +21,7 @@ appsAutoreplies.findOne = (appId, autoreplyId, callback) => {
     });
 }
 
-appsAutoreplies.update = function(appId, autoreplyId, obj, callback) {
+appsAutoreplies.update = (appId, autoreplyId, obj, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(obj)
         .then(() => {
             callback();
@@ -32,7 +32,7 @@ appsAutoreplies.update = function(appId, autoreplyId, obj, callback) {
 
 }
 
-appsAutoreplies.removeByAutoreplyId = function(appId, autoreplyId, callback) {
+appsAutoreplies.removeByAutoreplyId = (appId, autoreplyId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update({
             delete: 1
         })
@@ -43,5 +43,29 @@ appsAutoreplies.removeByAutoreplyId = function(appId, autoreplyId, callback) {
             callback(false);
         });
 }
+
+appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
+    let autoreplies = [];
+    autoreplyIds.map((autoreplyId, index) => {
+        let address = 'apps/' + appId + '/autoreplies/' + autoreplyId;
+        admin.database().ref(address).on('value', (snap) => {
+            let replyMessageContent = snap.val().content;
+            let replyMessageStartTime = new Date(snap.val().start).getTime(); // 開始時間
+            let replyMessageEndTime = new Date(snap.val().end).getTime(); // 結束時間
+            let now = Date.now(); // 現在時間
+            console.log(now, replyMessageEndTime, replyMessageStartTime);
+            if (now < replyMessageEndTime && now > replyMessageStartTime) {
+                autoreplies.push(replyMessageContent);
+            }
+            if (index === (autoreplyIds.length - 1)) {
+                callback(autoreplies);
+            }
+        });
+    });
+}
+
+// appsAutoreplies.findAutoreplyMessageByAutoreplyId = (appId, autoreplyId, callback) => {
+//     admin.database().ref('apps/' + appId + '/')
+// }
 
 module.exports = appsAutoreplies;

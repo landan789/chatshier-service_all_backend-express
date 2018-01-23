@@ -1,4 +1,6 @@
 {
+    "LINE_HOOK_SUCCEEDED_TO_DO": { "MSG": "line hook succeeded to do!" },
+    "FACEBOOK_HOOK_SUCCEEDED_TO_DO": { "MSG": "facebook hook succeeded to do!" },
     "DATA_SUCCEEDED_TO_UPDATE": { "MSG": "data succeeded to update!" },
     "DATA_SUCCEEDED_TO_INSERT": { "MSG": "data succeeded to insert!" },
     "DATA_SUCCEEDED_TO_FIND": { "MSG": "data succeeded to find!" },

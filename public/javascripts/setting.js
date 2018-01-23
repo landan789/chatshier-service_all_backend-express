@@ -819,7 +819,7 @@ function findUserProfile() {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: '/api/users/' + id,
+        url: '/api/users/users/' + id,
         headers: {
             "Authorization": jwt
         },

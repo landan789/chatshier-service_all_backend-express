@@ -16,9 +16,10 @@ $(document).ready(function() {
 function insert(appId,data) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
+    console.log(JSON.stringify(data));
     $.ajax({
         type: 'POST',
-        url: '/api/autoreplies/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -55,13 +56,12 @@ function find() {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url:  '/api/autoreplies/users/' + userId,
+        url:  '/api/apps-autoreplies/users/' + userId,
         headers: {
             "Authorization": jwt
         },
         success: (data) => {
             let appids = data.data;
-            console.log(appids)
             appids.map((item,index) => {
                 var proceed = new Promise((resolve,reject) => {
                     resolve();
@@ -134,7 +134,7 @@ function findOne(appId,autosHashId) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -159,7 +159,7 @@ function update(appId,autosHashId,data) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -200,7 +200,7 @@ function remove(appId,autosHashId) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },

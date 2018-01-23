@@ -97,7 +97,10 @@ appsAutoreplies.postOne = function(req, res, next) {
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
-        content: req.body.content,
+        format: {
+            text: req.body.content,
+            type: 'text'
+        },
         delete: 0
     }
 
@@ -157,7 +160,10 @@ appsAutoreplies.putOne = function(req, res, next) {
         name: req.body.name,
         start: req.body.start,
         end: req.body.end,
-        content: req.body.content
+        format: {
+            text: req.body.content,
+            type: 'text'
+        }
     }
 
     var proceed = new Promise((resolve, reject) => {
@@ -226,11 +232,11 @@ appsAutoreplies.deleteOne = function(req, res, next) {
                 });
             });
         })
-        .then((data) => {
+        .then(() => {
             return new Promise((resolve, reject) => {
                 autorepliesMdl.removeByAutoreplyId(appId, autoreplyId, (data) => {
                     if (data === false) {
-                        reject('刪除失敗');
+                        reject();
                         return;
                     }
                     resolve();
@@ -240,7 +246,7 @@ appsAutoreplies.deleteOne = function(req, res, next) {
         .then(() => {
             var json = {
                 "status": 1,
-                "msg": API_SUCCESS.DATA_DELETED_SUCCESS.MSG
+                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
             };
             res.status(200).json(json);
         })

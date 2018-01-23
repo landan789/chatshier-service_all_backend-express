@@ -15,15 +15,15 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
 // need raw buffer for signature validation
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
+// app.use(bodyParser.urlencoded({
+//     extended: true
+// }));
 
-app.use(bodyParser.json({
-  verify (req, res, buf) {
-    req.rawBody = buf
-  }
-}));
+// app.use(bodyParser.json({
+//     verify (req, res, buf) {
+//         req.rawBody = buf;
+//     }
+// }));
 app.use(formData.parse({
     autoFiles: true
 }));

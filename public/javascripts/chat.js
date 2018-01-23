@@ -222,6 +222,7 @@ $(document).ready(function() {
     } // end of responseChannels
 
     function responseChatData(data) {
+        console.log(data);
         var apps = data;
         var proceed = new Promise((resolve, reject) => {
             resolve();
@@ -303,6 +304,7 @@ $(document).ready(function() {
     }
 
     function pushMsg(data, callback) {
+        console.log(data);
         let emptyResult = Object.keys(data.obj).length !== 0;
         if(emptyResult) {
             let historyMsg = data.obj.messenges;
@@ -618,13 +620,13 @@ $(document).ready(function() {
     socket.on('new message', (data) => {
         console.log(data);
         if (!data.userId) {
-            console.log("data miss user id");
+            console.log('data miss user id');
             return;
         }
         let $room = $('.chat-app-item[rel="' + data.appId + '"]');
-        if ($room.length != 0) {
-            displayMessage(data.messengers, data.userId, data.appId); //update 聊天室
-            displayClient(data.messengers, data.userId, data.appId); //update 客戶清單
+        if ($room.length !== 0) {
+            displayMessage(data.messengers, data.userId, data.appId); // update 聊天室
+            displayClient(data.messengers, data.userId, data.appId); // update 客戶清單
             if (name_list.indexOf(data.userId + data.appId) === -1) { // 新客戶
                 name_list.push(data.userId + data.appId);
                 displayInfo(data.messengers, data.userId, data.appId);
@@ -831,7 +833,7 @@ $(document).ready(function() {
                     .then((data) => {
                         return new Promise((resolve, reject) => {
                             let sendObj = data;
-                            socket.emit('send message', {appId,userId,sendObj});
+                            // socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId,userId,sendObj});
                             resolve();
                         });
                     })
@@ -890,7 +892,9 @@ $(document).ready(function() {
     }
 
     function displayMessage(data, userId, appId) {
-        let chats = data.messenges;
+        console.log(data);
+        let chats = data.messages;
+        console.log(chats);
         let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
         if (name_list.indexOf(userId + appId) !== -1) { //if its chated user
             let str;

@@ -1,31 +1,38 @@
+const line = require('@line/bot-sdk');
+var SECRET = require('../config/secret');
+var Cryptr = require('cryptr');
+var cryptr = new Cryptr(SECRET.MESSENGE_KEY);
 var app = require('../app');
 var moment = require('moment');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
 var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
-var admin = require("firebase-admin"); //firebase admin SDK
-var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
-var databaseURL = require("../config/firebase_admin_database_url.js");
+var admin = require('firebase-admin'); // firebase admin SDK
+var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase admin requires .json auth
+var databaseURL = require('../config/firebase_admin_database_url.js');
 
 var agents = require('../models/agents');
-var appsAutoreplies = require('../models/apps_autoreplies');
+var appsAutorepliesMdl = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
-var appsKeywordreplies = require('../models/apps_keywordreplies');
+var appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 var tags = require('../models/tags');
 var users = require('../models/users');
 var apiModel = require('../models/apiai');
 var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
-var appMdl = require('../models/apps');
+var appsMdl = require('../models/apps');
 var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
+var appsChatroomsMessengersMdl = require('../models/apps_chatrooms_messengers');
 var groupsMdl = require('../models/groups');
+var appsMessagesMdl = require('../models/apps_messages');
+var appsTemplatesMdl = require('../models/apps_templates');
 
 var messageHandle = require('../message_handle');
-var middlewareBot = require('../middlewares/bot');
 
-var API_ERROR = require('../config/api_error');
-var API_SUCCESS = require('../config/api_success');
+const API_ERROR = require('../config/api_error');
+const API_SUCCESS = require('../config/api_success');
+const SOCKET_MESSAGE = require('../config/socket_message');
 
 const WAIT_TIME = 10000;
 const LINE = 'line';
@@ -33,7 +40,6 @@ const FACEBOOK = 'facbeook';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
-var fb_bot = {};
 var linebotParser;
 var globalLineMessageArray = [];
 
@@ -46,7 +52,6 @@ function init(server) {
     var io = socketio(server);
     var addFriendBroadcastMsg; // 加好友參數
     var bot = []; // LINE bot設定
-    var lbot;
     var userId;
     let appData = [];
     var channelIds = [-1, -1, -1];
@@ -64,102 +69,189 @@ function init(server) {
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
-                middlewareBot.parse(webhookId, body, (data) => {
-                    let appInfo = data;
-                    resolve(appInfo);
+                appsMdl.findAppByWebhookId(webhookId, (app) => {
+                    if (null === app || undefined === app || '' === app) {
+                        reject(API_ERROR.APP_DID_NOT_EXIST);
+                        return;
+                    }
+                    resolve(app);
+                });
+            });
+
+        }).then((app) => {
+            req.channelId = app.id1;
+            var lineConfig = {
+                channelSecret: app.secret,
+                channelAccessToken: app.token1
+            }
+            req.client = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
+            line.middleware(lineConfig)(req, res, next); // 中介軟體執行中介軟體的方法
+        }).catch(() => {
+        });
+    }, (req, res, next)=>{
+        var webhookId = req.params.webhookId;
+        var body = req.body;
+        var message = body.events[0].message.text;
+        var proceed = Promise.resolve();
+
+        proceed.then(()=>{
+            return new Promise((resolve, reject)=>{
+                appsMdl.findAppIdByWebhookId(webhookId, (appId) => {
+                    if (null === appId || undefined === appId || '' === appId) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
+            req.appId = appId;
+            return new Promise((resolve, reject) => {
+                // 1. 取得 訊息 ID，利用 vat massageId = cryptr.encrypt('你好，傳入的訊息'),
+                var messageId = cryptr.encrypt(message);
+                resolve({appId, messageId});
+            });
+        }).then((data) => {
+            let appId = data.appId;
+            let messageId = data.messageId;
+
+            let keywordreplyPromise = new Promise((resolve, reject) => {
+                // 2. 到 models/apps_messages.js，找到 keywordreply_ids
+                appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
+                    if (null === keywordreplyIds || undefined === keywordreplyIds || '' === keywordreplyIds) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve(keywordreplyIds);
+                });
+            });
+
+            let templatereplyPromise = new Promise((resolve, reject) => {
+                appsMessagesMdl.findTemplateIds(appId, messageId, (templatereplyIds) => {
+                    if (null === templatereplyIds || undefined === templatereplyIds || '' === templatereplyIds) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve(templatereplyIds);
+                });
+            });
+
+            let autoreplyPromise = new Promise((resolve, reject) => {
+                appsAutorepliesMdl.find(appId, (autoreplyMessages) => {
+                    if (null === autoreplyMessages || undefined === autoreplyMessages || '' === autoreplyMessages) {
+                        resolve(null);
+                        return;
+                    }
+                    let autoreplyIds = Object.keys(autoreplyMessages);
+                    resolve(autoreplyIds);
+                });
+            });
+
+            return Promise.all([keywordreplyPromise, templatereplyPromise, autoreplyPromise]);
+        }).then((replyIds) => {
+            req.keywordreplyIds = replyIds[0];
+            req.templatereplyIds = replyIds[1];
+            req.autoreplyIds = replyIds[2];
+            next();
+        }).catch((error) => {
+            console.log(error);
+        });
+    },(req, res, next) => {
+        var client = req.client;
+        var keywordreplyIds = req.keywordreplyIds; // 關鍵字回復的ID陣列
+        var templatereplyIds = req.templatereplyIds; // 格式訊息(按鈕, 圖文, Carousel)的ID陣列
+        var autoreplyIds = req.autoreplyIds; // 自動回覆的ID陣列
+        var appId = req.appId;
+        // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
+        var p1 = new Promise((resolve, reject)=>{
+            appsKeywordrepliesMdl.findMessagesByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordMessages) => {
+                if (null === keywordMessages || undefined === keywordMessages || '' === keywordMessages) {
+                    resolve(null);
+                    return;
+                }
+                resolve(keywordMessages);
+            });
+        });
+
+        var p2 = new Promise((resolve, reject)=>{
+            appsTemplatesMdl.findMessagesByAppIdAndTemplateIds(appId, templatereplyIds, (templateMessages) => {
+                if (null === templateMessages || undefined === templateMessages || '' === templateMessages) {
+                    resolve(null);
+                    return;
+                }
+                resolve(templateMessages);
+            });
+        });
+
+        var p3 = new Promise((resolve, reject) => {
+            appsAutorepliesMdl.findMessagesByAppIdAndAutoreplyIds(appId, autoreplyIds, (autoMessages) => {
+                if (null === autoMessages || undefined === autoMessages || '' === autoMessages) {
+                    resolve(null);
+                    return;
+                }
+                resolve(autoMessages);
+            });
+        });
+
+        Promise.all(req.body.events.map((event) => {
+            // 4. 用 line SDK 回傳訊息
+            if (event.type !== 'message' || event.message.type !== 'text') {
+                return Promise.resolve(null);
+            }
+
+            Promise.all([p1, p2, p3]).then((result) => {
+                var keywordMessages = result[0];
+                var templateMessages = result[1];
+                var autoMessages = result[2];
+                var replyMessages = [].concat(keywordMessages, templateMessages, autoMessages);
+
+                return client.replyMessage(event.replyToken, replyMessages);
+            });
+        })).then(() => {
+            let userId = req.body.events[0].source.userId;
+            return new Promise((resolve, reject) => {
+                // 5. 到 models/apps_chatrooms_messages.js 寫入訊息歷史紀錄
+                Promise.all([p1, p2, p3]).then((result) => {
+                    var keywordMessages = result[0];
+                    var templateMessages = result[1];
+                    var autoMessages = result[2];
+                    var replyMessages = [].concat(keywordMessages, templateMessages, autoMessages);
+                    replyMessages.map((replyText) => {
+                        let msgObj = {
+                            from: 'line',
+                            message: replyText.type === 'text' ? replyText.text : 'show ' + replyText.type,
+                            name: 'bot',
+                            owner: 'agent',
+                            time: Date.now()
+                        };
+                        appsChatroomsMessagesMdl.insertChatroomMessage(appId, userId, msgObj, () => {
+                            resolve({
+                                appId: appId,
+                                userId: userId,
+                                channelId: req.channelId
+                            });
+                        });
+                    });
                 });
             });
         }).then((data) => {
-
-            // 1. 取得傳入 mesenge 的編碼
-            // 2. 到 models/apps_mesenges.js 找到 keywordreply_ids
-            // 3. 到 models/apps_keywordreplies.js 找到需要轉給 line 的字串
-            // 4. 呼叫 line bot service 把 字串傳給之
-            // 5. 到 models/apps_chatrooms_messenges.insertMessenge() 寫入聊天紀錄，如果首次聊天，此方法並能夠新增 一筆 /apps/chatrooms/messengers
-            // 6. 使用 socket.emit 將訊息回傳到 web前端 顯示
-            let appInfo = data;
-            switch (appInfo.type) {
-                case LINE:
-                    var line = {
-                        channelId: appInfo.id1,
-                        channelSecret: appInfo.secret,
-                        channelAccessToken: appInfo.token1,
-                        webhookId: webhookId
-                    };
-                    lbot = linebot(line);
-                    lbot.on('message', bot_on_message);
-                    lbot.on('follow', bot_on_follow);
-                    req.parser = lbot.parser();
-                    if (REPLY_TOKEN_0 === body.events[0].replyToken && REPLY_TOKEN_F === body.events[1].replyToken) {
-                        req.verify = true;
-                    }
-                    next();
-                    break;
-                case FACEBOOK:
-                    let psid = body.entry[0].messaging[0].sender.id;
-                    let obj = body.entry[0].messaging[0];
-                    let text = body.entry[0].messaging[0].message.text;
-
-                    var facebook = {
-                        pageID: appInfo.id1,
-                        appID: appInfo.id2,
-                        appSecret: appInfo.secret,
-                        validationToken: appInfo.token1,
-                        pageToken: appInfo.token2
-                    };
-
-                    var fbbot = MessengerPlatform.create(facebook);
-
-                    fbbot.getProfile(psid).then(function(data) {
-                        utility.fbMsgType(obj.message, (fbMsg) => {
-                            console.log(fbMsg);
-                            var fb_user_name = data.first_name + ' ' + data.last_name;
-                            var fb_user_profilePic = data.profile_pic;
-                            let chatObj = {
-                                name: fb_user_name, // 客戶名稱
-                                photo: fb_user_profilePic, // 客戶profile圖片
-                                recentChat: Date.now(),
-                                avgChat: 1,
-                                totalChat: 1,
-                                chatTimeCount: 1,
-                                unRead: 1,
-                            };
-                            let msgObj = {
-                                name: fb_user_name,
-                                message: fbMsg, // 訊息
-                                owner: "user", // 身分
-                                time: Date.now(), // 傳輸時間
-                                from: 'facebook'
-                            };
-                            facebookMessage(msgObj, chatObj, webhookId, psid, appInfo.id1);
-                            req.verify = true;
-                            next();
-                        });
-                    }).catch(function(error) {
-                        console.log('error: loadFbProfile');
-                        console.log(error);
-                    }); //fb_bot
-                    break;
-            }
+            let appId = data.appId;
+            let userId = data.userId;
+            let channelId = data.channelId;
+            // 6. 用 socket.emit 回傳訊息給 clinet
+            appsChatroomsMessagesMdl.findByAppIdAndMessageId(appId, userId, (messenger) => {
+                if (null === messenger || undefined === messenger || '' === messenger) {
+                    let msgObj = { appId, userId, channelId, messenger };
+                    console.log(msgObj);
+                    // io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, msgObj);
+                }
+            });
         }).catch((error) => {
-            res.sendStatus(404);
+            console.log(error);
         });
-    }, (req, res, next) => {
-        if (true === req.verify || true === req.noWebhookId) {
-            next();
-            return;
-        }
-        var parser = req.parser;
-        parser(req, res, next);
-    }, (req, res, next) => {
-        if (true === req.noWebhookId) {
-            res.sendStatus(404);
-            return;
-        }
-        res.sendStatus(200);
     });
 
-    io.on('connection', function(socket) {
+    io.on('connection', function (socket) {
         console.log('connected');
         /*===聊天室start===*/
         socket.on('request chat init data', (frontData, callback) => {
@@ -186,12 +278,11 @@ function init(server) {
                 })
                 .then((appIds) => {
                     return new Promise((resolve, reject) => {
-                        appMdl.findAppsByAppIds(appIds, (data) => {
+                        appsMdl.findAppsByAppIds(appIds, (data) => {
                             if (null === data || undefined === data || "" === data) {
                                 reject();
                                 return;
                             }
-                            console.log(data);
                             resolve(data);
                             appData = [];
                             for (let i in appIds) {
@@ -236,7 +327,7 @@ function init(server) {
                 .then((data) => {
                     var appIds = data.app_ids;
                     return new Promise((resolve, reject) => {
-                        appMdl.findAppsByAppIds(appIds, (data) => {
+                        appsMdl.findAppsByAppIds(appIds, (data) => {
                             var apps = data;
                             if (null === apps || '' === apps || undefined === apps) {
                                 reject(API_ERROR.APPID_WAS_EMPTY);
@@ -261,20 +352,20 @@ function init(server) {
         });
 
         socket.on('request tags', (callback) => {
-            tags.get(function(tagsData) {
+            tags.get(function (tagsData) {
                 callback(tagsData);
             });
         });
 
         function requestTags(callback) {
-            tags.get(function(tagsData) {
+            tags.get(function (tagsData) {
                 callback(tagsData);
             });
         } // end of requestTags
 
         function requestInternalChatData(userId, callback) {
             let thisAgentData = [];
-            agents.get(function(agentChatData) {
+            agents.get(function (agentChatData) {
                 for (let i in agentChatData) {
                     if (agentChatData[i].Profile.agent.indexOf(userId) != -1) {
                         thisAgentData.push(agentChatData[i]);
@@ -338,7 +429,7 @@ function init(server) {
             });
         });
         // 從SHIELD chat傳送訊息
-        socket.on('send message', data => {
+        socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
             let vendor = data.sendObj;
             let msg = vendor.msgText;
             let receiver = data.appId;
@@ -348,100 +439,122 @@ function init(server) {
             // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
             let channel = vendor.id1;
 
-            let proceed = new Promise((resolve, reject) => {
-                resolve();
+            // 1. Server 接收到 client 來的聊天訊息
+            var proceed = Promise.resolve();
+            proceed.then(()=>{
+                return new Promise((resolve, reject)=>{
+                    // 2. 利用 line SDK 傳給 line service
+                });
+            }).then(()=>{
+                return new Promise((resolve, reject)=>{
+
+                });
+            }).then(()=>{
+                return new Promise((resolve, reject)=>{
+
+                });
+            }).then(()=>{
+                return new Promise((resolve, reject)=>{
+
+                });
+            }).then(()=>{
+                return new Promise((resolve, reject)=>{
+
+                });
+            }).catch(()=>{
+
             });
 
-            proceed
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        let msgObj = {
-                            owner: "agent",
-                            name: agentName,
-                            time: nowTime,
-                            message: "undefined_message",
-                            from: 'chatshier'
-                        };
-                        resolve(msgObj);
-                    })
-                })
-                .then((data) => {
-                    let msgObj = data;
-                    return new Promise((resolve, reject) => {
-                        if (msg.includes('/image')) {
-                            var src = msg.split(' ')[1];
-                            msgObj.message = `<img src="${src}" />`;
-                            resolve({ msgObj, vendor });
-                        } else if (msg.includes('/audio')) {
-                            var src = msg.split(' ')[1];
-                            msgObj.message = `<audio controls="controls">
-                                                <source src="${src}" type="audio/ogg">
-                                              </audio>`;
-                            resolve({ msgObj, vendor });
-                        } else if (msg.includes('/video')) {
-                            var src = msg.split(' ')[1];
-                            msgObj.message = `<video controls="controls">
-                                                <source src="${src}" type="video/mp4">
-                                              </video> `;
-                            resolve({ msgObj, vendor });
-                        } else if (utility.isUrl(msg)) {
-                            let urlStr = '<a href=';
-                            if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
-                                urlStr += '"http://';
-                            }
-                            msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-                            resolve({ msgObj, vendor });
-                        } else if (msg.includes('/sticker')) {
-                            msgObj.message = 'Send sticker to user';
-                            resolve({ msgObj, vendor });
-                        } else {
-                            msgObj.message = msg;
-                            resolve({ msgObj, vendor });
-                        }
-                    });
-                })
-                .then((data) => {
-                    let msgObj = data.msgObj;
-                    let vendorObj = data.vendor;
-                    return new Promise((resolve, reject) => {
-                        if (vendorObj.id2 === '') {
-                            let lineObj = {
-                                channelId: vendorObj.id1,
-                                channelSecret: vendorObj.secret,
-                                channelAccessToken: vendorObj.token1
-                            }
-                            let bot = linebot(lineObj);
-                            linebotParser = bot.parser();
-                            determineLineType(msg, data => {
-                                bot.push(receiver, data);
-                                resolve(msgObj);
-                            });
-                        } else {
-                            let fbObj = {
-                                pageID: vendorObj.id1,
-                                appID: vendorObj.id2,
-                                appSecret: vendorObj.secret,
-                                validationToken: vendorObj.token1,
-                                pageToken: vendorObj.token2
-                            }
-                            let bot = MessengerPlatform.create(fbObj);
-                            if (Object.keys(bot).length > 0) {
-                                determineFacebookType(msg, bot, receiver, () => {
-                                    resolve(msgObj);
-                                });
-                            }
-                        }
-                    });
-                })
-                .then((data) => {
-                    let msgObj = data;
-                    return new Promise((resolve, reject) => {
-                        appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
-                            console.log('agent sent message');
-                        });
-                    });
-                })
-                .catch((ERR) => {});
+
+            // let proceed = new Promise((resolve, reject) => {
+            //     resolve();
+            // });
+
+            // proceed.then(() => {
+            //     return new Promise((resolve, reject) => {
+            //         let msgObj = {
+            //             owner: "agent",
+            //             name: agentName,
+            //             time: nowTime,
+            //             message: "undefined_message",
+            //             from: 'chatshier'
+            //         };
+            //         resolve(msgObj);
+            //     })
+            // }).then((data) => {
+            //     let msgObj = data;
+            //     return new Promise((resolve, reject) => {
+            //         if (msg.includes('/image')) {
+            //             var src = msg.split(' ')[1];
+            //             msgObj.message = `<img src="${src}" />`;
+            //             resolve({ msgObj, vendor });
+            //         } else if (msg.includes('/audio')) {
+            //             var src = msg.split(' ')[1];
+            //             msgObj.message = `<audio controls="controls">
+            //                                     <source src="${src}" type="audio/ogg">
+            //                                   </audio>`;
+            //             resolve({ msgObj, vendor });
+            //         } else if (msg.includes('/video')) {
+            //             var src = msg.split(' ')[1];
+            //             msgObj.message = `<video controls="controls">
+            //                                     <source src="${src}" type="video/mp4">
+            //                                   </video> `;
+            //             resolve({ msgObj, vendor });
+            //         } else if (utility.isUrl(msg)) {
+            //             let urlStr = '<a href=';
+            //             if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
+            //                 urlStr += '"http://';
+            //             }
+            //             msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
+            //             resolve({ msgObj, vendor });
+            //         } else if (msg.includes('/sticker')) {
+            //             msgObj.message = 'Send sticker to user';
+            //             resolve({ msgObj, vendor });
+            //         } else {
+            //             msgObj.message = msg;
+            //             resolve({ msgObj, vendor });
+            //         }
+            //     });
+            // }).then((data) => {
+            //     let msgObj = data.msgObj;
+            //     let vendorObj = data.vendor;
+            //     return new Promise((resolve, reject) => {
+            //         if (vendorObj.id2 === '') {
+            //             let lineObj = {
+            //                 channelId: vendorObj.id1,
+            //                 channelSecret: vendorObj.secret,
+            //                 channelAccessToken: vendorObj.token1
+            //             }
+            //             let bot = linebot(lineObj);
+            //             linebotParser = bot.parser();
+            //             determineLineType(msg, data => {
+            //                 bot.push(receiver, data);
+            //                 resolve(msgObj);
+            //             });
+            //         } else {
+            //             let fbObj = {
+            //                 pageID: vendorObj.id1,
+            //                 appID: vendorObj.id2,
+            //                 appSecret: vendorObj.secret,
+            //                 validationToken: vendorObj.token1,
+            //                 pageToken: vendorObj.token2
+            //             }
+            //             let bot = MessengerPlatform.create(fbObj);
+            //             if (Object.keys(bot).length > 0) {
+            //                 determineFacebookType(msg, bot, receiver, () => {
+            //                     resolve(msgObj);
+            //                 });
+            //             }
+            //         }
+            //     });
+            // }).then((data) => {
+            //     let msgObj = data;
+            //     return new Promise((resolve, reject) => {
+            //         appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
+            //             console.log('agent sent message');
+            //         });
+            //     });
+            // }).catch((ERR) => { });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data) => {
@@ -457,7 +570,7 @@ function init(server) {
             let head = data.head;
             let tail = data.tail;
             let sendData = [];
-            chats.findChatData(function(chatData) {
+            chats.findChatData(function (chatData) {
                 for (let i in chatData) {
                     if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
                         for (let j = head; j < tail + 1; j++) {
@@ -484,7 +597,7 @@ function init(server) {
 
         /*===內部聊天室start===*/
         // 傳遞對照表，轉換agent的Id及Name
-        socket.on('get agentIdToName list', function() {
+        socket.on('get agentIdToName list', function () {
             users.get(agentData => {
                 let agentIdToName = { "0": "System" };
                 for (let prop in agentData) {
@@ -522,7 +635,7 @@ function init(server) {
         });
         // 更新內部聊天室右邊的資料
         socket.on('update internal profile', data => {
-            agents.get(function(agentChatData) {
+            agents.get(function (agentChatData) {
                 for (let i in agentChatData) {
                     if (agentChatData[i].Profile.roomId == data.roomId) {
                         let updateObj = {};
@@ -727,12 +840,12 @@ function init(server) {
     }
     //==============LINE MESSAGE==============
     function bot_on_message(event) {
-        let webhookId = this.options.webhookId
+        let webhookId = this.options.webhookId;
         let channelId = this.options.channelId; // line群組ID
         let message_type = event.message.type; // line訊息類別 text, location, image, video...
         let receiverId = event.source.userId; // line客戶ID
         let nowTime = Date.now(); // 現在時間
-        event.source.profile().then(function(profile) {
+        event.source.profile().then(function (profile) {
             let receiver_name = profile.displayName; // 客戶姓名
             let pictureUrl = profile.pictureUrl; // 客戶的profile pic
             if (receiver_name === undefined) receiver_name = "userName_undefined";
@@ -786,33 +899,32 @@ function init(server) {
 
                 return new Promise((resolve, reject) => {
                     let chatObj = {
-                            name: receiver_name,
-                            photo: pictureUrl,
-                            recentChat: nowTime,
-                            avgChat: 1,
-                            totalChat: 1,
-                            chatTimeCount: 1,
-                            unRead: 1
-                        }
-                        // 客戶資料
-                    appsChatroomsMessagesMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
+                        name: receiver_name,
+                        photo: pictureUrl,
+                        recentChat: nowTime,
+                        avgChat: 1,
+                        totalChat: 1,
+                        chatTimeCount: 1,
+                        unRead: 1
+                    };
+                    // 客戶資料
+                    appsChatroomsMessengersMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
                         resolve({ appId, userId, channelId, messengers });
-                    })
+                    });
                 });
             }).then((data) => {
-                let obj = data
+                let obj = data;
                 io.sockets.emit('new message', obj);
                 console.log('finished');
             }).catch((error) => {
-                console.log('Error ' + error)
+                console.log('Error ' + error);
             });
 
             function keywordsReply(msg) {
-
-                msgObj.name = "KeyWords Reply";
+                msgObj.name = 'KeyWords Reply';
                 let sent = false;
-                keywords.get(function(keywordData) {
+                keywords.get(function (keywordData) {
                     for (let i in keywordData) {
                         for (let j in keywordData[i]) {
                             let thisData = keywordData[i][j];
@@ -822,7 +934,7 @@ function init(server) {
                             if (thisData.taskCate == "開放") {
                                 let keywords = thisData.taskSubK ? JSON.parse(JSON.stringify(thisData.taskSubK)) : [];
                                 keywords.push(thisData.taskMainK);
-                                keywords.map(function(word) {
+                                keywords.map(function (word) {
                                     if (msg.trim().toLowerCase() == word.trim().toLowerCase()) {
                                         sent = true;
                                         for (let k in thisData.taskText) {
@@ -886,7 +998,7 @@ function init(server) {
             // function autoReply(msg) {
             //     replyMsgObj.name = "Auto Reply";
             //     sent = false;
-            //     appsAutoreplies.get(function(autoreplyData) {
+            //     appsAutorepliesMdl.get(function(autoreplyData) {
             //         for (let i in autoreplyData) {
             //             for (let j in autoreplyData[i]) {
             //                 thisAutoReply = autoreplyData[i][j];
@@ -906,7 +1018,7 @@ function init(server) {
             // }
 
             function lineTemplateReply(msg) {
-                linetemplate.getMsg(channelId, msg, function(data) {
+                linetemplate.getMsg(channelId, msg, function (data) {
                     if (data) {
                         replyMsgObj.name = "Line Template Demo Reply";
                         replyMsgObj.message = data.altText ? data.altText : data.text;
@@ -1156,15 +1268,15 @@ function init(server) {
                             "template": {
                                 type: 'carousel',
                                 "columns": [{
-                                        "title": title[n],
-                                        "text": '--------------------------------------------------',
-                                        "actions": actions_1
-                                    },
-                                    {
-                                        "title": title[n],
-                                        "text": '--------------------------------------------------',
-                                        "actions": actions_2
-                                    }
+                                    "title": title[n],
+                                    "text": '--------------------------------------------------',
+                                    "actions": actions_1
+                                },
+                                {
+                                    "title": title[n],
+                                    "text": '--------------------------------------------------',
+                                    "actions": actions_2
+                                }
                                 ]
                             }
                         });
@@ -1240,35 +1352,35 @@ function init(server) {
                                 "template": {
                                     "type": 'carousel',
                                     "columns": [{
-                                            "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
-                                            "text": "上午時段\n注意:預約日期，假日一概不受理。",
-                                            "actions": [{
-                                                    "type": "message",
-                                                    "label": '10:00-11:00',
-                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 10:00-11:00"
-                                                },
-                                                {
-                                                    "type": "message",
-                                                    "label": '11:00-12:00',
-                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 11:00-12:00"
-                                                }
-                                            ]
+                                        "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
+                                        "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                        "actions": [{
+                                            "type": "message",
+                                            "label": '10:00-11:00',
+                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 10:00-11:00"
                                         },
                                         {
-                                            "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
-                                            "text": "下午時段\n注意:預約日期，假日一概不受理。",
-                                            "actions": [{
-                                                    "type": "message",
-                                                    "label": '15:00-16:00',
-                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 15:00-16:00"
-                                                },
-                                                {
-                                                    "type": "message",
-                                                    "label": '16:00-17:00',
-                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 16:00-17:00"
-                                                }
-                                            ]
+                                            "type": "message",
+                                            "label": '11:00-12:00',
+                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 11:00-12:00"
                                         }
+                                        ]
+                                    },
+                                    {
+                                        "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
+                                        "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                        "actions": [{
+                                            "type": "message",
+                                            "label": '15:00-16:00',
+                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 15:00-16:00"
+                                        },
+                                        {
+                                            "type": "message",
+                                            "label": '16:00-17:00',
+                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 16:00-17:00"
+                                        }
+                                        ]
+                                    }
                                     ]
                                 }
                             });
@@ -1300,7 +1412,7 @@ function init(server) {
             }
 
             function apiai(msg) {
-                apiModel.process(msg, function(replyMessage, replyTemplate) {
+                apiModel.process(msg, function (replyMessage, replyTemplate) {
                     console.log("apiai replyMessage=" + replyMessage);
                     if (replyMessage !== "-1") {
                         replyMsgObj.name = "api.ai";
@@ -1345,8 +1457,8 @@ function init(server) {
         if (chanInfo.hasOwnProperty("fb")) {
             let fb = chanInfo.fb;
             if ([fb.pageID, fb.appID, fb.appSecret, fb.validationToken, fb.pageToken].every((ele) => {
-                    return ele;
-                })) {
+                return ele;
+            })) {
                 fb_bot = MessengerPlatform.create(chanInfo.fb);
             }
             channelIds[2] = chanInfo.fb.pageID;
@@ -1449,7 +1561,7 @@ function init(server) {
     }
 
     function send_to_firebase_internal(obj, roomId) {
-        agents.get(function(agentChatData) {
+        agents.get(function (agentChatData) {
             for (let prop in agentChatData) {
                 let data = agentChatData[prop];
                 if (data.Profile.roomId == roomId) {
@@ -1481,7 +1593,7 @@ function init(server) {
         console.log(1048);
         console.log(obj);
         // fb_bot.webhook('/webhook');
-        fb_bot.getProfile(psid).then(function(data) {
+        fb_bot.getProfile(psid).then(function (data) {
             utility.fbMsgType(obj.message, (fbMsg) => {
                 var fb_user_name = data.first_name + ' ' + data.last_name;
                 var fb_user_profilePic = data.profile_pic;
@@ -1497,7 +1609,7 @@ function init(server) {
                 };
                 pushAndEmit(msgObj, fb_user_profilePic, channelIds[2], obj.sender.id, 1);
             });
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.log('error: loadFbProfile');
             console.log(error);
         }); //fb_bot

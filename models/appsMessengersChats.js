@@ -1,7 +1,7 @@
 var admin = require("firebase-admin"); //firebase admin SDK
-var appsMessagersChats = {}; // 宣告物件因為module需要物件
+var appsMessengersChats = {}; // 宣告物件因為module需要物件
 
-appsMessagersChats._schema = (callback) => {
+appsMessengersChats._schema = (callback) => {
     var json = {
         name: "",
         photo: "",
@@ -20,22 +20,13 @@ appsMessagersChats._schema = (callback) => {
     callback(json);
 };
 
-appsMessagersChats.insertChatroomMessage = (appId,crId,msgObj,callback) => {
+appsMessengersChats.insertMessengerChats = (appId,msgId,msgObj,callback) => {
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
 
     proceed.then(() => {
-        return new Promise((resolve, reject) => {
-            let messengeKey = admin.database().ref('apps/' + appId + '/chatrooms/' + crId + '/messenges').push().key;
-            resolve({messengeKey});
-        });
-    }).then((data) => {
-        let messengeKey = data.messengeKey;
-        return admin.database().ref('apps/' + appId + '/chatrooms/' + crId + '/messenges/' + messengeKey).update(msgObj);
-    }).then(() => {
-        let messengerId = crId;
-        return admin.database().ref('apps/' + appId + '/chatrooms/' + crId + '/messengers/' + messengerId ).update({name: msgObj.name});
+        return admin.database().ref('apps/' + appId + '/messengers/' + msgId + '/chats/').push(msgObj);
     }).then(() => {
         callback();
     }).catch(() => {
@@ -43,14 +34,14 @@ appsMessagersChats.insertChatroomMessage = (appId,crId,msgObj,callback) => {
     });
 }
 
-appsMessagersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {    
+appsMessengersChats.updateMessenger = (appId,msgId,msgObj,callback) => {    
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
 
     proceed.then(() => {
         return new Promise((resolve,reject) => {
-            admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).once('value', snap => {
+            admin.database().ref('apps/' + appId + '/messengers/' + msgId).once('value', snap => {
                 let messenger = snap.val();
                 resolve(messenger);
             });
@@ -58,7 +49,7 @@ appsMessagersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {
     }).then((data) => {
         let messenger = data;
         return new Promise((resolve,reject) => {
-            appsMessagersChats._schema((initApp) => {
+            appsMessengersChats._schema((initApp) => {
                 resolve({messenger,initApp});
             });
         });
@@ -67,7 +58,7 @@ appsMessagersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {
         let initApp = data.initApp;
         if(null === messenger.name || undefined === messenger.name || '' === messenger.name) { // 新客戶
             let createApp = Object.assign(initApp,msgObj);
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).update(createApp);
+            return admin.database().ref('apps/' + appId + '/messengers/' + msgId).update(createApp);
         } else { // 舊客戶
             let nowTime = Date.now();
             console.log(new Date(nowTime + 28800000));
@@ -80,32 +71,32 @@ appsMessagersChats.updateMessengerInfo = (appId,msgId,msgObj,callback) => {
             // 訊息進線就多一筆未讀訊息
             newApp.unRead++;
             // 計算總聊天時間 
-            // let d = new Date(newApp.firstChat);
-            // let firstTime = d.getTime();
-            // let totalChatTime = (nowTime + 28800000) - firstTime;
-            // newApp.totalChat = getTotalMin(totalChatTime);
+            let d = new Date(newApp.firstChat);
+            let firstTime = d.getTime();
+            let totalChatTime = (nowTime + 28800000) - firstTime;
+            newApp.totalChat = getTotalMin(totalChatTime);
             // console.log(newApp);
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).update(newApp);
+            return admin.database().ref('apps/' + appId + '/messengers/' + msgId).update(newApp);
         }
     }).then(() => {
-        admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).once('value', (snap) => {
-            let chatrooms = snap.val();
-            if(null === chatrooms || undefined === chatrooms || '' === chatrooms) {
+        admin.database().ref('apps/' + appId + '/messengers/' + msgId).once('value', (snap) => {
+            let messengers = snap.val();
+            if(null === messengers || undefined === messengers || '' === messengers) {
                 callback(false);
                 return;
             }
-            callback(chatrooms);
+            callback(messengers);
         });
     }).catch(() => {
         callback(false);
     });
 }
 
-appsMessagersChats.updateUnreadStatus = (appId, msgId) => {
-    admin.database().ref('apps/' + appId + '/chatrooms/' + msgId).update({unRead: 0});
+appsMessengersChats.updateUnreadStatus = (appId, msgId) => {
+    admin.database().ref('apps/' + appId + '/messengers/' + msgId).update({unRead: 0});
 }
 
-appsMessagersChats.findByUserId = (userId, callback) => {
+appsMessengersChats.findByUserId = (userId, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
@@ -124,7 +115,7 @@ appsMessagersChats.findByUserId = (userId, callback) => {
         });
     }).then((user) => {
         var appIds = user.app_ids;
-        appsMessagersChats.findByAppIds(appIds, (data) => {
+        appsMessengersChats.findByAppIds(appIds, (data) => {
             var appsMessengers = data;
             callback(appsMessengers);
         });
@@ -133,7 +124,7 @@ appsMessagersChats.findByUserId = (userId, callback) => {
     });
 }
 
-appsMessagersChats.findByAppIds = (appIds, callback) => {
+appsMessengersChats.findByAppIds = (appIds, callback) => {
     var appsMessengers = {};
     next(0, callback);
 
@@ -157,12 +148,12 @@ appsMessagersChats.findByAppIds = (appIds, callback) => {
                     admin.database().ref("apps/" + appId).once("value", snap => {
                         var app = snap.val();
 
-                        var value = app.chatrooms;
-                        if (undefined === app.chatrooms || !app.hasOwnProperty('chatrooms') || 0 === Object.values(app.chatrooms).length) {
+                        var value = app.messengers;
+                        if (undefined === app.messengers || !app.hasOwnProperty('messengers') || 0 === Object.values(app.messengers).length) {
                             value = Object.assign({});
                         }
                         appsMessengers[appId] = {
-                            chatrooms: value
+                            messengers: value
                         };
 
                         resolve();
@@ -177,7 +168,7 @@ appsMessagersChats.findByAppIds = (appIds, callback) => {
     }
 }
 
-appsMessagersChats.findAppByWebhookId = (webhookId,callback) => {
+appsMessengersChats.findAppByWebhookId = (webhookId,callback) => {
     let proceed = new Promise((resolve,reject) => {
         resolve();
     });
@@ -201,4 +192,36 @@ appsMessagersChats.findAppByWebhookId = (webhookId,callback) => {
     });
 }
 
-module.exports = appsMessagersChats;
+appsMessengersChats.findByWebhookId = (webhookId,callback) => {
+    let proceed = new Promise((resolve,reject) => {
+        resolve();
+    });
+
+    proceed
+        .then(() => {
+            return new Promise((resolve,reject) => {
+                admin.database().ref('webhooks/' + webhookId).once('value', (snap) => {
+                    let appId = snap.val();
+                    if(null === appId || undefined === appId || '' === appId) {
+                        reject();
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        })
+        .then((data) => {
+            let appId = data;
+            callback(appId);
+        })
+        .catch(() => {
+            callback(false);
+        });
+}
+
+function getTotalMin(time) {
+    var minutes = time / 1000 / 60;
+    return minutes;
+}
+
+module.exports = appsMessengersChats;
