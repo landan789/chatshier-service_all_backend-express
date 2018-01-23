@@ -7,7 +7,6 @@ var admin = require("firebase-admin"); //firebase admin SDK
 var serviceAccount = require("../config/firebase-adminsdk.json"); //firebase admin requires .json auth
 var databaseURL = require("../config/firebase_admin_database_url.js");
 
-var API_ERROR = require('../config/api_error');
 var agents = require('../models/agents');
 var appsAutoreplies = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
