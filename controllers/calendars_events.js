@@ -76,11 +76,11 @@ calendarsEvents.postOne = (req, res, next) => {
             });
         });
     }).then((data) => {
-        var CalendarsEvents = data;
+        var calendarsEvents = data;
         var json = {
             status: 1,
             msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-            data: CalendarsEvents
+            data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
