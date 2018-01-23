@@ -49,12 +49,12 @@ appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callb
     autoreplyIds.map((autoreplyId, index) => {
         let address = 'apps/' + appId + '/autoreplies/' + autoreplyId;
         admin.database().ref(address).on('value', (snap) => {
-            let replyMessageContent = snap.val().content;
+            let replyMessageContent = snap.val().format;
             let replyMessageStartTime = new Date(snap.val().start).getTime(); // 開始時間
             let replyMessageEndTime = new Date(snap.val().end).getTime(); // 結束時間
-            let now = Date.now(); // 現在時間
-            console.log(now, replyMessageEndTime, replyMessageStartTime);
-            if (now < replyMessageEndTime && now > replyMessageStartTime) {
+            let now = DateTimezone(8);
+            let tpeTime = now.getTime();
+            if (tpeTime < replyMessageEndTime && tpeTime > replyMessageStartTime) {
                 autoreplies.push(replyMessageContent);
             }
             if (index === (autoreplyIds.length - 1)) {
@@ -67,5 +67,15 @@ appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callb
 // appsAutoreplies.findAutoreplyMessageByAutoreplyId = (appId, autoreplyId, callback) => {
 //     admin.database().ref('apps/' + appId + '/')
 // }
+
+function DateTimezone(offset) {
+    // 建立現在時間的物件
+    let d = new Date();
+    // 取得 UTC time
+    let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    // 新增不同時區的日期資料
+    return new Date(utc + (3600000 * offset));
+
+}
 
 module.exports = appsAutoreplies;
