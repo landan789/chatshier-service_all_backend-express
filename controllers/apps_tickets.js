@@ -25,7 +25,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_DID_NOT_EXIST);
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(user);
@@ -39,7 +39,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 appsTicketsMdl.findAppTicketsByAppIds(appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_DID_NOT_EXIST);
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
 
@@ -91,7 +91,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 usersMdl.findUserByUserId(userId, (data) => {
                     var user = data;
                     if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_DID_NOT_EXIST);
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(user);
@@ -116,7 +116,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 appsTicketsMdl.findAppTicketsByAppIds([appId], (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_DID_NOT_EXIST);
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
 
@@ -174,7 +174,7 @@ appsTickets.getOne = (req, res, next) => {
             usersMdl.findUserByUserId(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
-                    reject(API_ERROR.USER_DID_NOT_EXIST);
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
                 resolve(user);
@@ -201,7 +201,7 @@ appsTickets.getOne = (req, res, next) => {
             appsTicketsMdl.findAppTicketByAppIdByTicketId(appId, ticketId, (data) => {
                 var apps = data;
                 if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
-                    reject(API_ERROR.APP_DID_NOT_EXIST);
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
                 }
 
@@ -258,50 +258,49 @@ appsTickets.postOne = (req, res, next) => {
         resolve();
     });
 
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
+    proceed.then(() => {
+        return new Promise((resolve, reject) => {
+            if ('' === userId || null === userId || undefined === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
 
-                if ('' === appId || null === appId || undefined === appId) {
-                    reject(API_ERROR.APPID_WAS_EMPTY);
+            if ('' === appId || null === appId || undefined === appId) {
+                reject(API_ERROR.APPID_WAS_EMPTY);
+                return;
+            }
+
+            resolve();
+        });
+
+    }).then(() => {
+        return new Promise((resolve, reject) => {
+            appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
+                if (false === result || null === result || undefined === result) {
+                    reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                     return;
                 }
 
                 resolve();
+
             });
-
-        }).then(() => {
-            return new Promise((resolve, reject) => {
-                appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
-                    if (false === result || null === result || undefined === result) {
-                        reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
-                        return;
-                    }
-
-                    resolve();
-
-                });
-            });
-
-        }).then(() => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
-            }
-            res.status(200).json(json);
-
-        }).catch((ERROR) => {
-            var json = {
-                "status": 0,
-                "msg": ERROR.MSG,
-                "code": ERROR.CODE
-            };
-            res.status(403).json(json);
         });
+
+    }).then(() => {
+        var json = {
+            "status": 1,
+            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
+        }
+        res.status(200).json(json);
+
+    }).catch((ERROR) => {
+        var json = {
+            "status": 0,
+            "msg": ERROR.MSG,
+            "code": ERROR.CODE
+        };
+        res.status(403).json(json);
+    });
 }
 appsTickets.putOne = (req, res, next) => {
     var userId = req.params.userid;

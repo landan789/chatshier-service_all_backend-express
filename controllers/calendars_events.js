@@ -11,26 +11,26 @@ calendarsEvents.getAll = function(req, res, next) {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             calendarsEventsMdl.findCalendarEventsByUserId(userId, (data) => {
-                var events = data;
-                if (false === events || undefined === events || '' === events) {
-                    resolve();
+                var calendarsEvents = data;
+                if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
+                    reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                     return;
                 }
-                resolve(events);
+                resolve(calendarsEvents);
             });
         });
-    }).then((data) => {
+    }).then((calendarsEvents) => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-            "data": data
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
         var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
+            status: 0,
+            msg: ERR.MSG,
+            code: ERR.CODE
         };
         res.status(403).json(json);
     });
@@ -39,35 +39,55 @@ calendarsEvents.getAll = function(req, res, next) {
 calendarsEvents.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
-    let dataObj = {
-        title: req.body.title,
-        start: req.body.start,
-        end: req.body.end,
-        description: req.body.description,
-        allDay: req.body.allDay,
-        delete: 0
-    };
+    let calendarId = req.params.calendarid;
+    let event = {
+        title: undefined === req.body.title ? null : req.body.title,
+        startTime: undefined === req.body.startTime ? null : req.body.startTime,
+        endTime: undefined === req.body.endTime ? null : req.body.endTime,
+        description: undefined === req.body.description ? null : req.body.description,
+        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay,
+        isDeleted: 0
+    }
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.insertCalendarEventByUserId(userId, dataObj, (data) => {
-                let obj = data;
-                resolve(obj);
+            if ('' === userId || null === userId || undefined === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
+
+            if ('' === calendarId || null === calendarId || undefined === calendarId) {
+                reject(API_ERROR.CALENDARID_WAS_EMPTY);
+                return;
+            }
+
+            resolve();
+        });
+    }).then(() => {
+        return new Promise((resolve, reject) => {
+            calendarsEventsMdl.insertCalendarEventByCalendarIdByUserId(calendarId, userId, event, (data) => {
+                let calendarsEvents = data;
+                if (null === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
+                    reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
+                    return;
+                }
+                resolve(data);
             });
         });
     }).then((data) => {
+        var CalendarsEvents = data;
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-            "obj": data
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+            data: CalendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
         var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
+            status: 0,
+            msg: ERR.MSG,
+            code: ERR.CODE
         };
         res.status(403).json(json);
     });
@@ -77,12 +97,14 @@ calendarsEvents.putOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
     let eventId = req.params.eventid;
-    let dataObj = {
-        title: req.body.title,
-        start: req.body.start,
-        end: req.body.end,
-        description: req.body.description,
-        allDay: req.body.allDay
+    let calendarId = req.params.calendarid;
+
+    let event = {
+        title: undefined === req.body.title ? null : req.body.title,
+        startTime: undefined === req.body.startTime ? null : req.body.startTime,
+        endTime: undefined === req.body.endTime ? null : req.body.endTime,
+        description: undefined === req.body.description ? null : req.body.description,
+        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay
     }
 
     let proceed = new Promise((resolve, reject) => {
@@ -91,10 +113,29 @@ calendarsEvents.putOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdsByUserId(userId, (data) => {
-                let calendarId = data;
-                if (false === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+            if ('' === userId || null === userId || undefined === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
+
+            if ('' === calendarId || null === calendarId || undefined === calendarId) {
+                reject(API_ERROR.CALENDARID_WAS_EMPTY);
+                return;
+            }
+
+            if ('' === eventId || null === eventId || undefined === eventId) {
+                reject(API_ERROR.EVENTID_WAS_EMPTY);
+                return;
+            }
+
+            resolve();
+        });
+    }).then(() => {
+        return new Promise((resolve, reject) => {
+            userMdl.findCalendarIdByUserId(userId, (data) => {
+                let _calendarId = data;
+                if (null === _calendarId || undefined === _calendarId || '' === _calendarId || calendarId !== _calendarId) {
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
                 }
                 resolve();
@@ -102,23 +143,23 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.updateCalendarEventByUserIdByEventId(userId, eventId, dataObj, (data) => {
-                let obj = data;
-                resolve(obj);
+            calendarsEventsMdl.updateCalendarEventByCalendarIdByEventId(calendarId, eventId, event, (data) => {
+                let calendarsEvents = data;
+                resolve(calendarsEvents);
             });
         });
-    }).then((data) => {
+    }).then((calendarsEvents) => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-            "data": data
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+            data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
         var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
+            status: 0,
+            msg: ERR.MSG,
+            code: ERR.CODE
         };
         res.status(403).json(json);
     });
@@ -132,7 +173,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdsByUserId(userId, (data) => {
+            userMdl.findCalendarIdByUserId(userId, (data) => {
                 var calendarId = data;
                 if (false === calendarId || undefined === calendarId || '' === calendarId) {
                     reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
@@ -143,21 +184,27 @@ calendarsEvents.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, () => {
-                resolve();
+            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, (result) => {
+                if (undefined === result || '' === result || null === result) {
+
+                    reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
+                }
+                var calendarsEvents = result;
+                resolve(calendarsEvents);
             });
         });
-    }).then(() => {
+    }).then((calendarsEvents) => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+            data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
         var json = {
-            "status": 0,
-            "msg": ERR.MSG,
-            "code": ERR.CODE
+            status: 0,
+            msg: ERR.MSG,
+            code: ERR.CODE
         };
         res.status(403).json(json);
     });

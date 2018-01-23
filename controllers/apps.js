@@ -24,7 +24,7 @@ apps.getAll = (req, res, next) => {
 
                 userMdl.findUserByUserId(userId, (data) => {
                     if (null === data) {
-                        reject(API_ERROR.USER_DID_NOT_EXIST);
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
@@ -34,14 +34,14 @@ apps.getAll = (req, res, next) => {
             var appIds = data.app_ids;
 
             return new Promise((resolve, reject) => {
-                if(undefined === appIds || '' === appIds || (appIds instanceof Array && 0 === appIds.length)){
+                if (undefined === appIds || '' === appIds || (appIds instanceof Array && 0 === appIds.length)) {
                     var apps = {};
                     resolve(apps);
                     return;
                 }
                 appMdl.findAppsByAppIds(appIds, (data) => {
                     var apps = data;
-                    if (null === apps || '' === apps || undefined === apps ) {
+                    if (null === apps || '' === apps || undefined === apps) {
                         apps = {};
                     }
 
@@ -111,7 +111,7 @@ apps.getOne = (req, res, next) => {
                 appMdl.findByAppId(appId, (data) => {
                     var app = data;
                     if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
-                        reject(API_ERROR.APP_DID_NOT_EXIST);
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
 

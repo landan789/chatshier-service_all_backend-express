@@ -490,7 +490,7 @@ richmenus.delete = (req, res, next) => {
             return new Promise((resolve, reject) => {
                 richmenuMdl.findOneByAppIdByRichmenuId(appId, richmenuId, (data) => {
                     if (null === data || undefined === data || '' === data) {
-                        reject(API_ERROR.APP_RICHMENU_DOES_NOT_EXIST);
+                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                         return;
                     }
                     resolve();
