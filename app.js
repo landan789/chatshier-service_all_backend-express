@@ -36,16 +36,16 @@ app.use(express.static(path.join(__dirname, 'public'))); // to import css and ja
 app.use('/', index);
 app.use('/api/*/users/:userid', jwt.verify); // API 權限驗證
 app.use('/api', api);
-//facebook connection
+// facebook connection
 app.get('/webhook/:webhookId', function(req, res) {
-    if (req.query['hub.verify_token'] === 'verify_token') {
-        console.log("Validating webhook");
+    if ('verify_token' === req.query['hub.verify_token']) {
+        console.log('Validating webhook');
         res.status(200).send(req.query['hub.challenge']);
     } else {
-        console.error("Failed validation. Make sure the validation tokens match.");
+        console.error('Failed validation. Make sure the validation tokens match.');
         res.sendStatus(403);
     }
-}); //app.get-->facebook webhook
+}); // app.get-->facebook webhook
 
 app.use('/', (err, req, res, next) => {
     console.log('aaaa');
