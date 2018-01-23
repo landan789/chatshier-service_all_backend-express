@@ -337,7 +337,7 @@ router.put('/users/users/:userid', (req, res, next) => {
 });
 
 router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
-router.post('/calendars-events/calendars/:calendarid/users/:userid', calendarsEventsCtl.postOne);
+router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
 router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.putOne);
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
 

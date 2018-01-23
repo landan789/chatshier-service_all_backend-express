@@ -93,7 +93,7 @@ calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eve
     });
 };
 
-calendarsEvents.insertCalendarEventByCalendarIdByUserId = (calendarId, userId, event, callback) => {
+calendarsEvents.insertCalendarEventByUserId = (userId, event, callback) => {
     let proceed = new Promise((resolve, reject) => {
         resolve();
     });
