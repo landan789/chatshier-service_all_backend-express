@@ -135,7 +135,7 @@
                         // 批此處理每個 tickets 的 app 資料
                         for (let ticketId in tickets) {
                             let ticketData = tickets[ticketId];
-                            if (ticketData.delete) {
+                            if (ticketData.isDeleted) {
                                 // 如果此 ticket 已被標注刪除，則忽略不顯示
                                 continue;
                             }
@@ -146,13 +146,13 @@
                             // 將每筆 ticket 資料反映於 html DOM 上
                             ticketContent.append(
                                 '<tr id="' + ticketId + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
-                                    '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + ticketData.requesterId + '</td>' +
-                                    '<td>' + (!ticketData.requester ? '' : ticketData.requester.name) + '</td>' +
-                                    '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
-                                    '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                                    '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                                    '<td id="time">' + displayDate(ticketData.dueBy) + '</td>' +
-                                    '<td>' + dueDate(ticketData.dueBy) + '</td>' +
+                                '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + ticketData.requesterId + '</td>' +
+                                '<td>' + (!ticketData.requester ? '' : ticketData.requester.name) + '</td>' +
+                                '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                                '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
+                                '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
+                                '<td id="time">' + displayDate(ticketData.dueBy) + '</td>' +
+                                '<td>' + dueDate(ticketData.dueBy) + '</td>' +
                                 '</tr>');
                         }
                     }
@@ -316,40 +316,40 @@
 
             let moreInfoHtml =
                 '<tr>' +
-                    '<th>客戶ID</th>' +
-                    '<td class="edit">' + (!ticketData.requester ? '' : ticketData.requester.id) + '</td>' +
+                '<th>客戶ID</th>' +
+                '<td class="edit">' + (!ticketData.requester ? '' : ticketData.requester.id) + '</td>' +
                 '</tr>' +
                 // '<tr>' +
                 //     '<th class="agent">負責人</th>' +
                 //     '<td class="form-group">' + showSelect('responder', agentList) + '</td>' +
                 // '</tr>' +
                 '<tr>' +
-                    '<th class="priority">優先</th>' +
-                    '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
+                '<th class="priority">優先</th>' +
+                '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th class="status">狀態</th>' +
-                    '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
+                '<th class="status">狀態</th>' +
+                '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th class="description">描述</th>' +
-                    '<td class="edit form-group">' +
-                        '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
-                    '</td>' +
+                '<th class="description">描述</th>' +
+                '<td class="edit form-group">' +
+                '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
+                '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th class="time-edit">到期時間' + dueDate(ticketData.dueBy) + '</th>' +
-                    '<td class="form-group">' +
-                        '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueBy) + '">' +
-                    '</td>' +
+                '<th class="time-edit">到期時間' + dueDate(ticketData.dueBy) + '</th>' +
+                '<td class="form-group">' +
+                '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueBy) + '">' +
+                '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th>建立日期</th>' +
-                    '<td>' + displayDate(ticketData.createdTime) + '</td>' +
+                '<th>建立日期</th>' +
+                '<td>' + displayDate(ticketData.createdTime) + '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th>最後更新</th>' +
-                    '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
+                '<th>最後更新</th>' +
+                '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
                 '</tr>';
             infoInputTable.append(moreInfoHtml);
         });

@@ -28,7 +28,7 @@ appsTickets._schema = (callback) => {
         toEmails: null,
         type: null,
         updatedTime: '2017-0101',
-        delete: 0
+        isDeleted: 0
     };
     callback(json);
 };
@@ -36,7 +36,7 @@ appsTickets.findTicketsByAppId = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/tickets').once('value', snap => {
         var tickets = snap.val();
         if ('' === tickets || undefined === tickets || null === tickets) {
-            callback(false);
+            callback(null);
             return;
         }
 
@@ -114,7 +114,7 @@ appsTickets.findAppTicketByAppIdByTicketId = (appId, ticketId, callback) => {
         var apps = data;
         callback(apps);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 
 }
@@ -142,7 +142,7 @@ appsTickets.insertByAppid = (appId, postTicket, callback) => {
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -156,7 +156,7 @@ appsTickets.updateByAppIdByticketId = (appId, ticketId, putTicket, callback) => 
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -166,7 +166,7 @@ appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
     });
 
     var deleteTicket = {
-        delete: 1
+        isDeleted: 1
     };
 
     procced.then(() => {
@@ -174,7 +174,7 @@ appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
