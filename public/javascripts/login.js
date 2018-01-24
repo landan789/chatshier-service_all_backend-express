@@ -36,7 +36,6 @@
 
             document.cookie = 'name=' + name + ';domain=' + domain;
             document.cookie = 'email=' + email + ';domain=' + domain;
-            location.replace('/chat'); // 導向聊天頁面但不留下頁面紀錄(按上一頁時不會返回登入頁面)
         }).catch(function(error) {
             $this.button('reset'); // Button loading reset
             if ('auth/wrong-password' !== error.code) {

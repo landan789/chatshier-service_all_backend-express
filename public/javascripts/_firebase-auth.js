@@ -18,7 +18,7 @@
             readyPromiseRejecter = reject;
         });
 
-        var authStateListener = auth.onAuthStateChanged((currentUser) => {
+        auth.onAuthStateChanged((currentUser) => {
             var state = getState(currentUser);
             var asyncFlag = false;
 
@@ -52,7 +52,6 @@
             }
 
             !asyncFlag && readyPromiseResolver(currentUser);
-            authStateListener(); // Release event listener
         });
 
         return readyPromise;
@@ -84,15 +83,15 @@
         var pathname = location.pathname;
 
         if ('' !== name && '' !== email) {
-            state = state | parseInt('001', 2);
+            state = state | IS_COOKIES;
         }
 
         if (user) {
-            state = state | parseInt('010', 2);
+            state = state | IS_USER;
         }
 
         if ('/login' === pathname || '/signup' === pathname) {
-            state = state | parseInt('100', 2);
+            state = state | IS_LOGIN_SIGNUP_PAGE;
         }
 
         return state;
