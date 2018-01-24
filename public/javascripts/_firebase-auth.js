@@ -1,10 +1,10 @@
 (function() {
-    var IS_COOKIES = parseInt('001', 2);
-    var IS_USER = parseInt('010', 2);
+    var HAS_COOKIES = parseInt('001', 2);
+    var HAS_USER = parseInt('010', 2);
     var IS_LOGIN_SIGNUP_PAGE = parseInt('100', 2);
 
-    var NOT_COOKIES = parseInt('000', 2);
-    var NOT_USER = parseInt('000', 2);
+    var NO_COOKIES = parseInt('000', 2);
+    var NO_USER = parseInt('000', 2);
     var NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
     var serviceUrl = location.host;
@@ -13,26 +13,29 @@
     auth.ready = (function() {
         var readyPromiseResolver;
         var readyPromiseRejecter;
-        var readyPromise = new Promise((resolve, reject) => {
+        var readyPromise = new Promise(function(resolve, reject) {
             readyPromiseResolver = resolve;
             readyPromiseRejecter = reject;
         });
 
-        auth.onAuthStateChanged((currentUser) => {
+        auth.authStateListener = auth.onAuthStateChanged(function(currentUser) {
             var state = getState(currentUser);
             var asyncFlag = false;
+            var readyFlag = false;
 
-            if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
+            if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES) ||
+                state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+                state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
+                state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+                state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
                 location.replace('/logout');
-            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-                location.replace('/logout');
-            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-                location.replace('/logout');
-            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
-                asyncFlag = true;
-
+            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+                // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
+                asyncFlag = readyFlag = true;
                 $('#loading').fadeOut();
-                currentUser.getIdToken(false).then((jwt) => {
+
+                // 更新 firebase jwt 並寫入到 localStorage
+                currentUser.getIdToken(false).then(function(jwt) {
                     window.localStorage.setItem('jwt', jwt);
                     readyPromiseResolver(currentUser);
                 }).catch(function(error) {
@@ -41,17 +44,14 @@
                         readyPromiseRejecter(error);
                     }
                 });
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | NOT_COOKIES)) {
-
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | NOT_USER | IS_COOKIES)) {
-                location.replace('/logout');
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | NOT_COOKIES)) {
-                location.replace('/logout');
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | IS_USER | IS_COOKIES)) {
+            } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+                readyFlag = true;
                 location.replace('/chat');
+            } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+
             }
 
-            !asyncFlag && readyPromiseResolver(currentUser);
+            !asyncFlag && readyFlag && readyPromiseResolver(currentUser);
         });
 
         return readyPromise;
@@ -83,11 +83,11 @@
         var pathname = location.pathname;
 
         if ('' !== name && '' !== email) {
-            state = state | IS_COOKIES;
+            state = state | HAS_COOKIES;
         }
 
         if (user) {
-            state = state | IS_USER;
+            state = state | HAS_USER;
         }
 
         if ('/login' === pathname || '/signup' === pathname) {

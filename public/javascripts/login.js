@@ -28,6 +28,10 @@
         // Regular expression Testing
         // var emailRule = /^\w+((-\w+)|(\.\w+))*@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
 
+        // 釋放 firebase auth state 的監聽事件(於 _firebase-auth.js 內宣告的)
+        // 防止自動跳轉
+        auth.authStateListener && auth.authStateListener();
+
         // validate ok or not
         auth.signInWithEmailAndPassword(email, password).then(function(result) {
             // var uid = auth.currentUser.uid;
@@ -36,6 +40,9 @@
 
             document.cookie = 'name=' + name + ';domain=' + domain;
             document.cookie = 'email=' + email + ';domain=' + domain;
+
+            // 資料寫入完畢後才跳轉至 /chat
+            location.replace('/chat');
         }).catch(function(error) {
             $this.button('reset'); // Button loading reset
             if ('auth/wrong-password' !== error.code) {
