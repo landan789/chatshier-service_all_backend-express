@@ -487,7 +487,7 @@ function findAllApps() {
                 let appIds = data.data;
                 let appKeyArr = Object.keys(appIds);
                 for (let i in appIds) {
-                    if (appIds[i].delete !== 1) {
+                    if (appIds[i].isDeleted !== 1) {
                         $('#prof-id').append(appIds[i].user_id);
                         // groupType(appKeyArr[i],appIds[i]);
                         groupType(i, appIds[i]);
