@@ -7,14 +7,14 @@ appsMessages.findKeywordreplyIds = (appId, messengeId, callback) => {
     proceed.then(() => {
         return admin.database().ref('apps/' + appId + '/messages/' + messengeId).once('value');
     }).then((snap) => {
-        let keywordreplyIds = snap.val().keywordreply_ids;
-        if (null === keywordreplyIds || undefined === keywordreplyIds || '' === keywordreplyIds) {
+        let keywordreplies = snap.val();
+        if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies) {
             callback(null);
             return;
         }
-        callback(keywordreplyIds);
+        callback(keywordreplies.keywordreply_ids);
     });
-}; 
+};
 
 appsMessages.findTemplateIds = (appId, messengeId, callback) => {
     let proceed = Promise.resolve();
@@ -22,12 +22,12 @@ appsMessages.findTemplateIds = (appId, messengeId, callback) => {
     proceed.then(() => {
         return admin.database().ref('apps/' + appId + '/messages/' + messengeId).once('value');
     }).then((snap) => {
-        let templatereplyIds = snap.val().templatereply_ids;
-        if (null === templatereplyIds || undefined === templatereplyIds || '' === templatereplyIds) {
+        let templatereplies = snap.val();
+        if (null === templatereplies || undefined === templatereplies || '' === templatereplies) {
             callback(null);
             return;
         }
-        callback(templatereplyIds);
+        callback(templatereplies.template_ids);
     });
 };
 

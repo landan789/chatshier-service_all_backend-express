@@ -23,7 +23,7 @@ var utility = require('../helpers/utility');
 var webhookMdl = require('../models/webhooks');
 var appsMdl = require('../models/apps');
 var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
-var appsChatroomsMessengersMdl = require('../models/apps_chatrooms_messengers');
+var appsMessengersMdl = require('../models/apps_messagers');
 var groupsMdl = require('../models/groups');
 var appsMessagesMdl = require('../models/apps_messages');
 var appsTemplatesMdl = require('../models/apps_templates');
@@ -35,8 +35,8 @@ const API_SUCCESS = require('../config/api_success');
 const SOCKET_MESSAGE = require('../config/socket_message');
 
 const WAIT_TIME = 10000;
-const LINE = 'line';
-const FACEBOOK = 'facbeook';
+const LINE = 'LINE';
+const FACEBOOK = 'FACEBOOK';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -64,7 +64,6 @@ function init(server) {
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
         var body = req.body;
-
         var proceed = Promise.resolve();
 
         proceed.then(() => {
@@ -77,25 +76,33 @@ function init(server) {
                     resolve(app);
                 });
             });
-
         }).then((app) => {
+            req.appType = app.type;
             req.channelId = app.id1;
-            var lineConfig = {
-                channelSecret: app.secret,
-                channelAccessToken: app.token1
+            switch (app.type) {
+                case LINE:
+                    var lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+                    req.client = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
+                    line.middleware(lineConfig)(req, res, next); // 中介軟體執行中介軟體的方法
+                    break;
+                case FACEBOOK:
+                    // FACEBOOK 不需要middleware
+                    req.app = app;
+                    next();
+                    break;
             }
-            req.client = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
-            line.middleware(lineConfig)(req, res, next); // 中介軟體執行中介軟體的方法
         }).catch(() => {
         });
-    }, (req, res, next)=>{
+    }, (req, res, next) => {
         var webhookId = req.params.webhookId;
         var body = req.body;
         var message = body.events[0].message.text;
         var proceed = Promise.resolve();
-
-        proceed.then(()=>{
-            return new Promise((resolve, reject)=>{
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
                 appsMdl.findAppIdByWebhookId(webhookId, (appId) => {
                     if (null === appId || undefined === appId || '' === appId) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -126,13 +133,13 @@ function init(server) {
                 });
             });
 
-            let templatereplyPromise = new Promise((resolve, reject) => {
-                appsMessagesMdl.findTemplateIds(appId, messageId, (templatereplyIds) => {
-                    if (null === templatereplyIds || undefined === templatereplyIds || '' === templatereplyIds) {
+            let templatePromise = new Promise((resolve, reject) => {
+                appsMessagesMdl.findTemplateIds(appId, messageId, (templateIds) => {
+                    if (null === templateIds || undefined === templateIds || '' === templateIds) {
                         resolve(null);
                         return;
                     }
-                    resolve(templatereplyIds);
+                    resolve(templateIds);
                 });
             });
 
@@ -147,23 +154,36 @@ function init(server) {
                 });
             });
 
-            return Promise.all([keywordreplyPromise, templatereplyPromise, autoreplyPromise]);
+            return Promise.all([keywordreplyPromise, templatePromise, autoreplyPromise]);
         }).then((replyIds) => {
             req.keywordreplyIds = replyIds[0];
-            req.templatereplyIds = replyIds[1];
+            req.templateIds = replyIds[1];
             req.autoreplyIds = replyIds[2];
             next();
         }).catch((error) => {
             console.log(error);
         });
-    },(req, res, next) => {
+    }, (req, res, next) => {
         var client = req.client;
         var keywordreplyIds = req.keywordreplyIds; // 關鍵字回復的ID陣列
-        var templatereplyIds = req.templatereplyIds; // 格式訊息(按鈕, 圖文, Carousel)的ID陣列
+        var templateIds = req.templateIds; // 格式訊息(按鈕, 圖文, Carousel)的ID陣列
         var autoreplyIds = req.autoreplyIds; // 自動回覆的ID陣列
         var appId = req.appId;
+        var userId = req.body.events[0].source.userId;
+        // FACEBOOK 初始設定
+        var app = req.app;
+        var psid = undefined === req.body.entry ? '' : req.body.entry[0].messaging[0].sender.id;
+        var facebookConfig = {
+            pageID: app.id1,
+            appID: app.id2 === undefined ? '' : app.id2,
+            appSecret: app.secret,
+            validationToken: app.token1,
+            pageToken: app.token2 === undefined ? '' : app.token2
+        };
+        var fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(facebookConfig, server);
+
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
-        var p1 = new Promise((resolve, reject)=>{
+        var p1 = new Promise((resolve, reject) => {
             appsKeywordrepliesMdl.findMessagesByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordMessages) => {
                 if (null === keywordMessages || undefined === keywordMessages || '' === keywordMessages) {
                     resolve(null);
@@ -173,8 +193,8 @@ function init(server) {
             });
         });
 
-        var p2 = new Promise((resolve, reject)=>{
-            appsTemplatesMdl.findMessagesByAppIdAndTemplateIds(appId, templatereplyIds, (templateMessages) => {
+        var p2 = new Promise((resolve, reject) => {
+            appsTemplatesMdl.findMessagesByAppIdAndTemplateIds(appId, templateIds, (templateMessages) => {
                 if (null === templateMessages || undefined === templateMessages || '' === templateMessages) {
                     resolve(null);
                     return;
@@ -195,7 +215,7 @@ function init(server) {
 
         Promise.all(req.body.events.map((event) => {
             // 4. 用 line SDK 回傳訊息
-            if (event.type !== 'message' || event.message.type !== 'text') {
+            if ('message' !== event.type || 'text' !== event.message.type) {
                 return Promise.resolve(null);
             }
 
@@ -204,11 +224,32 @@ function init(server) {
                 var templateMessages = result[1];
                 var autoMessages = result[2];
                 var replyMessages = [].concat(keywordMessages, templateMessages, autoMessages);
+                var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
-                return client.replyMessage(event.replyToken, replyMessages);
+                if (undefined === req.body.entry) { // 處理LINE的訊息回覆
+                    return client.replyMessage(event.replyToken, replyMessages);
+                } else { // 處理FACEBOOK的訊息回覆
+                    utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
+                        return Promise.resolve();
+                    });
+                }
             });
         })).then(() => {
-            let userId = req.body.events[0].source.userId;
+            return new Promise((resolve, reject) => {
+                client.getProfile(userId).then((profile) => {
+                    var message = {
+                        text: req.body.events[0].message.text,
+                        from: req.appType,
+                        time: Date.now(),
+                        owner: 'user',
+                        name: profile.displayName
+                    };
+                    appsChatroomsMessagesMdl.insertChatroomMessage(appId, userId, message, (chatroomId) => {
+                        resolve(chatroomId);
+                    });
+                });
+            });
+        }).then((chatroomId) => {
             return new Promise((resolve, reject) => {
                 // 5. 到 models/apps_chatrooms_messages.js 寫入訊息歷史紀錄
                 Promise.all([p1, p2, p3]).then((result) => {
@@ -216,21 +257,26 @@ function init(server) {
                     var templateMessages = result[1];
                     var autoMessages = result[2];
                     var replyMessages = [].concat(keywordMessages, templateMessages, autoMessages);
-                    replyMessages.map((replyText) => {
-                        let msgObj = {
-                            from: 'line',
-                            message: replyText.type === 'text' ? replyText.text : 'show ' + replyText.type,
-                            name: 'bot',
-                            owner: 'agent',
-                            time: Date.now()
-                        };
-                        appsChatroomsMessagesMdl.insertChatroomMessage(appId, userId, msgObj, () => {
-                            resolve({
-                                appId: appId,
-                                userId: userId,
-                                channelId: req.channelId
-                            });
+
+                    appsChatroomsMessagesMdl.insertReplyMessages(appId, userId, replyMessages, () => {
+                        resolve({
+                            appId: appId,
+                            userId: userId,
+                            channelId: req.channelId,
+                            chatroomId: chatroomId
                         });
+                    });
+                });
+            });
+        }).then((data) => {
+            let appId = data.appId;
+            let userId = data.userId;
+            let channelId = data.channelId;
+            let chatroomId = data.chatroomId;
+            return new Promise((resolve, reject) => {
+                client.getProfile(userId).then((profile) => {
+                    appsMessengersMdl.updateMessenger(appId, userId, chatroomId, profile.displayName, profile.pictureUrl, () => {
+                        resolve(data);
                     });
                 });
             });
@@ -241,10 +287,12 @@ function init(server) {
             // 6. 用 socket.emit 回傳訊息給 clinet
             appsChatroomsMessagesMdl.findByAppIdAndMessageId(appId, userId, (messenger) => {
                 if (null === messenger || undefined === messenger || '' === messenger) {
-                    let msgObj = { appId, userId, channelId, messenger };
-                    console.log(msgObj);
-                    // io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, msgObj);
+                    res.sendStatus(404);
+                    return;
                 }
+                let msgObj = { appId, userId, channelId, messenger };
+                // io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, msgObj);
+                res.sendStatus(200);
             });
         }).catch((error) => {
             console.log(error);
@@ -253,7 +301,6 @@ function init(server) {
 
     io.on('connection', function (socket) {
         console.log('connected');
-        /*===聊天室start===*/
         socket.on('request chat init data', (frontData, callback) => {
             userId = frontData.id;
             var proceed = new Promise((resolve, reject) => {
@@ -279,7 +326,7 @@ function init(server) {
                 .then((appIds) => {
                     return new Promise((resolve, reject) => {
                         appsMdl.findAppsByAppIds(appIds, (data) => {
-                            if (null === data || undefined === data || "" === data) {
+                            if (null === data || undefined === data || '' === data) {
                                 reject();
                                 return;
                             }
@@ -825,7 +872,7 @@ function init(server) {
             let channelId = data.channelId;
             return new Promise((resolve, reject) => {
                 // 客戶資料
-                appsChatroomsMessagesMdl.updateMessengerInfo(appId, userId, chatObj, (data) => {
+                appsChatroomsMessagesMdl.updateMessenger(appId, userId, chatObj, (data) => {
                     let messengers = data;
                     resolve({ appId, userId, channelId, messengers });
                 })
@@ -908,7 +955,7 @@ function init(server) {
                         unRead: 1
                     };
                     // 客戶資料
-                    appsChatroomsMessengersMdl.updateMessengerInfo(appId, receiverId, chatObj, (data) => {
+                    appsMessengersMdl.updateMessenger(appId, receiverId, chatObj, (data) => {
                         let messengers = data;
                         resolve({ appId, userId, channelId, messengers });
                     });
@@ -1016,32 +1063,6 @@ function init(server) {
             //         if (!sent) return -1;
             //     });
             // }
-
-            function lineTemplateReply(msg) {
-                linetemplate.getMsg(channelId, msg, function (data) {
-                    if (data) {
-                        replyMsgObj.name = "Line Template Demo Reply";
-                        replyMsgObj.message = data.altText ? data.altText : data.text;
-                        pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
-                        templateToStr = JSON.stringify(data);
-                        send_to_Line("/template " + templateToStr, receiverId, channelId);
-                    } else return -1;
-                });
-            }
-
-            function lineTemplateReplyDemo(msg) {
-                // replyMsgObj.name = "Line Template Demo Reply";
-                // linetemplate.get( function( templateData ) {
-                //   let data = templateData[msg];
-                //   if( data ) {
-                //     replyMsgObj.message = data.altText;
-                //     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
-                //     templateToStr = JSON.stringify(data);
-                //     send_to_Line("/template "+templateToStr, receiverId, channelId);
-                //   }
-                //   else return -1;
-                // });
-            }
 
             function surveyReply(msg) {
                 console.log("survey execute");

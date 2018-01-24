@@ -9,14 +9,18 @@ templates.findByAppId = (appId, callback) => {
 }
 
 templates.findMessagesByAppIdAndTemplateIds = (appId, templateIds, callback) => {
-    let templatereplies = [];
+    let templates = [];
+    if (null === templateIds) {
+        callback(templates);
+        return;
+    }
     templateIds.map((templateId, index) => {
-        let address = 'apps/' + appId + '/templatereplies/' + templateId;
+        let address = 'apps/' + appId + '/templates/' + templateId;
         admin.database().ref(address).once('value', (snap) => {
-            let replyMessage = snap.val().format;
-            templatereplies.push(replyMessage);
+            let replyMessage = snap.val();
+            templates.push(replyMessage);
             if (index === (templateIds.length - 1)) {
-                callback(templatereplies);
+                callback(templates);
             }
         });
     });

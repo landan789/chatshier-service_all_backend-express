@@ -164,6 +164,42 @@ utility.filterUser = (channelIdArr, chatData, callback) => {
   callback(newData);
 }
 
+utility.sendFacebookMessage = (fbBot, psid, msgStr, callback) => {
+    sendMessage(0, callback);
+
+    function sendMessage(index, cb) {
+        let proceed = Promise.resolve();
+
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                if (index >= msgStr.length) {
+                    reject();
+                    return;
+                }
+                resolve();
+            });
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                fbBot.sendTextMessage(psid, msgStr[index].text);
+                resolve();
+            });
+        }).then(() => {
+            sendMessage(index + 1, cb);
+        }).catch(() => {
+            cb();
+        });
+    }
+}
+
+utility.DateTimezone = (offset) => {
+    // 建立現在時間的物件
+    let d = new Date();
+    // 取得 UTC time
+    let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    // 新增不同時區的日期資料
+    return new Date(utc + (3600000 * offset));
+};
+
 function URL(str) {
     if (str.indexOf('.com') !== -1) return true;
     else if (str.indexOf('.edu') !== -1) return true;

@@ -224,9 +224,9 @@ function dataInsert() {
     let textInput = $('#enter-text').val();
     let obj = {
         name: name,
-        start: starttime,
-        end: endtime,
-        content: textInput
+        createdTime: starttime,
+        finishedTime: endtime,
+        message: textInput
     }
     insert(appIds, obj);
 }
@@ -254,8 +254,8 @@ function dataUpdate() {
 
     var data = {
         name: name,
-        start: starttime,
-        end: endtime,
+        createdTime: starttime,
+        finishedTime: endtime,
         content: textInput
     }
 

@@ -291,7 +291,6 @@ $(document).ready(function() {
     $('#setting-modal-submit-btn').click(function(event) {
         event.preventDefault();
         let type = $(this).parent().parent().find('#type').text();
-        // console.log($type);
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
@@ -311,7 +310,7 @@ $(document).ready(function() {
                     let id1 = $('#channel-id').val();
                     let secret = $('#channel-secret').val();
                     let token1 = $('#channel-token').val();
-                    let type = 'line';
+                    let type = 'LINE';
                     let updateObj = {
                         name,
                         id1,
@@ -327,7 +326,7 @@ $(document).ready(function() {
                     let secret = $('#facebook-app-secret').val();
                     let token1 = $('#facebook-valid-token').val();
                     let token2 = $('#facebook-page-token').val();
-                    let type = 'facebook';
+                    let type = 'FACEBOOK';
                     let updateObj = {
                         name,
                         id1,
@@ -357,8 +356,8 @@ $(document).ready(function() {
             '<br/>' +
             '<label class="col-2 col-form-label">新增群組: </label>' +
             '<select id="app-group-select" class="form-control">' +
-            '<option value="line" selected>LINE</option>' +
-            '<option value="facebook">臉書</option>' +
+            '<option value="LINE" selected>LINE</option>' +
+            '<option value="FACEBOOK">臉書</option>' +
             '</select>' +
             '<br/>' +
             '<div id="line-form">' +
@@ -432,12 +431,12 @@ $(document).ready(function() {
         // console.log($(this).find('option:selected').val());
         let type = $(this).find('option:selected').val();
         switch (type) {
-            case 'line':
+            case 'LINE':
                 $('#line-form').hide();
                 $('#facebook-form').hide();
                 $('#line-form').show();
                 break;
-            case 'facebook':
+            case 'FACEBOOK':
                 $('#line-form').hide();
                 $('#facebook-form').hide();
                 $('#facebook-form').show();
@@ -526,7 +525,7 @@ function findOneApp(appId) {
 
 function insertType(type, callback) {
     switch (type) {
-        case 'line':
+        case 'LINE':
             let lineName = $('#cname').val();
             let lineId = $('#channel-id').val();
             let lineSecret = $('#channel-secret').val();
@@ -538,9 +537,10 @@ function insertType(type, callback) {
                 token1: lineToken,
                 type: type
             }
+            console.log(lineObj);
             callback(lineObj);
             break;
-        case 'facebook':
+        case 'FACEBOOK':
             let fbName = $('#facebook-name').val();
             let fbPageId = $('#facebook-page-id').val();
             let fbAppId = $('#facebook-app-id').val();
@@ -562,6 +562,8 @@ function insertType(type, callback) {
 }
 
 function insertOneApp(data) { // 未完成
+    console.log(data);
+    console.log(JSON.stringify(data));
     var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
@@ -637,7 +639,7 @@ function groupType(index, item) {
     var baseWebhookUrl = urlConfig.webhookUrl;
     let appStr
     switch (item.type) {
-        case 'line':
+        case 'LINE':
             appStr =
                 '<tr class="active">' +
                 '<th class="col-md-3 col-lg-3">LINE</th>' +
@@ -672,7 +674,7 @@ function groupType(index, item) {
                 '</tr>';
             $('#app-group').append(appStr);
             break;
-        case 'facebook':
+        case 'FACEBOOK':
             appStr =
                 '<tr class="active">' +
                 '<th class="col-md-3 col-lg-3">Facebook</th>' +
@@ -721,7 +723,7 @@ function groupType(index, item) {
 function formModalBody(id, item) {
     let appStr
     switch (item.type) {
-        case 'line':
+        case 'LINE':
             appStr =
                 '<form>' +
                 '<div id="type" hidden>updateApp</div>' +
@@ -758,7 +760,7 @@ function formModalBody(id, item) {
                 '</form>';
             $('.modal-body').append(appStr);
             break;
-        case 'facebook':
+        case 'FACEBOOK':
             appStr =
                 '<form>' +
                 '<div id="type" hidden>updateApp</div>' +

@@ -1,4 +1,5 @@
-var admin = require("firebase-admin"); //firebase admin SDK
+var admin = require('firebase-admin'); // firebase admin SDK
+var utility = require('../helpers/utility');
 var appsAutoreplies = {};
 
 appsAutoreplies._schema = (callback) => {
@@ -112,16 +113,24 @@ appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
 
 appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
     let autoreplies = [];
+    if (null === autoreplyIds) {
+        callback(autoreplies);
+        return;
+    }
     autoreplyIds.map((autoreplyId, index) => {
         let address = 'apps/' + appId + '/autoreplies/' + autoreplyId;
         admin.database().ref(address).on('value', (snap) => {
-            let replyMessageContent = snap.val().format;
-            let replyMessageStartTime = new Date(snap.val().createdTime).getTime(); // 開始時間
-            let replyMessageEndTime = new Date(snap.val().createdTime).getTime(); // 結束時間
-            let now = DateTimezone(8);
+            let replyMessageContent = snap.val();
+            if (null === replyMessageContent || undefined === replyMessageContent || '' === replyMessageContent) {
+                callback(null);
+                return;
+            }
+            let createdTime = replyMessageContent.createdTime;
+            let finishedTime = replyMessageContent.finishedTime;
+            let now = utility.DateTimezone(8);
             let tpeTime = now.getTime();
-            if (tpeTime < replyMessageEndTime && tpeTime > replyMessageStartTime) {
-                autoreplies.push(replyMessageContent);
+            if (tpeTime < finishedTime && tpeTime > createdTime) {
+                autoreplies.push({type: replyMessageContent.type, text: replyMessageContent.text});
             }
             if (index === (autoreplyIds.length - 1)) {
                 callback(autoreplies);
@@ -155,16 +164,6 @@ appsAutoreplies.findByAppIds = (appIds, callback) => {
             return nextPromise(i + 1);
         });
     }
-};
-
-function DateTimezone(offset) {
-    // 建立現在時間的物件
-    let d = new Date();
-    // 取得 UTC time
-    let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-    // 新增不同時區的日期資料
-    return new Date(utc + (3600000 * offset));
-
 };
 
 module.exports = appsAutoreplies;
