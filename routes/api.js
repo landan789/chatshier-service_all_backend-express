@@ -24,7 +24,7 @@ router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
 router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
-//圖文選單
+// 圖文選單
 router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getByUserId);
 router.get('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.getByAppIdByuserId);
 router.get('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.getOne);
@@ -34,10 +34,10 @@ router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid',
 
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
-router.get('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.getOne);
+router.get('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.getOne);
 router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
-router.put('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.putOne);
-router.delete('/apps-autoreplies/autoreplies/:autoreplyid/apps/:appid/users/:userid', appsAutorepliesCtl.deleteOne);
+router.put('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.putOne);
+router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.deleteOne);
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;

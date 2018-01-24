@@ -2,21 +2,20 @@ var domain = location.host;
 // jQuery
 $(document).ready(function() {
     var startUserId = setInterval(() => {
-        if(auth.currentUser) {
+        if (auth.currentUser) {
             clearInterval(startUserId);
             find();
         }
-    },1000);
+    }, 1000);
     $(document).on('click', '#modal-submit', dataInsert); //新增
     $(document).on('click', '#editBtn', openEdit); //打開編輯modal
     $(document).on('click', '#edit-submit', dataUpdate);
     $(document).on('click', '#deleBtn', dataRemove); //刪除
 });
 
-function insert(appId,data) {
+function insert(appId, data) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
-    console.log(JSON.stringify(data));
     $.ajax({
         type: 'POST',
         url: '/api/apps-autoreplies/apps/' + appId + '/users/' + userId,
@@ -27,15 +26,15 @@ function insert(appId,data) {
             "Authorization": jwt
         },
         success: (id) => {
-            let str = 
-            '<tr>' + 
+            let str =
+                '<tr>' +
                 '<td rel="' + id.data + '" hidden></td>' +
                 '<td>Open</td>' +
                 '<td rel="' + data.name + '">' + data.name + '</td>' +
                 '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
                 '<td rel="' + data.content + '">' + data.content + '</td>' +
                 '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-            '</tr>';
+                '</tr>';
             $('#' + appId + ' #autoreply-list').append(str);
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
@@ -56,70 +55,72 @@ function find() {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url:  '/api/apps-autoreplies/users/' + userId,
+        url: '/api/apps-autoreplies/users/' + userId,
         headers: {
             "Authorization": jwt
         },
         success: (data) => {
             let appids = data.data;
-            appids.map((item,index) => {
-                var proceed = new Promise((resolve,reject) => {
+            console.log(appids)
+            appids.map((item, index) => {
+                var proceed = new Promise((resolve, reject) => {
                     resolve();
                 });
 
                 proceed
-                .then(() => {
-                    return new Promise((resolve,reject) => {
-                        let options = '<option value="' + item + '">APP ' + (index+1) + '</option>';
-                        $('#app-select').append(options);
-                        resolve()
-                    });
-                })
-                .then(() => {
-                    return new Promise((resolve,reject) => {
-                        let tableContent = 
-                        '<div class="col-md-6 space-top-down">' +
-                        '<label class="col-2 col-form-label">APP ' + (index+1) + '</label>' +
-                        '<table id="' + item + '">' +
-                            '<thead>' +
+                    .then(() => {
+                        return new Promise((resolve, reject) => {
+                            let options = '<option value="' + item + '">APP ' + (index + 1) + '</option>';
+                            $('#app-select').append(options);
+                            resolve()
+                        });
+                    })
+                    .then(() => {
+                        return new Promise((resolve, reject) => {
+                            let tableContent =
+                                '<div class="col-md-6 space-top-down">' +
+                                '<label class="col-2 col-form-label">APP ' + (index + 1) + '</label>' +
+                                '<table id="' + item + '">' +
+                                '<thead>' +
                                 '<tr>' +
-                                    '<th class="table-header" hidden>ID</th>' +
-                                    '<th class="table-header">狀態</th>' +
-                                    '<th class="table-header">訊息標題</th>' +
-                                    '<th class="table-header">有效期限</th>' +
-                                    '<th class="table-header">訊息內容</th>' +
-                                    '<th class="table-header">編輯/刪除</th>' +
+                                '<th class="table-header" hidden>ID</th>' +
+                                '<th class="table-header">狀態</th>' +
+                                '<th class="table-header">訊息標題</th>' +
+                                '<th class="table-header">有效期限</th>' +
+                                '<th class="table-header">訊息內容</th>' +
+                                '<th class="table-header">編輯/刪除</th>' +
                                 '</tr>' +
-                            '</thead>' +
-                            '<tbody id="autoreply-list"></tbody>' +
-                        '</table>' + 
-                        '</div>';
-                        $('#autoreply-tables').append(tableContent);
-                        resolve(item);
-                    });
-                })
-                .then((data) => {
-                    database.ref('apps/' + data + '/autoreplies').once('value', (snap) => {
-                        let allApps = snap.val();
-                        for(let i in allApps) {
-                            if(allApps[i].delete === 0) {
-                                let str = 
-                                '<tr>' + 
-                                    '<td rel="' + i + '" hidden></td>' +
-                                    '<td>Open</td>' +
-                                    '<td rel="' + allApps[i].name + '">' + allApps[i].name + '</td>' +
-                                    '<td rel="' + allApps[i].start + ' ' + allApps[i].end + '">' + allApps[i].start + ' - ' + allApps[i].end + '</td>' +
-                                    '<td rel="' + allApps[i].content + '">' + allApps[i].content + '</td>' +
-                                    '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-                                '</tr>';
-                                $('#' + data + ' #autoreply-list').append(str);
+                                '</thead>' +
+                                '<tbody id="autoreply-list"></tbody>' +
+                                '</table>' +
+                                '</div>';
+                            $('#autoreply-tables').append(tableContent);
+                            resolve(item);
+                        });
+                    })
+                    .then(() => {
+
+                        database.ref('apps/' + appId + '/autoreplies').once('value', (snap) => {
+                            let allApps = snap.val();
+                            for (let i in allApps) {
+                                if (allApps[i].delete === 0) {
+                                    let str =
+                                        '<tr>' +
+                                        '<td rel="' + i + '" hidden></td>' +
+                                        '<td>Open</td>' +
+                                        '<td rel="' + allApps[i].name + '">' + allApps[i].name + '</td>' +
+                                        '<td rel="' + allApps[i].start + ' ' + allApps[i].end + '">' + allApps[i].start + ' - ' + allApps[i].end + '</td>' +
+                                        '<td rel="' + allApps[i].content + '">' + allApps[i].content + '</td>' +
+                                        '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
+                                        '</tr>';
+                                    $('#' + data + ' #autoreply-list').append(str);
+                                }
                             }
-                        }
+                        });
+                    })
+                    .catch((reason) => {
+                        console.log(reason);
                     });
-                })
-                .catch((reason) => {
-                    console.log(reason);
-                });
             });
         },
         error: (error) => {
@@ -129,12 +130,12 @@ function find() {
     });
 }
 
-function findOne(appId,autosHashId) {
+function findOne(appId, autosHashId) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -154,12 +155,12 @@ function findOne(appId,autosHashId) {
     });
 }
 
-function update(appId,autosHashId,data) {
+function update(appId, autosHashId, data) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -168,15 +169,15 @@ function update(appId,autosHashId,data) {
         },
         success: () => {
             $('[rel="' + autosHashId + '"]').parent().remove();
-            let str = 
-            '<tr>' + 
+            let str =
+                '<tr>' +
                 '<td rel="' + autosHashId + '" hidden></td>' +
                 '<td>Open</td>' +
                 '<td rel="' + data.name + '">' + data.name + '</td>' +
                 '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
                 '<td rel="' + data.content + '">' + data.content + '</td>' +
                 '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-            '</tr>';
+                '</tr>';
             $('#autoreply-list').append(str);
             //塞入資料庫並初始化
             $('#editModal').modal('hide');
@@ -195,12 +196,12 @@ function update(appId,autosHashId,data) {
     });
 }
 
-function remove(appId,autosHashId) {
+function remove(appId, autosHashId) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -227,7 +228,7 @@ function dataInsert() {
         end: endtime,
         content: textInput
     }
-    insert(appIds,obj);
+    insert(appIds, obj);
 }
 
 function openEdit() {
@@ -240,7 +241,7 @@ function openEdit() {
     $('#edit-taskContent').val(''); //任務內容
     let autoreplyId = $(this).parent().parent().find('td:first').attr('rel');
     let appId = $(this).parent().parent().parent().parent().attr('id');
-    findOne(appId,autoreplyId);
+    findOne(appId, autoreplyId);
 } //end open edit
 
 function dataUpdate() {
@@ -258,15 +259,15 @@ function dataUpdate() {
         content: textInput
     }
 
-    update(appId,autoreplyId,data);
+    update(appId, autoreplyId, data);
 } //end modal edit
 
 function dataRemove() {
     let confirmDel = confirm("確定要刪除?");
-    if(confirmDel) {
+    if (confirmDel) {
         let appId = $(this).parent().parent().parent().parent().attr('id');
         let autoreplyId = $(this).parent().parent().find('td:first').attr('rel');
-        remove(appId,autoreplyId);
+        remove(appId, autoreplyId);
     }
 }
 

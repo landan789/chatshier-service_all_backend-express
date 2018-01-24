@@ -30,5 +30,9 @@
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "65" },
     "CALENDAR_EVENT_FAILED_TO_INSERT": { "MSG": "calendar event failed to insert", "CODE": "66" },
     "CALENDAR_EVENT_FAILED_TO_UPDATE": { "MSG": "calendar event failed to update", "CODE": "67" },
-    "CALENDAR_EVENT_FAILED_TO_REMOVE": { "MSG": "calendar event failed to remove", "CODE": "68" }
+    "CALENDAR_EVENT_FAILED_TO_REMOVE": { "MSG": "calendar event failed to remove", "CODE": "68" },
+    "APP_AUTOREPLY_FAILED_TO_FIND": { "MSG": "app autorelpy failed to find", "CODE": "65" },
+    "APP_AUTOREPLY_FAILED_TO_INSERT": { "MSG": "app autorelpy failed to insert", "CODE": "66" },
+    "APP_AUTOREPLY_FAILED_TO_UPDATE": { "MSG": "app autorelpy failed to update", "CODE": "67" },
+    "APP_AUTOREPLY_FAILED_TO_REMOVE": { "MSG": "app autorelpy failed to remove", "CODE": "68" }
 }

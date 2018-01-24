@@ -14,28 +14,33 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
-// need raw buffer for signature validation
-// app.use(bodyParser.urlencoded({
-//     extended: true
-// }));
 
-// app.use(bodyParser.json({
-//     verify (req, res, buf) {
-//         req.rawBody = buf;
-//     }
-// }));
-app.use(formData.parse({
-    autoFiles: true
-}));
+// HTTP body x-www-form-urlencoded parser
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// HTTP body 允許 json 格式
+app.use(bodyParser.json());
+
+// HTTP body form-data parser
+app.use(formData.parse({ autoFiles: true }));
 app.use(formData.format());
 app.use(formData.stream());
 app.use(formData.union());
+
 app.use(cors());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public'))); // to import css and javascript
+
+// Express 靜態 server
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/', index);
-app.use('/api/*/users/:userid', jwt.verify); // API 權限驗證
+
+// API JWT 權限驗證
+app.use('/api/*/users/:userid', jwt.verify);
+
+// API 
 app.use('/api', api);
+
 // facebook connection
 app.get('/webhook/:webhookId', function(req, res) {
     if ('verify_token' === req.query['hub.verify_token']) {
@@ -48,7 +53,6 @@ app.get('/webhook/:webhookId', function(req, res) {
 }); // app.get-->facebook webhook
 
 app.use('/', (err, req, res, next) => {
-    console.log('aaaa');
     console.log(err);
 });
 
