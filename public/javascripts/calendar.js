@@ -2,9 +2,24 @@
  * 宣告專門處理 Calendar 相關的 API 類別
  */
 var CalendarAPI = (function() {
-    let jwt = '';
-    let calendarAPI = function(apiJWT) {
-        jwt = apiJWT;
+    let responseChecking = function(response) {
+        return Promise.resolve().then(() => {
+            if (!response.ok) {
+                return Promise.reject(new Error(response.status + ' ' + response.statusText));
+            }
+            return response.json();
+        }).then((respJson) => {
+            if (1 !== respJson.status) {
+                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
+            }
+            return respJson;
+        });
+    };
+
+    let calendarAPI = function(jwt) {
+        this.jwt = jwt || '';
+        this.reqHeaders = new Headers();
+        this.reqHeaders.set('Content-Type', 'application/json');
     };
 
     /**
@@ -12,125 +27,264 @@ var CalendarAPI = (function() {
      *
      * @param {string} userId - 使用者的 firebase id
      */
-    calendarAPI.prototype.findAll = function(userId) {
-        return new Promise((resolve, reject) => {
-            if (!userId) { return reject(new Error('userId is undefined')); }
+    calendarAPI.prototype.getAll = function(userId) {
+        let destUrl = urlConfig.apiUrl + '/api/calendars-events/users/' + userId;
+        let reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
 
-            $.ajax({
-                type: 'GET',
-                url: '/api/calendars/users/' + userId,
-                headers: {
-                    Authorization: jwt
-                },
-                success: (response) => {
-                    if (1 !== response.status) {
-                        return reject(new Error(response.status + ' ' + response.msg));
-                    }
-                    resolve(response);
-                },
-                error: (error) => reject(error)
-            });
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
         });
     };
 
     /**
      * 插入一筆 calendar 事件
      *
+     * @param {string} calendarId - 識別不同行事曆的 ID
      * @param {string} userId - 使用者的 firebase ID
      * @param {*} data - 要進行插入的 calendar 事件資料
      */
     calendarAPI.prototype.insert = function(userId, data) {
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                type: 'POST',
-                url: '/api/calendars-events/users/' + userId,
-                data: JSON.stringify(data),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                headers: {
-                    Authorization: jwt
-                },
-                success: (response) => {
-                    if (1 !== response.status) {
-                        return reject(new Error(response.status + ' ' + response.msg));
-                    }
-                    resolve(response);
-                },
-                error: (error) => reject(error)
-            });
+        let destUrl = urlConfig.apiUrl + '/api/calendars-events/users/' + userId;
+        let reqInit = {
+            method: 'POST',
+            headers: this.reqHeaders,
+            body: JSON.stringify(data)
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
         });
     };
 
     /**
      * 更新一筆指定的 calendar 事件
      *
+     * @param {string} calendarId - 識別不同行事曆的 ID
      * @param {string} eventId - calendar 的事件ID
+     * @param {string} userId - 使用者的 firebase ID
      * @param {*} data - 要進行更新的 calendar 事件資料
      */
-    calendarAPI.prototype.update = function(eventId, userId, data) {
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                type: 'PUT',
-                url: '/api/calendars-events/calendars/events/' + eventId + '/users/' + userId,
-                data: JSON.stringify(data),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                headers: {
-                    Authorization: jwt
-                },
-                success: (response) => {
-                    if (1 !== response.status) {
-                        return reject(new Error(response.status + ' ' + response.msg));
-                    }
-                    resolve(response);
-                },
-                error: (error) => reject(error)
-            });
+    calendarAPI.prototype.update = function(calendarId, eventId, userId, data) {
+        let destUrl = urlConfig.apiUrl + '/api/calendars-events/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+        let reqInit = {
+            method: 'PUT',
+            headers: this.reqHeaders,
+            body: JSON.stringify(data)
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
         });
     };
 
     /**
      * 移除一筆指定的 calendar 事件
      *
+     * @param {string} calendarId - 識別不同行事曆的 ID
      * @param {string} eventId - calendar 的事件ID
      * @param {string} userId - 要進行更新的 calendar 事件資料
      */
-    calendarAPI.prototype.remove = function(eventId, userId) {
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                type: 'DELETE',
-                url: '/api/calendars-events/calendars/events/' + eventId + '/users/' + userId,
-                headers: {
-                    Authorization: jwt
-                },
-                success: (response) => {
-                    if (1 !== response.status) {
-                        return reject(new Error(response.status + ' ' + response.msg));
-                    }
-                    resolve(response);
-                },
-                error: (error) => reject(error)
-            });
+    calendarAPI.prototype.remove = function(calendarId, eventId, userId) {
+        let destUrl = urlConfig.apiUrl + '/api/calendars-events/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+        let reqInit = {
+            method: 'DELETE',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
         });
     };
 
     return calendarAPI;
 })();
 
+/**
+ * 宣告專門處理 Ticket 相關的 API 類別
+ */
+var TicketAPI = (function() {
+    let responseChecking = function(response) {
+        return Promise.resolve().then(() => {
+            if (!response.ok) {
+                return Promise.reject(new Error(response.status + ' ' + response.statusText));
+            }
+            return response.json();
+        }).then((respJson) => {
+            if (1 !== respJson.status) {
+                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
+            }
+            return respJson;
+        });
+    };
+
+    /**
+     * TicketAPI 建構子
+     *
+     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
+     */
+    let ticketAPI = function(jwt) {
+        this.jwt = jwt || '';
+        this.reqHeaders = new Headers();
+        this.reqHeaders.set('Content-Type', 'application/json');
+    };
+
+    /**
+     * 取得使用者所有設定待辦事項
+     *
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.getAll = function(userId) {
+        let destUrl = urlConfig.apiUrl + '/api/apps-tickets/users/' + userId;
+        let reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 取得使用者某一個 App 的待辦事項
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.getOne = function(ticketAppId, userId) {
+        let destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
+        let reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 新增一筆待辦事項資料
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} userId - 使用者的 firebase ID
+     * @param {*} newTicketData - 欲新增的待辦事項資料
+     */
+    ticketAPI.prototype.insert = function(ticketAppId, userId, newTicketData) {
+        let destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
+        let reqInit = {
+            method: 'POST',
+            headers: this.reqHeaders,
+            body: JSON.stringify(newTicketData)
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 更新目標待辦事項資料
+     *
+     * @param {*} ticketAppId - 目標待辦事項的 App ID
+     * @param {*} ticketId - 目標待辦事項的 ID
+     * @param {*} userId - 使用者的 firebase ID
+     * @param {*} modifiedTicketData - 已編輯後欲更新的待辦事項資料
+     */
+    ticketAPI.prototype.update = function(ticketAppId, ticketId, userId, modifiedTicketData) {
+        let destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
+        let reqInit = {
+            method: 'PUT',
+            headers: this.reqHeaders,
+            body: JSON.stringify(modifiedTicketData)
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 刪除一筆待辦事項資料
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} ticketId - 目標待辦事項的 ID
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.remove = function(ticketAppId, ticketId, userId) {
+        let destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
+        let reqInit = {
+            method: 'DELETE',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then((response) => {
+            return responseChecking(response);
+        });
+    };
+
+    return ticketAPI;
+})();
+
 (function() {
-    var currentDatetime = new Date();
-    var eventList;
+    var CalendarEventItem = (function() {
+        var calendarEventItem = function() {
+            // 目前只設定使用到的項目，並無全部都設定
+            // 參考: https://fullcalendar.io/docs/event_data/Event_Object/
+            this.isAllDay = false;
+            this.description = '';
+            this.end = null;
+            this.id = '';
+            this.eventType = 'C';
+            this.start = null;
+            this.title = '';
+            this.backgroundColor = '#90b5c7';
+            this.borderColor = '#90b5c7';
+            this.textColor = '#efefef';
+        };
+
+        calendarEventItem.prototype.isAllDay = null;
+        calendarEventItem.prototype.description = null;
+        calendarEventItem.prototype.end = null;
+        calendarEventItem.prototype.id = null;
+        calendarEventItem.prototype.eventType = null;
+        calendarEventItem.prototype.start = null;
+        calendarEventItem.prototype.title = null;
+
+        return calendarEventItem;
+    })();
+
+    var TicketEventItem = (function(extendBase) {
+        var ticketEventItem = function() {
+            extendBase.call(this);
+            this.eventType = 'T';
+            this.backgroundColor = '#c7e6c7';
+            this.borderColor = '#c7e6c7';
+            this.textColor = '#6e6e6e';
+        };
+        ticketEventItem.prototype = Object.assign(ticketEventItem.prototype, extendBase.prototype);
+        ticketEventItem.prototype.constructor = ticketEventItem;
+        return ticketEventItem;
+    })(CalendarEventItem);
+
+    var calendarEventMap = {};
     var userId;
-    var avoidRemindAgain;
-    var socket = io.connect();
-    var nowEventId = 'invalid';
-    var calendarAPI = null;
+    // var avoidRemindAgain;
+    // var socket = io.connect();
+    var calendarAPI = new CalendarAPI(null);
+    var ticketAPI = new TicketAPI(null);
 
     var $jqDoc = $(document);
     var $calendar = null;
 
     auth.ready.then((currentUser) => {
-        calendarAPI = new CalendarAPI(window.localStorage.getItem('jwt'));
+        calendarAPI.jwt = ticketAPI.jwt = window.localStorage.getItem('jwt');
+        calendarAPI.reqHeaders.set('Authorization', calendarAPI.jwt);
+        ticketAPI.reqHeaders.set('Authorization', ticketAPI.jwt);
+
         return new Promise((resolve) => {
             $jqDoc.ready(() => {
                 resolve(currentUser);
@@ -139,29 +293,16 @@ var CalendarAPI = (function() {
     }).then((currentUser) => {
         userId = currentUser.uid; // 儲存全域用變數 userId
 
-        $jqDoc.on('click', '#add-cal-btn', setCalendar); // 新增事件
-        $jqDoc.on('click', '#save-cal-btn', setCalendar); // 更新事件
-        $jqDoc.on('click', '#del-cal-btn', deleteCalendar); // 刪除事件
+        let $addCalendarBtn = $('#add-cal-btn');
+        let $saveCalendarBtn = $('#save-cal-btn');
+        let $delCalendarBtn = $('#del-cal-btn');
+
         $jqDoc.on('click', '#allday[type="checkbox"]', showAllday);
 
-        return calendarAPI.findAll(userId);
-    }).then((response) => {
-        eventList = [];
-        let events = response.data;
-        for (let e in events) {
-            if (events[e].delete) {
-                continue; // 如果此行事曆事件已被刪除，則忽略不處理
-            }
-            eventList.push(events[e]);
-        }
-    }).catch((error) => {
-        console.error(error);
-        eventList = [];
-        return Promise.reject(error); // 跳脫這個 promise chain 不往下執行 then
-    }).then(() => {
-        $calendar = $('#calendar');
-
         // Initialize fullCalendar.
+        calendarEventMap = {};
+        $calendar = $('#calendar');
+        $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
         $calendar.fullCalendar({
             theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
             buttonIcons: {
@@ -175,16 +316,15 @@ var CalendarAPI = (function() {
                 right: 'month,agendaWeek,agendaDay'
             },
 
-            defaultDate: currentDatetime, // The initial date displayed when the calendar first loads.
+            defaultDate: new Date(), // The initial date displayed when the calendar first loads.
             editable: true, // true allow user to edit events.
             eventLimit: true, // allow "more" link when too many events
             selectable: true, // allows a user to highlight multiple days or timeslots by clicking and dragging.
             selectHelper: true, // whether to draw a "placeholder" event while the user is dragging.
             // events is the main option for calendar.
-            events: eventList,
+            events: [],
             // execute after user select timeslots.
-            select: (start, end, jsEvent, view) => { // 新增新事件
-                nowEventId = 'invalid';
+            select: function(start, end, jsEvent, view) { // 新增新事件
                 // 檢查新增事件時，如果起始日期是當天，則使用當前的時間參數
                 let convertStart = (function isToday(dateTime) {
                     let dateNow = new Date();
@@ -211,23 +351,30 @@ var CalendarAPI = (function() {
                 $('#start-time-error-msg').hide();
                 $('#cal-error-msg').hide();
                 $('#tim-error-msg').hide();
-                // 新增視窗
-                $('#calendar-modal').modal('show');
+
                 // 按鈕設定
-                $('#add-cal-btn').show();
-                $('#save-cal-btn').hide();
-                $('#del-cal-btn').hide();
+                $addCalendarBtn.show();
+
+                $addCalendarBtn.off('click').on('click', function() {
+                    setCalendar();
+                }); // 新增事件
+                $saveCalendarBtn.hide();
+                $delCalendarBtn.hide();
 
                 $calendar.fullCalendar('unselect');
+                $('#calendar-modal').modal('show'); // 顯示新增視窗
             },
             // edit after click.
             eventClick: function(event, jsEvent, view) { // 更改事件
-                nowEventId = event._id;
+                console.log(event);
 
                 $('#modalTitle').html('檢視事件');
                 // 資料的值放進對應的input
-                $('#keyId').text(event.keyId);
-                $('#title').val(event.title);
+                let $titleElem = $('#title');
+                $titleElem.val(event.title);
+                // 屬於待辦事項的資料 Title 僅顯示用不允許編輯
+                'T' === event.eventType && $titleElem.prop('disabled', true);
+
                 let start = convertShow(event.start._i); // 轉換成輸出格式
                 let end = convertShow(event.end._i);
                 $('#startDate').val(start.date);
@@ -240,63 +387,128 @@ var CalendarAPI = (function() {
                 // 隱藏錯誤訊息
                 $('#cal-error-msg').hide();
                 $('#tim-error-msg').hide();
-                // 新增視窗
-                $('#calendar-modal').modal('show');
+
                 // 按鈕設定
-                $('#add-cal-btn').hide();
-                $('#save-cal-btn').show();
-                $('#del-cal-btn').show();
+                $addCalendarBtn.hide();
+
+                $saveCalendarBtn.off('click').on('click', function() {
+                    setCalendar(event);
+                }); // 更新事件
+                $saveCalendarBtn.show();
+
+                $delCalendarBtn.off('click').on('click', function() {
+                    deleteCalendar(event);
+                }); // 刪除事件
+                $delCalendarBtn.show();
 
                 $calendar.fullCalendar('unselect');
+                $('#calendar-modal').modal('show'); // 顯示新增視窗
             },
             // execute after user drag and drop an event.
-            eventDrop: (event, delta, revertFunc, jsEvent, ui, view) => {
+            eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
                 let timeGap = delta.asMilliseconds();
                 let start = Date.parse(event.start._i);
                 start = ISODateTimeString(start + timeGap).date + 'T' + ISODateTimeString(start + timeGap).time;
                 let end = Date.parse(event.end._i);
                 end = ISODateTimeString(end + timeGap).date + 'T' + ISODateTimeString(end + timeGap).time;
 
-                let keyId = event.keyId;
-                let obj = {
+                let data = {
                     title: event.title,
-                    start: start,
-                    end: end,
+                    startTime: start,
+                    endTime: end,
                     description: event.description,
-                    allDay: event.allDay,
-                    remind: false,
-                    keyId: keyId
+                    isAllDay: event.allDay
                 };
-                return calendarAPI.update(keyId, userId, obj);
+                return calendarAPI.update(event.calendarId, event.id, userId, data);
             },
             eventDurationEditable: true
         });
+        return calendarAPI.getAll(userId);
+    }).then((response) => {
+        let allAppEvents = response.data;
+        let calendarEventList = [];
+
+        for (let calendarId in allAppEvents) {
+            for (let eventId in allAppEvents[calendarId].events) {
+                let calendarEvent = allAppEvents[calendarId].events[eventId];
+                if (calendarEvent.isDeleted) {
+                    continue; // 如果此行事曆事件已被刪除，則忽略不處理
+                }
+                let eventItem = new CalendarEventItem();
+                eventItem = Object.assign(eventItem, calendarEvent);
+                eventItem.allDay = calendarEvent.isAllDay;
+                eventItem.description = calendarEvent.description;
+                eventItem.end = new Date(calendarEvent.endTime);
+                eventItem.start = new Date(calendarEvent.startTime);
+                eventItem.title = calendarEvent.title;
+                eventItem.calendarId = calendarId;
+                eventItem.id = eventId;
+                calendarEventMap[eventItem.id] = eventItem;
+                calendarEventList.push(eventItem);
+            }
+        }
+        calendarEventList.length > 0 && $calendar.fullCalendar('renderEvents', calendarEventList, true);
+    }).then(() => {
+        // 取得所有的待辦事項，將之顯示於行事曆上
+        return ticketAPI.getAll(userId);
+    }).then((json) => {
+        let allAppTickets = json.data;
+        let calendarEventList = [];
+
+        for (let ticketAppId in allAppTickets) {
+            for (let ticketId in allAppTickets[ticketAppId].tickets) {
+                let ticket = allAppTickets[ticketAppId].tickets[ticketId];
+                if (ticket.isDeleted) {
+                    continue;
+                }
+
+                // 由於待辦事項的資料項目與行事曆元件的數據項目不相同，因此需要進行轉換
+                let eventItem = new TicketEventItem();
+                eventItem = Object.assign(eventItem, ticket);
+                eventItem.allDay = false;
+                eventItem.description = ticket.description;
+                eventItem.end = new Date(ticket.dueBy);
+                eventItem.start = new Date(ticket.createdTime);
+                // 待辦事項的標題以描述的前10個字顯示之
+                eventItem.title = ticket.description.length > 10 ? ticket.description.substring(0, 10) : ticket.description;
+                eventItem.calendarId = ticketAppId;
+                eventItem.id = ticketId;
+                calendarEventMap[eventItem.id] = eventItem;
+                calendarEventList.push(eventItem);
+            }
+        }
+        calendarEventList.length > 0 && $calendar.fullCalendar('renderEvents', calendarEventList, true);
+    }).catch((error) => {
+        console.error(error);
     });
 
     /**
-     * 確定新增或更改事件
+     * 確定新增或更改行事曆上的事件
+     *
+     * @param {*} event - jquery UI 的 fullCalendar 元件的事件物件
      */
-    function setCalendar() {
-        let keyId = $('#keyId').text();
+    function setCalendar(event) {
         let title = $('#title').val();
         let startDate = $('#startDate').val() + 'T' + $('#startTime').val(); // 把user輸入的日期和時間串起來
         let endDate = $('#endDate').val() + 'T' + $('#endTime').val();
 
         let description = $('#description').val();
-        let allDay = $('#allday').prop('checked');
+        let isAllDay = $('#allday').prop('checked');
 
-        let flag = true;
+        let isDataOK = true;
         if (!title || !startDate || !endDate) {
             $('#cal-error-msg').show();
-            flag = false;
-        } else $('#cal-error-msg').hide();
+            isDataOK = false;
+        } else {
+            $('#cal-error-msg').hide();
+        }
 
         // start time error
         let currentDate = new Date();
 
         if (Date.parse(startDate) <= Date.parse(currentDate)) {
             $('#start-time-error-msg').addClass('font-red').show();
-            flag = false;
+            isDataOK = false;
         } else {
             $('#start-time-error-msg').hide();
         }
@@ -304,50 +516,149 @@ var CalendarAPI = (function() {
         // End time earlier than Start time error
         if (Date.parse(endDate) <= Date.parse(startDate)) {
             $('#tim-error-msg').show();
-            flag = false;
+            isDataOK = false;
         } else $('#tim-error-msg').hide();
 
-        if (!flag) return;
+        if (!isDataOK) {
+            return;
+        }
 
-        if (allDay) {
-            startDate = ISODateString($('#startDate').val() + 'T00:00'); // 把user輸入的日期和時間串起來
+        // 若使用者勾選全天項目，把使用者輸入的日期和時間串起來並設定日期時間為全天
+        if (isAllDay) {
+            startDate = ISODateString($('#startDate').val() + 'T00:00');
             endDate = ISOEndDate($('#endDate').val() + 'T23:59');
         }
 
-        let obj = {
+        let eventData = {
             title: title,
-            start: startDate,
-            end: endDate,
+            startTime: new Date(startDate).getTime(),
+            endTime: new Date(endDate).getTime(),
             description: description,
-            allDay: allDay,
-            remind: false
+            isAllDay: isAllDay
         };
 
-        if (!keyId) { // 新增事件
-            return calendarAPI.insert(userId, obj).then((response) => {
+        if (!event) { // 若沒有輸入事件，代表為新增行事曆事件的處理
+            return calendarAPI.insert(userId, eventData).then((response) => {
                 clearInputs();
                 $('#calendar-modal').modal('hide');
-                $calendar.fullCalendar('renderEvent', response.obj, true);
-            }).catch(() => {
+
+                let calendarEventList = [];
+                let allCalendars = response.data;
+                for (let calendarId in allCalendars) {
+                    for (let eventId in allCalendars[calendarId].events) {
+                        let event = allCalendars[calendarId].events[eventId];
+                        if (event.isDeleted) {
+                            continue;
+                        }
+
+                        let eventItem = new CalendarEventItem();
+                        eventItem = Object.assign(eventItem, event);
+                        eventItem.start = new Date(event.startTime);
+                        eventItem.end = new Date(event.endTime);
+                        eventItem.calendarId = calendarId;
+                        eventItem.id = eventId;
+                        calendarEventMap[eventItem.id] = eventItem;
+                        calendarEventList.push(eventItem);
+                    }
+                }
+                calendarEventList.length > 0 && $calendar.fullCalendar('renderEvents', calendarEventList, true);
+            }).catch((error) => {
+                console.log(error);
                 alert('post error');
             });
         } else { // 更改事件
-            return calendarAPI.update(keyId, userId, obj).then((response) => {
-                $calendar.fullCalendar('renderEvent', response.obj, true); // make the event "stick"
-                $calendar.fullCalendar('removeEvents', nowEventId);
-                clearInputs();
-                $('#calendar-modal').modal('hide');
-            }).catch(() => {
-                alert('edit error');
-            });
+            // 根據事件型態來判斷發送不同 API 進行資料更新動作
+            switch (event.eventType) {
+                case 'T':
+                    // 將原本的 ticket 的資料原封不動複製一份，只更新建立時間與到期時間
+                    let tickerData = {
+                        ccEmails: event.ccEmails,
+                        createdTime: eventData.startTime,
+                        description: description,
+                        dueBy: eventData.endTime,
+                        frDueBy: event.frDueBy,
+                        frEscalated: event.frEscalated,
+                        fwdEmails: event.fwdEmails,
+                        isEscalated: event.isEscalated,
+                        priority: event.priority,
+                        replyCcEmails: event.replyCcEmails,
+                        requester: event.requester,
+                        requesterId: event.requesterId,
+                        spam: event.spam,
+                        status: event.status,
+                        subject: event.title,
+                        toEmails: event.toEmails,
+                        type: event.type,
+                        updatedTime: new Date().getTime()
+                    };
+
+                    return ticketAPI.update(event.calendarId, event.id, userId, tickerData).then((response) => {
+                        $calendar.fullCalendar('removeEvents', event.id);
+                        clearInputs();
+                        $('#calendar-modal').modal('hide');
+
+                        let eventItem = new TicketEventItem();
+                        eventItem = Object.assign(eventItem, tickerData);
+                        eventItem.allDay = false;
+                        eventItem.description = tickerData.description;
+                        eventItem.end = new Date(tickerData.dueBy);
+                        eventItem.start = new Date(tickerData.createdTime);
+                        // 待辦事項的標題以描述的前10個字顯示之
+                        eventItem.title = tickerData.description.length > 10 ? tickerData.description.substring(0, 10) : tickerData.description;
+                        eventItem.calendarId = event.calendarId;
+                        eventItem.id = event.id;
+                        calendarEventMap[eventItem.id] = eventItem;
+                        $calendar.fullCalendar('renderEvent', eventItem, true);
+                    });
+                default:
+                    return calendarAPI.update(event.calendarId, event.id, userId, eventData).then((response) => {
+                        $calendar.fullCalendar('removeEvents', event.id);
+                        clearInputs();
+                        $('#calendar-modal').modal('hide');
+
+                        let calendarEventList = [];
+                        let allCalendars = response.data;
+                        for (let calendarId in allCalendars) {
+                            for (let eventId in allCalendars[calendarId].events) {
+                                let event = allCalendars[calendarId].events[eventId];
+                                if (event.isDeleted) {
+                                    continue;
+                                }
+
+                                let eventItem = new CalendarEventItem();
+                                eventItem = Object.assign(eventItem, event);
+                                eventItem.start = new Date(event.startTime);
+                                eventItem.end = new Date(event.endTime);
+                                eventItem.calendarId = calendarId;
+                                eventItem.id = eventId;
+                                calendarEventMap[eventItem.id] = eventItem;
+                                calendarEventList.push(eventItem);
+                            }
+                        }
+                        calendarEventList.length > 0 && $calendar.fullCalendar('renderEvents', calendarEventList, true);
+                    }).catch(() => {
+                        alert('edit error');
+                    });
+            }
         }
     }; // end on click
 
-    function deleteCalendar() { // 確定刪除事件
-        let keyId = $('#keyId').text();
-
-        return calendarAPI.remove(keyId, userId).then(() => {
-            $calendar.fullCalendar('removeEvents', nowEventId);
+    /**
+     * 刪除行事曆上的事件
+     *
+     * @param {*} event - jquery UI 的 fullCalendar 元件的事件物件
+     */
+    function deleteCalendar(event) { // 確定刪除事件
+        console.log(event);
+        return Promise.resolve().then(() => {
+            switch (event.eventType) {
+                case 'T':
+                    return ticketAPI.remove(event.calendarId, event.id, userId);
+                default:
+                    return calendarAPI.remove(event.calendarId, event.id, userId);
+            }
+        }).then(() => {
+            $calendar.fullCalendar('removeEvents', event.id);
             clearInputs();
             $('#calendar-modal').modal('hide');
         }).catch((error) => {

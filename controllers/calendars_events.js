@@ -39,7 +39,6 @@ calendarsEvents.getAll = function(req, res, next) {
 calendarsEvents.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
-    let calendarId = req.params.calendarid;
     let event = {
         title: undefined === req.body.title ? null : req.body.title,
         startTime: undefined === req.body.startTime ? null : req.body.startTime,
@@ -47,18 +46,13 @@ calendarsEvents.postOne = (req, res, next) => {
         description: undefined === req.body.description ? null : req.body.description,
         isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay,
         isDeleted: 0
-    }
+    };
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
-                return;
-            }
-
-            if ('' === calendarId || null === calendarId || undefined === calendarId) {
-                reject(API_ERROR.CALENDARID_WAS_EMPTY);
                 return;
             }
 

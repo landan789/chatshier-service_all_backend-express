@@ -177,7 +177,7 @@
         "valid-typeof": ["error", { "requireStringLiterals": true }],
         "wrap-iife": ["error", "any", { "functionPrototypeMethods": true }],
         "yield-star-spacing": ["error", "both"],
-        "yoda": ["error", "always"],
+        "yoda": ["error", "always", { "onlyEquality": true }],
 
         "import/export": "error",
         "import/first": "error",

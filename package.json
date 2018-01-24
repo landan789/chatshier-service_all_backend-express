@@ -41,6 +41,7 @@
         "yelp-fusion": "^1.0.3"
     },
     "devDependencies": {
+        "@types/jquery": "^3.3.0",
         "eslint": "^4.16.0",
         "eslint-plugin-import": "^2.8.0",
         "eslint-plugin-node": "^5.2.1",
