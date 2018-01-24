@@ -21,12 +21,12 @@
 <body>
     <% include ../views/partials/wrapper.ejs %>
         <% include ../views/partials/loading.ejs %>
-            <div class="add-btn">
-                <a href="/tform" class="btn btn-default inner-add-complete">
-                    <span class="fa fa-plus fa-fw"></span> 新增表單
+            <div class="view-ticket top-toolbar">
+                <a href="/tform" class="btn btn-default ticket-add">
+                    <span class="fa fa-plus fa-fw"></span><span>新增表單</span>
                 </a>
+                <input type="text" class="ticket-search-bar" id="ticket_search_bar" value="" placeholder="搜尋">
             </div>
-            <input type="text" class="ticket_search_bar" id="exampleInputAmount" value="" placeholder="搜尋">
 
             <!--alert bar-->
             <div id="alert-success" class="chsr alert alert-success alert-dismissible" role="alert">

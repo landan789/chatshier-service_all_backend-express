@@ -1,7 +1,7 @@
 .ticket-memo::-webkit-scrollbar {
     width: 1em;
 }
-.ticket-memo{
+.ticket-memo {
     overflow: scroll !important;
     height:700px;
 }
@@ -38,20 +38,6 @@
   font-size: 2em;
 }
 
-#ticket-header, #ticket-search, #ticket-tab {
-  position: relative;
-  /*border: solid 5px black;
-  height: 100px;*/
-}
-
-#ticket-header {
-  height: 30px;
-}
-
-#ticket-search {
-  height: 20px;
-}
-
 #header-left {
   position: absolute;
   left: 0;
@@ -77,15 +63,19 @@
   right: 0;
 }
 
-.inner-add-complete {
-  position: absolute;
-  right: 20%;
-  margin: 1% 5% ;
+/* ticket 上端工具欄 */
+.view-ticket.top-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2% 10% -2%;
 }
 
+.view-ticket .btn.ticket-add {
+  margin-right: 2.5%;
+}
 
-input, select {
-  width: 15%;
+.view-ticket .ticket-search-bar {
+  width: 25%;
 }
 
 /*Tabs*/
@@ -196,18 +186,12 @@ h1 {
   margin: 0;
 }
 
-h2{
+h2 {
   font-size: 16px ;
   margin: 0;
   color: white;
   background-color: rgb(4, 92, 76);
   padding: 1% 5%;
-}
-
-.ticket_search_bar {
-  right: 1%;
-  margin: 1% 5% ;
-  position: absolute;
 }
 
 .ticket {
@@ -228,8 +212,8 @@ td, th {
 }
 
 tr:nth-child(even) {
-    background-color: #33CCFF;
-    color: white;
+    background-color: #ddd;
+    color: #333;
 }
 table { width: 100%}
 .sidebar{

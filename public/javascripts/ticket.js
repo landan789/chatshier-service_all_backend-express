@@ -1,3 +1,176 @@
+/**
+ * 宣告專門處理 Ticket 相關的 API 類別
+ */
+var TicketAPI = (function() {
+    var responseChecking = function(response) {
+        return Promise.resolve().then(function() {
+            if (!response.ok) {
+                return Promise.reject(new Error(response.status + ' ' + response.statusText));
+            }
+            return response.json();
+        }).then(function(respJson) {
+            if (1 !== respJson.status) {
+                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
+            }
+            return respJson;
+        });
+    };
+
+    /**
+     * TicketAPI 建構子
+     *
+     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
+     */
+    var ticketAPI = function(jwt) {
+        this.jwt = jwt || '';
+        this.reqHeaders = new Headers();
+        this.reqHeaders.set('Content-Type', 'application/json');
+    };
+
+    /**
+     * 取得使用者所有設定待辦事項
+     *
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.getAll = function(userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/users/' + userId;
+        var reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 取得使用者某一個 App 的待辦事項
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.getOne = function(ticketAppId, userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
+        var reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 新增一筆待辦事項資料
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} userId - 使用者的 firebase ID
+     * @param {*} newTicketData - 欲新增的待辦事項資料
+     */
+    ticketAPI.prototype.insert = function(ticketAppId, userId, newTicketData) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
+        var reqInit = {
+            method: 'POST',
+            headers: this.reqHeaders,
+            body: JSON.stringify(newTicketData)
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 更新目標待辦事項資料
+     *
+     * @param {*} ticketAppId - 目標待辦事項的 App ID
+     * @param {*} ticketId - 目標待辦事項的 ID
+     * @param {*} userId - 使用者的 firebase ID
+     * @param {*} modifiedTicketData - 已編輯後欲更新的待辦事項資料
+     */
+    ticketAPI.prototype.update = function(ticketAppId, ticketId, userId, modifiedTicketData) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
+        var reqInit = {
+            method: 'PUT',
+            headers: this.reqHeaders,
+            body: JSON.stringify(modifiedTicketData)
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 刪除一筆待辦事項資料
+     *
+     * @param {string} ticketAppId - 目標待辦事項的 App ID
+     * @param {string} ticketId - 目標待辦事項的 ID
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ticketAPI.prototype.remove = function(ticketAppId, ticketId, userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
+        var reqInit = {
+            method: 'DELETE',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    return ticketAPI;
+})();
+
+var ChatshierAppAPI = (function() {
+    var responseChecking = function(response) {
+        return Promise.resolve().then(function() {
+            if (!response.ok) {
+                return Promise.reject(new Error(response.status + ' ' + response.statusText));
+            }
+            return response.json();
+        }).then(function(respJson) {
+            if (1 !== respJson.status) {
+                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
+            }
+            return respJson;
+        });
+    };
+
+    /**
+     * TicketAPI 建構子
+     *
+     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
+     */
+    var chatshierAppAPI = function(jwt) {
+        this.jwt = jwt || '';
+        this.reqHeaders = new Headers();
+        this.reqHeaders.set('Content-Type', 'application/json');
+    };
+
+    /**
+     * 取得使用者所有在 Chatshier 內設定的 App
+     *
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    chatshierAppAPI.prototype.getAll = function(userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps/users/' + userId;
+        var reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    return chatshierAppAPI;
+})();
+
 (function() {
     var ticketInfo = {};
     var agentInfo = {};
@@ -7,160 +180,102 @@
     var jqDoc = $(document);
     var lastSelectedTicket = null;
     var ticketContent = null;
+    var ticketAPI = new TicketAPI(null);
+    var chatshierAppAPI = new ChatshierAppAPI(null);
 
     !urlConfig && (urlConfig = {}); // undefined error handle
     !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
 
-    jqDoc.ready(function() {
+    auth.ready.then(function(currentUser) {
+        userId = currentUser.uid; // 儲存全域用變數 userId
         ticketContent = $('.ticket-content');
+        ticketAPI.jwt = chatshierAppAPI.jwt = window.localStorage.getItem('jwt');
+        ticketAPI.reqHeaders.set('Authorization', ticketAPI.jwt);
+        chatshierAppAPI.reqHeaders.set('Authorization', chatshierAppAPI.jwt);
 
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        window.firebase.auth().onAuthStateChanged(function(currentUser) {
-            userId = currentUser.uid; // 儲存全域用變數 userId
+        if ('/ticket' === location.pathname) {
+            jqDoc.on('click', '.ticketContent', showMoreInfo); // 查看待辦事項細節
+            jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
+            // jqDoc.on('click', '.edit', showInput);
+            // jqDoc.on('click', '.inner-text', function(event) {
+            //     event.stopPropagation();
+            // });
+            jqDoc.on('focusout', '.inner-text', hideInput);
+            jqDoc.on('keypress', '.inner-text', function(e) {
+                if (13 === e.which) $(this).blur();
+            });
 
-            if (location.pathname === '/ticket') {
-                jqDoc.on('click', '.ticketContent', showMoreInfo); // 查看待辦事項細節
-                jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
-                // jqDoc.on('click', '.edit', showInput);
-                // jqDoc.on('click', '.inner-text', function(event) {
-                //     event.stopPropagation();
-                // });
-                jqDoc.on('focusout', '.inner-text', hideInput);
-                jqDoc.on('keypress', '.inner-text', function(e) {
-                    if (e.which === 13) $(this).blur();
-                });
+            $('#ticket-info-delete').click(function() {
+                var alertWarning = $('#alert-warning');
 
-                $('#ticket-info-delete').click(function() {
-                    let alertWarning = $('#alert-warning');
+                alertWarning.find('p').html('是否要刪除表單?');
+                alertWarning.show();
+                alertWarning.find('#yes').off('click').on('click', function() {
+                    alertWarning.hide();
 
-                    alertWarning.find('p').html('是否要刪除表單?');
-                    alertWarning.show();
-                    alertWarning.find('#yes').off('click').on('click', function() {
-                        alertWarning.hide();
+                    return ticketAPI.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
+                        loadTable();
 
-                        let jwt = window.localStorage.getItem('jwt');
-                        let reqHeaders = new Headers();
-                        reqHeaders.append('Authorization', jwt);
-
-                        let reqInit = {
-                            method: 'DELETE',
-                            headers: reqHeaders
-                        };
-
-                        return window.fetch(urlConfig.apiUrl + '/api/apps-tickets/apps/' + lastSelectedTicket.ticketAppId + '/tickets/' + lastSelectedTicket.ticketId + '/users/' + userId, reqInit).then(function(response) {
-                            if (!response.ok) {
-                                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-                            }
-                            return response.json();
-                        }).then(function(respJson) {
-                            console.log(respJson);
-                            if (respJson.status !== 1) {
-                                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-                            }
-                            loadTable();
-
-                            let alertDanger = $('#alert-danger');
-                            alertDanger.children('span').text('表單已刪除');
-                            window.setTimeout(function() {
-                                alertDanger.show();
-                                window.setTimeout(function() { alertDanger.hide(); }, 3000);
-                            }, 1000);
-                        });
-                    });
-
-                    alertWarning.find('#no').off('click').on('click', function() {
-                        alertWarning.hide();
+                        var alertDanger = $('#alert-danger');
+                        alertDanger.children('span').text('表單已刪除');
+                        window.setTimeout(function() {
+                            alertDanger.show();
+                            window.setTimeout(function() { alertDanger.hide(); }, 3000);
+                        }, 1000);
                     });
                 });
 
-                loadTable();
-            } else if (location.pathname === '/tform') {
-                jqDoc.on('click', '#add-form-submit', submitAdd); // 新增 ticket
-                jqDoc.on('click', '#add-form-goback', function() { location.href = '/ticket'; }); // 返回 ticket
-                // loadAgentList();
-                loadUserAllApps($('select#add-form-app'));
-            }
+                alertWarning.find('#no').off('click').on('click', function() {
+                    alertWarning.hide();
+                });
+            });
 
-            $('#exampleInputAmount').keyup(searchBar);
-        });
+            loadTable();
+        } else if ('/tform' === location.pathname) {
+            jqDoc.on('click', '#add-form-submit', submitAdd); // 新增 ticket
+            jqDoc.on('click', '#add-form-goback', function() { location.href = '/ticket'; }); // 返回 ticket
+            // loadAgentList();
+            loadUserAllApps($('select#add-form-app'));
+        }
+
+        $('#ticket_search_bar').keyup(searchBar);
     });
 
     function loadTable() {
         ticketContent.empty();
 
-        let jwt = window.localStorage.getItem('jwt');
-        let reqHeaders = new Headers();
-        reqHeaders.append('Authorization', jwt);
+        // 取得所有的 appId tickets
+        return ticketAPI.getAll(userId).then(function(respJson) {
+            for (var ticketAppId in respJson.data) {
+                var tickets = respJson.data[ticketAppId].tickets;
 
-        let reqInit = {
-            method: 'GET',
-            headers: reqHeaders
-        };
-
-        return window.fetch(urlConfig.apiUrl + '/api/apps-tickets/users/' + userId, reqInit).then(function(response) {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            // 先取得 user 所有設定的 appId
-            return response.json();
-        }).then(function(respJson) {
-            if (respJson.status !== 1) {
-                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-            }
-
-            // 批次取得所有的 appId tickets
-            let ticketTasks = [];
-            for (let appId in respJson.data) {
-                ticketTasks.push(window.fetch(urlConfig.apiUrl + '/api/apps-tickets/apps/' + appId + '/users/' + userId, reqInit));
-            }
-            return Promise.all(ticketTasks);
-        }).then(function(ticketResps) {
-            // 批次轉換 tickets 回應為 json 格式
-            let mapTasks = [];
-            for (let i = 0; i < ticketResps.length; i++) {
-                if (ticketResps[i].ok) {
-                    mapTasks.push(ticketResps[i].json());
-                }
-            }
-            return Promise.all(mapTasks);
-        }).then(function(ticketJsons) {
-            // 批次取出 ticket 內容
-            ticketInfo = {};
-
-            for (let i = 0; i < ticketJsons.length; i++) {
-                if (ticketJsons[i].status === 1) {
-                    for (let ticketAppId in ticketJsons[i].data) {
-                        let tickets = ticketJsons[i].data[ticketAppId].tickets;
-
-                        // 批此處理每個 tickets 的 app 資料
-                        for (let ticketId in tickets) {
-                            let ticketData = tickets[ticketId];
-                            if (ticketData.isDeleted) {
-                                // 如果此 ticket 已被標注刪除，則忽略不顯示
-                                continue;
-                            }
-                            ticketData.ticketId = ticketId;
-                            ticketData.ticketAppId = ticketAppId;
-                            ticketInfo[ticketId] = ticketData;
-
-                            // 將每筆 ticket 資料反映於 html DOM 上
-                            ticketContent.append(
-                                '<tr id="' + ticketId + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
-                                '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + ticketData.requesterId + '</td>' +
-                                '<td>' + (!ticketData.requester ? '' : ticketData.requester.name) + '</td>' +
-                                '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
-                                '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                                '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                                '<td id="time">' + displayDate(ticketData.dueBy) + '</td>' +
-                                '<td>' + dueDate(ticketData.dueBy) + '</td>' +
-                                '</tr>');
-                        }
+                // 批此處理每個 tickets 的 app 資料
+                for (var ticketId in tickets) {
+                    var ticketData = tickets[ticketId];
+                    if (ticketData.isDeleted) {
+                        // 如果此 ticket 已被標注刪除，則忽略不顯示
+                        continue;
                     }
+                    ticketData.ticketId = ticketId;
+                    ticketData.ticketAppId = ticketAppId;
+                    ticketInfo[ticketId] = ticketData;
+
+                    // 將每筆 ticket 資料反映於 html DOM 上
+                    ticketContent.append(
+                        '<tr id="' + ticketId + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
+                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + ticketData.requesterId + '</td>' +
+                        '<td>' + (!ticketData.requester ? '' : ticketData.requester.name) + '</td>' +
+                        '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                        '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
+                        '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
+                        '<td id="time">' + displayDate(ticketData.dueBy) + '</td>' +
+                        '<td>' + dueDate(ticketData.dueBy) + '</td>' +
+                        '</tr>');
                 }
             }
         }).catch(function(error) {
-            // window.fetch 只有發送失敗或網路請求中斷才會進到 error, 收到 http error code 並不會產生 error
-            if (error.message === '401 Unauthorized') {
+            if ('401 Unauthorized' === error.message) {
                 // 只有在 promise reject 會收到 401，代表 firebase 登入失敗，等待 100ms 後重新執行
                 console.log('firebase retrying...');
                 window.setTimeout(function() { loadTable(); }, 100);
@@ -174,10 +289,10 @@
                 if (!agentsProfile) {
                     return reject(new Error('agents profile is undefined'));
                 }
-                let agentInfo = agentsProfile;
-                let agentList = [];
-                let agentKey = Object.keys(agentInfo);
-                let optionStr;
+                var agentInfo = agentsProfile;
+                var agentList = [];
+                var agentKey = Object.keys(agentInfo);
+                var optionStr;
 
                 agentKey.map(function(agent) {
                     agentList.push({ name: agentInfo[agent].name, id: agent });
@@ -202,29 +317,11 @@
             return Promise.resolve();
         }
 
-        let jwt = window.localStorage.getItem('jwt');
-        let reqHeaders = new Headers();
-        reqHeaders.append('Authorization', jwt);
-
-        let reqInit = {
-            method: 'GET',
-            headers: reqHeaders
-        };
-
-        return window.fetch(urlConfig.apiUrl + '/api/apps/users/' + userId, reqInit).then(function(response) {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            return response.json();
-        }).then(function(respJson) {
-            if (respJson.status !== 1) {
-                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-            }
-
-            let appData = respJson.data;
+        return chatshierAppAPI.getAll(userId).then(function(respJson) {
+            var appData = respJson.data;
             if (Object.keys(appData).length > 0) {
                 targetSelectElem.empty();
-                for (let appId in appData) {
+                for (var appId in appData) {
                     targetSelectElem.append('<option value=' + appId + '>' + appData[appId].name + '</option>');
                 }
             }
@@ -232,10 +329,10 @@
     }
 
     // function showInput() {
-    //     let prop = $(this).parent().children("th").attr("class");
-    //     let original = $(this).text();
+    //     var prop = $(this).parent().children("th").attr("class");
+    //     var original = $(this).text();
     //     if (prop.indexOf('due date') != -1) {
-    //         let day = new Date(original);
+    //         var day = new Date(original);
     //         day = Date.parse(day) + 8 * 60 * 60 * 1000;
     //         day = new Date(day);
     //         // console.log(day);
@@ -248,28 +345,28 @@
     // }
 
     function hideInput() {
-        let change = $(this).val();
-        if ($(this).attr('type') === 'datetime-local') {
+        var change = $(this).val();
+        if ('datetime-local' === $(this).attr('type')) {
             $(this).parent().html(displayDate(change));
         }
         $(this).parent().html("<textarea  class='inner-text form-control'>" + change + '</textarea>');
     }
 
     function showSelect(prop, n) {
-        let html = "<select class='selected form-control'>";
-        if (prop === 'priority') {
+        var html = "<select class='selected form-control'>";
+        if ('priority' === prop) {
             html += '<option value=' + n + '>' + priorityNumberToText(n) + '</option>';
-            for (let i = 1; i < 5; i++) {
+            for (var i = 1; i < 5; i++) {
                 if (i === n) continue;
                 html += '<option value=' + i + '>' + priorityNumberToText(i) + '</option>';
             }
-        } else if (prop === 'status') {
+        } else if ('status' === prop) {
             html += '<option value=' + n + '>' + statusNumberToText(n) + '</option>';
-            for (let i = 2; i < 6; i++) {
+            for (var i = 2; i < 6; i++) {
                 if (i === n) continue;
                 html += '<option value=' + i + '>' + statusNumberToText(i) + '</option>';
             }
-        } else if (prop === 'responder') {
+        } else if ('responder' === prop) {
             html += "<option value='未指派'>請選擇</option>";
             n.map(function(agent) {
                 html += '<option value=' + agent.id + '>' + agent.name + '</option>';
@@ -283,24 +380,23 @@
      * 顯示 ticket 更多資訊
      */
     function showMoreInfo() {
-        let ticketId = $(this).attr('id');
-        // let idNum = $(this).find('td:first').text();
-        let ticketData = ticketInfo[ticketId];
+        var ticketId = $(this).attr('id');
+        // var idNum = $(this).find('td:first').text();
+        var ticketData = ticketInfo[ticketId];
         lastSelectedTicket = ticketData;
-        console.log(ticketData);
 
-        let infoInputTable = $('.info_input_table').empty();
+        var infoInputTable = $('.info_input_table').empty();
         return new Promise(function(resolve, reject) {
             // socket.emit('get agents profile', function(socketData) {
             //     if (!socketData) {
             //         return reject(new Error('no socket data.'));
             //     }
-            //     let agentList = [];
+            //     var agentList = [];
             //     agentInfo = socketData; // 所有 agent 的名單物件
             //     Object.keys(agentInfo).map(function(agent) agentList.push({ name: agentInfo[agent].name, id: agent }));
 
             //     return database.ref('tickets/' + userId + '/t' + idNum).once('value', function(snapshot) {
-            //         let value = snapshot.val();
+            //         var value = snapshot.val();
             //         if (value) {
             //             $('option[value="' + value.owner + '"]').attr('selected', 'selected');
             //         }
@@ -314,7 +410,7 @@
             $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
             $('.modal-title').text(!ticketData.requester ? '' : ticketData.requester.name);
 
-            let moreInfoHtml =
+            var moreInfoHtml =
                 '<tr>' +
                 '<th>客戶ID</th>' +
                 '<td class="edit">' + (!ticketData.requester ? '' : ticketData.requester.id) + '</td>' +
@@ -356,23 +452,23 @@
     } // end of showMoreInfo
 
     function displayDate(date) {
-        let origin = new Date(date);
+        var origin = new Date(date);
         origin = origin.getTime();
-        let gmt8 = new Date(origin);
-        let yy = gmt8.getFullYear();
-        let MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
-        let dd = gmt8.getDate();
-        let hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
-        let mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
-        let ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
+        var gmt8 = new Date(origin);
+        var yy = gmt8.getFullYear();
+        var MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
+        var dd = gmt8.getDate();
+        var hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
+        var mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
+        var ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
         return yy + '/' + MM + '/' + dd + ' ' + hh + ':' + mm + ':' + ss;
     }
 
     function dueDate(day) {
-        let html = '';
-        let nowTime = new Date().getTime();
-        let dueday = Date.parse(displayDate(day));
-        let hr = dueday - nowTime;
+        var html = '';
+        var nowTime = new Date().getTime();
+        var dueday = Date.parse(displayDate(day));
+        var hr = dueday - nowTime;
         hr /= 1000 * 60 * 60;
         // hr = Math.round(hr) ;
         // return hr ;
@@ -385,37 +481,37 @@
     } // end of dueDate
 
     function displayDateInput(date) {
-        let origin = new Date(date);
+        var origin = new Date(date);
         origin = origin.getTime();
-        let gmt8 = new Date(origin);
-        let yyyy = gmt8.getFullYear();
-        let MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
-        let dd = gmt8.getDate();
-        let hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
-        let mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
-        let ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
+        var gmt8 = new Date(origin);
+        var yyyy = gmt8.getFullYear();
+        var MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
+        var dd = gmt8.getDate();
+        var hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
+        var mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
+        var ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
         return yyyy + '-' + MM + '-' + dd + 'T' + hh + ':' + mm + ':' + ss;
     } // end of displayDate
 
     function responderName(id) {
         // console.log(agentInfo);
-        for (let i in agentInfo) {
+        for (var i in agentInfo) {
             if (agentInfo[i].id === id) return agentInfo[i].contact.name;
         }
         return 'unassigned';
     } // end of responderName
 
     function submitAdd() {
-        let requesterName = $('#add-form-name').val();
-        let requesterId = $('#add-form-uid').val(); // 因為沒有相關可用的string，暫時先儲存在to_emails這個功能下面
-        let requesterEmail = $('#add-form-email').val();
-        let requesterPhone = $('#add-form-phone').val();
+        var requesterName = $('#add-form-name').val();
+        var requesterId = $('#add-form-uid').val(); // 因為沒有相關可用的string，暫時先儲存在to_emails這個功能下面
+        var requesterEmail = $('#add-form-email').val();
+        var requesterPhone = $('#add-form-phone').val();
 
         // 驗證
-        let emailReg = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
-        let phoneReg = /\b[0-9]+\b/;
-        let errorElem = $('#error');
-        let ticketAppId = $('select#add-form-app option:selected').val();
+        var emailReg = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
+        var phoneReg = /\b[0-9]+\b/;
+        var errorElem = $('#error');
+        var ticketAppId = $('select#add-form-app option:selected').val();
 
         if (!ticketAppId) {
             errorElem.append('請選擇App');
@@ -425,7 +521,7 @@
         } else if (!emailReg.test(requesterEmail)) {
             errorElem.append('請輸入正確的email格式');
 
-            let formEmail = $('#form-email');
+            var formEmail = $('#form-email');
             formEmail.css('border', '1px solid red');
             window.setTimeout(function() {
                 errorElem.empty();
@@ -434,7 +530,7 @@
         } else if (!phoneReg.test(requesterPhone)) {
             errorElem.append('請輸入正確的電話格式');
 
-            let formPhone = $('#form-phone');
+            var formPhone = $('#form-phone');
             formPhone.css('border', '1px solid red');
             window.setTimeout(function() {
                 errorElem.empty();
@@ -443,7 +539,7 @@
         } else if (!requesterId) {
             errorElem.append('請輸入clientId');
 
-            let formSubject = $('#form-subject');
+            var formSubject = $('#form-subject');
             formSubject.css('border', '1px solid red');
             window.setTimeout(function() {
                 errorElem.empty();
@@ -464,15 +560,15 @@
                 $('#add-form-name').css('border', '1px solid #ccc');
             }, 3000);
         } else {
-            let status = parseInt($('#add-form-status option:selected').val());
-            let priority = parseInt($('#add-form-priority option:selected').val());
-            // let ownerAgent = $('#add-form-agents option:selected').val();
-            let description = $('#add-form-description').val();
+            var status = parseInt($('#add-form-status option:selected').val());
+            var priority = parseInt($('#add-form-priority option:selected').val());
+            // var ownerAgent = $('#add-form-agents option:selected').val();
+            var description = $('#add-form-description').val();
 
-            let nowTime = new Date().getTime();
-            let dueDate = nowTime + 86400000 * 3; // 過期時間設為3天後
+            var nowTime = new Date().getTime();
+            var dueDate = nowTime + 86400000 * 3; // 過期時間設為3天後
 
-            let newTicket = {
+            var newTicket = {
                 createdTime: nowTime,
                 description: !description ? '' : description,
                 dueBy: dueDate,
@@ -498,26 +594,7 @@
                 updatedTime: nowTime
             };
 
-            let jwt = window.localStorage.getItem('jwt');
-            let reqHeaders = new Headers();
-            reqHeaders.append('Authorization', jwt);
-            reqHeaders.append('Content-Type', 'application/json');
-
-            let reqInit = {
-                method: 'POST',
-                headers: reqHeaders,
-                body: JSON.stringify(newTicket)
-            };
-
-            return window.fetch(urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId, reqInit).then(function(response) {
-                if (!response.ok) {
-                    return Promise.reject(new Error(response.status + ' ' + response.statusText));
-                }
-                return response.json();
-            }).then(function(respJson) {
-                if (respJson.status !== 1) {
-                    return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-                }
+            return ticketAPI.insert(ticketAppId, userId, newTicket).then(function() {
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });
         }
@@ -527,16 +604,16 @@
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
     function modifyTicket() {
-        let modifyTable = $('#ticket-info-modal .info_input_table');
+        var modifyTable = $('#ticket-info-modal .info_input_table');
         modifyTable.find('input').blur();
 
-        let ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
-        let ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
-        let ticketDescription = modifyTable.find('th.description').parent().find('td.edit').text();
-        let ticketDueBy = modifyTable.find('th.time-edit').parent().find('td input').val();
+        var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
+        var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
+        var ticketDescription = modifyTable.find('th.description').parent().find('td.edit').text();
+        var ticketDueBy = modifyTable.find('th.time-edit').parent().find('td input').val();
 
         // 準備要修改的 ticket json 資料
-        let modifiedTicket = {
+        var modifiedTicket = {
             ccEmails: lastSelectedTicket.ccEmails,
             createdTime: new Date(lastSelectedTicket.createdTime).getTime(),
             description: ticketDescription,
@@ -558,30 +635,11 @@
             updatedTime: new Date().getTime()
         };
 
-        let jwt = window.localStorage.getItem('jwt');
-        let reqHeaders = new Headers();
-        reqHeaders.append('Authorization', jwt);
-        reqHeaders.append('Content-Type', 'application/json');
-
-        let reqInit = {
-            method: 'PUT',
-            headers: reqHeaders,
-            body: JSON.stringify(modifiedTicket)
-        };
-
         // 發送修改請求 api 至後端進行 ticket 修改
-        return window.fetch(urlConfig.apiUrl + '/api/apps-tickets/apps/' + lastSelectedTicket.ticketAppId + '/tickets/' + lastSelectedTicket.ticketId + '/users/' + userId, reqInit).then(function(response) {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            return response.json();
-        }).then(function(apiRespJson) {
-            if (apiRespJson.status !== 1) {
-                return Promise.reject(new Error(apiRespJson.status + ' ' + apiRespJson.msg));
-            }
+        return ticketAPI.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
             loadTable();
 
-            let alertSuccess = $('#alert-success');
+            var alertSuccess = $('#alert-success');
             alertSuccess.children('span').text('表單已更新');
             window.setTimeout(function() {
                 alertSuccess.show();
@@ -589,7 +647,7 @@
             }, 1000);
         }).catch(function(error) {
             console.error(error);
-            let alertDanger = $('#alert-danger');
+            var alertDanger = $('#alert-danger');
             alertDanger.children('span').text('表單更新失敗，請重試').show();
             window.setTimeout(function() { alertDanger.hide(); }, 4000);
         });
@@ -646,8 +704,8 @@
     } // end of priorityNumberToText
 
     function searchBar() {
-        let content = $('.ticket-content tr');
-        let val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        var content = $('.ticket-content tr');
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
         content.show().filter(function() {
             var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
             return !~text1.indexOf(val);
@@ -683,13 +741,13 @@
                 y = rows[i + 1].childNodes[n];
                 // check if the two rows should switch place,
                 // based on the direction, asc or desc:
-                if (dir === 'asc') {
+                if ('asc' === dir) {
                     if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
                         // if so, mark as a switch and break the loop:
                         shouldSwitch = true;
                         break;
                     }
-                } else if (dir === 'desc') {
+                } else if ('desc' === dir) {
                     if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
                         // if so, mark as a switch and break the loop:
                         shouldSwitch = true;
@@ -707,7 +765,7 @@
             } else {
                 // If no switching has been done AND the direction is "asc",
                 // set the direction to "desc" and run the while loop again.
-                if (switchcount === 0 && dir === 'asc') {
+                if (0 === switchcount && 'asc' === dir) {
                     dir = 'desc';
                     switching = true;
                 }
