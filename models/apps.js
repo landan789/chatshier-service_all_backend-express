@@ -217,7 +217,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -228,15 +228,15 @@ apps.updateByAppId = (appId, putApp, callback) => {
 
     procced.then(() => {
         return new Promise((resolve, reject) => {
-            admin.database().ref("apps/" + appId).once("value", snap => {
+            admin.database().ref('apps/' + appId).once('value', snap => {
                 var app = snap.val();
-                if (undefined === app || "" === app || null === app) {
+                if (undefined === app || '' === app || null === app) {
                     reject();
                     return;
                 }
 
                 // 已刪除資料不能更新
-                if (1 === app.delete) {
+                if (1 === app.isDeleted) {
                     reject();
                     return;
                 }
@@ -244,7 +244,7 @@ apps.updateByAppId = (appId, putApp, callback) => {
             });
         });
     }).then(() => {
-        return admin.database().ref("apps/" + appId).update(putApp);
+        return admin.database().ref('apps/' + appId).update(putApp);
     }).then(() => {
         callback(true);
     }).catch(() => {
@@ -257,12 +257,12 @@ apps.removeByAppId = (appId, callback) => {
         resolve();
     });
 
-    deleteApp = {
+    var deletedApp = {
         isDeleted: 1
     };
 
     procced.then(() => {
-        return admin.database().ref("apps/" + appId).update(deleteApp);
+        return admin.database().ref('apps/' + appId).update(deletedApp);
     }).then(() => {
         callback(true);
     }).catch(() => {

@@ -306,7 +306,7 @@ $(document).ready(function() {
                 let appId = $(this).parent().parent().find('#webhook-id').text();
                 // console.log($('#facebook-name').val())
                 if ($('#facebook-name').val() === undefined) {
-                    let name = $('#cname').val();
+                    let name = $('#name').val();
                     let id1 = $('#channel-id').val();
                     let secret = $('#channel-secret').val();
                     let token1 = $('#channel-token').val();
@@ -364,7 +364,7 @@ $(document).ready(function() {
             '<div class="form-group">' +
             '<label class="col-2 col-form-label">名稱: </label>' +
             '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="cname"/>' +
+            '<input class="form-control" type="tel" value="" id="line-name"/>' +
             '</div>' +
             '</div>' +
             '<div class="form-group">' +
@@ -487,7 +487,7 @@ function findAllApps() {
                 let appIds = data.data;
                 let appKeyArr = Object.keys(appIds);
                 for (let i in appIds) {
-                    if (appIds[i].isDeleted !== 1) {
+                    if (false === appIds[i].hasOwnProperty('isDeleted') || 0 === appIds[i].isDeleted) {
                         $('#prof-id').append(appIds[i].user_id);
                         // groupType(appKeyArr[i],appIds[i]);
                         groupType(i, appIds[i]);
@@ -526,18 +526,17 @@ function findOneApp(appId) {
 function insertType(type, callback) {
     switch (type) {
         case 'LINE':
-            let lineName = $('#cname').val();
+            let lineName = $('#line-name').val();
             let lineId = $('#channel-id').val();
             let lineSecret = $('#channel-secret').val();
             let lineToken = $('#channel-token').val();
             let lineObj = {
-                cname: lineName,
+                name: lineName,
                 id1: lineId,
                 secret: lineSecret,
                 token1: lineToken,
                 type: type
             }
-            console.log(lineObj);
             callback(lineObj);
             break;
         case 'FACEBOOK':
@@ -548,7 +547,7 @@ function insertType(type, callback) {
             let fbValidToken = $('#facebook-valid-token').val();
             let fbPageToken = $('#facebook-page-token').val();
             let fbObj = {
-                cname: fbName,
+                name: fbName,
                 id1: fbPageId,
                 id2: fbAppId,
                 secret: fbSecret,
@@ -735,7 +734,7 @@ function formModalBody(id, item) {
                 '<div class="form-group">' +
                 '<label class="col-2 col-form-label">Channel Name 1: </label>' +
                 '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + item.name + '" id="cname"/>' +
+                '<input class="form-control" type="tel" value="' + item.name + '" id="name"/>' +
                 '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
