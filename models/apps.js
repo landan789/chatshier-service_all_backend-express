@@ -84,13 +84,13 @@ apps.findAppsByAppIds = (appIds, callback) => {
                 var appId = appIds[i];
                 admin.database().ref('apps/' + appId).once('value', snap => {
                     var app = snap.val();
-                    delete app.autoreplies;
-                    delete app.templates;
-                    var key = snap.key;
                     if (null === app || undefined === app || '' === app) {
                         resolve(apps);
                         return;
                     }
+                    var key = snap.key;
+                    delete app.autoreplies;
+                    delete app.templates;
 
                     apps[key] = app;
                     resolve(apps);
