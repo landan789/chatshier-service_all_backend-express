@@ -1,25 +1,25 @@
-var admin = require("firebase-admin"); //firebase admin SDK
+var admin = require('firebase-admin'); //firebase admin SDK
 var apps = {};
 
 apps._schema = (callback) => {
     var json = {
-        id1: "",
-        id2: "",
-        name: "",
-        secret: "",
-        token1: "",
-        token2: "",
-        type: "",
-        user_id: "",
-        webhook_id: "",
+        id1: '',
+        id2: '',
+        name: '',
+        secret: '',
+        token1: '',
+        token2: '',
+        type: '',
+        user_id: '',
+        webhook_id: '',
         isDeleted: 0
     };
     callback(json);
 };
 
 apps.findByAppId = (appId, callback) => {
-    var ref = "apps/" + appId;
-    admin.database().ref(ref).once("value", snap => {
+    var ref = 'apps/' + appId;
+    admin.database().ref(ref).once('value', snap => {
         var app = snap.val();
         delete app.autoreplies;
         delete app.templates;
@@ -28,50 +28,6 @@ apps.findByAppId = (appId, callback) => {
         apps[snap.key] = app;
         callback(apps);
     });
-};
-
-apps.findActiveAppsByUserId = (userId, callback) => {
-
-    let procced = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    procced.then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
-                let data = snap.val();
-                resolve(data);
-            });
-        });
-    }).then((data) => {
-        let appids = data;
-        return new Promise((resolve, reject) => {
-            let active = {};
-            appids.map((appId) => {
-                let ref = "apps/" + appId;
-                admin.database().ref(ref).once("value", snap => {
-                    let app = snap.val();
-                    active[appId] = app;
-                    if (Object.keys(active).length === appids.length) {
-                        resolve(active);
-                    }
-                });
-            });
-        });
-    }).then((data) => {
-        let appObj = data;
-        let appIds = [];
-        for (let a in appObj) {
-            if (appObj[a].delete === 0) {
-                appIds.push(a);
-            }
-        }
-        callback(appIds);
-    }).catch(() => {
-        console.log('error');
-    });
-
-
 };
 
 apps.findAppIdByWebhookId = (webhookId, callback) => {
@@ -84,7 +40,7 @@ apps.findAppIdByWebhookId = (webhookId, callback) => {
         var appId = webhook.app_id;
         callback(appId);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -101,14 +57,12 @@ apps.findAppByWebhookId = (webhookId, callback) => {
     }).then((snap) => {
         var app = snap.val();
         callback(app);
-    }).catch((error) => {
-        callback(false);
+    }).catch(() => {
+        callback(null);
     });
 };
 
 apps.findAppsByAppIds = (appIds, callback) => {
-    var a = appIds;
-
     var apps = {};
     next(0, callback);
 
@@ -128,12 +82,12 @@ apps.findAppsByAppIds = (appIds, callback) => {
         }).then(() => {
             return new Promise((resolve, reject) => {
                 var appId = appIds[i];
-                admin.database().ref("apps/" + appId).once("value", snap => {
+                admin.database().ref('apps/' + appId).once('value', snap => {
                     var app = snap.val();
                     delete app.autoreplies;
                     delete app.templates;
                     var key = snap.key;
-                    if (null === app || undefined === app || "" === app) {
+                    if (null === app || undefined === app || '' === app) {
                         resolve(apps);
                         return;
                     }
@@ -165,16 +119,14 @@ apps.insertByUserid = (userid, postApp, callback) => {
     }).then((initApp) => {
         var app = Object.assign(initApp, postApp);
 
-        return new Promise((resolve, reject) => {
-            var appId = admin.database().ref("apps").push(app).key;
-            resolve(appId);
-        });
+        return admin.database().ref('apps').push(app);
+
     }).then((appId) => {
         return new Promise((resolve, reject) => {
-            admin.database().ref("users/" + userid).once("value", snap => {
+            admin.database().ref('users/' + userid).once('value', snap => {
                 var user = snap.val();
-                var appIds = !user.hasOwnProperty("app_ids") ? [] : user.app_ids;
-                if (null === user || "" === user || undefined === user) {
+                var appIds = !user.hasOwnProperty('app_ids') ? [] : user.app_ids;
+                if (null === user || '' === user || undefined === user) {
                     reject();
                     return;
                 }
@@ -182,7 +134,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var i;
                 for (i = 0; i < n; i++) {
                     var _appId = appIds[i];
-                    if (_appId == appId) {
+                    if (_appId === appId) {
                         appIds.slice(i, 1);
                     }
                 }
@@ -197,7 +149,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 app_id: appIds[0]
             };
 
-            admin.database().ref("webhooks").push(webhook).then((ref) => {
+            admin.database().ref('webhooks').push(webhook).then((ref) => {
                 var webhookId = ref.key;
                 var user = {
                     app_ids: appIds
@@ -205,10 +157,10 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var app = {
                     webhook_id: webhookId
                 };
-                return Promise.all([admin.database().ref("users/" + userid).update(user), app]);
+                return Promise.all([admin.database().ref('users/' + userid).update(user), app]);
             }).then((result) => {
                 var app = result[1];
-                return admin.database().ref("apps/" + appIds[0]).update(app);
+                return admin.database().ref('apps/' + appIds[0]).update(app);
             }).then(() => {
                 resolve();
             });
@@ -248,7 +200,7 @@ apps.updateByAppId = (appId, putApp, callback) => {
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -266,7 +218,7 @@ apps.removeByAppId = (appId, callback) => {
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
