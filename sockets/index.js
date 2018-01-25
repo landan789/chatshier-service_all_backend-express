@@ -758,23 +758,6 @@ function init(server) {
         });
         /*===設定end===*/
 
-        /*===分析start===*/
-        socket.on('request message time', () => {
-            chats.findChatData((data) => {
-                let msgTimeData = [];
-                for (let prop in data) {
-                    let msg = data[prop].Messages;
-                    for (let i = 0; i < msg.length; i++) {
-                        msgTimeData.push({
-                            "time": msg[i].time,
-                            "message": msg[i].message
-                        });
-                    }
-                }
-                socket.emit('response message time', msgTimeData);
-            });
-        });
-        /*===分析end===*/
         // 推播全部人
         socket.on('push notification to all', (data) => {
             let nowTime = Date.now();

@@ -1,40 +1,48 @@
-var admin = require("firebase-admin"); //firebase admin SDK
-var users = {};
-users.get = callback => {
-    admin.database().ref('users/').once('value', snap => {
-        let data = snap.val();
-        callback(data);
-    });
-};
-users.findUserByUserId = (userId, callback) => {
-    admin.database().ref('users/' + userId).once('value', snap => {
-        let data = snap.val();
-        callback(data);
-    });
-};
+module.exports = (function() {
+    const admin = require('firebase-admin'); // firebase admin SDK
 
-users.findAppIdsByUserId = (userId, callback) => {
-    admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
-        let data = snap.val();
-        callback(data);
-    });
-};
+    function UsersModel() {}
 
-users.findCalendarIdByUserId = (userId, callback) => {
-    admin.database().ref('users/' + userId + '/calendar_id').on('value', snap => {
-        let data = snap.val();
-        callback(data);
-    });
-};
+    UsersModel.prototype.get = function(callback) {
+        admin.database().ref('users/').once('value', snap => {
+            let data = snap.val();
+            callback(data);
+        });
+    };
 
-users.findUserByUserId = (userId, callback) => {
-    admin.database().ref('users/' + userId).once('value', snap => {
-        let data = snap.val();
-        callback(data);
-    });
-};
+    UsersModel.prototype.findUserByUserId = function(userId, callback) {
+        admin.database().ref('users/' + userId).once('value', snap => {
+            let data = snap.val();
+            callback(data);
+        });
+    };
 
-users.updateUserByUserId = (userId, obj) => {
-    admin.database().ref('users/' + userId).update(obj);
-};
-module.exports = users;
+    UsersModel.prototype.findAppIdsByUserId = function(userId, callback) {
+        admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
+            let data = snap.val();
+            callback(data);
+        });
+    };
+
+    UsersModel.prototype.findCalendarIdByUserId = function(userId, callback) {
+        admin.database().ref('users/' + userId + '/calendar_id').on('value', snap => {
+            let data = snap.val();
+            callback(data);
+        });
+    };
+
+    UsersModel.prototype.findUserByUserId = function(userId, callback) {
+        admin.database().ref('users/' + userId).once('value', snap => {
+            let data = snap.val();
+            callback(data);
+        });
+    };
+
+    UsersModel.prototype.updateUserByUserId = function(userId, obj, callback) {
+        admin.database().ref('users/' + userId).update(obj).then(() => {
+            callback();
+        });
+    };
+
+    return new UsersModel();
+})();

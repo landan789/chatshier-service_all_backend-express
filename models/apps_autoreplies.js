@@ -113,7 +113,7 @@ appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
 
 appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
     let autoreplies = [];
-    if (null === autoreplyIds) {
+    if (!autoreplyIds) {
         callback(autoreplies);
         return;
     }

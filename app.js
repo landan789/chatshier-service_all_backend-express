@@ -2,8 +2,6 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var formData = require("express-form-data");
 var cors = require('cors');
 
 var jwt = require('./middlewares/jwt');
@@ -14,18 +12,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
-
-// HTTP body x-www-form-urlencoded parser
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// HTTP body 允許 json 格式
-app.use(bodyParser.json());
-
-// HTTP body form-data parser
-app.use(formData.parse({ autoFiles: true }));
-app.use(formData.format());
-app.use(formData.stream());
-app.use(formData.union());
 
 app.use(cors());
 app.use(cookieParser());
@@ -38,7 +24,7 @@ app.use('/', index);
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwt.verify);
 
-// API 
+// API
 app.use('/api', api);
 
 // facebook connection

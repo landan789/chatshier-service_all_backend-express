@@ -21,7 +21,7 @@ var TicketAPI = (function() {
      *
      * @param {*} jwt - API 傳輸時必須攜帶的 json web token
      */
-    var ticketAPI = function(jwt) {
+    function TicketAPI(jwt) {
         this.jwt = jwt || '';
         this.reqHeaders = new Headers();
         this.reqHeaders.set('Content-Type', 'application/json');
@@ -32,7 +32,7 @@ var TicketAPI = (function() {
      *
      * @param {string} userId - 使用者的 firebase ID
      */
-    ticketAPI.prototype.getAll = function(userId) {
+    TicketAPI.prototype.getAll = function(userId) {
         var destUrl = urlConfig.apiUrl + '/api/apps-tickets/users/' + userId;
         var reqInit = {
             method: 'GET',
@@ -50,7 +50,7 @@ var TicketAPI = (function() {
      * @param {string} ticketAppId - 目標待辦事項的 App ID
      * @param {string} userId - 使用者的 firebase ID
      */
-    ticketAPI.prototype.getOne = function(ticketAppId, userId) {
+    TicketAPI.prototype.getOne = function(ticketAppId, userId) {
         var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
         var reqInit = {
             method: 'GET',
@@ -69,7 +69,7 @@ var TicketAPI = (function() {
      * @param {string} userId - 使用者的 firebase ID
      * @param {*} newTicketData - 欲新增的待辦事項資料
      */
-    ticketAPI.prototype.insert = function(ticketAppId, userId, newTicketData) {
+    TicketAPI.prototype.insert = function(ticketAppId, userId, newTicketData) {
         var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
         var reqInit = {
             method: 'POST',
@@ -90,7 +90,7 @@ var TicketAPI = (function() {
      * @param {*} userId - 使用者的 firebase ID
      * @param {*} modifiedTicketData - 已編輯後欲更新的待辦事項資料
      */
-    ticketAPI.prototype.update = function(ticketAppId, ticketId, userId, modifiedTicketData) {
+    TicketAPI.prototype.update = function(ticketAppId, ticketId, userId, modifiedTicketData) {
         var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
         var reqInit = {
             method: 'PUT',
@@ -110,7 +110,7 @@ var TicketAPI = (function() {
      * @param {string} ticketId - 目標待辦事項的 ID
      * @param {string} userId - 使用者的 firebase ID
      */
-    ticketAPI.prototype.remove = function(ticketAppId, ticketId, userId) {
+    TicketAPI.prototype.remove = function(ticketAppId, ticketId, userId) {
         var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
         var reqInit = {
             method: 'DELETE',
@@ -122,7 +122,7 @@ var TicketAPI = (function() {
         });
     };
 
-    return ticketAPI;
+    return TicketAPI;
 })();
 
 var ChatshierAppAPI = (function() {
@@ -145,7 +145,7 @@ var ChatshierAppAPI = (function() {
      *
      * @param {*} jwt - API 傳輸時必須攜帶的 json web token
      */
-    var chatshierAppAPI = function(jwt) {
+    function ChatshierAppAPI(jwt) {
         this.jwt = jwt || '';
         this.reqHeaders = new Headers();
         this.reqHeaders.set('Content-Type', 'application/json');
@@ -156,7 +156,7 @@ var ChatshierAppAPI = (function() {
      *
      * @param {string} userId - 使用者的 firebase ID
      */
-    chatshierAppAPI.prototype.getAll = function(userId) {
+    ChatshierAppAPI.prototype.getAll = function(userId) {
         var destUrl = urlConfig.apiUrl + '/api/apps/users/' + userId;
         var reqInit = {
             method: 'GET',
@@ -168,7 +168,7 @@ var ChatshierAppAPI = (function() {
         });
     };
 
-    return chatshierAppAPI;
+    return ChatshierAppAPI;
 })();
 
 (function() {

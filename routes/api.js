@@ -1,15 +1,35 @@
 var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 var express = require('express');
+var bodyParser = require('body-parser');
+var formData = require('express-form-data');
+
 var users = require('../models/users');
 var appsTemplatesMdl = require('../models/apps_templates');
+
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
 
+// ===============
+// 訊息相關 Ctrl (Create By Peace 2018/01/25)
+var appsMessagersCtl = require('../controllers/apps_messagers_');
+var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages_');
+// ===============
+
 var router = express.Router();
+
+// HTTP body 允許 json 格式
+// HTTP body form-data parser
+router.use(
+    bodyParser.json(),
+    formData.parse({ autoFiles: true }),
+    formData.format(),
+    formData.stream(),
+    formData.union()
+);
 
 router.get('/apps/users/:userid', appsCtl.getAll);
 router.get('/apps/apps/:appid/users/:userid', appsCtl.getOne);
@@ -23,6 +43,14 @@ router.get('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
 router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
+
+// ===============
+// 取得聊天室訊息API (Create By Peace 2018/01/25)
+router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAll);
+router.get('/apps-messagers/apps/:appid/users/:userid', appsMessagersCtl.getAllByAppId);
+router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.getAll);
+router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
+// ===============
 
 // 圖文選單
 router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getByUserId);
@@ -41,54 +69,48 @@ router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:use
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-    proceed
-        .then(() => {
-
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.findAppIdsByUserId(userId, (data) => {
-                    if (data === null) {
-                        reject(API_ERROR.APPID_WAS_EMPTY)
-                    } else
-                        resolve(data);
-                });
-            });
-
-        })
-        .then((data) => {
-            return new Promise((resolve, reject) => {
-                let appid = data[0];
-                appsTemplatesMdl.findByAppId(appid, (info) => {
-                    if (info === null) {
-                        reject();
-                    } else
-                        resolve(info);
-                });
-            });
-        })
-        .then((info) => {
-            let result = info !== undefined ? info : {};
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                "data": result
-
+    var proceed = Promise.resolve();
+    proceed.then(() => {
+        return new Promise((resolve, reject) => {
+            if ('' === userId || null === userId || undefined === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
             }
-            res.status(200).json(json);
-        }).catch((ERR) => {
-            var json = {
-                "status": 0,
-                "msg": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(403).json(json);
-        })
+            users.findAppIdsByUserId(userId, (data) => {
+                if (null === data) {
+                    reject(API_ERROR.APPID_WAS_EMPTY);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+    }).then((data) => {
+        return new Promise((resolve, reject) => {
+            let appid = data[0];
+            appsTemplatesMdl.findByAppId(appid, (info) => {
+                if (null === info) {
+                    reject();
+                } else {
+                    resolve(info);
+                }
+            });
+        });
+    }).then((info) => {
+        let result = info !== undefined ? info : {};
+        var json = {
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            data: result
+        };
+        res.status(200).json(json);
+    }).catch((ERR) => {
+        var json = {
+            status: 0,
+            msg: ERR.MSG,
+            code: ERR.CODE
+        };
+        res.status(403).json(json);
+    });
 });
 // insert
 router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
@@ -99,7 +121,7 @@ router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
         keyword: req.body.keyword,
         type: req.body.type,
         content: req.body.content
-    }
+    };
     var proceed = new Promise((resolve, reject) => {
         resolve();
     });
