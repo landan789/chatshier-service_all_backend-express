@@ -1,4 +1,3 @@
-const line = require('@line/bot-sdk');
 var SECRET = require('../config/secret');
 var Cryptr = require('cryptr');
 var cryptr = new Cryptr(SECRET.MESSENGE_KEY, 'des');
@@ -7,6 +6,7 @@ var moment = require('moment');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
 var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
+var line = require('@line/bot-sdk');
 var admin = require('firebase-admin'); // firebase admin SDK
 var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase admin requires .json auth
 var databaseURL = require('../config/firebase_admin_database_url.js');
@@ -87,7 +87,7 @@ function init(server) {
                         channelSecret: app.secret,
                         channelAccessToken: app.token1
                     };
-                    req.client = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
+                    req.lineBot = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
                     line.middleware(lineConfig)(req, res, next); // 中介軟體執行中介軟體的方法
                     break;
                 case FACEBOOK:
@@ -151,7 +151,8 @@ function init(server) {
 
     }, (req, res, next) => {
 
-        var client = req.client;
+        var lineBot = req.lineBot;
+        var fbBot = req.fbBot;
         var message = req.message;
         var keywordreplyIds = req.keywordreplyIds;
         var templateIds = req.templateIds;
@@ -180,6 +181,7 @@ function init(server) {
                     resolve(null);
                     return;
                 }
+
                 resolve(templates);
             });
         });
@@ -208,7 +210,7 @@ function init(server) {
                 var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
                 if (undefined === req.body.entry) { // 處理LINE的訊息回覆
-                    return client.replyMessage(event.replyToken, replyMessages);
+                    return lineBot.replyMessage(event.replyToken, replyMessages);
                 } else { // 處理FACEBOOK的訊息回覆
                     utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
                         return Promise.resolve();
@@ -217,7 +219,7 @@ function init(server) {
             });
         })).then(() => {
             return new Promise((resolve, reject) => {
-                client.getProfile(userId).then((profile) => {
+                lineBot.getProfile(userId).then((profile) => {
                     var message = {
                         text: req.body.events[0].message.text,
                         from: req.appType,
@@ -255,7 +257,7 @@ function init(server) {
             let channelId = data.channelId;
             let chatroomId = data.chatroomId;
             return new Promise((resolve, reject) => {
-                client.getProfile(userId).then((profile) => {
+                lineBot.getProfile(userId).then((profile) => {
                     appsMessengersMdl.updateMessenger(appId, userId, chatroomId, profile.displayName, profile.pictureUrl, () => {
                         resolve(data);
                     });
