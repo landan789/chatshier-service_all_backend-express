@@ -50,8 +50,7 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value', snap => {
         let autoreply = snap.val();
         if (undefined === autoreplyId || '' === autoreplyId || null === autoreplyId) {
-            reject();
-            return;
+            return Promise.reject();
         }
         var appsAutoreplies = {};
         var _autoreplies = {};
@@ -62,6 +61,16 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
         callback(appsAutoreplies);
     }).catch(() => {
         callback(null);
+    });
+};
+
+appsAutoreplies.findAutorepliesByAppIdByAutoreplyIds = (appId, autoreplyIds, callback) => {
+    Promise.all(autoreplyIds.map((autoreplyId) => {
+        return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
+    })).then((result) => {
+        callback(result);
+    }).catch(() => {
+        callback(false);
     });
 };
 

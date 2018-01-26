@@ -78,6 +78,7 @@ function init(server) {
                 });
             });
         }).then((app) => {
+            req.app = app;
             req.appType = app.type;
             req.channelId = app.id1;
             switch (app.type) {
@@ -91,11 +92,21 @@ function init(server) {
                     break;
                 case FACEBOOK:
                     // FACEBOOK 不需要middleware
-                    req.app = app;
+                    var psid = undefined === req.body.entry ? '' : req.body.entry[0].messaging[0].sender.id;
+                    var facebookConfig = {
+                        pageID: app.id1,
+                        appID: app.id2 === undefined ? '' : app.id2,
+                        appSecret: app.secret,
+                        validationToken: app.token1,
+                        pageToken: app.token2 === undefined ? '' : app.token2
+                    };
+                    req.fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(facebookConfig, server);
                     next();
                     break;
             }
-        }).catch(() => {});
+        }).catch(() => {
+
+        });
     }, (req, res, next) => {
         var webhookId = req.params.webhookId;
         var body = req.body;
@@ -113,87 +124,68 @@ function init(server) {
             });
         }).then((appId) => {
             req.appId = appId;
-            return new Promise((resolve, reject) => {
-                // 1. 取得 訊息 ID，利用 vat massageId = cryptr.encrypt('你好，傳入的訊息'),
-                var messageId = cryptr.encrypt(message);
-                resolve({ appId, messageId });
-            });
-        }).then((data) => {
-            let appId = data.appId;
-            let messageId = data.messageId;
+            req.messageId = cryptr.encrypt(message);
+            var messageId = req.messageId;
 
-            let keywordreplyPromise = new Promise((resolve, reject) => {
+            let appsMessagesPromise = new Promise((resolve, reject) => {
                 // 2. 到 models/apps_messages.js，找到 keywordreply_ids
-                appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
-                    if (null === keywordreplyIds || undefined === keywordreplyIds || '' === keywordreplyIds) {
+                appsMessagesMdl.find(appId, messageId, (message) => {
+                    if (null === message || undefined === message || '' === message) {
                         resolve(null);
                         return;
                     }
-                    resolve(keywordreplyIds);
+                    resolve(message);
                 });
             });
 
-            let templatePromise = new Promise((resolve, reject) => {
-                appsMessagesMdl.findTemplateIds(appId, messageId, (templateIds) => {
-                    if (null === templateIds || undefined === templateIds || '' === templateIds) {
-                        resolve(null);
-                        return;
-                    }
-                    resolve(templateIds);
-                });
-            });
+            return appsMessagesPromise;
+        }).then((message) => {
 
-            return Promise.all([keywordreplyPromise, templatePromise]);
-        }).then((replyIds) => {
-            req.keywordreplyIds = replyIds[0];
-            req.templateIds = replyIds[1];
-            req.autoreplyIds = replyIds[2];
+            req.keywordreplyIds = null === message || undefined === message.keywordreply_ids ? [] : message.keywordreply_ids;
+            req.templateIds = null === message || undefined === message.template_ids ? [] : message.keywordreply_ids;
+            // 1. 取得 訊息 ID，利用 vat massageId = cryptr.encrypt('你好，傳入的訊息'),
             next();
         }).catch(() => {
             res.sendStatus(404);
         });
+
     }, (req, res, next) => {
+
         var client = req.client;
-        var keywordreplyIds = req.keywordreplyIds; // 關鍵字回復的ID陣列
-        var templateIds = req.templateIds; // 格式訊息(按鈕, 圖文, Carousel)的ID陣列
-        var autoreplyIds = req.autoreplyIds; // 自動回覆的ID陣列
+        var message = req.message;
+        var keywordreplyIds = req.keywordreplyIds;
+        var templateIds = req.templateIds;
+
         var appId = req.appId;
         var userId = req.body.events[0].source.userId;
+
         // FACEBOOK 初始設定
-        var app = req.app;
-        var psid = undefined === req.body.entry ? '' : req.body.entry[0].messaging[0].sender.id;
-        var facebookConfig = {
-            pageID: app.id1,
-            appID: app.id2 === undefined ? '' : app.id2,
-            appSecret: app.secret,
-            validationToken: app.token1,
-            pageToken: app.token2 === undefined ? '' : app.token2
-        };
-        var fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(facebookConfig, server);
+
 
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-            appsKeywordrepliesMdl.findMessagesByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordMessages) => {
-                if (null === keywordMessages || undefined === keywordMessages || '' === keywordMessages) {
+
+            appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordrepliess) => {
+                if (null === keywordrepliess || undefined === keywordrepliess || '' === keywordrepliess) {
                     resolve(null);
                     return;
                 }
-                resolve(keywordMessages);
+                resolve(keywordrepliess);
             });
         });
 
         var p2 = new Promise((resolve, reject) => {
-            appsTemplatesMdl.findMessagesByAppIdAndTemplateIds(appId, templateIds, (templateMessages) => {
-                if (null === templateMessages || undefined === templateMessages || '' === templateMessages) {
+            appsTemplatesMdl.findTemplatesByAppIdByTemplateIds(appId, templateIds, (templates) => {
+                if (null === templates || undefined === templates || '' === templates) {
                     resolve(null);
                     return;
                 }
-                resolve(templateMessages);
+                resolve(templates);
             });
         });
 
         var p3 = new Promise((resolve, reject) => {
-            appsAutorepliesMdl.findMessagesByAppIdAndAutoreplyIds(appId, autoreplyIds, (autoMessages) => {
+            appsAutorepliesMdl.findAutoreplieByAppId(appId, (autoMessages) => {
                 if (null === autoMessages || undefined === autoMessages || '' === autoMessages) {
                     resolve(null);
                     return;
