@@ -26,7 +26,7 @@
                 <h3>預約群發</h3>
                 <p>新增、編輯傳送到LINE@的訊息</p>
                 <div>
-                    <button type="button" class="btn btn-default btn-clear-both" data-toggle="modal" data-target="#quickAdd">
+                    <button type="button" class="btn btn-default btn-clear-both" data-toggle="modal" data-target="#quickAdd" id="add-composes">
                 <span class="fa fa-plus fa-fw"></span> 新增訊息
                 </button>
                     <br/>
@@ -48,6 +48,14 @@
                             </div>
                             <div class="modal-body">
                                 <!-- Form Content -->
+                                <div class="form-group">
+                                    <label class="col-2 col-form-label">App:</label>
+                                    <div class="col-4">
+                                        <select class="form-control" id="app-select">
+                                            <option>請選擇:</option>>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <label>篩選發送:</label>
                                     <div class="col-4">
@@ -96,7 +104,7 @@
                                 </section>
                                 <table>
                                     <td class="add-msg-btn-padding">
-                                        <p>一次可以發送三則訊息，請選擇訊息種類</p>
+                                        <p>一次可以發送三則訊息</p>
                                         <p class="error-msg"><b>超過訊息上限</b></p>
                                         <p class="error-input"><b>您沒有新增input欄位</b></p>
                                         <button class="add-text-btn-style" id="btn-text">文字</button>
@@ -147,13 +155,8 @@
                         <div class="table tabcontent">
                             <table class="table table-border">
                                 <tr>
-                                    <th>No.</th>
                                     <th>內容</th>
                                     <th>分類</th>
-                                    <th>標籤(optional)</th>
-                                    <th>狀態</th>
-                                    <th>預約</th>
-                                    <th></th>
                                 </tr>
                                 <tbody id="data-appointment"> </tbody>
                             </table>
@@ -163,13 +166,10 @@
                         <div class="table tabcontent">
                             <table class="table table-border">
                                 <tr>
-                                    <th>No.</th>
                                     <th>內容</th>
                                     <th>分類</th>
-                                    <th>標籤(optional)</th>
-                                    <th>狀態</th>
-                                    <th>預約</th>
-                                    <th></th>
+                                    <th>儲存時間</th>
+                                    <th>APP</th>
                                 </tr>
                                 <tbody id="data-draft"></tbody>
                             </table>
@@ -179,13 +179,10 @@
                         <div class="table tabcontent">
                             <table class="table table-border">
                                 <tr>
-                                    <th>No.</th>
                                     <th>內容</th>
                                     <th>分類</th>
-                                    <th>標籤(optional)</th>
-                                    <th>狀態</th>
-                                    <th>預約</th>
-                                    <th></th>
+                                    <th>發送時間</th>
+                                    <th>APP</th>
                                 </tr>
                                 <tbody id="data-history"></tbody>
                             </table>
@@ -289,7 +286,9 @@
                                         </div>
                                         <!-- 負責人 -->
                                         <div class="form-group">
-                                            <label for="edit-owner" class="col-2 col-form-label">負責人:  </label>
+                                            <label for="edit-owner" class="col-2 col-form-
+                                            
+                                            ">負責人:  </label>
                                             <div class="col-4">
                                                 <input class="form-control" type="text" value="" id="edit-owner">
                                             </div>

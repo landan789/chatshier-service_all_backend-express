@@ -11,20 +11,18 @@ richmenus._schema = (callback) => {
         name: "",
         selected: "",
         chatBarText: "",
-        areas:[
-            {
-                bounds: {
-                    height: "",
-                    wigth: "",
-                    x: "",
-                    y: "",
-                },
-                action: {
-                    data: "",
-                    text: "",
-                }
+        areas: [{
+            bounds: {
+                height: "",
+                wigth: "",
+                x: "",
+                y: "",
+            },
+            action: {
+                data: "",
+                text: "",
             }
-        ],
+        }],
         delete: 0
     };
     callback(json);
@@ -32,7 +30,7 @@ richmenus._schema = (callback) => {
 
 richmenus.findAllByAppId = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/richmenus').once('value', snap => {
-        let info = snap.val();  
+        let info = snap.val();
         callback(info);
     });
 }
@@ -53,32 +51,29 @@ richmenus.insertByAppId = (appId, postRichmenu, callback) => {
     });
 
     procced
-    .then(() => {
-        return new Promise((resolve, reject) => {
-            richmenus._schema((initRichmenu) => {
-                resolve(initRichmenu);
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                richmenus._schema((initRichmenu) => {
+                    resolve(initRichmenu);
+                });
             });
-        });
-    }).then((initRichmenu) => {
-        return new Promise((resolve, reject) => {
-            var richmenu = Object.assign(initRichmenu, postRichmenu);
-            resolve(richmenu);
-        });
-    })
-    .then((richmenu) => {
-        return admin.database().ref('apps/' + appId + '/richmenus').push()
-        .then((ref) => {
-            var richmenusId = ref.key;
+        }).then((initRichmenu) => {
+            return new Promise((resolve, reject) => {
+                var richmenu = Object.assign(initRichmenu, postRichmenu);
+                resolve(richmenu);
+            });
+        })
+        .then((richmenu) => {
+            let richmenusId = admin.database().ref('apps/' + appId + '/richmenus').push().key;
             return admin.database().ref('apps/' + appId + '/richmenus/' + richmenusId).update(richmenu);
         })
-    })
-    .then(() => {
-        callback(true);
-    })
-    .catch(() => {
-        callback(false);
-    })
-    
+        .then(() => {
+            callback(true);
+        })
+        .catch(() => {
+            callback(false);
+        })
+
 }
 
 richmenus.updateByAppIdByRichmenuId = (appId, richmenuId, obj, callback) => {
@@ -86,15 +81,15 @@ richmenus.updateByAppIdByRichmenuId = (appId, richmenuId, obj, callback) => {
         resolve();
     });
     procced
-    .then(() => {
-        return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(obj);
-    })
-    .then(() => {
-        callback(true);
-    })
-    .catch(() => {
-        callback(false);
-    })
+        .then(() => {
+            return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(obj);
+        })
+        .then(() => {
+            callback(true);
+        })
+        .catch(() => {
+            callback(false);
+        })
 }
 
 richmenus.removeByAppIdByRichmenuId = (appId, richmenuId, callback) => {
@@ -107,15 +102,15 @@ richmenus.removeByAppIdByRichmenuId = (appId, richmenuId, callback) => {
     }
 
     procced
-    .then(() => {
-        return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(deleteRichmenu);
-    })
-    .then(() => {
-        callback(true);
-    })
-    .catch(() => {
-        callback(false);
-    })
+        .then(() => {
+            return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(deleteRichmenu);
+        })
+        .then(() => {
+            callback(true);
+        })
+        .catch(() => {
+            callback(false);
+        })
 }
 
 module.exports = richmenus;
