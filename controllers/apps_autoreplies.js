@@ -14,7 +14,7 @@ appsAutoreplies.getAll = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUserByUserId(userId, (data) => {
+            usersMdl.findAppIdsByUserId(userId, (data) => {
                 var user = data;
                 if (undefined === user || null === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -23,8 +23,8 @@ appsAutoreplies.getAll = (req, res, next) => {
                 resolve(user);
             });
         });
-    }).then((user) => {
-        var appIds = user.app_ids;
+    }).then((data) => {
+        var appIds = data;
         return new Promise((resolve, reject) => {
             appsAutorepliesMdl.findByAppIds(appIds, (data) => {
                 if (undefined === data || null === data || '' === data) {

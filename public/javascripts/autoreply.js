@@ -30,9 +30,10 @@ function insert(appId, data) {
                 '<tr>' +
                 '<td rel="' + id.data + '" hidden></td>' +
                 '<td>Open</td>' +
-                '<td rel="' + data.name + '">' + data.name + '</td>' +
-                '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
-                '<td rel="' + data.content + '">' + data.content + '</td>' +
+                '<td rel="' + data.title + '">' + data.title + '</td>' +
+                '<td rel="' + ToLocalTimeString(data.startedTime) + '">' + ToLocalTimeString(data.startedTime) + '</td>' +
+                '<td rel="' + ToLocalTimeString(data.endedTime) + '">' + ToLocalTimeString(data.endedTime) + '</td>' +
+                '<td rel="' + data.text + '">' + data.text + '</td>' +
                 '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
                 '</tr>';
             $('#' + appId + ' #autoreply-list').append(str);
@@ -51,18 +52,18 @@ function insert(appId, data) {
 }
 
 function find() {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: '/api/apps-autoreplies/users/' + userId,
         headers: {
-            "Authorization": jwt
+            'Authorization': jwt
         },
         success: (data) => {
-            let appids = data.data;
-            console.log(appids)
-            appids.map((item, index) => {
+            let autoreplyObj = data.data;
+            let appIds = Object.keys(autoreplyObj);
+            appIds.map((item, index) => {
                 var proceed = new Promise((resolve, reject) => {
                     resolve();
                 });
@@ -72,7 +73,7 @@ function find() {
                         return new Promise((resolve, reject) => {
                             let options = '<option value="' + item + '">APP ' + (index + 1) + '</option>';
                             $('#app-select').append(options);
-                            resolve()
+                            resolve();
                         });
                     })
                     .then(() => {
@@ -85,8 +86,9 @@ function find() {
                                 '<tr>' +
                                 '<th class="table-header" hidden>ID</th>' +
                                 '<th class="table-header">狀態</th>' +
-                                '<th class="table-header">訊息標題</th>' +
-                                '<th class="table-header">有效期限</th>' +
+                                '<th class="table-header">標題</th>' +
+                                '<th class="table-header">開始時間</th>' +
+                                '<th class="table-header">結束時間</th>' +
                                 '<th class="table-header">訊息內容</th>' +
                                 '<th class="table-header">編輯/刪除</th>' +
                                 '</tr>' +
@@ -98,22 +100,22 @@ function find() {
                             resolve(item);
                         });
                     })
-                    .then(() => {
-
+                    .then((appId) => {
                         database.ref('apps/' + appId + '/autoreplies').once('value', (snap) => {
                             let allApps = snap.val();
                             for (let i in allApps) {
-                                if (allApps[i].delete === 0) {
+                                if (allApps[i].isDeleted === 0) {
                                     let str =
                                         '<tr>' +
                                         '<td rel="' + i + '" hidden></td>' +
                                         '<td>Open</td>' +
-                                        '<td rel="' + allApps[i].name + '">' + allApps[i].name + '</td>' +
-                                        '<td rel="' + allApps[i].start + ' ' + allApps[i].end + '">' + allApps[i].start + ' - ' + allApps[i].end + '</td>' +
-                                        '<td rel="' + allApps[i].content + '">' + allApps[i].content + '</td>' +
+                                        '<td id = title rel="' + allApps[i].title + '">' + allApps[i].title + '</td>' +
+                                        '<td id = started-time rel="' + ToLocalTimeString(allApps[i].startedTime) + '">' + ToLocalTimeString(allApps[i].startedTime) + '</td>' +
+                                        '<td id = ended-time rel="' + ToLocalTimeString(allApps[i].endedTime) + '">' + ToLocalTimeString(allApps[i].endedTime) + '</td>' +
+                                        '<td id = text rel="' + allApps[i].text + '">' + allApps[i].text + '</td>' +
                                         '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
                                         '</tr>';
-                                    $('#' + data + ' #autoreply-list').append(str);
+                                    $('#' + appId).find('#autoreply-list').append(str);
                                 }
                             }
                         });
@@ -133,20 +135,22 @@ function find() {
 function findOne(appId, autosHashId) {
     var jwt = localStorage.getItem("jwt");
     var userId = auth.currentUser.uid;
+    
     $.ajax({
         type: 'GET',
-        url: '/api/apps-autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
         success: (data) => {
             let info = data.data;
+            var autoreply = info[appId].autoreplies[autosHashId];
             $('#edit-appid').text(appId);
             $('#edit-autoreplyid').text(autosHashId);
-            $('#edit-taskTitle').val(info.name);
-            $('#edit-taskStart').val(info.start);
-            $('#edit-taskEnd').val(info.end);
-            $('#edit-taskContent').val(info.content);
+            $('#edit-taskTitle').val(autoreply.title);
+            $('#edit-taskStart').val(ISODateTimeString(autoreply.startedTime));
+            $('#edit-taskEnd').val(ISODateTimeString(autoreply.endedTime));
+            $('#edit-taskContent').val(autoreply.text);
         },
         error: (error) => {
             alert('載入失敗: ' + error.msg);
@@ -160,25 +164,27 @@ function update(appId, autosHashId, data) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         headers: {
             "Authorization": jwt
         },
-        success: () => {
+        success: (data) => {
+            let autoreplyObj = data.data[appId].autoreplies[autosHashId];
             $('[rel="' + autosHashId + '"]').parent().remove();
             let str =
                 '<tr>' +
                 '<td rel="' + autosHashId + '" hidden></td>' +
                 '<td>Open</td>' +
-                '<td rel="' + data.name + '">' + data.name + '</td>' +
-                '<td rel="' + data.start + ' ' + data.end + '">' + data.start + ' - ' + data.end + '</td>' +
-                '<td rel="' + data.content + '">' + data.content + '</td>' +
+                '<td rel="' + autoreplyObj.title + '">' + autoreplyObj.title + '</td>' +
+                '<td rel="' + ToLocalTimeString(autoreplyObj.startedTime) + '">' + ToLocalTimeString(autoreplyObj.startedTime) + '</td>' +
+                '<td rel="' + ToLocalTimeString(autoreplyObj.endedTime) + '">' + ToLocalTimeString(autoreplyObj.endedTime) + '</td>' +
+                '<td rel="' + autoreplyObj.text + '">' + autoreplyObj.text + '</td>' +
                 '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
                 '</tr>';
-            $('#autoreply-list').append(str);
+            $('#' + appId).find('#autoreply-list').append(str);
             //塞入資料庫並初始化
             $('#editModal').modal('hide');
             $('#edit-appid').text('');
@@ -201,7 +207,7 @@ function remove(appId, autosHashId) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: '/api/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -218,15 +224,15 @@ function remove(appId, autosHashId) {
 
 function dataInsert() {
     let appIds = $('#app-select option:selected').val();
-    let starttime = $('#starttime').val();
-    let endtime = $('#endtime').val();
+    let starttime = Date.parse($('#starttime').val());
+    let endtime = Date.parse($('#endtime').val());
     let name = $('#modal-task-name').val();
     let textInput = $('#enter-text').val();
     let obj = {
-        name: name,
-        createdTime: starttime,
-        finishedTime: endtime,
-        message: textInput
+        title: name,
+        startedTime: starttime,
+        endedTime: endtime,
+        text: textInput
     }
     insert(appIds, obj);
 }
@@ -248,15 +254,14 @@ function dataUpdate() {
     let appId = $(this).parent().parent().find('#edit-appid').text();
     let autoreplyId = $(this).parent().parent().find('#edit-autoreplyid').text();
     let name = $('#edit-taskTitle').val(); //標題
-    let starttime = $('#edit-taskStart').val(); //開始時間
-    let endtime = $('#edit-taskEnd').val(); //結束時間
+    let starttime = Date.parse($('#edit-taskStart').val()); //開始時間
+    let endtime = Date.parse($('#edit-taskEnd').val()); //結束時間
     let textInput = $('#edit-taskContent').val(); //任務內容
-
     var data = {
-        name: name,
-        createdTime: starttime,
-        finishedTime: endtime,
-        content: textInput
+        title: name,
+        startedTime: starttime,
+        endedTime: endtime,
+        text: textInput
     }
 
     update(appId, autoreplyId, data);
@@ -282,8 +287,10 @@ function ISODateTimeString(d) {
         pad(d.getMinutes());
 }
 
-function convertTime(date) {
-    let newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
-    let finalDate = ISODateTimeString(newDate);
-    return finalDate;
+function ToLocalTimeString(millisecond) {
+    var date = new Date(millisecond);
+    var localDate = date.toLocaleDateString();
+    var localTime = date.toLocaleTimeString();
+    var localTimeString = localDate + localTime;
+    return localTimeString;
 }

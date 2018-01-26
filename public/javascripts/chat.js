@@ -647,6 +647,17 @@ $(document).ready(function() {
             "Profile": data
         });
     });
+    socket.on('autoreplies', (data) => {
+        var sendObj = data.sendObj;
+        var msgText = sendObj.msgText;
+        var userId = data.userId;
+        var appId = data.appId;
+        let str = toAgentStr(msgText, '', Date.now());
+        $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
+        $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
+        $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText));
+        messageInput.val('');
+    });
     //=====end socket function=====
 
     //=====start chat function=====

@@ -5,7 +5,7 @@ var appsAutoreplies = {};
 appsAutoreplies._schema = (callback) => {
     var json = {
         isDeleted: 0,
-        createdTime: 0,
+        createdTime: Date.now(),
         startedTime: 0,
         endedTime: 0,
         title: '',
@@ -67,8 +67,8 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
 appsAutoreplies.update = (appId, autoreplyId, autoreply, callback) => {
 
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value').then((snap) => {
-        var autoreply = snap.val();
-        if (1 === autoreply.isDeleted || '1' === autoreply.isDeleted) {
+        var autoreplyCheck = snap.val();
+        if (1 === autoreplyCheck.isDeleted || '1' === autoreplyCheck.isDeleted) {
             return Promise.reject(new Error());
         }
         return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(autoreply);

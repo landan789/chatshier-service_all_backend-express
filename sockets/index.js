@@ -54,6 +54,7 @@ function init(server) {
     var bot = []; // LINE bot設定
     var userId;
     let appData = [];
+    var nickname;
     var channelIds = [-1, -1, -1];
     var overview = {};
 
@@ -302,6 +303,7 @@ function init(server) {
     io.on('connection', function (socket) {
         console.log('connected');
         socket.on('request chat init data', (frontData, callback) => {
+            nickname = socket.nickname;
             userId = frontData.id;
             var proceed = new Promise((resolve, reject) => {
                 resolve();
@@ -944,42 +946,94 @@ function init(server) {
                     });
                 });
             }).then((data) => {
-                let obj = data;
-                io.sockets.emit('new message', obj);
-                console.log('finished');
+                return new Promise((resolve, reject) => {
+                    let obj = data
+                    io.sockets.emit('new message', obj);
+                    console.log('finished');
+                    resolve();
+                });
+            }).then(() => {
+                return new Promise((resolve, reject) => {
+                    appsChatroomsMessagesMdl.findAppByWebhookId(webhookId, (data) => {
+                        let appId = data['app_id'];
+                        if (appId === false) {
+                            reject();
+                            return;
+                        }
+                        resolve(appId);
+                    });
+                });
+            }).then((appId) => {
+                return new Promise((resolve, reject) => {
+                    appsMdl.findByAppId(appId, (data) => {
+                        var appInfo = data[appId];
+                        resolve({appId, appInfo});
+                    });
+                });
+            }).then((data) => {
+                let appId = data.appId;
+                let appInfo = data.appInfo;
+
+                return new Promise((resolve, reject) => {
+                    appsAutorepliesMdl.find(appId, (data) => {
+                        var autoreplies = data.data[appId].autoreplies;
+                        var key = Object.keys(data.data[appId].autoreplies);
+                        for (let key in autoreplies) {
+                            var messenges = autoreplies[key].text;
+                            var starttime = new Date(autoreplies[key].startedTime).getTime() - 60 * 60 * 1000 * 8; // time需要轉換成毫秒並減去8小時
+                            var endtime = new Date(autoreplies[key].endedTime).getTime() - 60 * 60 * 1000 * 8; // time需要轉換成毫秒並減去8小時
+                            var nowtime = new Date().getTime() - 60 * 60 * 1000 * 8; // time需要轉換成毫秒並減去8小時
+                            if (nowtime >= starttime && nowtime < endtime) {
+                                resolve({ appId, receiverId, appInfo, messenges, nowtime });
+                            }
+                        }
+                    });
+                });
+            }).then((data) => {
+                let appId = data.receiverId; // 訊息接收者，為了對應secoket.on('send message')的格式
+                let userId = data.appId; // 目前的使用的應用程式
+                let appInfo = data.appInfo;
+                let sendObj = {
+                    ...appInfo,
+                    msgText: data.messenges,
+                    msgTime: data.nowtime,
+                    id1: data.channelId
+                };
+                bot_on_send_message({appId, userId, sendObj});
+                io.sockets.emit('autoreplies', {appId, userId, sendObj});
             }).catch((error) => {
                 console.log('Error ' + error);
             });
 
-            function keywordsReply(msg) {
-                msgObj.name = 'KeyWords Reply';
-                let sent = false;
-                keywords.get(function (keywordData) {
-                    for (let i in keywordData) {
-                        for (let j in keywordData[i]) {
-                            let thisData = keywordData[i][j];
-                            console.log(788)
-                            console.log(thisData)
-                            console.log(thisData.taskText)
-                            if (thisData.taskCate == "開放") {
-                                let keywords = thisData.taskSubK ? JSON.parse(JSON.stringify(thisData.taskSubK)) : [];
-                                keywords.push(thisData.taskMainK);
-                                keywords.map(function (word) {
-                                    if (msg.trim().toLowerCase() == word.trim().toLowerCase()) {
-                                        sent = true;
-                                        for (let k in thisData.taskText) {
-                                            msgObj.message = thisData.taskSubK[k];
-                                            pushAndEmit(msgObj, null, channelId, receiverId, 1);
-                                            send_to_Line(thisData.taskText[k], receiverId, channelId);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    if (!sent) return -1;
-                });
-            }
+            // function keywordsReply(msg) {
+            //     msgObj.name = 'KeyWords Reply';
+            //     let sent = false;
+            //     keywords.get(function (keywordData) {
+            //         for (let i in keywordData) {
+            //             for (let j in keywordData[i]) {
+            //                 let thisData = keywordData[i][j];
+            //                 console.log(788)
+            //                 console.log(thisData)
+            //                 console.log(thisData.taskText)
+            //                 if (thisData.taskCate == "開放") {
+            //                     let keywords = thisData.taskSubK ? JSON.parse(JSON.stringify(thisData.taskSubK)) : [];
+            //                     keywords.push(thisData.taskMainK);
+            //                     keywords.map(function (word) {
+            //                         if (msg.trim().toLowerCase() == word.trim().toLowerCase()) {
+            //                             sent = true;
+            //                             for (let k in thisData.taskText) {
+            //                                 msgObj.message = thisData.taskSubK[k];
+            //                                 pushAndEmit(msgObj, null, channelId, receiverId, 1);
+            //                                 send_to_Line(thisData.taskText[k], receiverId, channelId);
+            //                             }
+            //                         }
+            //                     });
+            //                 }
+            //             }
+            //         }
+            //         if (!sent) return -1;
+            //     });
+            // }
 
             function send_to_Line(msg, receiver, chanId) {
                 let message = {};
@@ -1025,27 +1079,6 @@ function init(server) {
                     }
                 }
             }
-            // function autoReply(msg) {
-            //     replyMsgObj.name = "Auto Reply";
-            //     sent = false;
-            //     appsAutorepliesMdl.get(function(autoreplyData) {
-            //         for (let i in autoreplyData) {
-            //             for (let j in autoreplyData[i]) {
-            //                 thisAutoReply = autoreplyData[i][j];
-            //                 var starttime = new Date(thisAutoReply.taskStart).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
-            //                 var endtime = new Date(thisAutoReply.taskEnd).getTime() - 60 * 60 * 1000 * 8; //time需要轉換成毫秒並減去8小時
-            //                 var nowtime = new Date().getTime();
-            //                 if (nowtime >= starttime && nowtime < endtime) {
-            //                     replyMsgObj.message = thisAutoReply.taskText;
-            //                     pushAndEmit(replyMsgObj, null, channelId, receiverId, 1);
-            //                     send_to_Line(thisAutoReply.taskText, receiverId, channelId);
-            //                     sent = true;
-            //                 }
-            //             }
-            //         }
-            //         if (!sent) return -1;
-            //     });
-            // }
 
             function surveyReply(msg) {
                 console.log("survey execute");
@@ -1439,9 +1472,9 @@ function init(server) {
                 console.log('success')
                 follow_message = item.msg;
                 console.log(follow_message)
-            }
+            }       
         });
-        event.reply(follow_message);
+        event.reply(follow_message); 
     } // end of bot_on_follow
     function update_line_bot(chanInfo) {
         if (chanInfo.hasOwnProperty("line_1")) {
@@ -1468,6 +1501,112 @@ function init(server) {
             channelIds[2] = chanInfo.fb.pageID;
         }
     } // end of update_line_bot
+
+    function bot_on_send_message(data) {
+        let vendor = data.sendObj;
+        let msg = vendor.msgText;
+        let receiver = data.appId;
+        let agentName = nickname ? nickname : 'agent';
+        let nowTime = vendor.msgTime;
+        let appId = data.userId;
+        // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
+        let channel = vendor.id1;
+
+        let proceed = new Promise((resolve, reject) => {
+            resolve();
+        });
+
+        proceed
+            .then(() => {
+                return new Promise((resolve, reject) => {
+                    let msgObj = {
+                        owner: "agent",
+                        name: agentName,
+                        time: nowTime,
+                        message: "undefined_message",
+                        from: 'chatshier'
+                    };
+                    resolve(msgObj);
+                })
+            })
+            .then((data) => {
+                let msgObj = data;
+                return new Promise((resolve, reject) => {
+                    if (msg.includes('/image')) {
+                        var src = msg.split(' ')[1];
+                        msgObj.message = `<img src="${src}" />`;
+                        resolve({ msgObj, vendor });
+                    } else if (msg.includes('/audio')) {
+                        var src = msg.split(' ')[1];
+                        msgObj.message = `<audio controls="controls">
+                                            <source src="${src}" type="audio/ogg">
+                                          </audio>`;
+                        resolve({ msgObj, vendor });
+                    } else if (msg.includes('/video')) {
+                        var src = msg.split(' ')[1];
+                        msgObj.message = `<video controls="controls">
+                                            <source src="${src}" type="video/mp4">
+                                          </video> `;
+                        resolve({ msgObj, vendor });
+                    } else if (utility.isUrl(msg)) {
+                        let urlStr = '<a href=';
+                        if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
+                            urlStr += '"http://';
+                        }
+                        msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
+                        resolve({ msgObj, vendor });
+                    } else if (msg.includes('/sticker')) {
+                        msgObj.message = 'Send sticker to user';
+                        resolve({ msgObj, vendor });
+                    } else {
+                        msgObj.message = msg;
+                        resolve({ msgObj, vendor });
+                    }
+                });
+            })
+            .then((data) => {
+                let msgObj = data.msgObj;
+                let vendorObj = data.vendor;
+                return new Promise((resolve, reject) => {
+                    if (vendorObj.id2 === '') {
+                        let lineObj = {
+                            channelId: vendorObj.id1,
+                            channelSecret: vendorObj.secret,
+                            channelAccessToken: vendorObj.token1
+                        }
+                        let bot = linebot(lineObj);
+                        linebotParser = bot.parser();
+                        determineLineType(msg, data => {
+                            bot.push(receiver, data);
+                            resolve(msgObj);
+                        });
+                    } else {
+                        let fbObj = {
+                            pageID: vendorObj.id1,
+                            appID: vendorObj.id2,
+                            appSecret: vendorObj.secret,
+                            validationToken: vendorObj.token1,
+                            pageToken: vendorObj.token2
+                        };
+                        let bot = MessengerPlatform.create(fbObj);
+                        if (Object.keys(bot).length > 0) {
+                            determineFacebookType(msg, bot, receiver, () => {
+                                resolve(msgObj);
+                            });
+                        }
+                    }
+                });
+            })
+            .then((data) => {
+                let msgObj = data;
+                return new Promise((resolve, reject) => {
+                    appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
+                        console.log('agent sent message');
+                    });
+                });
+            })
+            .catch((ERR) => {});
+    } // sent message
 
     function pushMessage(data, msg, receiver, callback) {
         if (data[1].id2 === '') {
