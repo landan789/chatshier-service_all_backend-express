@@ -116,12 +116,17 @@ appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
 appsAutoreplies.findAutoreplyIds = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/').once('value').then((snap) => {
         var appsAutoreplies = snap.val();
+        if (undefined === appsAutoreplies || '' === appsAutoreplies || null === appsAutoreplies) {
+            reject();
+            return;
+        }
         var autoreplyIds = Object.keys(appsAutoreplies);
 
         callback(autoreplyIds);
+    }).catch(() => {
+        callback(null);
     });
-
-}
+};
 
 appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
     let autoreplies = [];
