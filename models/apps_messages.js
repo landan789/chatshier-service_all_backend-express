@@ -9,10 +9,12 @@ appsMessages.findKeywordreplyIds = (appId, messengeId, callback) => {
     }).then((snap) => {
         let keywordreplies = snap.val();
         if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies) {
-            callback(null);
+            reject();
             return;
         }
         callback(keywordreplies.keywordreply_ids);
+    }).catch(() => {
+        callback(null);
     });
 };
 
@@ -24,10 +26,12 @@ appsMessages.findTemplateIds = (appId, messengeId, callback) => {
     }).then((snap) => {
         let templatereplies = snap.val();
         if (null === templatereplies || undefined === templatereplies || '' === templatereplies) {
-            callback(null);
+            reject();
             return;
         }
+    }).catch(() => {
         callback(templatereplies.template_ids);
+
     });
 };
 

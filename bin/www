@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 var SECRET = require('../config/secret');
-var Cryptr = require('cryptr');
-var cryptr = new Cryptr(SECRET.MESSENGE_KEY);
+
 
 var app = require('../app');
 var debug = require('debug')('project-shield:server');

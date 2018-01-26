@@ -111,6 +111,16 @@ appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
     });
 };
 
+appsAutoreplies.findAutoreplyIds = (appId, callback) => {
+    admin.database().ref('apps/' + appId + '/autoreplies/').once('value').then((snap) => {
+        var appsAutoreplies = snap.val();
+        var autoreplyIds = Object.keys(appsAutoreplies);
+
+        callback(autoreplyIds);
+    });
+
+}
+
 appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
     let autoreplies = [];
     if (!autoreplyIds) {
@@ -130,7 +140,7 @@ appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callb
             let now = utility.DateTimezone(8);
             let tpeTime = now.getTime();
             if (tpeTime < finishedTime && tpeTime > createdTime) {
-                autoreplies.push({type: replyMessageContent.type, text: replyMessageContent.text});
+                autoreplies.push({ type: replyMessageContent.type, text: replyMessageContent.text });
             }
             if (index === (autoreplyIds.length - 1)) {
                 callback(autoreplies);
