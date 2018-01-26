@@ -1,7 +1,7 @@
 const line = require('@line/bot-sdk');
 var SECRET = require('../config/secret');
 var Cryptr = require('cryptr');
-var cryptr = new Cryptr(SECRET.MESSENGE_KEY);
+var cryptr = new Cryptr(SECRET.MESSENGE_KEY, 'des');
 var app = require('../app');
 var moment = require('moment');
 var socketio = require('socket.io');
@@ -95,8 +95,7 @@ function init(server) {
                     next();
                     break;
             }
-        }).catch(() => {
-        });
+        }).catch(() => {});
     }, (req, res, next) => {
         var webhookId = req.params.webhookId;
         var body = req.body;
@@ -117,7 +116,7 @@ function init(server) {
             return new Promise((resolve, reject) => {
                 // 1. 取得 訊息 ID，利用 vat massageId = cryptr.encrypt('你好，傳入的訊息'),
                 var messageId = cryptr.encrypt(message);
-                resolve({appId, messageId});
+                resolve({ appId, messageId });
             });
         }).then((data) => {
             let appId = data.appId;
@@ -144,25 +143,14 @@ function init(server) {
                 });
             });
 
-            let autoreplyPromise = new Promise((resolve, reject) => {
-                appsAutorepliesMdl.find(appId, (autoreplyMessages) => {
-                    if (null === autoreplyMessages || undefined === autoreplyMessages || '' === autoreplyMessages) {
-                        resolve(null);
-                        return;
-                    }
-                    let autoreplyIds = Object.keys(autoreplyMessages);
-                    resolve(autoreplyIds);
-                });
-            });
-
-            return Promise.all([keywordreplyPromise, templatePromise, autoreplyPromise]);
+            return Promise.all([keywordreplyPromise, templatePromise]);
         }).then((replyIds) => {
             req.keywordreplyIds = replyIds[0];
             req.templateIds = replyIds[1];
             req.autoreplyIds = replyIds[2];
             next();
-        }).catch((error) => {
-            console.log(error);
+        }).catch(() => {
+            res.sendStatus(404);
         });
     }, (req, res, next) => {
         var client = req.client;
@@ -300,7 +288,7 @@ function init(server) {
         });
     });
 
-    io.on('connection', function (socket) {
+    io.on('connection', function(socket) {
         console.log('connected');
         socket.on('request chat init data', (frontData, callback) => {
             nickname = socket.nickname;
@@ -401,20 +389,20 @@ function init(server) {
         });
 
         socket.on('request tags', (callback) => {
-            tags.get(function (tagsData) {
+            tags.get(function(tagsData) {
                 callback(tagsData);
             });
         });
 
         function requestTags(callback) {
-            tags.get(function (tagsData) {
+            tags.get(function(tagsData) {
                 callback(tagsData);
             });
         } // end of requestTags
 
         function requestInternalChatData(userId, callback) {
             let thisAgentData = [];
-            agents.get(function (agentChatData) {
+            agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
                     if (agentChatData[i].Profile.agent.indexOf(userId) != -1) {
                         thisAgentData.push(agentChatData[i]);
@@ -490,27 +478,27 @@ function init(server) {
 
             // 1. Server 接收到 client 來的聊天訊息
             var proceed = Promise.resolve();
-            proceed.then(()=>{
-                return new Promise((resolve, reject)=>{
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
                     // 2. 利用 line SDK 傳給 line service
                 });
-            }).then(()=>{
-                return new Promise((resolve, reject)=>{
+            }).then(() => {
+                return new Promise((resolve, reject) => {
 
                 });
-            }).then(()=>{
-                return new Promise((resolve, reject)=>{
+            }).then(() => {
+                return new Promise((resolve, reject) => {
 
                 });
-            }).then(()=>{
-                return new Promise((resolve, reject)=>{
+            }).then(() => {
+                return new Promise((resolve, reject) => {
 
                 });
-            }).then(()=>{
-                return new Promise((resolve, reject)=>{
+            }).then(() => {
+                return new Promise((resolve, reject) => {
 
                 });
-            }).catch(()=>{
+            }).catch(() => {
 
             });
 
@@ -619,7 +607,7 @@ function init(server) {
             let head = data.head;
             let tail = data.tail;
             let sendData = [];
-            chats.findChatData(function (chatData) {
+            chats.findChatData(function(chatData) {
                 for (let i in chatData) {
                     if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
                         for (let j = head; j < tail + 1; j++) {
@@ -646,7 +634,7 @@ function init(server) {
 
         /*===內部聊天室start===*/
         // 傳遞對照表，轉換agent的Id及Name
-        socket.on('get agentIdToName list', function () {
+        socket.on('get agentIdToName list', function() {
             users.get(agentData => {
                 let agentIdToName = { "0": "System" };
                 for (let prop in agentData) {
@@ -684,7 +672,7 @@ function init(server) {
         });
         // 更新內部聊天室右邊的資料
         socket.on('update internal profile', data => {
-            agents.get(function (agentChatData) {
+            agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
                     if (agentChatData[i].Profile.roomId == data.roomId) {
                         let updateObj = {};
@@ -877,7 +865,7 @@ function init(server) {
         let message_type = event.message.type; // line訊息類別 text, location, image, video...
         let receiverId = event.source.userId; // line客戶ID
         let nowTime = Date.now(); // 現在時間
-        event.source.profile().then(function (profile) {
+        event.source.profile().then(function(profile) {
             let receiver_name = profile.displayName; // 客戶姓名
             let pictureUrl = profile.pictureUrl; // 客戶的profile pic
             if (receiver_name === undefined) receiver_name = "userName_undefined";
@@ -967,7 +955,7 @@ function init(server) {
                 return new Promise((resolve, reject) => {
                     appsMdl.findByAppId(appId, (data) => {
                         var appInfo = data[appId];
-                        resolve({appId, appInfo});
+                        resolve({ appId, appInfo });
                     });
                 });
             }).then((data) => {
@@ -999,8 +987,8 @@ function init(server) {
                     msgTime: data.nowtime,
                     id1: data.channelId
                 };
-                bot_on_send_message({appId, userId, sendObj});
-                io.sockets.emit('autoreplies', {appId, userId, sendObj});
+                bot_on_send_message({ appId, userId, sendObj });
+                io.sockets.emit('autoreplies', { appId, userId, sendObj });
             }).catch((error) => {
                 console.log('Error ' + error);
             });
@@ -1305,15 +1293,15 @@ function init(server) {
                             "template": {
                                 type: 'carousel',
                                 "columns": [{
-                                    "title": title[n],
-                                    "text": '--------------------------------------------------',
-                                    "actions": actions_1
-                                },
-                                {
-                                    "title": title[n],
-                                    "text": '--------------------------------------------------',
-                                    "actions": actions_2
-                                }
+                                        "title": title[n],
+                                        "text": '--------------------------------------------------',
+                                        "actions": actions_1
+                                    },
+                                    {
+                                        "title": title[n],
+                                        "text": '--------------------------------------------------',
+                                        "actions": actions_2
+                                    }
                                 ]
                             }
                         });
@@ -1389,35 +1377,35 @@ function init(server) {
                                 "template": {
                                     "type": 'carousel',
                                     "columns": [{
-                                        "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
-                                        "text": "上午時段\n注意:預約日期，假日一概不受理。",
-                                        "actions": [{
-                                            "type": "message",
-                                            "label": '10:00-11:00',
-                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 10:00-11:00"
+                                            "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
+                                            "text": "上午時段\n注意:預約日期，假日一概不受理。",
+                                            "actions": [{
+                                                    "type": "message",
+                                                    "label": '10:00-11:00',
+                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 10:00-11:00"
+                                                },
+                                                {
+                                                    "type": "message",
+                                                    "label": '11:00-12:00',
+                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 11:00-12:00"
+                                                }
+                                            ]
                                         },
                                         {
-                                            "type": "message",
-                                            "label": '11:00-12:00',
-                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 11:00-12:00"
+                                            "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
+                                            "text": "下午時段\n注意:預約日期，假日一概不受理。",
+                                            "actions": [{
+                                                    "type": "message",
+                                                    "label": '15:00-16:00',
+                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 15:00-16:00"
+                                                },
+                                                {
+                                                    "type": "message",
+                                                    "label": '16:00-17:00',
+                                                    "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 16:00-17:00"
+                                                }
+                                            ]
                                         }
-                                        ]
-                                    },
-                                    {
-                                        "title": "面試日期: " + date.format('YYYY[/]MM[/]DD dddd'),
-                                        "text": "下午時段\n注意:預約日期，假日一概不受理。",
-                                        "actions": [{
-                                            "type": "message",
-                                            "label": '15:00-16:00',
-                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 15:00-16:00"
-                                        },
-                                        {
-                                            "type": "message",
-                                            "label": '16:00-17:00',
-                                            "text": "預約DEMO-步驟三 " + date.format('YYYY[/]MM[/]DD dddd') + " 16:00-17:00"
-                                        }
-                                        ]
-                                    }
                                     ]
                                 }
                             });
@@ -1449,7 +1437,7 @@ function init(server) {
             }
 
             function apiai(msg) {
-                apiModel.process(msg, function (replyMessage, replyTemplate) {
+                apiModel.process(msg, function(replyMessage, replyTemplate) {
                     console.log("apiai replyMessage=" + replyMessage);
                     if (replyMessage !== "-1") {
                         replyMsgObj.name = "api.ai";
@@ -1472,9 +1460,9 @@ function init(server) {
                 console.log('success')
                 follow_message = item.msg;
                 console.log(follow_message)
-            }       
+            }
         });
-        event.reply(follow_message); 
+        event.reply(follow_message);
     } // end of bot_on_follow
     function update_line_bot(chanInfo) {
         if (chanInfo.hasOwnProperty("line_1")) {
@@ -1494,8 +1482,8 @@ function init(server) {
         if (chanInfo.hasOwnProperty("fb")) {
             let fb = chanInfo.fb;
             if ([fb.pageID, fb.appID, fb.appSecret, fb.validationToken, fb.pageToken].every((ele) => {
-                return ele;
-            })) {
+                    return ele;
+                })) {
                 fb_bot = MessengerPlatform.create(chanInfo.fb);
             }
             channelIds[2] = chanInfo.fb.pageID;
@@ -1704,7 +1692,7 @@ function init(server) {
     }
 
     function send_to_firebase_internal(obj, roomId) {
-        agents.get(function (agentChatData) {
+        agents.get(function(agentChatData) {
             for (let prop in agentChatData) {
                 let data = agentChatData[prop];
                 if (data.Profile.roomId == roomId) {
@@ -1736,7 +1724,7 @@ function init(server) {
         console.log(1048);
         console.log(obj);
         // fb_bot.webhook('/webhook');
-        fb_bot.getProfile(psid).then(function (data) {
+        fb_bot.getProfile(psid).then(function(data) {
             utility.fbMsgType(obj.message, (fbMsg) => {
                 var fb_user_name = data.first_name + ' ' + data.last_name;
                 var fb_user_profilePic = data.profile_pic;
@@ -1752,7 +1740,7 @@ function init(server) {
                 };
                 pushAndEmit(msgObj, fb_user_profilePic, channelIds[2], obj.sender.id, 1);
             });
-        }).catch(function (error) {
+        }).catch(function(error) {
             console.log('error: loadFbProfile');
             console.log(error);
         }); //fb_bot
