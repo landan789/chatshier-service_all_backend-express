@@ -64,11 +64,9 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
     });
 };
 
-appsAutoreplies.findAutorepliesByAppIdByAutoreplyIds = (appId, autoreplyIds, callback) => {
-    Promise.all(autoreplyIds.map((autoreplyId) => {
-        return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
-    })).then((result) => {
-        callback(result);
+appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
+    admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        callback(snap);
     }).catch(() => {
         callback(false);
     });
@@ -97,7 +95,6 @@ appsAutoreplies.update = (appId, autoreplyId, autoreply, callback) => {
     }).catch(() => {
         callback(null);
     });
-
 };
 
 appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
@@ -125,8 +122,7 @@ appsAutoreplies.findAutoreplyIds = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/').once('value').then((snap) => {
         var appsAutoreplies = snap.val();
         if (undefined === appsAutoreplies || '' === appsAutoreplies || null === appsAutoreplies) {
-            reject();
-            return;
+            return Promise.reject();
         }
         var autoreplyIds = Object.keys(appsAutoreplies);
 
@@ -150,7 +146,7 @@ appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
             return Promise.reject();
         }
 
-        resolve(autoreplies);
+        return Promise.resolve(autoreplies);
 
     }).then((autoreplies) => {
         callback(autoreplies);

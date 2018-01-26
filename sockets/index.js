@@ -185,12 +185,12 @@ function init(server) {
         });
 
         var p3 = new Promise((resolve, reject) => {
-            appsAutorepliesMdl.findAutoreplieByAppId(appId, (autoMessages) => {
-                if (null === autoMessages || undefined === autoMessages || '' === autoMessages) {
+            appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
+                if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
                     resolve(null);
                     return;
                 }
-                resolve(autoMessages);
+                resolve(autoreplies);
             });
         });
 
