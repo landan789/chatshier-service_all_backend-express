@@ -126,13 +126,14 @@ appsChatroomsMessages.insertChatroomMessage = (appId, msgerId, message, callback
     }).then((chatroomId) => {
         return new Promise((resolve, reject) => {
             let chatroomMessageId = admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().key;
-            resolve({chatroomId, chatroomMessageId});
+            resolve({ chatroomId, chatroomMessageId });
         });
     }).then((data) => {
         let chatroomId = data.chatroomId;
         let messageId = data.chatroomMessageId;
         return new Promise((resolve, reject) => {
             admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).set(message).then(() => {
+
                 resolve(chatroomId);
             });
         });
@@ -148,6 +149,7 @@ appsChatroomsMessages.insertReplyMessages = (appId, msgerId, messages, callback)
 
     if (0 === messages.length) {
         callback();
+        return;
     }
 
     proceed.then(() => {
@@ -173,6 +175,7 @@ appsChatroomsMessages.insertReplyMessages = (appId, msgerId, messages, callback)
 
 appsChatroomsMessages.passMessages = (appId, chatroomId, messages, callback) => {
     insertMessage(0, callback);
+
     function insertMessage(index, cb) {
         let proceed = Promise.resolve();
         proceed.then(() => {
@@ -187,7 +190,7 @@ appsChatroomsMessages.passMessages = (appId, chatroomId, messages, callback) => 
             let message = messages[index];
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push({
                 from: 'line',
-                text: 'text' === message.type ? message.text : 'show ' + message.type,
+                text: 'text' === message.type ? message.text : 'show' + message.type,
                 name: 'bot',
                 owner: 'agent',
                 time: Date.now()
