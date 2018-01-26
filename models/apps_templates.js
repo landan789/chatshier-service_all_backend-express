@@ -9,22 +9,15 @@ templates.findByAppId = (appId, callback) => {
 }
 
 templates.findTemplatesByAppIdByTemplateIds = (appId, templateIds, callback) => {
-    let templates = [];
-    if (null === templateIds) {
-        callback(templates);
-        return;
-    }
-    templateIds.map((templateId, index) => {
-        let address = 'apps/' + appId + '/templates/' + templateId;
-        admin.database().ref(address).once('value', (snap) => {
-            let replyMessage = snap.val();
-            templates.push(replyMessage);
-            if (index === (templateIds.length - 1)) {
-                callback(templates);
-            }
-        });
+
+    Promise.all(templateIds.map((templateId) => {
+        return admin.database().ref('apps/' + appId + '/keywordreplies/' + templateId).once('value');
+    })).then((result) => {
+        callback(result);
+    }).catch(() => {
+        callback(false);
     });
-}
+};
 
 templates.insertByAppId = (appId, obj, callback) => {
     let templatesId = admin.database().ref('apps/' + appId + '/templates').push().key;

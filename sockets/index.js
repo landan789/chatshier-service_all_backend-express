@@ -153,31 +153,29 @@ function init(server) {
 
         var lineBot = req.lineBot;
         var fbBot = req.fbBot;
-        var message = req.message;
+
         var keywordreplyIds = req.keywordreplyIds;
         var templateIds = req.templateIds;
 
         var appId = req.appId;
         var userId = req.body.events[0].source.userId;
 
-        // FACEBOOK 初始設定
-
-
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
 
-            appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordrepliess) => {
-                if (null === keywordrepliess || undefined === keywordrepliess || '' === keywordrepliess) {
+            appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
+                if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies || (keywordreplies instanceof Array && 0 === keywordreplies.length)) {
                     resolve(null);
                     return;
                 }
-                resolve(keywordrepliess);
+
+                resolve(keywordreplies);
             });
         });
 
         var p2 = new Promise((resolve, reject) => {
             appsTemplatesMdl.findTemplatesByAppIdByTemplateIds(appId, templateIds, (templates) => {
-                if (null === templates || undefined === templates || '' === templates) {
+                if (null === templates || undefined === templates || '' === templates || (templates instanceof Array && 0 === templates.length)) {
                     resolve(null);
                     return;
                 }
