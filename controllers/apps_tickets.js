@@ -7,138 +7,130 @@ var appsTicketsMdl = require('../models/apps_tickets');
 var appsTickets = {};
 
 appsTickets.getAllByUserid = (req, res, next) => {
-
     var proceed = new Promise((resolve, reject) => {
         resolve();
     });
 
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                var userId = req.params.userid;
+    proceed.then(() => {
+        return new Promise((resolve, reject) => {
+            var userId = req.params.userid;
 
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
+            if ('' === userId || null === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
+
+            usersMdl.findUserByUserId(userId, (data) => {
+                var user = data;
+                if ('' === user || null === user || undefined === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((data) => {
+        var user = data;
+        var appIds = user.app_ids;
+
+        return new Promise((resolve, reject) => {
+            appsTicketsMdl.findAppTicketsByAppIds(appIds, (data) => {
+                var apps = data;
+                if (null === apps || '' === apps || undefined === apps) {
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
                 }
 
-                usersMdl.findUserByUserId(userId, (data) => {
-                    var user = data;
-                    if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(user);
-                });
+                resolve(apps);
             });
-        }).then((data) => {
-            var user = data;
-            var appIds = user.app_ids;
-
-            return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicketsByAppIds(appIds, (data) => {
-                    var apps = data;
-                    if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
-                        return;
-                    }
-
-                    resolve(apps);
-                });
-            });
-
-        }).then((apps) => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                "data": apps
-            };
-            res.status(200).json(json);
-        }).catch((ERROR) => {
-            var json = {
-                "status": 0,
-                "msg": ERROR.MSG,
-                "code": ERROR.CODE
-            };
-            res.status(403).json(json);
         });
-}
+    }).then((apps) => {
+        var json = {
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            data: apps
+        };
+        res.status(200).json(json);
+    }).catch((ERROR) => {
+        var json = {
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
+        };
+        res.status(403).json(json);
+    });
+};
 
 appsTickets.getAllByAppIdByUserid = (req, res, next) => {
-
     var proceed = new Promise((resolve, reject) => {
         resolve();
     });
-    console.log('gett');
 
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                var userId = req.params.userid;
-                var appId = req.params.appid;
-
-                if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-
-
-                if ('' === appId || null === appId || undefined === appId) {
-                    reject(API_ERROR.APPID_WAS_EMPTY);
-                    return;
-                }
-
-                usersMdl.findUserByUserId(userId, (data) => {
-                    var user = data;
-                    if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(user);
-                });
-            });
-        }).then((data) => {
-            var user = data;
-            var appIds = user.app_ids;
-            var appId = req.params.appid;
-            return new Promise((resolve, reject) => {
-                if (!appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                    return;
-                }
-                resolve();
-            });
-
-        }).then(() => {
+    proceed.then(() => {
+        return new Promise((resolve, reject) => {
+            var userId = req.params.userid;
             var appId = req.params.appid;
 
-            return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicketsByAppIds([appId], (data) => {
-                    var apps = data;
-                    if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
-                        return;
-                    }
+            if ('' === userId || null === userId || undefined === userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
 
-                    resolve(apps);
-                });
+            if ('' === appId || null === appId || undefined === appId) {
+                reject(API_ERROR.APPID_WAS_EMPTY);
+                return;
+            }
+
+            usersMdl.findUserByUserId(userId, (data) => {
+                var user = data;
+                if ('' === user || null === user || undefined === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
             });
-        }).then((apps) => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                "data": apps
-            };
-            res.status(200).json(json);
-        }).catch((ERROR) => {
-            var json = {
-                "status": 0,
-                "msg": ERROR.MSG,
-                "code": ERROR.CODE
-            };
-            res.status(403).json(json);
         });
-}
+    }).then((data) => {
+        var user = data;
+        var appIds = user.app_ids;
+        var appId = req.params.appid;
+        return new Promise((resolve, reject) => {
+            if (!appIds.includes(appId)) {
+                reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                return;
+            }
+            resolve();
+        });
+    }).then(() => {
+        var appId = req.params.appid;
+
+        return new Promise((resolve, reject) => {
+            appsTicketsMdl.findAppTicketsByAppIds([appId], (data) => {
+                var apps = data;
+                if (null === apps || '' === apps || undefined === apps) {
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+
+                resolve(apps);
+            });
+        });
+    }).then((apps) => {
+        var json = {
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            data: apps
+        };
+        res.status(200).json(json);
+    }).catch((ERROR) => {
+        var json = {
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
+        };
+        res.status(403).json(json);
+    });
+};
 
 appsTickets.getOne = (req, res, next) => {
     var appId = req.params.appid;
@@ -150,8 +142,6 @@ appsTickets.getOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-
-
             if ('' === appId || null === appId || undefined === appId) {
                 reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
@@ -180,7 +170,6 @@ appsTickets.getOne = (req, res, next) => {
                 resolve(user);
             });
         });
-
     }).then((data) => {
         var user = data;
         var appIds = user.app_ids;
@@ -192,7 +181,6 @@ appsTickets.getOne = (req, res, next) => {
             }
             resolve();
         });
-
     }).then(() => {
         var appId = req.params.appid;
         var ticketId = req.params.ticketid;
@@ -200,7 +188,10 @@ appsTickets.getOne = (req, res, next) => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.findAppTicketByAppIdByTicketId(appId, ticketId, (data) => {
                 var apps = data;
-                if (null === apps || '' === apps || undefined === apps || Object.getOwnPropertyNames(apps).length === 0) {
+                if (null === apps || '' === apps || undefined === apps) {
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                } else if (0 === Object.keys(apps).length) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
                 }
@@ -211,47 +202,34 @@ appsTickets.getOne = (req, res, next) => {
     }).then((data) => {
         var apps = data;
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-            "data": apps
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+            data: apps
         };
         res.status(200).json(json);
     }).catch((ERROR) => {
         var json = {
-            "status": 0,
-            "msg": ERROR.MSG,
-            "code": ERROR.CODE
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
         };
         res.status(403).json(json);
     });
-
-
-}
+};
 
 appsTickets.postOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
 
     var postTikeck = {
-        ccEmails: req.body.ccEmails === undefined ? '' : req.body.ccEmails,
         createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
         description: req.body.description === undefined ? '' : req.body.description,
-        dueBy: req.body.dueBy === undefined ? '' : req.body.dueBy,
-        frDueBy: req.body.frDueBy === undefined ? '' : req.body.frDueBy,
-        frEscalated: req.body.frEscalated === undefined ? '' : req.body.frEscalated,
-        fwdEmails: req.body.fwdEmails === undefined ? '' : req.body.fwdEmails,
-        isEscalated: req.body.isEscalated === undefined ? '' : req.body.isEscalated,
+        dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
         priority: req.body.priority === undefined ? '' : req.body.priority,
-        replyCcEmails: req.body.replyCcEmails === undefined ? '' : req.body.replyCcEmails,
-        requester: req.body.requester === undefined ? '' : req.body.requester,
-        requesterId: req.body.requesterId === undefined ? '' : req.body.requesterId,
-        source: req.body.source === undefined ? '' : req.body.source,
-        spam: req.body.spam === undefined ? '' : req.body.spam,
+        messagerId: req.body.messagerId === undefined ? '' : req.body.messagerId,
         status: req.body.status === undefined ? '' : req.body.status,
-        subject: req.body.subject === undefined ? '' : req.body.subject,
-        toEmails: req.body.toEmails === undefined ? '' : req.body.toEmails,
-        type: req.body.type === undefined ? '' : req.body.type,
-        updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime
+        updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime,
+        isDeleted: 0
     };
 
     var proceed = new Promise((resolve, reject) => {
@@ -272,7 +250,6 @@ appsTickets.postOne = (req, res, next) => {
 
             resolve();
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
@@ -282,50 +259,36 @@ appsTickets.postOne = (req, res, next) => {
                 }
 
                 resolve();
-
             });
         });
-
     }).then(() => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
-        }
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
+        };
         res.status(200).json(json);
-
     }).catch((ERROR) => {
         var json = {
-            "status": 0,
-            "msg": ERROR.MSG,
-            "code": ERROR.CODE
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
         };
         res.status(403).json(json);
     });
-}
+};
+
 appsTickets.putOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
     var ticketId = req.params.ticketid;
 
     var putTikcket = {
-        ccEmails: req.body.ccEmails === undefined ? '' : req.body.ccEmails,
         createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
         description: req.body.description === undefined ? '' : req.body.description,
-        dueBy: req.body.dueBy === undefined ? '' : req.body.dueBy,
-        frDueBy: req.body.frDueBy === undefined ? '' : req.body.frDueBy,
-        frEscalated: req.body.frEscalated === undefined ? '' : req.body.frEscalated,
-        fwdEmails: req.body.fwdEmails === undefined ? '' : req.body.fwdEmails,
-        isEscalated: req.body.isEscalated === undefined ? '' : req.body.isEscalated,
+        dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
         priority: req.body.priority === undefined ? '' : req.body.priority,
-        replyCcEmails: req.body.replyCcEmails === undefined ? '' : req.body.replyCcEmails,
-        requester: req.body.requester === undefined ? '' : req.body.requester,
-        requesterId: req.body.requesterId === undefined ? '' : req.body.requesterId,
-        source: req.body.source === undefined ? '' : req.body.source,
-        spam: req.body.spam === undefined ? '' : req.body.spam,
+        messagerId: req.body.messagerId === undefined ? '' : req.body.messagerId,
         status: req.body.status === undefined ? '' : req.body.status,
-        subject: req.body.subject === undefined ? '' : req.body.subject,
-        toEmails: req.body.toEmails === undefined ? '' : req.body.toEmails,
-        type: req.body.type === undefined ? '' : req.body.type,
         updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime
     };
 
@@ -347,7 +310,6 @@ appsTickets.putOne = (req, res, next) => {
 
             resolve();
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
@@ -358,10 +320,8 @@ appsTickets.putOne = (req, res, next) => {
                 }
 
                 resolve();
-
             });
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.updateByAppIdByticketId(appId, ticketId, putTikcket, (result) => {
@@ -371,26 +331,23 @@ appsTickets.putOne = (req, res, next) => {
                 }
 
                 resolve();
-
             });
         });
-
     }).then(() => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
-        }
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+        };
         res.status(200).json(json);
-
     }).catch((ERROR) => {
         var json = {
-            "status": 0,
-            "msg": ERROR.MSG,
-            "code": ERROR.CODE
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
         };
         res.status(403).json(json);
     });
-}
+};
 
 appsTickets.deleteOne = (req, res, next) => {
     var userId = req.params.userid;
@@ -415,7 +372,6 @@ appsTickets.deleteOne = (req, res, next) => {
 
             resolve();
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
@@ -426,10 +382,8 @@ appsTickets.deleteOne = (req, res, next) => {
                 }
 
                 resolve();
-
             });
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsTicketsMdl.removeByAppIdByTicketId(appId, ticketId, (result) => {
@@ -439,25 +393,22 @@ appsTickets.deleteOne = (req, res, next) => {
                 }
 
                 resolve();
-
             });
         });
-
     }).then(() => {
         var json = {
-            "status": 1,
-            "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
-        }
+            status: 1,
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
+        };
         res.status(200).json(json);
-
     }).catch((ERROR) => {
         var json = {
-            "status": 0,
-            "msg": ERROR.MSG,
-            "code": ERROR.CODE
+            status: 0,
+            msg: ERROR.MSG,
+            code: ERROR.CODE
         };
         res.status(403).json(json);
     });
-}
+};
 
 module.exports = appsTickets;

@@ -467,7 +467,7 @@ var TicketAPI = (function() {
                 eventItem = Object.assign(eventItem, ticket);
                 eventItem.allDay = false;
                 eventItem.description = ticket.description;
-                eventItem.end = new Date(ticket.dueBy);
+                eventItem.end = new Date(ticket.dueTime);
                 eventItem.start = new Date(ticket.createdTime);
                 // 待辦事項的標題以描述的前10個字顯示之
                 eventItem.title = ticket.description.length > 10 ? ticket.description.substring(0, 10) : ticket.description;
@@ -572,23 +572,12 @@ var TicketAPI = (function() {
                 case 'T':
                     // 將原本的 ticket 的資料原封不動複製一份，只更新建立時間與到期時間
                     let tickerData = {
-                        ccEmails: event.ccEmails,
                         createdTime: eventData.startTime,
                         description: description,
-                        dueBy: eventData.endTime,
-                        frDueBy: event.frDueBy,
-                        frEscalated: event.frEscalated,
-                        fwdEmails: event.fwdEmails,
-                        isEscalated: event.isEscalated,
+                        dueTime: eventData.endTime,
                         priority: event.priority,
-                        replyCcEmails: event.replyCcEmails,
-                        requester: event.requester,
-                        requesterId: event.requesterId,
-                        spam: event.spam,
+                        messagerId: event.messagerId,
                         status: event.status,
-                        subject: event.title,
-                        toEmails: event.toEmails,
-                        type: event.type,
                         updatedTime: new Date().getTime()
                     };
 
@@ -601,7 +590,7 @@ var TicketAPI = (function() {
                         eventItem = Object.assign(eventItem, tickerData);
                         eventItem.allDay = false;
                         eventItem.description = tickerData.description;
-                        eventItem.end = new Date(tickerData.dueBy);
+                        eventItem.end = new Date(tickerData.dueTime);
                         eventItem.start = new Date(tickerData.createdTime);
                         // 待辦事項的標題以描述的前10個字顯示之
                         eventItem.title = tickerData.description.length > 10 ? tickerData.description.substring(0, 10) : tickerData.description;

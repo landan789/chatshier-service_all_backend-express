@@ -171,11 +171,46 @@ var ChatshierAppAPI = (function() {
         });
     };
 
+    /**
+     * 取得使用者所有在 Chatshier 內設定的 App 內的所有 Messagers
+     *
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ChatshierAppAPI.prototype.getAllMessagers = function(userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-messagers/users/' + userId;
+        var reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
+    /**
+     * 取得指定 AppId 內使用者的所有 Messagers
+     *
+     * @param {string} userId - 使用者的 firebase ID
+     */
+    ChatshierAppAPI.prototype.getAllMessagersByAppId = function(appId, userId) {
+        var destUrl = urlConfig.apiUrl + '/api/apps-messagers/apps/' + appId + '/users/' + userId;
+        var reqInit = {
+            method: 'GET',
+            headers: this.reqHeaders
+        };
+
+        return window.fetch(destUrl, reqInit).then(function(response) {
+            return responseChecking(response);
+        });
+    };
+
     return ChatshierAppAPI;
 })();
 
 (function() {
     var ticketInfo = {};
+    var messagersData = {};
 
     var userId = '';
     var jqDoc = $(document);
@@ -247,16 +282,45 @@ var ChatshierAppAPI = (function() {
         });
         // ===========
 
+        // ===========
+        // 點擊表單名稱進行排序功能
+        var $ticketTableHeaders = $('.main .ticket thead tr th');
+        $ticketTableHeaders.on('click', function(ev) {
+            sortCloseTable(ev.target.cellIndex);
+        });
+        // ===========
+
         loadTable();
     });
 
     function loadTable() {
         ticketContent.empty();
 
+        var asuncLoadTasks = [ticketAPI.getAll(userId)];
+        // 如果沒有載入過 Messagers 才進行載入動作
+        if (0 === Object.keys(messagersData).length) {
+            asuncLoadTasks.push(chatshierAppAPI.getAllMessagers(userId));
+        }
+
         // 取得所有的 appId tickets
-        return ticketAPI.getAll(userId).then(function(respJson) {
-            for (var ticketAppId in respJson.data) {
-                var tickets = respJson.data[ticketAppId].tickets;
+        return Promise.all(asuncLoadTasks).then(function(respJsons) {
+            if (!respJsons) {
+                return;
+            }
+
+            if (respJsons[1] && 0 === Object.keys(messagersData).length) {
+                // 把此用戶的所有 App 裡的所有 Messagers 製成一份 ID 對應的清單
+                var appsMessagersData = respJsons[1].data;
+                for (var appId in appsMessagersData) {
+                    for (var messagerId in appsMessagersData[appId]) {
+                        messagersData[messagerId] = appsMessagersData[appId][messagerId];
+                    }
+                }
+            }
+
+            var appsTicketsData = respJsons[0].data || {};
+            for (var ticketAppId in appsTicketsData) {
+                var tickets = appsTicketsData[ticketAppId].tickets;
 
                 // 批此處理每個 tickets 的 app 資料
                 for (var ticketId in tickets) {
@@ -268,24 +332,23 @@ var ChatshierAppAPI = (function() {
                     ticketData.ticketId = ticketId;
                     ticketData.ticketAppId = ticketAppId;
                     ticketInfo[ticketId] = ticketData;
+                    var messagerInfo = messagersData[ticketData.messagerId] || {};
 
                     // 將每筆 ticket 資料反映於 html DOM 上
                     ticketContent.append(
                         '<tr id="' + ticketId + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
-                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + ticketData.requesterId + '</td>' +
-                        '<td>' + (!ticketData.requester ? '' : ticketData.requester.name) + '</td>' +
+                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
                         '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
                         '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
                         '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                        '<td id="time">' + displayDate(ticketData.dueBy) + '</td>' +
-                        '<td>' + dueDate(ticketData.dueBy) + '</td>' +
+                        '<td id="time">' + displayDate(ticketData.dueTime) + '</td>' +
+                        '<td>' + dueDate(ticketData.dueTime) + '</td>' +
                         '</tr>');
                 }
             }
         }).catch(function(error) {
             if ('401 Unauthorized' === error.message) {
                 // 只有在 promise reject 會收到 401，代表 firebase 登入失敗，等待 100ms 後重新執行
-                console.log('firebase retrying...');
                 window.setTimeout(function() { loadTable(); }, 100);
             }
         });
@@ -370,14 +433,15 @@ var ChatshierAppAPI = (function() {
             // });
             resolve([]);
         }).then(function(agentList) {
+            var messagerInfo = messagersData[ticketData.messagerId] || {};
             $('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
             $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
-            $('.modal-title').text(!ticketData.requester ? '' : ticketData.requester.name);
+            $('.modal-title').text(messagerInfo.name || '');
 
             var moreInfoHtml =
                 '<tr>' +
                 '<th>客戶ID</th>' +
-                '<td class="edit">' + (!ticketData.requester ? '' : ticketData.requester.id) + '</td>' +
+                '<td class="edit">' + ticketData.messagerId + '</td>' +
                 '</tr>' +
                 // '<tr>' +
                 //     '<th class="agent">負責人</th>' +
@@ -398,9 +462,9 @@ var ChatshierAppAPI = (function() {
                 '</td>' +
                 '</tr>' +
                 '<tr>' +
-                '<th class="time-edit">到期時間' + dueDate(ticketData.dueBy) + '</th>' +
+                '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
                 '<td class="form-group">' +
-                '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueBy) + '">' +
+                '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
                 '</td>' +
                 '</tr>' +
                 '<tr>' +
@@ -467,28 +531,16 @@ var ChatshierAppAPI = (function() {
         var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
         var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
         var ticketDescription = modifyTable.find('th.description').parent().find('td.edit').text();
-        var ticketDueBy = modifyTable.find('th.time-edit').parent().find('td input').val();
+        var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
 
         // 準備要修改的 ticket json 資料
         var modifiedTicket = {
-            ccEmails: lastSelectedTicket.ccEmails,
             createdTime: new Date(lastSelectedTicket.createdTime).getTime(),
             description: ticketDescription,
-            dueBy: new Date(ticketDueBy).getTime(),
-            frDueBy: new Date(lastSelectedTicket.frDueBy).getTime(),
-            frEscalated: lastSelectedTicket.frEscalated,
-            fwdEmails: lastSelectedTicket.fwdEmails,
-            isEscalated: lastSelectedTicket.isEscalated,
+            dueTime: new Date(ticketDueTime).getTime(),
             priority: ticketPriority,
-            replyCcEmails: lastSelectedTicket.replyCcEmails,
-            requester: lastSelectedTicket.requester,
-            requesterId: lastSelectedTicket.requesterId,
-            source: lastSelectedTicket.source,
-            spam: lastSelectedTicket.spam,
+            messagerId: lastSelectedTicket.messagerId,
             status: ticketStatus,
-            subject: lastSelectedTicket.subject,
-            toEmails: lastSelectedTicket.toEmails,
-            type: lastSelectedTicket.type,
             updatedTime: new Date().getTime()
         };
 
@@ -550,4 +602,65 @@ var ChatshierAppAPI = (function() {
                 return '低';
         }
     } // end of priorityNumberToText
+
+    // =========[SORT CLOSE]=========
+    function sortCloseTable(n) {
+        var table = ticketContent;
+        var rows;
+        var switching = true;
+        var i;
+        var x;
+        var y;
+        var shouldSwitch;
+        var dir = 'asc'; // Set the sorting direction to ascending:
+        var switchcount = 0;
+
+        // Make a loop that will continue until
+        // no switching has been done:
+        while (switching) {
+            // start by saying: no switching is done:
+            switching = false;
+            rows = table.find('tr');
+            // Loop through all table rows (except the
+            // first, which contains table headers):
+            for (i = 0; i < (rows.length - 1); i++) {
+                // start by saying there should be no switching:
+                shouldSwitch = false;
+                // Get the two elements you want to compare,
+                // one from current row and one from the next:
+                x = rows[i].childNodes[n];
+                y = rows[i + 1].childNodes[n];
+                // check if the two rows should switch place,
+                // based on the direction, asc or desc:
+                if ('asc' === dir) {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        // if so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if ('desc' === dir) {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        // if so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                // If a switch has been marked, make the switch
+                // and mark that a switch has been done:
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                // Each time a switch is done, increase this count by 1:
+                switchcount++;
+            } else {
+                // If no switching has been done AND the direction is "asc",
+                // set the direction to "desc" and run the while loop again.
+                if (0 === switchcount && 'asc' === dir) {
+                    dir = 'desc';
+                    switching = true;
+                }
+            }
+        }
+    };
 })();

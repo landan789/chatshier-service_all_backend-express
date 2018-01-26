@@ -322,10 +322,10 @@ var ChatshierAppAPI = (function() {
     }
 
     function submitAdd() {
-        var requesterName = $messagerSelectElem.find('option:selected').text();
-        var requesterId = $messagerIdElem.val();
-        var requesterEmail = $messagerEmailElem.val();
-        var requesterPhone = $messagerPhoneElem.val();
+        var messagerId = $messagerIdElem.val();
+        // var messagerName = $messagerSelectElem.find('option:selected').text();
+        // var messagerEmail = $messagerEmailElem.val();
+        // var messagerPhone = $messagerPhoneElem.val();
         var errorElem = $('#error');
         var ticketAppId = $appSelectElem.find('option:selected').val();
 
@@ -339,7 +339,7 @@ var ChatshierAppAPI = (function() {
             window.setTimeout(function() {
                 errorElem.empty();
             }, 3000);
-        // } else if (!emailReg.test(requesterEmail)) {
+        // } else if (!emailReg.test(messagerEmail)) {
         //     errorElem.append('請輸入正確的email格式');
 
         //     var formEmail = $('#form-email');
@@ -348,7 +348,7 @@ var ChatshierAppAPI = (function() {
         //         errorElem.empty();
         //         formEmail.css('border', '1px solid #ccc');
         //     }, 3000);
-        // } else if (!phoneReg.test(requesterPhone)) {
+        // } else if (!phoneReg.test(messagerPhone)) {
         //     errorElem.append('請輸入正確的電話格式');
 
         //     var formPhone = $('#form-phone');
@@ -357,7 +357,7 @@ var ChatshierAppAPI = (function() {
         //         errorElem.empty();
         //         formPhone.css('border', '1px solid #ccc');
         //     }, 3000);
-        // } else if (!requesterId) {
+        // } else if (!messagerId) {
         //     errorElem.append('請輸入clientId');
 
         //     var formSubject = $('#form-subject');
@@ -366,7 +366,7 @@ var ChatshierAppAPI = (function() {
         //         errorElem.empty();
         //         formSubject.css('border', '1px solid #ccc');
         //     }, 3000);
-        // } else if (!requesterName) {
+        // } else if (!messagerName) {
         //     errorElem.append('請輸入客戶姓名');
         //     $('#add-form-name').css('border', '1px solid red');
         //     window.setTimeout(function() {
@@ -387,31 +387,15 @@ var ChatshierAppAPI = (function() {
             var description = $('#add-form-description').val();
 
             var nowTime = new Date().getTime();
-            var dueDate = nowTime + 86400000 * 3; // 過期時間預設為3天後
+            var dueTime = nowTime + 86400000 * 3; // 過期時間預設為3天後
 
             var newTicket = {
                 createdTime: nowTime,
-                description: !description ? '' : description,
-                dueBy: dueDate,
-                frDueBy: null,
-                frEscalated: false,
-                fwdEmails: [],
-                isEscalated: false,
+                description: description || '',
+                dueTime: dueTime,
                 priority: priority,
-                replyCcEmails: [],
-                requester: {
-                    email: requesterEmail,
-                    id: requesterId,
-                    name: requesterName,
-                    phone: requesterPhone
-                },
-                requesterId: requesterId,
-                source: null,
-                spam: null,
+                messagerId: messagerId,
                 status: status,
-                subject: '',
-                toEmails: [],
-                type: null,
                 updatedTime: nowTime
             };
 

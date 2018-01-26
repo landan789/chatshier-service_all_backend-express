@@ -1,37 +1,20 @@
-var admin = require("firebase-admin"); //firebase admin SDK
+var admin = require('firebase-admin'); // firebase admin SDK
 var appsTickets = {};
-
 
 appsTickets._schema = (callback) => {
     var json = {
-        ccEmails: [],
         createdTime: '',
         description: '',
-        dueBy: '',
-        frDueBy: '',
-        frEscalated: '',
-        fwdEmails: [],
-        isEscalated: false,
+        dueTime: Date.now(),
         priority: 1,
-        replyCcEmails: [],
-        requester: {
-            email: '',
-            id: '',
-            name: '',
-            phone: ''
-        },
-        requesterId: '',
-        source: 2,
-        spam: false,
+        messagerId: '',
         status: 2,
-        subject: '2017-0101',
-        toEmails: null,
-        type: null,
-        updatedTime: '2017-0101',
+        updatedTime: Date.now(),
         isDeleted: 0
     };
     callback(json);
 };
+
 appsTickets.findTicketsByAppId = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/tickets').once('value', snap => {
         var tickets = snap.val();
@@ -44,9 +27,7 @@ appsTickets.findTicketsByAppId = (appId, callback) => {
     });
 };
 
-
 appsTickets.findAppTicketsByAppIds = (appIds, callback) => {
-
     var appTickets = {};
     next(0, callback);
 
@@ -76,7 +57,7 @@ appsTickets.findAppTicketsByAppIds = (appIds, callback) => {
                         resolve();
                         return;
                     }
-                    appTickets = {...appTickets, ..._appTickets }; // Object.assign(appTickets, _appTickets );
+                    appTickets = { ...appTickets, ..._appTickets }; // Object.assign(appTickets, _appTickets );
 
                     resolve();
                 });
@@ -107,7 +88,6 @@ appsTickets.findAppTicketByAppIdByTicketId = (appId, ticketId, callback) => {
                 tickets[ticketId] = ticket;
                 apps[appId] = tickets;
                 resolve(apps);
-
             });
         });
     }).then((data) => {
@@ -116,8 +96,7 @@ appsTickets.findAppTicketByAppIdByTicketId = (appId, ticketId, callback) => {
     }).catch(() => {
         callback(null);
     });
-
-}
+};
 
 appsTickets.insertByAppid = (appId, postTicket, callback) => {
     var procced = new Promise((resolve, reject) => {
@@ -138,7 +117,6 @@ appsTickets.insertByAppid = (appId, postTicket, callback) => {
         var ticket = Object.assign(initTicket, postTicket);
 
         return admin.database().ref('apps/' + appId + '/tickets').push(ticket);
-
     }).then(() => {
         callback(true);
     }).catch(() => {
@@ -152,7 +130,7 @@ appsTickets.updateByAppIdByticketId = (appId, ticketId, putTicket, callback) => 
     });
 
     procced.then(() => {
-        return admin.database().ref("apps/" + appId + '/tickets/' + ticketId).update(putTicket);
+        return admin.database().ref('apps/' + appId + '/tickets/' + ticketId).update(putTicket);
     }).then(() => {
         callback(true);
     }).catch(() => {
@@ -170,7 +148,7 @@ appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
     };
 
     procced.then(() => {
-        return admin.database().ref("apps/" + appId + '/tickets/' + ticketId).update(deleteTicket);
+        return admin.database().ref('apps/' + appId + '/tickets/' + ticketId).update(deleteTicket);
     }).then(() => {
         callback(true);
     }).catch(() => {
