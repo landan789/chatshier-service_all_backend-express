@@ -8,7 +8,7 @@ templates.findByAppId = (appId, callback) => {
     });
 }
 
-templates.findMessagesByAppIdAndTemplateIds = (appId, templateIds, callback) => {
+templates.findTemplatesByAppIdByTemplateIds = (appId, templateIds, callback) => {
     let templates = [];
     if (null === templateIds) {
         callback(templates);
