@@ -51,7 +51,7 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value', snap => {
         let autoreply = snap.val();
         if (undefined === autoreplyId || '' === autoreplyId || null === autoreplyId) {
-            callback(null);
+            reject();
             return;
         }
         var appsAutoreplies = {};
@@ -61,6 +61,8 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
             autoreplies: _autoreplies
         };
         callback(appsAutoreplies);
+    }).catch(() => {
+        callback(null);
     });
 };
 
@@ -155,6 +157,8 @@ appsAutoreplies.findByAppIds = (appIds, callback) => {
     var appsAutoreplies = {};
     nextPromise(0).then(() => {
         callback(appsAutoreplies);
+    }).catch(() => {
+        callback(null);
     });
 
     function nextPromise(i) {
