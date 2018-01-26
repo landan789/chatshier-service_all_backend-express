@@ -26,35 +26,35 @@
                 <div class="form-group row">
                     <label for="app">App</label>
                     <select class="form-control" id="add-form-app">
-                        <option value="">請選擇</option>
+                        <option value="">載入中</option>
                     </select>
                 </div>
                 <!-- 客戶姓名 -->
                 <div class="form-group row">
                     <label for="name" class="col-2 col-form-label">客戶姓名</label>
-                    <div class="col-4">
-                        <input class="form-control" type="text" value="" id="add-form-name">
-                    </div>
+                    <select class="form-control" id="add-form-name">
+                        <option value="">無資料</option>
+                    </select>
                 </div>
                 <!-- 客戶Id -->
                 <div class="form-group row">
                     <label for="subject" class="col-2 col-form-label">客戶ID</label>
                     <div class="col-4">
-                        <input class="form-control" type="text" value="" id="add-form-uid">
+                        <input class="form-control" type="text" value="" id="add-form-uid" readonly>
                     </div>
                 </div>
                 <!-- email -->
                 <div class="form-group row">
                     <label for="email" class="col-2 col-form-label">電子郵件</label>
                     <div class="col-4">
-                        <input class="form-control" type="text" value="" id="add-form-email">
+                        <input class="form-control" type="text" value="" id="add-form-email" readonly>
                     </div>
                 </div>
                 <!-- phone -->
                 <div class="form-group row">
                     <label for="phone" class="col-2 col-form-label">手機</label>
                     <div class="col-4">
-                        <input class="form-control" type="text" value="" id="add-form-phone">
+                        <input class="form-control" type="text" value="" id="add-form-phone" readonly>
                     </div>
                 </div>
                 <!-- 狀態 -->
@@ -106,7 +106,7 @@
         <script src="javascripts/_firebase-auth-init.js"></script>
         <script src="javascripts/_firebase-auth.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-        <script src="javascripts/ticket.js"></script>
+        <script src="javascripts/ticket_form.js"></script>
         <script src="javascripts/sb-admin-2.js"></script>
 </body>
 

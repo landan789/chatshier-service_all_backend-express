@@ -34,7 +34,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 appsChatroomsMessagesMdl.findChatroomMessagesByAppIds(appIds, (chatroomMessages) => {
                     if (!chatroomMessages) {
-                        reject(API_ERROR.UNKNOWN);
+                        reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
                     }
                     resolve(chatroomMessages);
@@ -84,7 +84,7 @@ module.exports = (function() {
 
                     appsChatroomsMessagesMdl.findChatroomMessagesByAppId(appId, (chatroomMessages) => {
                         if (!chatroomMessages) {
-                            reject(API_ERROR.UNKNOWN);
+                            reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                             return;
                         }
                         resolve(chatroomMessages);

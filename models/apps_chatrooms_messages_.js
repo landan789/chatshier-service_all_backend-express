@@ -12,10 +12,10 @@ module.exports = (function() {
     AppsChatroomsMessages.prototype.findChatroomMessagesByAppIds = function(appIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
-            if (!appIds) {
+            if (!appIds || !(appIds instanceof Array)) {
                 return;
             }
-            let chatroomsMap = {};
+            let appsChatroomsMap = {};
             let findTasks = [];
 
             // 準備批次查詢的 promise 工作，將結果依照 appId 的鍵值塞到對應的欄位
@@ -23,8 +23,8 @@ module.exports = (function() {
                 let appId = appIds[idx];
 
                 // 根據查詢路徑建立回傳的資料結構
-                if (!chatroomsMap[appId]) {
-                    chatroomsMap[appId] = {
+                if (!appsChatroomsMap[appId]) {
+                    appsChatroomsMap[appId] = {
                         chatrooms: {}
                     };
                 }
@@ -38,7 +38,7 @@ module.exports = (function() {
 
                         let chatroomsData = data.val();
                         if (chatroomsData) {
-                            chatroomsMap[appId].chatrooms = chatroomsData;
+                            appsChatroomsMap[appId].chatrooms = chatroomsData;
                         }
                         resolve();
                     });
@@ -46,7 +46,7 @@ module.exports = (function() {
             }
 
             return Promise.all(findTasks).then(() => {
-                return chatroomsMap;
+                return appsChatroomsMap;
             });
         }).then((result) => {
             callback(result);
@@ -59,7 +59,6 @@ module.exports = (function() {
      * 根據指定的 App ID，取得對應的所有聊天室訊息
      *
      * @param {string} appId
-     * @param {string} chatroomId
      * @param {Function} callback
      */
     AppsChatroomsMessages.prototype.findChatroomMessagesByAppId = function(appId, callback) {
@@ -70,7 +69,7 @@ module.exports = (function() {
             }
 
             // 根據查詢路徑建立回傳的資料結構
-            let chatroomsMap = {
+            let appsChatroomsMap = {
                 [appId]: {
                     chatrooms: {}
                 }
@@ -79,15 +78,15 @@ module.exports = (function() {
             return new Promise((resolve) => {
                 admin.database().ref('apps/' + appId + '/chatrooms/').on('value', (data) => {
                     if (!data) {
-                        resolve(chatroomsMap);
+                        resolve(appsChatroomsMap);
                         return;
                     }
 
                     let chatroomsData = data.val();
                     if (chatroomsData) {
-                        chatroomsMap[appId].chatrooms = chatroomsData;
+                        appsChatroomsMap[appId].chatrooms = chatroomsData;
                     }
-                    resolve(chatroomsMap);
+                    resolve(appsChatroomsMap);
                 });
             });
         }).then((result) => {

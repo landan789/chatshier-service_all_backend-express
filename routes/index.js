@@ -3,54 +3,54 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Chatshier' });
+    res.render('index', { title: 'Chatshier' });
 });
 router.get('/chat', function(req, res, next) {
-  res.render('chat', { title: 'Chatshier聊天室' });
+    res.render('chat', { title: 'Chatshier聊天室' });
 });
 router.get('/setting', function(req, res, next) {
-  res.render('setting', { title: '設定' });
+    res.render('setting', { title: '設定' });
 });
 router.get('/autoreply', function(req, res, next) {
-  res.render('autoreply', { title: '自動回覆' });
+    res.render('autoreply', { title: '自動回覆' });
 });
 router.get('/message_keywordsreply', function(req, res, next) {
-  res.render('message_keywordsreply', { title: '關鍵字回覆' });
+    res.render('message_keywordsreply', { title: '關鍵字回覆' });
 });
 router.get('/message_add_friend_reply', function(req, res, next) {
-  res.render('message_add_friend_reply', { title: '加好友問候' });
+    res.render('message_add_friend_reply', { title: '加好友問候' });
 });
 router.get('/message_overview', function(req, res, next) {
-  res.render('message_overview', { title: '訊息群發' });
+    res.render('message_overview', { title: '訊息群發' });
 });
 router.get('/calendar', function(req, res, next) {
-  res.render('calendar', { title: '行事曆' });
+    res.render('calendar', { title: '行事曆' });
 });
 router.get('/ticket', function(req, res, next) {
-  res.render('ticket', { title: '待辦事項' });
+    res.render('ticket', { title: '待辦事項' });
 });
-router.get('/tform', function(req, res, next) {
-  res.render('ticketForm', { title: '新增待辦事項' });
+router.get('/ticket_form', function(req, res, next) {
+    res.render('ticket_form', { title: '新增待辦事項' });
 });
-//authentication
+// authentication
 router.get('/login', function(req, res, next) {
-  res.render('login', { title: '登入' });
+    res.render('login', { title: '登入' });
 });
 
 router.get('/logout', function(req, res, next) {
-  res.render('logout', { title: '登出' });
+    res.render('logout', { title: '登出' });
 });
 
 router.get('/signup', function(req, res, next) {
-  res.render('signup', { title: '註冊' });
+    res.render('signup', { title: '註冊' });
 });
 router.get('/analyze', function(req, res, next) {
-  res.render('analyze', { title: '分析' });
+    res.render('analyze', { title: '分析' });
 });
 router.get('/template', function(req, res, next) {
-  res.render('template', { title: '自訂Line Template' });
+    res.render('template', { title: '自訂Line Template' });
 });
 router.get('/richmenus', function(req, res, next) {
-  res.render('richmenus', { title: '圖文選單' });
+    res.render('richmenus', { title: '圖文選單' });
 });
 module.exports = router;

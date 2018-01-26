@@ -125,6 +125,9 @@ var TicketAPI = (function() {
     return TicketAPI;
 })();
 
+/**
+ * 宣告專門處理 Chatshier App 相關的 API 類別
+ */
 var ChatshierAppAPI = (function() {
     var responseChecking = function(response) {
         return Promise.resolve().then(function() {
@@ -141,7 +144,7 @@ var ChatshierAppAPI = (function() {
     };
 
     /**
-     * TicketAPI 建構子
+     * ChatshierAppAPI 建構子
      *
      * @param {*} jwt - API 傳輸時必須攜帶的 json web token
      */
@@ -173,18 +176,20 @@ var ChatshierAppAPI = (function() {
 
 (function() {
     var ticketInfo = {};
-    var agentInfo = {};
 
     var userId = '';
-    var socket = io.connect();
     var jqDoc = $(document);
     var lastSelectedTicket = null;
     var ticketContent = null;
-    var ticketAPI = new TicketAPI(null);
-    var chatshierAppAPI = new ChatshierAppAPI(null);
 
-    !urlConfig && (urlConfig = {}); // undefined error handle
+    var chatshierAppAPI = new ChatshierAppAPI(null);
+    var ticketAPI = new TicketAPI(null);
+
+    // ======================
+    // urlConfig undefined error handle
+    !urlConfig && (urlConfig = {});
     !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
+    // ======================
 
     auth.ready.then(function(currentUser) {
         userId = currentUser.uid; // 儲存全域用變數 userId
@@ -194,52 +199,55 @@ var ChatshierAppAPI = (function() {
         chatshierAppAPI.reqHeaders.set('Authorization', chatshierAppAPI.jwt);
 
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        if ('/ticket' === location.pathname) {
-            jqDoc.on('click', '.ticketContent', showMoreInfo); // 查看待辦事項細節
-            jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
-            // jqDoc.on('click', '.edit', showInput);
-            // jqDoc.on('click', '.inner-text', function(event) {
-            //     event.stopPropagation();
-            // });
-            jqDoc.on('focusout', '.inner-text', hideInput);
-            jqDoc.on('keypress', '.inner-text', function(e) {
-                if (13 === e.which) $(this).blur();
-            });
+        jqDoc.on('click', '.ticketContent', showMoreInfo); // 查看待辦事項細節
+        jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
+        // jqDoc.on('click', '.edit', showInput);
+        // jqDoc.on('click', '.inner-text', function(event) {
+        //     event.stopPropagation();
+        // });
+        jqDoc.on('focusout', '.inner-text', hideInput);
+        jqDoc.on('keypress', '.inner-text', function(e) {
+            if (13 === e.which) $(this).blur();
+        });
 
-            $('#ticket-info-delete').click(function() {
-                var alertWarning = $('#alert-warning');
+        $('#ticket-info-delete').click(function() {
+            var alertWarning = $('#alert-warning');
 
-                alertWarning.find('p').html('是否要刪除表單?');
-                alertWarning.show();
-                alertWarning.find('#yes').off('click').on('click', function() {
-                    alertWarning.hide();
+            alertWarning.find('p').html('是否要刪除表單?');
+            alertWarning.show();
+            alertWarning.find('#yes').off('click').on('click', function() {
+                alertWarning.hide();
 
-                    return ticketAPI.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
-                        loadTable();
+                return ticketAPI.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
+                    loadTable();
 
-                        var alertDanger = $('#alert-danger');
-                        alertDanger.children('span').text('表單已刪除');
-                        window.setTimeout(function() {
-                            alertDanger.show();
-                            window.setTimeout(function() { alertDanger.hide(); }, 3000);
-                        }, 1000);
-                    });
-                });
-
-                alertWarning.find('#no').off('click').on('click', function() {
-                    alertWarning.hide();
+                    var alertDanger = $('#alert-danger');
+                    alertDanger.children('span').text('表單已刪除');
+                    window.setTimeout(function() {
+                        alertDanger.show();
+                        window.setTimeout(function() { alertDanger.hide(); }, 3000);
+                    }, 1000);
                 });
             });
 
-            loadTable();
-        } else if ('/tform' === location.pathname) {
-            jqDoc.on('click', '#add-form-submit', submitAdd); // 新增 ticket
-            jqDoc.on('click', '#add-form-goback', function() { location.href = '/ticket'; }); // 返回 ticket
-            // loadAgentList();
-            loadUserAllApps($('select#add-form-app'));
-        }
+            alertWarning.find('#no').off('click').on('click', function() {
+                alertWarning.hide();
+            });
+        });
 
-        $('#ticket_search_bar').keyup(searchBar);
+        // ===========
+        // 搜尋過濾功能
+        $('#ticket_search_bar').keyup(function() {
+            var $content = $('.ticket-content tr');
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $content.show().filter(function() {
+                var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text1.indexOf(val);
+            }).hide();
+        });
+        // ===========
+
+        loadTable();
     });
 
     function loadTable() {
@@ -283,51 +291,6 @@ var ChatshierAppAPI = (function() {
         });
     }
 
-    function loadAgentList() {
-        return new Promise(function(resolve, reject) {
-            socket.emit('get agents profile', function(agentsProfile) {
-                if (!agentsProfile) {
-                    return reject(new Error('agents profile is undefined'));
-                }
-                var agentInfo = agentsProfile;
-                var agentList = [];
-                var agentKey = Object.keys(agentInfo);
-                var optionStr;
-
-                agentKey.map(function(agent) {
-                    agentList.push({ name: agentInfo[agent].name, id: agent });
-                });
-
-                agentList.map(function(info) {
-                    optionStr += '<option value="' + info.id + '">' + info.name + '</option>';
-                });
-                $('#add-form-agents').append(optionStr);
-                resolve();
-            });
-        });
-    }
-
-    /**
-     * 載入使用者所有的 app 清單，將清單儲存至選擇器中，供使用者選取 (/ticketForm 使用)
-     *
-     * @param {any} targetSelectElem - 目標選擇器元素(此需為 jquery 物件)
-     */
-    function loadUserAllApps(targetSelectElem) {
-        if (!targetSelectElem) {
-            return Promise.resolve();
-        }
-
-        return chatshierAppAPI.getAll(userId).then(function(respJson) {
-            var appData = respJson.data;
-            if (Object.keys(appData).length > 0) {
-                targetSelectElem.empty();
-                for (var appId in appData) {
-                    targetSelectElem.append('<option value=' + appId + '>' + appData[appId].name + '</option>');
-                }
-            }
-        });
-    }
-
     // function showInput() {
     //     var prop = $(this).parent().children("th").attr("class");
     //     var original = $(this).text();
@@ -353,16 +316,17 @@ var ChatshierAppAPI = (function() {
     }
 
     function showSelect(prop, n) {
+        var i = 0;
         var html = "<select class='selected form-control'>";
         if ('priority' === prop) {
             html += '<option value=' + n + '>' + priorityNumberToText(n) + '</option>';
-            for (var i = 1; i < 5; i++) {
+            for (i = 1; i < 5; i++) {
                 if (i === n) continue;
                 html += '<option value=' + i + '>' + priorityNumberToText(i) + '</option>';
             }
         } else if ('status' === prop) {
             html += '<option value=' + n + '>' + statusNumberToText(n) + '</option>';
-            for (var i = 2; i < 6; i++) {
+            for (i = 2; i < 6; i++) {
                 if (i === n) continue;
                 html += '<option value=' + i + '>' + statusNumberToText(i) + '</option>';
             }
@@ -493,113 +457,6 @@ var ChatshierAppAPI = (function() {
         return yyyy + '-' + MM + '-' + dd + 'T' + hh + ':' + mm + ':' + ss;
     } // end of displayDate
 
-    function responderName(id) {
-        // console.log(agentInfo);
-        for (var i in agentInfo) {
-            if (agentInfo[i].id === id) return agentInfo[i].contact.name;
-        }
-        return 'unassigned';
-    } // end of responderName
-
-    function submitAdd() {
-        var requesterName = $('#add-form-name').val();
-        var requesterId = $('#add-form-uid').val(); // 因為沒有相關可用的string，暫時先儲存在to_emails這個功能下面
-        var requesterEmail = $('#add-form-email').val();
-        var requesterPhone = $('#add-form-phone').val();
-
-        // 驗證
-        var emailReg = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
-        var phoneReg = /\b[0-9]+\b/;
-        var errorElem = $('#error');
-        var ticketAppId = $('select#add-form-app option:selected').val();
-
-        if (!ticketAppId) {
-            errorElem.append('請選擇App');
-            window.setTimeout(function() {
-                errorElem.empty();
-            }, 3000);
-        } else if (!emailReg.test(requesterEmail)) {
-            errorElem.append('請輸入正確的email格式');
-
-            var formEmail = $('#form-email');
-            formEmail.css('border', '1px solid red');
-            window.setTimeout(function() {
-                errorElem.empty();
-                formEmail.css('border', '1px solid #ccc');
-            }, 3000);
-        } else if (!phoneReg.test(requesterPhone)) {
-            errorElem.append('請輸入正確的電話格式');
-
-            var formPhone = $('#form-phone');
-            formPhone.css('border', '1px solid red');
-            window.setTimeout(function() {
-                errorElem.empty();
-                formPhone.css('border', '1px solid #ccc');
-            }, 3000);
-        } else if (!requesterId) {
-            errorElem.append('請輸入clientId');
-
-            var formSubject = $('#form-subject');
-            formSubject.css('border', '1px solid red');
-            window.setTimeout(function() {
-                errorElem.empty();
-                formSubject.css('border', '1px solid #ccc');
-            }, 3000);
-        } else if (!$('#add-form-description').val()) {
-            errorElem.append('請輸入說明內容');
-            $('#add-form-description').css('border', '1px solid red');
-            window.setTimeout(function() {
-                errorElem.empty();
-                $('#add-form-description').css('border', '1px solid #ccc');
-            }, 3000);
-        } else if (!requesterName) {
-            errorElem.append('請輸入客戶姓名');
-            $('#add-form-name').css('border', '1px solid red');
-            window.setTimeout(function() {
-                errorElem.empty();
-                $('#add-form-name').css('border', '1px solid #ccc');
-            }, 3000);
-        } else {
-            var status = parseInt($('#add-form-status option:selected').val());
-            var priority = parseInt($('#add-form-priority option:selected').val());
-            // var ownerAgent = $('#add-form-agents option:selected').val();
-            var description = $('#add-form-description').val();
-
-            var nowTime = new Date().getTime();
-            var dueDate = nowTime + 86400000 * 3; // 過期時間設為3天後
-
-            var newTicket = {
-                createdTime: nowTime,
-                description: !description ? '' : description,
-                dueBy: dueDate,
-                frDueBy: null,
-                frEscalated: false,
-                fwdEmails: [],
-                isEscalated: false,
-                priority: priority,
-                replyCcEmails: [],
-                requester: {
-                    email: requesterEmail,
-                    id: requesterId,
-                    name: requesterName,
-                    phone: requesterPhone
-                },
-                requesterId: requesterId,
-                source: null,
-                spam: null,
-                status: status,
-                subject: '',
-                toEmails: [],
-                type: null,
-                updatedTime: nowTime
-            };
-
-            return ticketAPI.insert(ticketAppId, userId, newTicket).then(function() {
-                window.location.href = '/ticket'; // 返回 ticket 清單頁
-            });
-        }
-    }
-
     /**
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
@@ -653,15 +510,6 @@ var ChatshierAppAPI = (function() {
         });
     }
 
-    function ISODateTimeString(d) {
-        d = new Date(d);
-
-        function pad(n) {
-            return n < 10 ? '0' + n : n;
-        }
-        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-    }
-
     function priorityColor(priority) {
         switch (priority) {
             case 4:
@@ -702,74 +550,4 @@ var ChatshierAppAPI = (function() {
                 return '低';
         }
     } // end of priorityNumberToText
-
-    function searchBar() {
-        var content = $('.ticket-content tr');
-        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-        content.show().filter(function() {
-            var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-            return !~text1.indexOf(val);
-        }).hide();
-    }
-
-    // =========[SORT CLOSE]=========
-    function sortCloseTable(n) {
-        var table = $('.ticket-content');
-        var rows;
-        var switching = true;
-        var i;
-        var x;
-        var y;
-        var shouldSwitch;
-        var dir = 'asc'; // Set the sorting direction to ascending:
-        var switchcount = 0;
-
-        // Make a loop that will continue until
-        // no switching has been done:
-        while (switching) {
-            // start by saying: no switching is done:
-            switching = false;
-            rows = table.find('tr');
-            // Loop through all table rows (except the
-            // first, which contains table headers):
-            for (i = 0; i < (rows.length - 1); i++) {
-                // start by saying there should be no switching:
-                shouldSwitch = false;
-                // Get the two elements you want to compare,
-                // one from current row and one from the next:
-                x = rows[i].childNodes[n];
-                y = rows[i + 1].childNodes[n];
-                // check if the two rows should switch place,
-                // based on the direction, asc or desc:
-                if ('asc' === dir) {
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                        // if so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                } else if ('desc' === dir) {
-                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                        // if so, mark as a switch and break the loop:
-                        shouldSwitch = true;
-                        break;
-                    }
-                }
-            }
-            if (shouldSwitch) {
-                // If a switch has been marked, make the switch
-                // and mark that a switch has been done:
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-                // Each time a switch is done, increase this count by 1:
-                switchcount++;
-            } else {
-                // If no switching has been done AND the direction is "asc",
-                // set the direction to "desc" and run the while loop again.
-                if (0 === switchcount && 'asc' === dir) {
-                    dir = 'desc';
-                    switching = true;
-                }
-            }
-        }
-    }
 })();
