@@ -25,10 +25,12 @@ function insert(appId, data) {
         headers: {
             "Authorization": jwt
         },
-        success: (id) => {
+        success: (obj) => {
+            let autoreplyObj = obj.data;
+            let autoreplyId = Object.keys(autoreplyObj[appId].autoreplies);
             let str =
                 '<tr>' +
-                '<td rel="' + id.data + '" hidden></td>' +
+                '<td rel="' + autoreplyId + '" hidden></td>' +
                 '<td>Open</td>' +
                 '<td rel="' + data.title + '">' + data.title + '</td>' +
                 '<td rel="' + ToLocalTimeString(data.startedTime) + '">' + ToLocalTimeString(data.startedTime) + '</td>' +
@@ -138,7 +140,7 @@ function findOne(appId, autosHashId) {
     
     $.ajax({
         type: 'GET',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
@@ -164,7 +166,7 @@ function update(appId, autosHashId, data) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -207,7 +209,7 @@ function remove(appId, autosHashId) {
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
-        url: '/api/apps-autoreplies/autoreplies/' + autosHashId + '/apps/' + appId + '/users/' + userId,
+        url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
         headers: {
             "Authorization": jwt
         },
