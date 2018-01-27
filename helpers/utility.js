@@ -83,6 +83,36 @@ utility.lineMsgType = (event, type, callback) => {
     }
     callback(msgObj);
 }
+utility.LINEMessageTypeForPushMessage = (vendor, callback) => {
+    let message = {};
+    switch (vendor.msgType) {
+        case 'text':
+            message.text = vendor.msg;
+            message.type = vendor.msgType;
+            break;
+        case 'image':
+            message.previewImageUrl = vendor.msg.substr(7);
+            message.originalContentUrl = vendor.msg.substr(7);
+            message.type = vendor.msgType;
+            break;
+        case 'audio':
+            message.duration = 240000;
+            message.originalContentUrl = vendor.msg.substr(7);
+            message.type = vendor.msgType;
+            break;
+        case 'video':
+            message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
+            message.originalContentUrl = vendor.msg.substr(7);
+            message.type = vendor.msgType;
+            break;
+        case 'sticker':
+            message.stickerId = parseInt(vendor.msg.substr(vendor.msg.lastIndexOf(' ')));
+            message.packageId = parseInt(vendor.msg.substr(vendor.msg.indexOf(' ')));
+            message.type = vendor.msgType;
+            break;
+    }
+    callback(message);
+};
 utility.fbMsgType = (fbMsg, callback) => {
     let msgObj;
     if (fbMsg.attachments) {

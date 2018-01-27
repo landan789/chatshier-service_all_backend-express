@@ -2,15 +2,15 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
 
-    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages_');
+    const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
 
-    function AppsChatroomsMessagesController() {}
+    function AppsMessagersController() {}
 
     /**
-     * 處理取得所有 App 及其 Chatroom 內的所有 Messages 請求
+     * 處理取得所有 App 及其所有 Messager 的請求
      */
-    AppsChatroomsMessagesController.prototype.getAll = function(req, res, next) {
+    AppsMessagersController.prototype.getAll = function(req, res, next) {
         let userId = req.params.userid;
 
         let proceed = Promise.resolve();
@@ -32,12 +32,12 @@ module.exports = (function() {
         }).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.findChatroomMessagesByAppIds(appIds, (chatroomMessages) => {
-                    if (!chatroomMessages) {
+                appsMessagersMdl.findAppMessagersByAppIds(appIds, (allAppMessagers) => {
+                    if (!allAppMessagers) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(chatroomMessages);
+                    resolve(allAppMessagers);
                 });
             });
         }).then((data) => {
@@ -58,9 +58,9 @@ module.exports = (function() {
     };
 
     /**
-     * 處理指定 AppId 及其 Chatroom 內的所有 Messages 請求
+     * 處理指定 AppId 取得所有 Messager 的請求
      */
-    AppsChatroomsMessagesController.prototype.getAllByAppId = function(req, res, next) {
+    AppsMessagersController.prototype.getAllByAppId = function(req, res, next) {
         let appId = req.params.appid;
         let userId = req.params.userid;
 
@@ -82,12 +82,12 @@ module.exports = (function() {
                         return;
                     }
 
-                    appsChatroomsMessagesMdl.findChatroomMessagesByAppId(appId, (chatroomMessages) => {
-                        if (!chatroomMessages) {
+                    appsMessagersMdl.findAppMessagersByAppId(appId, (messagers) => {
+                        if (!messagers) {
                             reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                             return;
                         }
-                        resolve(chatroomMessages);
+                        resolve(messagers);
                     });
                 });
             });
@@ -108,5 +108,5 @@ module.exports = (function() {
         });
     };
 
-    return new AppsChatroomsMessagesController();
+    return new AppsMessagersController();
 })();

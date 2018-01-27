@@ -52,7 +52,7 @@ $(document).ready(function() {
     //=====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.tablinks', clickUserTablink); // 群組清單裡面選擇客戶
-    $(document).on('focus', '#message', readClientMsg); //已讀客戶訊息
+    $(document).on('focus', '#message', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '#submitMsg', submitMsg); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
@@ -132,7 +132,7 @@ $(document).ready(function() {
                         let newArr = [];
                         let appKeys = Object.keys(appsInfo);
                         newData.map((item, index) => {
-                            if (item.delete === 0) {
+                            if (0 === item.delete) {
                                 newArr.push({info: item, key: appKeys[index]});
                             }
                         });
@@ -141,7 +141,7 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allActiveApps = data;
-                    return new Promise((resolve,reject) => {
+                    return new Promise((resolve, reject) => {
                         appGroupSort(allActiveApps);
                         resolve(allActiveApps);
                     });
@@ -150,11 +150,9 @@ $(document).ready(function() {
                     let allActiveApps = data;
                     return new Promise((resolve, reject) => {
                         let idArr = [];
-                        // let appKeys = Object.keys(appsInfo)
-                        allActiveApps.map((item,index) => {
+                        allActiveApps.map((item, index) => {
                             idArr.push(item.id1);
                             room_list.push(item.id1);
-                            // appGroupSort({info: allActiveApps[index], key: appKeys[index]});
                             if (idArr.length === allActiveApps.length) {
                                 resolve(idArr);
                             }
@@ -165,9 +163,7 @@ $(document).ready(function() {
                     let allAppIds = data;
                     socket.emit('find_apps_messengers_chats', auth.currentUser.uid, responseChatData);
                 })
-                .catch((error) => {
-                    console.log('loading apps error');
-                });
+                .catch(() => {});
         } else {
             if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
                 $('#notifyModal').modal("show");
@@ -180,7 +176,7 @@ $(document).ready(function() {
         let appArr = data;
         appArr.map((item) => {
             switch (item.info.type) {
-                case 'line':
+                case 'LINE':
                     let lineStr =
                         '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + item.info.name + '" rel="' + item.key + '">' +
                         '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
@@ -188,7 +184,7 @@ $(document).ready(function() {
                         '</div>';
                     $('#chat_App').prepend(lineStr);
                     break;
-                case 'facebook':
+                case 'FACEBOOK':
                     let fbStr =
                         '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + item.info.name + '" rel="' + item.key + '">' +
                         '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
@@ -222,44 +218,46 @@ $(document).ready(function() {
     } // end of responseChannels
 
     function responseChatData(data) {
-        console.log(data);
         var apps = data;
-        var proceed = new Promise((resolve, reject) => {
-            resolve();
-        });
+        var proceed = Promise.resolve();
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
-                var app_ids = Object.keys(apps);
-                resolve({app_ids,apps})
-            });
-        }).then((data) => {
-            let messengers = data.apps;
-            let app_ids = data.app_ids;
-            return new Promise((resolve, reject) => {
                 let activeAppKeys = [];
                 let activeUserIds = [];
-                let activeMessengers = [];
-                for(let m in messengers) {
-                    if(Object.keys(messengers[m].chatrooms).length !== 0) {
+                let activeUserProfile = [];
+                let activeMessagers = {};
+                for (let m in apps) {
+                    if (Object.keys(apps[m].chatrooms).length !== 0) {
                         activeAppKeys.push(m);
-                        activeUserIds.push(Object.keys(messengers[m].chatrooms)[0]);
-                        activeMessengers.push(Object.values(messengers[m].chatrooms)[0]);
+                        activeUserIds.push(Object.keys(apps[m].messagers));
+                        activeUserProfile.push(Object.values(apps[m].messagers));
+                        activeMessagers = apps[m].chatrooms;
                     }
                 }
 
-                resolve({activeAppKeys, activeUserIds, activeMessengers});
+                resolve({activeAppKeys, activeUserIds, activeUserProfile, activeMessagers});
             });
         }).then((data) => {
             let app_ids = data.activeAppKeys;
             let user_ids = data.activeUserIds;
-            let messengers = data.activeMessengers;
-            for(let a in app_ids) {
-                pushMsg({obj:messengers[a], userId: user_ids[a], appId: app_ids[a]}, () => {
-                    pushInfo({obj:messengers[a], userId: user_ids[a], appId: app_ids[a]});
-                });
-            }
-        })
+            let user_profile = data.activeUserProfile;
+            let messages = data.activeMessagers;
+
+            return new Promise((resolve, reject) => {
+                for (let a in app_ids) {
+                    let appId = app_ids[a];
+                    for (let u in user_ids[a]) {
+                        let userId = user_ids[a][u];
+                        let profile = user_profile[a][u];
+                        let message = messages[user_profile[a][u].chatroom_id];
+                        pushMsg({profile: profile, obj: message, userId: userId, appId: appId}, () => {
+                            pushInfo({profile: profile, obj: message, userId: userId, appId: appId});
+                        });
+                    }
+                }
+            });
+        }).catch(() => {});
     } // end of responseChatData
 
     function responseHistoryMsg(data) {
@@ -304,22 +302,20 @@ $(document).ready(function() {
     }
 
     function pushMsg(data, callback) {
-        console.log(data);
         let emptyResult = Object.keys(data.obj).length !== 0;
-        if(emptyResult) {
-            let historyMsg = data.obj.messenges;
-            let profile = data.obj;
-            let historyMsgStr = "";
-            console.log(data)
+        if (emptyResult) {
+            let historyMsg = data.obj.messages;
+            let profile = data.profile;
+            let historyMsgStr = '';
             if (Object.keys(historyMsg).length < 10) {
                 historyMsgStr += NO_HISTORY_MSG; //history message string head
             }
             historyMsgStr += historyMsgToStr(historyMsg);
-            $('#user-rooms').append('<option value="' + data.userId + '">' + profile.name + '</option>'); //new a option in select bar
+            $('#user-rooms').append('<option value="' + data.userId + '">' + profile.name + '</option>'); // new a option in select bar
             // 左邊的客戶清單排列
-            let lastMsg = historyMsg[Object.keys(historyMsg)[Object.keys(historyMsg).length -1]];
+            let lastMsg = historyMsg[Object.keys(historyMsg)[Object.keys(historyMsg).length - 1]];
             let lastMsgStr = lastMsgToStr(lastMsg);
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.appId + "' rel='" + data.userId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.appId + "' rel='" + data.userId + "'><div class='img-holder'>" + "<img src='" + profile.picUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
             if ((profile.unRead > 0) && (profile.unRead <= 99)) {
                 tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
             } else if (profile.unRead > 99) {
@@ -328,11 +324,13 @@ $(document).ready(function() {
                 tablinkHtml += "</div>" + "<div class='chsr unread-msg badge badge-pill' style='display:none;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
             }
 
-            if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
-                $('#vip_list').prepend(tablinkHtml);
-            } else {
-                $('#clients').append(tablinkHtml);
-            }
+            $('#clients').append(tablinkHtml);
+
+            // if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
+            //     $('#vip_list').prepend(tablinkHtml);
+            // } else {
+            //     $('#clients').append(tablinkHtml);
+            // }
             // 中間聊天室
             canvas.append( //push string into canvas
                 '<div id="' + data.appId + '" rel="' + data.userId + '" class="tabcontent">' + "<div id='" + data.appId + "-content' rel='" + data.userId + "' class='messagePanel'>" + historyMsgStr + "</div>" + "</div>"
@@ -366,14 +364,14 @@ $(document).ready(function() {
             prevTime = messages[i].time;
             if (messages[i].owner === "agent") {
                 //plus every history msg into string
-                returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
-            } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
+                returnStr += toAgentStr(messages[i].text, messages[i].name, messages[i].time);
+            } else returnStr += toUserStr(messages[i].text, messages[i].name, messages[i].time);
         }
         return returnStr;
     } // end of historyMsgToStr
     function pushInfo(data) {
-        let profile = data.obj;
-        infoCanvas.append('<div class="card-group" id="' + data.appId + '-info" rel="' + data.userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
+        let profile = data.profile;
+        infoCanvas.append('<div class="card-group" id="' + data.appId + '-info" rel="' + data.userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.picUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
     } // end of pushInfo
     function loadPanelProfile(profile) {
         let table = $.parseHTML("<table class='panel-table'></table>");
@@ -400,12 +398,6 @@ $(document).ready(function() {
                     dom = getSingleSelectDom(tagData, profData);
                 } else if (tagId == "firstChat" || tagId == "recentChat") {
                     dom = getTimeDom(tagData, profData);
-                } else if (tagId == "totalChat" || tagId == "avgChat") {
-                    dom = getSingleTextDom(tagData, profData);
-                    let text = $(dom).text();
-                    text = parseFloat(text).toFixed(2).toString();
-                    let newText = text == 'NaN' ? '0' : text;
-                    $(dom).text(newText + " 分鐘");
                 } else if (tagId == "chatTimeCount") {
                     dom = getSingleTextDom(tagData, profData);
                     let text = $(dom).text() === '尚未輸入' ? '1' : $(dom).text();
@@ -617,31 +609,28 @@ $(document).ready(function() {
     //==========end initialize function========== //
 
     //=====start socket function=====
-    socket.on('new message', (data) => {
-        console.log(data);
+    socket.on(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, (data) => {
         if (!data.userId) {
-            console.log('data miss user id');
             return;
         }
         let $room = $('.chat-app-item[rel="' + data.appId + '"]');
         if ($room.length !== 0) {
-            displayMessage(data.messengers, data.userId, data.appId); // update 聊天室
-            displayClient(data.messengers, data.userId, data.appId); // update 客戶清單
-            if (name_list.indexOf(data.userId + data.appId) === -1) { // 新客戶
+            displayMessage(data.messager, data.message, data.userId, data.appId); // update 聊天室
+            displayClient(data.messager, data.message, data.userId, data.appId); // update 客戶清單
+            if (-1 === name_list.indexOf(data.userId + data.appId)) { // 新客戶
                 name_list.push(data.userId + data.appId);
-                displayInfo(data.messengers, data.userId, data.appId);
+                displayInfo(data.messager, data.message, data.userId, data.appId);
             }
         }
     });
     socket.on('new internal message', (data) => {
         let $room = $('.tablinks-area .tablinks[name="' + data.roomId + '"]');
-        if ($room.length != 0) {
+        if ($room.length !== 0) {
             displayMessageInternal(data.sendObj, data.roomId);
             displayClientInternal(data.sendObj, data.roomId);
         }
     });
     socket.on('new user profile', function(data) {
-        console.log(data)
         userProfiles[data.userId] = data;
         pushInfo({
             "Profile": data
@@ -677,8 +666,6 @@ $(document).ready(function() {
         } else if (thisRel === 'assigned') {
             $('.tablinks-area').find('b').hide();
             $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
-                // console.log($(this).attr('rel'));
-                // console.log($(this).attr('rel') === '');
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
                 if (rel !== '') {
@@ -761,8 +748,8 @@ $(document).ready(function() {
         e.preventDefault();
         let vendorId = auth.currentUser.uid;
         let email = auth.currentUser.email;
-        let appId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel'); // 客戶的聊天室ID
-        let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id'); // 客戶的user ID
+        let appId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('id'); // 客戶的聊天室ID
+        let userId = $(this).parent().parent().siblings('#canvas').find('[style="display: block;"]').attr('rel'); // 客戶的user ID
         let msgStr = messageInput.val();
         if (userId !== undefined || appId !== undefined) {
             if (appId == "internal") {
@@ -774,7 +761,7 @@ $(document).ready(function() {
                 };
                 socket.emit('send internal message', {
                     sendObj: sendObj,
-                    roomId: userId
+                    roomId: appId
                 });
             } else {
                 var getAppsInfo = new Promise((resolve, reject) => {
@@ -782,9 +769,9 @@ $(document).ready(function() {
                         if (data.val() !== null) {
                             let user = data.val();
                             let str = toAgentStr(msgStr, data.name, Date.now());
-                            $("#" + userId + "-content" + "[rel='" + appId + "']").append(str); //push message into right canvas
-                            $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); //scroll to down
-                            $('[name="' + userId  + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
+                            $("#" + appId + "-content" + "[rel='" + userId + "']").append(str); //push message into right canvas
+                            $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
+                            $('[name="' + appId  + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
                             messageInput.val('');
                             resolve();
                         } else {
@@ -818,7 +805,7 @@ $(document).ready(function() {
                                     let hashId = userApps;
 
                                     hashId.map((item) => {
-                                        if (item === userId) {
+                                        if (item === appId) {
                                             resolve(item);
                                         }
                                     });
@@ -833,9 +820,10 @@ $(document).ready(function() {
                                 let appInfo = data.val();
                                 let obj = {
                                     ...appInfo,
-                                    msgText: msgStr,
+                                    msg: msgStr,
                                     msgTime: Date.now(),
-                                    clientId: userId
+                                    clientId: userId,
+                                    msgType: 'text'
                                 }
                                 resolve(obj);
                             });
@@ -843,20 +831,13 @@ $(document).ready(function() {
                     })
                     .then((data) => {
                         return new Promise((resolve, reject) => {
-                            let sendObj = data;
-                            // socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId,userId,sendObj});
+                            socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId, userId, data});
                             resolve();
                         });
                     })
-                    .then(() => {
-                        console.log('sent');
-                    })
                     .catch(reason => {
-                        console.log(reason);
                     });
             }
-        } else {
-            console.log('either room id or channel id is undefined');
         }
     } // end of submitMsg
     function triggerFileUpload(e) {
@@ -867,8 +848,8 @@ $(document).ready(function() {
     function fileUpload() {
         var $contentPanel = $(this).parent().parent().parent().parent();
         var $chat = $contentPanel.find('#canvas').find('div[style="display: block;"]');
-        var id = $chat.attr('id');
-        var rel = $chat.attr('rel');
+        var appId = $chat.attr('id');
+        var userId = $chat.attr('rel');
         if (0 < this.files.length) {
             var file = this.files[0];
             var self = this;
@@ -878,49 +859,38 @@ $(document).ready(function() {
                 let url = snapshot.downloadURL;
                 var type = $(self).data('type');
                 var data = {
-                        msg: '/' + type + ' ' + url,
-                        id: id,
-                        room: rel,
-                        channelId: rel,
-                    }
-                    // var data = { // 需要的格式 以後收到的訊息
-                    //     channelId: '',
-                    //     channelSecret: '',
-                    //     channelToken: '',
-                    //     id: id,
-                    //     msg: '/' + type + ' ' + url,
-                    //     msgtime: Date.now()
-                    // }
-                socket.emit('send message', data);
+                    msg: '/' + type + ' ' + url,
+                    msgType: type
+                }
+                socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId, userId, data});
             });
         }
     }
 
-    function displayInfo(data, userId, appId) {
-        let chats = data.chats;
-        let str = '<div class="card-group" id="' + appId + '-info" rel="' + userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + data.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(data) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+    function displayInfo(messager, message, userId, appId) {
+        let chats = message;
+        let str = '<div class="card-group" id="' + appId + '-info" rel="' + userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + messager.picUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(messager) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
         infoCanvas.append(str);
     }
 
-    function displayMessage(data, userId, appId) {
-        console.log(data);
-        let chats = data.messages;
-        console.log(chats);
+    function displayMessage(messager, message, userId, appId) {
+        let chats = message;
         let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
+        console.log(lastMsgObj);
         if (name_list.indexOf(userId + appId) !== -1) { //if its chated user
             let str;
             let designated_chat_room_msg_time = $("#" + appId + "-content" + "[rel='" + userId + "']").find(".message:last").attr('rel');
             if (lastMsgObj.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
                 $("#" + appId + "-content" + "[rel='" + userId + "']").append('<p class="message-day"><strong>-新訊息-</strong></p>');
             }
-            if (lastMsgObj.owner === "agent") str = toAgentStr(lastMsgObj.message, lastMsgObj.name, lastMsgObj.time);
-            else str = toUserStr(lastMsgObj.message, lastMsgObj.name, lastMsgObj.time);
+            if (lastMsgObj.owner === "agent") str = toAgentStr(lastMsgObj.text, lastMsgObj.name, lastMsgObj.time);
+            else str = toUserStr(lastMsgObj.text, lastMsgObj.name, lastMsgObj.time);
             $("#" + appId + "-content" + "[rel='" + userId + "']").append(str); //push message into right canvas
             $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
         } else { //if its new user
             let historyMsgStr = NO_HISTORY_MSG;
-            if (lastMsgObj.owner === "agent") historyMsgStr += toAgentStr(lastMsgObj.message, lastMsgObj.name, lastMsgObj.time);
-            else historyMsgStr += toUserStr(lastMsgObj.message, lastMsgObj.name, lastMsgObj.time);
+            if (lastMsgObj.owner === "agent") historyMsgStr += toAgentStr(lastMsgObj.text, lastMsgObj.name, lastMsgObj.time);
+            else historyMsgStr += toUserStr(lastMsgObj.text, lastMsgObj.name, lastMsgObj.time);
             canvas.append( //new a canvas
                 '<div id="' + appId + '" rel="' + userId + '" class="tabcontent">' + '<div id="' + appId + '-content" rel="' + userId + '" class="messagePanel">' + historyMsgStr + '</div></div>'
             ); // close append
@@ -928,30 +898,30 @@ $(document).ready(function() {
         }
     } // end of displayMessage
 
-    function displayClient(data, userId, appId) {
-        let chats = data.messenges;
+    function displayClient(messager, message, userId, appId) {
+        let chats = message;
         let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
         if (name_list.indexOf(userId + appId) === -1) {
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + data.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + data.name + '</span><br><div id="msg"></div></div>';
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + messager.picUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + messager.name + '</span><br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + userId + "']");
         let currentUnread = parseInt(target.find('.unread-msg').text());
-        if (lastMsgObj.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
+        if (lastMsgObj.text.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(lastMsgObj.time) + '檔案');
-        } else if (lastMsgObj.message.startsWith('<img')) {
+        } else if (lastMsgObj.text.startsWith('<img')) {
             target.find("#msg").html(toTimeStr(lastMsgObj.time) + '貼圖');
         } else {
-            target.find("#msg").html(toTimeStr(lastMsgObj.time) + loadMessageInDisplayClient(lastMsgObj.message));
+            target.find("#msg").html(toTimeStr(lastMsgObj.time) + loadMessageInDisplayClient(lastMsgObj.text));
         }
         target.attr("data-recentTime", lastMsgObj.time);
         // update tablnks's last msg
         if (lastMsgObj.owner === "agent") {
             target.find('.unread-msg').text("0").css("display", "none");
-        } else if ((data.unRead + currentUnread) > 99) {
+        } else if ((messager.unRead + currentUnread) > 99) {
             target.find('.unread-msg').text("99+").css("display", "block");
         } else {
-            target.find('.unread-msg').html(data.unRead + currentUnread).css("display", "block"); // 未讀訊息數顯示出來
+            target.find('.unread-msg').html(messager.unRead + currentUnread).css("display", "block"); // 未讀訊息數顯示出來
         }
         let ele = target.parents('b'); //buttons to b
         ele.remove();
@@ -1011,8 +981,6 @@ $(document).ready(function() {
                 });
                 socket.emit('update profile', {appId,userId,data});
             }
-        } else {
-            console.log("cancelled");
         }
     }
     //=====end profile function=====
@@ -1047,7 +1015,6 @@ $(document).ready(function() {
                 }
             },
             error: function(jqXHR, tranStatus) {
-                console.log('error');
             }
         });
     } // end of loadTable
@@ -1056,8 +1023,6 @@ $(document).ready(function() {
         let display;
         let i = $(this).attr('id');
         let idNum = $('#' + i + ' .data_id').attr('rel');
-        // console.log('tickets/' + userId + '/t' + idNum)
-        // console.log(idNum);
         let Tinfo = ticketInfo[i];
         let Ainfo = [];
         socket.emit('get agents profile', loadAgentsInfo);
@@ -1066,7 +1031,6 @@ $(document).ready(function() {
             database.ref('tickets/' + userId + '/t' + idNum).once('value', snapshot => {
                 if (snapshot.val() !== null) {
                     let value = snapshot.val();
-                    console.log(value);
                     $('option[value="' + value.owner + '"]').attr('selected', 'selected');
                 }
             });
@@ -1079,7 +1043,6 @@ $(document).ready(function() {
                     id: agent
                 })
             });
-            console.log(Tinfo)
             $("#ID-num").text(Tinfo.id);
             $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
             display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Ainfo) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="time-edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(Tinfo.due_by) + '">' + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
@@ -1188,7 +1151,6 @@ $(document).ready(function() {
         socket.emit('get agents profile', loadAgentsInfo);
 
         function loadAgentsInfo(data) {
-            // console.log(data); // 所有agent的名單物件
             agentInfo = data;
             agentKey = Object.keys(agentInfo);
             agentKey.map(agent => {
@@ -1209,7 +1171,6 @@ $(document).ready(function() {
         socket.emit('get agents profile', loadAgentsInfo)
 
         function loadAgentsInfo(data) {
-            // console.log(data);
             let agentInfo = data;
             let agentKey = Object.keys(agentInfo);
             let optionStr;
@@ -1234,10 +1195,8 @@ $(document).ready(function() {
         let status = $('#form-status option:selected').text();
         let priority = $('#form-priority option:selected').text();
         let ownerAgent = $('#add-form-agents option:selected').val();
-        console.log(ownerAgent);
         let description = $('#form-description').val();
         ticket_data = '{ "description": "' + description + '", "name" : "' + name + '",  "subject": "' + uid + '", "email": "' + email + '", "phone": "' + phone + '", "priority": ' + priorityTextToMark(priority) + ', "status": ' + statusTextToMark(status) + '}';
-        // console.log(ticket_data);
         // 驗證
         if ($('#form-uid').val().trim() === '') {
             $('#error').append('請輸入客戶ID');
@@ -1276,8 +1235,6 @@ $(document).ready(function() {
                 },
                 data: ticket_data,
                 success: function(data, textStatus, jqXHR) {
-                    console.log(data);
-                    console.log('tickt created');
                     //把事件儲存到calendar database，到期時間和ticket一樣設定三天
                     database.ref('cal-events/' + userId + '/t' + data.id).set({
                         title: name + ": " + description.substring(0, 10) + "...",
@@ -1304,7 +1261,6 @@ $(document).ready(function() {
                 error: function(jqXHR, tranStatus) {
                     x_request_id = jqXHR.getResponseHeader('X-Request-Id');
                     response_text = jqXHR.responseText;
-                    console.log(response_text)
                 }
             });
         }
@@ -1327,7 +1283,6 @@ $(document).ready(function() {
                 },
                 error: function(jqXHR, tranStatus) {
                     alert("表單刪除失敗，請重試");
-                    console.log(jqXHR)
                 }
             });
         }
@@ -1360,20 +1315,16 @@ $(document).ready(function() {
             else json += '"' + name + '":' + value + ','
         }
         json += '"' + timeInputText + '":"' + timeInputValue + '",';
-        // console.log(timeInput.text() + ':' + timeInput.siblings('td').find('.display-date-input.form-control').val())
         json += '"id":"' + id + '"}';
-        console.log(json)
         obj = JSON.parse(json);
         clientName = obj.subject;
         clientId = obj.客戶ID;
         clientOwner = obj.負責人;
-        // console.log(clientOwner);
         clientPriority = parseInt(obj.優先);
         clientStatus = parseInt(obj.狀態);
         clientDescription = obj.描述;
         if (obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
         else clientDue = obj.到期時間即期;
-        console.log(clientDue)
             // var time_list = clientDue.split("/");
             // var new_time = [];
             // var new_time2 = [];
@@ -1389,9 +1340,9 @@ $(document).ready(function() {
             // };
             // new_time = new_time.join("T") + "Z";
         clientDue += ':00Z';
-        // console.log(new_time)
+
         obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
-        // console.log(obj);
+
         if (confirm("確定變更表單？")) {
             var ticket_id = $(this).parent().siblings().children().find('#ID-num').text();
             $.ajax({
@@ -1420,7 +1371,6 @@ $(document).ready(function() {
                 },
                 error: function(jqXHR, tranStatus) {
                     alert("表單更新失敗，請重試");
-                    console.log(jqXHR.responseText)
                 }
             });
         }
@@ -1534,7 +1484,6 @@ $(document).ready(function() {
         }
     } // end of priorityNumberToText
     function responderName(id) {
-        console.log(agentInfo);
         for (let i in agentInfo) {
             if (agentInfo[i].id === id) return agentInfo[i].contact.name;
         }
@@ -1637,12 +1586,9 @@ $(document).ready(function() {
                     else if (type === "multi-select") value = $(this).find('.multi-select-text').attr('rel');
                     if (!value) value = "";
                     data[prop] = value;
-                    console.log(data);
                 });
                 socket.emit('update internal profile', data);
             }
-        } else {
-            console.log("cancelled");
         }
     }
     //=====end internal function
@@ -1830,18 +1776,19 @@ $(document).ready(function() {
         }
     } // end of toUserStr
     function lastMsgToStr(msg) {
-        if (msg.message.startsWith('<a')) {
+        if (msg.text.startsWith('<a')) {
             return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送檔案</div>';
-        } else if (msg.message.startsWith('<img')) {
+        } else if (msg.text.startsWith('<img')) {
             return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送貼圖</div>';
         } else {
-            return '<br><div id="msg">' + toTimeStr(msg.time) + loadMessageInDisplayClient(msg.message) + '</div>';
+            return '<br><div id="msg">' + toTimeStr(msg.time) + loadMessageInDisplayClient(msg.text) + '</div>';
         }
     }
 
     function loadMessageInDisplayClient(msg) {
         if (msg.length > 10) {
-            return msg = msg.substr(0, 10) + '...';
+            let newMsg = msg.substr(0, 10) + '...';
+            return newMsg
         } else {
             return msg;
         }
@@ -1856,7 +1803,8 @@ $(document).ready(function() {
     } // end of toDateStr
     function toTimeStr(input) {
         let date = new Date(input);
-        return " (" + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ") ";
+        let dateStr = " (" + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ") ";
+        return dateStr;
     } // end of toTimeStr
     function toTimeStrMinusQuo(input) {
         let date = new Date(input);

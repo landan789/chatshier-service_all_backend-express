@@ -15,8 +15,8 @@ var appsRichmenusCtl = require('../controllers/apps_richmenus');
 
 // ===============
 // 訊息相關 Ctrl (Create By Peace 2018/01/25)
-var appsMessagersCtl = require('../controllers/apps_messagers_');
-var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages_');
+var appsMessagersCtl = require('../controllers/apps_messagers');
+var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
 // ===============
 
 var router = express.Router();

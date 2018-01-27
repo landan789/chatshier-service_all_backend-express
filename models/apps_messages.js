@@ -29,9 +29,9 @@ appsMessages.findTemplateIds = (appId, messengeId, callback) => {
             reject();
             return;
         }
-    }).catch(() => {
         callback(templatereplies.template_ids);
-
+    }).catch(() => {
+        callback(null);
     });
 };
 

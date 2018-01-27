@@ -30,22 +30,7 @@ apps.findByAppId = (appId, callback) => {
     });
 };
 
-apps.findAppIdByWebhookId = (webhookId, callback) => {
-    var procced = Promise.resolve();
-
-    procced.then(() => {
-        return admin.database().ref('webhooks/' + webhookId).once('value');
-    }).then((snap) => {
-        var webhook = snap.val();
-        var appId = webhook.app_id;
-        callback(appId);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
 apps.findAppByWebhookId = (webhookId, callback) => {
-
     var procced = Promise.resolve();
 
     procced.then(() => {
