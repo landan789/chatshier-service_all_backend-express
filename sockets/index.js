@@ -12,6 +12,7 @@ var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase ad
 var databaseURL = require('../config/firebase_admin_database_url.js');
 
 var agents = require('../models/agents');
+var appsComposes = require('../models/apps_composes');
 var appsAutorepliesMdl = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
@@ -30,9 +31,10 @@ var appsTemplatesMdl = require('../models/apps_templates');
 
 var messageHandle = require('../message_handle');
 
-const API_ERROR = require('../config/api_error');
-const API_SUCCESS = require('../config/api_success');
 const SOCKET_MESSAGE = require('../config/socket_message');
+
+var API_ERROR = require('../config/api_error');
+var API_SUCCESS = require('../config/api_success');
 
 const WAIT_TIME = 10000;
 const LINE = 'LINE';
@@ -42,7 +44,7 @@ const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
 var linebotParser;
 var globalLineMessageArray = [];
-
+var composebot = {};
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
@@ -51,7 +53,7 @@ admin.initializeApp({
 function init(server) {
     var io = socketio(server);
     var addFriendBroadcastMsg; // 加好友參數
-    var bot = []; // LINE bot設定
+    let bot = []; // LINE bot設定
     var userId;
     let appData = [];
     var nickname;
@@ -592,6 +594,101 @@ function init(server) {
             let profObj = data.data
             chats.updateProfileByMessengerIdAndAppId(appId, userId, profObj);
         });
+        //insert compose
+        socket.on('find apps', (userId) => {
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            })
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!userId) {
+                        reject();
+                        return;
+                    }
+
+                    users.findAppIdsByUserId(userId, (appids) => {
+                        socket.emit('apps APPID', appids);
+                        resolve();
+                    });
+                })
+            })
+        })
+        socket.on('insert composes', (data) => {
+            let userId = data.userId;
+            let composesObj = data.composesObj;
+            let appId = data.appId;
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!appId) {
+                        reject();
+                        return;
+                    }
+                    appsComposes.insertByAppId(appId, composesObj, (result) => {
+                        resolve();
+                    });
+                })
+            }).catch((ERR) => {
+                var json = {
+                    "status": 0,
+                    "msg": ERR.MSG,
+                    "code": ERR.CODE
+                };
+            });
+        });
+        socket.on('insert composesDraft', (data) => {
+            let userId = data.userId;
+            let appId = data.appId;
+            let composesObj = data.composesObj;
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!appId) {
+                        reject();
+                        return;
+                    }
+                    appsComposes.insertByAppId(appId, composesObj, (result) => {
+                        resolve();
+                    });
+                })
+            }).catch((ERR) => {
+                var json = {
+                    "status": 0,
+                    "msg": ERR.MSG,
+                    "code": ERR.CODE
+                };
+            });
+        });
+        socket.on('find all info', (userId) => {
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            })
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!userId) {
+                        reject();
+                        return;
+                    }
+
+                    users.findAppIdsByUserId(userId, (appids) => {
+                        resolve(appids);
+                    });
+                })
+            }).then((appId) => {
+                return new Promise((resolve, reject) => {
+                    for (let i in appId) {
+                        appsComposes.findAllByAppId(appId[i], (info) => {
+                            socket.emit('composes info', info);
+                        });
+                    }
+                })
+                resolve();
+            })
+        });
         // 當使用者要看客戶之前的聊天記錄時要向上滾動
         socket.on('upload history msg from front', (data, callback) => {
             let userId = data.userId;
@@ -640,17 +737,6 @@ function init(server) {
             let time = Date.now();
             Profile.firstChat = time;
             Profile.recentChat = time;
-            console.log(Profile);
-            // appsGroupChatsMdl.insertGroup(Profile);
-            // let data = {
-            //     "Messages": [{
-            //         "agentId": "0",
-            //         "message": Profile.roomName + "已建立",
-            //         "time": time
-            //     }],
-            //     "Profile": Profile
-            // };
-            // agents.create(data);
         });
         // 5.撈出內部聊天室紀錄
         socket.on('request internal chat data', (data, callback) => {
@@ -716,13 +802,13 @@ function init(server) {
                 });
             }
         });
-        socket.on('update overview', (data) => {
+        socket.on('update overview', data => {
             overview[data.message] = data.time;
         });
         /*===訊息end===*/
         /*===設定start===*/
         // 更改channel設定
-        socket.on('update bot', (data) => {
+        socket.on('update bot', data => {
             update_line_bot(data);
         });
         socket.on('update tags', tagsData => {
@@ -741,31 +827,45 @@ function init(server) {
         /*===設定end===*/
 
         // 推播全部人
-        socket.on('push notification to all', (data) => {
-            let nowTime = Date.now();
-            // 判斷式 有U開頭就是LINE 否則就是Facebook
-            utility.checkEachClient(data, (userId, chanId) => {
-                // 初始化推播物件
-                var notificationObj = {
-                    owner: "agent",
-                    name: "notification",
-                    time: nowTime,
-                    message: "undefined message"
+        socket.on('push composes to all', (composes) => {
+            var userId = composes.userId;
+            var receivers = [];
+            let appId = composes.appId;
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            })
+            proceed.then(() => {
+                if (!appId) {
+                    return Promise.reject();
                 }
-                console.log(userId, chanId)
-                if (userId.substr(0, 1) === 'U') {
-                    utility.checkMessageLength(data, msg => {
-                        notificationObj.message = msg;
-                        send_to_Line(msg, userId, chanId);
-                        pushAndEmit(notificationObj, null, chanId, userId, 1)
-                    });
-                } else {
-                    utility.checkMessageLength(data, msg => {
-                        notificationObj.message = msg;
-                        send_to_FB(msg, userId);
-                        pushAndEmit(notificationObj, null, chanId, userId, 1)
-                    });
-                }
+                let asyncTasks = [];
+                asyncTasks.push(new Promise((resolve) => {
+                    admin.database().ref('apps/' + appId + '/chatrooms/').once('value', snap => {
+                        let chatrooms = snap.val();
+                        if (chatrooms === undefined || chatrooms === null) {
+                            chatrooms = '';
+                        }
+                        for (let i in chatrooms) {
+                            receivers.push(i);
+                            resolve(receivers);
+                        }
+                    })
+                }))
+                return Promise.all(asyncTasks);
+            }).then((receiver) => {
+                let asyncTasks = [];
+                return new Promise((resolve, reject) => {
+                    asyncTasks.push(new Promise((resolve) => {
+                        composebot[appId].multicast(receiver[0], composes.message);
+                    }))
+                    resolve();
+                    return Promise.all(asyncTasks);
+                })
+            }).catch((ERR) => {
+                var json = {
+                    "msg": ERR.MSG,
+                    "code": ERR.CODE
+                };
             });
         });
         /*===ticket start===*/
@@ -1456,30 +1556,97 @@ function init(server) {
         });
         event.reply(follow_message);
     } // end of bot_on_follow
-    function update_line_bot(chanInfo) {
-        if (chanInfo.hasOwnProperty("line_1")) {
-            bot[0] = linebot(chanInfo.line_1);
-            linebotParser[0] = bot[0].parser();
-            bot[0].on('message', bot_on_message);
-            bot[0].on('follow', bot_on_follow);
-            channelIds[0] = chanInfo.line_1.channelId;
-        }
-        if (chanInfo.hasOwnProperty("line_2")) {
-            bot[1] = linebot(chanInfo.line_2);
-            linebotParser[1] = bot[1].parser();
-            bot[1].on('message', bot_on_message);
-            bot[1].on('follow', bot_on_follow);
-            channelIds[1] = chanInfo.line_2.channelId;
-        }
-        if (chanInfo.hasOwnProperty("fb")) {
-            let fb = chanInfo.fb;
-            if ([fb.pageID, fb.appID, fb.appSecret, fb.validationToken, fb.pageToken].every((ele) => {
-                    return ele;
-                })) {
-                fb_bot = MessengerPlatform.create(chanInfo.fb);
-            }
-            channelIds[2] = chanInfo.fb.pageID;
-        }
+    function update_line_bot(data) {
+        var userId = data;
+        var proceed = new Promise((resolve, reject) => {
+            resolve();
+        })
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject();
+                    return;
+                }
+                users.findAppIdsByUserId(userId, (appid) => {
+                    let appIds = appid;
+                    if (!appIds) {
+                        reject();
+                        return;
+                    }
+                    resolve(appIds);
+                });
+            })
+        }).then((data) => {
+            return new Promise((resolve, reject) => {
+                let appId = data;
+                appsMdl.findAppsByAppIds(appId, (data) => {
+                    let app = data;
+                    if (!app) {
+                        reject();
+                        return;
+                    }
+                    resolve(app);
+                })
+            })
+        }).then((data) => {
+            return new Promise((resolve, reject) => {
+                let appobj = data;
+                let key = Object.keys(appobj);
+                let appInfo = [];
+                for (let key in appobj) {
+                    if (appobj[key].id2 === '') {
+                        appInfo[key] = {
+                            'channelId': appobj[key].id1,
+                            'channelSecret': appobj[key].secret,
+                            'channelAccessToken': appobj[key].token1
+                        }
+                        composebot[key] = linebot(appInfo[key]);
+                    } else {
+                        appInfo[key] = {
+                            'pageID': appobj[key].id1,
+                            'appID': appobj[key].id2,
+                            'appSecret': appobj[key].secret,
+                            'validationToken': appobj[key].token1,
+                            'pageToken': appobj[key].token2
+                        }
+                        composebot[key] = MessengerPlatform.create(appInfo[key]);
+                    }
+                }
+                if (!appInfo) {
+                    reject();
+                    return;
+                }
+                resolve(appInfo);
+            })
+        }).catch((ERR) => {
+            var json = {
+                "msg": ERR.MSG,
+                "code": ERR.CODE
+            };
+        });
+        // if (chanInfo.hasOwnProperty("line_1")) {
+        //     bot[0] = linebot(chanInfo.line_1);
+        //     linebotParser[0] = bot[0].parser();
+        //     bot[0].on('message', bot_on_message);
+        //     bot[0].on('follow', bot_on_follow);
+        //     channelIds[0] = chanInfo.line_1.channelId;
+        // }
+        // if (chanInfo.hasOwnProperty("line_2")) {
+        //     bot[1] = linebot(chanInfo.line_2);
+        //     linebotParser[1] = bot[1].parser();
+        //     bot[1].on('message', bot_on_message);
+        //     bot[1].on('follow', bot_on_follow);
+        //     channelIds[1] = chanInfo.line_2.channelId;
+        // }
+        // if (chanInfo.hasOwnProperty("fb")) {
+        //     let fb = chanInfo.fb;
+        //     if ([fb.pageID, fb.appID, fb.appSecret, fb.validationToken, fb.pageToken].every((ele) => {
+        //             return ele;
+        //         })) {
+        //         fb_bot = MessengerPlatform.create(chanInfo.fb);
+        //     }
+        //     channelIds[2] = chanInfo.fb.pageID;
+        // }
     } // end of update_line_bot
 
     function bot_on_send_message(data) {
@@ -1739,5 +1906,7 @@ function init(server) {
     } //loadFbProfile
     return io;
 }
+
+
 
 module.exports = init;

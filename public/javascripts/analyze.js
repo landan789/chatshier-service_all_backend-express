@@ -1,4 +1,3 @@
-
 var MessagesAPI = (function() {
     var responseChecking = function(response) {
         return Promise.resolve().then(function() {
@@ -71,6 +70,7 @@ var MessagesAPI = (function() {
     var startTime; // 決定圖表從哪個時間點開始畫
     var endTime; // 決定圖表畫到那個時間點結束
     var FIRST_MSG_TIME = 0; // 預設的startTime
+    var LAST_MSG_TIME = 0;
 
     var userId = '';
     var messagesAPI = new MessagesAPI(null);
@@ -83,11 +83,11 @@ var MessagesAPI = (function() {
         messagesAPI.reqHeaders.set('Authorization', messagesAPI.jwt);
 
         $jqDoc.on('change', '.select-time', selectTime); // 取得USER要分析的時間區間
-        $jqDoc.on('click', '#view-month', viewMonth); // 以月份為最小單位
-        $jqDoc.on('click', '#view-date', viewDate);
-        $jqDoc.on('click', '#view-hour', viewHour);
-        $jqDoc.on('click', '#view-time', viewTime);
-        $jqDoc.on('click', '#view-cloud', viewCloud);
+        $jqDoc.on('click', '#view_month', viewMonth); // 以月份為最小單位
+        $jqDoc.on('click', '#view_date', viewDate);
+        $jqDoc.on('click', '#view_hour', viewHour);
+        $jqDoc.on('click', '#view_time', viewTime);
+        $jqDoc.on('click', '#view_cloud', viewCloud);
 
         return messagesAPI.getAll(userId);
     }).then(function(respJson) {
@@ -110,23 +110,41 @@ var MessagesAPI = (function() {
             messageDataArray.sort(function(a, b) {
                 return a.time - b.time; // 以時間排序，最早的在前
             });
-            FIRST_MSG_TIME = messageDataArray[0].time; // 預設的startTime為最早的訊息的時間
+            FIRST_MSG_TIME = messageDataArray[0].time; // 預設的 startTime 為最早的訊息的時間
+            LAST_MSG_TIME = messageDataArray[messageDataArray.length - 1].time;
         } else {
-            FIRST_MSG_TIME = 0;
+            FIRST_MSG_TIME = LAST_MSG_TIME = 0;
         }
         startTime = FIRST_MSG_TIME;
-        endTime = Date.now();
+        endTime = LAST_MSG_TIME;
+
+        $('.select-time#analyze_start_time').prop('value', new Date(startTime).toISOString().split('T').shift());
+        $('.select-time#analyze_end_time').prop('value', new Date(endTime).toISOString().split('T').shift());
+
         $('#btn-container button').prop('disabled', false); // 資料載入完成，才開放USER按按鈕
+        viewTime(); // 預設從最小單位顯示分析
     });
 
     function selectTime() {
-        var start = $('.select-time#start').val();
-        var end = $('.select-time#end').val();
-        if (!start) startTime = FIRST_MSG_TIME; // 若USER未選擇開始時間，則調至預設
-        else startTime = new Date(start).getTime();
-        if (!end) endTime = Date.now(); // 若USER未選擇結束時間，則調製現在時間
-        else endTime = new Date(end).getTime();
-        if (startTime < endTime) $('#error-message').hide(); // 若開始時間 < 結束時間，隱藏錯誤訊息
+        var start = $('.select-time#analyze_start_time').val();
+        var end = $('.select-time#analyze_end_time').val();
+
+        // 若 USER 未選擇開始時間，則調至預設
+        if (!start) {
+            startTime = FIRST_MSG_TIME;
+        } else {
+            startTime = new Date(start).getTime();
+        }
+
+        if (!end) {
+            endTime = Date.now(); // 若USER未選擇結束時間，則調製現在時間
+        } else {
+            endTime = new Date(end).getTime();
+        }
+
+        if (startTime < endTime) {
+            $('#error_message').hide(); // 若開始時間 < 結束時間，隱藏錯誤訊息
+        }
     }
 
     function viewCloud() {
@@ -147,7 +165,7 @@ var MessagesAPI = (function() {
         });
         var cloudOptions = {
             list: wordfreq.process(text),
-            weightFactor: 32,
+            weightFactor: 32, // 文字雲字體大小
             clearCanvas: true
         };
         window.WordCloud($('#chartdiv')[0], cloudOptions);
@@ -362,12 +380,15 @@ var MessagesAPI = (function() {
                 includeAllValues: true
             }]
         });
+
+        // chart 建立完後，移除 AmCharts 的廣告文字
+        $('#chartdiv .amcharts-main-div a[href="http://www.amcharts.com"]').remove();
     }
 
     function isValidTime() {
         // CHECK 開始時間是否小於結束時間
         if (startTime > endTime) {
-            $('#error-message').show(); // 若否則顯示錯誤訊息
+            $('#error_message').show(); // 若否則顯示錯誤訊息
             return false;
         } else return true;
     }
