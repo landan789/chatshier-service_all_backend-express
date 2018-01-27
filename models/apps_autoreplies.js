@@ -136,7 +136,7 @@ appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callb
     }
     autoreplyIds.map((autoreplyId, index) => {
         let address = 'apps/' + appId + '/autoreplies/' + autoreplyId;
-        admin.database().ref(address).on('value', (snap) => {
+        admin.database().ref(address).once('value', (snap) => {
             let replyMessageContent = snap.val();
             if (null === replyMessageContent || undefined === replyMessageContent || '' === replyMessageContent) {
                 callback(null);
