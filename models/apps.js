@@ -114,9 +114,17 @@ apps.findAppsByAppIds = (appIds, callback) => {
 
         return admin.database().ref("apps/" + appId).once('value').then((snap) => {
             let app = snap.val();
+
+            // DB 沒有取到資料
             if (null === app || undefined === app || '' === app) {
                 return Promise.resolve(null);
             }
+
+            // 已刪除資料，不呈現於 API
+            if (app.hasOwnProperty('isDeleted') && 1 === app.isDeleted) {
+                return Promise.resolve(null);
+            }
+
             delete app.autoreplies;
             delete app.templates;
             apps[appId] = app;
