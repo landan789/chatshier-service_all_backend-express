@@ -30,66 +30,7 @@ apps.findByAppId = (appId, callback) => {
     });
 };
 
-apps.findActiveAppsByUserId = (userId, callback) => {
-
-    let procced = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    procced.then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
-                let data = snap.val();
-                resolve(data);
-            });
-        });
-    }).then((data) => {
-        let appids = data;
-        return new Promise((resolve, reject) => {
-            let active = {};
-            appids.map((appId) => {
-                let ref = "apps/" + appId;
-                admin.database().ref(ref).once("value", snap => {
-                    let app = snap.val();
-                    active[appId] = app;
-                    if (Object.keys(active).length === appids.length) {
-                        resolve(active);
-                    }
-                });
-            });
-        });
-    }).then((data) => {
-        let appObj = data;
-        let appIds = [];
-        for (let a in appObj) {
-            if (appObj[a].delete === 0) {
-                appIds.push(a);
-            }
-        }
-        callback(appIds);
-    }).catch(() => {
-        console.log('error');
-    });
-
-
-};
-
-apps.findAppIdByWebhookId = (webhookId, callback) => {
-    var procced = Promise.resolve();
-
-    procced.then(() => {
-        return admin.database().ref('webhooks/' + webhookId).once('value');
-    }).then((snap) => {
-        var webhook = snap.val();
-        var appId = webhook.app_id;
-        callback(appId);
-    }).catch(() => {
-        callback(false);
-    });
-};
-
 apps.findAppByWebhookId = (webhookId, callback) => {
-
     var procced = Promise.resolve();
 
     procced.then(() => {

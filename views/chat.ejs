@@ -21,96 +21,96 @@
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
-        <% include ../views/partials/loading.ejs %>
-            <div id="chat-Home">
-                <div class="chat-area">
-                    <div id="chat_App">
-                        <div class="chat-app-item" id="agentChat" open="true" rel="internal" data-toggle="tooltip" data-placement="right" title="內部聊天室">
-                            <img class="software-icon" src="image/group-icon.png">
+    <% include ../views/partials/loading.ejs %>
+    <div id="chat-Home">
+        <div class="chat-area">
+            <div id="chat_App">
+                <div class="chat-app-item" id="agentChat" open="true" rel="internal" data-toggle="tooltip" data-placement="right" title="內部聊天室">
+                    <img class="software-icon" src="image/group-icon.png">
+                </div>
+                <div class="chat-app-item" id="All" open="true" rel="All" data-toggle="tooltip" data-placement="right" title="全部">
+                    <img class="software-icon" src="image/message.png">
+                </div>
+                <div class="chat-app-item" id="all_unread" open="true" rel="unread" data-toggle="tooltip" data-placement="right" title="未讀">
+                    <img class="software-icon" src="image/email.png">
+                </div>
+                <div class="chat-app-item" id="assigned" open="true" rel="assigned" data-toggle="tooltip" data-placement="right" title="已指派">
+                    <img class="software-icon" src="image/check.png">
+                </div>
+                <div class="chat-app-item" id="unassigned" open="true" rel="unassigned" data-toggle="tooltip" data-placement="right" title="未指派">
+                    <img class="software-icon" src="image/close.png">
+                </div>
+            </div>
+            <div id="user" class="column">
+                <div class="search">
+                    <input type="text" id="searchBox" placeholder="Search for messages..">
+                    <span id="search-right" class="invisible">
+                <span class="number">
+                    <span id="this-number" class="this-number">1</span>
+                    <span class="slash-number">/</span>
+                    <span id="total-number" class="total-number">5</span>
+                    </span>
+                    <span class="glyphicon grey glyphicon-chevron-up" aria-hidden="true"></span>
+                    <span class="glyphicon grey glyphicon-chevron-down" aria-hidden="true"></span>
+                    </span>
+                </div>
+                <div class="tablinks-area">
+                    <ol class="list-group" id="new-user-list"></ol>
+                    <ol class="list-group" id="vip_list"></ol>
+                    <ol class="list-group" id="clients"></ol>
+                </div>
+            </div>
+            <div id="chat-content-panel" class="column">
+                <div class="chat-prof">
+                    <h4 id="prof-nick"></h4>
+                </div>
+                <div id="canvas"></div>
+                <div id="send-message">
+                    <div class="form-upper">
+                        <div class="user-room-container">
+                            <select id="user-rooms"></select>
                         </div>
-                        <div class="chat-app-item" id="All" open="true" rel="All" data-toggle="tooltip" data-placement="right" title="全部">
-                            <img class="software-icon" src="image/message.png">
-                        </div>
-                        <div class="chat-app-item" id="all_unread" open="true" rel="unread" data-toggle="tooltip" data-placement="right" title="未讀">
-                            <img class="software-icon" src="image/email.png">
-                        </div>
-                        <div class="chat-app-item" id="assigned" open="true" rel="assigned" data-toggle="tooltip" data-placement="right" title="已指派">
-                            <img class="software-icon" src="image/check.png">
-                        </div>
-                        <div class="chat-app-item" id="unassigned" open="true" rel="unassigned" data-toggle="tooltip" data-placement="right" title="未指派">
-                            <img class="software-icon" src="image/close.png">
-                        </div>
-                    </div>
-                    <div id="user" class="column">
-                        <div class="search">
-                            <input type="text" id="searchBox" placeholder="Search for messages..">
-                            <span id="search-right" class="invisible">
-                        <span class="number">
-                            <span id="this-number" class="this-number">1</span>
-                            <span class="slash-number">/</span>
-                            <span id="total-number" class="total-number">5</span>
-                            </span>
-                            <span class="glyphicon grey glyphicon-chevron-up" aria-hidden="true"></span>
-                            <span class="glyphicon grey glyphicon-chevron-down" aria-hidden="true"></span>
-                            </span>
-                        </div>
-                        <div class="tablinks-area">
-                            <ol class="list-group" id="new-user-list"></ol>
-                            <ol class="list-group" id="vip_list"></ol>
-                            <ol class="list-group" id="clients"></ol>
-                        </div>
-                    </div>
-                    <div id="chat-content-panel" class="column">
-                        <div class="chat-prof">
-                            <h4 id="prof-nick"></h4>
-                        </div>
-                        <div id="canvas"></div>
-                        <div id="send-message">
-                            <div class="form-upper">
-                                <div class="user-room-container">
-                                    <select id="user-rooms"></select>
-                                </div>
-                                <div class="insert-media">
-                                    <button data-id="file-image" data-type="image" id="attImg" class="on-click-show"><i class="fa fa-file-image-o fa" aria-hidden="true"></i></button>
-                                    <button data-id="file-video" data-type="video" id="attVid" class="on-click-show"><i class="fa fa-file-video-o fa" aria-hidden="true"></i></button>
-                                    <button data-id="file-audio" data-type="audio" id="attAud" class="on-click-show"><i class="fa fa-file-audio-o fa" aria-hidden="true"></i></button>
-                                    <input type="file" id="file-image" data-type="image" class="send-file" accept="image/*" />
-                                    <input type="file" id="file-video" data-type="video" class="send-file" accept="video/*" />
-                                    <input type="file" id="file-audio" data-type="audio" class="send-file" accept="audio/*" />
-                                </div>
-                            </div>
-                            <div class="form-lower">
-                                <input type="text" placeholder="輸入訊息..." size="35" id="message" />
-                                <input type="button" id="submitMsg" />
-                            </div>
+                        <div class="insert-media">
+                            <button data-id="file-image" data-type="image" id="attImg" class="on-click-show"><i class="fa fa-file-image-o fa" aria-hidden="true"></i></button>
+                            <button data-id="file-video" data-type="video" id="attVid" class="on-click-show"><i class="fa fa-file-video-o fa" aria-hidden="true"></i></button>
+                            <button data-id="file-audio" data-type="audio" id="attAud" class="on-click-show"><i class="fa fa-file-audio-o fa" aria-hidden="true"></i></button>
+                            <input type="file" id="file-image" data-type="image" class="send-file" accept="image/*" />
+                            <input type="file" id="file-video" data-type="video" class="send-file" accept="video/*" />
+                            <input type="file" id="file-audio" data-type="audio" class="send-file" accept="audio/*" />
                         </div>
                     </div>
-                    <div id="infoPanel" class="column">
-                        <div class="card text-left">
-                            <ul class="nav nav-pills">
-                                <li class="active"><a id="show-profile" class="show-option">用戶資料</a></li>
-                                <li><a id="show-todo" class="show-option">待辦事項</a></li>
-                            </ul>
-                            <div id="infoCanvas"></div>
-                        </div>
+                    <div class="form-lower">
+                        <input type="text" placeholder="輸入訊息..." size="35" id="message" />
+                        <input type="button" id="submitMsg" />
                     </div>
                 </div>
             </div>
-            <% include ../views/partials/add_ticket_modal.ejs %>
-                <% include ../views/partials/ticket_info_modal.ejs %>
-                    <% include ../views/partials/error_modal.ejs %>
-                        <% include ../views/partials/firebase_disable.ejs %>
-                            <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-                            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-                            <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-                            <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
-                            <script src="config/firebaseConfig.js"></script>
-                            <script src="javascripts/_firebase-auth-init.js"></script>
-                            <script src="javascripts/_firebase-auth.js"></script>
-                            <script src="javascripts/sb-admin-2.js"></script>
-                            <script src="javascripts/navigation.js"></script>
-                            <script src="javascripts/chat.js"></script>
-                            <script src="javascripts/partials/firebase-disable.js"></script>
+            <div id="infoPanel" class="column">
+                <div class="card text-left">
+                    <ul class="nav nav-pills">
+                        <li class="active"><a id="show-profile" class="show-option">用戶資料</a></li>
+                        <li><a id="show-todo" class="show-option">待辦事項</a></li>
+                    </ul>
+                    <div id="infoCanvas"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% include ../views/partials/add_ticket_modal.ejs %>
+    <% include ../views/partials/ticket_info_modal.ejs %>
+    <% include ../views/partials/error_modal.ejs %>
+    <% include ../views/partials/firebase_disable.ejs %>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
+    <script src="config/firebaseConfig.js"></script>
+    <script src="javascripts/_firebase-auth-init.js"></script>
+    <script src="javascripts/_firebase-auth.js"></script>
+    <script src="javascripts/sb-admin-2.js"></script>
+    <script src="config/socket-message.js"></script>
+    <script src="javascripts/chat.js"></script>
+    <script src="javascripts/partials/firebase-disable.js"></script>
 </body>
 
 </html>

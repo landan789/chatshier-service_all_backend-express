@@ -537,6 +537,7 @@ function insertType(type, callback) {
                 token1: lineToken,
                 type: type
             }
+            console.log(lineObj);
             callback(lineObj);
             break;
         case 'FACEBOOK':
