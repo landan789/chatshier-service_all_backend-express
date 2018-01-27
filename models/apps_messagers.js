@@ -23,7 +23,7 @@ module.exports = (function() {
             for (let idx in appIds) {
                 let appId = appIds[idx];
                 findTasks.push(new Promise((resolve, reject) => {
-                    admin.database().ref('apps/' + appId + '/messagers').on('value', (data) => {
+                    admin.database().ref('apps/' + appId + '/messagers').once('value', (data) => {
                         if (!data) {
                             messagersMap[appId] = [];
                             resolve();
@@ -58,7 +58,7 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsMessagersModel.prototype.findAppMessagersByAppId = function(appId, callback) {
-        admin.database().ref('apps/' + appId + '/messagers').on('value', (data) => {
+        admin.database().ref('apps/' + appId + '/messagers').once('value', (data) => {
             if (!data) {
                 callback();
                 return;

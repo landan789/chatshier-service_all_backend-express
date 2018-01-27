@@ -19,6 +19,8 @@ var appsMessagersCtl = require('../controllers/apps_messagers');
 var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
 // ===============
 
+var appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
+
 var router = express.Router();
 
 // HTTP body 允許 json 格式
@@ -362,5 +364,14 @@ router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
 router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.putOne);
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
+
+// ==========
+// 關鍵字回覆
+router.get('/apps/keywordreplies/users/:userid', appsKeywordrepliesCtl.getAll);
+router.get('/apps/keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.getOne);
+router.post('/apps/keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.postOne);
+router.put('/apps/keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.postOne);
+router.delete('/apps/keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.deleteOne);
+// ==========
 
 module.exports = router;

@@ -169,7 +169,7 @@ function init(server) {
 
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-            appsKeywordrepliesMdl.findMessagesByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordMessages) => {
+            appsKeywordrepliesMdl.findMessagesArrayByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordMessages) => {
                 if (null === keywordMessages || undefined === keywordMessages || '' === keywordMessages) {
                     resolve(null);
                     return;

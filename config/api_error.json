@@ -14,30 +14,43 @@
     "EVENTID_WAS_EMPTY": { "MSG": "eventid was empty", "CODE": "7" },
     "CALENDARID_WAS_EMPTY": { "MSG": "calendarid was empty", "CODE": "8" },
     "TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "10" },
+
     "APP_FAILED_TO_UPDATE": { "MSG": "app failed to update", "CODE": "11" },
     "APP_FAILED_TO_INSERT": { "MSG": "app failed to insert", "CODE": "12" },
     "APP_FAILED_TO_REMOVE": { "MSG": "app failed to remove", "CODE": "13" },
+
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "14" },
     "USER_DID_NOT_HAVE_THIS_CALENDAR": { "MSG": "user did not have this calendar", "CODE": "14" },
+
     "APP_TICKET_FAILED_TO_FIND": { "MSG": "app ticket failed to find", "CODE": "15" },
     "APP_TICKET_FAILED_TO_INSERT": { "MSG": "app ticket failed to insert", "CODE": "16" },
     "APP_TICKET_FAILED_TO_UPDATE": { "MSG": "app ticket failed to update", "CODE": "17" },
     "APP_TICKET_FAILED_TO_REMOVE": { "MSG": "app ticket failed to remove", "CODE": "18" },
+
     "APP_MESSAGER_FAILED_TO_FIND": { "MSG": "app messager failed to find", "CODE": "57" },
     "APP_MESSAGER_FAILED_TO_INSERT": { "MSG": "app messager failed to insert", "CODE": "58" },
     "APP_MESSAGER_FAILED_TO_UPDATE": { "MSG": "app messager failed to update", "CODE": "59" },
     "APP_MESSAGER_FAILED_TO_REMOVE": { "MSG": "app messager failed to remove", "CODE": "60" },
+
     "APP_RICHMENU_FAILED_TO_FIND": { "MSG": "app richmenu failed to find", "CODE": "61" },
     "APP_RICHMENU_FAILED_TO_INSERT": { "MSG": "app richmenu failed to insert", "CODE": "62" },
     "APP_RICHMENU_FAILED_TO_UPDATE": { "MSG": "app richmenu failed to update", "CODE": "63" },
     "APP_RICHMENU_FAILED_TO_REMOVE": { "MSG": "app richmenu failed to remove", "CODE": "64" },
+
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "65" },
     "CALENDAR_EVENT_FAILED_TO_INSERT": { "MSG": "calendar event failed to insert", "CODE": "66" },
     "CALENDAR_EVENT_FAILED_TO_UPDATE": { "MSG": "calendar event failed to update", "CODE": "67" },
     "CALENDAR_EVENT_FAILED_TO_REMOVE": { "MSG": "calendar event failed to remove", "CODE": "68" },
+
     "APP_AUTOREPLY_FAILED_TO_FIND": { "MSG": "app autorelpy failed to find", "CODE": "65" },
     "APP_AUTOREPLY_FAILED_TO_INSERT": { "MSG": "app autorelpy failed to insert", "CODE": "66" },
     "APP_AUTOREPLY_FAILED_TO_UPDATE": { "MSG": "app autorelpy failed to update", "CODE": "67" },
     "APP_AUTOREPLY_FAILED_TO_REMOVE": { "MSG": "app autorelpy failed to remove", "CODE": "68" },
-    "APP_CHATROOM_MESSAGES_FAILED_TO_FIND": { "MSG": "app chatroom messages failed to find", "CODE": "69" }
+
+    "APP_CHATROOM_MESSAGES_FAILED_TO_FIND": { "MSG": "app chatroom messages failed to find", "CODE": "69" },
+
+    "APP_KEYWORDREPLY_FAILED_TO_FIND": { "MSG": "app keywordreply failed to find", "CODE": "73" },
+    "APP_KEYWORDREPLY_FAILED_TO_INSERT": { "MSG": "app keywordreply failed to insert", "CODE": "74" },
+    "APP_KEYWORDREPLY_FAILED_TO_UPDATE": { "MSG": "app keywordreply failed to update", "CODE": "75" },
+    "APP_KEYWORDREPLY_FAILED_TO_REMOVE": { "MSG": "app keywordreply failed to remove", "CODE": "76" }
 }
