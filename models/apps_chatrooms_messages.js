@@ -103,7 +103,7 @@ module.exports = (function() {
      * @param {string} msgId
      */
     AppsChatroomsMessages.prototype.updateUnreadStatus = function(appId, msgId) {
-        admin.database().ref('apps/' + appId + '/messagers/' + msgId).update({unRead: 0});
+        admin.database().ref('apps/' + appId + '/messagers/' + msgId).update({ unRead: 0 });
     };
 
     /**
@@ -116,6 +116,7 @@ module.exports = (function() {
      */
     AppsChatroomsMessages.prototype._passMessages = function(appId, chatroomId, messages, callback) {
         insertMessage(0, callback);
+
         function insertMessage(index, cb) {
             let proceed = Promise.resolve();
             proceed.then(() => {
@@ -196,6 +197,47 @@ module.exports = (function() {
     };
 
     /**
+     * webhook 打入時候，儲存訊息
+     * @param {string} appId
+     * @param {string} messagerId
+     * @param {Object} message
+     * @param {Function} callback
+     */
+    AppsChatroomsMessages.prototype.insertMessageByAppIdByMessagerId = function(appId, messagerId, message, callback) {
+
+        admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value').then((snap) => {
+            var messager = snap.val();
+            return Promise.resolve(messager);
+        }).then((messager) => {
+            var chatroomId = messager.chatroom_id;
+            if ('' === chatroomId || null === chatroomId || undefined === chatroomId) {
+                var chatroom = {
+                    messages: {}
+                };
+                return admin.database().ref('apps/' + appId + '/chatrooms/').push(chatroom).then((ref) => {
+                    chatroomId = ref.key;
+                    return Promise.resolve(chatroomId);
+                });
+            }
+            return Promise.resolve(chatroomId);
+
+        }).then((chatroomId) => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
+        }).then((ref) => {
+            var chatroomId = ref.parent.parent.key;
+            var messager = {
+                chatroom_id: chatroomId
+            };
+            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager);
+        }).then(() => {
+            callback(message);
+        }).catch(() => {
+            callback(null);
+        });
+
+    }
+
+    /**
      * 根據 user ID 找到chatroom message資訊
      *
      * @param {string} userId
@@ -235,11 +277,10 @@ module.exports = (function() {
      * @param {string} messageId
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.findByAppIdByChatroomIdByMessageId = function(appId, chatroomId, callback) {
-        let address = 'apps/' + appId + '/chatrooms/' + chatroomId + '/messages';
-        admin.database().ref(address).once('value').then((snap) => {
-            let message = snap.val();
-            if (null === message || undefined === message || '' === message) {
+    AppsChatroomsMessages.prototype.findByAppIdByChatroomId = function(appId, chatroomId, callback) {
+        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
+            let messages = snap.val();
+            if (null === messages || undefined === messages || '' === messages) {
                 callback(null);
                 return;
             }

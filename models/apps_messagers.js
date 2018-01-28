@@ -121,53 +121,22 @@ module.exports = (function() {
      * @param {string} picUrl
      * @param {Function} callback
      */
-    AppsMessagersModel.prototype.updateMessenger = function(appId, msgerId, chatroomId, name, picUrl, callback) {
+    AppsMessagersModel.prototype.replace = function(appId, msgerId, messager, callback) {
         let proceed = Promise.resolve();
-
         proceed.then(() => {
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
-        }).then((snap) => {
-            let messenger = snap.val();
             return new Promise((resolve, reject) => {
-                if (null === messenger || undefined === messenger || '' === messenger) {
-                    resolve(null);
-                    return;
-                }
-                resolve(messenger);
-            });
-        }).then((messenger) => {
-            return new Promise((resolve, reject) => {
-                AppsMessagersModel.prototype._schema((initApp) => {
-                    if (null === messenger || undefined === messenger || '' === messenger) {
-                        initApp.name = name;
-                        initApp.picUrl = picUrl;
-                        initApp.chatroom_id = chatroomId;
-                        resolve({initApp});
-                        return;
-                    }
-                    resolve({messenger, initApp});
+                AppsMessagersModel.prototype._schema((initMessager) => {
+                    var messager = Object.assign(initMessager, messager);
+                    resolve(messager);
                 });
             });
-        }).then((data) => {
-            let messenger = data.messenger;
-            let initApp = data.initApp;
-            if (null === messenger || undefined === messenger || '' === messenger) { // 新客戶
-                return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).set(initApp);
-            } else { // 舊客戶
-                let nowTime = Date.now();
-                let newApp = Object.assign(initApp, messenger);
-                // 儲存最後聊天時間
-                newApp.recentChat = nowTime;
-                // 超過15分鐘聊天次數就多一次
-                let count = 900000 <= (nowTime - newApp.recentChat) ? newApp.chatTimeCount++ : newApp.chatTimeCount;
-                newApp.totalChat = count;
-                // 訊息進線就多一筆未讀訊息
-                newApp.unRead++;
-                // 計算總聊天時間
-                return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(newApp);
-            }
+        }).then((messager) => {
+            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager);
         }).then(() => {
-            callback();
+            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
+        }).then((snap) => {
+            var messager = snap.val();
+            callback(messager);
         }).catch(() => {
             callback(null);
         });
