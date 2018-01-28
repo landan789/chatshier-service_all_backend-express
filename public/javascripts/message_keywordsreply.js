@@ -1,3 +1,6 @@
+/// <reference path='../../typings/client/_firebase-auth.d.ts' />
+/// <reference path='../../typings/client/restful_api.d.ts' />
+
 (function() {
     var userId = '';
     var allKeywordreplyData = {};
