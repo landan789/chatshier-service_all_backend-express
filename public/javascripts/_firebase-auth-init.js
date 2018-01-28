@@ -1,5 +1,5 @@
 // Initialize Firebase
-firebase.initializeApp(config);
-const auth = firebase.auth();
-const database = firebase.database();
+window.firebase.initializeApp(config);
+window.auth = window.firebase.auth();
+window.database = window.firebase.database();
 // log in status

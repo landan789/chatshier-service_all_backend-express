@@ -1,5 +1,6 @@
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
+    const cipher = require('../helpers/cipher');
 
     function AppsKeywordrepliesModel() {}
 
@@ -8,6 +9,14 @@ module.exports = (function() {
      */
     AppsKeywordrepliesModel._schema = function() {
         return {
+            keyword: '',
+            subKeywords: '',
+            content: '',
+            replyCount: 0,
+            replyMessagers: '',
+            isDraft: 0,
+            createdTime: Date.now(),
+            updatedTime: Date.now(),
             isDeleted: 0
         };
     };
@@ -45,8 +54,8 @@ module.exports = (function() {
                         if (replyMessage) {
                             // 每一次收到回應後將結果丟入陣列
                             keywordreples.push({ // 推入新的物件過濾所需資料
-                                type: replyMessage.type,
-                                text: replyMessage.text
+                                type: replyMessage.type, // 這是什麼 type ?????
+                                text: replyMessage.content
                             });
                         }
                         resolve();
@@ -123,28 +132,27 @@ module.exports = (function() {
     };
 
     /**
-     * 輸入指定的 appId 與 keywordreplyId 取得該關鍵字回覆的資料
+     * 輸入指定的 appId 取得該 App 所有關鍵字回覆的資料
      *
      * @param {string} appId
-     * @param {string} keywordreplyId
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppIdByKeywordreplyId = function(appId, keywordreplyId, callback) {
+    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppId = function(appId, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
-            if (!appId || !keywordreplyId) {
+            if (!appId) {
                 return;
             }
 
             return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value', (snap) => {
+                admin.database().ref('apps/' + appId + '/keywordreplies/').once('value', (snap) => {
                     if (!snap) {
                         resolve();
                         return;
                     }
 
-                    let keywordreplyData = snap.val() || {};
-                    resolve(keywordreplyData);
+                    let keywordrepliesData = snap.val() || {};
+                    resolve(keywordrepliesData);
                 });
             });
         }).then((result) => {
@@ -167,11 +175,25 @@ module.exports = (function() {
             if (!appId || !postKeywordreply) {
                 return Promise.reject(new Error());
             }
+
+            // 1. 將傳入的資料與初始化資料合併，確保訂定的欄位一定有值
             let initKeywordreply = AppsKeywordrepliesModel._schema();
             let newKeywordreply = Object.assign(initKeywordreply, postKeywordreply);
-            return admin.database().ref('apps/' + appId + '/keywordreplies').push(newKeywordreply);
-        }).then(() => {
-            callback(true);
+            let keyword = newKeywordreply.keyword;
+            if (!keyword) {
+                return Promise.reject(new Error());
+            }
+
+            // 2. 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
+            let databaseRef = admin.database().ref('apps/' + appId + '/keywordreplies').push(newKeywordreply);
+            let keywordreplyId = databaseRef.key;
+            let messageId = cipher.createHashKey(keyword);
+            return databaseRef.then(() => {
+                // 成功新增一筆關鍵字回復資料後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
+                return { keywordreplyId, messageId };
+            });
+        }).then((data) => {
+            callback(data);
         }).catch(() => {
             callback(null);
         });
@@ -192,7 +214,7 @@ module.exports = (function() {
                 return;
             }
 
-            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply);
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).set(putKeywordreply);
         }).then(() => {
             callback(true);
         }).catch(() => {
