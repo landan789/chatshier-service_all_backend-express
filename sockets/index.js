@@ -229,12 +229,13 @@ function init(server) {
             let channelId = req.channelId;
             let chatroomId = data.chatroomId;
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.findByAppIdAndMessageId(appId, messagerId, (messager) => {
-                    if (null === messager || undefined === messager || '' === messager) {
+
+                AppsChatroomsMessages.findByAppIdByChatroomId(appId, channelId, (messages) => {
+                    if (null === messages || undefined === messages || '' === messages) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
                     }
-                    let msgObj = { appId, messagerId, channelId, chatroomId, messager };
+                    let msgObj = { appId, messagerId, channelId, chatroomId, messages };
                     resolve(msgObj);
                 });
             });
