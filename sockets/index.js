@@ -223,19 +223,19 @@ function init(server) {
                 });
             });
 
-        }).then((data) => {
+        }).then((messager) => {
             let appId = data.appId;
             let messagerId = data.userId;
             let channelId = req.channelId;
             let chatroomId = data.chatroomId;
             return new Promise((resolve, reject) => {
 
-                AppsChatroomsMessages.findByAppIdByChatroomId(appId, channelId, (messages) => {
+                AppsChatroomsMessages.findByAppIdByChatroomId(appId, chatroomId, (messages) => {
                     if (null === messages || undefined === messages || '' === messages) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
                     }
-                    let msgObj = { appId, messagerId, channelId, chatroomId, messages };
+                    let msgObj = { appId, messagerId, channelId, messages, messager };
                     resolve(msgObj);
                 });
             });
