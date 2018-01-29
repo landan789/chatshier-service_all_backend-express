@@ -131,7 +131,7 @@
                 $delCalendarBtn.hide();
 
                 $calendar.fullCalendar('unselect');
-                $('#calendar-modal').modal('show'); // 顯示新增視窗
+                $('#calendar_modal').modal('show'); // 顯示新增視窗
             },
             // edit after click.
             eventClick: function(event, jsEvent, view) { // 更改事件
@@ -171,7 +171,7 @@
                 $delCalendarBtn.show();
 
                 $calendar.fullCalendar('unselect');
-                $('#calendar-modal').modal('show'); // 顯示新增視窗
+                $('#calendar_modal').modal('show'); // 顯示新增視窗
             },
             // execute after user drag and drop an event.
             eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
@@ -307,7 +307,7 @@
         if (!event) { // 若沒有輸入事件，代表為新增行事曆事件的處理
             return api.calendar.insert(userId, eventData).then(function(response) {
                 clearInputs();
-                $('#calendar-modal').modal('hide');
+                $('#calendar_modal').modal('hide');
 
                 var calendarEventList = [];
                 var allCalendars = response.data;
@@ -350,7 +350,7 @@
                     return api.ticket.update(event.calendarId, event.id, userId, tickerData).then(function(response) {
                         $calendar.fullCalendar('removeEvents', event.id);
                         clearInputs();
-                        $('#calendar-modal').modal('hide');
+                        $('#calendar_modal').modal('hide');
 
                         var eventItem = new TicketEventItem();
                         eventItem = Object.assign(eventItem, tickerData);
@@ -370,7 +370,7 @@
                     return api.calendar.update(event.calendarId, event.id, userId, eventData).then(function(response) {
                         $calendar.fullCalendar('removeEvents', event.id);
                         clearInputs();
-                        $('#calendar-modal').modal('hide');
+                        $('#calendar_modal').modal('hide');
 
                         // 更新完之後行事曆事件後，將回傳的資訊更新至 UI
                         var calendarEventList = [];
@@ -418,7 +418,7 @@
         }).then(function() {
             $calendar.fullCalendar('removeEvents', event.id);
             clearInputs();
-            $('#calendar-modal').modal('hide');
+            $('#calendar_modal').modal('hide');
         }).catch(function(error) {
             console.error(error);
         });
@@ -496,7 +496,7 @@
         }
     }
 
-    $('#calendar-modal').on('shown.bs.modal', function() { // 在show form之後做allday判斷
+    $('#calendar_modal').on('shown.bs.modal', function() { // 在show form之後做allday判斷
         showAllday();
     });
 

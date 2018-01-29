@@ -10,34 +10,32 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
-    <link href='lib/fullcalendar/fullcalendar.min.css' rel='stylesheet' />
-    <link href='lib/fullcalendar/fullcalendar.print.min.css' rel='stylesheet' media='print' />
-    <!-- elaine修改 新增jquery-ui主題-->
-    <link rel="stylesheet" href='https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css' />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="lib/css/fullcalendar.min.css" />
+    <link rel="stylesheet" href="lib/css/fullcalendar.print.min.css" media="print" />
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css">
     <link rel="stylesheet" href="css/calendar.css">
 </head>
-<style type="text/css">
-    .font-red {
-        color: red;
-    }
-</style>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
+
     <div id="calendar-wrap">
-        <div id='calendar'></div>
+        <div id="calendar"></div>
     </div>
+
     <% include ../views/partials/calendar_modal.ejs %>
+
     <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
-    <script src="lib/fullcalendar/fullcalendar.min.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
+    <script src="lib/js/fullcalendar.min.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="config/url-config.js"></script>
     <script src="js/_firebase-auth.js"></script>

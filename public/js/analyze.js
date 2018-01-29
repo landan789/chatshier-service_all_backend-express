@@ -160,7 +160,7 @@ var MessagesAPI = (function() {
 
         var text = msgData.join(',');
         var wordfreq = new window.WordFreqSync({
-            workerUrl: '/lib/wordcloud/wordfreq.worker.js',
+            workerUrl: '/lib/js/wordfreq.worker.js',
             minimumCount: 1 // 過濾文字出現的最小次數最小
         });
         var cloudOptions = {

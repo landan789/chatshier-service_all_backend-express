@@ -29,8 +29,7 @@ window.database = window.firebase.database();
             var asyncFlag = false;
             var readyFlag = false;
 
-            if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES) ||
-                state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+            if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
                 state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
                 state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
                 state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
@@ -53,6 +52,8 @@ window.database = window.firebase.database();
             } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
                 readyFlag = true;
                 location.replace('/chat');
+            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+                location.replace('/login');
             } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
 
             }

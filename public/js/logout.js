@@ -19,6 +19,6 @@
     };
 
     logout(function() {
-        location.replace('/login');
+        // location.replace('/login');
     });
 })();
