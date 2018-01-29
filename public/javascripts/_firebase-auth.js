@@ -1,3 +1,9 @@
+// Initialize Firebase
+window.firebase.initializeApp(window.config);
+window.auth = window.firebase.auth();
+window.database = window.firebase.database();
+// log in status
+
 (function() {
     var HAS_COOKIES = parseInt('001', 2);
     var HAS_USER = parseInt('010', 2);
