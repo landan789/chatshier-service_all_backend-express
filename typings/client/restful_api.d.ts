@@ -4,7 +4,8 @@ declare interface Window {
         chatshierApp: ChatshierAppAPI,
         messager: MessagerAPI,
         ticket: TicketAPI,
-        keywordreply: KeywordreplyAPI
+        keywordreply: KeywordreplyAPI,
+        calendar: CalendarAPI
     }
 }
 
@@ -28,7 +29,14 @@ declare abstract class TicketAPI {
 declare abstract class KeywordreplyAPI {
     getAll: (userId: string) => Promise<any>;
     getOne: (appId: string, userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, newKeywordreplyData: any) => Promise<any>;
-    update: (appId: string, keywordreplyId: string, userId: string, modifiedKeywordreplyData: any) => Promise<any>;
+    insert: (appId: string, userId: string, keywordreplyData: any) => Promise<any>;
+    update: (appId: string, keywordreplyId: string, userId: string, keywordreplyData: any) => Promise<any>;
     remove: (appId: string, keywordreplyId: string, userId: string) => Promise<any>;
+}
+
+declare abstract class CalendarAPI {
+    getAll: (userId: string) => Promise<any>;
+    insert: (userId: string, calendarData: any) => Promise<any>;
+    update: (calendarId: string, eventId: string, userId: string, calendarData: any) => Promise<any>;
+    remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
 }

@@ -9,7 +9,8 @@ declare interface Window {
         /**
          * firebase 使用者登入狀態監聽器，執行此方法後會關閉監聽事件
          */
-        authStateListener: Function,
+        authStateListener: () => void,
+        signOut(): () => void,
         currentUser: FirebaseUser
     }
 }

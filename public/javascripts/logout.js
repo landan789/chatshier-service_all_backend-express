@@ -13,7 +13,7 @@
     var logout = function(callback) {
         clearCookie('name', domain);
         clearCookie('email', domain);
-        auth.signOut().then(function() {
+        window.auth.signOut().then(function() {
             callback();
         });
     };

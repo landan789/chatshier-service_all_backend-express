@@ -1,247 +1,31 @@
-/**
- * 宣告專門處理 Ticket 相關的 API 類別
- */
-var TicketAPI = (function() {
-    var responseChecking = function(response) {
-        return Promise.resolve().then(function() {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            return response.json();
-        }).then(function(respJson) {
-            if (1 !== respJson.status) {
-                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-            }
-            return respJson;
-        });
-    };
-
-    /**
-     * TicketAPI 建構子
-     *
-     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
-     */
-    function TicketAPI(jwt) {
-        this.jwt = jwt || '';
-        this.reqHeaders = new Headers();
-        this.reqHeaders.set('Content-Type', 'application/json');
-    };
-
-    /**
-     * 取得使用者所有設定待辦事項
-     *
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    TicketAPI.prototype.getAll = function(userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 取得使用者某一個 App 的待辦事項
-     *
-     * @param {string} ticketAppId - 目標待辦事項的 App ID
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    TicketAPI.prototype.getOne = function(ticketAppId, userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 新增一筆待辦事項資料
-     *
-     * @param {string} ticketAppId - 目標待辦事項的 App ID
-     * @param {string} userId - 使用者的 firebase ID
-     * @param {*} newTicketData - 欲新增的待辦事項資料
-     */
-    TicketAPI.prototype.insert = function(ticketAppId, userId, newTicketData) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/users/' + userId;
-        var reqInit = {
-            method: 'POST',
-            headers: this.reqHeaders,
-            body: JSON.stringify(newTicketData)
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 更新目標待辦事項資料
-     *
-     * @param {*} ticketAppId - 目標待辦事項的 App ID
-     * @param {*} ticketId - 目標待辦事項的 ID
-     * @param {*} userId - 使用者的 firebase ID
-     * @param {*} modifiedTicketData - 已編輯後欲更新的待辦事項資料
-     */
-    TicketAPI.prototype.update = function(ticketAppId, ticketId, userId, modifiedTicketData) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
-        var reqInit = {
-            method: 'PUT',
-            headers: this.reqHeaders,
-            body: JSON.stringify(modifiedTicketData)
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 刪除一筆待辦事項資料
-     *
-     * @param {string} ticketAppId - 目標待辦事項的 App ID
-     * @param {string} ticketId - 目標待辦事項的 ID
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    TicketAPI.prototype.remove = function(ticketAppId, ticketId, userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-tickets/apps/' + ticketAppId + '/tickets/' + ticketId + '/users/' + userId;
-        var reqInit = {
-            method: 'DELETE',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    return TicketAPI;
-})();
-
-/**
- * 宣告專門處理 Chatshier App 相關的 API 類別
- */
-var ChatshierAppAPI = (function() {
-    var responseChecking = function(response) {
-        return Promise.resolve().then(function() {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            return response.json();
-        }).then(function(respJson) {
-            if (1 !== respJson.status) {
-                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-            }
-            return respJson;
-        });
-    };
-
-    /**
-     * ChatshierAppAPI 建構子
-     *
-     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
-     */
-    function ChatshierAppAPI(jwt) {
-        this.jwt = jwt || '';
-        this.reqHeaders = new Headers();
-        this.reqHeaders.set('Content-Type', 'application/json');
-    };
-
-    /**
-     * 取得使用者所有在 Chatshier 內設定的 App
-     *
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    ChatshierAppAPI.prototype.getAll = function(userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 取得使用者所有在 Chatshier 內設定的 App 內的所有 Messagers
-     *
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    ChatshierAppAPI.prototype.getAllMessagers = function(userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-messagers/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 取得指定 AppId 內使用者的所有 Messagers
-     *
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    ChatshierAppAPI.prototype.getAllMessagersByAppId = function(appId, userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-messagers/apps/' + appId + '/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    return ChatshierAppAPI;
-})();
+/// <reference path='../../typings/client/_firebase-auth.d.ts' />
+/// <reference path='../../typings/client/config.d.ts' />
+/// <reference path='../../typings/client/restful_api.d.ts' />
 
 (function() {
     var ticketInfo = {};
     var messagersData = {};
 
+    var api = window.restfulAPI;
     var userId = '';
-    var jqDoc = $(document);
     var lastSelectedTicket = null;
-    var ticketContent = null;
 
-    var chatshierAppAPI = new ChatshierAppAPI(null);
-    var ticketAPI = new TicketAPI(null);
-
-    // ======================
-    // urlConfig undefined error handle
-    !urlConfig && (urlConfig = {});
-    !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
-    // ======================
+    var $jqDoc = $(document);
+    var $ticketContent = null;
 
     auth.ready.then(function(currentUser) {
         userId = currentUser.uid; // 儲存全域用變數 userId
-        ticketContent = $('.ticket-content');
-        ticketAPI.jwt = chatshierAppAPI.jwt = window.localStorage.getItem('jwt');
-        ticketAPI.reqHeaders.set('Authorization', ticketAPI.jwt);
-        chatshierAppAPI.reqHeaders.set('Authorization', chatshierAppAPI.jwt);
+        $ticketContent = $('.ticket-content');
 
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        jqDoc.on('click', '.ticketContent', showMoreInfo); // 查看待辦事項細節
-        jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
-        // jqDoc.on('click', '.edit', showInput);
-        // jqDoc.on('click', '.inner-text', function(event) {
+        $jqDoc.on('click', '.$ticketContent', showMoreInfo); // 查看待辦事項細節
+        $jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
+        // $jqDoc.on('click', '.edit', showInput);
+        // $jqDoc.on('click', '.inner-text', function(event) {
         //     event.stopPropagation();
         // });
-        jqDoc.on('focusout', '.inner-text', hideInput);
-        jqDoc.on('keypress', '.inner-text', function(e) {
+        $jqDoc.on('focusout', '.inner-text', hideInput);
+        $jqDoc.on('keypress', '.inner-text', function(e) {
             if (13 === e.which) $(this).blur();
         });
 
@@ -253,7 +37,7 @@ var ChatshierAppAPI = (function() {
             alertWarning.find('#yes').off('click').on('click', function() {
                 alertWarning.hide();
 
-                return ticketAPI.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
+                return api.ticket.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
                     loadTable();
 
                     var alertDanger = $('#alert-danger');
@@ -294,12 +78,12 @@ var ChatshierAppAPI = (function() {
     });
 
     function loadTable() {
-        ticketContent.empty();
+        $ticketContent.empty();
 
-        var asuncLoadTasks = [ticketAPI.getAll(userId)];
+        var asuncLoadTasks = [api.ticket.getAll(userId)];
         // 如果沒有載入過 Messagers 才進行載入動作
         if (0 === Object.keys(messagersData).length) {
-            asuncLoadTasks.push(chatshierAppAPI.getAllMessagers(userId));
+            asuncLoadTasks.push(api.messager.getAll(userId));
         }
 
         // 取得所有的 appId tickets
@@ -335,8 +119,8 @@ var ChatshierAppAPI = (function() {
                     var messagerInfo = messagersData[ticketData.messagerId] || {};
 
                     // 將每筆 ticket 資料反映於 html DOM 上
-                    ticketContent.append(
-                        '<tr id="' + ticketId + '" class="ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
+                    $ticketContent.append(
+                        '<tr id="' + ticketId + '" class="$ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
                         '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
                         '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
                         '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
@@ -545,7 +329,7 @@ var ChatshierAppAPI = (function() {
         };
 
         // 發送修改請求 api 至後端進行 ticket 修改
-        return ticketAPI.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
+        return api.ticket.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
             loadTable();
 
             var alertSuccess = $('#alert-success');
@@ -605,7 +389,7 @@ var ChatshierAppAPI = (function() {
 
     // =========[SORT CLOSE]=========
     function sortCloseTable(n) {
-        var table = ticketContent;
+        var table = $ticketContent;
         var rows;
         var switching = true;
         var i;

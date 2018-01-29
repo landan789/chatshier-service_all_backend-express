@@ -1,7 +1,15 @@
+/// <reference path='../../../typings/client/config.d.ts' />
+
 window.restfulAPI = (function() {
     var jwt = '';
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
+
+    // ======================
+    // urlConfig undefined error handle
+    !window.urlConfig && (window.urlConfig = {});
+    !window.urlConfig.apiUrl && (window.urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
+    // ======================
 
     /**
      * 設定 API 驗證身份所需的 JSON Web Token
@@ -52,6 +60,93 @@ window.restfulAPI = (function() {
         };
 
         return ChatshierAppAPI;
+    })();
+
+    /**
+     * 宣告專門處理 Calendar 相關的 API 類別
+     */
+    var CalendarAPI = (function() {
+        var urlPrefix = urlConfig.apiUrl + '/api/calendars-events/';
+        function CalendarAPI() {};
+
+        /**
+         * 取得使用者所有的 calendar 事件
+         *
+         * @param {string} userId - 使用者的 firebase id
+         */
+        CalendarAPI.prototype.getAll = function(userId) {
+            var destUrl = urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 插入一筆 calendar 事件
+         *
+         * @param {string} calendarId - 識別不同行事曆的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} calendarData - 要進行插入的 calendar 事件資料
+         */
+        CalendarAPI.prototype.insert = function(userId, calendarData) {
+            var destUrl = urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(calendarData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 更新一筆指定的 calendar 事件
+         *
+         * @param {string} calendarId - 識別不同行事曆的 ID
+         * @param {string} eventId - calendar 的事件ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} calendarData - 要進行更新的 calendar 事件資料
+         */
+        CalendarAPI.prototype.update = function(calendarId, eventId, userId, calendarData) {
+            var destUrl = urlPrefix + '/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(calendarData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 移除一筆指定的 calendar 事件
+         *
+         * @param {string} calendarId - 識別不同行事曆的 ID
+         * @param {string} eventId - calendar 的事件ID
+         * @param {string} userId - 要進行更新的 calendar 事件資料
+         */
+        CalendarAPI.prototype.remove = function(calendarId, eventId, userId) {
+            var destUrl = urlPrefix + '/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        return CalendarAPI;
     })();
 
     /**
@@ -145,14 +240,14 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} newTicketData - 欲新增的待辦事項資料
+         * @param {*} ticketData - 欲新增的待辦事項資料
          */
-        TicketAPI.prototype.insert = function(appId, userId, newTicketData) {
+        TicketAPI.prototype.insert = function(appId, userId, ticketData) {
             var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
-                body: JSON.stringify(newTicketData)
+                body: JSON.stringify(ticketData)
             };
 
             return window.fetch(destUrl, reqInit).then(function(response) {
@@ -166,14 +261,14 @@ window.restfulAPI = (function() {
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} ticketId - 目標待辦事項的 ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} modifiedTicketData - 已編輯後欲更新的待辦事項資料
+         * @param {*} ticketData - 已編輯後欲更新的待辦事項資料
          */
-        TicketAPI.prototype.update = function(appId, ticketId, userId, modifiedTicketData) {
+        TicketAPI.prototype.update = function(appId, ticketId, userId, ticketData) {
             var destUrl = urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
-                body: JSON.stringify(modifiedTicketData)
+                body: JSON.stringify(ticketData)
             };
 
             return window.fetch(destUrl, reqInit).then(function(response) {
@@ -316,10 +411,11 @@ window.restfulAPI = (function() {
     }
 
     return {
-        setJWT: setJWT,
         chatshierApp: new ChatshierAppAPI(),
+        calendar: new CalendarAPI(),
         ticket: new TicketAPI(),
         messager: new MessagerAPI(),
-        keywordreply: new KeywordreplyAPI()
+        keywordreply: new KeywordreplyAPI(),
+        setJWT: setJWT
     };
 })();

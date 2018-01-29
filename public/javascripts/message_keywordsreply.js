@@ -126,7 +126,7 @@
                 var appId = targetRow.prop('title');
                 var keywordreplyId = targetRow.prop('id');
 
-                return showDialog('你確定要刪除嗎？').then(function(isOK) {
+                return showDialog('確定要刪除嗎？').then(function(isOK) {
                     if (!isOK) {
                         return;
                     }
