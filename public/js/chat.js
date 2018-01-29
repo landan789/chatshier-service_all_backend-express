@@ -133,7 +133,7 @@ $(document).ready(function() {
                         let appKeys = Object.keys(appsInfo);
                         newData.map((item, index) => {
                             if (0 === item.delete) {
-                                newArr.push({info: item, key: appKeys[index]});
+                                newArr.push({ info: item, key: appKeys[index] });
                             }
                         });
                         resolve(newArr);
@@ -194,7 +194,7 @@ $(document).ready(function() {
                     break;
             }
         })
-        
+
     }
 
     function responseChannels(data) {
@@ -236,7 +236,7 @@ $(document).ready(function() {
                     }
                 }
 
-                resolve({activeAppKeys, activeUserIds, activeUserProfile, activeMessagers});
+                resolve({ activeAppKeys, activeUserIds, activeUserProfile, activeMessagers });
             });
         }).then((data) => {
             let app_ids = data.activeAppKeys;
@@ -251,8 +251,8 @@ $(document).ready(function() {
                         let userId = user_ids[a][u];
                         let profile = user_profile[a][u];
                         let message = messages[user_profile[a][u].chatroom_id];
-                        pushMsg({profile: profile, obj: message, userId: userId, appId: appId}, () => {
-                            pushInfo({profile: profile, obj: message, userId: userId, appId: appId});
+                        pushMsg({ profile: profile, obj: message, userId: userId, appId: appId }, () => {
+                            pushInfo({ profile: profile, obj: message, userId: userId, appId: appId });
                         });
                     }
                 }
@@ -335,7 +335,7 @@ $(document).ready(function() {
             canvas.append( //push string into canvas
                 '<div id="' + data.appId + '" rel="' + data.userId + '" class="tabcontent">' + "<div id='" + data.appId + "-content' rel='" + data.userId + "' class='messagePanel'>" + historyMsgStr + "</div>" + "</div>"
             ); // close append
-            
+
             // if (data.position != 0) $('#' + data.appId + '-content' + '[rel="' + data.userId + '"]').on('scroll', function() {
             //     detecetScrollTop($(this));
             // });
@@ -771,7 +771,7 @@ $(document).ready(function() {
                             let str = toAgentStr(msgStr, data.name, Date.now());
                             $("#" + appId + "-content" + "[rel='" + userId + "']").append(str); //push message into right canvas
                             $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
-                            $('[name="' + appId  + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
+                            $('[name="' + appId + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
                             messageInput.val('');
                             resolve();
                         } else {
@@ -831,12 +831,11 @@ $(document).ready(function() {
                     })
                     .then((data) => {
                         return new Promise((resolve, reject) => {
-                            socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId, userId, data});
+                            socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
                             resolve();
                         });
                     })
-                    .catch(reason => {
-                    });
+                    .catch(reason => {});
             }
         }
     } // end of submitMsg
@@ -862,7 +861,7 @@ $(document).ready(function() {
                     msg: '/' + type + ' ' + url,
                     msgType: type
                 }
-                socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, {appId, userId, data});
+                socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
             });
         }
     }
@@ -875,7 +874,7 @@ $(document).ready(function() {
 
     function displayMessage(messager, message, userId, appId) {
         let chats = message;
-        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
+        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length - 1]];
         console.log(lastMsgObj);
         if (name_list.indexOf(userId + appId) !== -1) { //if its chated user
             let str;
@@ -900,7 +899,7 @@ $(document).ready(function() {
 
     function displayClient(messager, message, userId, appId) {
         let chats = message;
-        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length -1]];
+        let lastMsgObj = chats[Object.keys(chats)[Object.keys(chats).length - 1]];
         if (name_list.indexOf(userId + appId) === -1) {
             let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + messager.picUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + messager.name + '</span><br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
@@ -979,7 +978,7 @@ $(document).ready(function() {
                     if (!value) value = "";
                     data[prop] = value;
                 });
-                socket.emit('update profile', {appId,userId,data});
+                socket.emit('update profile', { appId, userId, data });
             }
         }
     }
@@ -1014,8 +1013,7 @@ $(document).ready(function() {
                     }
                 }
             },
-            error: function(jqXHR, tranStatus) {
-            }
+            error: function(jqXHR, tranStatus) {}
         });
     } // end of loadTable
     function moreInfo() {
@@ -1325,20 +1323,20 @@ $(document).ready(function() {
         clientDescription = obj.描述;
         if (obj.到期時間過期 !== undefined) clientDue = obj.到期時間過期;
         else clientDue = obj.到期時間即期;
-            // var time_list = clientDue.split("/");
-            // var new_time = [];
-            // var new_time2 = [];
-            // time_list.map(function(i) {
-            //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
-            //     new_time.push(i);
-            // });
-            // new_time = new_time.join("-").split(" ");
-            // if (new_time[1].length < 8) {
-            //     new_time[1].split(":").map(function(x) {
-            //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
-            //     });
-            // };
-            // new_time = new_time.join("T") + "Z";
+        // var time_list = clientDue.split("/");
+        // var new_time = [];
+        // var new_time2 = [];
+        // time_list.map(function(i) {
+        //     if (i.length == 1 || i.length > 5 && i.startsWith(0)) i = '0' + i;
+        //     new_time.push(i);
+        // });
+        // new_time = new_time.join("-").split(" ");
+        // if (new_time[1].length < 8) {
+        //     new_time[1].split(":").map(function(x) {
+        //         if (x.length == 1) new_time[1] = new_time[1].replace(x, '0' + x);
+        //     });
+        // };
+        // new_time = new_time.join("T") + "Z";
         clientDue += ':00Z';
 
         obj = '{"name": "' + clientName + '", "subject": "' + clientId + '", "status": ' + clientStatus + ', "priority": ' + clientPriority + ', "description": "' + clientDescription + '", "due_by": "' + clientDue + '"}';
