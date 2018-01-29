@@ -121,7 +121,7 @@ module.exports = (function() {
      * @param {string} picUrl
      * @param {Function} callback
      */
-    AppsMessagersModel.prototype.replace = function(appId, msgerId, messager, callback) {
+    AppsMessagersModel.prototype.replaceMessager = function(appId, msgerId, messager, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             return new Promise((resolve, reject) => {

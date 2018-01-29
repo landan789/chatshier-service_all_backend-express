@@ -1,7 +1,7 @@
 var admin = require('firebase-admin'); // firebase admin SDK
 var appsMessages = {};
 
-appsMessages.find = (appId, messengeId, callback) => {
+appsMessages.findMessage = (appId, messengeId, callback) => {
     let proceed = Promise.resolve();
 
     proceed.then(() => {

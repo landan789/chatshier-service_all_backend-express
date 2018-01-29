@@ -122,10 +122,9 @@ function init(server) {
             req.appId = appId;
             req.messageId = cryptr.encrypt(message);
             var messageId = req.messageId;
-
-            let appsMessagesPromise = new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 // 2. 到 models/apps_messages.js，找到 keywordreply_ids
-                appsMessagesMdl.find(appId, messageId, (message) => {
+                appsMessagesMdl.findMessage(appId, messageId, (message) => {
                     if (null === message || undefined === message || '' === message) {
                         resolve(null);
                         return;
@@ -134,7 +133,6 @@ function init(server) {
                 });
             });
 
-            return appsMessagesPromise;
         }).then((message) => {
 
             req.keywordreplyIds = null === message || undefined === message.keywordreply_ids ? [] : message.keywordreply_ids;
@@ -214,7 +212,7 @@ function init(server) {
                 photo: profile.pictureUrl,
             }
             return new Promise((resolve, reject) => {
-                appsMessengersMdl.replace(appId, Uid, messager, (messager) => {
+                appsMessengersMdl.replaceMessager(appId, Uid, messager, (messager) => {
                     if (undefined === messager || '' === messager || null === messager) {
                         reject();
                         return;
