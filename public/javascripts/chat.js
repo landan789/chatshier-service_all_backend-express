@@ -1047,10 +1047,10 @@ $(document).ready(function() {
             $("#ID-num").css("background-color", priorityColor(Tinfo.priority));
             display = '<tr>' + '<th>客戶ID</th>' + '<td class="edit">' + Tinfo.subject + '</td>' + '</tr><tr>' + '<th>負責人</th>' + '<td>' + showSelect('responder', Ainfo) + '</td>' + '</tr><tr>' + '<th>優先</th>' + '<td>' + showSelect('priority', Tinfo.priority) + '</td>' + '</tr><tr>' + '<th>狀態</th>' + '<td>' + showSelect('status', Tinfo.status) + '</td>' + '</tr><tr>' + '<th>描述</th>' + '<td class="edit">' + Tinfo.description_text + '</td>' + '</tr><tr>' + '<th class="time-edit">到期時間' + dueDate(Tinfo.due_by) + '</th>' + '<td>' + '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(Tinfo.due_by) + '">' + '</td>' + '</tr><tr>' + '<th>建立日</th>' + '<td>' + displayDate(Tinfo.created_at) + '</td>' + '</tr><tr>' + '<th>最後更新</th>' + '<td>' + displayDate(Tinfo.updated_at) + '</td>' + '</tr>';
 
-            $(".info_input_table").empty();
+            $(".info-input-table").empty();
             $(".modal-header").css("border-bottom", "3px solid " + priorityColor(Tinfo.priority));
             $(".modal-title").text(Tinfo.requester.name);
-            $(".info_input_table").append(display);
+            $(".info-input-table").append(display);
         }
     } // end of moreInfo
     function showInput() {

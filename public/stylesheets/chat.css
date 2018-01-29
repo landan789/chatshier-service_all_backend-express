@@ -715,19 +715,19 @@ img[alt="無法顯示相片"] {
     padding-right: 10px;
 }
 
-.info_input_table td,
-.info_input_table th {
+.info-input-table td,
+.info-input-table th {
     border-bottom: 1px solid rgb(5, 82, 87);
     text-align: left;
     padding: 8px;
     margin: 2px 0;
 }
 
-.info_input_table {
+.info-input-table {
     width: 100%;
 }
 
-.info_input_table tr:nth-child(even) {
+.info-input-table tr:nth-child(even) {
     background-color: #33CCFF;
     color: white;
 }

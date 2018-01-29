@@ -18,7 +18,7 @@
         $ticketContent = $('.ticket-content');
 
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        $jqDoc.on('click', '.$ticketContent', showMoreInfo); // 查看待辦事項細節
+        $jqDoc.on('click', '.ticket-content .ticket-row', showMoreInfo); // 查看待辦事項細節
         $jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
         // $jqDoc.on('click', '.edit', showInput);
         // $jqDoc.on('click', '.inner-text', function(event) {
@@ -80,14 +80,14 @@
     function loadTable() {
         $ticketContent.empty();
 
-        var asuncLoadTasks = [api.ticket.getAll(userId)];
+        var asyncLoadTasks = [api.ticket.getAll(userId)];
         // 如果沒有載入過 Messagers 才進行載入動作
         if (0 === Object.keys(messagersData).length) {
-            asuncLoadTasks.push(api.messager.getAll(userId));
+            asyncLoadTasks.push(api.messager.getAll(userId));
         }
 
         // 取得所有的 appId tickets
-        return Promise.all(asuncLoadTasks).then(function(respJsons) {
+        return Promise.all(asyncLoadTasks).then(function(respJsons) {
             if (!respJsons) {
                 return;
             }
@@ -120,13 +120,13 @@
 
                     // 將每筆 ticket 資料反映於 html DOM 上
                     $ticketContent.append(
-                        '<tr id="' + ticketId + '" class="$ticketContent" data-toggle="modal" data-target="#ticket-info-modal">' +
-                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                        '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
-                        '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                        '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                        '<td id="time">' + displayDate(ticketData.dueTime) + '</td>' +
-                        '<td>' + dueDate(ticketData.dueTime) + '</td>' +
+                        '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket-info-modal">' +
+                            '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
+                            '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                            '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
+                            '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
+                            '<td id="time">' + displayDate(ticketData.dueTime) + '</td>' +
+                            '<td>' + dueDate(ticketData.dueTime) + '</td>' +
                         '</tr>');
                 }
             }
@@ -159,7 +159,7 @@
         if ('datetime-local' === $(this).attr('type')) {
             $(this).parent().html(displayDate(change));
         }
-        $(this).parent().html("<textarea  class='inner-text form-control'>" + change + '</textarea>');
+        $(this).parent().html("<textarea class='inner-text form-control'>" + change + '</textarea>');
     }
 
     function showSelect(prop, n) {
@@ -192,75 +192,49 @@
      */
     function showMoreInfo() {
         var ticketId = $(this).attr('id');
-        // var idNum = $(this).find('td:first').text();
         var ticketData = ticketInfo[ticketId];
         lastSelectedTicket = ticketData;
 
-        var infoInputTable = $('.info_input_table').empty();
-        return new Promise(function(resolve, reject) {
-            // socket.emit('get agents profile', function(socketData) {
-            //     if (!socketData) {
-            //         return reject(new Error('no socket data.'));
-            //     }
-            //     var agentList = [];
-            //     agentInfo = socketData; // 所有 agent 的名單物件
-            //     Object.keys(agentInfo).map(function(agent) agentList.push({ name: agentInfo[agent].name, id: agent }));
+        var infoInputTable = $('.info-input-table').empty();
+        var messagerInfo = messagersData[ticketData.messagerId] || {};
+        $('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
+        $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
+        $('.modal-title').text(messagerInfo.name || '');
 
-            //     return database.ref('tickets/' + userId + '/t' + idNum).once('value', function(snapshot) {
-            //         var value = snapshot.val();
-            //         if (value) {
-            //             $('option[value="' + value.owner + '"]').attr('selected', 'selected');
-            //         }
-            //     }).then(function() {
-            //         resolve(agentList);
-            //     });
-            // });
-            resolve([]);
-        }).then(function(agentList) {
-            var messagerInfo = messagersData[ticketData.messagerId] || {};
-            $('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
-            $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
-            $('.modal-title').text(messagerInfo.name || '');
-
-            var moreInfoHtml =
-                '<tr>' +
+        var moreInfoHtml =
+            '<tr>' +
                 '<th>客戶ID</th>' +
                 '<td class="edit">' + ticketData.messagerId + '</td>' +
-                '</tr>' +
-                // '<tr>' +
-                //     '<th class="agent">負責人</th>' +
-                //     '<td class="form-group">' + showSelect('responder', agentList) + '</td>' +
-                // '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th class="priority">優先</th>' +
                 '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
-                '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th class="status">狀態</th>' +
                 '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
-                '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th class="description">描述</th>' +
                 '<td class="edit form-group">' +
-                '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
+                    '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
                 '</td>' +
-                '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
                 '<td class="form-group">' +
-                '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
+                    '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
                 '</td>' +
-                '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th>建立日期</th>' +
                 '<td>' + displayDate(ticketData.createdTime) + '</td>' +
-                '</tr>' +
-                '<tr>' +
+            '</tr>' +
+            '<tr>' +
                 '<th>最後更新</th>' +
                 '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
-                '</tr>';
-            infoInputTable.append(moreInfoHtml);
-        });
+            '</tr>';
+        infoInputTable.append(moreInfoHtml);
     } // end of showMoreInfo
 
     function displayDate(date) {
@@ -309,7 +283,7 @@
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
     function modifyTicket() {
-        var modifyTable = $('#ticket-info-modal .info_input_table');
+        var modifyTable = $('#ticket-info-modal .info-input-table');
         modifyTable.find('input').blur();
 
         var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
