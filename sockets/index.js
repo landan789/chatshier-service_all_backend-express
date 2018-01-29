@@ -34,6 +34,7 @@ var API_SUCCESS = require('../config/api_success');
 const WAIT_TIME = 10000;
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
+const SYSTEM = 'SYSTEM';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -176,28 +177,29 @@ function init(server) {
             var keywordMessages = result[0];
             var templateMessages = result[1];
             var autoMessages = result[2];
-            var replyMessages = [];
+            var messages = [];
             if (null !== keywordMessages) {
-                replyMessages.concat(keywordMessages);
+                messages.concat(keywordMessages);
             };
             if (null !== templateMessages) {
-                replyMessages.concat(templateMessages);
+                messages.concat(templateMessages);
             };
 
             if (null !== autoMessages) {
-                replyMessages.concat(autoMessages);
+                messages.concat(autoMessages);
             };
 
             var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
-
-            replyMessages = [{
+            messages = [{
                 type: 'text',
-                text: 'sss'
+                text: 'sss',
+                from: SYSTEM
             }];
+            req.messages = messages;
             switch (app.type) {
                 case LINE:
-                    return lineBot.replyMessage(event.replyToken, replyMessages);
+                    return lineBot.replyMessage(event.replyToken, messages);
                     break;
                 case FACEBOOK:
                     utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
@@ -207,7 +209,6 @@ function init(server) {
             }
         }).then(() => {
             var Uid = req.body.events[0].source.userId;
-
             return lineBot.getProfile(Uid);
         }).then((profile) => {
             var Uid = req.body.events[0].source.userId;
@@ -218,6 +219,7 @@ function init(server) {
             };
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
+                    var a = 0;
                     if (undefined === messager || '' === messager || null === messager) {
                         reject();
                         return;
@@ -226,24 +228,49 @@ function init(server) {
                 });
             });
         }).then((messager) => {
+            var chatroomId = messager.chatroom_id;
+            var inMessage = {
+                text: req.body.events[0].message.text,
+                type: req.body.events[0].message.type,
+                from: (req.app.type).toUpperCase(),
+                messager_id: req.body.events[0].source.userId
+            };
+
+            // 回復訊息與傳入訊息都整合，再寫入 DB
+            req.messages.push(inMessage);
+            return Promise.all(req.messages.map((message) => {
+                return new Promise((resolve, reject) => {
+                    // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
+                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (message) => {
+                        if (null === message || undefined === message || '' === message) {
+                            resolve(null);
+                            return;
+                        }
+                        resolve(message);
+                    });
+                });
+            })).then(() => {
+                // 回復訊息與傳入訊息都整合，再寫入 DB。2.Promise.all 批次寫入 DB 後 把 messager 傳給下個 block
+                return Promise.resolve(messager);
+            });
+        }).then((messager) => {
             let appId = req.appId;
             let messagerId = req.body.events[0].source.userId;
             let channelId = req.app.channelId;
             let chatroomId = messager.chatroom_id;
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.findByAppIdByChatroomId(appId, chatroomId, (messages) => {
-                    if (null === messages || undefined === messages || '' === messages) {
+                appsChatroomsMessagesMdl.findAppsChatroomsMessages(appId, chatroomId, (AppsChatroomsMessages) => {
+                    if (null === AppsChatroomsMessages || undefined === AppsChatroomsMessages || '' === AppsChatroomsMessages) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
                     }
-                    let msgObj = { appId, messagerId, channelId, messages, messager };
-                    resolve(msgObj);
+                    resolve(AppsChatroomsMessages);
                 });
             });
-        }).then((msgObj) => {
+        }).then((AppsChatroomsMessages) => {
             // 6. 用 socket.emit 回傳訊息給 clinet
 
-            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, msgObj);
+            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, AppsChatroomsMessages);
             res.sendStatus(200);
         }).catch((ERR) => {
             res.status(403);
@@ -421,7 +448,9 @@ function init(server) {
             }).then((data) => {
                 let appsMessengers = data;
                 callback(appsMessengers);
-            }).catch((error) => {});
+            }).catch(() => {
+                callback(null);
+            });
         });
         // 從SHIELD chat傳送訊息
         socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
@@ -482,7 +511,7 @@ function init(server) {
                         text: msg,
                         from: vendor.type
                     };
-                    appsChatroomsMessagesMdl.insertChatroomMessage(appId, chatroomId, message, (newChatroomId) => {
+                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (newChatroomId) => {
                         if (null === newChatroomId || undefined === newChatroomId || '' === newChatroomId) {
                             resolve(null);
                             return;
@@ -576,7 +605,7 @@ function init(server) {
             // }).then((data) => {
             //     let msgObj = data;
             //     return new Promise((resolve, reject) => {
-            //         appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {
+            //         appsChatroomsMessagesMdl.insertMessage(appId, receiver, msgObj, () => {
             //         });
             //     });
             // }).catch((ERR) => { });
@@ -981,7 +1010,7 @@ function init(server) {
             .then((data) => {
                 let msgObj = data;
                 return new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.insertChatroomMessage(appId, receiver, msgObj, () => {});
+                    appsChatroomsMessagesMdl.insertMessage(appId, receiver, msgObj, () => {});
                 });
             })
             .catch((ERR) => {});

@@ -4,6 +4,20 @@ module.exports = (function() {
     function AppsChatroomsMessages() {}
 
     /**
+     * 初始化Message的資訊
+     *
+     * @param {Function} callback
+     */
+    AppsChatroomsMessages.prototype._schema = function(callback) {
+        var json = {
+            from: '',
+            messager_id: '',
+            text: '',
+            time: Date.now()
+        };
+        callback(json);
+    };
+    /**
      * 根據 App ID 清單，取得對應的所有聊天室訊息
      *
      * @param {string[]} appIds
@@ -107,68 +121,6 @@ module.exports = (function() {
     };
 
     /**
-     * 內部功能 儲存訊息 有遞迴的功能
-     *
-     * @param {string} appId
-     * @param {string} chatroomId
-     * @param {Array} messages
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype._passMessages = function(appId, chatroomId, messages, callback) {
-        insertMessage(0, callback);
-
-        function insertMessage(index, cb) {
-            let proceed = Promise.resolve();
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    if (index >= messages.length) {
-                        reject();
-                        return;
-                    }
-                    resolve();
-                });
-            }).then(() => {
-                let message = messages[index];
-                let msg = {
-                    from: 'line',
-                    text: 'text' === message.type ? message.text : 'show ' + message.type,
-                    name: 'bot',
-                    owner: 'agent',
-                    time: Date.now()
-                };
-                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(msg);
-            }).then(() => {
-                insertMessage(index + 1, cb);
-            }).catch(() => {
-                cb();
-            });
-        }
-    };
-
-    /**
-     * 儲存訊息 使用內部功能_passMessages
-     *
-     * @param {string} appId
-     * @param {string} chatroomId
-     * @param {Array} messages
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.insertReplyMessages = function(appId, chatroomId, messages, callback) {
-        let proceed = Promise.resolve();
-        if (0 === messages.length) {
-            callback();
-            return;
-        }
-        proceed.then(() => {
-            AppsChatroomsMessages._passMessages(appId, chatroomId, messages, () => {
-                callback();
-            });
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
      * 存單一訊息
      *
      * @param {string} appId
@@ -176,21 +128,23 @@ module.exports = (function() {
      * @param {Object} message
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.insertChatroomMessage = function(appId, chatroomId, message, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+    AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
+        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().then((ref) => {
+            var messageId = ref.key;
+            return Promise.resolve(messageId);
+        }).then((messageId) => {
             return new Promise((resolve, reject) => {
-                let chatroomMessageId = admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().key;
-                resolve(chatroomMessageId);
-            });
-        }).then((chatroomMessageId) => {
-            return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + chatroomMessageId).set(message).then(() => {
-                    resolve(chatroomId);
+                AppsChatroomsMessages.prototype._schema((_message) => {
+                    message = Object.assign(_message, message);
+                    resolve([messageId, message]);
                 });
             });
-        }).then((chatroomId) => {
-            callback(chatroomId);
+        }).then((result) => {
+            var messageId = result[0];
+            message = result[1];
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).set(message);
+        }).then(() => {
+            callback(message);
         }).catch(() => {
             callback(null);
         });
@@ -270,6 +224,35 @@ module.exports = (function() {
     };
 
     /**
+     * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
+     *
+     * @param {string} appId
+     * @param {string} chatroomId
+     * @param {string} messageId
+     * @param {Function} callback
+     */
+    AppsChatroomsMessages.prototype.findAppsChatroomsMessages = function(appId, chatroomId, callback) {
+        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
+            let messages = snap.val();
+            if (null === messages || undefined === messages || '' === messages) {
+                return Promise.reject();
+            }
+            var appsChatroomsMessages = {};
+            var chatroomsMessages = {};
+            chatroomsMessages[messages] = {
+                messages: messages
+            };
+            appsChatroomsMessages[appId] = {
+                chatrooms: chatroomsMessages
+            };
+            return Promise.resolve(appsChatroomsMessages);
+        }).then((appsChatroomsMessages) => {
+            callback(appsChatroomsMessages);
+        }).catch(() => {
+            callback(null);
+        });
+    };
+    /**
      * 根據App ID, Chatroom ID, Message ID找到 Message 資訊
      *
      * @param {string} appId
@@ -277,14 +260,17 @@ module.exports = (function() {
      * @param {string} messageId
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.findByAppIdByChatroomId = function(appId, chatroomId, callback) {
+    AppsChatroomsMessages.prototype.findMessages = function(appId, chatroomId, callback) {
         admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
             let messages = snap.val();
             if (null === messages || undefined === messages || '' === messages) {
-                callback(null);
-                return;
+                return Promise.reject();
             }
-            callback(message);
+            return Promise.resolve(messages);
+        }).then((messages) => {
+            callback(messages);
+        }).catch(() => {
+            callback(null);
         });
     };
 
