@@ -145,7 +145,7 @@ function init(server) {
         var p1 = new Promise((resolve, reject) => {
             appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
                 if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies || (keywordreplies instanceof Array && 0 === keywordreplies.length)) {
-                    resolve(null);
+                    resolve({});
                     return;
                 }
 
@@ -156,7 +156,7 @@ function init(server) {
         var p2 = new Promise((resolve, reject) => {
             appsTemplatesMdl.findTemplatesByAppIdByTemplateIds(appId, templateIds, (templates) => {
                 if (null === templates || undefined === templates || '' === templates || (templates instanceof Array && 0 === templates.length)) {
-                    resolve(null);
+                    resolve({});
                     return;
                 }
                 resolve(templates);
@@ -166,7 +166,7 @@ function init(server) {
         var p3 = new Promise((resolve, reject) => {
             appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
                 if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
-                    resolve(null);
+                    resolve({});
                     return;
                 }
                 resolve(autoreplies);
@@ -174,28 +174,23 @@ function init(server) {
         });
 
         Promise.all([p1, p2, p3]).then((result) => {
-            var keywordMessages = result[0];
-            var templateMessages = result[1];
-            var autoMessages = result[2];
+            var keywordMessages = Object.values(result[0]);
+            var templateMessages = Object.values(result[1]);
+            var autoMessages = Object.values(result[2]);
             var messages = [];
             if (null !== keywordMessages) {
-                messages.concat(keywordMessages);
+                messages = messages.concat(keywordMessages);
             };
             if (null !== templateMessages) {
-                messages.concat(templateMessages);
+                messages = messages.concat(templateMessages);
             };
 
             if (null !== autoMessages) {
-                messages.concat(autoMessages);
+                messages = messages.concat(autoMessages);
             };
 
             var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
-            messages = [{
-                type: 'text',
-                text: 'sss',
-                from: SYSTEM
-            }];
             req.messages = messages;
             switch (app.type) {
                 case LINE:
