@@ -1,18 +1,37 @@
 var admin = require('firebase-admin'); // firebase admin SDK
 var appsMessages = {};
 
+appsMessages.findMessage = (appId, messengeId, callback) => {
+    let proceed = Promise.resolve();
+
+    proceed.then(() => {
+        return admin.database().ref('apps/' + appId + '/messages/' + messengeId).once('value');
+    }).then((snap) => {
+        let message = snap.val();
+        if (null === message || undefined === message || '' === message) {
+            return Promise.reject();
+        }
+
+        return Promise.resolve(message);
+
+    }).then((message) => {
+        callback(message);
+
+    }).catch(() => {
+        callback(null);
+    });
+};
 appsMessages.findKeywordreplyIds = (appId, messengeId, callback) => {
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return admin.database().ref('apps/' + appId + '/messages/' + messengeId).once('value');
     }).then((snap) => {
-        let keywordreplies = snap.val();
-        if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies) {
-            reject();
-            return;
+        let message = snap.val();
+        if (null === message || undefined === message || '' === message) {
+            return Promise.reject();
         }
-        callback(keywordreplies.keywordreply_ids);
+        callback(message.keywordreply_ids);
     }).catch(() => {
         callback(null);
     });
@@ -24,12 +43,11 @@ appsMessages.findTemplateIds = (appId, messengeId, callback) => {
     proceed.then(() => {
         return admin.database().ref('apps/' + appId + '/messages/' + messengeId).once('value');
     }).then((snap) => {
-        let templatereplies = snap.val();
-        if (null === templatereplies || undefined === templatereplies || '' === templatereplies) {
-            reject();
-            return;
+        let message = snap.val();
+        if (null === message || undefined === message || '' === message) {
+            return Promise.reject();
         }
-        callback(templatereplies.template_ids);
+        callback(message.template_ids);
     }).catch(() => {
         callback(null);
     });

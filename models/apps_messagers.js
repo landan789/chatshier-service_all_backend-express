@@ -110,7 +110,6 @@ module.exports = (function() {
         };
         callback(json);
     };
-
     /**
      * 更新Messager的資料
      *
@@ -121,53 +120,46 @@ module.exports = (function() {
      * @param {string} picUrl
      * @param {Function} callback
      */
-    AppsMessagersModel.prototype.updateMessenger = function(appId, msgerId, chatroomId, name, picUrl, callback) {
+    AppsMessagersModel.prototype.replaceMessager = function(appId, msgerId, messager, callback) {
         let proceed = Promise.resolve();
-
         proceed.then(() => {
             return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
         }).then((snap) => {
-            let messenger = snap.val();
+            var messager = snap.val();
+            if (null === messager || undefined === messager || '' === messager || '' === messager.chatroom_id || null == messager.chatroom_id || undefined === messager.chatroom_id) {
+                return admin.database().ref('apps/' + appId + '/chatrooms').push().then((ref) => {
+                    var chatroomId = ref.key;
+                    return Promise.resolve(chatroomId);
+                });
+                // return new Promise((resolve, reject) => {
+                //     AppsMessagersModel.prototype.__schema((initMessage) => {
+                //         resolve([initMessage, chatroomId]);
+                //     });
+                // });
+                // }).then((result) => {
+                //     var message = result[0];
+                //     var chatroomId = result[1];
+                //     return Promise.all([admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').update(message), chatroomId]);
+                // }).then((result) => {
+                //     var chatroomId = result[1];
+                //     return Promise.resolve(chatroomId);
+                // });
+            };
+            var chatroomId = messager.chatroom_id;
+            return Promise.resolve(chatroomId);
+        }).then((chatroomId) => {
             return new Promise((resolve, reject) => {
-                if (null === messenger || undefined === messenger || '' === messenger) {
-                    resolve(null);
-                    return;
-                }
-                resolve(messenger);
-            });
-        }).then((messenger) => {
-            return new Promise((resolve, reject) => {
-                AppsMessagersModel.prototype._schema((initApp) => {
-                    if (null === messenger || undefined === messenger || '' === messenger) {
-                        initApp.name = name;
-                        initApp.picUrl = picUrl;
-                        initApp.chatroom_id = chatroomId;
-                        resolve({initApp});
-                        return;
-                    }
-                    resolve({messenger, initApp});
+                AppsMessagersModel.prototype._schema((initMessager) => {
+                    messager.chatroom_id = chatroomId;
+                    messager = Object.assign(initMessager, messager);
+                    resolve(messager);
                 });
             });
-        }).then((data) => {
-            let messenger = data.messenger;
-            let initApp = data.initApp;
-            if (null === messenger || undefined === messenger || '' === messenger) { // 新客戶
-                return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).set(initApp);
-            } else { // 舊客戶
-                let nowTime = Date.now();
-                let newApp = Object.assign(initApp, messenger);
-                // 儲存最後聊天時間
-                newApp.recentChat = nowTime;
-                // 超過15分鐘聊天次數就多一次
-                let count = 900000 <= (nowTime - newApp.recentChat) ? newApp.chatTimeCount++ : newApp.chatTimeCount;
-                newApp.totalChat = count;
-                // 訊息進線就多一筆未讀訊息
-                newApp.unRead++;
-                // 計算總聊天時間
-                return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(newApp);
-            }
-        }).then(() => {
-            callback();
+        }).then((messager) => {
+            return Promise.all([admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager), messager]);
+        }).then((result) => {
+            var messager = result[1];
+            callback(messager);
         }).catch(() => {
             callback(null);
         });

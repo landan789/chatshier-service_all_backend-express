@@ -15,7 +15,6 @@ appsAutoreplies._schema = (callback) => {
     callback(json)
 };
 appsAutoreplies.insert = (appId, autoreply, callback) => {
-
     admin.database().ref('apps/' + appId + '/autoreplies').push().then((ref) => {
         var autoreplyId = ref.key;
         return new Promise((resolve, reject) => {
@@ -51,8 +50,7 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value', snap => {
         let autoreply = snap.val();
         if (undefined === autoreplyId || '' === autoreplyId || null === autoreplyId) {
-            reject();
-            return;
+            return Promise.reject();
         }
         var appsAutoreplies = {};
         var _autoreplies = {};
@@ -63,6 +61,14 @@ appsAutoreplies.find = (appId, autoreplyId, callback) => {
         callback(appsAutoreplies);
     }).catch(() => {
         callback(null);
+    });
+};
+
+appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
+    admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        callback(snap);
+    }).catch(() => {
+        callback(false);
     });
 };
 
@@ -89,7 +95,6 @@ appsAutoreplies.update = (appId, autoreplyId, autoreply, callback) => {
     }).catch(() => {
         callback(null);
     });
-
 };
 
 appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
@@ -117,8 +122,7 @@ appsAutoreplies.findAutoreplyIds = (appId, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies/').once('value').then((snap) => {
         var appsAutoreplies = snap.val();
         if (undefined === appsAutoreplies || '' === appsAutoreplies || null === appsAutoreplies) {
-            reject();
-            return;
+            return Promise.reject();
         }
         var autoreplyIds = Object.keys(appsAutoreplies);
 
@@ -128,31 +132,24 @@ appsAutoreplies.findAutoreplyIds = (appId, callback) => {
     });
 };
 
-appsAutoreplies.findMessagesByAppIdAndAutoreplyIds = (appId, autoreplyIds, callback) => {
-    let autoreplies = [];
-    if (!autoreplyIds) {
+/**
+ * 找到 自動回復未刪除的資料包，不含 apps 結構
+ */
+
+appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
+
+    var procced = Promise.resolve();
+
+    admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        var autoreplies = snap.val();
+        if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
+            return Promise.reject();
+        }
+        return Promise.resolve(autoreplies);
+    }).then((autoreplies) => {
         callback(autoreplies);
-        return;
-    }
-    autoreplyIds.map((autoreplyId, index) => {
-        let address = 'apps/' + appId + '/autoreplies/' + autoreplyId;
-        admin.database().ref(address).on('value', (snap) => {
-            let replyMessageContent = snap.val();
-            if (null === replyMessageContent || undefined === replyMessageContent || '' === replyMessageContent) {
-                callback(null);
-                return;
-            }
-            let createdTime = replyMessageContent.createdTime;
-            let finishedTime = replyMessageContent.finishedTime;
-            let now = utility.DateTimezone(8);
-            let tpeTime = now.getTime();
-            if (tpeTime < finishedTime && tpeTime > createdTime) {
-                autoreplies.push({ type: replyMessageContent.type, text: replyMessageContent.text });
-            }
-            if (index === (autoreplyIds.length - 1)) {
-                callback(autoreplies);
-            }
-        });
+    }).catch(() => {
+        callback(null);
     });
 };
 

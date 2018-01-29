@@ -8,37 +8,30 @@ templates.findByAppId = (appId, callback) => {
     });
 }
 
-templates.findMessagesByAppIdAndTemplateIds = (appId, templateIds, callback) => {
-    let templates = [];
-    if (null === templateIds) {
-        callback(templates);
-        return;
-    }
-    templateIds.map((templateId, index) => {
-        let address = 'apps/' + appId + '/templates/' + templateId;
-        admin.database().ref(address).once('value', (snap) => {
-            let replyMessage = snap.val();
-            templates.push(replyMessage);
-            if (index === (templateIds.length - 1)) {
-                callback(templates);
-            }
-        });
+templates.findTemplatesByAppIdByTemplateIds = (appId, templateIds, callback) => {
+
+    Promise.all(templateIds.map((templateId) => {
+        return admin.database().ref('apps/' + appId + '/keywordreplies/' + templateId).once('value');
+    })).then((result) => {
+        callback(result);
+    }).catch(() => {
+        callback(false);
     });
-}
+};
 
 templates.insertByAppId = (appId, obj, callback) => {
     let templatesId = admin.database().ref('apps/' + appId + '/templates').push().key;
     admin.database().ref('apps/' + appId + '/templates/' + templatesId).update(obj);
     callback();
-}
+};
 
 templates.updateByAppIdByTemplateId = function(appId, templateId, obj, callback) {
     admin.database().ref('apps/' + appId + '/templates/' + templateId).update(obj);
-}
+};
 
 templates.removeByAppIdByTemplateId = function(appId, templateId, callback) {
     admin.database().ref('apps/' + appId + '/templates/' + templateId).remove();
     callback();
-}
+};
 
 module.exports = templates;
