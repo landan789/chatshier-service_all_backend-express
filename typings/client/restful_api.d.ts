@@ -29,6 +29,6 @@ declare abstract class KeywordreplyAPI {
     getAll: (userId: string) => Promise<any>;
     getOne: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, newKeywordreplyData: any) => Promise<any>;
-    update: (appId: string, KeywordreplyId: string, userId: string, modifiedKeywordreplyData: any) => Promise<any>;
-    remove: (appId: string, KeywordreplyId: string, userId: string) => Promise<any>;
+    update: (appId: string, keywordreplyId: string, userId: string, modifiedKeywordreplyData: any) => Promise<any>;
+    remove: (appId: string, keywordreplyId: string, userId: string) => Promise<any>;
 }

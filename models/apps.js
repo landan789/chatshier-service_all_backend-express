@@ -38,7 +38,7 @@ apps.findAppByWebhookId = (webhookId, callback) => {
     }).then((snap) => {
         var webhook = snap.val();
         var appId = webhook.app_id;
-        return admin.database().ref('apps/' + appId).once('value');;
+        return admin.database().ref('apps/' + appId).once('value');
     }).then((snap) => {
         var app = snap.val();
         callback(app);

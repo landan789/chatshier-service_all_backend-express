@@ -2,6 +2,7 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
 
+    const cipher = require('../helpers/cipher');
     const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
     const appsMessagesMdl = require('../models/apps_messages');
     const usersMdl = require('../models/users');
@@ -139,7 +140,8 @@ module.exports = (function() {
             replyMessagers: req.body.replyMessagers || '',
             isDraft: req.body.isDraft || 0,
             createdTime: req.body.createdTime || Date.now(),
-            updatedTime: req.body.updatedTime || Date.now()
+            updatedTime: req.body.updatedTime || Date.now(),
+            isDeleted: 0
         };
 
         let proceed = Promise.resolve();
@@ -223,12 +225,87 @@ module.exports = (function() {
      * @param {Function} next
      */
     AppsKeywordrepliesController.prototype.putOne = function(req, res, next) {
+        let appId = req.params.appid;
+        let keywordreplyId = req.params.keywordreplyid;
         let userId = req.params.userid;
+
+        let putKeywordreplyData = {
+            keyword: req.body.keyword || '',
+            subKeywords: req.body.subKeywords || '',
+            content: req.body.content || '',
+            replyCount: req.body.replyCount || 0,
+            replyMessagers: req.body.replyMessagers || '',
+            isDraft: req.body.isDraft || 0,
+            updatedTime: req.body.updatedTime || Date.now()
+        };
 
         let proceed = Promise.resolve();
         proceed.then(() => {
+            // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
-                resolve();
+                if (!userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
+
+                usersMdl.findAppIdsByUserId(userId, (data) => {
+                    resolve(data);
+                });
+            });
+        }).then((appIds) => {
+            return new Promise((resolve, reject) => {
+                // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                if (!appIds) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                } else if (-1 === appIds.indexOf(appId)) {
+                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+
+                // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
+                appsKeywordrepliesMdl.findKeywordrepliesByAppId(appId, (keywordrepliesData) => {
+                    let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
+                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
+                        if (!(keywordreplyIds instanceof Array)) {
+                            resolve([]);
+                            return;
+                        }
+
+                        let idx = keywordreplyIds.indexOf(keywordreplyId);
+                        if (idx >= 0) {
+                            keywordreplyIds.splice(idx, 1);
+                            appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, () => {
+                                resolve(keywordreplyIds);
+                            });
+                            return;
+                        }
+                        resolve(keywordreplyIds);
+                    });
+                });
+            });
+        }).then((keywordreplyIds) => {
+            return new Promise((resolve, reject) => {
+                if (!(keywordreplyIds instanceof Array)) {
+                    reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
+                    return;
+                }
+
+                // 4. 更新指定的 appId 中的 keywordreply 資料
+                appsKeywordrepliesMdl.updateByAppIdByKeywordreplyId(appId, keywordreplyId, putKeywordreplyData, (data) => {
+                    if (!data) {
+                        reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
+                        return;
+                    }
+
+                    // 5. 更新 messages 欄位的 keywordreply_ids
+                    let messageId = data.messageId;
+                    keywordreplyIds.push(data.keywordreplyId);
+                    appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, (data) => {
+                        resolve(data);
+                    });
+                });
             });
         }).then((data) => {
             let json = {
@@ -282,7 +359,30 @@ module.exports = (function() {
                     return;
                 }
 
-                // 3. 刪除指定的 appId 中的 keywordreply 資料
+                // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
+                appsKeywordrepliesMdl.findKeywordrepliesByAppId(appId, (keywordrepliesData) => {
+                    let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
+                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
+                        if (!(keywordreplyIds instanceof Array)) {
+                            resolve();
+                            return;
+                        }
+
+                        let idx = keywordreplyIds.indexOf(keywordreplyId);
+                        if (idx >= 0) {
+                            keywordreplyIds.splice(idx, 1);
+                            appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, () => {
+                                resolve();
+                            });
+                            return;
+                        }
+                        resolve();
+                    });
+                });
+            });
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                // 4. 刪除指定的 appId 中的 keywordreply 資料
                 appsKeywordrepliesMdl.removeByAppIdByKeywordreplyId(appId, keywordreplyId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);

@@ -76,7 +76,7 @@ router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:use
 router.get('/apps-keywordreplies/users/:userid', appsKeywordrepliesCtl.getAll);
 router.get('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.getOne);
 router.post('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.postOne);
-router.put('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.postOne);
+router.put('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.putOne);
 router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.deleteOne);
 // ==========
 

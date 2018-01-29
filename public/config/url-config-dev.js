@@ -1,4 +1,4 @@
-var urlConfig = {
+window.urlConfig = {
     wwwUrl: '',
     port: '',
     index: '/index.html',
@@ -6,4 +6,4 @@ var urlConfig = {
     privacy: '/privacy.html',
     webhookUrl: 'https://dev-chatshier.herokuapp.com/webhook',
     apiUrl: 'https://api.chatshier.com/'
-}
+};

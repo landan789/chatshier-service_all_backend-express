@@ -1,4 +1,5 @@
 /// <reference path='../../typings/client/_firebase-auth.d.ts' />
+/// <reference path='../../typings/client/config.d.ts' />
 /// <reference path='../../typings/client/restful_api.d.ts' />
 
 (function() {
@@ -8,25 +9,23 @@
 
     var $jqDoc = $(document);
     var $keywordreplyAddModal = null;
+    var $keywordreplyEditModal = null;
     var $appSelectElem = null;
-    var $servingElem = null;
-    var $waitingElem = null;
+    var $openTableElem = null;
+    var $draftTableElem = null;
 
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
-        $jqDoc.on('click', '.tablinks', clickMsg);
-        $jqDoc.on('click', '#csv', noCsv);
-        $jqDoc.on('click', '#viewBtn', loadView);
-        $jqDoc.on('click', '#editBtn', openEdit);
-        $jqDoc.on('click', '#deleBtn', deleteRow);
-        $jqDoc.on('click', '#edit-submit', modalEdit);
+        $jqDoc.on('click', '.tablinks', function switchTable() {
+            var target = $(this).attr('rel');
+            $('#' + target).show().siblings().hide();
+        });
 
         // ==========
-        // 設定新增關鍵字 modal 相關 element 與事件
+        // 設定關鍵字新增 modal 相關 element 與事件
         $keywordreplyAddModal = $('#keywordreply_add_modal');
         $appSelectElem = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
-
         $keywordreplyAddModal.on('show.bs.modal', function() {
             // 新增 modal 即將顯示事件發生時，將 App 清單更新
             $appSelectElem.empty();
@@ -35,107 +34,112 @@
                 $appSelectElem.append('<option value="' + appId + '">' + appData.name + '</option>');
             }
         });
-
-        $keywordreplyAddModal.find('.modal-footer button.btn-submit').on('click', insertSubmit);
+        $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
         // ==========
 
-        $servingElem = $('#serving');
-        $waitingElem = $('#waiting');
+        // ==========
+        // 設定關鍵字編輯 modal 相關 element 與事件
+        $keywordreplyEditModal = $('#keywordreply_edit_modal');
+        $keywordreplyEditModal.on('show.bs.modal', function(event) {
+            // 編輯 modal 即將顯示事件發生時，將欄位資料更新
+            var targetRow = $(event.relatedTarget).parent().parent();
+            var appId = targetRow.prop('title');
+            var keywordreplyId = targetRow.prop('id');
+            var targetData = allKeywordreplyData[appId].keywordreplies[keywordreplyId];
 
-        // 先取得使用者所有的 AppId 清單儲存至本地端
-        api.chatshierApp.getAll(userId).then(function(resJson) {
-            allKeywordreplyData = resJson.data;
-            loadKeywordsReply();
+            var editForm = $keywordreplyEditModal.find('.modal-body form');
+            editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
+            editForm.find('textarea[name="keywordreply-content"]').val(targetData.content);
+
+            // 如果是屬於草稿則顯示 checkbox 否則隱藏
+            var checkboxIsDraft = editForm.find('.form-check.checkbox-is-draft');
+            checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !!targetData.isDraft);
+            if (targetData.isDraft) {
+                checkboxIsDraft.show();
+            } else {
+                checkboxIsDraft.hide();
+            }
+
+            $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
+                targetData.keyword = editForm.find('input[name="keywordreply-keyword"]').val();
+                targetData.content = editForm.find('textarea[name="keywordreply-content"]').val();
+                targetData.isDraft = editForm.find('input[name="keywordreply-is-draft"]').prop('checked');
+                targetData.updatedTime = new Date().getTime();
+
+                return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
+                    $keywordreplyEditModal.modal('hide');
+                    return loadKeywordsReplies();
+                });
+            });
+        });
+        // ==========
+
+        $openTableElem = $('#keywordreply_open_table tbody');
+        $draftTableElem = $('#keywordreply_draft_table tbody');
+        return loadKeywordsReplies().then(function() {
+            // 資料確定載入完成後才開放新增按鈕供使用者點擊
+            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled');
         });
     });
 
-    function loadKeywordsReply() {
-        $servingElem.empty();
-        $waitingElem.empty();
+    function loadKeywordsReplies() {
+        // 先取得使用者所有的 AppId 清單更新至本地端
+        return api.chatshierApp.getAll(userId).then(function(resJson) {
+            allKeywordreplyData = resJson.data;
+            $openTableElem.empty();
+            $draftTableElem.empty();
 
-        for (var appId in allKeywordreplyData) {
-            var keywordrepliesData = allKeywordreplyData[appId].keywordreplies;
-            if (!keywordrepliesData) {
-                continue;
-            }
+            for (var appId in allKeywordreplyData) {
+                var keywordrepliesData = allKeywordreplyData[appId].keywordreplies;
+                if (!keywordrepliesData) {
+                    continue;
+                }
 
-            for (var keywordreplyId in keywordrepliesData) {
-                var keywordreplyData = keywordrepliesData[keywordreplyId];
-                console.log(keywordreplyData);
-            }
-        }
+                for (var keywordreplyId in keywordrepliesData) {
+                    var keywordreplyData = keywordrepliesData[keywordreplyId];
+                    if (keywordreplyData.isDeleted) {
+                        continue;
+                    }
 
-        database.ref('message-keywordsreply/' + userId).on('value', snap => {
-            var dataArray = [];
-            var testVal = snap.val();
-            if (!testVal) {
-                return;
-            }
-
-            var myIds = Object.keys(testVal);
-            for (var i = 0; i < myIds.length; i++) {
-                dataArray.push(snap.child(myIds[i]).val());
-                console.log('data in looping for append');
-                if ('開放' === dataArray[i].taskCate) {
-                    $servingElem.append(
-                        '<tr>' +
-                            '<td id="' + myIds[i] + '" hidden>' + myIds[i] + '</td>' +
-                            '<td id="td">' + dataArray[i].taskMainK + '</td>' +
-                            '<td id="td">' + dataArray[i].taskSubK + '</td>' +
-                            '<td id="td">' + dataArray[i].taskText + '</td>' +
-                            '<td id="td"><b>此功能尚未開通</b></td>' +
-                            '<td id="td" >' + dataArray[i].taskCate + '</td>' +
-                            '<td id="td">' +
-                                '<a href="#" id="editBtn" data-toggle="modal" data-target="#editModal"><b style="color:black;">編輯  </b></a>' +
-                                '<a href="#" id="viewBtn" data-toggle="modal" data-target="#viewModal"><b style="color:black;">檢視  </b></a>' +
-                                '<a href="#" id="deleBtn"><b style="color:black;">刪除</b></a>' +
+                    var htmlTemplate =
+                        '<tr id="' + keywordreplyId + '" title="' + appId + '">' +
+                            '<td>' + keywordreplyData.keyword + '</td>' +
+                            '<td>' + keywordreplyData.content + '</td>' +
+                            '<td>' + keywordreplyData.replyCount + '</td>' +
+                            '<td>' + (keywordreplyData.isDraft ? '草稿' : '開放') + '</td>' +
+                            '<td>' +
+                                '<a class="btn-feature" data-toggle="modal" data-target="#keywordreply_edit_modal">編輯</a>' +
+                                '<a class="btn-feature btn-row-delete">刪除</a>' +
                             '</td>' +
-                        '</tr>'
-                    );
-                    //  var socket = io.connect();
-                    // socket.emit('update keywords', {
-                    //   message: dataArray[i].taskMainK,
-                    //   reply: dataArray[i].taskText
-                    // });
-                    // for (var n=0; n<dataArray[i].taskSubK.length; n++){
-                    //   socket.emit('update subKeywords', {
-                    //     message: dataArray[i].taskSubK[n],
-                    //     reply: dataArray[i].taskText
-                    //   });
-                    // }
-                } else {
-                    $waitingElem.append('<tr>' + '<td id="' + myIds[i] + '" hidden>' + myIds[i] + '</td>' + '<td id="td">' + dataArray[i].taskMainK + '</td>' + '<td id="td">' + dataArray[i].taskSubK + '</td>' + '<td id="td">' + dataArray[i].taskText + '</td>' + '<td id="td"><b>此功能尚未開通</b></td>' + '<td id="td">' + dataArray[i].taskCate + '</td>' + '<td id="td">' + '<a href="#" id="editBtn" data-toggle="modal" data-target="#editModal"><b style="color:black;">編輯  </b></a>' + '<a href="#" id="viewBtn" data-toggle="modal" data-target="#viewModal"><b style="color:black;">檢視  </b></a>' + '<a href="#" id="deleBtn"><b style="color:black;">刪除</b></a>' + '</td>' + '</tr>');
+                        '</tr>';
+
+                    if (keywordreplyData.isDraft) {
+                        $draftTableElem.append(htmlTemplate);
+                    } else {
+                        $openTableElem.append(htmlTemplate);
+                    }
                 }
             }
+
+            $jqDoc.find('td .btn-row-delete').off('click').on('click', function(event) {
+                var targetRow = $(event.target).parent().parent();
+                var appId = targetRow.prop('title');
+                var keywordreplyId = targetRow.prop('id');
+
+                return showDialog('你確定要刪除嗎？').then(function(isOK) {
+                    if (!isOK) {
+                        return;
+                    }
+
+                    return api.keywordreply.remove(appId, keywordreplyId, userId).then(function() {
+                        return loadKeywordsReplies();
+                    });
+                });
+            });
         });
     }
 
-    function addMsgCanvas() {
-        $('#MsgCanvas').append('<!--TEXT AREA -->' + '<div id="text" style="display:block; height:100px; width:400px; padding:1.5%;margin:2%">' + '<span style="float:right" onclick="this.parentElement.remove()">X</span>' + '<table>' + '<tr>' + '<th style="padding:1.5%; margin:2%; background-color: #ddd">Enter Text:</th>' + '</tr>' + '<tr>' + '<td style="background-color: #ddd">' + '<form style="padding:1%; margin:2%">' + '<input id="textinput" style="width:400px;height:100px" />' + '</form>' + '</td>' + '</tr>' + '<tr>' + '<th style="padding:1.5%; margin:2%; background-color: #ddd">' + '<button style="padding:1.5%; margin:2%; class="tablinks" rel="emos">Emoji</button>' + '</th>' + '</tr>' + '</table>' + '</div>');
-        console.log('addMsgCanvas exe');
-    }
-
     function insertSubmit() {
-        // var d = Date.now();
-        // var mainKey = $('#modal-mainKey').val().trim();
-        // var subKey = $('#modal-subKey').val().split(',');
-        // var text = $('#textinput').val().split(',');
-        // var cate = $('#modal-category').val();
-
-        // if ('狀態' === cate) {
-        //     $('.error_msg').show();
-        // } else {
-        //     writeUserData(d, auth.currentUser.uid, mainKey, subKey, text, cate, auth.currentUser.email.toString());
-        //     // 塞入資料庫並重整
-        //     $('#keywordreply_add_modal').modal('hide');
-        //     $('#modal-mainKey').val('');
-        //     $('#modal-subKey').val('');
-        //     $('#textinput').val('');
-        //     $('#modal-category').val('');
-        //     alert('變更已儲存!');
-        //     loadKeywordsReply();
-        // }
-
         var appId = $appSelectElem.find('option:selected').val();
         var keyword = $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val();
         var content = $keywordreplyAddModal.find('textarea[name="keywordreply-content"]').val();
@@ -167,147 +171,50 @@
             createdTime: new Date().getTime(),
             updatedTime: new Date().getTime()
         };
-        console.log(keywordreplyData);
+
         return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {
-            console.log(resJson);
-            // $keywordreplyAddModal.modal('hide');
+            $keywordreplyAddModal.modal('hide');
+            return loadKeywordsReplies();
         });
     }
 
-    function insertKeywordreply(appId) {
-        var keywordreplyData = {
-            keyword: '',
-            subKeywords: [],
-            content: '',
-            replyCount: 0,
-            replyMessagers: [],
-            isDraft: 0,
-            createdTime: new Date().getTime(),
-            updatedTime: new Date().getTime()
-        };
-        return api.keywordreply.insert(appId, userId, keywordreplyData);
-    }
+    function showDialog(content) {
+        return new Promise(function(resolve) {
+            var dialogModalTemplate =
+                '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
+                    '<div class="modal-dialog" role="document">' +
+                        '<div class="modal-content">' +
+                            '<div class="modal-body">' +
+                                '<h4>' + content + '</h4>' +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                                '<button type="button" class="btn btn-primary">確定</button>' +
+                                '<button type="button" class="btn btn-secondary">取消</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            $('body').append(dialogModalTemplate);
+            dialogModalTemplate = void 0;
 
-    function writeUserData(d, userId, mainKey, subKey, text, cate) {
-        database.ref('message-keywordsreply/' + userId).push({
-            taskMainK: mainKey,
-            taskSubK: subKey,
-            taskText: text,
-            taskCate: cate,
-            owner: auth.currentUser.email
+            var isOK = false;
+            var $dialogModal = $('#dialog_modal');
+
+            $dialogModal.find('.btn-primary').on('click', function() {
+                isOK = true;
+                resolve(isOK);
+                $dialogModal.remove();
+            });
+
+            $dialogModal.find('.btn-secondary').on('click', function() {
+                resolve(isOK);
+                $dialogModal.remove();
+            });
+
+            $dialogModal.modal({
+                backdrop: false,
+                show: true
+            });
         });
-    }
-
-    function noCsv() {
-        if ($('#nocsv').is(':visible')) {
-            $('#nocsv').hide();
-        } else {
-            $('#nocsv').show();
-        }
-    }
-
-    function clickMsg() {
-        var target = $(this).attr('rel');
-        $('#' + target).show().siblings().hide();
-    }
-
-    function addMsg() {
-        var target = $(this).attr('rel');
-        if ($('#' + target).is(':visible')) {
-            $('#' + target).hide();
-        } else {
-            $('#' + target).show();
-        }
-    }
-
-    function loadView() {
-        $('#view-mainK').text(''); // 主關鍵字
-        $('#view-subK').text(''); // 副關鍵字
-        $('#view-textinput').text(''); // 任務內容
-        $('#view-stat').text(''); // 狀態
-        $('#view-owne').text(''); // 負責人
-        $('#view-subt').empty();
-
-        var key = $(this).parent().parent().find('td:first').text();
-
-        database.ref('message-keywordsreply/' + userId + '/' + (key)).on('value', snap => {
-            var testVal = snap.val();
-            // 重複出現值 要抓出來
-            $('#view-id').append(key); // 編號
-            $('#view-mainK').append(testVal.taskMainK); // 主關鍵字
-            $('#view-subK').append(testVal.taskSubK); // 副關鍵字
-            $('#view-textinput').append(testVal.taskText); // 任務內容
-            $('#view-stat').append(testVal.taskCate); // 狀態
-            $('#view-owne').append(testVal.owner); // 負責人
-        });
-    }
-
-    function openEdit() {
-        $('#edit-mainK').val(''); // 任務內容
-        $('#edit-subK').val(''); // 任務內容
-        $('#edit-taskContent').val(''); // 任務內容
-        $('#edit-status').val(''); // 狀態
-        $('#edit-owner').val(''); // 負責人
-
-        var key = $(this).parent().parent().find('td:first').text();
-
-        database.ref('message-keywordsreply/' + userId + '/' + key).on('value', snap => {
-            var testVal = snap.val();
-            // console.log(testVal);
-            $('#edit-id').append(key);
-            $('#edit-mainK').val(testVal.taskMainK); // 主關鍵字
-            $('#edit-subK').val(testVal.taskSubK); // 副關鍵字
-            $('#edit-taskContent').val(testVal.taskText); // 任務內容
-            $('#edit-status').val(testVal.taskCate); // 狀態
-            $('#edit-owner').val(testVal.owner); // 負責人
-            // console.log(sublist);
-        });
-    }
-
-    function modalEdit() {
-        if (confirm('確認更改？')) {
-            var key = $('#edit-id').text().trim();
-            var userId = auth.currentUser.uid;
-            var mainKey = $('#edit-mainK').val().trim(); // 主關鍵字
-            var subKey = $('#edit-subK').val().split(','); // 副關鍵字
-            var text = $('#edit-taskContent').val().split(','); // 任務內容
-            var cate = $('#edit-status').val(); // 狀態
-            var owne = $('#edit-owner').val(); // 負責人
-            // 日期
-            var d = Date.now();
-            var date = new Date(d);
-            // console.log(key, userId, text, cate, cate, prio, owne, desc, subt, inir, inid, auth.currentUser.email, date);
-            saveUserData(key, userId, mainKey, subKey, text, cate, owne, auth.currentUser.email, date.toString());
-            $('#edit-id').text(''); //
-            $('#edit-mainK').val(''); // 主關鍵字
-            $('#edit-subK').val(''); // 副關鍵字
-            $('#edit-taskContent').val(''); // 任務內容
-            $('#edit-status').val(''); // 狀態
-            $('#edit-owner').val(''); // 負責人
-            loadKeywordsReply();
-            $('#editModal').modal('hide');
-            alert('已成功更新');
-        }
-    }
-
-    function saveUserData(key, userId, mainKey, subKey, text, cate, owne) {
-        // database.ref('message-keywordsreply/' + userId + '/' + key).set({
-        //     taskMainK: mainKey,
-        //     taskSubK: subKey,
-        //     taskText: text,
-        //     taskCate: cate,
-        //     owner: owne
-        // });
-    }
-
-    function deleteRow() {
-        var key = $(this).parent().parent().find('td:first').text();
-        var userId = auth.currentUser.uid;
-        // console.log(userId, key);
-        if (confirm('確定刪除？')) {
-            database.ref('message-keywordsreply/' + userId + '/' + key).remove();
-            loadKeywordsReply();
-            alert('已成功刪除');
-        }
     }
 })();

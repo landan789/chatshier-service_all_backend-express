@@ -211,12 +211,19 @@ module.exports = (function() {
         let procced = Promise.resolve();
         procced.then(() => {
             if (!appId || !keywordreplyId) {
-                return;
+                return Promise.reject(new Error());
             }
 
-            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).set(putKeywordreply);
-        }).then(() => {
-            callback(true);
+            // 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
+            let messageId = cipher.createHashKey(putKeywordreply.keyword);
+
+            // 1. 更新關鍵字回覆的資料
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).set(putKeywordreply).then(() => {
+                // 成功更新後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
+                return { keywordreplyId, messageId };
+            });
+        }).then((data) => {
+            callback(data);
         }).catch(() => {
             callback(null);
         });
