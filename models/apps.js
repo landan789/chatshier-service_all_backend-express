@@ -1,17 +1,17 @@
-var admin = require("firebase-admin"); //firebase admin SDK
+var admin = require('firebase-admin'); //firebase admin SDK
 var apps = {};
 
 apps._schema = (callback) => {
     var json = {
-        id1: "",
-        id2: "",
-        name: "",
-        secret: "",
-        token1: "",
-        token2: "",
-        type: "",
-        user_id: "",
-        webhook_id: "",
+        id1: '',
+        id2: '',
+        name: '',
+        secret: '',
+        token1: '',
+        token2: '',
+        type: '',
+        user_id: '',
+        webhook_id: '',
         isDeleted: 0
     };
     callback(json);
@@ -48,12 +48,10 @@ apps.findAppByWebhookId = (webhookId, callback) => {
 };
 
 apps.findAppsByAppIds = (appIds, callback) => {
-
     var apps = {};
 
     Promise.all(appIds.map((appId) => {
-
-        return admin.database().ref("apps/" + appId).once('value').then((snap) => {
+        return admin.database().ref('apps/' + appId).once('value').then((snap) => {
             let app = snap.val();
 
             // DB 沒有取到資料
@@ -76,7 +74,6 @@ apps.findAppsByAppIds = (appIds, callback) => {
     }).catch(() => {
         callback(null);
     });
-
 };
 
 apps.insertByUserid = (userid, postApp, callback) => {
@@ -94,15 +91,15 @@ apps.insertByUserid = (userid, postApp, callback) => {
         var app = Object.assign(initApp, postApp);
 
         return new Promise((resolve, reject) => {
-            var appId = admin.database().ref("apps").push(app).key;
+            var appId = admin.database().ref('apps').push(app).key;
             resolve(appId);
         });
     }).then((appId) => {
         return new Promise((resolve, reject) => {
-            admin.database().ref("users/" + userid).once("value", snap => {
+            admin.database().ref('users/' + userid).once('value', snap => {
                 var user = snap.val();
-                var appIds = !user.hasOwnProperty("app_ids") ? [] : user.app_ids;
-                if (null === user || "" === user || undefined === user) {
+                var appIds = !user.hasOwnProperty('app_ids') ? [] : user.app_ids;
+                if (null === user || '' === user || undefined === user) {
                     reject();
                     return;
                 }
@@ -110,7 +107,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var i;
                 for (i = 0; i < n; i++) {
                     var _appId = appIds[i];
-                    if (_appId == appId) {
+                    if (_appId === appId) {
                         appIds.slice(i, 1);
                     }
                 }
@@ -125,7 +122,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 app_id: appIds[0]
             };
 
-            admin.database().ref("webhooks").push(webhook).then((ref) => {
+            admin.database().ref('webhooks').push(webhook).then((ref) => {
                 var webhookId = ref.key;
                 var user = {
                     app_ids: appIds
@@ -133,19 +130,18 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var app = {
                     webhook_id: webhookId
                 };
-                return Promise.all([admin.database().ref("users/" + userid).update(user), app]);
+                return Promise.all([admin.database().ref('users/' + userid).update(user), app]);
             }).then((result) => {
                 var app = result[1];
-                return admin.database().ref("apps/" + appIds[0]).update(app);
+                return admin.database().ref('apps/' + appIds[0]).update(app);
             }).then(() => {
                 resolve();
             });
-
         });
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -156,9 +152,9 @@ apps.updateByAppId = (appId, putApp, callback) => {
 
     procced.then(() => {
         return new Promise((resolve, reject) => {
-            admin.database().ref("apps/" + appId).once("value", snap => {
+            admin.database().ref('apps/' + appId).once('value', snap => {
                 var app = snap.val();
-                if (undefined === app || "" === app || null === app) {
+                if (undefined === app || '' === app || null === app) {
                     reject();
                     return;
                 }
@@ -172,11 +168,11 @@ apps.updateByAppId = (appId, putApp, callback) => {
             });
         });
     }).then(() => {
-        return admin.database().ref("apps/" + appId).update(putApp);
+        return admin.database().ref('apps/' + appId).update(putApp);
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -185,16 +181,16 @@ apps.removeByAppId = (appId, callback) => {
         resolve();
     });
 
-    deleteApp = {
+    var deleteApp = {
         isDeleted: 1
     };
 
     procced.then(() => {
-        return admin.database().ref("apps/" + appId).update(deleteApp);
+        return admin.database().ref('apps/' + appId).update(deleteApp);
     }).then(() => {
         callback(true);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
