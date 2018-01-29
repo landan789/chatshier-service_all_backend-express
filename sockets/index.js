@@ -234,6 +234,16 @@ function init(server) {
             // 回復訊息與傳入訊息都整合，再寫入 DB
             req.messages.push(inMessage);
             return Promise.all(req.messages.map((message) => {
+                // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
+                if (LINE !== message.from || FACEBOOK !== message.from) {
+                    message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
+                    delete message['createdTime'];
+                    delete message['endedTime'];
+                    delete message['isDeleted'];
+                    delete message['startedTime'];
+                    delete message['title'];
+                }
+
                 return new Promise((resolve, reject) => {
                     // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (message) => {
