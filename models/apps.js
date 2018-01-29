@@ -30,7 +30,10 @@ apps.findByAppId = (appId, callback) => {
     });
 };
 
-apps.findAppByWebhookId = (webhookId, callback) => {
+/**
+ * 處理取得某個 webhook 對應到的 apps
+ */
+apps.findAppsByWebhookId = (webhookId, callback) => {
     var procced = Promise.resolve();
 
     procced.then(() => {
@@ -38,11 +41,16 @@ apps.findAppByWebhookId = (webhookId, callback) => {
     }).then((snap) => {
         var webhook = snap.val();
         var appId = webhook.app_id;
-        return admin.database().ref('apps/' + appId).once('value');;
-    }).then((snap) => {
+        return Promise.all([admin.database().ref('apps/' + appId).once('value'), appId]);
+    }).then((result) => {
+        var snap = result[0];
+        var appId = result[1];
+
         var app = snap.val();
-        callback(app);
-    }).catch((error) => {
+        var apps = {};
+        apps[appId] = app;
+        callback(apps);
+    }).catch(() => {
         callback(false);
     });
 };

@@ -145,12 +145,9 @@ appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
         if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
             return Promise.reject();
         }
-
         return Promise.resolve(autoreplies);
-
     }).then((autoreplies) => {
         callback(autoreplies);
-
     }).catch(() => {
         callback(null);
     });

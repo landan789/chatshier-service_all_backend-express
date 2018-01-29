@@ -65,23 +65,24 @@ function init(server) {
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
-                appsMdl.findAppByWebhookId(webhookId, (app) => {
-                    if (null === app || undefined === app || '' === app) {
+                appsMdl.findAppsByWebhookId(webhookId, (apps) => {
+                    if (null === apps || undefined === apps || '' === apps) {
                         reject(API_ERROR.APP_DID_NOT_EXIST);
                         return;
                     }
-                    resolve(app);
+                    resolve(apps);
                 });
             });
-        }).then((app) => {
-            req.app = app;
-            req.appType = app.type;
-            req.channelId = app.id1;
-            switch (app.type) {
+        }).then((apps) => {
+            var appId = Object.keys(apps)[0];
+            req.appId = Object.keys(apps)[0];
+            req.app = apps[appId];
+
+            switch (req.app.type) {
                 case LINE:
                     var lineConfig = {
-                        channelSecret: app.secret,
-                        channelAccessToken: app.token1
+                        channelSecret: req.app.secret,
+                        channelAccessToken: req.app.token1
                     };
                     req.lineBot = new line.Client(lineConfig); // 重要!!!!!!!!!!!!!!!!!!，利用 req 傳給下一個 中介軟體
                     line.middleware(lineConfig)(req, res, next); // 中介軟體執行中介軟體的方法
@@ -90,11 +91,11 @@ function init(server) {
                     // FACEBOOK 不需要middleware
                     var psid = undefined === req.body.entry ? '' : req.body.entry[0].messaging[0].sender.id;
                     var facebookConfig = {
-                        pageID: app.id1,
-                        appID: app.id2 === undefined ? '' : app.id2,
-                        appSecret: app.secret,
-                        validationToken: app.token1,
-                        pageToken: app.token2 === undefined ? '' : app.token2
+                        pageID: req.app.id1,
+                        appID: req.app.id2 === undefined ? '' : req.app.id2,
+                        appSecret: req.app.secret,
+                        validationToken: req.app.token1,
+                        pageToken: req.app.token2 === undefined ? '' : req.app.token2
                     };
                     req.fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(facebookConfig, server);
                     next();
@@ -104,22 +105,10 @@ function init(server) {
 
         });
     }, (req, res, next) => {
-        var webhookId = req.params.webhookId;
-        var body = req.body;
-        var message = body.events[0].message.text;
+        var appId = req.appId;
+        var message = req.body.events[0].message.text;
         var proceed = Promise.resolve();
         proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                webhookMdl.findAppIdByWebhookId(webhookId, (appId) => {
-                    if (null === appId || undefined === appId || '' === appId) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                        return;
-                    }
-                    resolve(appId);
-                });
-            });
-        }).then((appId) => {
-            req.appId = appId;
             req.messageId = cryptr.encrypt(message);
             var messageId = req.messageId;
             return new Promise((resolve, reject) => {
@@ -132,9 +121,7 @@ function init(server) {
                     resolve(message);
                 });
             });
-
         }).then((message) => {
-
             req.keywordreplyIds = null === message || undefined === message.keywordreply_ids ? [] : message.keywordreply_ids;
             req.templateIds = null === message || undefined === message.template_ids ? [] : message.keywordreply_ids;
             // 1. 取得 訊息 ID，利用 vat massageId = cryptr.encrypt('你好，傳入的訊息'),
@@ -142,21 +129,19 @@ function init(server) {
         }).catch(() => {
             res.sendStatus(404);
         });
-
     }, (req, res, next) => {
-
         var lineBot = req.lineBot;
         var fbBot = req.fbBot;
-
+        var app = req.app;
         var keywordreplyIds = req.keywordreplyIds;
         var templateIds = req.templateIds;
+        var event = req.body.events[0];
 
         var appId = req.appId;
         var messagerId = req.body.events[0].source.userId;
 
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-
             appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
                 if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies || (keywordreplies instanceof Array && 0 === keywordreplies.length)) {
                     resolve(null);
@@ -173,7 +158,6 @@ function init(server) {
                     resolve(null);
                     return;
                 }
-
                 resolve(templates);
             });
         });
@@ -192,27 +176,48 @@ function init(server) {
             var keywordMessages = result[0];
             var templateMessages = result[1];
             var autoMessages = result[2];
-            var replyMessages = [].concat(keywordMessages, templateMessages, autoMessages);
+            var replyMessages = [];
+            if (null !== keywordMessages) {
+                replyMessages.concat(keywordMessages);
+            };
+            if (null !== templateMessages) {
+                replyMessages.concat(templateMessages);
+            };
+
+            if (null !== autoMessages) {
+                replyMessages.concat(autoMessages);
+            };
+
             var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
-            if (undefined === req.body.entry && 'message' === req.body.events[0].type || 'text' !== req.body.events[0].message.type) { // 處理LINE的訊息回覆
-                return lineBot.replyMessage(event.replyToken, replyMessages);
-            } else { // 處理FACEBOOK的訊息回覆
-                utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
-                    return Promise.resolve();
-                });
+
+            replyMessages = [{
+                type: 'text',
+                text: 'sss'
+            }];
+            switch (app.type) {
+                case LINE:
+                    return lineBot.replyMessage(event.replyToken, replyMessages);
+                    break;
+                case FACEBOOK:
+                    utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
+                        return Promise.resolve();
+                    });
+                    break;
             }
         }).then(() => {
             var Uid = req.body.events[0].source.userId;
 
             return lineBot.getProfile(Uid);
         }).then((profile) => {
+            var Uid = req.body.events[0].source.userId;
+
             var messager = {
                 name: profile.displayName,
-                photo: profile.pictureUrl,
-            }
+                photo: profile.pictureUrl
+            };
             return new Promise((resolve, reject) => {
-                appsMessengersMdl.replaceMessager(appId, Uid, messager, (messager) => {
+                appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
                     if (undefined === messager || '' === messager || null === messager) {
                         reject();
                         return;
@@ -220,15 +225,13 @@ function init(server) {
                     resolve(messager);
                 });
             });
-
         }).then((messager) => {
-            let appId = data.appId;
-            let messagerId = data.userId;
-            let channelId = req.channelId;
-            let chatroomId = data.chatroomId;
+            let appId = req.appId;
+            let messagerId = req.body.events[0].source.userId;
+            let channelId = req.app.channelId;
+            let chatroomId = messager.chatroom_id;
             return new Promise((resolve, reject) => {
-
-                AppsChatroomsMessages.findByAppIdByChatroomId(appId, chatroomId, (messages) => {
+                appsChatroomsMessagesMdl.findByAppIdByChatroomId(appId, chatroomId, (messages) => {
                     if (null === messages || undefined === messages || '' === messages) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
@@ -1130,7 +1133,4 @@ function init(server) {
     } //loadFbProfile
     return io;
 }
-
-
-
 module.exports = init;

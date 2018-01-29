@@ -112,6 +112,22 @@ module.exports = (function() {
     };
 
     /**
+     * 初始化 Chatroom 的資訊
+     * 由於是 建立 apps/messagers 順便建立 apps/chatrooms ， chatroom schema 寫這裡。
+     * @param {Function} callback
+     */
+    AppsMessagersModel.prototype.__schema = function(callback) {
+        var json = {
+            from: 'system',
+            name: '',
+            owner: 'system',
+            text: '聊天室已建立',
+            time: Date.now()
+        };
+        callback(json);
+    };
+
+    /**
      * 更新Messager的資料
      *
      * @param {string} appId
@@ -124,18 +140,40 @@ module.exports = (function() {
     AppsMessagersModel.prototype.replaceMessager = function(appId, msgerId, messager, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
+            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
+        }).then((snap) => {
+            var messager = snap.val();
+            if (null === messager || undefined === messager || '' === messager || '' === messager.chatroom_id || null == messager.chatroom_id || undefined === messager.chatroom_id) {
+                return admin.database().ref('apps/' + appId + '/chatrooms').push().then((ref) => {
+                    var chatroomId = ref.key;
+                    return new Promise((resolve, reject) => {
+                        AppsMessagersModel.prototype.__schema((initChatroom) => {
+                            resolve([initChatroom, chatroomId]);
+                        });
+                    });
+                }).then((result) => {
+                    var chatroom = result[0];
+                    var chatroomId = result[1];
+                    return Promise.all([admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).update(chatroom), chatroomId]);
+                }).then((result) => {
+                    var chatroomId = result[1];
+                    return Promise.resolve(chatroomId);
+                });
+            };
+            var chatroomId = messager.chatroom_id;
+            return Promise.resolve(chatroomId);
+        }).then((chatroomId) => {
             return new Promise((resolve, reject) => {
                 AppsMessagersModel.prototype._schema((initMessager) => {
-                    var messager = Object.assign(initMessager, messager);
+                    messager.chatroom_id = chatroomId;
+                    messager = Object.assign(initMessager, messager);
                     resolve(messager);
                 });
             });
         }).then((messager) => {
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager);
-        }).then(() => {
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
-        }).then((snap) => {
-            var messager = snap.val();
+            return Promise.all([admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager), messager]);
+        }).then((result) => {
+            var messager = result[1];
             callback(messager);
         }).catch(() => {
             callback(null);
