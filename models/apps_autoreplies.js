@@ -10,9 +10,10 @@ appsAutoreplies._schema = (callback) => {
         endedTime: 0,
         title: '',
         text: '',
-        type: 'text'
+        type: 'text',
+        updatedTime: Date.now()
     };
-    callback(json)
+    callback(json);
 };
 appsAutoreplies.insert = (appId, autoreply, callback) => {
     admin.database().ref('apps/' + appId + '/autoreplies').push().then((ref) => {
@@ -79,6 +80,7 @@ appsAutoreplies.update = (appId, autoreplyId, autoreply, callback) => {
         if (1 === autoreplyCheck.isDeleted || '1' === autoreplyCheck.isDeleted) {
             return Promise.reject(new Error());
         }
+        autoreply.updatedTime = Date.now();
         return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(autoreply);
     }).then(() => {
         return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
