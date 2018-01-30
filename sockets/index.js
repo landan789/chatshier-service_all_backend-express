@@ -826,12 +826,7 @@ function init(server) {
         socket.on('update overview', data => {
             overview[data.message] = data.time;
         });
-        /*===訊息end===*/
-        /*===設定start===*/
-        // 更改channel設定
-        socket.on('update bot', data => {
-            update_line_bot(data);
-        });
+
         socket.on('update tags', tagsData => {
             let customData = {};
             let order = [];

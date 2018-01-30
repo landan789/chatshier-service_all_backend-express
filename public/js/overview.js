@@ -18,7 +18,7 @@ $(document).ready(function() {
         } else {
             clearInterval(timer_1);
             userId = auth.currentUser.uid;
-            socket.emit('update bot', userId);
+            // socket.emit('update bot', userId);
             loadTable();
         }
     }, 5);
