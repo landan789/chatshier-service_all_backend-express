@@ -1,6 +1,4 @@
-var SECRET = require('../config/secret');
-var Cryptr = require('cryptr');
-var cryptr = new Cryptr(SECRET.MESSENGE_KEY, 'des');
+var cipher = require('../helpers/cipher');
 var app = require('../app');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
@@ -110,7 +108,7 @@ function init(server) {
         var message = req.body.events[0].message.text;
         var proceed = Promise.resolve();
         proceed.then(() => {
-            req.messageId = cryptr.encrypt(message);
+            req.messageId = cipher.createHashKey(message);
             var messageId = req.messageId;
             return new Promise((resolve, reject) => {
                 // 2. 到 models/apps_messages.js，找到 keywordreply_ids
