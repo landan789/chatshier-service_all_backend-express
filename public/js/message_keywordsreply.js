@@ -10,7 +10,7 @@
     var $jqDoc = $(document);
     var $keywordreplyAddModal = null;
     var $keywordreplyEditModal = null;
-    var $appSelectElem = null;
+    var $appSelector = null;
     var $openTableElem = null;
     var $draftTableElem = null;
 
@@ -26,13 +26,16 @@
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $keywordreplyAddModal = $('#keywordreply_add_modal');
-        $appSelectElem = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
+        $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
         $keywordreplyAddModal.on('show.bs.modal', function() {
+            $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
+            $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
+
             // 新增 modal 即將顯示事件發生時，將 App 清單更新
-            $appSelectElem.empty();
+            $appSelector.empty();
             for (var appId in allKeywordreplyData) {
                 var appData = allKeywordreplyData[appId];
-                $appSelectElem.append('<option value="' + appId + '">' + appData.name + '</option>');
+                $appSelector.append('<option value="' + appId + '">' + appData.name + '</option>');
             }
         });
         $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
@@ -48,12 +51,12 @@
             var keywordreplyId = targetRow.prop('id');
             var targetData = allKeywordreplyData[appId].keywordreplies[keywordreplyId];
 
-            var editForm = $keywordreplyEditModal.find('.modal-body form');
-            editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
-            editForm.find('textarea[name="keywordreply-content"]').val(targetData.content);
+            var $editForm = $keywordreplyEditModal.find('.modal-body form');
+            $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
+            $editForm.find('textarea[name="keywordreply-text"]').val(targetData.text);
 
             // 如果是屬於草稿則顯示 checkbox 否則隱藏
-            var checkboxIsDraft = editForm.find('.form-check.checkbox-is-draft');
+            var checkboxIsDraft = $editForm.find('.form-check.checkbox-is-draft');
             checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
             if (!targetData.status) {
                 checkboxIsDraft.show();
@@ -62,9 +65,9 @@
             }
 
             $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
-                targetData.keyword = editForm.find('input[name="keywordreply-keyword"]').val();
-                targetData.content = editForm.find('textarea[name="keywordreply-content"]').val();
-                targetData.status = editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
+                targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
+                targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
+                targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
                 targetData.updatedTime = new Date().getTime();
 
                 return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
@@ -105,7 +108,7 @@
                     var htmlTemplate =
                         '<tr id="' + keywordreplyId + '" title="' + appId + '">' +
                             '<td>' + keywordreplyData.keyword + '</td>' +
-                            '<td>' + keywordreplyData.content + '</td>' +
+                            '<td>' + keywordreplyData.text + '</td>' +
                             '<td>' + keywordreplyData.replyCount + '</td>' +
                             '<td>' + allKeywordreplyData[appId].name + '</td>' +
                             '<td>' +
@@ -141,9 +144,9 @@
     }
 
     function insertSubmit() {
-        var appId = $appSelectElem.find('option:selected').val();
+        var appId = $appSelector.find('option:selected').val();
         var keyword = $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val();
-        var content = $keywordreplyAddModal.find('textarea[name="keywordreply-content"]').val();
+        var textContent = $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val();
         var isDraft = $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked');
         var $errorMsgElem = $keywordreplyAddModal.find('.text-danger.error-msg');
 
@@ -156,7 +159,7 @@
         } else if (!keyword) {
             $errorMsgElem.text('請輸入關鍵字').show();
             return;
-        } else if (!content) {
+        } else if (!textContent) {
             $errorMsgElem.text('請輸入關鍵字回覆的內容').show();
             return;
         }
@@ -165,7 +168,7 @@
         var keywordreplyData = {
             keyword: keyword,
             subKeywords: '',
-            content: content,
+            text: textContent,
             replyCount: 0,
             status: isDraft ? 0 : 1,
             createdTime: new Date().getTime(),
@@ -178,14 +181,14 @@
         });
     }
 
-    function showDialog(content) {
+    function showDialog(textContent) {
         return new Promise(function(resolve) {
             var dialogModalTemplate =
                 '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
                     '<div class="modal-dialog" role="document">' +
                         '<div class="modal-content">' +
                             '<div class="modal-body">' +
-                                '<h4>' + content + '</h4>' +
+                                '<h4>' + textContent + '</h4>' +
                             '</div>' +
                             '<div class="modal-footer">' +
                                 '<button type="button" class="btn btn-primary">確定</button>' +

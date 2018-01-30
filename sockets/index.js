@@ -144,7 +144,7 @@ function init(server) {
                 resolve({});
                 return;
             }
-            appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
+            appsKeywordrepliesMdl.findMessages(appId, keywordreplyIds, (keywordreplies) => {
                 if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies || (keywordreplies instanceof Array && 0 === keywordreplies.length)) {
                     resolve({});
                     return;

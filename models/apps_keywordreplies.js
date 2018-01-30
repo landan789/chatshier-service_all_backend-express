@@ -11,7 +11,8 @@ module.exports = (function() {
         return {
             keyword: '',
             subKeywords: '',
-            content: '',
+            text: '',
+            type: 'text',
             replyCount: 0,
             status: 1,
             createdTime: Date.now(),
@@ -27,7 +28,7 @@ module.exports = (function() {
      * @param {string[]} keywordreplyIds
      * @param {function({ type: string, text: string}[])} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppIdByKeywordIds = function(appId, keywordreplyIds, callback) {
+    AppsKeywordrepliesModel.prototype.findMessages = function(appId, keywordreplyIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             if (!appId || !keywordreplyIds || !(keywordreplyIds instanceof Array)) {
@@ -50,13 +51,8 @@ module.exports = (function() {
                         // 這裡沒有做 index 儲存，因此由於非同步工作的關係
                         // 每次最後所產生的陣列順序可能有所不同
                         let replyMessage = snap.val();
-                        if (replyMessage) {
-                            // 每一次收到回應後將結果丟入陣列
-                            keywordreples.push({ // 推入新的物件過濾所需資料
-                                type: replyMessage.type, // 這是什麼 type ?????
-                                text: replyMessage.content
-                            });
-                        }
+                        // 每一次收到回應後將結果丟入陣列
+                        replyMessage && keywordreples.push(replyMessage);
                         resolve();
                     });
                 }));
@@ -78,7 +74,7 @@ module.exports = (function() {
      * @param {string[]} appIds
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppIds = function(appIds, callback) {
+    AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             if (!appIds || !(appIds instanceof Array)) {
@@ -136,7 +132,7 @@ module.exports = (function() {
      * @param {string} appId
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppId = function(appId, callback) {
+    AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appId, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             if (!appId) {
@@ -168,7 +164,7 @@ module.exports = (function() {
      * @param {*} postKeywordreply
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.insertByAppId = (appId, postKeywordreply, callback) => {
+    AppsKeywordrepliesModel.prototype.insert = (appId, postKeywordreply, callback) => {
         let procced = Promise.resolve();
         procced.then(() => {
             if (!appId || !postKeywordreply) {
@@ -206,7 +202,7 @@ module.exports = (function() {
      * @param {*} putKeywordreply
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.updateByAppIdByKeywordreplyId = (appId, keywordreplyId, putKeywordreply, callback) => {
+    AppsKeywordrepliesModel.prototype.update = (appId, keywordreplyId, putKeywordreply, callback) => {
         let procced = Promise.resolve();
         procced.then(() => {
             if (!appId || !keywordreplyId) {
@@ -235,7 +231,7 @@ module.exports = (function() {
      * @param {string} keywordreplyId
      * @param {Function} callback
      */
-    AppsKeywordrepliesModel.prototype.removeByAppIdByKeywordreplyId = (appId, keywordreplyId, callback) => {
+    AppsKeywordrepliesModel.prototype.remove = (appId, keywordreplyId, callback) => {
         let procced = Promise.resolve();
 
         procced.then(() => {

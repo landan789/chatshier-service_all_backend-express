@@ -38,7 +38,7 @@ module.exports = (function() {
                     return;
                 }
 
-                appsKeywordrepliesMdl.findKeywordrepliesByAppIds(appIds, (data) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appIds, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
@@ -98,7 +98,7 @@ module.exports = (function() {
                 }
 
                 // 3. 找到指定的 appId 中的 keywordreply 資料
-                appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordreplyId(appId, (keywordrepliesData) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     if (!keywordrepliesData) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
@@ -135,7 +135,7 @@ module.exports = (function() {
         let postKeywordreplyData = {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
-            content: req.body.content || '',
+            text: req.body.text || '',
             replyCount: req.body.replyCount ? req.body.replyCount : 0,
             status: req.body.status ? req.body.status : 0,
             createdTime: req.body.createdTime || Date.now(),
@@ -169,7 +169,7 @@ module.exports = (function() {
                 }
 
                 // 3. 插入新的 keywordreply 資料至指定的 appId 中
-                appsKeywordrepliesMdl.insertByAppId(appId, postKeywordreplyData, (data) => {
+                appsKeywordrepliesMdl.insert(appId, postKeywordreplyData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
                     }
@@ -236,7 +236,7 @@ module.exports = (function() {
         let putKeywordreplyData = {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
-            content: req.body.content || '',
+            text: req.body.text || '',
             replyCount: req.body.replyCount ? req.body.replyCount : 0,
             status: req.body.status ? req.body.status : 0,
             updatedTime: req.body.updatedTime || Date.now()
@@ -268,7 +268,7 @@ module.exports = (function() {
                 }
 
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
-                appsKeywordrepliesMdl.findKeywordrepliesByAppId(appId, (keywordrepliesData) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
                     appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
                         if (!(keywordreplyIds instanceof Array)) {
@@ -296,7 +296,7 @@ module.exports = (function() {
                 }
 
                 // 4. 更新指定的 appId 中的 keywordreply 資料
-                appsKeywordrepliesMdl.updateByAppIdByKeywordreplyId(appId, keywordreplyId, putKeywordreplyData, (data) => {
+                appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreplyData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
                         return;
@@ -369,7 +369,7 @@ module.exports = (function() {
                 }
 
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
-                appsKeywordrepliesMdl.findKeywordrepliesByAppId(appId, (keywordrepliesData) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
                     appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
                         if (!(keywordreplyIds instanceof Array)) {
@@ -392,7 +392,7 @@ module.exports = (function() {
         }).then(() => {
             return new Promise((resolve, reject) => {
                 // 4. 刪除指定的 appId 中的 keywordreply 資料
-                appsKeywordrepliesMdl.removeByAppIdByKeywordreplyId(appId, keywordreplyId, (data) => {
+                appsKeywordrepliesMdl.remove(appId, keywordreplyId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
                         return;
