@@ -27,7 +27,7 @@ module.exports = (function() {
      * @param {string[]} keywordreplyIds
      * @param {function({ type: string, text: string}[])} callback
      */
-    AppsKeywordrepliesModel.prototype.findMessagesArrayByAppIdAndKeywordIds = function(appId, keywordreplyIds, callback) {
+    AppsKeywordrepliesModel.prototype.findKeywordrepliesByAppIdByKeywordIds = function(appId, keywordreplyIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             if (!appId || !keywordreplyIds || !(keywordreplyIds instanceof Array)) {

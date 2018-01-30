@@ -202,27 +202,31 @@ function init(server) {
             var autoMessages = Object.values(result[2]);
             var greetingMessages = Object.values(result[3]);
             var messages = [];
+
             if (null !== keywordMessages) {
                 messages = messages.concat(keywordMessages);
             };
             if (null !== templateMessages) {
                 messages = messages.concat(templateMessages);
             };
-
-            // if (null !== autoMessages) {
-            //     messages = messages.concat(autoMessages);
-            // };
+            if (null !== autoMessages) {
+                messages = messages.concat(autoMessages);
+            };
 
             if (null !== greetingMessages) {
                 messages = messages.concat(greetingMessages);
             };
-
             var textOnlyMessages = [].concat(keywordMessages, autoMessages, greetingMessages);
 
             req.messages = messages;
+
             switch (app.type) {
                 case LINE:
-                    lineBot.replyMessage(event.replyToken, messages);
+                    // 沒有訊息資料就不對發送 LINE SDK 發送訊息
+                    if (req.messages instanceof Array && 0 === req.messages.length) {
+                        return Promise.resolve();
+                    };
+                    return lineBot.replyMessage(event.replyToken, messages);
                     break;
                 case FACEBOOK:
                     utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
@@ -242,7 +246,6 @@ function init(server) {
             };
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
-                    var a = 0;
                     if (undefined === messager || '' === messager || null === messager) {
                         reject();
                         return;
@@ -259,10 +262,14 @@ function init(server) {
                     from: (req.app.type).toUpperCase(),
                     messager_id: req.body.events[0].source.userId
                 };
-    
+
                 // 回復訊息與傳入訊息都整合，再寫入 DB
                 req.messages.push(inMessage);
             }
+            if (req.messages instanceof Array && 0 === req.messages.length) {
+                return Promise.resolve(messager);
+            };
+
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
