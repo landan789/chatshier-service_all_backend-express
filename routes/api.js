@@ -50,6 +50,7 @@ router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsT
 // 取得聊天室訊息API (Create By Peace 2018/01/25)
 router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAll);
 router.get('/apps-messagers/apps/:appid/users/:userid', appsMessagersCtl.getAllByAppId);
+router.get('/apps-messagers/apps/:appid/messager/:messagerid', appsMessagersCtl.getByAppIdByMessagerId);
 router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.getAll);
 router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
 // ===============

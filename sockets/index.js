@@ -183,16 +183,16 @@ function init(server) {
                 messages = messages.concat(templateMessages);
             };
 
-            if (null !== autoMessages) {
-                messages = messages.concat(autoMessages);
-            };
+            // if (null !== autoMessages) {
+            //     messages = messages.concat(autoMessages);
+            // };
 
             var textOnlyMessages = [].concat(keywordMessages, autoMessages);
 
             req.messages = messages;
             switch (app.type) {
                 case LINE:
-                    return lineBot.replyMessage(event.replyToken, messages);
+                    lineBot.replyMessage(event.replyToken, messages);
                     break;
                 case FACEBOOK:
                     utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
@@ -233,7 +233,7 @@ function init(server) {
             req.messages.push(inMessage);
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
-                if (LINE !== message.from || FACEBOOK !== message.from) {
+                if (LINE !== message.from && FACEBOOK !== message.from) {
                     message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
                     delete message['createdTime'];
                     delete message['endedTime'];

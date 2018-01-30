@@ -108,5 +108,41 @@ module.exports = (function() {
         });
     };
 
+    AppsMessagersController.prototype.getByAppIdByMessagerId = function(req, res, next) {
+        let appId = req.params.appid;
+        let msgerId = req.params.messagerid;
+
+        let proceed = Promise.resolve();
+        proceed.then(() => {
+            return new Promise((resolve, reject) => {
+                if (!msgerId) {
+                    reject(API_ERROR.MESSAGERID_WAS_EMPTY);
+                    return;
+                }
+                appsMessagersMdl.findByAppIdAndMessageId(appId, msgerId, (messager) => {
+                    if (!messager) {
+                        reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(messager);
+                });
+            });
+        }).then((data) => {
+            let json = {
+                status: 1,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                data: data
+            };
+            res.status(200).json(json);
+        }).catch((ERROR) => {
+            let json = {
+                status: 0,
+                msg: ERROR.MSG,
+                code: ERROR.CODE
+            };
+            res.status(403).json(json);
+        });
+    };
+
     return new AppsMessagersController();
 })();

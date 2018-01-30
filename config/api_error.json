@@ -26,7 +26,7 @@
     "APP_TICKET_FAILED_TO_INSERT": { "MSG": "app ticket failed to insert", "CODE": "16" },
     "APP_TICKET_FAILED_TO_UPDATE": { "MSG": "app ticket failed to update", "CODE": "17" },
     "APP_TICKET_FAILED_TO_REMOVE": { "MSG": "app ticket failed to remove", "CODE": "18" },
-
+    "MESSAGERID_WAS_EMPTY": { "MSG": "messager id was empty", "CODE": "19" },
     "APP_MESSAGER_FAILED_TO_FIND": { "MSG": "app messager failed to find", "CODE": "57" },
     "APP_MESSAGER_FAILED_TO_INSERT": { "MSG": "app messager failed to insert", "CODE": "58" },
     "APP_MESSAGER_FAILED_TO_UPDATE": { "MSG": "app messager failed to update", "CODE": "59" },
