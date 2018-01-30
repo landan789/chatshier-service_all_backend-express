@@ -5,6 +5,16 @@
     background-color: #e0e0e0;
 }
 
+.calendar-modal-form {
+    width: 90%;
+    margin: 0 auto;
+}
+
+.calendar-modal-form textarea.event-content {
+    margin: 1em 0;
+    resize: vertical;
+}
+
 .font-red {
     color: red;
 }

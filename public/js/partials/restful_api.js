@@ -115,7 +115,7 @@ window.restfulAPI = (function() {
          * @param {*} calendarData - 要進行更新的 calendar 事件資料
          */
         CalendarAPI.prototype.update = function(calendarId, eventId, userId, calendarData) {
-            var destUrl = urlPrefix + '/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var destUrl = urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
@@ -135,7 +135,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 要進行更新的 calendar 事件資料
          */
         CalendarAPI.prototype.remove = function(calendarId, eventId, userId) {
-            var destUrl = urlPrefix + '/calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var destUrl = urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders

@@ -13,8 +13,7 @@ module.exports = (function() {
             subKeywords: '',
             content: '',
             replyCount: 0,
-            replyMessagers: '',
-            isDraft: 0,
+            status: 1,
             createdTime: Date.now(),
             updatedTime: Date.now(),
             isDeleted: 0
@@ -218,7 +217,7 @@ module.exports = (function() {
             let messageId = cipher.createHashKey(putKeywordreply.keyword);
 
             // 1. 更新關鍵字回覆的資料
-            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).set(putKeywordreply).then(() => {
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply).then(() => {
                 // 成功更新後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
                 return { keywordreplyId, messageId };
             });

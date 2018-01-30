@@ -17,9 +17,10 @@
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
-        $jqDoc.on('click', '.tablinks', function switchTable() {
-            var target = $(this).attr('rel');
-            $('#' + target).show().siblings().hide();
+        $jqDoc.on('click', '.tablinks', function switchTable(ev) {
+            var targetTableId = $(this).attr('rel');
+            $('#' + targetTableId).show().siblings().hide();
+            $(ev.target).addClass('enabled').siblings().removeClass('enabled');
         });
 
         // ==========
@@ -53,8 +54,8 @@
 
             // 如果是屬於草稿則顯示 checkbox 否則隱藏
             var checkboxIsDraft = editForm.find('.form-check.checkbox-is-draft');
-            checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !!targetData.isDraft);
-            if (targetData.isDraft) {
+            checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
+            if (!targetData.status) {
                 checkboxIsDraft.show();
             } else {
                 checkboxIsDraft.hide();
@@ -63,7 +64,7 @@
             $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
                 targetData.keyword = editForm.find('input[name="keywordreply-keyword"]').val();
                 targetData.content = editForm.find('textarea[name="keywordreply-content"]').val();
-                targetData.isDraft = editForm.find('input[name="keywordreply-is-draft"]').prop('checked');
+                targetData.status = editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
                 targetData.updatedTime = new Date().getTime();
 
                 return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
@@ -106,14 +107,14 @@
                             '<td>' + keywordreplyData.keyword + '</td>' +
                             '<td>' + keywordreplyData.content + '</td>' +
                             '<td>' + keywordreplyData.replyCount + '</td>' +
-                            '<td>' + (keywordreplyData.isDraft ? '草稿' : '開放') + '</td>' +
+                            '<td>' + allKeywordreplyData[appId].name + '</td>' +
                             '<td>' +
                                 '<a class="btn-feature" data-toggle="modal" data-target="#keywordreply_edit_modal">編輯</a>' +
                                 '<a class="btn-feature btn-row-delete">刪除</a>' +
                             '</td>' +
                         '</tr>';
 
-                    if (keywordreplyData.isDraft) {
+                    if (!keywordreplyData.status) {
                         $draftTableElem.append(htmlTemplate);
                     } else {
                         $openTableElem.append(htmlTemplate);
@@ -166,8 +167,7 @@
             subKeywords: '',
             content: content,
             replyCount: 0,
-            replyMessagers: '',
-            isDraft: isDraft ? 1 : 0,
+            status: isDraft ? 0 : 1,
             createdTime: new Date().getTime(),
             updatedTime: new Date().getTime()
         };

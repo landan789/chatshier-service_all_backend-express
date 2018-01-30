@@ -136,9 +136,8 @@ module.exports = (function() {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
             content: req.body.content || '',
-            replyCount: req.body.replyCount || 0,
-            replyMessagers: req.body.replyMessagers || '',
-            isDraft: req.body.isDraft || 0,
+            replyCount: req.body.replyCount ? req.body.replyCount : 0,
+            status: req.body.status ? req.body.status : 0,
             createdTime: req.body.createdTime || Date.now(),
             updatedTime: req.body.updatedTime || Date.now(),
             isDeleted: 0
@@ -178,6 +177,12 @@ module.exports = (function() {
                 });
             });
         }).then((data) => {
+            // 如果此筆資料屬於草稿階段，不需進行下面程序
+            if (!postKeywordreplyData.status) {
+                return true;
+            }
+
+            // 4. 取得該關鍵字生成的 messageId，比對關鍵字的文字(hash)是否存在
             return new Promise((resolve, reject) => {
                 if (!data) {
                     reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
@@ -186,7 +191,6 @@ module.exports = (function() {
                 let keywordreplyId = data.keywordreplyId;
                 let srcKeywordreplyIds = [keywordreplyId];
 
-                // 4. 取得該 App 中目前所有訊息，比對關鍵字的文字(hash)是否存在
                 appsMessagesMdl.findKeywordreplyIds(appId, messageId, (destKeywordreplyIds) => {
                     if (destKeywordreplyIds) {
                         // 如果訊息資料存在將原本的關鍵字回覆清單串接起來
@@ -233,9 +237,8 @@ module.exports = (function() {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
             content: req.body.content || '',
-            replyCount: req.body.replyCount || 0,
-            replyMessagers: req.body.replyMessagers || '',
-            isDraft: req.body.isDraft || 0,
+            replyCount: req.body.replyCount ? req.body.replyCount : 0,
+            status: req.body.status ? req.body.status : 0,
             updatedTime: req.body.updatedTime || Date.now()
         };
 
@@ -296,6 +299,12 @@ module.exports = (function() {
                 appsKeywordrepliesMdl.updateByAppIdByKeywordreplyId(appId, keywordreplyId, putKeywordreplyData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
+                        return;
+                    }
+
+                    // 如果此筆資料屬於草稿階段，不需進行下面程序
+                    if (!putKeywordreplyData.status) {
+                        resolve(true);
                         return;
                     }
 
