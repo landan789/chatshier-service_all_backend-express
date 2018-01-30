@@ -24,6 +24,7 @@ var appsChatroomsMdl = require('../models/apps_chatrooms');
 var appsMessagersMdl = require('../models/apps_messagers');
 var appsMessagesMdl = require('../models/apps_messages');
 var appsTemplatesMdl = require('../models/apps_templates');
+var appsGreetingsMdl = require('../models/apps_greetings');
 
 const SOCKET_MESSAGE = require('../config/socket_message');
 var API_ERROR = require('../config/api_error');
@@ -100,12 +101,10 @@ function init(server) {
                     next();
                     break;
             }
-        }).catch(() => {
-
-        });
+        }).catch(() => {});
     }, (req, res, next) => {
         var appId = req.appId;
-        var message = req.body.events[0].message.text;
+        var message = 'message' === req.body.events[0].type ? req.body.events[0].message.text : '';
         var proceed = Promise.resolve();
         proceed.then(() => {
             req.messageId = cipher.createHashKey(message);
@@ -141,7 +140,11 @@ function init(server) {
 
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-            appsKeywordrepliesMdl.findMessagesArrayByAppIdAndKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
+            if ('follow' === event.type) {
+                resolve({});
+                return;
+            }
+            appsKeywordrepliesMdl.findKeywordrepliesByAppIdByKeywordIds(appId, keywordreplyIds, (keywordreplies) => {
                 if (null === keywordreplies || undefined === keywordreplies || '' === keywordreplies || (keywordreplies instanceof Array && 0 === keywordreplies.length)) {
                     resolve({});
                     return;
@@ -152,6 +155,10 @@ function init(server) {
         });
 
         var p2 = new Promise((resolve, reject) => {
+            if ('follow' === event.type) {
+                resolve({});
+                return;
+            }
             appsTemplatesMdl.findTemplatesByAppIdByTemplateIds(appId, templateIds, (templates) => {
                 if (null === templates || undefined === templates || '' === templates || (templates instanceof Array && 0 === templates.length)) {
                     resolve({});
@@ -162,6 +169,10 @@ function init(server) {
         });
 
         var p3 = new Promise((resolve, reject) => {
+            if ('follow' === event.type) {
+                resolve({});
+                return;
+            }
             appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
                 if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
                     resolve({});
@@ -171,10 +182,25 @@ function init(server) {
             });
         });
 
-        Promise.all([p1, p2, p3]).then((result) => {
+        var p4 = new Promise((resolve, reject) => {
+            if ('message' === event.type) {
+                resolve({});
+                return;
+            }
+            appsGreetingsMdl.findGreetings(appId, (greetings) => {
+                if (null === greetings || undefined === greetings || '' === greetings || (greetings instanceof Array && 0 === greetings.length)) {
+                    resolve({});
+                    return;
+                }
+                resolve(greetings);
+            });
+        });
+
+        Promise.all([p1, p2, p3, p4]).then((result) => {
             var keywordMessages = Object.values(result[0]);
             var templateMessages = Object.values(result[1]);
             var autoMessages = Object.values(result[2]);
+            var greetingMessages = Object.values(result[3]);
             var messages = [];
             if (null !== keywordMessages) {
                 messages = messages.concat(keywordMessages);
@@ -187,7 +213,11 @@ function init(server) {
             //     messages = messages.concat(autoMessages);
             // };
 
-            var textOnlyMessages = [].concat(keywordMessages, autoMessages);
+            if (null !== greetingMessages) {
+                messages = messages.concat(greetingMessages);
+            };
+
+            var textOnlyMessages = [].concat(keywordMessages, autoMessages, greetingMessages);
 
             req.messages = messages;
             switch (app.type) {
@@ -222,15 +252,17 @@ function init(server) {
             });
         }).then((messager) => {
             var chatroomId = messager.chatroom_id;
-            var inMessage = {
-                text: req.body.events[0].message.text,
-                type: req.body.events[0].message.type,
-                from: (req.app.type).toUpperCase(),
-                messager_id: req.body.events[0].source.userId
-            };
-
-            // 回復訊息與傳入訊息都整合，再寫入 DB
-            req.messages.push(inMessage);
+            if ('message' === req.body.events[0].type) {
+                var inMessage = {
+                    text: req.body.events[0].message.text,
+                    type: req.body.events[0].message.type,
+                    from: (req.app.type).toUpperCase(),
+                    messager_id: req.body.events[0].source.userId
+                };
+    
+                // 回復訊息與傳入訊息都整合，再寫入 DB
+                req.messages.push(inMessage);
+            }
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
@@ -239,6 +271,7 @@ function init(server) {
                     delete message['endedTime'];
                     delete message['isDeleted'];
                     delete message['startedTime'];
+                    delete message['updatedTime'];
                     delete message['title'];
                 }
 
@@ -792,39 +825,92 @@ function init(server) {
         /*===內部聊天室end===*/
 
         /*===訊息start===*/
-        socket.on('load add friend', () => {});
-        //更新關鍵字回覆
-        socket.on('update add friend message', (data, callback) => {
-            // addFriendBroadcastMsg = data;
-            let id = data.userId;
-            let messageArray = data.textArray;
-            if (messageArray.length === 0) {
-                globalLineMessageArray.map(item => {
-                    if (item.userId === id) {
-                        globalLineMessageArray.splice(globalLineMessageArray.indexOf(item), 1);
-                    }
+        socket.on('post userId', (data) => {
+            let userId = data;
+            let proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    users.findAppIdsByUserId(userId, (appId) => {
+                        resolve(appId);
+                    });
                 });
-            } else {
-                users.findUserByUserId(id, dbData => {
-                    if (dbData.ids.chanId_1 === '' && dbData.ids.chanId_2 === '') {
-                        callback('帳號未設定');
-                    } else {
-                        if (globalLineMessageArray.length === 0) {
-                            globalLineMessageArray.push({ userId: id, chanId: channelIds[0], msg: messageArray });
-                        } else {
-                            globalLineMessageArray.map(item => {
-                                if (item.userId === id) {
-                                    globalLineMessageArray[item].msg.push(messageArray);
-                                }
-                            });
-                        }
-                        callback();
-                    }
+            }).then((appId) => {
+                return new Promise((resolve, reject) => {
+                    appsMdl.findAppsByAppIds(appId, (appInfos) => {
+                        resolve(appInfos);
+                    });
                 });
-            }
+            }).then((appInfos) => {
+                socket.emit('get appInfos', (appInfos));
+            }).catch((error) => {
+                console.log(error);
+            });
         });
-        socket.on('update overview', data => {
-            overview[data.message] = data.time;
+        socket.on('load add friend', (data) => {
+            let appId = data;
+            let proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    appsGreetingsMdl.findAll(appId, (data) => {
+                        resolve(data);
+                    });
+                });
+            }).then((data) => {
+                socket.emit('get greetings', (data));
+            }).catch((error) => {
+                console.log(error);
+            });
+        });
+        socket.on('post greeting', (data) => {
+            let userId = data.userId;
+            let appId = data.appId;
+            let greetingObj = data.greetingObj;
+            let proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    appsGreetingsMdl.insert(appId, greetingObj, (result) => {
+                        if (false === result) {
+                            reject();
+                            return;
+                        }
+                        resolve(result);
+                    });
+                });
+            }).then((result) => {
+                let greetingId = result;
+                socket.emit('callback greetingId', greetingId);
+            }).catch((error) => {
+                console.log(error);
+            });
+        });
+        socket.on('delete greeting', (data) => {
+            let appId = data.appId;
+            let greetingId = data.greetingId;
+            let proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    appsGreetingsMdl.remove(appId, greetingId, (result) => {
+                        if (false === result) {
+                            reject();
+                            return;
+                        }
+                        resolve();
+                    });
+                });
+            }).then(() => {
+                socket.emit('delete result', (true));
+            }).catch((error) => {
+                socket.emit('delete result', (false));
+                console.log(error);
+            });
         });
 
         socket.on('update tags', tagsData => {

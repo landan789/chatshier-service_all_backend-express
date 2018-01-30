@@ -17,8 +17,8 @@ router.get('/autoreply', function(req, res, next) {
 router.get('/message_keywordsreply', function(req, res, next) {
     res.render('message_keywordsreply', { title: '關鍵字回覆' });
 });
-router.get('/message_add_friend_reply', function(req, res, next) {
-    res.render('message_add_friend_reply', { title: '加好友問候' });
+router.get('/greeting', function(req, res, next) {
+    res.render('greeting', { title: '加好友問候' });
 });
 router.get('/message_overview', function(req, res, next) {
     res.render('message_overview', { title: '訊息群發' });

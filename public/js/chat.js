@@ -649,6 +649,18 @@ $(document).ready(function() {
         $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText));
         messageInput.val('');
     });
+    socket.on('post followMessage to chat', (data) => {
+        var userId = data.userId; // 平台使用者的appId
+        var appId = data.appId; // line打過來的userId
+        var msgText = data.followMessage;
+        for (let i in msgText) {
+            let str = toAgentStr(msgText[i], '', Date.now());
+            $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
+            $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
+            $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText[i]));
+            messageInput.val('');
+        }
+    });
     //=====end socket function=====
 
     //=====start chat function=====

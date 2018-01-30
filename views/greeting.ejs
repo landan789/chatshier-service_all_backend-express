@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <%# 自己的code%>
         <link rel="stylesheet" href="css/_main.css" />
-        <link rel="stylesheet" href="css/message_add_friend_reply.css" />
+        <link rel="stylesheet" href="css/greeting.css" />
         <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
@@ -25,6 +25,9 @@
             <div id="home">
                 <h3> 加好友回覆</h3>
                 <p>新增、編輯、測試傳送到LINE@的訊息</p>
+                
+                    <select id="appId-names" class="col-sm-2"><option selected>請選擇</option></select>
+                
                 <table id="MsgCanvas"></table>
                 <table>
                     <td style="padding:5% 5% 5% 15%">
@@ -43,7 +46,7 @@
             <script src="config/firebaseConfig.js"></script>
             <script src="js/_firebase-auth.js"></script>
             <script src="js/navigation.js"></script>
-            <script src="js/message_add_friend_reply.js"></script>
+            <script src="js/greeting.js"></script>
             <script src="js/partials/firebase-disable.js"></script>
 </body>
 

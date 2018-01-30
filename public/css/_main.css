@@ -40,7 +40,7 @@
     a[href="/message_overview"],
     a[href="/message_autoreply"],
     a[href="/message_keywordsreply"],
-    a[href="/message_add_friend_reply"] {
+    a[href="/message_greeting"] {
         color: white;
         text-decoration: none;
     }
