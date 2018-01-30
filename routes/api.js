@@ -19,6 +19,8 @@ var appsMessagersCtl = require('../controllers/apps_messagers');
 var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
 // ===============
 
+var appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
+
 var router = express.Router();
 
 // HTTP body 允許 json 格式
@@ -60,12 +62,23 @@ router.post('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.postOn
 router.put('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.putOne);
 router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.deleteOne);
 
+// ==========
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
 router.get('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.getOne);
 router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
 router.put('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.putOne);
 router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.deleteOne);
+// ==========
+
+// ==========
+// 關鍵字回覆
+router.get('/apps-keywordreplies/users/:userid', appsKeywordrepliesCtl.getAll);
+router.get('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.getOne);
+router.post('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.postOne);
+router.put('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.putOne);
+router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.deleteOne);
+// ==========
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;

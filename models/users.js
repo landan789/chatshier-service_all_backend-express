@@ -18,14 +18,14 @@ module.exports = (function() {
     };
 
     UsersModel.prototype.findAppIdsByUserId = function(userId, callback) {
-        admin.database().ref('users/' + userId + '/app_ids').on('value', snap => {
+        admin.database().ref('users/' + userId + '/app_ids').once('value', snap => {
             let data = snap.val();
             callback(data);
         });
     };
 
     UsersModel.prototype.findCalendarIdByUserId = function(userId, callback) {
-        admin.database().ref('users/' + userId + '/calendar_id').on('value', snap => {
+        admin.database().ref('users/' + userId + '/calendar_id').once('value', snap => {
             let data = snap.val();
             callback(data);
         });

@@ -44,26 +44,32 @@ module.exports = (function() {
                 }
 
                 findTasks.push(new Promise((resolve, reject) => {
-                    admin.database().ref('apps/' + appId + '/chatrooms/').on('value', (data) => {
-                        if (!data) {
+                    admin.database().ref('apps/' + appId + '/chatrooms/').once('value', (snap) => {
+                        if (!snap) {
                             resolve();
                             return;
                         }
 
-                        let chatroomsData = data.val();
-                        if (chatroomsData) {
-                            appsChatroomsMap[appId].chatrooms = chatroomsData;
-                        }
+                        let chatroomsData = snap.val() || {};
+                        appsChatroomsMap[appId].chatrooms = chatroomsData;
                         resolve();
                     });
                 }));
             }
 
+            // 最後的資料結構型式:
+            // {
+            //   ($appId)
+            //   ($appId)
+            //     ⌞chatrooms
+            //       ⌞($chatroomId)
+            //       ⌞($chatroomId)
+            // }
             return Promise.all(findTasks).then(() => {
                 return appsChatroomsMap;
             });
         }).then((result) => {
-            callback(result);
+            callback(result || {});
         }).catch(() => {
             callback(null);
         });
@@ -90,21 +96,19 @@ module.exports = (function() {
             };
 
             return new Promise((resolve) => {
-                admin.database().ref('apps/' + appId + '/chatrooms/').on('value', (data) => {
-                    if (!data) {
+                admin.database().ref('apps/' + appId + '/chatrooms/').once('value', (snap) => {
+                    if (!snap) {
                         resolve(appsChatroomsMap);
                         return;
                     }
 
-                    let chatroomsData = data.val();
-                    if (chatroomsData) {
-                        appsChatroomsMap[appId].chatrooms = chatroomsData;
-                    }
+                    let chatroomsData = snap.val() || {};
+                    appsChatroomsMap[appId].chatrooms = chatroomsData;
                     resolve(appsChatroomsMap);
                 });
             });
         }).then((result) => {
-            callback(result);
+            callback(result || {});
         }).catch(() => {
             callback(null);
         });

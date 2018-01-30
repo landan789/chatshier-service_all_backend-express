@@ -1,4 +1,4 @@
-var admin = require('firebase-admin'); //firebase admin SDK
+var admin = require('firebase-admin'); // firebase admin SDK
 var apps = {};
 
 apps._schema = (callback) => {
@@ -18,8 +18,8 @@ apps._schema = (callback) => {
 };
 
 apps.findByAppId = (appId, callback) => {
-    var ref = "apps/" + appId;
-    admin.database().ref(ref).once("value", snap => {
+    var ref = 'apps/' + appId;
+    admin.database().ref(ref).once('value', snap => {
         var app = snap.val();
         delete app.autoreplies;
         delete app.templates;
@@ -108,7 +108,7 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var user = snap.val();
                 var appIds = !user.hasOwnProperty('app_ids') ? [] : user.app_ids;
                 if (null === user || '' === user || undefined === user) {
-                    reject();
+                    reject(new Error());
                     return;
                 }
                 var n = appIds.length;
@@ -163,13 +163,13 @@ apps.updateByAppId = (appId, putApp, callback) => {
             admin.database().ref('apps/' + appId).once('value', snap => {
                 var app = snap.val();
                 if (undefined === app || '' === app || null === app) {
-                    reject();
+                    reject(new Error());
                     return;
                 }
 
                 // 已刪除資料不能更新
                 if (1 === app.delete) {
-                    reject();
+                    reject(new Error());
                     return;
                 }
                 resolve();

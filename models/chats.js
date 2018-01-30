@@ -23,7 +23,7 @@ chats.insertMessageByMessengerIdAndAppId = (appId,msgId,msgObj) => {
   proceed
     .then(() => {
       return new Promise((resolve,reject) => {
-        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).on('value', (data) => {
+        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).once('value', (data) => {
           let chats = data.val().chats;
           resolve(chats);
         });

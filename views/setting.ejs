@@ -10,20 +10,14 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="stylesheets/sb-admin-2.css">
-    <link rel="stylesheet" href="stylesheets/_main.css" />
-    <link rel="stylesheet" href="stylesheets/tag.css" />
-    <link rel="stylesheet" href="stylesheets/setting.css" />
-    <link rel="stylesheet" href="stylesheets/partials/firebase-disable.css" />
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/sb-admin-2.css">
+    <link rel="stylesheet" href="css/_main.css" />
+    <link rel="stylesheet" href="css/tag.css" />
+    <link rel="stylesheet" href="css/setting.css" />
+    <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
 <body>
@@ -218,13 +212,18 @@
         <% include ../views/partials/setting_modal.ejs %>
         <% include ../views/partials/firebase_disable.ejs %>
     </div>
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
     <script src="config/firebaseConfig.js"></script>
-    <script src="javascripts/_firebase-auth-init.js"></script>
-    <script src="javascripts/_firebase-auth.js"></script>
     <script src="config/url-config.js"></script>
-    <script src="javascripts/setting.js"></script>
-    <script src="javascripts/sb-admin-2.js"></script>
-    <script src="javascripts/partials/firebase-disable.js"></script>
+    <script src="js/_firebase-auth.js"></script>
+    <script src="js/setting.js"></script>
+    <script src="js/sb-admin-2.js"></script>
+    <script src="js/partials/firebase-disable.js"></script>
 </body>
 
 </html>

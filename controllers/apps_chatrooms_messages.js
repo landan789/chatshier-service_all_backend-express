@@ -71,24 +71,28 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                // 先根據 userId 取得使用者所有設定的 app 清單
-                usersMdl.findAppIdsByUserId(userId, (appIds) => {
-                    if (!appIds) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === appIds.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                // 1. 先根據 userId 取得使用者所有設定的 app 清單
+                usersMdl.findAppIdsByUserId(userId, (data) => {
+                    resolve(data);
+                });
+            });
+        }).then((appIds) => {
+            return new Promise((resolve, reject) => {
+                if (!appIds) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                } else if (-1 === appIds.indexOf(appId)) {
+                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+
+                appsChatroomsMessagesMdl.findChatroomMessagesByAppId(appId, (chatroomMessages) => {
+                    if (!chatroomMessages) {
+                        reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
                     }
-
-                    appsChatroomsMessagesMdl.findChatroomMessagesByAppId(appId, (chatroomMessages) => {
-                        if (!chatroomMessages) {
-                            reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(chatroomMessages);
-                    });
+                    resolve(chatroomMessages);
                 });
             });
         }).then((data) => {
