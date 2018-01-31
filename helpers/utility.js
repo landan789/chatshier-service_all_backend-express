@@ -85,30 +85,30 @@ utility.lineMsgType = (event, type, callback) => {
 }
 utility.LINEMessageTypeForPushMessage = (vendor, callback) => {
     let message = {};
-    switch (vendor.msgType) {
+    switch (vendor.textType) {
         case 'text':
             message.text = vendor.msg;
-            message.type = vendor.msgType;
+            message.type = vendor.textType;
             break;
         case 'image':
             message.previewImageUrl = vendor.msg.substr(7);
             message.originalContentUrl = vendor.msg.substr(7);
-            message.type = vendor.msgType;
+            message.type = vendor.textType;
             break;
         case 'audio':
             message.duration = 240000;
             message.originalContentUrl = vendor.msg.substr(7);
-            message.type = vendor.msgType;
+            message.type = vendor.textType;
             break;
         case 'video':
             message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
             message.originalContentUrl = vendor.msg.substr(7);
-            message.type = vendor.msgType;
+            message.type = vendor.textType;
             break;
         case 'sticker':
             message.stickerId = parseInt(vendor.msg.substr(vendor.msg.lastIndexOf(' ')));
             message.packageId = parseInt(vendor.msg.substr(vendor.msg.indexOf(' ')));
-            message.type = vendor.msgType;
+            message.type = vendor.textType;
             break;
     }
     callback(message);
@@ -182,16 +182,16 @@ utility.checkMessageLength = (data, callback) => {
     });
 }
 utility.filterUser = (channelIdArr, chatData, callback) => {
-  let newData = {};
-  for( let i in chatData ) {
-    let profile = chatData[i].Profile;
-    if( !profile ) continue;
-    let chanId = profile.channelId;
-    if( channelIdArr.indexOf(chanId)!=-1 ) {
-      newData[i] = chatData[i];
+    let newData = {};
+    for (let i in chatData) {
+        let profile = chatData[i].Profile;
+        if (!profile) continue;
+        let chanId = profile.channelId;
+        if (channelIdArr.indexOf(chanId) !== -1) {
+            newData[i] = chatData[i];
+        }
     }
-  }
-  callback(newData);
+    callback(newData);
 }
 
 utility.sendFacebookMessage = (fbBot, psid, msgStr, callback) => {

@@ -98,7 +98,7 @@ $(document).ready(function() {
     });
     $.extend($.expr[':'], {
         'containsi': function(elem, i, match, array) {
-            return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
+            return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || '').toLowerCase()) >= 0;
         }
     });
     //=====end utility event=====
@@ -132,7 +132,7 @@ $(document).ready(function() {
                         let newArr = [];
                         let appKeys = Object.keys(appsInfo);
                         newData.map((item, index) => {
-                            if (0 === item.delete) {
+                            if (0 === item.isDeleted) {
                                 newArr.push({ info: item, key: appKeys[index] });
                             }
                         });
@@ -151,8 +151,8 @@ $(document).ready(function() {
                     return new Promise((resolve, reject) => {
                         let idArr = [];
                         allActiveApps.map((item, index) => {
-                            idArr.push(item.id1);
-                            room_list.push(item.id1);
+                            idArr.push(item.info.id1);
+                            room_list.push(item.info.id1);
                             if (idArr.length === allActiveApps.length) {
                                 resolve(idArr);
                             }
@@ -165,9 +165,9 @@ $(document).ready(function() {
                 })
                 .catch(() => {});
         } else {
-            if ('1' !== window.sessionStorage["notifyModal"]) { // 網頁refresh不會出現errorModal(但另開tab會)
-                $('#notifyModal').modal("show");
-                window.sessionStorage["notifyModal"] = 1;
+            if ('1' !== window.sessionStorage['notifyModal']) { // 網頁refresh不會出現errorModal(但另開tab會)
+                $('#notifyModal').modal('show');
+                window.sessionStorage['notifyModal'] = 1;
             }
         }
     } // end of responseUserAppIds
@@ -294,7 +294,7 @@ $(document).ready(function() {
             // 左邊的客戶清單排列
             let lastMsg = historyMsg[Object.keys(historyMsg)[Object.keys(historyMsg).length - 1]];
             let lastMsgStr = lastMsgToStr(lastMsg);
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.appId + "' rel='" + data.userId + "'><div class='img-holder'>" + "<img src='" + profile.picUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + data.appId + "' rel='" + data.userId + "'><div class='img-holder'>" + "<img src='" + profile.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + profile.name + "</span>" + lastMsgStr + "</div>";
             if ((profile.unRead > 0) && (profile.unRead <= 99)) {
                 tablinkHtml += "<div class='chsr unread-msg badge badge-pill' style='display:block;'>" + profile.unRead + "</div>" + "</button><hr/></b>";
             } else if (profile.unRead > 99) {
@@ -350,7 +350,7 @@ $(document).ready(function() {
     } // end of historyMsgToStr
     function pushInfo(data) {
         let profile = data.profile;
-        infoCanvas.append('<div class="card-group" id="' + data.appId + '-info" rel="' + data.userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.picUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
+        infoCanvas.append('<div class="card-group" id="' + data.appId + '-info" rel="' + data.userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(profile) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>');
     } // end of pushInfo
     function loadPanelProfile(profile) {
         let table = $.parseHTML("<table class='panel-table'></table>");
@@ -618,10 +618,8 @@ $(document).ready(function() {
             if ($room.length !== 0) {
                 displayMessage(messager, message, Uid, appId); // update 聊天室
                 displayClient(messager, message, Uid, appId); // update 客戶清單
-                if (-1 === name_list.indexOf(Uid + appId)) { // 新客戶
-                    name_list.push(Uid + appId);
-                    displayInfo(messager, message, Uid, appId);
-                }
+                displayInfo(messager, message, Uid, appId);
+                name_list.push(Uid + appId);
             }
         }).catch(() => {});
     });
@@ -783,7 +781,7 @@ $(document).ready(function() {
                         if (data.val() !== null) {
                             let user = data.val();
                             let str = toAgentStr(msgStr, data.name, Date.now());
-                            $("#" + appId + "-content" + "[rel='" + userId + "']").append(str); //push message into right canvas
+                            $('#' + appId + '-content' + "[rel='" + userId + "']").append(str); // push message into right canvas
                             $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
                             $('[name="' + appId + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
                             messageInput.val('');
@@ -825,7 +823,7 @@ $(document).ready(function() {
                                     });
                                 }
                             });
-                        })
+                        });
                     })
                     .then((data) => {
                         let appId = data;
@@ -837,7 +835,7 @@ $(document).ready(function() {
                                     msg: msgStr,
                                     msgTime: Date.now(),
                                     clientId: userId,
-                                    msgType: 'text'
+                                    textType: 'text'
                                 }
                                 resolve(obj);
                             });
@@ -864,26 +862,42 @@ $(document).ready(function() {
         var appId = $chat.attr('id');
         var userId = $chat.attr('rel');
         if (0 < this.files.length) {
+            let proceed = Promise.resolve();
             var file = this.files[0];
             var self = this;
             var storageRef = firebase.storage().ref();
             var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
-                let url = snapshot.downloadURL;
-                var type = $(self).data('type');
-                var data = {
-                    msg: '/' + type + ' ' + url,
-                    msgType: type
-                }
-                socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
-            });
+            proceed.then(() => {
+                return database.ref('apps/' + appId).once('value');
+            }).then((snap) => {
+                let token = snap.val().token1;
+                return new Promise((resolve, reject) => {
+                    resolve(token);
+                });
+            }).then((token) => {
+                fileRef.put(file).then(function(snapshot) {
+                    let url = snapshot.downloadURL;
+                    var textType = $(self).data('type');
+                    var appType = 'string' === typeof(userId) && userId.startsWith('U') ? 'LINE' : 'FACEBOOK';
+                    var data = {
+                        msg: '/' + textType + ' ' + url,
+                        textType: textType,
+                        type: appType,
+                        msgTime: Date.now(),
+                        token1: token
+                    };
+                    socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
+                });
+            }).catch(() => {});
         }
     }
 
     function displayInfo(messager, message, userId, appId) {
         let chats = message;
-        let str = '<div class="card-group" id="' + appId + '-info" rel="' + userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + messager.picUrl + '" alt="無法顯示相片" style="width:128px;height:128px;">' + "</div>" + loadPanelProfile(messager) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + data.id + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
-        infoCanvas.append(str);
+        if (-1 === name_list.indexOf(userId + appId)) {
+            let str = '<div class="card-group" id="' + appId + '-info" rel="' + userId + '-info">' + '<div class="card-body" id="profile">' + "<div class='photo-container'>" + '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;">' + '</div>' + loadPanelProfile(messager) + '<div class="profile-confirm">' + '<button type="button" class="btn btn-info pull-right" id="confirm">Confirm</button>' + '</div>' + '</div>' + '<div class="card-body" id="ticket" style="display:none; "></div>' + '<div class="card-body" id="todo" style="display:none; ">' + '<div class="ticket">' + '<table>' + '<thead>' + '<tr>' + '<th onclick="sortCloseTable(0)"> 狀態 </th>' + '<th onclick="sortCloseTable(1)"> 到期 </th>' + '<th><input type="text" class="ticketSearchBar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' + '<th><a id="' + userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal"><span class="fa fa-plus fa-fw"></span> 新增待辦</a></th>' + '</tr>' + '</thead>' + '<tbody class="ticket-content">' + '</tbody>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+            infoCanvas.append(str);
+        }
     }
 
     function displayMessage(messager, message, userId, appId) {
@@ -911,9 +925,8 @@ $(document).ready(function() {
 
     function displayClient(messager, message, userId, appId) {
         let chats = message;
-        console.log(chats);
         if (name_list.indexOf(userId + appId) === -1) {
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + messager.picUrl + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + messager.name + '</span><br><div id="msg"></div></div>';
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + messager.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + messager.name + '</span><br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + userId + "']");

@@ -7,6 +7,7 @@ var line = require('@line/bot-sdk');
 var admin = require('firebase-admin'); // firebase admin SDK
 var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase admin requires .json auth
 var databaseURL = require('../config/firebase_admin_database_url.js');
+var bodyParser = require('body-parser');
 
 var agents = require('../models/agents');
 var appsComposes = require('../models/apps_composes');
@@ -89,7 +90,6 @@ function init(server) {
                     break;
                 case FACEBOOK:
                     // FACEBOOK 不需要middleware
-                    var psid = undefined === req.body.entry ? '' : req.body.entry[0].messaging[0].sender.id;
                     var facebookConfig = {
                         pageID: req.app.id1,
                         appID: req.app.id2 === undefined ? '' : req.app.id2,
@@ -97,14 +97,15 @@ function init(server) {
                         validationToken: req.app.token1,
                         pageToken: req.app.token2 === undefined ? '' : req.app.token2
                     };
-                    req.fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(facebookConfig, server);
-                    next();
+                    req.facebookConfig = facebookConfig;
+                    bodyParser.json()(req, res, next);
                     break;
             }
         }).catch(() => {});
     }, (req, res, next) => {
+        req.fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(req.facebookConfig, server); // fbBot因為無法取得bofy無法在上一層處理所以拉到這層
         var appId = req.appId;
-        var message = 'message' === req.body.events[0].type ? req.body.events[0].message.text : '';
+        var message = undefined === req.body.events ? req.body.entry[0].messaging[0].message.text : req.body.events[0].message.text;
         var proceed = Promise.resolve();
         proceed.then(() => {
             req.messageId = cipher.createHashKey(message);
@@ -133,10 +134,10 @@ function init(server) {
         var app = req.app;
         var keywordreplyIds = req.keywordreplyIds;
         var templateIds = req.templateIds;
-        var event = req.body.events[0];
+        var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
 
         var appId = req.appId;
-        var messagerId = req.body.events[0].source.userId;
+        req.messagerId = undefined === req.body.events ? req.body.entry[0].messaging[0].sender.id : req.body.events[0].source.userId; // 判斷messager ID
 
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
@@ -229,20 +230,26 @@ function init(server) {
                     return lineBot.replyMessage(event.replyToken, messages);
                     break;
                 case FACEBOOK:
-                    utility.sendFacebookMessage(fbBot, psid, textOnlyMessages, () => {
+                    utility.sendFacebookMessage(fbBot, req.messagerId, textOnlyMessages, () => {
                         return Promise.resolve();
                     });
                     break;
             }
         }).then(() => {
-            var Uid = req.body.events[0].source.userId;
-            return lineBot.getProfile(Uid);
+            var Uid = req.messagerId;
+            switch (req.app.type) {
+                case LINE:
+                    return lineBot.getProfile(Uid);
+                    break;
+                case FACEBOOK:
+                    return fbBot.getProfile(Uid);
+                    break;
+            }
         }).then((profile) => {
-            var Uid = req.body.events[0].source.userId;
-
+            var Uid = req.messagerId;
             var messager = {
-                name: profile.displayName,
-                photo: profile.pictureUrl
+                name: profile.displayName ? profile.displayName : profile.first_name + ' ' + profile.last_name,
+                photo: profile.pictureUrl ? profile.pictureUrl : profile.profile_pic
             };
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
@@ -255,21 +262,15 @@ function init(server) {
             });
         }).then((messager) => {
             var chatroomId = messager.chatroom_id;
-            if ('message' === req.body.events[0].type) {
-                var inMessage = {
-                    text: req.body.events[0].message.text,
-                    type: req.body.events[0].message.type,
-                    from: (req.app.type).toUpperCase(),
-                    messager_id: req.body.events[0].source.userId
-                };
-
-                // 回復訊息與傳入訊息都整合，再寫入 DB
-                req.messages.push(inMessage);
-            }
-            if (req.messages instanceof Array && 0 === req.messages.length) {
-                return Promise.resolve(messager);
+            var msgType = undefined === req.body.events && undefined === req.body.entry[0].messaging[0].message.text ? req.body.entry[0].messaging[0].message.attachment.type : 'text';
+            var inMessage = {
+                text: undefined === req.body.entry ? req.body.events[0].message.text : req.body.entry[0].messaging[0].message.text,
+                type: undefined === req.body.entry ? req.body.events[0].message.type : msgType,
+                from: (req.app.type).toUpperCase(),
+                messager_id: req.messagerId
             };
-
+            // 回復訊息與傳入訊息都整合，再寫入 DB
+            req.messages.push(inMessage);
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
@@ -281,6 +282,13 @@ function init(server) {
                     delete message['updatedTime'];
                     delete message['title'];
                 }
+
+                // 這部分是要判斷訊息是文字或是檔案
+                // if (null === req.body.events || undefined === req.body.events || '' === req.body.events) {
+                //     utility.lineMsgType(req.body.events[0], req.body.events[0].message.type, (text) => {
+                //         message.text = text;
+                //     });
+                // }
 
                 return new Promise((resolve, reject) => {
                     // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
@@ -298,8 +306,6 @@ function init(server) {
             });
         }).then((messager) => {
             let appId = req.appId;
-            let messagerId = req.body.events[0].source.userId;
-            let channelId = req.app.channelId;
             let chatroomId = messager.chatroom_id;
             return new Promise((resolve, reject) => {
                 appsChatroomsMessagesMdl.findAppsChatroomsMessages(appId, chatroomId, (AppsChatroomsMessages) => {
@@ -312,7 +318,6 @@ function init(server) {
             });
         }).then((AppsChatroomsMessages) => {
             // 6. 用 socket.emit 回傳訊息給 clinet
-
             io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, AppsChatroomsMessages);
             res.sendStatus(200);
         }).catch((ERR) => {
@@ -506,7 +511,6 @@ function init(server) {
             // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
             let token = vendor.token1;
             var lineBot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : {};
-
             // 1. Server 接收到 client 來的聊天訊息
             var proceed = Promise.resolve();
             proceed.then(() => {
@@ -550,7 +554,7 @@ function init(server) {
                     let message = {
                         owner: 'agent',
                         name: agentName,
-                        time: msgTime,
+                        time: undefined === msgTime ? msgTime : Date.now(),
                         text: msg,
                         from: vendor.type
                     };
