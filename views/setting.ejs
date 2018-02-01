@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
     <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="lib/css/animate.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/tag.css" />
@@ -103,11 +104,7 @@
                 </div>
             </div>
             <div id="menu3" class="tab-pane fade">
-                <h3 class="margin-left-15">標籤
-                    <button type="button" class="btn btn-default add-tag scrolldown" href=".tag-name:last">
-                        <span class="fa fa-plus fa-fw"></span> 新增
-                    </button>
-                </h3>
+                <h3 class="margin-left-15">標籤</h3>
                 <div class="col-md-10 col-lg-10 panel-info prof-wid">
                     <div class="float-down">
                         <div id="tag-tab" class="col-md-11 col-lg-11 panel-info prof-wid padding-zero">
@@ -116,24 +113,8 @@
                             </div>
                             <div class="panel-body">
                                 <div class="row">
-                                    <div class=" col-md-12 col-lg-12 ">
-                                        <table class="table table-striped" id="tagTable">
-                                            <thead>
-                                                <tr>
-                                                    <th> 欄位名稱 </th>
-                                                    <th> 欄位類別 </th>
-                                                    <th> 欄位設定 </th>
-                                                    <th> 刪除 </th>
-                                                    <th> 可變更<br/>(系統設定) </th>
-                                                    <th> &nbsp;</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tagTable-body">
-                                            </tbody>
-                                        </table>
-                                        <div class="align-center">
-                                            <button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>
-                                        </div>
+                                    <div class="chsr-tags panel-group col-md-12 col-lg-12" role="tablist" id="apps_tags_wapper">
+                                        <div class="panel panel-default"></div>
                                     </div>
                                 </div>
                             </div>
@@ -218,9 +199,11 @@
     <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
+    <script src="lib/js/bootstrap-notify.min.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="config/url-config.js"></script>
     <script src="js/_firebase-auth.js"></script>
+    <script src="js/partials/restful_api.js"></script>
     <script src="js/setting.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

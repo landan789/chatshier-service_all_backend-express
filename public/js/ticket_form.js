@@ -386,7 +386,7 @@ var ChatshierAppAPI = (function() {
             // var ownerAgent = $('#add-form-agents option:selected').val();
             var description = $('#add-form-description').val();
 
-            var nowTime = new Date().getTime();
+            var nowTime = Date.now();
             var dueTime = nowTime + 86400000 * 3; // 過期時間預設為3天後
 
             var newTicket = {

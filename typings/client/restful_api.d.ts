@@ -5,7 +5,8 @@ declare interface Window {
         messager: MessagerAPI,
         ticket: TicketAPI,
         keywordreply: KeywordreplyAPI,
-        calendar: CalendarAPI
+        calendar: CalendarAPI,
+        tag: TagAPI
     }
 }
 
@@ -39,4 +40,26 @@ declare abstract class CalendarAPI {
     insert: (userId: string, calendarData: any) => Promise<any>;
     update: (calendarId: string, eventId: string, userId: string, calendarData: any) => Promise<any>;
     remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
+}
+
+declare abstract class TagAPI {
+    getAll: (userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, tagData: any) => Promise<any>;
+    update: (appId: string, tagId: string, userId: string, tagData: any) => Promise<any>;
+    remove: (appId: string, tagId: string, userId: string) => Promise<any>;
+    enums: {
+        type: {
+            DEFAULT: string,
+            CUSTOM: string
+        },
+        setsType: {
+            TEXT: string,
+            NUMBER: string,
+            DATE: string,
+            SELECT: string,
+            MULTI_SELECT: string,
+            CHECKBOX: string,
+            RADIO: string
+        }
+    }
 }

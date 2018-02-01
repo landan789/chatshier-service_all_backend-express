@@ -12,9 +12,10 @@ var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
+var appsTagsCtl = require('../controllers/apps_tags');
 
 // ===============
-// 訊息相關 Ctrl (Create By Peace 2018/01/25)
+// 訊息相關 Ctrl
 var appsMessagersCtl = require('../controllers/apps_messagers');
 var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
 // ===============
@@ -47,7 +48,7 @@ router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 // ===============
-// 取得聊天室訊息API (Create By Peace 2018/01/25)
+// 聊天室訊息
 router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAll);
 router.get('/apps-messagers/apps/:appid/users/:userid', appsMessagersCtl.getAllByAppId);
 router.get('/apps-messagers/apps/:appid/messager/:messagerid', appsMessagersCtl.getByAppIdByMessagerId);
@@ -79,6 +80,14 @@ router.get('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesC
 router.post('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.postOne);
 router.put('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.putOne);
 router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.deleteOne);
+// ==========
+
+// ==========
+// 資料標籤
+router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
+router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
+router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);
+router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.deleteOne);
 // ==========
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {

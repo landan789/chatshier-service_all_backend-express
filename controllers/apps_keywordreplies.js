@@ -12,13 +12,11 @@ module.exports = (function() {
     /**
      * @param {Request} req
      * @param {Response} res
-     * @param {Function} next
      */
-    AppsKeywordrepliesController.prototype.getAll = function(req, res, next) {
+    AppsKeywordrepliesController.prototype.getAll = function(req, res) {
         let userId = req.params.userid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -27,17 +25,16 @@ module.exports = (function() {
                 }
 
                 usersMdl.findAppIdsByUserId(userId, (data) => {
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
                     resolve(data);
                 });
             });
         }).then((appIds) => {
             // 2. 再根據 appId 清單去 keywordreplies model 抓取清單
             return new Promise((resolve, reject) => {
-                if (!appIds) {
-                    reject(API_ERROR.USER_FAILED_TO_FIND);
-                    return;
-                }
-
                 appsKeywordrepliesMdl.findKeywordreplies(appIds, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
@@ -66,14 +63,12 @@ module.exports = (function() {
     /**
      * @param {Request} req
      * @param {Response} res
-     * @param {Function} next
      */
-    AppsKeywordrepliesController.prototype.getOne = function(req, res, next) {
+    AppsKeywordrepliesController.prototype.getOne = function(req, res) {
         let appId = req.params.appid;
         let userId = req.params.userid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -82,21 +77,20 @@ module.exports = (function() {
                 }
 
                 usersMdl.findAppIdsByUserId(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    } else if (-1 === data.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
                     resolve(data);
                 });
             });
         }).then((appIds) => {
             return new Promise((resolve, reject) => {
-                // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                if (!appIds) {
-                    reject(API_ERROR.USER_FAILED_TO_FIND);
-                    return;
-                } else if (-1 === appIds.indexOf(appId)) {
-                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                    reject(API_ERROR.APP_FAILED_TO_FIND);
-                    return;
-                }
-
                 // 3. 找到指定的 appId 中的 keywordreply 資料
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     if (!keywordrepliesData) {
@@ -126,9 +120,8 @@ module.exports = (function() {
     /**
      * @param {Request} req
      * @param {Response} res
-     * @param {Function} next
      */
-    AppsKeywordrepliesController.prototype.postOne = function(req, res, next) {
+    AppsKeywordrepliesController.prototype.postOne = function(req, res) {
         let appId = req.params.appid;
         let userId = req.params.userid;
 
@@ -143,8 +136,7 @@ module.exports = (function() {
             isDeleted: 0
         };
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -153,21 +145,20 @@ module.exports = (function() {
                 }
 
                 usersMdl.findAppIdsByUserId(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    } else if (-1 === data.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
                     resolve(data);
                 });
             });
         }).then((appIds) => {
             return new Promise((resolve, reject) => {
-                // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                if (!appIds) {
-                    reject(API_ERROR.USER_FAILED_TO_FIND);
-                    return;
-                } else if (-1 === appIds.indexOf(appId)) {
-                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                    reject(API_ERROR.APP_FAILED_TO_FIND);
-                    return;
-                }
-
                 // 3. 插入新的 keywordreply 資料至指定的 appId 中
                 appsKeywordrepliesMdl.insert(appId, postKeywordreplyData, (data) => {
                     if (!data) {
@@ -226,9 +217,8 @@ module.exports = (function() {
     /**
      * @param {Request} req
      * @param {Response} res
-     * @param {Function} next
      */
-    AppsKeywordrepliesController.prototype.putOne = function(req, res, next) {
+    AppsKeywordrepliesController.prototype.putOne = function(req, res) {
         let appId = req.params.appid;
         let keywordreplyId = req.params.keywordreplyid;
         let userId = req.params.userid;
@@ -242,8 +232,7 @@ module.exports = (function() {
             updatedTime: req.body.updatedTime || Date.now()
         };
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -252,21 +241,20 @@ module.exports = (function() {
                 }
 
                 usersMdl.findAppIdsByUserId(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    } else if (-1 === data.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
                     resolve(data);
                 });
             });
         }).then((appIds) => {
             return new Promise((resolve, reject) => {
-                // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                if (!appIds) {
-                    reject(API_ERROR.USER_FAILED_TO_FIND);
-                    return;
-                } else if (-1 === appIds.indexOf(appId)) {
-                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                    reject(API_ERROR.APP_FAILED_TO_FIND);
-                    return;
-                }
-
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
@@ -336,15 +324,13 @@ module.exports = (function() {
     /**
      * @param {Request} req
      * @param {Response} res
-     * @param {Function} next
      */
-    AppsKeywordrepliesController.prototype.deleteOne = function(req, res, next) {
+    AppsKeywordrepliesController.prototype.deleteOne = function(req, res) {
         let appId = req.params.appid;
         let keywordreplyId = req.params.keywordreplyid;
         let userId = req.params.userid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
                 if (!userId) {
@@ -353,21 +339,20 @@ module.exports = (function() {
                 }
 
                 usersMdl.findAppIdsByUserId(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    } else if (-1 === data.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
                     resolve(data);
                 });
             });
         }).then((appIds) => {
             return new Promise((resolve, reject) => {
-                // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                if (!appIds) {
-                    reject(API_ERROR.USER_FAILED_TO_FIND);
-                    return;
-                } else if (-1 === appIds.indexOf(appId)) {
-                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                    reject(API_ERROR.APP_FAILED_TO_FIND);
-                    return;
-                }
-
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
                     let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);

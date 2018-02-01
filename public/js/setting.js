@@ -1,10 +1,382 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
+// ===============
+// 標籤 Tab 代碼區塊
+(function() {
+    // 宣告用來處理整個標籤容器的控制類別
+    var TagPanelCtrl = (function() {
+        function TagPanelCtrl() {
+            this.saveListeners = [];
+            this.deleteListeners = [];
+            this.$tagPanel = $('.chsr-tags.panel-group .panel');
+        }
+
+        /**
+         * @param {string} appId
+         */
+        TagPanelCtrl.prototype.toggleItem = function(appId) {
+            var tagCollapseId = appId + '_collapse';
+            this.$tagPanel.find('#' + tagCollapseId).collapse();
+        };
+
+        /**
+         * @param {string} appId
+         * @param {*} appData
+         */
+        TagPanelCtrl.prototype.addAppItem = function(appId, appData) {
+            var _this = this;
+            var tagCollapseId = appId + '_collapse';
+            _this.$tagPanel.append(
+                '<div class="panel-heading" role="tab" id="' + appId + '">' +
+                    '<h4 class="panel-title">' +
+                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
+                            (appData.name || '') +
+                        '</a>' +
+                    '</h4>' +
+                '</div>' +
+                '<div id="' + tagCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
+                    '<div class="panel-body">' +
+                        '<button type="button" class="btn btn-default add-tag">' +
+                            '<span class="fa fa-plus fa-fw"></span>新增' +
+                        '</button>' +
+                        '<table class="table table-striped">' +
+                            '<thead>' +
+                                '<tr>' +
+                                    '<th>欄位名稱</th>' +
+                                    '<th>欄位類別</th>' +
+                                    '<th>欄位設定</th>' +
+                                    '<th>刪除</th>' +
+                                    '<th></th>' +
+                                '</tr>' +
+                            '</thead>' +
+                            '<tbody></tbody>' +
+                        '</table>' +
+                        '<div class="align-center">' +
+                            '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+
+            var $tagCollapse = _this.$tagPanel.find('#' + tagCollapseId);
+            var $tagTableBody = $tagCollapse.find('.panel-body table tbody');
+            $tagTableBody.sortable(); // 使 jquery ui 的 sortable 的功能作動，讓 table 內的項目可以被拖曳移動
+
+            $tagCollapse.find('.btn.add-tag').on('click', function() {
+                _this.addTagItem(appId, 'temp_tag_id' + Date.now(), {
+                    name: '新標籤'
+                });
+            });
+
+            $tagCollapse.find('.btn.all-confirm').on('click', function(ev) {
+                var $tagRows = $tagTableBody.find('tr.tag-content');
+                var uiData = {};
+                for (var i = 0; i < $tagRows.length; i++) {
+                    var $row = $($tagRows[i]);
+                    var data = {
+                        name: $row.find('.tag-name input').val(),
+                        setsType: $row.find('.tag-type select option:selected').val(),
+                        order: i
+                    };
+                    var setsValue = 0;
+
+                    switch (data.setsType) {
+                        case tagEnums.setsType.MULTI_SELECT:
+                        case tagEnums.setsType.CHECKBOX:
+                            // 多選的資料由之後的應用端處理
+                            break;
+                        case tagEnums.setsType.SELECT:
+                        case tagEnums.setsType.RADIO:
+                            // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
+                            data.sets = $row.find('.tag-sets .sets-item').val().split('\n');
+                            break;
+                        case tagEnums.setsType.NUMBER:
+                        case tagEnums.setsType.DATE:
+                            // 文字、數字及日期資料用陣列的長度來定義顯示單行或多行
+                            setsValue = parseInt($row.find('.tag-sets option:selected').val());
+                            data.sets = setsValue ? [0, 0] : [0];
+                            break;
+                        case tagEnums.setsType.TEXT:
+                        default:
+                            setsValue = parseInt($row.find('.tag-sets option:selected').val());
+                            data.sets = setsValue ? ['', ''] : [''];
+                            break;
+                    }
+
+                    // 每一行的 td 標籤的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
+                    uiData[$row.prop('id')] = data;
+                }
+
+                for (var idx in _this.saveListeners) {
+                    _this.saveListeners[idx]({
+                        appId: appId,
+                        uiData: uiData
+                    });
+                }
+            });
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} tagId
+         * @param {*} tagData
+         */
+        TagPanelCtrl.prototype.addTagItem = function(appId, tagId, tagData) {
+            var _this = this;
+            var tagCollapseId = appId + '_collapse';
+            var $tagTableBody = this.$tagPanel.find('#' + tagCollapseId + ' .panel-body table tbody');
+
+            var getSetsHtml = function(setsType, setsData) {
+                switch (setsType) {
+                    case tagEnums.setsType.SELECT:
+                    case tagEnums.setsType.RADIO:
+                        return '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' + setsData.join('\n') + '</textarea>';
+                    case tagEnums.setsType.MULTI_SELECT:
+                    case tagEnums.setsType.CHECKBOX:
+                        return '<input class="sets-item form-control" value="無設定" disabled />';
+                    case tagEnums.setsType.TEXT:
+                    case tagEnums.setsType.DATE:
+                    case tagEnums.setsType.NUMBER:
+                    default:
+                        return '<select class="sets-item form-control">' +
+                                '<option value="0">單行</option>' +
+                                '<option value="1">段落</option>' +
+                            '</select>';
+                }
+            };
+
+            $tagTableBody.append(
+                '<tr class="tag-content" id="' + tagId + '">' +
+                    '<td class="tag-name long-token">' +
+                        '<input class="form-control" type="text" value="' + (tagData.name || '') + '" />' +
+                    '</td>' +
+                    '<td class="tag-type">' +
+                        '<select class="form-control">' +
+                            '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
+                            '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
+                            '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
+                            '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
+                            '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
+                            '<option value="' + tagEnums.setsType.CHECKBOX + '">多項勾選</option>' +
+                            '<option value="' + tagEnums.setsType.RADIO + '">單項圈選</option>' +
+                        '</select>' +
+                    '</td>' +
+                    '<td class="tag-sets">' +
+                        getSetsHtml(tagData.setsType, tagData.sets) +
+                    '</td>' +
+                    '<td class="tag-delete">' +
+                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn">' +
+                            '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
+                        '</button>' +
+                    '</td>' +
+                    '<td class="tag-drag-icon">' +
+                        '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
+                    '</td>' +
+                '</tr>');
+            var $tagRow = $tagTableBody.find('#' + tagId);
+            var $tagTypeSelect = $tagRow.find('.tag-type select');
+            $tagTypeSelect.find('option[value="' + tagData.setsType + '"]').prop('selected', true);
+
+            if (tagData.type === tagEnums.type.DEFAULT) {
+                $tagTypeSelect.prop('disabled', true);
+                $tagRow.find('.tag-name input').prop('disabled', true);
+                $tagRow.find('.tag-sets .sets-item').prop('disabled', true);
+            }
+
+            $tagTypeSelect.on('change', function(ev) {
+                var $nextCol = $(ev.target.parentElement.nextElementSibling);
+                var selectedVal = ev.target.value;
+                $nextCol.html(getSetsHtml(selectedVal, ['']));
+            });
+
+            $tagRow.find('.btn.tag-delete-btn').on('click', function(ev) {
+                $(ev.target).parentsUntil('tbody').remove();
+                for (var idx in _this.deleteListeners) {
+                    _this.deleteListeners[idx]({
+                        appId: appId,
+                        tagId: tagId
+                    });
+                }
+            });
+        };
+
+        TagPanelCtrl.prototype.onSave = function(handler) {
+            var _this = this;
+            _this.saveListeners.push(handler);
+            return function() {
+                var idx = _this.saveListeners.indexOf(handler);
+                idx >= 0 && _this.saveListeners.length > 0 && _this.saveListeners.splice(idx, 1);
+            };
+        };
+
+        TagPanelCtrl.prototype.onDelete = function(handler) {
+            var _this = this;
+            _this.deleteListeners.push(handler);
+            return function() {
+                var idx = _this.deleteListeners.indexOf(handler);
+                idx >= 0 && _this.deleteListeners.length > 0 && _this.deleteListeners.splice(idx, 1);
+            };
+        };
+
+        return TagPanelCtrl;
+    })();
+
+    var userId = '';
+    var api = window.restfulAPI;
+    var tagEnums = api.tag.enums;
+    var tagPanelCtrl = new TagPanelCtrl();
+
+    window.auth.ready.then(function(currentUser) {
+        userId = currentUser.uid;
+    });
+
+    // 設定頁面中 tab 切換時的事件監聽
+    // 切換到標籤頁面時，再抓取標籤資料
+    $('a[data-toggle="pill"').on('shown.bs.tab', function(ev) {
+        if ('#menu3' !== ev.target.hash) {
+            // 非標籤頁面不處理
+            return;
+        }
+
+        var firstAppId = '';
+        tagPanelCtrl.$tagPanel.empty();
+        return api.chatshierApp.getAll(userId).then(function(resJson) {
+            var appsData = resJson.data;
+            tagPanelCtrl.saveListeners.length = 0;
+            tagPanelCtrl.deleteListeners.length = 0;
+
+            for (var appId in appsData) {
+                var appData = appsData[appId] || {};
+                var tagsData = appData.tags || {};
+                tagPanelCtrl.addAppItem(appId, appData);
+                firstAppId = firstAppId || appId;
+
+                // 將標籤資料依照設定的 order 進行排序，根據順序擺放到 UI 上
+                var tagIds = Object.keys(tagsData);
+                tagIds.sort(function(a, b) {
+                    return tagsData[a].order - tagsData[b].order;
+                });
+
+                for (var i in tagIds) {
+                    var tagId = tagIds[i];
+                    var tagData = tagsData[tagId];
+                    if (tagData.isDeleted) {
+                        continue;
+                    }
+                    tagPanelCtrl.addTagItem(appId, tagId, tagData);
+                }
+            }
+
+            // 監聽每行標籤的儲存事件，根據 UI 上資料的變更
+            // 檢查哪些資料需要更新哪些資料需要新增
+            tagPanelCtrl.onSave(function(ev) {
+                var tagsData = appsData[ev.appId].tags;
+                var tagIds = Object.keys(tagsData);
+
+                /**
+                 * 深層比對目標物件中的資料在來源物件中是否具有相同資料
+                 */
+                var hasSameData = function(srcTag, destTag) {
+                    for (var key in destTag) {
+                        if (destTag[key] === srcTag[key]) {
+                            continue;
+                        } else if (!(destTag[key] instanceof Array && srcTag[key] instanceof Array)) {
+                            return false;
+                        } else if (destTag[key].length !== srcTag[key].length) {
+                            return false;
+                        }
+
+                        for (var i in destTag[key]) {
+                            if (destTag[key][i] !== srcTag[key][i]) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                };
+
+                return Promise.all(tagIds.map(function(tagId) {
+                    var tagData = tagsData[tagId];
+
+                    // 需對照 UI 上目前每個標籤的順序，更新至對應的標籤
+                    if (ev.uiData[tagId] && !hasSameData(tagData, ev.uiData[tagId])) {
+                        // 只允許非系統預設的欄位可進行資料變更動作
+                        if (tagData.type !== tagEnums.type.DEFAULT) {
+                            tagData.name = ev.uiData[tagId].name;
+                            tagData.setsType = ev.uiData[tagId].setsType;
+                            tagData.sets = ev.uiData[tagId].sets;
+                        }
+                        tagData.order = ev.uiData[tagId].order;
+                        tagData.updatedTime = Date.now();
+                        delete ev.uiData[tagId];
+                        return api.tag.update(ev.appId, tagId, userId, tagData);
+                    } else if (tagData.isDeleted) {
+                        return api.tag.remove(ev.appId, tagId, userId);
+                    }
+                    delete ev.uiData[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
+                    return Promise.resolve();
+                })).then(function() {
+                    // 將剩下的 id 檢查是否為新增的標籤
+                    var newTagIds = Object.keys(ev.uiData);
+                    return Promise.all(newTagIds.map(function(tagId) {
+                        // 新增的標籤 id 前綴設定為 temp_tag_id
+                        // 非新增的標籤資料不進行資料插入動作
+                        if (tagId.indexOf('temp_tag_id') !== 0) {
+                            return Promise.resolve();
+                        }
+
+                        var tagData = {
+                            name: ev.uiData[tagId].name,
+                            type: tagEnums.type.CUSTOM,
+                            sets: ev.uiData[tagId].sets,
+                            setsType: ev.uiData[tagId].setsType,
+                            order: ev.uiData[tagId].order,
+                            createdTime: Date.now(),
+                            updatedTime: Date.now()
+                        };
+                        return api.tag.insert(ev.appId, userId, tagData);
+                    }));
+                }).then(function() {
+                    // 標籤資料處理完成後顯示訊息在 UI 上
+                    $.notify('標籤更新成功', { type: 'success' });
+                });
+            });
+
+            // 監聽每行標籤的刪除事件，刪除時在原始資料上標記刪除
+            tagPanelCtrl.onDelete(function(ev) {
+                var tagsData = appsData[ev.appId].tags[ev.tagId];
+                if (!tagsData) {
+                    return;
+                }
+                tagsData.isDeleted = 1;
+            });
+
+            // 所有資料載入完後展開第一個 collapse
+            tagPanelCtrl.toggleItem(firstAppId);
+        });
+    });
+})();
+// 標籤 Tab 代碼區塊
+// ===============
+
 var domain = location.host;
-if ('undefined' === typeof window.urlConfig) {
+if (!window.urlConfig) {
     console.warn('Please set up the configuration file of /config/url-config.js');
 }
+
+$.notifyDefaults({
+    delay: 2000,
+    placement: {
+        from: 'top',
+        align: 'center'
+    },
+    animate: {
+        enter: 'animated fadeInDown',
+        exit: 'animated fadeOutUp'
+    }
+});
+
 $(document).ready(function() {
-
-
     var loadSetting = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(loadSetting);
@@ -13,142 +385,9 @@ $(document).ready(function() {
         }
     }, 1000);
 
-    //----------------TAG---------------
     var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
     var socket = io.connect();
-    var tagTable = $('#tagTable');
-    var tagTableBody = $('#tagTable-body');
-    var addTagBtn = $('.add-tag');
-    var allConfirmBtn = $('.all-confirm');
-    var allCancelBtn = $('.all-cancel');
-    var rowsCount = 0; //dynamic load count in db ref
-    tagTableBody.sortable();
-    socket.emit('request tags', tagsData => {
-        for (let i = 0; i < tagsData.length; i++) {
-            appendNewTag(tagsData[i].id);
-            let data = tagsData[i].data;
-            let source = tagsData[i].source;
-            let name = data.name;
-            let type = data.type;
-            let modify = data.modify;
-            let tr = tagTableBody.find(".tag-content:last");
-            tr.find(".tag-name").text(name);
-            tr.find(".tag-option").val(type);
-            tr.find(".tag-modify").text(modify);
-            type = toTypeValue(type);
-            let set = data.set;
-            if (type == 3) set = set.join('\n'); //if type is single-select || multi-select
-            tr.find('.tag-set-td').find('#set' + type).val(set).show().siblings().hide();
 
-            tr.addClass(source);
-            if (source == "default") {
-                tr.find("select").prop("disabled", "disabled");
-                tr.find("button").prop("disabled", "disabled");
-                tr.find("textarea").prop("disabled", "disabled");
-            }
-            // tagTableBody.find(".tag-delete:last").html('<button type="button" class="btn btn-default btn-sm" disabled="disabled"><span class="glyphicon glyphicon-remove"></span> 刪除</button>');
-
-        }
-    });
-    addTagBtn.on('click', function() {
-        appendNewTag("" + Date.now());
-        tagTableBody.find(".tag-content:last").addClass('custom').find('.tag-name').click();
-    });
-    $(document).on('click', '.tag-name', function() {
-        if ($(this).find('input').length == 0 && $(this).parent().find('.tag-modify').text() == "true") {
-            // console.log(".tag-name click");
-            let val = $(this).text();
-            $(this).html('<input type="text" value="' + val + '"></input>');
-            $(this).find('input').select();
-        }
-    });
-    $(document).on('keypress', '.tag-name input', function(e) {
-        let code = (e.keyCode ? e.keyCode : e.which);
-        if (code == 13) {
-            // console.log(".tag-name-input keypress");
-            $(this).blur();
-        }
-    });
-    $(document).on('blur', '.tag-name input', function() {
-        // console.log(".tag-name-input blur");
-        let val = $(this).val();
-        $(this).parent().html(val);
-    });
-    $(document).on('change', '.tag-option', function() {
-        let setDOM = $(this).parents('tr').find('.tag-set-td');
-        let typeValue = toTypeValue($(this).val());
-        setDOM.find('#set' + typeValue).show().siblings().hide();
-    });
-    $(document).on('click', '.tag-move #moveup', function() {
-        let tomove = $(this).parent().parent();
-        tomove.prev().before(tomove);
-    });
-    $(document).on('click', '.tag-move #movedown', function() {
-        let tomove = $(this).parent().parent();
-        tomove.next().after(tomove);
-    });
-    $(document).on('click', '.tag-delete-btn', function() {
-        $(this).parent().parent().remove();
-    });
-
-    function toTypeValue(type) {
-        if (type == "text") return 0;
-        // else if( type=="date" ) return 1;
-        else if (type == "time") return 2;
-        else if (type == "single-select") return 3;
-        else if (type == "multi-select") return 3;
-        else console.log("ERROR 1");
-    }
-
-
-    function appendNewTag(id) {
-        tagTableBody.append('<tr class="tag-content" id="' + id + '">' + '<td class="tag-name  long-token"></td>' +
-            '<td>' + '<select class="tag-option form-control">' + '<option value="text">文字數字</option>' + '<option value="time">時間</option>' + '<option value="single-select">單選</option>' + '<option value="multi-select">多選</option>' + '</select>' + '</td>' +
-            '<td class="tag-set-td">' + '<select class="tag-set form-control" id="set0">' + '<option value="single">單行文字數字</option>' + '<option value="multi">段落</option>' + '</select>' + '<p class="tag-set" id="set2" style="display: none;">無設定</p>' +
-            '<textarea class= "tag-set form-control" id="set3" rows="3" columns = "10" style="resize: vertical; display: none;">' + '</textarea>' + '</td>' +
-            '<td class="tag-delete"><button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn"><span class="glyphicon glyphicon-remove"></span> 刪除</button></td>' + '<td class="tag-modify">true</td>' + '<td> <span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span> </td>' + '</tr>');
-    }
-    allConfirmBtn.on('click', function() {
-        if (!confirm("Confirm???")) return;
-        let sendObj = [];
-        tagTableBody.find('tr').each(function() {
-            let id = $(this).attr('id');
-            let source = $(this).hasClass('custom') ? 'custom' : 'default';
-            let name = $(this).find('.tag-name').text();
-            let type = $(this).find('.tag-option').val();
-            let modify = $(this).find('.tag-modify').text() == "true";
-            let set = $(this).find('.tag-set-td').find('#set' + toTypeValue(type)).val();
-            if (type.indexOf('select') != -1) { //seperate options
-                set = set.split('\n');
-            }
-            let data = {
-                name: name,
-                type: type,
-                set: set,
-                modify: modify
-            };
-            sendObj.push({
-                "id": id ? id : Date.now(),
-                "source": source,
-                "data": data
-            });
-        });
-        // console.log(sendObj);
-        if (!noDuplicate()) alert('標籤名稱不可重複');
-        else {
-            socket.emit('update tags', sendObj);
-            alert('已儲存！');
-        }
-
-        function noDuplicate() {
-            for (let i = 0; i < sendObj.length; i++)
-                for (let j = i + 1; j < sendObj.length; j++) {
-                    if (sendObj[i].data.name == sendObj[j].data.name) return false;
-                }
-            return true;
-        }
-    });
-    //-------------end TAG--------------------
     // 內部聊天室
     socket.emit('get agentIdToName list');
     socket.on('send agentIdToName list', data => {
@@ -162,10 +401,10 @@ $(document).ready(function() {
         }
         select.val('');
     });
-    $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); //完成編輯-新增內部聊天室
-    $(document).on('change', '.multi-select-container', multiSelectChange); //複選選項改變
-    $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); //檢查內部群聊的擁有者是否為群組成員
-    $(document).on('change', 'select#create-internal-owner', checkInternalOwner); //檢查內部群聊的擁有者是否為群組成員
+    $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); // 完成編輯-新增內部聊天室
+    $(document).on('change', '.multi-select-container', multiSelectChange); // 複選選項改變
+    $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); // 檢查內部群聊的擁有者是否為群組成員
+    $(document).on('change', 'select#create-internal-owner', checkInternalOwner); // 檢查內部群聊的擁有者是否為群組成員
 
     function multiSelectChange() {
         changeMultiSelectText($(this));
@@ -223,9 +462,9 @@ $(document).ready(function() {
             let agent = $('#create-internal-agents').attr('rel');
             let agents = agent.split(",");
 
-            if (!roomName) alert('群組名稱不可為空');
-            else if (!owner || owner == "0") alert('請指定擁有者'); //如果擁有者為ID=="0"的System，一樣不給過
-            else if (!agent) alert('群組成員需至少一位');
+            if (!roomName) $.notify('群組名稱不可為空', { type: 'warning' });
+            else if (!owner || owner == "0") $.notify('請指定擁有者', { type: 'warning' }); //如果擁有者為ID=="0"的System，一樣不給過
+            else if (!agent) $.notify('群組成員需至少一位', { type: 'warning' });
             else {
                 let data = {
                     "roomName": roomName,
@@ -236,7 +475,7 @@ $(document).ready(function() {
                     "type": "chatshier"
                 }
                 socket.emit('create internal room', data);
-                alert('成功!');
+                $.notify('成功!', { type: 'success' });
                 clearCreateInternalRoomInput();
             }
         }
@@ -577,7 +816,7 @@ function insertOneApp(data) { // 未完成
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-            alert('新增成功!');
+            $.notify('新增成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
             clearModalBody();
             $('#app-group').empty();
@@ -604,7 +843,7 @@ function updateOneApp(appId, data) { // 未完成
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-            alert('修改成功!');
+            $.notify('修改成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
             clearModalBody();
             $('#app-group').empty();
@@ -626,7 +865,7 @@ function removeOneApp(appId) {
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-            alert('成功刪除!');
+            $.notify('成功刪除!', { type: 'success' });
             $('#app-group').empty();
             $('#app-group').append(str);
             findAllApps();
@@ -828,7 +1067,7 @@ function findUserProfile() {
         success: (data) => {
             let profile = data.data;
             $('#prof-id').text(id);
-            $('.panel-title').text(profile.name);
+            $('h3.panel-title').text(profile.name);
             $('#prof-email').text(profile.email);
             $('#prof-IDnumber').text(id);
             $('#prof-company').text(profile.company);

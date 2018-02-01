@@ -1,6 +1,4 @@
-/// <reference path='../../typings/client/_firebase-auth.d.ts' />
-/// <reference path='../../typings/client/config.d.ts' />
-/// <reference path='../../typings/client/restful_api.d.ts' />
+/// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
     var CalendarEventTypes = (function() {
@@ -389,7 +387,7 @@
                     priority: calendarEvent.priority,
                     messagerId: calendarEvent.messagerId,
                     status: calendarEvent.status,
-                    updatedTime: new Date().getTime()
+                    updatedTime: Date.now()
                 };
 
                 return api.ticket.update(calendarEvent.calendarId, calendarEvent.id, userId, tickerData).then(function(response) {

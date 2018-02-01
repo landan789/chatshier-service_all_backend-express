@@ -1,6 +1,4 @@
-/// <reference path='../../typings/client/_firebase-auth.d.ts' />
-/// <reference path='../../typings/client/config.d.ts' />
-/// <reference path='../../typings/client/restful_api.d.ts' />
+/// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
     var ticketInfo = {};
@@ -252,7 +250,7 @@
 
     function dueDate(day) {
         var html = '';
-        var nowTime = new Date().getTime();
+        var nowTime = Date.now();
         var dueday = Date.parse(displayDate(day));
         var hr = dueday - nowTime;
         hr /= 1000 * 60 * 60;
@@ -299,7 +297,7 @@
             priority: ticketPriority,
             messagerId: lastSelectedTicket.messagerId,
             status: ticketStatus,
-            updatedTime: new Date().getTime()
+            updatedTime: Date.now()
         };
 
         // 發送修改請求 api 至後端進行 ticket 修改

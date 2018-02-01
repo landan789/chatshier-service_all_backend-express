@@ -39,8 +39,9 @@ window.restfulAPI = (function() {
      * 宣告專門處理 Chatshier App 相關的 API 類別
      */
     var ChatshierAppAPI = (function() {
-        var urlPrefix = urlConfig.apiUrl + '/api/apps/';
-        function ChatshierAppAPI() {}
+        function ChatshierAppAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps/';
+        }
 
         /**
          * 取得使用者所有在 Chatshier 內設定的 App
@@ -48,7 +49,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         ChatshierAppAPI.prototype.getAll = function(userId) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -66,8 +67,9 @@ window.restfulAPI = (function() {
      * 宣告專門處理 Calendar 相關的 API 類別
      */
     var CalendarAPI = (function() {
-        var urlPrefix = urlConfig.apiUrl + '/api/calendars-events/';
-        function CalendarAPI() {};
+        function CalendarAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/calendars-events/';
+        };
 
         /**
          * 取得使用者所有的 calendar 事件
@@ -75,7 +77,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase id
          */
         CalendarAPI.prototype.getAll = function(userId) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -94,7 +96,7 @@ window.restfulAPI = (function() {
          * @param {*} calendarData - 要進行插入的 calendar 事件資料
          */
         CalendarAPI.prototype.insert = function(userId, calendarData) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
@@ -115,7 +117,7 @@ window.restfulAPI = (function() {
          * @param {*} calendarData - 要進行更新的 calendar 事件資料
          */
         CalendarAPI.prototype.update = function(calendarId, eventId, userId, calendarData) {
-            var destUrl = urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
@@ -135,7 +137,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 要進行更新的 calendar 事件資料
          */
         CalendarAPI.prototype.remove = function(calendarId, eventId, userId) {
-            var destUrl = urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'calendars/' + calendarId + '/events/' + eventId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -153,8 +155,9 @@ window.restfulAPI = (function() {
      * 宣告專門處理 Messager 相關的 API 類別
      */
     var MessagerAPI = (function() {
-        var urlPrefix = urlConfig.apiUrl + '/api/apps-messagers/';
-        function MessagerAPI() {}
+        function MessagerAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-messagers/';
+        }
 
         /**
          * 取得使用者所有在 Chatshier 內設定的 App 內的所有 Messagers
@@ -162,7 +165,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         MessagerAPI.prototype.getAll = function(userId) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -179,7 +182,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         MessagerAPI.prototype.getOne = function(appId, userId) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -197,8 +200,9 @@ window.restfulAPI = (function() {
      * 宣告專門處理待辦事項相關的 API 類別
      */
     var TicketAPI = (function() {
-        var urlPrefix = urlConfig.apiUrl + '/api/apps-tickets/';
-        function TicketAPI() {}
+        function TicketAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-tickets/';
+        }
 
         /**
          * 取得使用者所有設定待辦事項
@@ -206,7 +210,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         TicketAPI.prototype.getAll = function(userId) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -224,7 +228,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         TicketAPI.prototype.getOne = function(appId, userId) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -243,7 +247,7 @@ window.restfulAPI = (function() {
          * @param {*} ticketData - 欲新增的待辦事項資料
          */
         TicketAPI.prototype.insert = function(appId, userId, ticketData) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
@@ -264,7 +268,7 @@ window.restfulAPI = (function() {
          * @param {*} ticketData - 已編輯後欲更新的待辦事項資料
          */
         TicketAPI.prototype.update = function(appId, ticketId, userId, ticketData) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
@@ -284,7 +288,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         TicketAPI.prototype.remove = function(appId, ticketId, userId) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -302,8 +306,9 @@ window.restfulAPI = (function() {
      * 宣告專門處理關鍵字回覆相關的 API 類別
      */
     var KeywordreplyAPI = (function() {
-        var urlPrefix = urlConfig.apiUrl + '/api/apps-keywordreplies/';
-        function KeywordreplyAPI() {}
+        function KeywordreplyAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-keywordreplies/';
+        }
 
         /**
          * 取得使用者所有關鍵字回覆資料
@@ -311,7 +316,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         KeywordreplyAPI.prototype.getAll = function(userId) {
-            var destUrl = urlPrefix + 'users/' + userId;
+            var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -329,7 +334,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         KeywordreplyAPI.prototype.getOne = function(appId, userId) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -348,7 +353,7 @@ window.restfulAPI = (function() {
          * @param {*} newKeywordreplyData - 欲新增的待辦事項資料
          */
         KeywordreplyAPI.prototype.insert = function(appId, userId, newKeywordreplyData) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
@@ -369,7 +374,7 @@ window.restfulAPI = (function() {
          * @param {*} modifiedKeywordreplyData - 已編輯後欲更新的關鍵字回覆資料
          */
         KeywordreplyAPI.prototype.update = function(appId, keywordreplyId, userId, modifiedKeywordreplyData) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
@@ -389,7 +394,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          */
         KeywordreplyAPI.prototype.remove = function(appId, keywordreplyId, userId) {
-            var destUrl = urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -401,6 +406,107 @@ window.restfulAPI = (function() {
         };
 
         return KeywordreplyAPI;
+    })();
+
+    var TagAPI = (function() {
+        function TagAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-tags/';
+        }
+
+        TagAPI.prototype.enums = Object.freeze({
+            type: {
+                DEFAULT: 'DEFAULT',
+                CUSTOM: 'CUSTOM'
+            },
+            setsType: {
+                TEXT: 'TEXT',
+                NUMBER: 'NUMBER',
+                DATE: 'DATE',
+                SELECT: 'SELECT',
+                MULTI_SELECT: 'MULTI_SELECT',
+                CHECKBOX: 'CHECKBOX',
+                RADIO: 'RADIO'
+            }
+        });
+
+        /**
+         * 取得使用者所有標籤資料
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        TagAPI.prototype.getAll = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 新增一筆 App 標籤的資料
+         *
+         * @param {string} appId - 目標待辦事項的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} insertTagData - 欲新增的待辦事項資料
+         */
+        TagAPI.prototype.insert = function(appId, userId, insertTagData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(insertTagData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 更新一筆目標 App 標籤資料
+         *
+         * @param {string} appId - 目標標籤所屬的 App ID
+         * @param {string} tagId - 目標標籤的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} modifiedTagData - 已編輯後欲更新的標籤資料
+         */
+        TagAPI.prototype.update = function(appId, tagId, userId, modifiedTagData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/tags/' + tagId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(modifiedTagData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 刪除一筆目標 App 標籤資料
+         *
+         * @param {string} appId - 目標標籤所屬的 App ID
+         * @param {string} tagId - 目標標籤的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        TagAPI.prototype.remove = function(appId, tagId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/tags/' + tagId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        return TagAPI;
     })();
 
     if (window.auth) {
@@ -416,6 +522,7 @@ window.restfulAPI = (function() {
         ticket: new TicketAPI(),
         messager: new MessagerAPI(),
         keywordreply: new KeywordreplyAPI(),
+        tag: new TagAPI(),
         setJWT: setJWT
     };
 })();

@@ -143,11 +143,11 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var app = result[1];
                 return admin.database().ref('apps/' + appIds[0]).update(app);
             }).then(() => {
-                resolve();
+                resolve(appIds[0]);
             });
         });
-    }).then(() => {
-        callback(true);
+    }).then((appId) => {
+        callback(appId);
     }).catch(() => {
         callback(null);
     });

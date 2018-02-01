@@ -1,6 +1,4 @@
-/// <reference path='../../typings/client/_firebase-auth.d.ts' />
-/// <reference path='../../typings/client/config.d.ts' />
-/// <reference path='../../typings/client/restful_api.d.ts' />
+/// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
     var userId = '';
@@ -8,11 +6,11 @@
     var api = window.restfulAPI;
 
     var $jqDoc = $(document);
-    var $keywordreplyAddModal = null;
-    var $keywordreplyEditModal = null;
-    var $appSelector = null;
+    var $keywordreplyAddModal = $('#keywordreply_add_modal');
+    var $keywordreplyEditModal = $('#keywordreply_edit_modal');
     var $openTableElem = null;
     var $draftTableElem = null;
+    var $appSelector = null;
 
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
@@ -25,7 +23,6 @@
 
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
-        $keywordreplyAddModal = $('#keywordreply_add_modal');
         $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
         $keywordreplyAddModal.on('show.bs.modal', function() {
             $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
@@ -43,7 +40,6 @@
 
         // ==========
         // 設定關鍵字編輯 modal 相關 element 與事件
-        $keywordreplyEditModal = $('#keywordreply_edit_modal');
         $keywordreplyEditModal.on('show.bs.modal', function(event) {
             // 編輯 modal 即將顯示事件發生時，將欄位資料更新
             var targetRow = $(event.relatedTarget).parent().parent();
@@ -68,7 +64,7 @@
                 targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
                 targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
                 targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
-                targetData.updatedTime = new Date().getTime();
+                targetData.updatedTime = Date.now();
 
                 return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
@@ -171,8 +167,8 @@
             text: textContent,
             replyCount: 0,
             status: isDraft ? 0 : 1,
-            createdTime: new Date().getTime(),
-            updatedTime: new Date().getTime()
+            createdTime: Date.now(),
+            updatedTime: Date.now()
         };
 
         return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {

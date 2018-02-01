@@ -29,6 +29,26 @@
     margin-left: 15%;
 }
 
+.tab-content .tag-name {
+    width: 30%;
+}
+
+.tab-content .tag-type {
+    width: 15%;
+}
+
+.tab-content .tag-sets {
+    width: 30%;
+}
+
+.tab-content .tag-delete {
+    width: 15%;
+}
+
+.tab-content .tag-drag-icon {
+    width: 10%;
+}
+
 .long-token {
     max-width: 600px;
     word-wrap: break-word;
@@ -61,6 +81,21 @@ p:empty:not(:focus)::before {
     left: auto;
 }
 
-.margin-left-15{
+.margin-left-15 {
     margin-left: 15px;
+}
+
+.chsr-tags .panel-heading {
+    border-bottom: 1px solid #ddd;
+}
+
+[data-toggle="collapse"]:after {
+    font-family: "Glyphicons Halflings";
+    content: "\e113";
+    float: right;
+    color: #888;
+}
+
+[data-toggle="collapse"].collapsed:after {
+    content: "\e114";
 }

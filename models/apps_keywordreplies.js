@@ -7,7 +7,7 @@ module.exports = (function() {
     /**
      * 回傳預設的 Keywordreply 資料結構
      */
-    AppsKeywordrepliesModel._schema = function() {
+    AppsKeywordrepliesModel.prototype._schema = function() {
         return {
             keyword: '',
             subKeywords: '',
@@ -26,7 +26,7 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string[]} keywordreplyIds
-     * @param {function({ type: string, text: string}[])} callback
+     * @param {(messages: { type: string, text: string }[]) => any} callback
      */
     AppsKeywordrepliesModel.prototype.findMessages = function(appId, keywordreplyIds, callback) {
         let proceed = Promise.resolve();
@@ -62,7 +62,7 @@ module.exports = (function() {
                 return keywordreples;
             });
         }).then((result) => {
-            callback(result);
+            callback(result || []);
         }).catch(() => {
             callback(null);
         });
@@ -114,7 +114,9 @@ module.exports = (function() {
             //   ($appId)
             //     ⌞keywordreplies
             //       ⌞($keywordreplyId)
+            //         ⌞($data)
             //       ⌞($keywordreplyId)
+            //         ⌞($data)
             // }
             return Promise.all(findTasks).then(() => {
                 return appsKeywordreplesMap;

@@ -3,6 +3,7 @@ var API_SUCCESS = require('../config/api_success');
 
 var appsMdl = require('../models/apps');
 var userMdl = require('../models/users');
+var appsTagsMdl = require('../models/apps_tags');
 
 var apps = {};
 
@@ -152,7 +153,7 @@ apps.postOne = (req, res, next) => {
         token2: undefined === req.body.token2 ? null : req.body.token2,
         type: undefined === req.body.type ? null : req.body.type,
         user_id: req.params.userid
-    }
+    };
 
     var proceed = new Promise((resolve, reject) => {
         resolve();
@@ -196,16 +197,24 @@ apps.postOne = (req, res, next) => {
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.insertByUserid(userId, postApp, (result) => {
-                if (false === result) {
+                if (!result) {
                     reject(API_ERROR.APP_FAILED_TO_INSERT);
                     return;
                 }
 
-                resolve();
-
+                resolve(result);
             });
         });
-
+    }).then((appId) => {
+        return new Promise((resolve, reject) => {
+            appsTagsMdl.insertDefaultTags(appId, (result) => {
+                if (!result) {
+                    reject(API_ERROR.APP_FAILED_TO_INSERT);
+                    return;
+                }
+                resolve();
+            });
+        });
     }).then(() => {
         var json = {
             status: 1,

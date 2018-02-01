@@ -13,8 +13,8 @@ window.database = window.firebase.database();
     var NO_USER = parseInt('000', 2);
     var NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
-    var serviceUrl = location.host;
-    var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
+    // var serviceUrl = location.host;
+    // var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
 
     auth.ready = (function() {
         var readyPromiseResolver;
@@ -24,41 +24,46 @@ window.database = window.firebase.database();
             readyPromiseRejecter = reject;
         });
 
-        auth.authStateListener = auth.onAuthStateChanged(function(currentUser) {
-            var state = getState(currentUser);
-            var asyncFlag = false;
-            var readyFlag = false;
+        $(document).ready(function() {
+            auth.authStateListener = auth.onAuthStateChanged(function(currentUser) {
+                var state = getState(currentUser);
+                var asyncFlag = false;
+                var readyFlag = false;
 
-            if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
-                state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
-                state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
-                state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
-                location.replace('/logout');
-            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
-                // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
-                asyncFlag = readyFlag = true;
-                $('#loading').fadeOut();
+                if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+                    state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
+                    state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+                    state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
+                    // 登入資訊不齊全，一律進行登出動作
+                    location.replace('/logout');
+                } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+                    // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
+                    asyncFlag = readyFlag = true;
+                    $('#loading').fadeOut();
 
-                // 更新 firebase jwt 並寫入到 localStorage
-                currentUser.getIdToken(false).then(function(jwt) {
-                    window.localStorage.setItem('jwt', jwt);
-                    readyPromiseResolver(currentUser);
-                }).catch(function(error) {
-                    // Handle error
-                    if (error) {
-                        readyPromiseRejecter(error);
-                    }
-                });
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
-                readyFlag = true;
-                location.replace('/chat');
-            } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
-                location.replace('/login');
-            } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+                    // 更新 firebase jwt 並寫入到 localStorage
+                    currentUser.getIdToken(false).then(function(jwt) {
+                        window.localStorage.setItem('jwt', jwt);
+                        readyPromiseResolver(currentUser);
+                    }).catch(function(error) {
+                        // Handle error
+                        if (error) {
+                            readyPromiseRejecter(error);
+                        }
+                    });
+                } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+                    // 已經登入後再瀏覽登入或註冊頁面的話，直接導向聊天室頁面
+                    readyFlag = true;
+                    location.replace('/chat');
+                } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+                    // 沒有進行登入卻欲瀏覽其他登入或註冊以外的頁面，直接導向登入頁面
+                    location.replace('/login');
+                } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+                    // 已在登入頁面並且沒有登入資料
+                }
 
-            }
-
-            !asyncFlag && readyFlag && readyPromiseResolver(currentUser);
+                !asyncFlag && readyFlag && readyPromiseResolver(currentUser);
+            });
         });
 
         return readyPromise;
