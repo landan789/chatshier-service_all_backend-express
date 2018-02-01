@@ -571,7 +571,7 @@ function init(server) {
                 validationToken: vendor.token1,
                 pageToken: vendor.token2
             }
-            var bot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : MessengerPlatform.create(facebookConfig);
+            var bot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : facebook.create(facebookConfig);
             // 1. Server 接收到 client 來的聊天訊息
             var proceed = Promise.resolve();
             proceed.then(() => {
@@ -1075,7 +1075,7 @@ function init(server) {
                             validationToken: vendorObj.token1,
                             pageToken: vendorObj.token2
                         };
-                        let bot = MessengerPlatform.create(fbObj);
+                        let bot = facebook.create(fbObj);
                         if (Object.keys(bot).length > 0) {
                             determineFacebookType(msg, bot, receiver, () => {
                                 resolve(msgObj);
@@ -1114,7 +1114,7 @@ function init(server) {
                 validationToken: data[1].token1,
                 pageToken: data[1].token2
             }
-            let bot = MessengerPlatform.create(fbObj);
+            let bot = facebook.create(fbObj);
             if (Object.keys(bot).length > 0) {
                 determineFacebookType(msg, bot, receiver, () => {
                     callback(data[0]);
