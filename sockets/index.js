@@ -18,6 +18,7 @@ var appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 var tags = require('../models/tags');
 var users = require('../models/users');
 var utility = require('../helpers/utility');
+var helpersFacebook = require('../helpers/facebook');
 var webhookMdl = require('../models/webhooks');
 var appsMdl = require('../models/apps');
 var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
@@ -32,9 +33,10 @@ var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 
 const WAIT_TIME = 10000;
+const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
-const SYSTEM = 'SYSTEM';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -294,6 +296,7 @@ function init(server) {
                 });
             });
         }).then((messager) => {
+            console.log(req.messages);
             var chatroomId = messager.chatroom_id;
             var text;
             var type;
@@ -314,8 +317,22 @@ function init(server) {
                 from: (req.app.type).toUpperCase(),
                 messager_id: req.messagerId
             };
+            switch (req.app.type) {
+                case LINE:
+                    // utility.lineType(lineBot, req.body.events[0].message.id, (message) => {
+                    //     inMessage.text = message;
+                    // });
+                    let message = req.body.events[0].message.text;
+                    inMessage.text = message;
+                    break;
+                case FACEBOOK:
+                    utility.fbMsgType(req.body.entry[0].messaging[0].message, (message) => {
+                        inMessage.text = message;
+                    });
+                    break;
+            }
             // 回復訊息與傳入訊息都整合，再寫入 DB
-            req.messages.push(inMessage);
+            req.messages.unshift(inMessage);
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
@@ -327,13 +344,6 @@ function init(server) {
                     delete message['updatedTime'];
                     delete message['title'];
                 }
-
-                // 這部分是要判斷訊息是文字或是檔案
-                // if (null === req.body.events || undefined === req.body.events || '' === req.body.events) {
-                //     utility.lineMsgType(req.body.events[0], req.body.events[0].message.type, (text) => {
-                //         message.text = text;
-                //     });
-                // }
 
                 return new Promise((resolve, reject) => {
                     // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
@@ -523,7 +533,7 @@ function init(server) {
             });
         }
         // 4.撈出歷史訊息
-        socket.on('find_apps_messengers_chats', (userId, callback) => {
+        socket.on('find_apps_messagers_chats', (userId, callback) => {
             var proceed = new Promise((resolve, reject) => {
                 resolve();
             });
@@ -539,8 +549,8 @@ function init(server) {
                     });
                 });
             }).then((data) => {
-                let appsMessengers = data;
-                callback(appsMessengers);
+                let appsMessagers = data;
+                callback(appsMessagers);
             }).catch(() => {
                 callback(null);
             });
@@ -553,9 +563,15 @@ function init(server) {
             let agentName = socket.nickname ? socket.nickname : 'agent';
             let msgTime = vendor.msgTime;
             let appId = data.appId;
-            // let channel = vendor.id2 === '' ? vendor.id1 : vendor.id2;
             let token = vendor.token1;
-            var lineBot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : {};
+            let facebookConfig = {
+                pageID: vendor.id1,
+                appID: vendor.id2,
+                appSecret: vendor.secret,
+                validationToken: vendor.token1,
+                pageToken: vendor.token2
+            }
+            var bot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : MessengerPlatform.create(facebookConfig);
             // 1. Server 接收到 client 來的聊天訊息
             var proceed = Promise.resolve();
             proceed.then(() => {
@@ -563,16 +579,23 @@ function init(server) {
                     // 2. 利用 line SDK 傳給 line service
                     if (FACEBOOK === vendor.type) {
                         resolve();
+                        return;
                     }
                     utility.LINEMessageTypeForPushMessage(vendor, (message) => {
-                        lineBot.pushMessage(receiverId, message);
+                        bot.pushMessage(receiverId, message);
                         resolve();
                     });
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
                     // FACEBOOK SDK
-                    resolve();
+                    if (LINE === vendor.type) {
+                        resolve();
+                        return;
+                    }
+                    helpersFacebook.sendMessage(bot, receiverId, vendor, () => {
+                        resolve();
+                    });
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
@@ -601,7 +624,8 @@ function init(server) {
                         name: agentName,
                         time: undefined === msgTime ? msgTime : Date.now(),
                         text: msg,
-                        from: vendor.type
+                        from: vendor.type,
+                        messager_id: receiverId
                     };
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (newChatroomId) => {
                         if (null === newChatroomId || undefined === newChatroomId || '' === newChatroomId) {
@@ -983,11 +1007,11 @@ function init(server) {
             .then(() => {
                 return new Promise((resolve, reject) => {
                     let msgObj = {
-                        owner: "agent",
+                        owner: 'agent',
                         name: agentName,
                         time: nowTime,
-                        message: "undefined_message",
-                        from: 'chatshier'
+                        message: 'undefined_message',
+                        from: CHATSHIER
                     };
                     resolve(msgObj);
                 })

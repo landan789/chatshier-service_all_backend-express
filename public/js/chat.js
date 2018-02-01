@@ -9,6 +9,10 @@ const COLOR = {
 const SCROLL = {
     HEIGHT: 90
 };
+const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
+const LINE = 'LINE';
+const FACEBOOK = 'FACEBOOK';
 const yourdomain = 'fongyu'; // freshdesk domain
 const api_key = 'UMHU5oqRvapqkIWuOdT8'; // freshdesk agent api key
 var agentId = ""; // agent的ID
@@ -161,7 +165,7 @@ $(document).ready(function() {
                 })
                 .then((data) => {
                     let allAppIds = data;
-                    socket.emit('find_apps_messengers_chats', auth.currentUser.uid, responseChatData);
+                    socket.emit('find_apps_messagers_chats', auth.currentUser.uid, responseChatData);
                 })
                 .catch(() => {});
         } else {
@@ -176,7 +180,7 @@ $(document).ready(function() {
         let appArr = data;
         appArr.map((item) => {
             switch (item.info.type) {
-                case 'LINE':
+                case LINE:
                     let lineStr =
                         '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + item.info.name + '" rel="' + item.key + '">' +
                         '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
@@ -184,7 +188,7 @@ $(document).ready(function() {
                         '</div>';
                     $('#chat_App').prepend(lineStr);
                     break;
-                case 'FACEBOOK':
+                case FACEBOOK:
                     let fbStr =
                         '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + item.info.name + '" rel="' + item.key + '">' +
                         '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
@@ -325,26 +329,26 @@ $(document).ready(function() {
         }
     } // end of pushMsg
     function historyMsgToStr(messages) {
-        let returnStr = "";
-        let nowDateStr = "";
+        let returnStr = '';
+        let nowDateStr = '';
         let prevTime = 0;
         for (let i in messages) {
-            //this loop plus date info into history message, like "----Thu Aug 01 2017----"
-            let d = new Date(messages[i].time).toDateString(); //get msg's date
+            // this loop plus date info into history message, like "----Thu Aug 01 2017----"
+            let d = new Date(messages[i].time).toDateString(); // get msg's date
             if (d != nowDateStr) {
-                //if (now msg's date != previos msg's date), change day
+                // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
-                returnStr += "<p class='message-day'><strong>" + nowDateStr + "</strong></p>"; //plus date info
+                returnStr += "<p class='message-day'><strong>" + nowDateStr + '</strong></p>'; // plus date info
             }
             if (messages[i].time - prevTime > 15 * 60 * 1000) {
-                //if out of 15min section, new a section
-                returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + "</strong></p>"; //plus date info
+                // if out of 15min section, new a section
+                returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
             }
             prevTime = messages[i].time;
-            if (messages[i].owner === "agent") {
-                //plus every history msg into string
-                returnStr += toAgentStr(messages[i].text, messages[i].name, messages[i].time);
-            } else returnStr += toUserStr(messages[i].text, messages[i].name, messages[i].time);
+            if (SYSTEM === messages[i].from || CHATSHIER === messages[i].from) {
+                // plus every history msg into string
+                returnStr += toAgentStr(messages[i].text, messages[i].time);
+            } else returnStr += toUserStr(messages[i].text, messages[i].time);
         }
         return returnStr;
     } // end of historyMsgToStr
@@ -502,8 +506,8 @@ $(document).ready(function() {
             prevTime = messages[i].time;
             if (messages[i].agentId == agentId) {
                 //plus every history msg into string
-                returnStr += toAgentStr(messages[i].message, messages[i].name, messages[i].time);
-            } else returnStr += toUserStr(messages[i].message, messages[i].name, messages[i].time);
+                returnStr += toAgentStr(messages[i].message, messages[i].time);
+            } else returnStr += toUserStr(messages[i].message, messages[i].time);
         }
         return returnStr;
     } // end of internalHistoryMsgToStr
@@ -588,40 +592,66 @@ $(document).ready(function() {
     // ==========end initialize function========== //
 
     // =====start socket function=====
-    socket.on(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, (AppsChatroomsMessages) => {
-        let appId = Object.keys(AppsChatroomsMessages)[0];
-        let message;
-        let chatrooms = AppsChatroomsMessages[appId].chatrooms;
-        let chatroomsMessages;
+    socket.on(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, (appsChatroomsMessages) => {
+        let appId = Object.keys(appsChatroomsMessages)[0]; // appsChatroomsMessages第一層的key就是App ID
+        let chatrooms = appsChatroomsMessages[appId].chatrooms; // Chatroom 物件
+        let messages = {}; // 訊息的物件
+        let chatroomsMessages = {};
         let userIdArr = [];
-        let Uid;
-        let messager;
-        for (let c in chatrooms) {
-            chatroomsMessages = chatrooms[c].messages;
+
+        for (let chatroomId in chatrooms) {
+            chatroomsMessages['messages'] = chatrooms[chatroomId].messages;
+            userIdArr = Object.values(chatrooms[chatroomId].messages).filter((message) => (message.messager_id !== ''));
         }
-        message = Object.values(chatroomsMessages)[Object.keys(chatroomsMessages).length - 1];
-        Uid = message.messager_id;
+        let Uid = userIdArr[0].messager_id; // 必須要先foreach chatrooms才可以找到User ID
         if (!Uid) {
             return;
         }
-        let proceed = Promise.resolve();
+        let totalMessages = Object.keys(chatroomsMessages.messages).length - $('#' + appId + '[rel="' + Uid + '"] .message').length; // 撈下來的聊天數跟現在聊天室的訊息數差別
+        for (let i = totalMessages; i > 0; i--) {
+            let msgKey = Object.keys(chatroomsMessages.messages)[Object.keys(chatroomsMessages.messages).length - i];
+            messages[msgKey] = chatroomsMessages.messages[msgKey];
+        }
 
-        proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                findMessagerProfile(appId, Uid, (data) => {
-                    messager = data.data;
-                    resolve(messager);
-                });
-            });
-        }).then((messager) => {
-            let $room = $('.chat-app-item[rel="' + appId + '"]');
-            if ($room.length !== 0) {
-                displayMessage(messager, message, Uid, appId); // update 聊天室
-                displayClient(messager, message, Uid, appId); // update 客戶清單
-                displayInfo(messager, message, Uid, appId);
-                name_list.push(Uid + appId);
+        displayMessagesIntoScreen(appId, Uid, messages);
+
+        function displayMessagesIntoScreen(appId, userId, msgs) {
+            let msgKeys = Object.keys(msgs);
+            if (0 === msgKeys.length) {
+                return;
             }
-        }).catch(() => {});
+            nextPromise(0);
+            function nextPromise(index) {
+                let proceed = Promise.resolve();
+                proceed.then(() => {
+                    return new Promise((resolve, reject) => {
+                        findMessagerProfile(appId, userId, (data) => {
+                            let messager = data.data;
+                            resolve(messager);
+                        });
+                    });
+                }).then((messager) => {
+                    return new Promise((resolve, reject) => {
+                        let $room = $('.chat-app-item[rel="' + appId + '"]');
+                        if ($room.length !== 0) {
+                            displayMessage(messager, msgs[msgKeys[index]], userId, appId); // update 聊天室
+                            displayClient(messager, msgs[msgKeys[index]], userId, appId); // update 客戶清單
+                            displayInfo(messager, msgs[msgKeys[index]], userId, appId);
+                            if (-1 === name_list.indexOf(userId + appId)) {
+                                name_list.push(userId + appId);
+                            }
+                        }
+                        resolve();
+                    });
+                }).then(() => {
+                    if (index <= (msgKeys.length - 1)) {
+                        nextPromise(index + 1);
+                    }
+                }).catch(() => {
+                    // 需要提示訊息沒有成功從server取出來
+                });
+            }
+        }
     });
     socket.on('new internal message', (data) => {
         let $room = $('.tablinks-area .tablinks[name="' + data.roomId + '"]');
@@ -633,7 +663,7 @@ $(document).ready(function() {
     socket.on('new user profile', function(data) {
         userProfiles[data.userId] = data;
         pushInfo({
-            "Profile": data
+            'Profile': data
         });
     });
     socket.on('autoreplies', (data) => {
@@ -641,7 +671,7 @@ $(document).ready(function() {
         var msgText = sendObj.msgText;
         var userId = data.userId;
         var appId = data.appId;
-        let str = toAgentStr(msgText, '', Date.now());
+        let str = toAgentStr(msgText, Date.now());
         $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
         $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
         $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText));
@@ -652,7 +682,7 @@ $(document).ready(function() {
         var appId = data.appId; // line打過來的userId
         var msgText = data.followMessage;
         for (let i in msgText) {
-            let str = toAgentStr(msgText[i], '', Date.now());
+            let str = toAgentStr(msgText[i], Date.now());
             $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
             $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
             $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText[i]));
@@ -714,9 +744,9 @@ $(document).ready(function() {
             $('#show-todo').show();
         }
         loadTable(appId);
-        $(".tablinks#selected").removeAttr('id').css("background-color", ""); //selected tablinks change, clean prev's color
-        $(this).attr('id', 'selected').css("background-color", COLOR.CLICKED); //clicked tablinks color
-        if ($(this).find('.unread-msg').text() !== '0') { //如果未讀的話
+        $(".tablinks#selected").removeAttr('id').css("background-color", ''); // selected tablinks change, clean prev's color
+        $(this).attr('id', 'selected').css("background-color", COLOR.CLICKED); // clicked tablinks color
+        if ($(this).find('.unread-msg').text() !== '0') { // 如果未讀的話
             $(this).find('.unread-msg').text('0').hide(); // 已讀 把未讀的區塊隱藏
             $(this).find("#msg").css("font-weight", "normal"); // 取消未讀粗體
             socket.emit('read message', {
@@ -725,8 +755,8 @@ $(document).ready(function() {
             }); //tell socket that this user isnt unRead
         }
         $('#user-rooms').val(appId); //change value in select bar
-        $("#" + appId + "-info" + "[rel='" + msgId + "-info']").show().siblings().hide(); //show it, and close others
-        $("#" + appId + "[rel='" + msgId + "']").show().siblings().hide(); //show it, and close others
+        $("#" + appId + "-info" + "[rel='" + msgId + "-info']").show().siblings().hide(); // show it, and close others
+        $("#" + appId + "[rel='" + msgId + "']").show().siblings().hide(); // show it, and close others
         $("#" + appId + "[rel='" + msgId + "']" + '>#' + appId + '-content' + '[rel="' + msgId + '"]').scrollTop($('#' + appId + '-content' + '[rel="' + msgId + '"]')[0].scrollHeight); //scroll to down
         let clientName = $(this).find('.clientName').text();
         $('#prof-nick').text(clientName);
@@ -780,7 +810,7 @@ $(document).ready(function() {
                     database.ref('users/' + vendorId).once('value', data => {
                         if (data.val() !== null) {
                             let user = data.val();
-                            let str = toAgentStr(msgStr, data.name, Date.now());
+                            let str = toAgentStr(msgStr, Date.now());
                             $('#' + appId + '-content' + "[rel='" + userId + "']").append(str); // push message into right canvas
                             $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
                             $('[name="' + appId + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgStr));
@@ -827,18 +857,19 @@ $(document).ready(function() {
                     })
                     .then((data) => {
                         let appId = data;
+                        return database.ref('apps/' + appId).once('value');
+                    })
+                    .then((snap) => {
+                        let apps = snap.val();
                         return new Promise((resolve, reject) => {
-                            database.ref('apps/' + appId).once('value', (data) => {
-                                let appInfo = data.val();
-                                let obj = {
-                                    ...appInfo,
-                                    msg: msgStr,
-                                    msgTime: Date.now(),
-                                    clientId: userId,
-                                    textType: 'text'
-                                }
-                                resolve(obj);
-                            });
+                            let obj = {
+                                ...apps,
+                                msg: msgStr,
+                                msgTime: Date.now(),
+                                clientId: userId,
+                                textType: 'text'
+                            }
+                            resolve(obj);
                         });
                     })
                     .then((data) => {
@@ -847,7 +878,9 @@ $(document).ready(function() {
                             resolve();
                         });
                     })
-                    .catch(reason => {});
+                    .catch(reason => {
+
+                    });
             }
         }
     } // end of submitMsg
@@ -867,28 +900,59 @@ $(document).ready(function() {
             var self = this;
             var storageRef = firebase.storage().ref();
             var fileRef = storageRef.child(file.lastModified + '_' + file.name);
+            let apps;
             proceed.then(() => {
                 return database.ref('apps/' + appId).once('value');
             }).then((snap) => {
-                let token = snap.val().token1;
+                apps = snap.val();
                 return new Promise((resolve, reject) => {
-                    resolve(token);
+                    resolve();
                 });
-            }).then((token) => {
-                fileRef.put(file).then(function(snapshot) {
-                    let url = snapshot.downloadURL;
-                    var textType = $(self).data('type');
-                    var appType = 'string' === typeof(userId) && userId.startsWith('U') ? 'LINE' : 'FACEBOOK';
-                    var data = {
-                        msg: '/' + textType + ' ' + url,
-                        textType: textType,
-                        type: appType,
-                        msgTime: Date.now(),
-                        token1: token
-                    };
-                    socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
+            }).then(() => {
+                return fileRef.put(file);
+            }).then(function(snapshot) {
+                let url = snapshot.downloadURL;
+                var textType = $(self).data('type');
+                return new Promise((resolve, reject) => {
+                    formatUrl(textType, url, (msg) => {
+                        var appType = 'string' === typeof(userId) && userId.startsWith('U') ? LINE : FACEBOOK;
+                        let str = toAgentStr(msg, Date.now());
+                        $('#' + appId + '-content' + "[rel='" + userId + "']").append(str);
+                        $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight);
+                        $('[name="' + appId + '"][rel="' + userId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msg));
+                        messageInput.val('');
+                        var data = {
+                            ...apps,
+                            msg: msg,
+                            url: url,
+                            textType: textType,
+                            type: appType,
+                            msgTime: Date.now()
+                        };
+                        resolve(data);
+                    });
                 });
+            }).then((data) => {
+                socket.emit(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, { appId, userId, data });
             }).catch(() => {});
+        }
+    }
+
+    function formatUrl(type, url, callback) {
+        let msg;
+        switch (type) {
+            case 'image':
+                msg = '<img src="' + url + '" style="height:100px;width:100px;"/>';
+                callback(msg);
+                break;
+            case 'audio':
+                msg = '<audio controls><source src="' + url + '" type="audio/mpeg"/></audio>';
+                callback(msg);
+                break;
+            case 'video':
+                msg = '<video controls><source src="' + url + '" type="video/mp4"></video>';
+                callback(msg);
+                break;
         }
     }
 
@@ -908,14 +972,14 @@ $(document).ready(function() {
             if (chats.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
                 $("#" + appId + "-content" + "[rel='" + userId + "']").append('<p class="message-day"><strong>-新訊息-</strong></p>');
             }
-            if (chats.owner === "agent") str = toAgentStr(chats.text, chats.name, chats.time);
-            else str = toUserStr(chats.text, chats.name, chats.time);
+            if (chats.from === SYSTEM || chats.from === CHATSHIER) str = toAgentStr(chats.text, chats.time);
+            else str = toUserStr(chats.text, chats.time);
             $("#" + appId + "-content" + "[rel='" + userId + "']").append(str); //push message into right canvas
             $('#' + appId + '-content' + "[rel='" + userId + "']").scrollTop($('#' + appId + '-content' + '[rel="' + userId + '"]')[0].scrollHeight); //scroll to down
         } else { //if its new user
             let historyMsgStr = NO_HISTORY_MSG;
-            if (chats.owner === "agent") historyMsgStr += toAgentStr(chats.text, chats.name, chats.time);
-            else historyMsgStr += toUserStr(chats.text, chats.name, chats.time);
+            if (chats.from === "SYSTEM" || chats.from === "CHATSHIER") historyMsgStr += toAgentStr(chats.text, '');
+            else historyMsgStr += toUserStr(chats.text, chats.time);
             canvas.append( //new a canvas
                 '<div id="' + appId + '" rel="' + userId + '" class="tabcontent">' + '<div id="' + appId + '-content" rel="' + userId + '" class="messagePanel">' + historyMsgStr + '</div></div>'
             ); // close append
@@ -940,7 +1004,7 @@ $(document).ready(function() {
         }
         target.attr("data-recentTime", chats.time);
         // update tablnks's last msg
-        if (chats.owner === "agent") {
+        if (chats.from === SYSTEM || chats.from === CHATSHIER) {
             target.find('.unread-msg').text("0").css("display", "none");
         } else if ((messager.unRead + currentUnread) > 99) {
             target.find('.unread-msg').text("99+").css("display", "block");
@@ -1054,7 +1118,7 @@ $(document).ready(function() {
             database.ref('tickets/' + userId + '/t' + idNum).once('value', snapshot => {
                 if (snapshot.val() !== null) {
                     let value = snapshot.val();
-                    $('option[value="' + value.owner + '"]').attr('selected', 'selected');
+                    $('option[value="' + value.from + '"]').attr('selected', 'selected');
                 }
             });
             agentInfo = data;
@@ -1544,8 +1608,8 @@ $(document).ready(function() {
         if (data.time - designated_chat_room_msg_time >= 900000) { // 如果現在時間多上一筆聊天記錄15分鐘
             $("#" + data.roomId + "-content" + "[rel='internal']").append('<p class="message-day" style="text-align: center"><strong>-新訊息-</strong></p>');
         }
-        if (data.agentId == agentId) str = toAgentStr(data.message, data.agentNick, data.time);
-        else str = toUserStr(data.message, data.agentNick, data.time);
+        if (data.agentId == agentId) str = toAgentStr(data.message, data.time);
+        else str = toUserStr(data.message, data.time);
         $("#" + data.roomId + "-content" + "[rel='internal']").append(str); //push message into right canvas
         $('#' + data.roomId + '-content' + "[rel='internal']").scrollTop($('#' + data.roomId + '-content' + '[rel="internal"]')[0].scrollHeight); //scroll to down
     } // end of displayMessageInternal
@@ -1784,18 +1848,18 @@ $(document).ready(function() {
     //=====end searchBox change func=====
 
     //=====start utility function
-    function toAgentStr(msg, name, time) {
+    function toAgentStr(msg, time) {
         if (msg.startsWith("<a") || msg.startsWith("<img") || msg.startsWith("<audio") || msg.startsWith("<video")) {
-            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content stikcer">  ' + msg + '</span><strong></strong><br/></p>';
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content stikcer">  ' + msg + '</span><strong></strong><br/></p>';
         } else {
-            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + name + ' ' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content words">  ' + msg + '</span><strong></strong><br/></p>';
+            return '<p class="message" rel="' + time + '" style="text-align: right;line-height:250%" title="' + toDateStr(time) + '"><span  class="send-time">' + toTimeStr(time) + '</span><span class="content words">  ' + msg + '</span><strong></strong><br/></p>';
         }
     } // end of toAgentStr
-    function toUserStr(msg, name, time) {
+    function toUserStr(msg, time) {
         if (msg.startsWith("<a") || msg.startsWith("<img") || msg.startsWith("<audio") || msg.startsWith("<video")) {
-            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content sticker">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + toDateStr(time) + '"><strong></strong><span class="content sticker">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
         } else {
-            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + name + ' ' + toDateStr(time) + '"><strong></strong><span class="content words">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
+            return '<p style="line-height:250%" class="message" rel="' + time + '" title="' + toDateStr(time) + '"><strong></strong><span class="content words">  ' + msg + '</span><span class="send-time">' + toTimeStr(time) + '</span><br/></p>';
         }
     } // end of toUserStr
     function lastMsgToStr(msg) {

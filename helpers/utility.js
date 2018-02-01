@@ -1,4 +1,5 @@
 var utility = {};
+
 var languageList = require("../config/tag-language.json");
 utility.translateTag = (prop, langA, langB) => {
     for (let i = 0; i < languageList.length; i++) {
@@ -20,6 +21,16 @@ utility.isUrl = str => {
 }
 utility.isSameUser = (profile, userId, channelId) => {
     return profile.userId == userId && profile.channelId == channelId;
+}
+utility.lineType = (bot, messageId, callback) => {
+    let stream = bot.getMessageContent(messageId).then((chunk) => {
+        console.log(chunk.client._tlsOptions.session);
+        let buffer = chunk.client._tlsOptions.session;
+        let msgObj = '<a href="data:image/png;base64,' + buffer.toString('base64') + '" ' +
+        ' target="_blank" ><img src="data:image/png;base64,' + buffer.toString('base64') + '" ' +
+        'width="20%" alt="image embedded using base64 encoding!"/></a>';
+        callback(msgObj);
+    });
 }
 utility.lineMsgType = (event, type, callback) => {
     let msgObj;
@@ -91,18 +102,18 @@ utility.LINEMessageTypeForPushMessage = (vendor, callback) => {
             message.type = vendor.textType;
             break;
         case 'image':
-            message.previewImageUrl = vendor.msg.substr(7);
-            message.originalContentUrl = vendor.msg.substr(7);
+            message.previewImageUrl = vendor.url;
+            message.originalContentUrl = vendor.url;
             message.type = vendor.textType;
             break;
         case 'audio':
             message.duration = 240000;
-            message.originalContentUrl = vendor.msg.substr(7);
+            message.originalContentUrl = vendor.url;
             message.type = vendor.textType;
             break;
         case 'video':
             message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
-            message.originalContentUrl = vendor.msg.substr(7);
+            message.originalContentUrl = vendor.url;
             message.type = vendor.textType;
             break;
         case 'sticker':
@@ -119,7 +130,7 @@ utility.fbMsgType = (fbMsg, callback) => {
         switch (fbMsg.attachments[0].type) {
             case "image":
                 let imageURL = fbMsg.attachments[0].payload.url;
-                msgObj = '<img src="' + imageURL + '" style="height:100px;width:100px;"/>';
+                msgObj = '<img src="' + imageURL + '" style="width: 100%; max-width: 500px;"/>';
                 break;
             case "video":
                 var videoURL = fbMsg.attachments[0].payload.url;
@@ -192,33 +203,6 @@ utility.filterUser = (channelIdArr, chatData, callback) => {
         }
     }
     callback(newData);
-}
-
-utility.sendFacebookMessage = (fbBot, psid, msgStr, callback) => {
-    sendMessage(0, callback);
-
-    function sendMessage(index, cb) {
-        let proceed = Promise.resolve();
-
-        proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                if (index >= msgStr.length) {
-                    reject();
-                    return;
-                }
-                resolve();
-            });
-        }).then(() => {
-            return new Promise((resolve, reject) => {
-                fbBot.sendTextMessage(psid, msgStr[index].text);
-                resolve();
-            });
-        }).then(() => {
-            sendMessage(index + 1, cb);
-        }).catch(() => {
-            cb();
-        });
-    }
 }
 
 utility.DateTimezone = (offset) => {

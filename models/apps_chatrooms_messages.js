@@ -219,8 +219,8 @@ module.exports = (function() {
         }).then((user) => {
             var appIds = user.app_ids;
             AppsChatroomsMessages.prototype.findByAppIds(appIds, (data) => {
-                var appsMessengers = data;
-                callback(appsMessengers);
+                var appsMessagers = data;
+                callback(appsMessagers);
             });
         }).catch((ERROR) => {
             callback(false);

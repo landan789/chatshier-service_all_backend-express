@@ -23,7 +23,7 @@ chats.insertMessageByMessengerIdAndAppId = (appId,msgId,msgObj) => {
   proceed
     .then(() => {
       return new Promise((resolve,reject) => {
-        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).once('value', (data) => {
+        admin.database().ref().child('apps/' + appId + '/messagers/' + msgId).once('value', (data) => {
           let chats = data.val().chats;
           resolve(chats);
         });
@@ -32,17 +32,17 @@ chats.insertMessageByMessengerIdAndAppId = (appId,msgId,msgObj) => {
     .then((data) => {
       let chats = data;
       if(null === chats || undefined === chats || 0 === chats.length) {
-        admin.database().ref().child('apps/' + appId + '/messengers/' + msgId + '/chats/0').set(msgObj);
+        admin.database().ref().child('apps/' + appId + '/messagers/' + msgId + '/chats/0').set(msgObj);
         return;
       }
-      admin.database().ref().child('apps/' + appId + '/messengers/' + msgId + '/chats/' + chats.length).set(msgObj);
+      admin.database().ref().child('apps/' + appId + '/messagers/' + msgId + '/chats/' + chats.length).set(msgObj);
     })
     .catch(() => {
       console.log('Insert Failed');
     });
 }
 chats.updateProfileByMessengerIdAndAppId = (appId,msgId,profObj) => {
-  admin.database().ref().child('apps/' + appId + '/messengers/' + msgId).update(profObj);
+  admin.database().ref().child('apps/' + appId + '/messagers/' + msgId).update(profObj);
 }
 chats.loadChatHistory = (chatData,callback) => {
   let sendData = [];
