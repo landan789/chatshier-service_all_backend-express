@@ -63,6 +63,7 @@ function init(server) {
     app.post('/webhook/:webhookId', (req, res, next) => {
         var webhookId = req.params.webhookId;
         var proceed = Promise.resolve();
+        req.nowTime = new Date().getTime();
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
@@ -178,6 +179,14 @@ function init(server) {
                 if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
                     resolve({});
                     return;
+                }
+                for (let key in autoreplies) {
+                    let endedTime = autoreplies[key].endedTime;
+                    let startedTime = autoreplies[key].startedTime;
+                    if (startedTime <= req.nowTime && req.nowTime < endedTime) {
+                        continue;
+                    }
+                    delete autoreplies[key];
                 }
                 resolve(autoreplies);
             });
