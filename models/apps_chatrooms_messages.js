@@ -163,7 +163,7 @@ module.exports = (function() {
      */
     AppsChatroomsMessages.prototype.insertMessageByAppIdByMessagerId = function(appId, messagerId, message, callback) {
 
-        admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value').then((snap) => {
+        admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
             var messager = snap.val();
             return Promise.resolve(messager);
         }).then((messager) => {
@@ -186,7 +186,7 @@ module.exports = (function() {
             var messager = {
                 chatroom_id: chatroomId
             };
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager);
+            return admin.database().ref('apps/' + appId + '/messagers/' + messagerId).update(messager);
         }).then(() => {
             callback(message);
         }).catch(() => {
@@ -243,7 +243,7 @@ module.exports = (function() {
             }
             var appsChatroomsMessages = {};
             var chatroomsMessages = {};
-            chatroomsMessages[messages] = {
+            chatroomsMessages[chatroomId] = {
                 messages: messages
             };
             appsChatroomsMessages[appId] = {
