@@ -2,7 +2,7 @@ var cipher = require('../helpers/cipher');
 var app = require('../app');
 var socketio = require('socket.io');
 var linebot = require('linebot'); // line串接
-var MessengerPlatform = require('facebook-bot-messenger'); // facebook串接
+var facebook = require('facebook-bot-messenger'); // facebook串接
 var line = require('@line/bot-sdk');
 var admin = require('firebase-admin'); // firebase admin SDK
 var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase admin requires .json auth
@@ -99,12 +99,17 @@ function init(server) {
                         pageToken: req.app.token2 === undefined ? '' : req.app.token2
                     };
                     req.facebookConfig = facebookConfig;
-                    bodyParser.json()(req, res, next);
+                    bodyParser.json()(req, res, () => {
+                        req.fbBot = facebook.create(req.facebookConfig, server); // fbBot因為無法取得bofy無法在上一層處理所以拉到這層
+
+                        next();
+                    });
                     break;
             }
-        }).catch(() => {});
+        }).catch(() => {
+            res.sendStatus(404);
+        });
     }, (req, res, next) => {
-        req.fbBot = undefined === req.body.entry ? {} : MessengerPlatform.create(req.facebookConfig, server); // fbBot因為無法取得bofy無法在上一層處理所以拉到這層
         var appId = req.appId;
         var message = undefined === req.body.events ? req.body.entry[0].messaging[0].message.text : req.body.events[0].message.text;
         var proceed = Promise.resolve();
@@ -138,11 +143,18 @@ function init(server) {
         var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
 
         var appId = req.appId;
-        req.messagerId = undefined === req.body.events ? req.body.entry[0].messaging[0].sender.id : req.body.events[0].source.userId; // 判斷messager ID
 
+        switch (req.app.type) {
+            case LINE:
+                req.messagerId = req.body.events[0].source.userId;
+                break;
+            case FACEBOOK:
+                req.messagerId = req.body.entry[0].messaging[0].sender.id;
+                break;
+        }
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-            if ('follow' === event.type) {
+            if (LINE === req.app.type && 'follow' === event.type) {
                 resolve({});
                 return;
             }
@@ -157,7 +169,7 @@ function init(server) {
         });
 
         var p2 = new Promise((resolve, reject) => {
-            if ('follow' === event.type) {
+            if (LINE === req.app.type && 'follow' === event.type) {
                 resolve({});
                 return;
             }
@@ -171,7 +183,7 @@ function init(server) {
         });
 
         var p3 = new Promise((resolve, reject) => {
-            if ('follow' === event.type) {
+            if (LINE === req.app.type && 'follow' === event.type) {
                 resolve({});
                 return;
             }
@@ -193,7 +205,7 @@ function init(server) {
         });
 
         var p4 = new Promise((resolve, reject) => {
-            if ('message' === event.type) {
+            if (LINE === req.app.type && 'message' === event.type) {
                 resolve({});
                 return;
             }
@@ -229,19 +241,19 @@ function init(server) {
             var textOnlyMessages = [].concat(keywordMessages, autoMessages, greetingMessages);
 
             req.messages = messages;
-
-            switch (app.type) {
+            // 沒有訊息資料就不對發送 LINE SDK 發送訊息
+            if (req.messages instanceof Array && 0 === req.messages.length) {
+                return Promise.resolve();
+            };
+            switch (req.app.type) {
                 case LINE:
-                    // 沒有訊息資料就不對發送 LINE SDK 發送訊息
-                    if (req.messages instanceof Array && 0 === req.messages.length) {
-                        return Promise.resolve();
-                    };
                     return lineBot.replyMessage(event.replyToken, messages);
                     break;
                 case FACEBOOK:
-                    utility.sendFacebookMessage(fbBot, req.messagerId, textOnlyMessages, () => {
-                        return Promise.resolve();
-                    });
+
+                    return Promise.all(messages.map((message) => {
+                        return fbBot.sendTextMessage(req.messagerId, message);
+                    }))
                     break;
             }
         }).then(() => {
@@ -256,9 +268,21 @@ function init(server) {
             }
         }).then((profile) => {
             var Uid = req.messagerId;
+            var name;
+            var photo;
+
+            switch (req.app.type) {
+                case LINE:
+                    name = profile.displayName;
+                    photo = profile.pictureUrl;
+                case FACEBOOK:
+                    name = profile.first_name + ' ' + profile.last_name;
+                    photo = profile.profile_pic;
+                    break;
+            };
             var messager = {
-                name: profile.displayName ? profile.displayName : profile.first_name + ' ' + profile.last_name,
-                photo: profile.pictureUrl ? profile.pictureUrl : profile.profile_pic
+                name: name,
+                photo: photo
             };
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
@@ -271,10 +295,22 @@ function init(server) {
             });
         }).then((messager) => {
             var chatroomId = messager.chatroom_id;
-            var msgType = undefined === req.body.events && undefined === req.body.entry[0].messaging[0].message.text ? req.body.entry[0].messaging[0].message.attachment.type : 'text';
+            var text;
+            var type;
+            switch (req.app.type) {
+                case LINE:
+                    text = req.body.events[0].message.text;
+                    type = req.body.events[0].message.type;
+                    break;
+                case FACEBOOK:
+                    text = req.body.entry[0].messaging[0].message.text;
+                    type = req.body.entry[0].messaging[0].message.text;
+                    break;
+            };
+
             var inMessage = {
-                text: undefined === req.body.entry ? req.body.events[0].message.text : req.body.entry[0].messaging[0].message.text,
-                type: undefined === req.body.entry ? req.body.events[0].message.type : msgType,
+                text: text,
+                type: type,
                 from: (req.app.type).toUpperCase(),
                 messager_id: req.messagerId
             };
@@ -577,94 +613,7 @@ function init(server) {
                 });
             }).catch(() => {});
 
-            // let proceed = new Promise((resolve, reject) => {
-            //     resolve();
-            // });
 
-            // proceed.then(() => {
-            //     return new Promise((resolve, reject) => {
-            //         let msgObj = {
-            //             owner: "agent",
-            //             name: agentName,
-            //             time: nowTime,
-            //             message: "undefined_message",
-            //             from: 'chatshier'
-            //         };
-            //         resolve(msgObj);
-            //     })
-            // }).then((data) => {
-            //     let msgObj = data;
-            //     return new Promise((resolve, reject) => {
-            //         if (msg.includes('/image')) {
-            //             var src = msg.split(' ')[1];
-            //             msgObj.message = `<img src="${src}" />`;
-            //             resolve({ msgObj, vendor });
-            //         } else if (msg.includes('/audio')) {
-            //             var src = msg.split(' ')[1];
-            //             msgObj.message = `<audio controls="controls">
-            //                                     <source src="${src}" type="audio/ogg">
-            //                                   </audio>`;
-            //             resolve({ msgObj, vendor });
-            //         } else if (msg.includes('/video')) {
-            //             var src = msg.split(' ')[1];
-            //             msgObj.message = `<video controls="controls">
-            //                                     <source src="${src}" type="video/mp4">
-            //                                   </video> `;
-            //             resolve({ msgObj, vendor });
-            //         } else if (utility.isUrl(msg)) {
-            //             let urlStr = '<a href=';
-            //             if (msg.indexOf('https') !== -1 || msg.indexOf('http') !== -1) {
-            //                 urlStr += '"http://';
-            //             }
-            //             msgObj.message = urlStr + msg + '/" target="_blank">' + msg + '</a>';
-            //             resolve({ msgObj, vendor });
-            //         } else if (msg.includes('/sticker')) {
-            //             msgObj.message = 'Send sticker to user';
-            //             resolve({ msgObj, vendor });
-            //         } else {
-            //             msgObj.message = msg;
-            //             resolve({ msgObj, vendor });
-            //         }
-            //     });
-            // }).then((data) => {
-            //     let msgObj = data.msgObj;
-            //     let vendorObj = data.vendor;
-            //     return new Promise((resolve, reject) => {
-            //         if (vendorObj.id2 === '') {
-            //             let lineObj = {
-            //                 channelId: vendorObj.id1,
-            //                 channelSecret: vendorObj.secret,
-            //                 channelAccessToken: vendorObj.token1
-            //             }
-            //             let bot = linebot(lineObj);
-            //             linebotParser = bot.parser();
-            //             determineLineType(msg, data => {
-            //                 bot.push(receiver, data);
-            //                 resolve(msgObj);
-            //             });
-            //         } else {
-            //             let fbObj = {
-            //                 pageID: vendorObj.id1,
-            //                 appID: vendorObj.id2,
-            //                 appSecret: vendorObj.secret,
-            //                 validationToken: vendorObj.token1,
-            //                 pageToken: vendorObj.token2
-            //             }
-            //             let bot = MessengerPlatform.create(fbObj);
-            //             if (Object.keys(bot).length > 0) {
-            //                 determineFacebookType(msg, bot, receiver, () => {
-            //                     resolve(msgObj);
-            //                 });
-            //             }
-            //         }
-            //     });
-            // }).then((data) => {
-            //     let msgObj = data;
-            //     return new Promise((resolve, reject) => {
-            //         appsChatroomsMessagesMdl.insertMessage(appId, receiver, msgObj, () => {
-            //         });
-            //     });
-            // }).catch((ERR) => { });
         }); //sent message
         // 更新客戶資料
         socket.on('update profile', (data) => {
