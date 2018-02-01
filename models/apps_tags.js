@@ -17,7 +17,7 @@ module.exports = (function() {
     });
 
     function AppsTagsModel() {}
-    AppsTagsModel.prototype._schema = function() {
+    AppsTagsModel._schema = function() {
         let json = {
             name: '',
             type: typeEnum.CUSTOM,

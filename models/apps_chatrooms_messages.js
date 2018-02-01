@@ -281,54 +281,23 @@ module.exports = (function() {
     /**
      * 根據 App ID 找到message物件
      *
-     * @param {string} appIds
-     * @param {Function} callback
+     * @param {string[]} appIds
+     * @param {(appsMessengers: any) => any} callback
      */
     AppsChatroomsMessages.prototype.findByAppIds = function(appIds, callback) {
         var appsMessengers = {};
-        next(0, callback);
-
-        function next(i, cb) {
-            var procced = new Promise((resolve, reject) => {
-                resolve();
+        Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+                var app = snap.val() || {};
+                var messagers = app.messagers || {};
+                var chatrooms = app.chatrooms || {};
+                appsMessengers[appId] = { messagers, chatrooms };
             });
-
-            procced
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        if (i >= appIds.length) {
-                            reject(appsMessengers);
-                            return;
-                        }
-                        resolve();
-                    });
-                }).then(() => {
-                    return new Promise((resolve, reject) => {
-                        var appId = appIds[i];
-                        admin.database().ref('apps/' + appId).once('value', snap => {
-                            var app = snap.val();
-
-                            var messagers = app.messagers;
-                            var chatrooms = app.chatrooms;
-                            if (undefined === app.chatrooms || !app.hasOwnProperty('chatrooms') || 0 === Object.values(app.chatrooms).length) {
-                                chatrooms = Object.assign({});
-                                messagers = Object.assign({});
-                            }
-                            appsMessengers[appId] = {
-                                messagers,
-                                chatrooms
-                            };
-
-                            resolve();
-                        });
-                    });
-                }).then(() => {
-                    next(i + 1, cb);
-                })
-                .catch(() => {
-                    cb(appsMessengers);
-                });
-        }
+        })).then(() => {
+            callback(appsMessengers);
+        }).catch(() => {
+            callback(null);
+        });
     };
 
     return new AppsChatroomsMessages();

@@ -7,7 +7,7 @@ module.exports = (function() {
     /**
      * 回傳預設的 Keywordreply 資料結構
      */
-    AppsKeywordrepliesModel.prototype._schema = function() {
+    AppsKeywordrepliesModel._schema = function() {
         return {
             keyword: '',
             subKeywords: '',
