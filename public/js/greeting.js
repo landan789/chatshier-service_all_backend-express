@@ -1,16 +1,14 @@
 var socket = io.connect();
-var idArray = {}; // insert each message id for modify old message's purpose
-var currentCount = 0; // existing message count
-var newCount = 0; // new message count from addMsgCanvas
-var deleteCount = 0;
+var idObject = {}; // insert each message id for modify old message's purpose
+var greetingObject = {};
+var rowCount = 0; // new message count from addMsgCanvas
 var appId;
 $(document).ready(function() {
-
     $(document).on('click', '#save', modalSubmit);
-    $(document).on('click', '#addbtn', addMsgCanvas);
+    $(document).on('click', '#add-btn', addMsgCanvas);
     $(document).on('click', '#delete', delMsgCanvas);
     $(document).on('change', '#appId-names', storeAppId);
-    $('#addbtn').hide();
+    $('#add-btn').hide();
     $('#save').hide();
     setTimeout(loadAppIdNames, 2000);
 });
@@ -18,12 +16,12 @@ $(document).ready(function() {
 function loadAppIdNames() {
     let userId = auth.currentUser.uid;
     socket.emit('post userId', (userId));
-    socket.on('get appInfos', (data) => {
-        var appInfos = data;
+    socket.on('get appInfos', (apps) => {
         var option = [];
-        for (let i in appInfos) {
-            option[i] = $('<option>').text(appInfos[i].name).attr('id', i);
-            $('#appId-names').append(option[i]);
+        for (let appId in apps) {
+            var app = apps[appId];
+            option[appId] = $('<option>').text(app.name).attr('id', appId);
+            $('#appId-names').append(option[appId]);
         }
     });
 }
@@ -31,132 +29,128 @@ function loadAppIdNames() {
 function storeAppId() {
     appId = $(this).find(':selected').attr('id'); // appId為全域變數
     socket.emit('load add friend', (appId));
-    socket.on('get greetings', (data) => {
-        tableView(data);
+    socket.on('get greetings', (greetings) => {
+        tableView(greetings);
     });
 } // end of loadFriendsReply
 
 function tableView(greetings) {
     $('#MsgCanvas').empty();
-    let objArray = []; // empty the array first
-    let textArray = []; // get a new array to emit
-    let table = $('<table>').attr('id', appId);
-    $('#MsgCanvas').append(table);
-    let greetingObj = greetings;
-    if (greetingObj === null || greetingObj === '' || greetingObj === undefined) {
-        $('#addbtn').show();
+    greetingObject = {};
+    idObject = {};
+    let $table = $('<table>').attr('id', appId);
+    $('#MsgCanvas').append($table);
+    if (null === greetings || '' === greetings || undefined === greetings) {
+        $('#add-btn').show();
     } else {
-        let greeting = greetingObj[appId].greetings;
-        let greetingIds = Object.keys(greeting);
-        for (let i = 0; i < greetingIds.length; i++) {
-            objArray.push(greeting[greetingIds[i]]);
+        let greeting = greetings[appId].greetings;
+        for (let greetingId in greeting) {
             let loadMsg = '<!--TEXT AREA -->' +
-                '<tr id="' + greetingIds[i] + '-row">' +
+                '<tr id="' + greetingId + '-row">' +
                 '<th style="padding:1%; margin:2% 1% 2% 1%; background-color: #ddd">請輸入文字:</th>' +
                 '</tr>' +
-                '<tr id="' + greetingIds[i] + '-row">' +
+                '<tr id="' + greetingId + '-row">' +
                 '<td style="background-color: #ddd">' +
                 '<span style="float:right" id="delete"> 刪除 </span>' +
                 '<form onsubmit="event.preventDefault();" style="padding:1%; margin:1%">' +
-                '<textarea id="' + greetingIds[i] + '" rel="' + appId + '" style="border:none" disabled="disabled">' + objArray[i].text + '</textarea>' +
+                '<textarea id="' + greetingId + '" rel="' + appId + '" style="border:none" disabled="disabled">' + greeting[greetingId].text + '</textarea>' +
                 '</form>' +
                 '</td>' +
                 '</tr>';
-            table.append(loadMsg);
-            textArray.push(objArray[i].text);
+            $table.append(loadMsg);
         }
-        currentCount = textArray.length;
-        $('#addbtn').show();
+        greetingObject = greeting;
+        $('#add-btn').show();
     }
 }
 
 function addMsgCanvas() {
-    if ((currentCount + newCount - deleteCount) < 5) {
-        ++newCount;
+    var currentCount = Object.keys(greetingObject).length;
+    var newCount = Object.keys(idObject).length;
+    if ((currentCount + newCount) < 5) {
+        ++rowCount;
         let MsgCanvas = '<!--TEXT AREA -->' +
-            '<tr id="' + newCount + '-row">' +
+            '<tr id="' + rowCount + '-row">' +
             '<th style="padding:1%; margin:2% 1% 2% 1%; background-color: #ddd">請輸入文字:</th>' +
             '</tr>' +
-            '<tr id="' + newCount + '-row">' +
+            '<tr id="' + rowCount + '-row">' +
             '<td style="background-color: #ddd">' +
             '<span style="float:right" id="delete"> 刪除 </span>' +
             '<form onsubmit="event.preventDefault();" style="padding:1%; margin:1%">' +
-            '<textarea id="newText' + newCount + '"></textarea>' +
+            '<textarea id="newText' + rowCount + '"></textarea>' +
             '</form>' +
             '</td>' +
             '</tr>';
         $('table#' + appId).append(MsgCanvas);
         $('#save').show();
-        idArray['newText' + newCount] = '';
+        idObject['newText' + rowCount] = '';
     } else {
         $('#error').show();
-        $('#addbtn').hide();
+        $('#add-btn').hide();
         setTimeout(() => {
             $('#error').hide();
-        }, 5000)
+        }, 5000);
     }
 } // end of addMsgCanvas
 
-function delMsgCanvas() { // 如果只是新增一個空的tr再刪除會止移除第二個tr
+function delMsgCanvas() {
+    var currentCount = Object.keys(greetingObject).length;
+    var newCount = Object.keys(idObject).length;
     let greetingId = $(this).parent().find('form').find('textarea').attr('id');
     let rowId = $(this).parent().parent().attr('id');
-    if (greetingId === undefined) {
+    if (undefined === greetingId) {
         location.reload();
-    } else {
-        if (greetingId.charAt(0) === '-') {
-            socket.emit('delete greeting', {appId, greetingId});
-            socket.on('delete result', (result) => {
-                if (null === result) {
-                    console.log('刪除失敗');
-                    return;
-                }
-                $(this).parent().parent().siblings('#' + rowId).remove();
-                $(this).parent().parent().remove();
-            });
-        } else {
+    }
+    if ('-' === greetingId.charAt(0)) {
+        socket.emit('delete greeting', {appId, greetingId});
+        socket.on('delete result', (result) => {
+            if (null === result) {
+                console.log('刪除失敗');
+                return;
+            }
             $(this).parent().parent().siblings('#' + rowId).remove();
             $(this).parent().parent().remove();
-            delete idArray[greetingId];
-        }
-        ++deleteCount;
-        if ((currentCount + newCount - deleteCount) < 5) {
-            $('#addbtn').show();
-        }
+            delete greetingObject[greetingId];
+        });
+    } else {
+        $(this).parent().parent().siblings('#' + rowId).remove();
+        $(this).parent().parent().remove();
+        delete idObject[greetingId];
+    }
+    if ((currentCount + newCount) < 5) {
+        $('#add-btn').show();
     }
 } // end of delMsgCanvas
 
-function modalSubmit() { // 送出新增
+function modalSubmit() {
+    var currentCount = Object.keys(greetingObject).length;
+    var newCount = Object.keys(idObject).length;
     let userId = auth.currentUser.uid;
-    for (let key in idArray) {
-        if ($('#' + key).val().trim() === '') {
+    for (let key in idObject) {
+        if ('' === $('#' + key).val().trim()) {
             alert('請填入文字內容');
-        } else {
-            let greetingObj = {
-                type: 'text',
-                text: $('#' + key).val()
-            };
-            socket.emit('post greeting', {userId, appId, greetingObj});
-            socket.on('callback greetingId', (data) => {
-                if (null === data || undefined === data) {
-                    console.log('新增失敗');
-                } else {
-                    delete idArray[key];
-                    ++currentCount;
-                    newCount = 0;
-                    deleteCount = 0;
-                }
-            });
+            return;
         }
+        let greetingObj = {
+            type: 'text',
+            text: $('#' + key).val()
+        };
+        socket.emit('post greeting', {userId, appId, greetingObj});
+        socket.on('callback greetingId', (data) => {
+            if (null === data || undefined === data) {
+                console.log('新增失敗');
+            }
+        });
+    }
+    rowCount = 0;
+    if (0 === rowCount) {
+        console.log('新增完成');
+    }
+    if ((currentCount + newCount) < 5) {
+        $('#add-btn').hide();
     }
     socket.emit('load add friend', (appId));
     socket.on('get greetings', (data) => {
         tableView(data);
     });
-    if (0 === newCount) { // 存進資料庫後
-        alert('Saved!');
-    }
-    if ((currentCount + newCount - deleteCount) > 5) {
-        $('#addbtn').hide();
-    }
-    //塞入資料庫並重整
 } // end of modalSubmit
