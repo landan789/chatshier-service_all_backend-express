@@ -27,47 +27,29 @@ appsTickets.findTicketsByAppId = (appId, callback) => {
     });
 };
 
+/**
+ * @param {string[]} appIds
+ * @param {(appTickets: any) => any} callback
+ */
 appsTickets.findAppTicketsByAppIds = (appIds, callback) => {
-    var appTickets = {};
-    next(0, callback);
+    let appTickets = {};
 
-    function next(i, cb) {
-        var procced = new Promise((resolve, reject) => {
-            resolve();
+    Promise.all(appIds.map((appId) => {
+        return admin.database().ref('apps/' + appId + '/tickets').once('value').then((snap) => {
+            let tickets = snap.val();
+            if (!tickets) {
+                return;
+            }
+
+            appTickets[appId] = {
+                tickets: tickets
+            };
         });
-
-        procced.then(() => {
-            return new Promise((resolve, reject) => {
-                if (i >= appIds.length) {
-                    reject(appTickets);
-                    return;
-                }
-                resolve();
-            });
-        }).then(() => {
-            return new Promise((resolve, reject) => {
-                var appId = appIds[i];
-                admin.database().ref('apps/' + appId + '/tickets').once('value', snap => {
-                    var tickets = snap.val();
-                    var _appTickets = Object.assign({});
-                    _appTickets[appId] = {
-                        tickets: tickets
-                    };
-                    if (null === tickets || undefined === tickets || '' === tickets) {
-                        resolve();
-                        return;
-                    }
-                    appTickets = { ...appTickets, ..._appTickets }; // Object.assign(appTickets, _appTickets );
-
-                    resolve();
-                });
-            });
-        }).then(() => {
-            next(i + 1, cb);
-        }).catch(() => {
-            cb(appTickets);
-        });
-    }
+    })).then(() => {
+        callback(appTickets);
+    }).catch(() => {
+        callback(null);
+    });
 };
 
 appsTickets.findAppTicketByAppIdByTicketId = (appId, ticketId, callback) => {

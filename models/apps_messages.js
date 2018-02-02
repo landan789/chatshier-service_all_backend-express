@@ -79,6 +79,10 @@ module.exports = (function() {
         let proceed = Promise.resolve();
 
         proceed.then(() => {
+            if (!(keywordreplyIds instanceof Array)) {
+                return Promise.reject(new Error());
+            }
+
             return admin.database().ref('apps/' + appId + '/messages/' + messageId + '/keywordreply_ids').set(keywordreplyIds);
         }).then(() => {
             callback(true);

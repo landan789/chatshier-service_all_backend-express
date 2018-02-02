@@ -24,36 +24,28 @@ calendarsEvents.findCalendarIdByUserId = (userId, callback) => {
 };
 
 calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
-    let proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
-                let calendarId = snap.val();
-                if (null === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject();
-                    return;
-                }
-                resolve(calendarId);
-            });
+    Promise.resolve().then(() => {
+        return admin.database().ref('users/' + userId + '/calendar_id').once('value').then((snap) => {
+            let calendarId = snap.val() || '';
+            return calendarId;
         });
-    }).then((data) => {
-        let calendarId = data;
-        admin.database().ref('calendars/' + calendarId + '/events').once('value', (snap) => {
-            let events = snap.val();
-            if (null === events || undefined === events || '' === events) {
-                events = {};
-            }
-            var calendarsEvents = {};
+    }).then((calendarId) => {
+        if (!calendarId) {
+            return {};
+        }
+
+        let calendarsEvents = {};
+        return admin.database().ref('calendars/' + calendarId + '/events').once('value').then((snap) => {
+            let events = snap.val() || {};
             calendarsEvents[calendarId] = {
                 events: events
             };
-            callback(calendarsEvents);
+            return calendarsEvents;
         });
+    }).then((data) => {
+        callback(data);
     }).catch(() => {
-        callback(false);
+        callback(null);
     });
 };
 
@@ -94,56 +86,48 @@ calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eve
 };
 
 calendarsEvents.insertCalendarEventByUserId = (userId, event, callback) => {
-    let proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId).once('value', (snap) => {
-                let user = snap.val();
-                if (null === user || undefined === user || '' === user) {
-                    reject(null);
-                    return;
-                }
-                resolve(user);
-            });
+    Promise.resolve().then(() => {
+        return admin.database().ref('users/' + userId).once('value').then((snap) => {
+            let user = snap.val();
+            if (!user) {
+                return Promise.reject(new Error());
+            }
+            return user;
         });
     }).then((user) => {
         let calendarId = user.calendar_id;
-        if (false === calendarId || undefined === calendarId || '' === calendarId) {
+        if (!calendarId) {
+            // 首次插入資料時不會有 calendarId
+            // 因此須自行新增一個 calendarId
+            let calendarsRef = admin.database().ref('calendars').push();
+            calendarId = calendarsRef.key;
 
-            return admin.database().ref('calendars').push().then((ref) => {
-                var calendarId = ref.key;
-                return admin.database().ref('calendars/' + calendarId + '/events').push(event);
-            }).then((ref) => {
-                var calendarId = ref.parent.parent.key;
-                var eventId = ref.parent.key;
-                user = {
+            return calendarsRef.then(() => {
+                let userCalendarId = {
                     calendar_id: calendarId
-                }
-                return Promise.all([admin.database().ref('users/' + userId).update(user), calendarId, eventId]);
-            }).then((result) => {
-                var calendarId = result[1];
-                var eventId = result[2];
-                return admin.database().ref('calendars/' + calendarId + '/events');
-            });
+                };
 
+                // 插入事件至指定的行事曆並同時更新使用者的 calendar_id 欄位
+                return Promise.all([
+                    admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value'),
+                    admin.database().ref('users/' + userId).update(userCalendarId)
+                ]);
+            }).then((result) => {
+                return result[0];
+            });
         }
 
-        return admin.database().ref('calendars/' + calendarId + '/events').push(event);
-
-    }).then((ref) => {
-        return ref.once('value');
+        return admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value');
     }).then((snap) => {
         var event = snap.val();
-        var eventId = snap.key;
         var calendarId = snap.ref.parent.parent.key;
-        var calendarsEvents = {};
-        var _events = {};
-        _events[eventId] = event;
-        calendarsEvents[calendarId] = {
-            events: _events
+        var eventId = snap.key;
+        var calendarsEvents = {
+            [calendarId]: {
+                events: {
+                    [eventId]: event
+                }
+            }
         };
         callback(calendarsEvents);
     }).catch(() => {
