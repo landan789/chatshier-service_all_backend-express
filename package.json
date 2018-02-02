@@ -41,6 +41,7 @@
         "yelp-fusion": "^1.0.3"
     },
     "devDependencies": {
+        "@types/amcharts": "^3.21.2",
         "@types/body-parser": "^1.16.8",
         "@types/cookie-parser": "^1.4.1",
         "@types/ejs": "^2.5.0",

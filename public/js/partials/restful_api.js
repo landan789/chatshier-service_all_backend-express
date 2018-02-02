@@ -509,6 +509,49 @@ window.restfulAPI = (function() {
         return TagAPI;
     })();
 
+    var ChatroomAPI = (function() {
+        function ChatroomAPI(jwt) {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-chatrooms-messages/';
+        };
+
+        /**
+         * 取得每個 App 使用者的所有聊天室資訊
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ChatroomAPI.prototype.getAllMessages = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 取得使用者指定的 App 內的所有聊天室資訊
+         *
+         * @param {string} appId - 要查找的使用者的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ChatroomAPI.prototype.getAllMessagesByAppId = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: this.reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        return ChatroomAPI;
+    })();
+
     if (window.auth) {
         // 當 firebase 登入完成後自動更新 API 需要的 JSON Web Token
         window.auth.ready.then(function() {
@@ -523,6 +566,7 @@ window.restfulAPI = (function() {
         messager: new MessagerAPI(),
         keywordreply: new KeywordreplyAPI(),
         tag: new TagAPI(),
+        chatroom: new ChatroomAPI(),
         setJWT: setJWT
     };
 })();
