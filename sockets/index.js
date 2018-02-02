@@ -19,6 +19,7 @@ var tags = require('../models/tags');
 var users = require('../models/users');
 var utility = require('../helpers/utility');
 var helpersFacebook = require('../helpers/facebook');
+var helpersBot = require('../helpers/bot');
 var webhookMdl = require('../models/webhooks');
 var appsMdl = require('../models/apps');
 var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
@@ -277,6 +278,7 @@ function init(server) {
                 case LINE:
                     name = profile.displayName;
                     photo = profile.pictureUrl;
+                    break;
                 case FACEBOOK:
                     name = profile.first_name + ' ' + profile.last_name;
                     photo = profile.profile_pic;
@@ -319,16 +321,46 @@ function init(server) {
             };
             switch (req.app.type) {
                 case LINE:
-                    // utility.lineType(lineBot, req.body.events[0].message.id, (message) => {
-                    //     inMessage.text = message;
-                    // });
-                    let message = req.body.events[0].message.text;
-                    inMessage.text = message;
+                    if ('text' === req.body.events[0].message.type) {
+                        let text = req.body.events[0].message.text;
+                        inMessage.text = text;
+                    } else {
+                        let messageEvent = req.body.events[0];
+                        // 把檔案的二進位檔放進 inMessage.url
+                        helpersBot.lineFileBinaryConvert(req.lineBot, messageEvent, (url) => {
+                            inMessage.url = url;
+                            delete inMessage['text'];
+                        });
+                    }
                     break;
                 case FACEBOOK:
-                    utility.fbMsgType(req.body.entry[0].messaging[0].message, (message) => {
-                        inMessage.text = message;
-                    });
+                    let message = req.body.entry[0].messaging[0].message;
+                    if (message.attachments) {
+                        switch (message.attachments[0].type) {
+                            case 'image':
+                                inMessage.url = message.attachments[0].payload.url;
+                                delete inMessage['text'];
+                                break;
+                            case 'video':
+                                inMessage.url = message.attachments[0].payload.url;
+                                delete inMessage['text'];
+                                break;
+                            case 'audio':
+                                inMessage.url = message.attachments[0].payload.url;
+                                delete inMessage['text'];
+                                break;
+                            case 'file':
+                                inMessage.url = message.attachments[0].payload.url;
+                                delete inMessage['text'];
+                                break;
+                            case 'location':
+                                inMessage.url = message.attachments[0].url;
+                                delete inMessage['text'];
+                                break;
+                        }
+                    } else {
+                        inMessage.text = message.text;
+                    }
                     break;
             }
             // 回復訊息與傳入訊息都整合，再寫入 DB
@@ -789,10 +821,6 @@ function init(server) {
             let time = Date.now();
             Profile.firstChat = time;
             Profile.recentChat = time;
-        });
-        // 5.撈出內部聊天室紀錄
-        socket.on('request internal chat data', (data, callback) => {
-            requestInternalChatData(data, callback);
         });
 
         // 內部聊天室傳訊息

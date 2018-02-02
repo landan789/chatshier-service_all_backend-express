@@ -624,19 +624,31 @@ $(document).ready(function() {
             function nextPromise(index) {
                 let proceed = Promise.resolve();
                 proceed.then(() => {
+                    let message = Object.assign({}, msgs[msgKeys[index]]);
+                    return new Promise((resolve, reject) => {
+                        if (undefined !== message.text) {
+                            resolve(message);
+                            return;
+                        }
+                        let url = message.url;
+                        // 按照檔案的類型塞進不同的html tag然後放進 message.text
+                    });
+                }).then((message) => {
                     return new Promise((resolve, reject) => {
                         findMessagerProfile(appId, userId, (data) => {
                             let messager = data.data;
-                            resolve(messager);
+                            resolve({messager, message});
                         });
                     });
-                }).then((messager) => {
+                }).then((data) => {
+                    let message = data.message;
+                    let messager = data.messager;
                     return new Promise((resolve, reject) => {
                         let $room = $('.chat-app-item[rel="' + appId + '"]');
                         if ($room.length !== 0) {
-                            displayMessage(messager, msgs[msgKeys[index]], userId, appId); // update 聊天室
-                            displayClient(messager, msgs[msgKeys[index]], userId, appId); // update 客戶清單
-                            displayInfo(messager, msgs[msgKeys[index]], userId, appId);
+                            displayMessage(messager, message, userId, appId); // 更新聊天室
+                            displayClient(messager, message, userId, appId); // 更新客戶清單
+                            displayInfo(messager, message, userId, appId); // 更新客戶資訊
                             if (-1 === name_list.indexOf(userId + appId)) {
                                 name_list.push(userId + appId);
                             }
@@ -1968,5 +1980,30 @@ $(document).ready(function() {
             }
         });
     } // end of findMessagerProfile
+
+    function findLineMessageContent(messageId, token, callback) {
+        $.ajax({
+            type: 'GET',
+            url: 'https://api.line.me/v2/bot/message/' + messageId + '/content',
+            dataType: 'jsonp',
+            contentType: 'image/jpeg',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            success: (file) => {
+                callback(file);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        });
+
+        var header = new Headers();
+        header.set('Authorization', 'Bearer 8R2KUAyZQwUdh20RENiuEIHbbNoxizoAtaN0uheHEX6FEywNWjxLBL0/2qVxRa51fy06XqQsEkq+F5NMbiVuLuVVeq3VdA/w3HC+RqnzzZm0ejiPqdzpkeupq46XeNARjJh6LSaAyO8d5TxSaLkZ6gdB04t89/1O/w1cDnyilFU=');
+        window.fetch('https://api.line.me/v2/bot/message/7409640866064/content', {
+            method: 'GET',
+            headers: header
+        });
+    } // end of findLineMessageContent
 
 }); //document ready close
