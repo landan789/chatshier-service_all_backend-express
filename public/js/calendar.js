@@ -54,17 +54,17 @@
     var api = window.restfulAPI;
     var userId = '';
 
-    var $calendar = null;
-    var $calendarModal = null;
-    var $calendarSdtPicker = null;
-    var $calendarEdtPicker = null;
-    var $calendarModalTitle = null;
-    var $calendarModalForm = null;
-    var $eventTitle = null;
-    var $eventContent = null;
-    var $eventIsAllday = null;
-    var $sTimePickerData = null;
-    var $eTimePickerData = null;
+    var $calendar = $('#calendar');
+    var $calendarModal = $('.modal.calendar-modal');
+    var $calendarSdtPicker = $('#start_datetime_picker');
+    var $calendarEdtPicker = $('#end_datetime_picker');
+    var $calendarModalTitle = $calendarModal.find('.modal-title');
+    var $calendarModalForm = $calendarModal.find('form.calendar-modal-form');
+    var $eventTitle = $calendarModalForm.find('input.event-title');
+    var $eventContent = $calendarModalForm.find('textarea.event-content');
+    var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
+    var sTimePickerData = null;
+    var eTimePickerData = null;
 
     auth.ready.then(function(currentUser) {
         userId = currentUser.uid; // 儲存全域用變數 userId
@@ -75,25 +75,13 @@
         var $delCalendarBtn = $('#del-cal-btn');
 
         // 初始化 modal 裡的 datetime picker
-        $calendarModal = $('.modal.calendar-modal');
-        $calendarSdtPicker = $('#start_datetime_picker');
-        $calendarEdtPicker = $('#end_datetime_picker');
-
         // 使用 moment.js 的 locale 設定 i18n 日期格式
         $calendarSdtPicker.datetimepicker({ locale: 'zh-tw' });
         $calendarEdtPicker.datetimepicker({ locale: 'zh-tw' });
-        $sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
-        $eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
-
-        // 抓取將經常控制的 jquery element
-        $calendarModalTitle = $calendarModal.find('.modal-title');
-        $calendarModalForm = $calendarModal.find('form.calendar-modal-form');
-        $eventTitle = $calendarModalForm.find('input.event-title');
-        $eventContent = $calendarModalForm.find('textarea.event-content');
-        $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
+        sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
+        eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
 
         // 初始化 fullCalendar 元件
-        $calendar = $('#calendar');
         $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
         $calendar.fullCalendar({
             theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
@@ -125,8 +113,8 @@
                 $addCalendarBtn.off('click').on('click', function() {
                     var calendarData = {
                         title: $eventTitle.val(),
-                        startTime: $sTimePickerData.date().toDate().getTime(),
-                        endTime: $eTimePickerData.date().toDate().getTime(),
+                        startTime: sTimePickerData.date().toDate().getTime(),
+                        endTime: eTimePickerData.date().toDate().getTime(),
                         description: $eventContent.val(),
                         isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                     };
@@ -162,8 +150,8 @@
                 $saveCalendarBtn.off('click').on('click', function() {
                     var calendarData = {
                         title: $eventTitle.val(),
-                        startTime: $sTimePickerData.date().toDate().getTime(),
-                        endTime: $eTimePickerData.date().toDate().getTime(),
+                        startTime: sTimePickerData.date().toDate().getTime(),
+                        endTime: eTimePickerData.date().toDate().getTime(),
                         description: $eventContent.val(),
                         isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                     };
@@ -273,8 +261,8 @@
         $eventTitle.val('');
         $eventContent.val('');
         $eventIsAllday.off('change').prop('checked', false);
-        $sTimePickerData.date(startDateTime);
-        $eTimePickerData.date(endDateTime);
+        sTimePickerData.date(startDateTime);
+        eTimePickerData.date(endDateTime);
 
         // 日期選擇器日期變更時，將前一個時間記錄下來，以便取消全天時可以恢復前一個時間
         $calendarSdtPicker.off('dp.change').on('dp.change', function(ev) {
@@ -309,8 +297,8 @@
                 dayEnd = endDateTimePrev;
             }
 
-            $sTimePickerData.date(dayBegin);
-            $eTimePickerData.date(dayEnd);
+            sTimePickerData.date(dayBegin);
+            eTimePickerData.date(dayEnd);
         });
     }
 
