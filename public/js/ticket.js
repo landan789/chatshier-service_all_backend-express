@@ -123,7 +123,7 @@
                             '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
                             '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
                             '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                            '<td id="time">' + displayDate(ticketData.dueTime) + '</td>' +
+                            '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
                             '<td>' + dueDate(ticketData.dueTime) + '</td>' +
                         '</tr>');
                 }
@@ -264,18 +264,23 @@
         return html;
     } // end of dueDate
 
-    function displayDateInput(date) {
-        var origin = new Date(date);
-        origin = origin.getTime();
-        var gmt8 = new Date(origin);
-        var yyyy = gmt8.getFullYear();
-        var MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
-        var dd = gmt8.getDate();
-        var hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
-        var mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
-        var ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
-        return yyyy + '-' + MM + '-' + dd + 'T' + hh + ':' + mm + ':' + ss;
+    function displayDateInput(d) {
+        d = new Date(d);
+        function pad(n) { return n < 10 ? '0' + n : n }
+        return d.getFullYear() + '-' +
+            pad(d.getMonth() + 1) + '-' +
+            pad(d.getDate()) + 'T' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes());
     } // end of displayDate
+
+    function ToLocalTimeString(millisecond) {
+        var date = new Date(millisecond);
+        var localDate = date.toLocaleDateString();
+        var localTime = date.toLocaleTimeString();
+        var localTimeString = localDate + localTime;
+        return localTimeString;
+    }
 
     /**
      * 在 ticket 更多訊息中，進行修改 ticket 動作
