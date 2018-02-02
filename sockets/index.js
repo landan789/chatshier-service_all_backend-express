@@ -113,7 +113,15 @@ function init(server) {
         });
     }, (req, res, next) => {
         var appId = req.appId;
-        var message = undefined === req.body.events ? req.body.entry[0].messaging[0].message.text : req.body.events[0].message.text;
+        var message;
+        switch (req.app.type) {
+            case LINE:
+                message = req.body.events[0].message.text;
+                break;
+            case FACEBOOK:
+                message = req.body.entry[0].messaging[0].message.text;
+                break;
+        }
         var proceed = Promise.resolve();
         proceed.then(() => {
             req.messageId = cipher.createHashKey(message);
@@ -263,10 +271,8 @@ function init(server) {
             switch (req.app.type) {
                 case LINE:
                     return lineBot.getProfile(Uid);
-                    break;
                 case FACEBOOK:
                     return fbBot.getProfile(Uid);
-                    break;
             }
         }).then((profile) => {
             var Uid = req.messagerId;
@@ -277,6 +283,7 @@ function init(server) {
                 case LINE:
                     name = profile.displayName;
                     photo = profile.pictureUrl;
+                    break;
                 case FACEBOOK:
                     name = profile.first_name + ' ' + profile.last_name;
                     photo = profile.profile_pic;

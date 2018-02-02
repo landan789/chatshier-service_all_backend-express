@@ -27,8 +27,8 @@ utility.lineType = (bot, messageId, callback) => {
         console.log(chunk.client._tlsOptions.session);
         let buffer = chunk.client._tlsOptions.session;
         let msgObj = '<a href="data:image/png;base64,' + buffer.toString('base64') + '" ' +
-        ' target="_blank" ><img src="data:image/png;base64,' + buffer.toString('base64') + '" ' +
-        'width="20%" alt="image embedded using base64 encoding!"/></a>';
+            ' target="_blank" ><img src="data:image/png;base64,' + buffer.toString('base64') + '" ' +
+            'width="20%" alt="image embedded using base64 encoding!"/></a>';
         callback(msgObj);
     });
 }
