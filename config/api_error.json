@@ -58,5 +58,9 @@
     "APP_TAG_FAILED_TO_FIND": { "MSG": "app tag failed to find", "CODE": "81" },
     "APP_TAG_FAILED_TO_INSERT": { "MSG": "app tag failed to insert", "CODE": "82" },
     "APP_TAG_FAILED_TO_UPDATE": { "MSG": "app tag failed to update", "CODE": "83" },
-    "APP_TAG_FAILED_TO_REMOVE": { "MSG": "app tag failed to remove", "CODE": "84" }
+    "APP_TAG_FAILED_TO_REMOVE": { "MSG": "app tag failed to remove", "CODE": "84" },
+
+    "APP_GREETING_FAILED_TO_FIND": { "MSG": "app greeting failed to find", "CODE": "85" },
+    "APP_GREETING_FAILED_TO_INSERT": { "MSG": "app greeting failed to insert", "CODE": "86" },
+    "APP_GREETING_FAILED_TO_REMOVE": { "MSG": "app greeting failed to remove", "CODE": "87" }
 }
