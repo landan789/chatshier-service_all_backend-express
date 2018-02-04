@@ -4,46 +4,92 @@ $(document).ready(function() {
     var startUserId = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(startUserId);
-            find();
+            // find();
+            loadAppIdNames();
         }
     }, 1000);
-    $(document).on('click', '#modal-submit', dataInsert); //新增
-    $(document).on('click', '#editBtn', openEdit); //打開編輯modal
+    $(document).on('click', '#modal-submit', dataInsert); // 新增
+    $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
     $(document).on('click', '#edit-submit', dataUpdate);
-    $(document).on('click', '#deleBtn', dataRemove); //刪除
+    $(document).on('click', '#delete-btn', dataRemove); // 刪除
+    $(document).on('change', '#appId-names', findOne);
 });
 
+var TableObj = function() {
+    this.tr = $('<tr>');
+    this.th = $('<th>').attr('id', 'title');
+    this.td1 = $('<td>').attr('id', 'started-time');
+    this.td2 = $('<td>').attr('id', 'ended-time');
+    this.td3 = $('<td>').attr('id', 'text');
+    this.td4 = $('<td>');
+    this.UpdateBtn = $('<button>').attr('type', 'button')
+        .addClass('btn btn-default fa fa-pencil')
+        .attr('id', 'edit-btn')
+        .attr('data-toggle', 'modal')
+        .attr('data-target', '#editModal')
+        .attr('aria-hidden', 'true');
+    this.DeleteBtn = $('<button>').attr('type', 'button')
+        .addClass('btn btn-default fa fa-trash-o')
+        .attr('id', 'delete-btn');
+};
+
+function loadAppIdNames() {
+    var jwt = localStorage.getItem('jwt');
+    var userId = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: '/api/apps/users/' + userId,
+        headers: {
+            'Authorization': jwt
+        },
+        success: (data) => {
+            let apps = data.data;
+            for (let appId in apps) {
+                var app = apps[appId];
+                let option1 = $('<option>').text(app.name).attr('id', appId);
+                let option2 = $('<option>').text(app.name).attr('id', appId);
+                $('#appId-names').append(option1);
+                $('#app-select').append(option2);
+            }
+        },
+        error: (error) => {
+            console.log('查詢失敗: ' + error);
+        }
+    });
+}
+
 function insert(appId, data) {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
         url: '/api/apps-autoreplies/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
         headers: {
-            "Authorization": jwt
+            'Authorization': jwt
         },
-        success: (obj) => {
-            let autoreplyObj = obj.data;
-            let autoreplyId = Object.keys(autoreplyObj[appId].autoreplies);
-            let str =
-                '<tr>' +
-                '<td rel="' + autoreplyId + '" hidden></td>' +
-                '<td>Open</td>' +
-                '<td rel="' + data.title + '">' + data.title + '</td>' +
-                '<td rel="' + ToLocalTimeString(data.startedTime) + '">' + ToLocalTimeString(data.startedTime) + '</td>' +
-                '<td rel="' + ToLocalTimeString(data.endedTime) + '">' + ToLocalTimeString(data.endedTime) + '</td>' +
-                '<td rel="' + data.text + '">' + data.text + '</td>' +
-                '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-                '</tr>';
-            $('#' + appId + ' #autoreply-list').append(str);
+        success: (data) => {
+            $('option').removeAttr('selected');
+            let autoreplies = data.data[appId].autoreplies;
+            let autoreplyId = Object.keys(autoreplies);
+            let autoreply = autoreplies[autoreplyId[0]];
+            var list = new TableObj();
+            var title = list.th.text(autoreply.title);
+            var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
+            var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
+            var text = list.td3.text(autoreply.text);
+            var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
+            var trGrop = list.tr.attr('id', autoreplyId).attr('rel', appId).append(title, startedTime, endedTime, text, btns);
+            $('#autoreply-tables').append(trGrop);
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
             $('#endtime').val('');
             $('#enter-text').val('');
+            $('option#' + appId).attr('selected', 'selected');
+            findOne();
             alert('新增成功!');
         },
         error: (error) => {
@@ -112,8 +158,8 @@ function find() {
                                         '<td rel="' + i + '" hidden></td>' +
                                         '<td>Open</td>' +
                                         '<td id = title rel="' + allApps[i].title + '">' + allApps[i].title + '</td>' +
-                                        '<td id = started-time rel="' + ToLocalTimeString(allApps[i].startedTime) + '">' + ToLocalTimeString(allApps[i].startedTime) + '</td>' +
-                                        '<td id = ended-time rel="' + ToLocalTimeString(allApps[i].endedTime) + '">' + ToLocalTimeString(allApps[i].endedTime) + '</td>' +
+                                        '<td id = started-time rel="' + allApps[i].startedTime + '">' + ToLocalTimeString(allApps[i].startedTime) + '</td>' +
+                                        '<td id = ended-time rel="' + allApps[i].endedTime + '">' + ToLocalTimeString(allApps[i].endedTime) + '</td>' +
                                         '<td id = text rel="' + allApps[i].text + '">' + allApps[i].text + '</td>' +
                                         '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
                                         '</tr>';
@@ -134,25 +180,31 @@ function find() {
     });
 }
 
-function findOne(appId, autosHashId) {
-    var jwt = localStorage.getItem("jwt");
+function findOne() {
+    $('#autoreply-tables').empty();
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
-    
+    var appId = $('#appId-names').find(':selected').attr('id');
+
     $.ajax({
         type: 'GET',
-        url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
+        url: '/api/apps-autoreplies/apps/' + appId + '/users/' + userId,
         headers: {
-            "Authorization": jwt
+            'Authorization': jwt
         },
         success: (data) => {
-            let info = data.data;
-            var autoreply = info[appId].autoreplies[autosHashId];
-            $('#edit-appid').text(appId);
-            $('#edit-autoreplyid').text(autosHashId);
-            $('#edit-taskTitle').val(autoreply.title);
-            $('#edit-taskStart').val(ISODateTimeString(autoreply.startedTime));
-            $('#edit-taskEnd').val(ISODateTimeString(autoreply.endedTime));
-            $('#edit-taskContent').val(autoreply.text);
+            let autoreplies = data.data[appId].autoreplies;
+            for (let autoreplyId in autoreplies) {
+                let autoreply = autoreplies[autoreplyId];
+                var list = new TableObj();
+                var title = list.th.text(autoreply.title);
+                var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
+                var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
+                var text = list.td3.text(autoreply.text);
+                var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
+                var trGrop = list.tr.attr('id', autoreplyId).attr('rel', appId).append(title, startedTime, endedTime, text, btns);
+                $('#autoreply-tables').append(trGrop);
+            }
         },
         error: (error) => {
             alert('載入失敗: ' + error.msg);
@@ -162,32 +214,31 @@ function findOne(appId, autosHashId) {
 }
 
 function update(appId, autosHashId, data) {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
         url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
         data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
         headers: {
-            "Authorization": jwt
+            'Authorization': jwt
         },
         success: (data) => {
-            let autoreplyObj = data.data[appId].autoreplies[autosHashId];
-            $('[rel="' + autosHashId + '"]').parent().remove();
-            let str =
-                '<tr>' +
-                '<td rel="' + autosHashId + '" hidden></td>' +
-                '<td>Open</td>' +
-                '<td rel="' + autoreplyObj.title + '">' + autoreplyObj.title + '</td>' +
-                '<td rel="' + ToLocalTimeString(autoreplyObj.startedTime) + '">' + ToLocalTimeString(autoreplyObj.startedTime) + '</td>' +
-                '<td rel="' + ToLocalTimeString(autoreplyObj.endedTime) + '">' + ToLocalTimeString(autoreplyObj.endedTime) + '</td>' +
-                '<td rel="' + autoreplyObj.text + '">' + autoreplyObj.text + '</td>' +
-                '<td><a href="#" id="editBtn" data-toggle="modal" data-target="#editModal" title="編輯"><i class="fa fa-pencil-square-o fa-2x edit" aria-hidden="true"></i></a> <a href="#" id="deleBtn" title="刪除"><i class="fa fa-trash-o fa-2x error" aria-hidden="true"></i></a></td>' +
-                '</tr>';
-            $('#' + appId).find('#autoreply-list').append(str);
-            //塞入資料庫並初始化
+            let autoreplies = data.data[appId].autoreplies;
+            let autoreplyId = Object.keys(autoreplies);
+            let autoreply = autoreplies[autoreplyId[0]];
+            $('#' + autoreplyId).empty();
+            var list = new TableObj();
+            var title = list.th.text(autoreply.title);
+            var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
+            var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
+            var text = list.td3.text(autoreply.text);
+            var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
+            $('#' + autoreplyId).append(title, startedTime, endedTime, text, btns);
+
+            // 塞入資料庫並初始化
             $('#editModal').modal('hide');
             $('#edit-appid').text('');
             $('#edit-autoreplyid').text('');
@@ -205,16 +256,16 @@ function update(appId, autosHashId, data) {
 }
 
 function remove(appId, autosHashId) {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
         url: '/api/apps-autoreplies/apps/' + appId + '/autoreplies/' + autosHashId + '/users/' + userId,
         headers: {
-            "Authorization": jwt
+            'Authorization': jwt
         },
         success: () => {
-            $('[rel="' + autosHashId + '"]').parent().remove();
+            $('#' + autosHashId).remove();
             alert('刪除成功!');
         },
         error: (error) => {
@@ -225,7 +276,7 @@ function remove(appId, autosHashId) {
 }
 
 function dataInsert() {
-    let appIds = $('#app-select option:selected').val();
+    let appIds = $('#app-select option:selected').attr('id');
     let starttime = Date.parse($('#starttime').val());
     let endtime = Date.parse($('#endtime').val());
     let name = $('#modal-task-name').val();
@@ -235,45 +286,50 @@ function dataInsert() {
         startedTime: starttime,
         endedTime: endtime,
         text: textInput
-    }
+    };
     insert(appIds, obj);
 }
 
 function openEdit() {
-    //Initialize
-    $('#edit-appid').text('');
-    $('#edit-autoreplyid').text('');
-    $('#edit-taskTitle').val(''); //標題
-    $('#edit-taskStart').val(''); //開始時間
-    $('#edit-taskEnd').val(''); //結束時間
-    $('#edit-taskContent').val(''); //任務內容
-    let autoreplyId = $(this).parent().parent().find('td:first').attr('rel');
-    let appId = $(this).parent().parent().parent().parent().attr('id');
-    findOne(appId, autoreplyId);
-} //end open edit
+    let appId = $(this).parent().parent().attr('rel');
+    let autoreplyId = $(this).parent().parent().attr('id');
+    let title = $(this).parent().parent().find('#title').text();
+    let startedTimeMilli = parseInt($(this).parent().parent().find('#started-time').attr('rel'));
+    let startedTime = ISODateTimeString(startedTimeMilli);
+    let endedTimeMilli = parseInt($(this).parent().parent().find('#ended-time').attr('rel'));
+    let endedTime = ISODateTimeString(endedTimeMilli);
+    let text = $(this).parent().parent().find('#text').text();
+    // Initialize
+    $('#edit-appid').text(appId);
+    $('#edit-autoreplyid').text(autoreplyId);
+    $('#edit-taskTitle').val(title); // 標題
+    $('#edit-taskStart').val(startedTime); // 開始時間
+    $('#edit-taskEnd').val(endedTime); // 結束時間
+    $('#edit-taskContent').val(text); // 任務內容
+} // end open edit
 
 function dataUpdate() {
     let appId = $(this).parent().parent().find('#edit-appid').text();
     let autoreplyId = $(this).parent().parent().find('#edit-autoreplyid').text();
-    let name = $('#edit-taskTitle').val(); //標題
-    let starttime = Date.parse($('#edit-taskStart').val()); //開始時間
-    let endtime = Date.parse($('#edit-taskEnd').val()); //結束時間
-    let textInput = $('#edit-taskContent').val(); //任務內容
+    let name = $('#edit-taskTitle').val(); // 標題
+    let starttime = Date.parse($('#edit-taskStart').val()); // 開始時間
+    let endtime = Date.parse($('#edit-taskEnd').val()); // 結束時間
+    let textInput = $('#edit-taskContent').val(); // 任務內容
     var data = {
         title: name,
         startedTime: starttime,
         endedTime: endtime,
         text: textInput
-    }
+    };
 
     update(appId, autoreplyId, data);
-} //end modal edit
+} // end modal edit
 
 function dataRemove() {
-    let confirmDel = confirm("確定要刪除?");
+    let confirmDel = confirm('確定要刪除?');
     if (confirmDel) {
-        let appId = $(this).parent().parent().parent().parent().attr('id');
-        let autoreplyId = $(this).parent().parent().find('td:first').attr('rel');
+        let appId = $(this).parent().parent().attr('rel');
+        let autoreplyId = $(this).parent().parent().attr('id');
         remove(appId, autoreplyId);
     }
 }
@@ -281,7 +337,7 @@ function dataRemove() {
 function ISODateTimeString(d) {
     d = new Date(d);
 
-    function pad(n) { return n < 10 ? '0' + n : n }
+    function pad(n) { return n < 10 ? '0' + n : n; }
     return d.getFullYear() + '-' +
         pad(d.getMonth() + 1) + '-' +
         pad(d.getDate()) + 'T' +

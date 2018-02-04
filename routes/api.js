@@ -71,7 +71,7 @@ router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid',
 // ==========
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
-router.get('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.getOne);
+router.get('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.getOne);
 router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
 router.put('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.putOne);
 router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.deleteOne);

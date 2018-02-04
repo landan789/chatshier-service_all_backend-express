@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
+    <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
@@ -21,11 +22,6 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
     <div id="home">
-        <h3> 自動回覆訊息</h3>
-        <p>當用戶對LINE@傳送訊息，訊息將自動回覆</p>
-        <button type="button" class="btn btn-default inner-add" data-toggle="modal" data-target="#quickAdd">
-            <span class="fa fa-plus fa-fw"></span> 新增自動回覆
-        </button>
         <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -119,86 +115,43 @@
                 </div>
             </div>
         </div>
-        <div id="autoreply-tables"></div>
-    </div>
-    <style>
-        table {
-            margin-top: 2%;
-            font-family: arial, sans-serif;
-            border-collapse: collapse;
-            width: 100%;
-        }
-        
-        th {
-            width: 15%;
-        }
-        
-        td,
-        th {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 2%;
-        }
-        
-        body {
-            font-family: "Lato", sans-serif;
-        }
-        /* Style the tab */
-        
-        div.tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            height: auto;
-        }
-        /* Style the buttons inside the tab */
-        
-        div.tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-            font-size: 17px;
-        }
-        /* Change background color of buttons on hover */
-        
-        div.tab button:hover {
-            background-color: #ddd;
-        }
-        /* Create an active/current tablink class */
-        
-        div.tab button.active {
-            background-color: #ccc;
-        }
-        /* Style the tab content */
-        
-        .tabcontent {
-            display: none;
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            border-top: none;
-            height: 500px;
-        }
-        /* Style the close button */
-        
-        .topright {
-            float: right;
-            cursor: pointer;
-            font-size: 20px;
-        }
-        
-        .topright:hover {
-            color: red;
-        }
+        <div class="container margin-top">
+            <div class="row panel">
+                <!-- <div class="col-md-6" id="view-all"> -->
+                <div class="title title-top">
+                    <h3 class="padding-lr h3-padding"> 自動回覆訊息</h3>
+                    <hr class="hr-margin-bottom">
+                    <p class="address padding-lr"> 首頁 / 訊息 / 自動回覆</p>
+                    <p class="address padding-lr">當用戶對LINE@傳送訊息，訊息將自動回覆</p>
 
-        .table-header {
-            width: 15%;
-            padding: 2%;
-        }
-    </style>
+                </div>
+                <div class="padding-lr" id="view-all">
+                    <div class="search-add">
+                        <span class="icon"><i class="fa fa-search"></i></span>
+                        <input type="text" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                        <button type="button" class="btn btn-default fa fa-plus" data-toggle="modal" data-target="#quickAdd" aria-hidden="true"></button>
+                        <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
+                    </div>
+                    <div class="tab-content">
+                        <div class="table tabcontent">
+                            <table class="chsr table row-color">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">標題</th>
+                                        <th scope="col">開始時間</th>
+                                        <th scope="col">結束時間</th>
+                                        <th scope="col">訊息內容</th>
+                                        <th scope="col">編輯/刪除</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="autoreply-tables"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <% include ../views/partials/firebase_disable.ejs %>
     <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
