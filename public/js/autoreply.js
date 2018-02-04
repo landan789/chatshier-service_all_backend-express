@@ -71,6 +71,7 @@ function insert(appId, data) {
             'Authorization': jwt
         },
         success: (data) => {
+            $('option').removeAttr('selected');
             let autoreplies = data.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
