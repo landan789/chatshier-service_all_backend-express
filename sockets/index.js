@@ -258,13 +258,10 @@ function init(server) {
             switch (req.app.type) {
                 case LINE:
                     return lineBot.replyMessage(event.replyToken, messages);
-                    break;
                 case FACEBOOK:
-
                     return Promise.all(messages.map((message) => {
                         return fbBot.sendTextMessage(req.messagerId, message);
-                    }))
-                    break;
+                    }));
             }
         }).then(() => {
             var Uid = req.messagerId;
@@ -275,35 +272,33 @@ function init(server) {
                     return fbBot.getProfile(Uid);
             }
         }).then((profile) => {
-            var Uid = req.messagerId;
-            var name;
-            var photo;
+            var msgerId = req.messagerId;
+            var messagerData = {
+                name: '',
+                photo: ''
+            };
 
             switch (req.app.type) {
                 case LINE:
-                    name = profile.displayName;
-                    photo = profile.pictureUrl;
+                    messagerData.name = profile.displayName;
+                    messagerData.photo = profile.pictureUrl;
                     break;
                 case FACEBOOK:
-                    name = profile.first_name + ' ' + profile.last_name;
-                    photo = profile.profile_pic;
+                    messagerData.name = profile.first_name + ' ' + profile.last_name;
+                    messagerData.photo = profile.profile_pic;
                     break;
             };
-            var messager = {
-                name: name,
-                photo: photo
-            };
+
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
-                    if (undefined === messager || '' === messager || null === messager) {
-                        reject();
+                appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
+                    if (!messager) {
+                        reject(new Error());
                         return;
                     }
                     resolve(messager);
                 });
             });
         }).then((messager) => {
-            console.log(req.messages);
             var chatroomId = messager.chatroom_id;
             var text;
             var type;
@@ -344,12 +339,12 @@ function init(server) {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
                     message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
-                    delete message['createdTime'];
-                    delete message['endedTime'];
-                    delete message['isDeleted'];
-                    delete message['startedTime'];
-                    delete message['updatedTime'];
-                    delete message['title'];
+                    delete message.createdTime;
+                    delete message.endedTime;
+                    delete message.isDeleted;
+                    delete message.startedTime;
+                    delete message.updatedTime;
+                    delete message.title;
                 }
 
                 return new Promise((resolve, reject) => {

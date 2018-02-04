@@ -283,18 +283,14 @@ appsTickets.putOne = (req, res, next) => {
     var ticketId = req.params.ticketid;
 
     var putTikcket = {
-        createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
-        description: req.body.description === undefined ? '' : req.body.description,
-        dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
-        priority: req.body.priority === undefined ? '' : req.body.priority,
-        messagerId: req.body.messagerId === undefined ? '' : req.body.messagerId,
-        status: req.body.status === undefined ? '' : req.body.status,
-        updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime
+        description: req.body.description || '',
+        dueTime: req.body.dueTime ? req.body.dueTime : 0,
+        priority: req.body.priority ? req.body.priority : 0,
+        status: req.body.status ? req.body.status : 0,
+        updatedTime: req.body.updatedTime ? req.body.updatedTime : 0
     };
 
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
+    var proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {

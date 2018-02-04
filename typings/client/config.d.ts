@@ -1,4 +1,4 @@
-declare interface Window {
+interface Window {
     config: {
         apiKey: string,
         authDomain: string,
@@ -7,6 +7,7 @@ declare interface Window {
         storageBucket: string,
         messagingSenderId: string
     },
+
     urlConfig: {
         wwwUrl: string,
         port: string,
@@ -15,5 +16,10 @@ declare interface Window {
         privacy: string,
         webhookUrl: string,
         apiUrl: string
+    },
+
+    SOCKET_MESSAGE: {
+        SEND_MESSAGE_CLIENT_EMIT_SERVER_ON: 'SEND_MESSAGE_CLIENT_EMIT_SERVER_ON',
+        SEND_MESSAGE_SERVER_EMIT_CLIENT_ON: 'SEND_MESSAGE_SERVER_EMIT_CLIENT_ON'
     }
 }

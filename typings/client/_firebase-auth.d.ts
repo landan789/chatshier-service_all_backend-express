@@ -1,4 +1,4 @@
-declare interface Window {
+interface Window {
     auth: {
         /**
          * 監聽 firebase 的登入狀態的 Promise 。
@@ -15,7 +15,7 @@ declare interface Window {
     }
 }
 
-abstract class FirebaseUser {
+interface FirebaseUser {
     uid: string;
     email: string;
 }

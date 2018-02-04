@@ -10,6 +10,13 @@ p {
     padding-left: 2px;
 }
 
+/* 由於 notify 在顯示時會設定 element 的 z-index 為 1030 */
+/* 為了能夠在 modal 上也能顯示訊息，因此將原本的 1030 */
+/* 強制改成比 modal 的 1050 高的 1051 */
+.alert[data-notify="container"] {
+    z-index: 1051 !important; 
+}
+
 /*body*/
 @media all {
     html,
@@ -498,10 +505,8 @@ div.loading-img {
 
 /*ticket*/
 @media all {
-    .ticketSearchBar {
-        width: 100px;
+    .ticket-search-bar {
         border-radius: 5px;
-        margin-left: -35px
     }
     .ticket {
         display: flex;
@@ -517,12 +522,15 @@ div.loading-img {
     .ticket th {
         border-bottom: 1px solid rgb(5, 82, 87);
         text-align: left;
-        padding: 8px;
+        padding: .25rem;
         margin: 2px 0;
     }
     .ticket tr:nth-child(even) {
         background-color: #33CCFF;
         color: white;
+    }
+    .ticket .ticket-row {
+        cursor: pointer;
     }
     .ticket table {
         width: 100%;

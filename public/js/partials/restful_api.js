@@ -179,13 +179,36 @@ window.restfulAPI = (function() {
         /**
          * 取得指定 AppId 內使用者的所有 Messagers
          *
+         * @param {string} appId - 目標 messager 的 App ID
+         * @param {string} msgerId - 目標 messager ID
          * @param {string} userId - 使用者的 firebase ID
          */
-        MessagerAPI.prototype.getOne = function(appId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+        MessagerAPI.prototype.getOne = function(appId, msgerId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 更新指定 AppId 內的 messager 資料
+         *
+         * @param {string} appId - 目標 messager 的 App ID
+         * @param {string} msgerId - 目標 messager ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {any} msgerData - 欲更新的 messager 資料
+         */
+        MessagerAPI.prototype.update = function(appId, msgerId, userId, msgerData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(msgerData)
             };
 
             return window.fetch(destUrl, reqInit).then(function(response) {

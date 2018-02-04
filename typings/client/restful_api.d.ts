@@ -17,7 +17,8 @@ interface ChatshierAppAPI {
 
 interface MessagerAPI {
     getAll: (userId: string) => Promise<any>;
-    getOne: (appId: string, userId: string) => Promise<any>;
+    getOne: (appId: string, msgerId: string, userId: string) => Promise<any>;
+    update: (appId: string, msgerId: string, userId: string, msgerData: any) => Promise<any>;
 }
 
 interface TicketAPI {

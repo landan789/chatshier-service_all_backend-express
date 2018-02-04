@@ -48,10 +48,14 @@ router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 // ===============
+// messager 個人資料訊息相關
+router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAllMessagers);
+router.get('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.getMessager);
+router.put('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.updateMessager);
+// ===============
+
+// ===============
 // 聊天室訊息
-router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAll);
-router.get('/apps-messagers/apps/:appid/users/:userid', appsMessagersCtl.getAllByAppId);
-router.get('/apps-messagers/apps/:appid/messager/:messagerid', appsMessagersCtl.getByAppIdByMessagerId);
 router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.getAll);
 router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
 // ===============
