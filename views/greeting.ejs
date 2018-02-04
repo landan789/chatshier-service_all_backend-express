@@ -16,6 +16,7 @@
     <%# 自己的code%>
         <link rel="stylesheet" href="css/_main.css" />
         <link rel="stylesheet" href="css/greeting.css" />
+        <link rel="stylesheet" href="css/table.css" />
         <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
@@ -23,20 +24,37 @@
     <% include ../views/partials/wrapper.ejs %>
         <% include ../views/partials/loading.ejs %>
             <div id="home">
-                <h3> 加好友回覆</h3>
-                <p>新增、編輯、測試傳送到LINE@的訊息</p>
-                
-                    <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
-                
-                <table id="MsgCanvas"></table>
-                <table>
-                    <td style="padding:5% 5% 5% 15%">
-                        <p id="error" style="color:red;display:none;">已經達到訊息則數上限</p>
-                        <p>一次可傳送五則訊息，請選擇訊息種類</p>
-                        <button style="width:20%;margin:0.5%; padding:0.5%; float:left" id="add-btn">文字</button>
-                    </td>
-                </table>
-                <button id="save" style="padding:1%; width: 15%; float:left; margin-left:40%; margin-top:1%">儲存</button>
+                <div class="container margin-top">
+                    <div class="row panel">
+                        <!-- <div class="col-md-6" id="view-all"> -->
+                        <div class="title title-top">
+                            <h3 class="padding-lr h3-padding"> 加好友回覆</h3>
+                            <hr class="hr-margin-bottom">
+                            <p class="address padding-lr"> 首頁 / 訊息 / 加好友回覆</p>
+                            <p class="address padding-lr">一次可傳送五則訊息</p>
+
+                        </div>
+                        <div class="padding-lr" id="view-all">
+                            <div class="search-add">
+                                <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
+                            </div>
+                            <div class="tab-content">
+                                <div class="table tabcontent">
+                                    <table class="chsr table row-color">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">文字</th>
+                                                <th scope="col">新增時間</th>
+                                                <th scope="col">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="MsgCanvas"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <% include ../views/partials/firebase_disable.ejs %>
             <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>

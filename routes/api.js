@@ -13,6 +13,7 @@ var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
+var appsGreetingsCtl = require('../controllers/apps_greetings');
 
 // ===============
 // 訊息相關 Ctrl
@@ -92,6 +93,14 @@ router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
 router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
 router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);
 router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.deleteOne);
+// ==========
+
+// ==========
+// 加好友回覆
+router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getAll);
+router.get('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.getOne);
+router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOne);
+router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {

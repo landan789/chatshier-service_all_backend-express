@@ -40,7 +40,7 @@ module.exports = (function() {
         }).then((data) => {
             let greeting = data;
             for (let a in greeting) {
-                if (greeting[a].isDeleted === 1) {
+                if (1 === greeting[a].isDeleted) {
                     delete greeting[a];
                 }
             }
