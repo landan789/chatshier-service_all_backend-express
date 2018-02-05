@@ -15,6 +15,8 @@ var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
 var appsGreetingsCtl = require('../controllers/apps_greetings');
 
+var groupsMembersCtl = require('../controllers/groups_members');
+
 // ===============
 // 訊息相關 Ctrl
 var appsMessagersCtl = require('../controllers/apps_messagers');
@@ -326,7 +328,7 @@ router.get('/users/users/:userid', (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                users.findUserByUserId(userId, (data) => {
+                users.findUser(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     } else {
@@ -398,5 +400,10 @@ router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
 router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.putOne);
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
+
+router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.getAll);
+router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
+router.put('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.putOne);
+router.delete('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.deleteOne);
 
 module.exports = router;

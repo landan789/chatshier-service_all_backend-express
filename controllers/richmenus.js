@@ -20,7 +20,7 @@ richmenus.getByUserId = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -61,7 +61,7 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
-            userMdl.findUserByUserId(userId, (user) => {
+            userMdl.findUser(userId, (user) => {
                 var appIds = user.app_ids;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                     reject(API_ERROR.APPID_WAS_EMPTY);
@@ -133,7 +133,7 @@ richmenus.get = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -242,7 +242,7 @@ richmenus.post = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -330,7 +330,7 @@ richmenus.put = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -436,7 +436,7 @@ richmenus.delete = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);

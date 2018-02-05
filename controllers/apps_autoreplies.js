@@ -15,12 +15,12 @@ appsAutoreplies.getAll = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
-                var user = data;
-                if (undefined === user || null === user || '' === user) {
+                var appIds = data;
+                if (undefined === appIds || null === appIds || '' === appIds) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(appIds);
             });
         });
     }).then((data) => {

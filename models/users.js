@@ -10,7 +10,14 @@ module.exports = (function() {
         });
     };
 
-    UsersModel.prototype.findUserByUserId = function(userId, callback) {
+    /**
+     * 根據 使用者ID 取得該使用者
+     * @param {string} userId
+     * @param {function} callback
+     * @returns {object} 
+     */
+
+    UsersModel.prototype.findUser = function(userId, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);
@@ -37,7 +44,7 @@ module.exports = (function() {
         });
     };
 
-    UsersModel.prototype.findUserByUserId = function(userId, callback) {
+    UsersModel.prototype.findUser = function(userId, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);

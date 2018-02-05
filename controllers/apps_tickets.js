@@ -20,7 +20,7 @@ appsTickets.getAllByUserid = (req, res, next) => {
                 return;
             }
 
-            usersMdl.findUserByUserId(userId, (data) => {
+            usersMdl.findUser(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -81,7 +81,7 @@ appsTickets.getAllByAppIdByUserid = (req, res, next) => {
                 return;
             }
 
-            usersMdl.findUserByUserId(userId, (data) => {
+            usersMdl.findUser(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -161,7 +161,7 @@ appsTickets.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUserByUserId(userId, (data) => {
+            usersMdl.findUser(userId, (data) => {
                 var user = data;
                 if ('' === user || null === user || undefined === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);

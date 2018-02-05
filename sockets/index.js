@@ -271,24 +271,24 @@ function init(server) {
             }
         }).then((profile) => {
             var msgerId = req.messagerId;
-            var messagerData = {
+            var messager = {
                 name: '',
                 photo: ''
             };
 
             switch (req.app.type) {
                 case LINE:
-                    messagerData.name = profile.displayName;
-                    messagerData.photo = profile.pictureUrl;
+                    messager.name = profile.displayName;
+                    messager.photo = profile.pictureUrl;
                     break;
                 case FACEBOOK:
-                    messagerData.name = profile.first_name + ' ' + profile.last_name;
-                    messagerData.photo = profile.profile_pic;
+                    messager.name = profile.first_name + ' ' + profile.last_name;
+                    messager.photo = profile.profile_pic;
                     break;
             };
 
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
+                appsMessagersMdl.updateMessager(appId, msgerId, messager, (messager) => {
                     if (!messager) {
                         reject(new Error());
                         return;

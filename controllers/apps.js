@@ -22,7 +22,7 @@ apps.getAll = (req, res, next) => {
                 return;
             }
 
-            userMdl.findUserByUserId(userId, (data) => {
+            userMdl.findUser(userId, (data) => {
                 if (null === data) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
