@@ -551,7 +551,7 @@ function init(server) {
                         type: textType,
                         time: undefined === msgTime ? msgTime : Date.now(),
                         text: msg,
-                        from: 'CHATSHIER',
+                        from: CHATSHIER,
                         messager_id: receiverId,
                         url: '' === msg ? url : ''
                     };
