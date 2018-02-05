@@ -1,6 +1,22 @@
 var domain = location.host;
 // jQuery
 $(document).ready(function() {
+    // 設定 bootstrap notify 的預設值
+    // 1. 設定為顯示後2秒自動消失
+    // 2. 預設位置為螢幕中間上方
+    // 3. 進場與結束使用淡入淡出
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
+
     var startUserId = setInterval(() => {
         if (auth.currentUser) {
             clearInterval(startUserId);
@@ -90,10 +106,10 @@ function insert(appId, data) {
             $('#enter-text').val('');
             $('option#' + appId).attr('selected', 'selected');
             findOne();
-            alert('新增成功!');
+            $.notify('新增成功！', { type: 'success' });
         },
         error: (error) => {
-            alert('新增失敗: ' + error);
+            $.notify('新增失敗: ' + error, { type: 'danger' });
             console.log(error);
         }
     });
@@ -174,7 +190,7 @@ function find() {
             });
         },
         error: (error) => {
-            alert('載入失敗: ' + error.msg);
+            $.notify('載入失敗: ' + error.msg, { type: 'danger' });
             console.log(error);
         }
     });
@@ -207,7 +223,7 @@ function findOne() {
             }
         },
         error: (error) => {
-            alert('載入失敗: ' + error.msg);
+            $.notify('載入失敗: ' + error.msg, { type: 'danger' });
             console.log(error);
         }
     });
@@ -246,10 +262,10 @@ function update(appId, autosHashId, data) {
             $('#edit-taskStart').val('');
             $('#edit-taskEnd').val('');
             $('#edit-taskContent').val('');
-            alert('修改成功!');
+            $.notify('修改成功！', { type: 'success' });
         },
         error: (error) => {
-            alert('修改失敗: ' + error.msg);
+            $.notify('修改失敗: ' + error.msg, { type: 'danger' });
             console.log(error);
         }
     });
@@ -266,10 +282,10 @@ function remove(appId, autosHashId) {
         },
         success: () => {
             $('#' + autosHashId).remove();
-            alert('刪除成功!');
+            $.notify('刪除成功！', { type: 'success' });
         },
         error: (error) => {
-            alert('刪除失敗: ' + error.msg);
+            $.notify('刪除失敗: ' + error.msg, { type: 'danger' });
             console.log(error);
         }
     });

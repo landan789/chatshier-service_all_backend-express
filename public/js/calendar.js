@@ -449,17 +449,4 @@
             console.error(error);
         });
     }
-
-    // function reminder() { //事件開始時提醒
-    //     var currentDatetime = new Date();
-    //     var nowtime = ISODateTimeString(currentDatetime).date + 'T' + ISODateTimeString(currentDatetime).time; //convertTime(currentDatetime)-8hours
-    //     socket.emit('reminder of calendar', { //呼叫www的判斷function
-    //         userId: userId,
-    //         nowtime: nowtime,
-    //         email: auth.currentUser.email
-    //     });
-    // }
-    // socket.on('pop up reminder', function(title) { //接收WWW的訊息 前端pop up提醒視窗
-    //     alert('您的事件 "' + title + '" 已經開始, 系統將對您的登入Email寄出通知信');
-    // });
 })();

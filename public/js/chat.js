@@ -380,7 +380,7 @@ window.auth.ready.then(function(currentUser) {
     var api = window.restfulAPI;
     agentId = auth.currentUser.uid;
 
-    // 設定 jquery notify 的預設值
+    // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失
     // 2. 預設位置為螢幕中間上方
     // 3. 進場與結束使用淡入淡出

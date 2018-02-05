@@ -8,8 +8,23 @@ var appId;
 var apptext;
 
 $(document).ready(function() {
-    // EXECUTION
+    // 設定 bootstrap notify 的預設值
+    // 1. 設定為顯示後2秒自動消失
+    // 2. 預設位置為螢幕中間上方
+    // 3. 進場與結束使用淡入淡出
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
 
+    // EXECUTION
     $('#Appointment').show();
     socket.emit("get tags from chat");
     let timer_1 = setInterval(function() {
@@ -164,7 +179,7 @@ $(document).ready(function() {
             $('#send-time').val('');
             $('#inputText').empty();
             inputNum = 0;
-            alert('變更已儲存!');
+            $.notify('變更已儲存！', { type: 'success' });
             location.reload();
 
         }
@@ -202,10 +217,9 @@ $(document).ready(function() {
         $('#send-time').val('');
         $('#inputText').empty();
         inputNum = 0;
-        alert('變更已儲存!');
+        $.notify('變更已儲存！', { type: 'success' });
         location.reload();
     }
-
 
     function insertComposeDraft() {
         userId = auth.currentUser.uid;

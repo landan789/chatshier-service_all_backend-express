@@ -1,6 +1,22 @@
 var rowCount = 0; // new message count from addMsgCanvas
 var appId;
 $(document).ready(function() {
+    // 設定 bootstrap notify 的預設值
+    // 1. 設定為顯示後2秒自動消失
+    // 2. 預設位置為螢幕中間上方
+    // 3. 進場與結束使用淡入淡出
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
+
     $(document).on('click', '#check-btn', modalSubmit);
     $(document).on('click', '#close-btn', modalClose);
     $(document).on('click', '#add-btn', addMsgCanvas);
@@ -156,7 +172,7 @@ function modalSubmit() {
     var $textarea = $(this).parent().parent().children().children('textarea');
     var trId = $(this).parent().parent().attr('id');
     if ('' === $textarea.val().trim()) {
-        alert('請填入文字內容');
+        $.notify('請填入文字內容', { type: 'warning' });
         return;
     }
     let greeting = {
