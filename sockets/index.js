@@ -298,123 +298,76 @@ function init(server) {
                 });
             });
         }).then((messager) => {
-            var chatroomId = messager.chatroom_id;
-            var text;
-            var type;
-            var proceed = Promise.resolve();
-
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    switch (req.app.type) {
-                        case LINE:
-                            text = req.body.events[0].message.text;
-                            type = req.body.events[0].message.type;
-                            break;
-                        case FACEBOOK:
-                            text = req.body.entry[0].messaging[0].message.text;
-                            type = req.body.entry[0].messaging[0].message.text;
-                            break;
-                    };
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    var inMessage = {
-                        text: text,
-                        type: type,
-                        from: (req.app.type).toUpperCase(),
-                        messager_id: req.messagerId
-                    };
-                    resolve(inMessage);
-                });
-            }).then((inMessage) => {
-                return new Promise((resolve, reject) => {
-                    switch (req.app.type) {
-                        case LINE:
-                            if ('text' === req.body.events[0].message.type) {
-                                let text = req.body.events[0].message.text;
-                                inMessage.text = text;
-                                resolve(inMessage);
-                            } else {
-                                let messageEvent = req.body.events[0];
-                                // 把檔案的二進位檔放進 inMessage.url
-                                helpersBot.lineFileBinaryConvert(req.lineBot, messageEvent, (url) => {
-                                    inMessage.url = url;
-                                    delete inMessage['text'];
-                                    resolve(inMessage);
-                                });
-                            }
-                            break;
-                        case FACEBOOK:
-                            let message = req.body.entry[0].messaging[0].message;
-                            if (message.attachments) {
-                                switch (message.attachments[0].type) {
-                                    case 'image':
-                                        inMessage.url = message.attachments[0].payload.url;
-                                        delete inMessage['text'];
-                                        resolve(inMessage);
-                                        break;
-                                    case 'video':
-                                        inMessage.url = message.attachments[0].payload.url;
-                                        delete inMessage['text'];
-                                        resolve(inMessage);
-                                        break;
-                                    case 'audio':
-                                        inMessage.url = message.attachments[0].payload.url;
-                                        delete inMessage['text'];
-                                        resolve(inMessage);
-                                        break;
-                                    case 'file':
-                                        inMessage.url = message.attachments[0].payload.url;
-                                        delete inMessage['text'];
-                                        resolve(inMessage);
-                                        break;
-                                    case 'location':
-                                        inMessage.url = message.attachments[0].url;
-                                        delete inMessage['text'];
-                                        resolve(inMessage);
-                                        break;
-                                }
-                            } else {
-                                inMessage.text = message.text;
-                                resolve(inMessage);
-                            }
-                            // resolve(inMessage);
-                            break;
-                    }
-                });
-            }).then((inMessage) => {
-                // 回復訊息與傳入訊息都整合，再寫入 DB
-                req.messages.unshift(inMessage);
-            }).then(() => {
-                return Promise.all(req.messages.map((message) => {
-                    // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
-                    if (LINE !== message.from && FACEBOOK !== message.from) {
-                        message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
-                        delete message['createdTime'];
-                        delete message['endedTime'];
-                        delete message['isDeleted'];
-                        delete message['startedTime'];
-                        delete message['updatedTime'];
-                        delete message['title'];
-                    }
-    
-                    return new Promise((resolve, reject) => {
-                        // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
-                        appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (message) => {
-                            if (null === message || undefined === message || '' === message) {
-                                resolve(null);
-                                return;
-                            }
-                            resolve(message);
+            var text, type;
+            return new Promise((resolve, reject) => {
+                switch (req.app.type) {
+                    case LINE:
+                        text = req.body.events[0].message.text;
+                        type = req.body.events[0].message.type;
+                        break;
+                    case FACEBOOK:
+                        text = req.body.entry[0].messaging[0].message.text;
+                        type = 'text';
+                        break;
+                };
+                var inMessage = {
+                    text: text,
+                    type: type,
+                    from: (req.app.type).toUpperCase(),
+                    messager_id: req.messagerId
+                };
+                resolve({messager, inMessage});
+            });
+        }).then((data) => {
+            let messager = data.messager;
+            let inMessage = data.inMessage;
+            return new Promise((resolve, reject) => {
+                switch (req.app.type) {
+                    case LINE:
+                        let messageEvent = req.body.events[0];
+                        helpersBot.lineMessageType(req.lineBot, messageEvent, inMessage, (newMessage) => {
+                            resolve({messager: messager, inMessage: newMessage});
                         });
+                        break;
+                    case FACEBOOK:
+                        let message = req.body.entry[0].messaging[0].message;
+                        helpersBot.facebookMessageType(message, inMessage, (newMessage) => {
+                            resolve({messager: messager, inMessage: newMessage});
+                        });
+                        break;
+                }
+            });
+        }).then((data) => {
+            let messager = data.messager;
+            let inMessage = data.inMessage;
+            var chatroomId = messager.chatroom_id;
+            req.messages.unshift(inMessage);
+            // 回復訊息與傳入訊息都整合，再寫入 DB
+            return Promise.all(req.messages.map((message) => {
+                // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
+                if (LINE !== message.from && FACEBOOK !== message.from) {
+                    message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
+                    delete message['createdTime'];
+                    delete message['endedTime'];
+                    delete message['isDeleted'];
+                    delete message['startedTime'];
+                    delete message['updatedTime'];
+                    delete message['title'];
+                }
+
+                return new Promise((resolve, reject) => {
+                    // 回復訊息與傳入訊息都整合，再寫入 DB。1.Promise.all 批次寫入 DB
+                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (message) => {
+                        if (null === message || undefined === message || '' === message) {
+                            resolve(null);
+                            return;
+                        }
+                        resolve();
                     });
-                })).then(() => {
-                    // 回復訊息與傳入訊息都整合，再寫入 DB。2.Promise.all 批次寫入 DB 後 把 messager 傳給下個 block
-                    return Promise.resolve(messager);
                 });
-            }).catch((ERR) => {
-                res.status(403);
+            })).then(() => {
+                // 回復訊息與傳入訊息都整合，再寫入 DB。2.Promise.all 批次寫入 DB 後 把 messager 傳給下個 block
+                return Promise.resolve(messager);
             });
         }).then((messager) => {
             let appId = req.appId;
@@ -616,6 +569,8 @@ function init(server) {
         socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
             let vendor = data.data;
             let msg = vendor.msg;
+            let url = vendor.url;
+            let textType = vendor.textType;
             let receiverId = data.userId; // 客戶或是專員的ID
             let agentName = socket.nickname ? socket.nickname : 'agent';
             let msgTime = vendor.msgTime;
@@ -678,11 +633,12 @@ function init(server) {
                 return new Promise((resolve, reject) => {
                     let message = {
                         owner: 'agent',
-                        name: agentName,
+                        type: textType,
                         time: undefined === msgTime ? msgTime : Date.now(),
                         text: msg,
-                        from: vendor.type,
-                        messager_id: receiverId
+                        from: 'CHATSHIER',
+                        messager_id: receiverId,
+                        url: '' === msg ? url : ''
                     };
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (newChatroomId) => {
                         if (null === newChatroomId || undefined === newChatroomId || '' === newChatroomId) {

@@ -334,8 +334,28 @@ $(document).ready(function() {
         let prevTime = 0;
         for (let i in messages) {
             if (undefined === messages[i].text || null === messages[i].text || '' === messages[i].text) {
-                let url = messages[i].url;
-                messages[i].text = '<img src="' + url + '" style="width: 100%; max-width: 500px;" />';
+                switch (messages[i].type) {
+                    case 'image':
+                        let imageUrl = messages[i].url;
+                        messages[i].text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
+                        break;
+                    case 'audio':
+                        let audioUrl = messages[i].url;
+                        messages[i].text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
+                        break;
+                    case 'video':
+                        let videoUrl = messages[i].url;
+                        messages[i].text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                        break;
+                    case 'sticker':
+                        let stickerUrl = messages[i].url;
+                        messages[i].text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
+                        break;
+                    case 'location':
+                        let locationUrl = messages[i].url;
+                        messages[i].text = '<a target="_blank" href="' + locationUrl + '">location</a>';
+                        break;
+                }
             }
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
             let d = new Date(messages[i].time).toDateString(); // get msg's date
@@ -630,16 +650,36 @@ $(document).ready(function() {
                 proceed.then(() => {
                     let message = Object.assign({}, msgs[msgKeys[index]]);
                     return new Promise((resolve, reject) => {
-                        if (undefined !== message.text || null !== message.text || '' !== message.text) {
-                            resolve(message);
-                            return;
+                        switch (message.type) {
+                            case 'text':
+                                resolve(message);
+                                break;
+                            case 'image':
+                                let imageUrl = message.url;
+                                message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
+                                resolve(message);
+                                break;
+                            case 'audio':
+                                let audioUrl = message.url;
+                                message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
+                                resolve(message);
+                                break;
+                            case 'video':
+                                let videoUrl = message.url;
+                                message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                                resolve(message);
+                                break;
+                            case 'sticker':
+                                let stickerUrl = message.url;
+                                message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
+                                resolve(message);
+                                break;
+                            case 'location':
+                                let locationUrl = message.url;
+                                message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
+                                resolve(message);
+                                break;
                         }
-                        let url = message.url;
-                        let newUrl = '<img src="' + url + '" style="width: 100%; max-width: 500px;" />';
-                        message.text = newUrl;
-                        console.log(message);
-                        resolve(message);
-                        // 按照檔案的類型塞進不同的html tag然後放進 message.text
                     });
                 }).then((message) => {
                     return new Promise((resolve, reject) => {
@@ -664,7 +704,7 @@ $(document).ready(function() {
                         resolve();
                     });
                 }).then(() => {
-                    if (index <= (msgKeys.length - 1)) {
+                    if (index < (msgKeys.length - 1)) {
                         nextPromise(index + 1);
                     }
                 }).catch(() => {
@@ -943,7 +983,7 @@ $(document).ready(function() {
                         messageInput.val('');
                         var data = {
                             ...apps,
-                            msg: msg,
+                            msg: '',
                             url: url,
                             textType: textType,
                             type: appType,
@@ -962,7 +1002,7 @@ $(document).ready(function() {
         let msg;
         switch (type) {
             case 'image':
-                msg = '<img src="' + url + '" style="height:100px;width:100px;"/>';
+                msg = '<img src="' + url + '" style="width: 100%; max-width: 500px;"/>';
                 callback(msg);
                 break;
             case 'audio':
@@ -1018,7 +1058,7 @@ $(document).ready(function() {
         if (chats.text.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(chats.time) + '檔案');
         } else if (chats.text.startsWith('<img')) {
-            target.find("#msg").html(toTimeStr(chats.time) + '貼圖');
+            target.find("#msg").html(toTimeStr(chats.time) + '檔案');
         } else {
             target.find("#msg").html(toTimeStr(chats.time) + loadMessageInDisplayClient(chats.text));
         }
@@ -1638,7 +1678,7 @@ $(document).ready(function() {
         if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
         } else if (data.message.startsWith('<img')) {
-            target.find("#msg").html(toTimeStr(data.time) + '貼圖'); // 未讀訊息字體變大
+            target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
         } else {
             target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message)); // 未讀訊息字體變大
         }
