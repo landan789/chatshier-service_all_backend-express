@@ -1,0 +1,186 @@
+#home {
+    margin-bottom: 50px;
+}
+
+#title {
+    margin-bottom: 10px;
+}
+
+.tab-pane {
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: #eee;
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+label *:not(strong) {
+    font-weight: normal;
+}
+
+.keyword-duplicate {
+    color: red;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.chsr.carousel-inner {
+    left: 3%;
+    width: 540px;
+    height: 430px;
+}
+
+.show-richmenu-type {
+    position: relative;
+    width: 540px;
+    height: 360px;
+}
+
+.image-ghost {
+    display: none!important;
+}
+
+.image-upload {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    text-align: center;
+}
+
+.line-title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.divider-line {
+    border: 0;
+    border-top: 1px solid #888;
+}
+
+.line-action * {
+    display: inline-block;
+    width: 49%;
+    text-align: right;
+}
+
+.search-add {
+    text-align: right;
+}
+
+.operating-btn {
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.title {
+    text-align: left;
+    background-color: #F4F4F4;
+}
+
+.panel {
+    background-color: #ffffff;
+    margin-top: 30px;
+    box-shadow: 1px 1px 1px 3px #dddddd;
+    height: 950px;
+}
+
+.chsr.table {
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+
+.bookmark.chsr.table {
+    border-top: 2px solid #ddd;
+    border-left: 2px solid #ddd;
+    border-right: 2px solid #ddd;
+}
+
+.tab-wrapper {
+    float: top;
+    margin: 4% 0 0;
+}
+
+.tab {
+    background-color: #f1f1f1;
+    height: auto;
+}
+/* Style the buttons inside the tab */
+
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+/* Change background color of buttons on hover */
+
+.tab button:hover {
+    background-color: #ddd;
+}
+/* Create an active/current tablink class */
+
+.tab button.active {
+    background-color: #ccc;
+}
+
+.tab .tablinks {
+    padding: 1.5%;
+    margin: 0;
+    border-top: 2px solid #ddd;
+    border-left: 2px solid #ddd;
+    border-right: 2px solid #ddd;
+}
+
+.tab .tablinks.enabled {
+    background-color: #ddd;
+}
+/* Style the tab content */
+
+.pagebtn {
+    text-align: right;
+}
+
+.margin-top {
+    margin-top: 30px;
+}
+
+.padding-lr {
+    padding: 0px 50px;
+}
+
+tr:nth-child(even) {
+    background: #F4F4F4;
+}
+
+.address {
+    padding-bottom: 20px;
+}
+
+.title-top {
+    margin-top: -20px;
+}
+
+.hr-margin-bottom {
+    margin: 0;
+}
+
+.h3-padding {
+    padding-top: 15px;
+}
+
+.chsr.pagination {
+    margin-top: 0px;
+}
+

@@ -13,82 +13,15 @@
     <link rel="stylesheet" href="css/sb-admin-2.css">
 
     <link rel="stylesheet" href="css/_main.css" />
-    <link rel="stylesheet" href="css/partials/firebase-disable.css" />
+    <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/message_keywordsreply.css" />
+    <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
     <div id="home">
-        <h3>關鍵字回覆</h3>
-        <p>新增、編輯及刪除關鍵字要回覆的訊息</p>
-        <button type="button" class="btn btn-default inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" disabled>
-            <span class="fa fa-plus fa-fw"></span>新增關鍵字
-        </button>
-
-        <!-- <p>NOTE FOR DEVELOPERS:<br/>
-            1. download CSV file 未做(緩）<br/>
-            2. 時間功能未(緩)  <br/>
-            3. append text msg UI 修改(crashing)<br/>
-        </p> -->
-        <!-- <div class="tab" style="width:100%; position:absolute; float:top; margin: 6% 1% 1% 0%; padding:1% 0% 1% 1%;">
-            <table>
-                <tr>
-                    <th>下載數據 時間範圍:</th>
-                    <td>
-                        <form>
-                            <input type="datetime-local" id="endDate" style="width:35%;margin:1.5%">~ <input type="datetime-local" id="endDate" style="width:35%">
-                            <p style="float:right;padding:1.6%"><a id="csv" rel="nocsv">下載CSV檔</a></p>
-                            <p id="nocsv" style="color:red; display:none;position:absolute;margin-left: 1%">此功能暫未開通</p>
-                        </form>
-                    </td>
-                </tr>
-            </table>
-        </div> -->
-
-        <div class="tab-wrapper">
-            <div class="tab">
-                <button class="tablinks enabled" rel="keywordreply_open_table">開放</button>
-                <button class="tablinks" rel="keywordreply_draft_table">草稿</button>
-            </div>
-        </div>
-
-        <section>
-            <div class="keywordreply-table-wrapper">
-                <table class="keywordreply-table" id="keywordreply_open_table">
-                    <thead>
-                        <tr>
-                            <th>關鍵字</th>
-                            <th>內容</th>
-                            <th>回應次數</th>
-                            <th>App</th>
-                            <th>編輯</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-
-                <table class="keywordreply-table" id="keywordreply_draft_table" hidden>
-                    <thead>
-                        <tr>
-                            <th>關鍵字</th>
-                            <th>內容</th>
-                            <th>回應次數</th>
-                            <th>App</th>
-                            <th>編輯</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-
-                <!--  <div style="border: 1px solid #dddddd; height:350px">
-                    <p style="float:left; margin-left:40%; margin-top: 16%">No set up keywords.</p>
-                </div> -->
-            </div>
-        </section>
-
-        <!-- Add Modal -->
         <div class="modal fade" id="keywordreply_add_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_add_modal_title" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -154,7 +87,6 @@
             </div>
         </div>
 
-        <!-- Edit Modal -->
         <div class="modal fade" id="keywordreply_edit_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_edit_modal_title" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -199,6 +131,62 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary btn-update-submit">確認</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container margin-top">
+            <div class="row panel">
+                <div class="title title-top">
+                    <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
+                    <hr class="hr-margin-bottom">
+                    <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
+                    <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
+                </div>
+
+                <div class="padding-lr" id="view-all">
+                    <div class="search-add">
+                        <span class="icon"><i class="fa fa-search"></i></span>
+                        <input type="text" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                        <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true"></button>
+                        <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
+                    </div>
+                    <div class="tab-wrapper">
+                        <div class="tab">
+                            <button class="tablinks enabled" rel="keywordreply_open_table">開放</button>
+                            <button class="tablinks" rel="keywordreply_draft_table">草稿</button>
+                        </div>
+                    </div>
+            
+                    <div class="table">
+                        <table class="bookmark chsr table" id="keywordreply_open_table">
+                            <thead>
+                                <tr>
+                                    <th>關鍵字</th>
+                                    <th>內容</th>
+                                    <th>回應次數</th>
+                                    <th>編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+            
+                        <table class="bookmark chsr table" id="keywordreply_draft_table" hidden>
+                            <thead>
+                                <tr>
+                                    <th>關鍵字</th>
+                                    <th>內容</th>
+                                    <th>回應次數</th>
+                                    <th>編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+            
+                        <!--  <div style="border: 1px solid #dddddd; height:350px">
+                            <p style="float:left; margin-left:40%; margin-top: 16%">No set up keywords.</p>
+                        </div> -->
                     </div>
                 </div>
             </div>

@@ -15,7 +15,6 @@ var appsAutorepliesMdl = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
 var appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
-var tags = require('../models/tags');
 var users = require('../models/users');
 var utility = require('../helpers/utility');
 var helpersFacebook = require('../helpers/facebook');
@@ -54,7 +53,6 @@ function init(server) {
     var addFriendBroadcastMsg; // 加好友參數
     let bot = []; // LINE bot設定
     var userId;
-    let appData = [];
     var nickname;
     var channelIds = [-1, -1, -1];
     var overview = {};
@@ -114,7 +112,15 @@ function init(server) {
         });
     }, (req, res, next) => {
         var appId = req.appId;
-        var message = undefined === req.body.events ? req.body.entry[0].messaging[0].message.text : req.body.events[0].message.text;
+        var message;
+        switch (req.app.type) {
+            case LINE:
+                message = req.body.events[0].message.text;
+                break;
+            case FACEBOOK:
+                message = req.body.entry[0].messaging[0].message.text;
+                break;
+        }
         var proceed = Promise.resolve();
         proceed.then(() => {
             req.messageId = cipher.createHashKey(message);
@@ -251,47 +257,41 @@ function init(server) {
             switch (req.app.type) {
                 case LINE:
                     return lineBot.replyMessage(event.replyToken, messages);
-                    break;
                 case FACEBOOK:
-
                     return Promise.all(messages.map((message) => {
                         return fbBot.sendTextMessage(req.messagerId, message);
-                    }))
-                    break;
+                    }));
             }
         }).then(() => {
             var Uid = req.messagerId;
             switch (req.app.type) {
                 case LINE:
                     return lineBot.getProfile(Uid);
-                    break;
                 case FACEBOOK:
                     return fbBot.getProfile(Uid);
-                    break;
             }
         }).then((profile) => {
-            var Uid = req.messagerId;
-            var name;
-            var photo;
+            var msgerId = req.messagerId;
+            var messager = {
+                name: '',
+                photo: ''
+            };
 
             switch (req.app.type) {
                 case LINE:
-                    name = profile.displayName;
-                    photo = profile.pictureUrl;
+                    messager.name = profile.displayName;
+                    messager.photo = profile.pictureUrl;
                     break;
                 case FACEBOOK:
-                    name = profile.first_name + ' ' + profile.last_name;
-                    photo = profile.profile_pic;
+                    messager.name = profile.first_name + ' ' + profile.last_name;
+                    messager.photo = profile.profile_pic;
                     break;
             };
-            var messager = {
-                name: name,
-                photo: photo
-            };
+
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.replaceMessager(appId, Uid, messager, (messager) => {
-                    if (undefined === messager || '' === messager || null === messager) {
-                        reject();
+                appsMessagersMdl.updateMessager(appId, msgerId, messager, (messager) => {
+                    if (!messager) {
+                        reject(new Error());
                         return;
                     }
                     resolve(messager);
@@ -347,12 +347,12 @@ function init(server) {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
                     message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
-                    delete message['createdTime'];
-                    delete message['endedTime'];
-                    delete message['isDeleted'];
-                    delete message['startedTime'];
-                    delete message['updatedTime'];
-                    delete message['title'];
+                    delete message.createdTime;
+                    delete message.endedTime;
+                    delete message.isDeleted;
+                    delete message.startedTime;
+                    delete message.updatedTime;
+                    delete message.title;
                 }
 
                 return new Promise((resolve, reject) => {
@@ -394,112 +394,27 @@ function init(server) {
         socket.on('request chat init data', (frontData, callback) => {
             nickname = socket.nickname;
             userId = frontData.id;
-            var proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
 
-            proceed
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        if ('' === userId || null === userId) {
-                            reject(API_ERROR.USERID_WAS_EMPTY);
-                            return;
-                        }
-                        users.findAppIdsByUserId(userId, (appIds) => {
-                            if (null === appIds || undefined === appIds) {
-                                reject(API_ERROR.APPID_WAS_EMPTY);
-                            } else {
-                                resolve(appIds);
-                            }
-                        })
-                    });
-                })
-                .then((appIds) => {
-                    return new Promise((resolve, reject) => {
-                        appsMdl.findAppsByAppIds(appIds, (data) => {
-                            if (null === data || undefined === data || '' === data) {
-                                reject();
-                                return;
-                            }
-                            resolve(data);
-                            appData = [];
-                            for (let i in appIds) {
-                                appData[i] = {
-                                    id: data[appIds[i]].id1,
-                                    token: data[appIds[i]].token1,
-                                    secret: data[appIds[i]].secret,
-                                    type: data[appIds[i]].type
-                                };
-                            }
+            return new Promise((resolve, reject) => {
+                if (!userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
 
-                        })
-                    })
-                })
-            let allObj = {};
-            let loadTags = new Promise((resolve, reject) => {
-                requestTags((data) => {
-                    allObj.tagsData = data;
-                    resolve();
+                let waitTimer = setTimeout(reject, WAIT_TIME, 'internal network too slow');
+                requestInternalChatData(userId, (internalChatData) => {
+                    clearTimeout(waitTimer);
+                    resolve(internalChatData);
                 });
-                setTimeout(reject, WAIT_TIME, "tag network too slow");
-            });
-
-            loadTags
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        requestInternalChatData(userId, (data) => {
-                            allObj.internalChatData = data;
-                            resolve();
-                        });
-                        setTimeout(reject, WAIT_TIME, "internal network too slow");
-                    });
-                })
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        users.findUserByUserId(userId, data => {
-                            resolve(data);
-                        });
-                        setTimeout(reject, WAIT_TIME, "get user network too slow");
-                    });
-                })
-                .then((data) => {
-                    var appIds = data.app_ids;
-                    return new Promise((resolve, reject) => {
-                        appsMdl.findAppsByAppIds(appIds, (data) => {
-                            var apps = data;
-                            if (null === apps || '' === apps || undefined === apps) {
-                                reject(API_ERROR.APPID_WAS_EMPTY);
-                            }
-                            resolve(apps);
-                        });
-                        setTimeout(reject, WAIT_TIME, "find app network too slow");
-                    });
-                })
-                .then(data => {
-                    return new Promise((resolve, reject) => {
-                        allObj.appsData = data;
-                        resolve();
-                    });
-                })
-                .then(() => {
-                    callback(allObj);
-                })
-                .catch(reason => {
-                    callback(reason);
-                });
-        });
-
-        socket.on('request tags', (callback) => {
-            tags.get(function(tagsData) {
-                callback(tagsData);
+            }).then((promiseResult) => {
+                let socketRespData = {
+                    internalChatData: promiseResult
+                };
+                callback(socketRespData);
+            }).catch((reason) => {
+                callback(reason);
             });
         });
-
-        function requestTags(callback) {
-            tags.get(function(tagsData) {
-                callback(tagsData);
-            });
-        } // end of requestTags
 
         function requestInternalChatData(userId, callback) {
             let thisAgentData = [];

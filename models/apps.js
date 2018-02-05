@@ -68,7 +68,7 @@ apps.findAppsByAppIds = (appIds, callback) => {
             }
 
             // 已刪除資料，不呈現於 API
-            if (app.hasOwnProperty('isDeleted') && 1 === app.isDeleted) {
+            if (app.isDeleted) {
                 return Promise.resolve(null);
             }
 

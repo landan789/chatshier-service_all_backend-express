@@ -12,6 +12,8 @@
     <link rel="icon" href="image/favicon.ico" />
     <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
     <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/analyze.css" />
@@ -22,42 +24,56 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
     <div id="home">
-        <h3> 分析頁面</h3>
-        <div class="row" id="time-container">
-            <div class="col-sm-3">
-                <p>請選擇時段</p>
-            </div>
-            <div class="col-sm-3">
-                <p>從: </p>
-                <input type="date" class="select-time" id="analyze_start_time" />
-            </div>
-            <div class="col-sm-3">
-                <p>至: </p>
-                <input type="date" class="select-time" id="analyze_end_time" />
-            </div>
-            <div class="col-sm-2" id="error_message" hidden>
-                <p>開始時段須比結束時段早</p>
-            </div>
-        </div>
-        <div class="row" id="btn-container">
-            <div class="col-sm-2">
-                <button class="btn btn-info" id="view_month" disabled>以月份為最小單位</button>
-            </div>
-            <div class="col-sm-2">
-                <button class="btn btn-info" id="view_date" disabled>以一日為最小單位</button>
-            </div>
-            <div class="col-sm-2">
-                <button class="btn btn-info" id="view_hour" disabled>以小時為最小單位</button>
-            </div>
-            <div class="col-sm-2">
-                <button class="btn btn-info" id="view_time" disabled>只顯示小時</button>
-            </div>
-            <div class="col-sm-2">
-                <button class="btn btn-info" id="view_cloud" disabled>文字雲</button>
-            </div>
-        </div>
-        <div class="container" id="chart-container">
-            <div id="chartdiv">
+        <h3 class="page-title">分析頁面</h3>
+        <div class="chsr panel panel-default">
+            <div class="panel-body">
+                <div class="tooltip-container">
+                    <div class="dropdown app-dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="dropdown-text">請選擇分析來源</span>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                    </div>
+
+                    <div class="date-wrapper">
+                        <div class="date-group">
+                            <div class="input-group date" id="start_datetime_picker">
+                                <span class="input-group-addon">開始時間</span>
+                                <input type="text" class="form-control" name="start_datetime" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="date-group">
+                            <div class="input-group date" id="end_datetime_picker">
+                                <span class="input-group-addon">結束時間</span>
+                                <input type="text" class="form-control" name="end_datetime_picker" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="error_message" hidden>
+                        <p>開始時段須比結束時段早</p>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-info btn-view view-month" disabled>以月份為最小單位</button>
+                    <button class="btn btn-info btn-view view-date" disabled>以一日為最小單位</button>
+                    <button class="btn btn-info btn-view view-hour" disabled>以小時為最小單位</button>
+                    <button class="btn btn-info btn-view view-time" disabled>只顯示小時</button>
+                    <button class="btn btn-info btn-view view-cloud" disabled>文字雲</button>
+                </div>
+
+                <div class="chart-container">
+                    <div id="chartdiv"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -66,14 +82,17 @@
     <script src="https://www.amcharts.com/lib/3/serial.js"></script>
     <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
     <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
+    <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
     <script src="lib/js/wordfreq.worker.js"></script>
     <script src="lib/js/wordcloud2.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="config/url-config.js"></script>
     <script src="js/_firebase-auth.js"></script>
+    <script src="js/partials/restful_api.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/analyze.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

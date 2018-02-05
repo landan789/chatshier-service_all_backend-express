@@ -254,36 +254,35 @@ module.exports = (function() {
                 });
             });
         }).then((appIds) => {
+            // 3. 將原本的 keywordreply 資料撈出
+            return new Promise((resolve) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => resolve(keywordrepliesData));
+            });
+        }).then((oldKeywordrepliesData) => {
+            // 4. 將 ID 從 message 欄位中的 keywordreply_ids 移除
             return new Promise((resolve, reject) => {
-                // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
-                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
-                    let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
-                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
-                        if (!(keywordreplyIds instanceof Array)) {
-                            resolve([]);
-                            return;
-                        }
+                let oldMessageId = cipher.createHashKey(oldKeywordrepliesData[keywordreplyId].keyword);
+                appsMessagesMdl.findKeywordreplyIds(appId, oldMessageId, (oldKeywordreplyIds) => {
+                    if (!(oldKeywordreplyIds instanceof Array)) {
+                        resolve();
+                        return;
+                    }
 
-                        let idx = keywordreplyIds.indexOf(keywordreplyId);
-                        if (idx >= 0) {
-                            keywordreplyIds.splice(idx, 1);
-                            appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, () => {
-                                resolve(keywordreplyIds);
-                            });
-                            return;
-                        }
-                        resolve(keywordreplyIds);
-                    });
+                    // 找到原本的 keywordreplyIds 清單中有無包含目標 keywordreplyId
+                    let idx = oldKeywordreplyIds.indexOf(keywordreplyId);
+                    if (idx >= 0) {
+                        oldKeywordreplyIds.splice(idx, 1);
+                        // 更新原本 message 中的 keywordreply_ids 欄位
+                        appsMessagesMdl.updateKeywordreplyIds(appId, oldMessageId, oldKeywordreplyIds, () => {
+                            resolve();
+                        });
+                    }
+                    resolve();
                 });
             });
-        }).then((keywordreplyIds) => {
+        }).then(() => {
             return new Promise((resolve, reject) => {
-                if (!(keywordreplyIds instanceof Array)) {
-                    reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
-                    return;
-                }
-
-                // 4. 更新指定的 appId 中的 keywordreply 資料
+                // 5. 更新指定的 appId 中的 keywordreply 資料
                 appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreplyData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
@@ -296,11 +295,14 @@ module.exports = (function() {
                         return;
                     }
 
-                    // 5. 更新 messages 欄位的 keywordreply_ids
+                    // 6. 更新 messages 欄位的 keywordreply_ids
                     let messageId = data.messageId;
-                    keywordreplyIds.push(data.keywordreplyId);
-                    appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, (data) => {
-                        resolve(data);
+                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
+                        keywordreplyIds = keywordreplyIds || [];
+                        keywordreplyIds.push(data.keywordreplyId);
+                        appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, (data) => {
+                            resolve(data);
+                        });
                     });
                 });
             });

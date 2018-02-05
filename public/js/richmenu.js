@@ -1,6 +1,22 @@
 var modal = $('#richmenu-modal');
 
 $(document).ready(function() {
+    // 設定 bootstrap notify 的預設值
+    // 1. 設定為顯示後2秒自動消失
+    // 2. 預設位置為螢幕中間上方
+    // 3. 進場與結束使用淡入淡出
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
+
     var startUserId = setInterval(() => {
         if(auth.currentUser) {
             clearInterval(startUserId);
@@ -177,8 +193,8 @@ function saveRichMenus() {
     
     
     // if (!channelId || !keyword || !type) {
-    if (!appId || !type) { //test
-        alert("發送群組、觸發關鍵字及類型不可為空");
+    if (!appId || !type) {
+        $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
     } else {
         let template = createTemplate(type);
         if (template) {
@@ -333,10 +349,10 @@ function remove(appId, richmenuId){
         },
         success: () => {
             $('#'+richmenuId).remove();
-            alert('刪除成功!');
+            $.notify('刪除成功！', { type: 'success' });
         },
         error: (error) => {
-            alert('刪除失敗: ' + error.msg);
+            $.notify('刪除失敗: ' + error.msg, { type: 'danger' });
             console.log(error);
         }
     });

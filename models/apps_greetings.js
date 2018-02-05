@@ -16,19 +16,53 @@ module.exports = (function() {
     };
 
     /**
+     * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
+     *
+     * @param {string} appId
+     * @param {Function} callback
+     * @return {object} appsGreetings
+     */
+    AppsGreetingsModel.prototype.findAll = (appIds, callback) => {
+        let procced = Promise.resolve();
+        var appsGreetings = {};
+        nextPromise(0).then(() => {
+            callback(appsGreetings);
+        }).catch(() => {
+            callback(null);
+        });
+
+        function nextPromise(i) {
+            return procced.then(() => {
+                var appId = appIds[i];
+                return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value');
+            }).then((snap) => {
+                if (i >= appIds.length) {
+                    return Promise.resolve();
+                }
+                let greeting = snap.val();
+                var appId = snap.ref.parent.key;
+                appsGreetings[appId] = {
+                    greetings: greeting
+                };
+                return nextPromise(i + 1);
+            });
+        }
+    };
+
+    /**
      * 輸入指定的 appId 取得該 App 所有加好友回覆的資料
      *
      * @param {string} appId
      * @param {Function} callback
      * @return {object} appsGreetings
      */
-    AppsGreetingsModel.prototype.findAll = (appId, callback) => {
+    AppsGreetingsModel.prototype.find = (appId, callback) => {
         let procced = new Promise((resolve, reject) => {
             resolve();
         });
         procced.then(() => {
             return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/greetings').once('value', snap => {
+                admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value', snap => {
                     let info = snap.val();
                     if (null === info || undefined === info) {
                         reject();
@@ -39,11 +73,6 @@ module.exports = (function() {
             });
         }).then((data) => {
             let greeting = data;
-            for (let a in greeting) {
-                if (greeting[a].isDeleted === 1) {
-                    delete greeting[a];
-                }
-            }
             var appsGreetings = {};
             appsGreetings[appId] = {
                 greetings: greeting

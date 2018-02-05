@@ -1,9 +1,24 @@
 const socket = io.connect();
 var templateForm = $('#template-form');
 var templateData = {};
-var userId = "";
-$(document).ready(function() {});
-$(function() {
+var userId = '';
+
+$(document).ready(function() {
+    // 設定 bootstrap notify 的預設值
+    // 1. 設定為顯示後2秒自動消失
+    // 2. 預設位置為螢幕中間上方
+    // 3. 進場與結束使用淡入淡出
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
 
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').hide();
@@ -205,16 +220,16 @@ function saveTemplate() {
     let status = $('#template-status').val();
     let type = $('#template-type').val();
     // if (!channelId || !keyword || !type) {
-    if (!keyword || !type) { //test
-        alert("發送群組、觸發關鍵字及類型不可為空");
+    if (!keyword || !type) {
+        $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
     } else {
         let template = createTemplate(type);
         if (template) {
             let data = {
-                "channelId": channelId,
-                "keyword": keyword,
-                "status": status,
-                "template": template
+                channelId: channelId,
+                keyword: keyword,
+                status: status,
+                template: template
             };
             console.log(data);
             if (propId) {
@@ -231,7 +246,7 @@ function createTemplate(type) {
     if (type == "text") {
         let text = $('.template-view[rel="text"] #template-text').val();
         if (!text) {
-            alert('文字不可為空');
+            $.notify('文字不可為空', { type: 'warning' });
             return null;
         } else return {
             "type": "text",
@@ -240,7 +255,7 @@ function createTemplate(type) {
     } else {
         let altText = $('#template-altText').val();
         if (!altText) {
-            alert('電腦版替代文字不可為空');
+            $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
             let template = null;
@@ -261,7 +276,7 @@ function createTemplate(type) {
         let container = $('.template-view[rel="confirm"] .rounded-border');
         let text = container.find('.line-text').val();
         if (!text) {
-            alert('說明文字不可為空');
+            $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         } else {
             let actions = getAction(container);
@@ -278,7 +293,7 @@ function createTemplate(type) {
         let container = $('#carousel-container .item.active .rounded-border');
         let template = getColumn(container);
         if (!template) {
-            alert('說明文字不可為空');
+            $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         } else {
             template["type"] = "buttons";

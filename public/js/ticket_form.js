@@ -296,7 +296,7 @@ var ChatshierAppAPI = (function() {
                 $messagerSelectElem.append('<option value=' + messagerId + '>' + messagerData[messagerId].name + '</option>');
             }
         } else {
-            $messagerSelectElem.append('<option value="">無資料</option>');
+            $messagerSelectElem.append('<option value="null">無資料</option>');
         }
 
         var updateInfo = function(selectedId) {

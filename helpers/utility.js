@@ -1,16 +1,5 @@
 var utility = {};
 
-var languageList = require("../config/tag-language.json");
-utility.translateTag = (prop, langA, langB) => {
-    for (let i = 0; i < languageList.length; i++) {
-        let data = languageList[i];
-        if (data[langA] === prop) {
-            if (data[langB]) return data[langB];
-            else return prop;
-        }
-    }
-    return prop;
-}
 utility.isUrl = str => {
     if (str.indexOf('.com') !== -1) return true;
     else if (str.indexOf('.edu') !== -1) return true;
@@ -27,8 +16,8 @@ utility.lineType = (bot, messageId, callback) => {
         console.log(chunk.client._tlsOptions.session);
         let buffer = chunk.client._tlsOptions.session;
         let msgObj = '<a href="data:image/png;base64,' + buffer.toString('base64') + '" ' +
-        ' target="_blank" ><img src="data:image/png;base64,' + buffer.toString('base64') + '" ' +
-        'width="20%" alt="image embedded using base64 encoding!"/></a>';
+            ' target="_blank" ><img src="data:image/png;base64,' + buffer.toString('base64') + '" ' +
+            'width="20%" alt="image embedded using base64 encoding!"/></a>';
         callback(msgObj);
     });
 }

@@ -19,7 +19,7 @@ appsRichmenus.getByUserId = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -60,7 +60,7 @@ appsRichmenus.getByAppIdByuserId = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -135,7 +135,7 @@ appsRichmenus.getOne = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -243,7 +243,7 @@ appsRichmenus.postOne = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -330,7 +330,7 @@ appsRichmenus.putOne = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
@@ -435,7 +435,7 @@ appsRichmenus.deleteOne = (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                userMdl.findUserByUserId(userId, (user) => {
+                userMdl.findUser(userId, (user) => {
                     var appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);

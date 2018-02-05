@@ -1,153 +1,126 @@
-var MessagesAPI = (function() {
-    var responseChecking = function(response) {
-        return Promise.resolve().then(function() {
-            if (!response.ok) {
-                return Promise.reject(new Error(response.status + ' ' + response.statusText));
-            }
-            return response.json();
-        }).then(function(respJson) {
-            if (1 !== respJson.status) {
-                return Promise.reject(new Error(respJson.status + ' ' + respJson.msg));
-            }
-            return respJson;
-        });
-    };
-
-    /**
-     * MessagesAPI 建構子
-     *
-     * @param {*} jwt - API 傳輸時必須攜帶的 json web token
-     */
-    function MessagesAPI(jwt) {
-        this.jwt = jwt || '';
-        this.reqHeaders = new Headers();
-        this.reqHeaders.set('Content-Type', 'application/json');
-    };
-
-    /**
-     * 取得每個 App 使用者的所有聊天室資訊
-     *
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    MessagesAPI.prototype.getAll = function(userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-chatrooms-messages/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    /**
-     * 取得使用者指定的 App 內的所有聊天室資訊
-     *
-     * @param {string} appId - 要查找的使用者的 App ID
-     * @param {string} userId - 使用者的 firebase ID
-     */
-    MessagesAPI.prototype.getAllByAppId = function(appId, userId) {
-        var destUrl = urlConfig.apiUrl + '/api/apps-chatrooms-messages/apps/' + appId + '/users/' + userId;
-        var reqInit = {
-            method: 'GET',
-            headers: this.reqHeaders
-        };
-
-        return window.fetch(destUrl, reqInit).then(function(response) {
-            return responseChecking(response);
-        });
-    };
-
-    return MessagesAPI;
-})();
+/// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    var AnalyzeType = Object.freeze({
+        0: 'MONTH',
+        1: 'DAY',
+        2: 'HOUR',
+        3: 'TIME',
+        4: 'WORDCLOUR',
+        MONTH: 0,
+        DAY: 1,
+        HOUR: 2,
+        TIME: 3,
+        WORDCLOUR: 4
+    });
+
     var HOUR = 3600000;
     var DATE = 86400000;
 
-    var messageDataArray = []; // 所有訊息的時間
+    var messagesData = {}; // 所有訊息的時間
     var startTime; // 決定圖表從哪個時間點開始畫
     var endTime; // 決定圖表畫到那個時間點結束
     var FIRST_MSG_TIME = 0; // 預設的startTime
     var LAST_MSG_TIME = 0;
 
     var userId = '';
-    var messagesAPI = new MessagesAPI(null);
+    var nowSelectAppId = '';
+    var api = window.restfulAPI;
+    var analyzeType = AnalyzeType.TIME; // 預設從最小單位顯示分析
 
-    var $jqDoc = $(document);
+    var $buttonGroup = $('.button-group');
+    var $analyzeSdtPicker = $('#start_datetime_picker');
+    var $analyzeEdtPicker = $('#end_datetime_picker');
+    var $appDropdown = $('.tooltip-container .app-dropdown');
+    var sTimePickerData = null;
+    var eTimePickerData = null;
 
-    auth.ready.then((currentUser) => {
+    window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
-        messagesAPI.jwt = window.localStorage.getItem('jwt');
-        messagesAPI.reqHeaders.set('Authorization', messagesAPI.jwt);
 
-        $jqDoc.on('change', '.select-time', selectTime); // 取得USER要分析的時間區間
-        $jqDoc.on('click', '#view_month', viewMonth); // 以月份為最小單位
-        $jqDoc.on('click', '#view_date', viewDate);
-        $jqDoc.on('click', '#view_hour', viewHour);
-        $jqDoc.on('click', '#view_time', viewTime);
-        $jqDoc.on('click', '#view_cloud', viewCloud);
+        $buttonGroup.find('.view-month').on('click', viewMonth);
+        $buttonGroup.find('.view-date').on('click', viewDay);
+        $buttonGroup.find('.view-hour').on('click', viewHour);
+        $buttonGroup.find('.view-time').on('click', viewTime);
+        $buttonGroup.find('.view-cloud').on('click', viewWordCloud);
 
-        return messagesAPI.getAll(userId);
+        // 初始化 modal 裡的 datetime picker
+        // 使用 moment.js 的 locale 設定 i18n 日期格式
+        $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw' });
+        $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw' });
+        sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
+        eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
+
+        return api.chatshierApp.getAll(userId);
     }).then(function(respJson) {
-        var appsMessages = respJson.data;
-        messageDataArray.length = 0;
+        var appsData = respJson.data;
+        messagesData = {};
+
+        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
-        for (var appId in appsMessages) {
-            var chatrooms = appsMessages[appId].chatrooms;
+        nowSelectAppId = '';
+        for (var appId in appsData) {
+            var chatrooms = appsData[appId].chatrooms;
+            messagesData[appId] = [];
+            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+
+            if (!nowSelectAppId) {
+                nowSelectAppId = appId;
+            }
+
             for (var chatroomId in chatrooms) {
                 var messages = chatrooms[chatroomId].messages;
                 for (var messageId in messages) {
-                    messageDataArray.push(messages[messageId]);
+                    messagesData[appId].push(messages[messageId]);
                 }
             }
         }
 
-        if (messageDataArray.length > 0) {
-            messageDataArray.sort(function(a, b) {
+        $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+        messageDataPreprocess(messagesData[nowSelectAppId]);
+        $('.button-group .btn-view').prop('disabled', false); // 資料載入完成，才開放USER按按鈕
+    });
+
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        messageDataPreprocess(messagesData[nowSelectAppId]);
+    }
+
+    function messageDataPreprocess(messages) {
+        if (messages.length > 0) {
+            messages.sort(function(a, b) {
                 return a.time - b.time; // 以時間排序，最早的在前
             });
-            FIRST_MSG_TIME = messageDataArray[0].time; // 預設的 startTime 為最早的訊息的時間
-            LAST_MSG_TIME = messageDataArray[messageDataArray.length - 1].time;
+            FIRST_MSG_TIME = messages[0].time; // 預設的 startTime 為最早的訊息的時間
+            LAST_MSG_TIME = messages[messages.length - 1].time;
         } else {
             FIRST_MSG_TIME = LAST_MSG_TIME = 0;
         }
         startTime = FIRST_MSG_TIME;
         endTime = LAST_MSG_TIME;
 
-        $('.select-time#analyze_start_time').prop('value', new Date(startTime).toISOString().split('T').shift());
-        $('.select-time#analyze_end_time').prop('value', new Date(endTime).toISOString().split('T').shift());
+        sTimePickerData.date(new Date(startTime));
+        eTimePickerData.date(new Date(endTime));
 
-        $('#btn-container button').prop('disabled', false); // 資料載入完成，才開放USER按按鈕
-        viewTime(); // 預設從最小單位顯示分析
-    });
-
-    function selectTime() {
-        var start = $('.select-time#analyze_start_time').val();
-        var end = $('.select-time#analyze_end_time').val();
-
-        // 若 USER 未選擇開始時間，則調至預設
-        if (!start) {
-            startTime = FIRST_MSG_TIME;
-        } else {
-            startTime = new Date(start).getTime();
-        }
-
-        if (!end) {
-            endTime = Date.now(); // 若USER未選擇結束時間，則調製現在時間
-        } else {
-            endTime = new Date(end).getTime();
-        }
-
-        if (startTime < endTime) {
-            $('#error_message').hide(); // 若開始時間 < 結束時間，隱藏錯誤訊息
+        if (analyzeType === AnalyzeType.MONTH) {
+            viewMonth();
+        } else if (analyzeType === AnalyzeType.DAY) {
+            viewDay();
+        } else if (analyzeType === AnalyzeType.HOUR) {
+            viewHour();
+        } else if (analyzeType === AnalyzeType.TIME) {
+            viewTime();
+        } else if (analyzeType === AnalyzeType.WORDCLOUR) {
+            viewWordCloud();
         }
     }
 
-    function viewCloud() {
+    function viewWordCloud() {
+        analyzeType = AnalyzeType.WordCloud;
         var msgData = [];
         if (!isValidTime()) {
             // 確認開始時間是否小於結束時間
@@ -172,6 +145,7 @@ var MessagesAPI = (function() {
     }
 
     function viewMonth() {
+        analyzeType = AnalyzeType.MONTH;
         var timeData = [];
         if (!isValidTime()) {
             // 確認開始時間是否小於結束時間
@@ -224,7 +198,8 @@ var MessagesAPI = (function() {
         generateChart(chartData); // 將資料餵給AmCharts
     }
 
-    function viewDate() {
+    function viewDay() {
+        analyzeType = AnalyzeType.DAY;
         var timeData = [];
         if (!isValidTime()) {
             $('#chartdiv').empty();
@@ -260,6 +235,7 @@ var MessagesAPI = (function() {
     }
 
     function viewHour() {
+        analyzeType = AnalyzeType.HOUR;
         var timeData = [];
         if (!isValidTime()) {
             $('#chartdiv').empty();
@@ -305,6 +281,7 @@ var MessagesAPI = (function() {
     }
 
     function viewTime() {
+        analyzeType = AnalyzeType.TIME;
         // 將所有資料彙整成以小時表示
         var timeData = [];
         if (!isValidTime()) {
@@ -332,8 +309,7 @@ var MessagesAPI = (function() {
     }
 
     function generateChart(chartData, cursorProvider) {
-        // cursorProvider 是一個 FUNCTION，去產生滑鼠 hover 時顯示的資訊，但還沒寫
-        var chart = window.AmCharts.makeChart('chartdiv', {
+        var chart = AmCharts.makeChart('chartdiv', {
             type: 'serial',
             theme: 'light',
             zoomOutButton: {
@@ -382,7 +358,7 @@ var MessagesAPI = (function() {
         });
 
         // chart 建立完後，移除 AmCharts 的廣告文字
-        $('#chartdiv .amcharts-main-div a[href="http://www.amcharts.com"]').remove();
+        $('a[href="http://www.amcharts.com"]').remove();
     }
 
     function isValidTime() {
@@ -396,8 +372,9 @@ var MessagesAPI = (function() {
     function getSelecedTimeData() {
         // 將資料過濾成在開始 ~ 結束時間內
         var timeData = [];
-        for (var i = 0; i < messageDataArray.length; i++) {
-            var t = messageDataArray[i].time;
+        var messages = messagesData[nowSelectAppId];
+        for (var i = 0; i < messages.length; i++) {
+            var t = messages[i].time;
             if (t >= startTime && t <= endTime) {
                 timeData.push(t);
             }
@@ -407,14 +384,15 @@ var MessagesAPI = (function() {
 
     function getSelecedMsgData() {
         // 將資料過濾成在開始 ~ 結束時間內
-        var msgData = [];
-        for (var i = 0; i < messageDataArray.length; i++) {
-            var t = messageDataArray[i].time;
+        var messages = messagesData[nowSelectAppId];
+        var filteringMsgs = [];
+        for (var i = 0; i < messages.length; i++) {
+            var t = messages[i].time;
             if (t >= startTime && t <= endTime) {
-                msgData.push(messageDataArray[i].text);
+                filteringMsgs.push(messages[i].text);
             }
         }
-        return msgData;
+        return filteringMsgs;
     }
 
     function getDateStr(date) {

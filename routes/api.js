@@ -13,6 +13,9 @@ var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
+var appsGreetingsCtl = require('../controllers/apps_greetings');
+
+var groupsMembersCtl = require('../controllers/groups_members');
 
 // ===============
 // 訊息相關 Ctrl
@@ -48,10 +51,14 @@ router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 // ===============
+// messager 個人資料訊息相關
+router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAllMessagers);
+router.get('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.getMessager);
+router.put('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.updateMessager);
+// ===============
+
+// ===============
 // 聊天室訊息
-router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAll);
-router.get('/apps-messagers/apps/:appid/users/:userid', appsMessagersCtl.getAllByAppId);
-router.get('/apps-messagers/apps/:appid/messager/:messagerid', appsMessagersCtl.getByAppIdByMessagerId);
 router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.getAll);
 router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
 // ===============
@@ -67,7 +74,7 @@ router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid',
 // ==========
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
-router.get('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.getOne);
+router.get('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.getOne);
 router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
 router.put('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.putOne);
 router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.deleteOne);
@@ -88,6 +95,14 @@ router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
 router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
 router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);
 router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.deleteOne);
+// ==========
+
+// ==========
+// 加好友回覆
+router.get('/apps-greetings/users/:userid', appsGreetingsCtl.getAll);
+router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getOne);
+router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOne);
+router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
 router.get('/apps-templates/users/:userid', (req, res, next) => {
@@ -313,7 +328,7 @@ router.get('/users/users/:userid', (req, res, next) => {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                users.findUserByUserId(userId, (data) => {
+                users.findUser(userId, (data) => {
                     if (data === null) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     } else {
@@ -385,5 +400,10 @@ router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
 router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.putOne);
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
+
+router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.getAll);
+router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
+router.put('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.putOne);
+router.delete('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.deleteOne);
 
 module.exports = router;

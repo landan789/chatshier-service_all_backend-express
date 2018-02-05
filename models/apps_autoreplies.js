@@ -47,29 +47,19 @@ appsAutoreplies.insert = (appId, autoreply, callback) => {
 
 };
 
-appsAutoreplies.find = (appId, autoreplyId, callback) => {
-    admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value', snap => {
-        let autoreply = snap.val();
-        if (undefined === autoreplyId || '' === autoreplyId || null === autoreplyId) {
+appsAutoreplies.find = (appId, callback) => {
+    admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value', snap => {
+        let autoreplies = snap.val();
+        if (undefined === autoreplies || '' === autoreplies || null === autoreplies) {
             return Promise.reject();
         }
         var appsAutoreplies = {};
-        var _autoreplies = {};
-        _autoreplies[autoreplyId] = autoreply;
         appsAutoreplies[appId] = {
-            autoreplies: _autoreplies
+            autoreplies: autoreplies
         };
         callback(appsAutoreplies);
     }).catch(() => {
         callback(null);
-    });
-};
-
-appsAutoreplies.findAutorepliesByAppId = (appId, callback) => {
-    admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-        callback(snap);
-    }).catch(() => {
-        callback(false);
     });
 };
 
@@ -115,20 +105,6 @@ appsAutoreplies.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
         };
         callback(appsAutoreplies);
 
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-appsAutoreplies.findAutoreplyIds = (appId, callback) => {
-    admin.database().ref('apps/' + appId + '/autoreplies/').once('value').then((snap) => {
-        var appsAutoreplies = snap.val();
-        if (undefined === appsAutoreplies || '' === appsAutoreplies || null === appsAutoreplies) {
-            return Promise.reject();
-        }
-        var autoreplyIds = Object.keys(appsAutoreplies);
-
-        callback(autoreplyIds);
     }).catch(() => {
         callback(null);
     });

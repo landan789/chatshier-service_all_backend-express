@@ -9,15 +9,15 @@
     var lastSelectedTicket = null;
 
     var $jqDoc = $(document);
-    var $ticketContent = null;
+    var $ticketBody = null;
 
     auth.ready.then(function(currentUser) {
         userId = currentUser.uid; // 儲存全域用變數 userId
-        $ticketContent = $('.ticket-content');
+        $ticketBody = $('.ticket-body');
 
         // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        $jqDoc.on('click', '.ticket-content .ticket-row', showMoreInfo); // 查看待辦事項細節
-        $jqDoc.on('click', '#ticket-info-modify', modifyTicket); // 修改待辦事項
+        $jqDoc.on('click', '.ticket-body .ticket-row', showTicketDetail); // 查看待辦事項細節
+        $jqDoc.on('click', '#ticket_info_modify', modifyTicket); // 修改待辦事項
         // $jqDoc.on('click', '.edit', showInput);
         // $jqDoc.on('click', '.inner-text', function(event) {
         //     event.stopPropagation();
@@ -27,7 +27,7 @@
             if (13 === e.which) $(this).blur();
         });
 
-        $('#ticket-info-delete').click(function() {
+        $('#ticket_info_delete').click(function() {
             var alertWarning = $('#alert-warning');
 
             alertWarning.find('p').html('是否要刪除表單?');
@@ -55,7 +55,7 @@
         // ===========
         // 搜尋過濾功能
         $('#ticket_search_bar').keyup(function() {
-            var $content = $('.ticket-content tr');
+            var $content = $('.ticket-body tr');
             var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
             $content.show().filter(function() {
                 var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
@@ -76,7 +76,7 @@
     });
 
     function loadTable() {
-        $ticketContent.empty();
+        $ticketBody.empty();
 
         var asyncLoadTasks = [api.ticket.getAll(userId)];
         // 如果沒有載入過 Messagers 才進行載入動作
@@ -117,13 +117,13 @@
                     var messagerInfo = messagersData[ticketData.messagerId] || {};
 
                     // 將每筆 ticket 資料反映於 html DOM 上
-                    $ticketContent.append(
-                        '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket-info-modal">' +
+                    $ticketBody.append(
+                        '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                             '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
                             '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
                             '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
                             '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                            '<td id="time">' + displayDate(ticketData.dueTime) + '</td>' +
+                            '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
                             '<td>' + dueDate(ticketData.dueTime) + '</td>' +
                         '</tr>');
                 }
@@ -188,7 +188,7 @@
     /**
      * 顯示 ticket 更多資訊
      */
-    function showMoreInfo() {
+    function showTicketDetail() {
         var ticketId = $(this).attr('id');
         var ticketData = ticketInfo[ticketId];
         lastSelectedTicket = ticketData;
@@ -233,7 +233,7 @@
                 '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
             '</tr>';
         infoInputTable.append(moreInfoHtml);
-    } // end of showMoreInfo
+    }
 
     function displayDate(date) {
         var origin = new Date(date);
@@ -264,38 +264,41 @@
         return html;
     } // end of dueDate
 
-    function displayDateInput(date) {
-        var origin = new Date(date);
-        origin = origin.getTime();
-        var gmt8 = new Date(origin);
-        var yyyy = gmt8.getFullYear();
-        var MM = (gmt8.getMonth() + 1) < 10 ? '0' + (gmt8.getMonth() + 1) : (gmt8.getMonth() + 1);
-        var dd = gmt8.getDate();
-        var hh = gmt8.getHours() < 10 ? '0' + gmt8.getHours() : gmt8.getHours();
-        var mm = gmt8.getMinutes() < 10 ? '0' + gmt8.getMinutes() : gmt8.getMinutes();
-        var ss = gmt8.getSeconds() < 10 ? '0' + gmt8.getSeconds() : gmt8.getSeconds();
-        return yyyy + '-' + MM + '-' + dd + 'T' + hh + ':' + mm + ':' + ss;
+    function displayDateInput(d) {
+        d = new Date(d);
+        function pad(n) { return n < 10 ? '0' + n : n }
+        return d.getFullYear() + '-' +
+            pad(d.getMonth() + 1) + '-' +
+            pad(d.getDate()) + 'T' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes());
     } // end of displayDate
+
+    function ToLocalTimeString(millisecond) {
+        var date = new Date(millisecond);
+        var localDate = date.toLocaleDateString();
+        var localTime = date.toLocaleTimeString();
+        var localTimeString = localDate + localTime;
+        return localTimeString;
+    }
 
     /**
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
     function modifyTicket() {
-        var modifyTable = $('#ticket-info-modal .info-input-table');
+        var modifyTable = $('#ticket_info_modal .info-input-table');
         modifyTable.find('input').blur();
 
         var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
         var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
-        var ticketDescription = modifyTable.find('th.description').parent().find('td.edit').text();
+        var ticketDescription = modifyTable.find('th.description').parent().find('td.edit textarea').val();
         var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
 
         // 準備要修改的 ticket json 資料
         var modifiedTicket = {
-            createdTime: new Date(lastSelectedTicket.createdTime).getTime(),
             description: ticketDescription,
             dueTime: new Date(ticketDueTime).getTime(),
             priority: ticketPriority,
-            messagerId: lastSelectedTicket.messagerId,
             status: ticketStatus,
             updatedTime: Date.now()
         };
@@ -319,49 +322,38 @@
     }
 
     function priorityColor(priority) {
-        switch (priority) {
-            case 4:
-                return 'rgb(230, 100, 100)';
-            case 3:
-                return 'rgb(233, 198, 13)';
-            case 2:
-                return 'rgb(113, 180, 209)';
-            case 1:
-                return 'rgb(126, 215, 170)';
-            default:
-                return 'N/A';
-        }
+        var colors = {
+            1: '#33CCFF',
+            2: 'rgb(113, 180, 209)',
+            3: 'rgb(233, 198, 13)',
+            4: 'rgb(230, 100, 100)'
+        };
+        return colors[priority] ? colors[priority] : '';
     }
 
     function statusNumberToText(status) {
-        switch (status) {
-            case 5:
-                return 'Closed';
-            case 4:
-                return 'Resolved';
-            case 3:
-                return 'Pending';
-            default:
-                return 'Open';
-        }
+        var statusText = {
+            2: '未處理',
+            3: '處理中',
+            4: '已解決',
+            5: '已關閉'
+        };
+        return statusText[status] ? statusText[status] : '未知';
     }
 
     function priorityNumberToText(priority) {
-        switch (priority) {
-            case 4:
-                return '急';
-            case 3:
-                return '高';
-            case 2:
-                return '中';
-            default:
-                return '低';
-        }
-    } // end of priorityNumberToText
+        var priorityText = {
+            1: '低',
+            2: '中',
+            3: '高',
+            4: '急'
+        };
+        return priorityText[priority] ? priorityText[priority] : '低';
+    }
 
     // =========[SORT CLOSE]=========
     function sortCloseTable(n) {
-        var table = $ticketContent;
+        var table = $ticketBody;
         var rows;
         var switching = true;
         var i;

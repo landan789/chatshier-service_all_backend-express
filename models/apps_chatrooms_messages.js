@@ -26,47 +26,34 @@ module.exports = (function() {
     AppsChatroomsMessages.prototype.findChatroomMessagesByAppIds = function(appIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
-            if (!appIds || !(appIds instanceof Array)) {
-                return;
+            let appsChatroomsData = {};
+            if (!(appIds instanceof Array)) {
+                return appsChatroomsData;
             }
-            let appsChatroomsMap = {};
-            let findTasks = [];
 
             // 準備批次查詢的 promise 工作，將結果依照 appId 的鍵值塞到對應的欄位
-            for (let idx in appIds) {
-                let appId = appIds[idx];
+            return Promise.all(appIds.map((appId) => {
+                return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
+                    if (!snap) {
+                        return;
+                    }
 
-                // 根據查詢路徑建立回傳的資料結構
-                if (!appsChatroomsMap[appId]) {
-                    appsChatroomsMap[appId] = {
-                        chatrooms: {}
+                    // 根據查詢路徑建立回傳的資料結構
+                    let chatroomsData = snap.val() || {};
+                    appsChatroomsData[appId] = {
+                        chatrooms: chatroomsData
                     };
-                }
-
-                findTasks.push(new Promise((resolve, reject) => {
-                    admin.database().ref('apps/' + appId + '/chatrooms/').once('value', (snap) => {
-                        if (!snap) {
-                            resolve();
-                            return;
-                        }
-
-                        let chatroomsData = snap.val() || {};
-                        appsChatroomsMap[appId].chatrooms = chatroomsData;
-                        resolve();
-                    });
-                }));
-            }
-
-            // 最後的資料結構型式:
-            // {
-            //   ($appId)
-            //   ($appId)
-            //     ⌞chatrooms
-            //       ⌞($chatroomId)
-            //       ⌞($chatroomId)
-            // }
-            return Promise.all(findTasks).then(() => {
-                return appsChatroomsMap;
+                });
+            })).then(() => {
+                // 最後的資料結構型式:
+                // {
+                //   ($appId)
+                //   ($appId)
+                //     ⌞chatrooms
+                //       ⌞($chatroomId)
+                //       ⌞($chatroomId)
+                // }
+                return appsChatroomsData;
             });
         }).then((result) => {
             callback(result || {});
@@ -192,8 +179,7 @@ module.exports = (function() {
         }).catch(() => {
             callback(null);
         });
-
-    }
+    };
 
     /**
      * 根據 user ID 找到chatroom message資訊

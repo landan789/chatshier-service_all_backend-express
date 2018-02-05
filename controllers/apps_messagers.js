@@ -5,34 +5,43 @@ module.exports = (function() {
     const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
 
+    let paramsChecking = function(params) {
+        params = params || {};
+        let userId = params.userid;
+        let appId = params.appid;
+
+        return new Promise((resolve, reject) => {
+            if (!userId) {
+                reject(API_ERROR.USERID_WAS_EMPTY);
+                return;
+            }
+            // 先根據 userId 取得使用者所有設定的 app 清單
+            usersMdl.findAppIdsByUserId(userId, (appIds) => {
+                if (!appIds) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                } else if (appId && -1 === appIds.indexOf(appId)) {
+                    // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(appIds);
+            });
+        });
+    };
+
     function AppsMessagersController() {}
 
     /**
      * 處理取得所有 App 及其所有 Messager 的請求
      */
-    AppsMessagersController.prototype.getAll = function(req, res, next) {
-        let userId = req.params.userid;
+    AppsMessagersController.prototype.getAllMessagers = function(req, res) {
+        let appId = req.params.appid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                // 先根據 userId 取得使用者所有設定的 app 清單
-                usersMdl.findAppIdsByUserId(userId, (appIds) => {
-                    if (!appIds) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(appIds);
-                });
-            });
-        }).then((appIds) => {
+        return paramsChecking(req.params).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.findAppMessagersByAppIds(appIds, (allAppMessagers) => {
+                appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
                     if (!allAppMessagers) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
@@ -57,38 +66,23 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * 處理指定 AppId 取得所有 Messager 的請求
-     */
-    AppsMessagersController.prototype.getAllByAppId = function(req, res, next) {
+    AppsMessagersController.prototype.getMessager = function(req, res) {
         let appId = req.params.appid;
-        let userId = req.params.userid;
+        let msgerId = req.params.messagerid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return paramsChecking(req.params).then(() => {
             return new Promise((resolve, reject) => {
-                if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
+                if (!msgerId) {
+                    reject(API_ERROR.MESSAGERID_WAS_EMPTY);
                     return;
                 }
-                // 先根據 userId 取得使用者所有設定的 app 清單
-                usersMdl.findAppIdsByUserId(userId, (appIds) => {
-                    if (!appIds) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === appIds.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
+
+                appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
+                    if (!messager) {
+                        reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
                     }
-
-                    appsMessagersMdl.findAppMessagersByAppId(appId, (messagers) => {
-                        if (!messagers) {
-                            reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(messagers);
-                    });
+                    resolve(messager);
                 });
             });
         }).then((data) => {
@@ -108,20 +102,35 @@ module.exports = (function() {
         });
     };
 
-    AppsMessagersController.prototype.getByAppIdByMessagerId = function(req, res, next) {
+    /**
+     * 處理更新 messager 基本資料的 API 請求
+     *
+     * @param {Request} req
+     * @param {Response} res
+     */
+    AppsMessagersController.prototype.updateMessager = function(req, res) {
         let appId = req.params.appid;
         let msgerId = req.params.messagerid;
 
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return paramsChecking(req.params).then(() => {
             return new Promise((resolve, reject) => {
                 if (!msgerId) {
                     reject(API_ERROR.MESSAGERID_WAS_EMPTY);
                     return;
                 }
-                appsMessagersMdl.findByAppIdAndMessageId(appId, msgerId, (messager) => {
+
+                // 只允許更新 API 可編輯的屬性
+                let messagerData = {};
+                ('string' === typeof req.body.photo) && (messagerData.photo = req.body.photo);
+                ('number' === typeof req.body.age) && (messagerData.age = req.body.age);
+                ('string' === typeof req.body.email) && (messagerData.email = req.body.email);
+                ('string' === typeof req.body.telephone) && (messagerData.telephone = req.body.telephone);
+                ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
+                ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
+
+                appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
                     if (!messager) {
-                        reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                        reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
                         return;
                     }
                     resolve(messager);
@@ -130,7 +139,7 @@ module.exports = (function() {
         }).then((data) => {
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                 data: data
             };
             res.status(200).json(json);
