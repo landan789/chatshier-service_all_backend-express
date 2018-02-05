@@ -403,7 +403,7 @@ router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:us
 
 router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.getAll);
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
-router.put('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.putOne);
-router.delete('/groups-members/groups/:groupid/members/:memberid//users/:userid', groupsMembersCtl.deleteOne);
+router.put('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.putOne);
+router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.deleteOne);
 
 module.exports = router;

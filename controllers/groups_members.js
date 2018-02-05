@@ -16,6 +16,14 @@ module.exports = (function() {
         var groupId = req.params.groupid;
         var proceed = Promise.resolve();
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+                return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+            };
+        }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(userId, (data) => {
                     var user = data;
@@ -63,13 +71,21 @@ module.exports = (function() {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var postMember = {
-            user_id: req.body.userId || '',
+            user_id: req.body.userid || '',
             status: 0, // 0 邀請中 ; 1 已加入
             type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : READ // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
         };
         var proceed = Promise.resolve();
 
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+                return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+            };
+        }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(req.params.userid, (data) => {
                     var user = data;
@@ -95,7 +111,7 @@ module.exports = (function() {
         }).then((user) => {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
-            if (index >= 0) {
+            if (0 > index) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
             }
         }).then(() => {
@@ -117,19 +133,16 @@ module.exports = (function() {
             var index = userIds.indexOf(req.params.userid);
             var memberId = Object.keys(members)[index];
             var member = members[memberId];
+            if (0 <= userIds.indexOf(req.body.userid)) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
+            }
             if (WRITE === member.type || READ === member.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
             };
+            return Promise.resolve();
         }).then(() => {
-            return Promise((resolve, reject) => {
-                groupsMembersMdl._schema((initMember) => {
-                    resolve(initMember);
-                });
-            });
-        }).then((initMember) => {
-            var member = Object.assign(initMember, postMember);
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.insert(groupId, member, (groupsMembers) => {
+                groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(groupsMembers);
                         return;
@@ -159,7 +172,7 @@ module.exports = (function() {
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
         var putMember = {
-            status: 0 <= [0, 1].indexOf(req.body.status) ? req.body.status : null, // 0 邀請中 ; 1 已加入
+            status: 0 <= [0, 1].indexOf(Number(req.body.status)) ? Number(req.body.status) : null, // 0 邀請中 ; 1 已加入
             type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : null // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
         };
 
@@ -172,6 +185,22 @@ module.exports = (function() {
         var proceed = Promise.resolve();
 
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+                return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.memberid || undefined === req.params.memberid || null === req.params.memberid) {
+                return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
+            };
+
+            if (0 === Object.keys(putMember).length) {
+                return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+            };
+        }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(req.params.userid, (data) => {
                     var user = data;
@@ -185,7 +214,7 @@ module.exports = (function() {
         }).then((user) => {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
-            if (index >= 0) {
+            if (0 > index) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
             }
         }).then(() => {
@@ -208,17 +237,36 @@ module.exports = (function() {
                 return userId;
             });
             var index = userIds.indexOf(req.params.userid);
+
+            if (0 > index) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_IN_THIS_GROUP);
+            }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
             var member = members[_memberId];
             if (1 === putMember.status && _memberId !== memberId) {
                 // 當下使用者只能改變自己的 member.status 狀態，回應邀請
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_MEMBER_STATUS);
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_STATUS);
             };
 
-            if (putMember.type && OWNER !== member.type && ADMIN !== member.type) {
-                // 只有當下使用者為 OWNER 或 ADMIN 才能夠 修改 成員的 權限狀態
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_MEMBER_TYPE);
+            if (OWNER === putMember.type && OWNER === member.type) {
+                // 只有當下使用者為 OWNER 無法使其他成員成為 OWNER
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+            }
+
+            if (OWNER === putMember.type && ADMIN === member.type) {
+                // 當下使用者為 ADMIN 無法修改成員為 OWNER
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+            }
+
+            if (putMember.type && READ === member.type) {
+                // 當下使用者為 READ 不能 修改 成員的 權限狀態
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
+            }
+
+            if (putMember.type && WRITE === member.type) {
+                // 當下使用者為 WRITE 不能夠 修改 成員的 權限狀態
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
@@ -254,6 +302,18 @@ module.exports = (function() {
         var proceed = Promise.resolve();
 
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+                return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.memberid || undefined === req.params.memberid || null === req.params.memberid) {
+                return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
+            };
+        }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(userId, (data) => {
                     var user = data;
@@ -267,7 +327,7 @@ module.exports = (function() {
         }).then((user) => {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
-            if (index >= 0) {
+            if (0 > index) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
             }
         }).then(() => {
@@ -290,12 +350,15 @@ module.exports = (function() {
                 return userId;
             });
             var index = userIds.indexOf(req.params.userid);
+            if (0 > index) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_IN_THIS_GROUP);
+            }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
             var member = members[_memberId];
             if (OWNER !== member.type && ADMIN !== member.type) {
                 // 只有當下使用者為 OWNER 或 ADMIN 才能夠 刪除 成員
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_MEMBER);
+                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {

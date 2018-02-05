@@ -7,19 +7,23 @@ module.exports = (function() {
 
     function GroupsMembersModel() {};
 
-    GroupsMembersModel.prototype._shcema = function(callback) {
+    GroupsMembersModel.prototype._schema = function(callback) {
         var json = {
             user_id: '',
             status: 0, // 0 邀請中 ; 1 已加入
             type: READ, // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
-            isDeleted: 0
+            isDeleted: 0,
+            updatedTime: Date.now(),
+            createdTime: Date.now()
         };
         callback(json);
     };
     GroupsMembersModel.prototype.insert = function(groupId, member, callback) {
+        var memberId;
+
         Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                GroupsMembersModel.prototype._shcema((initMember) => {
+                GroupsMembersModel.prototype._schema((initMember) => {
                     member = Object.assign(initMember, member);
                     resolve(member);
                 });
@@ -27,7 +31,7 @@ module.exports = (function() {
         }).then((member) => {
             return admin.database().ref('groups/' + groupId + '/members').push(member);
         }).then((ref) => {
-            var memberId = ref.key;
+            memberId = ref.key;
             return admin.database().ref('groups/' + groupId + '/members/' + memberId).once('value');
         }).then((snap) => {
             var member = snap.val();
@@ -36,7 +40,6 @@ module.exports = (function() {
             }
             return Promise.resolve(member);
         }).then((member) => {
-            var memberId = member.ref.key;
             var groupsMembers = {
                 [groupId]: {
                     members: {
@@ -85,6 +88,16 @@ module.exports = (function() {
                 }));
             };
 
+            if ('string' === typeof groupId && null === memberIds) {
+                return admin.database().ref('groups/' + groupId + '/members/').once('value').then((snap) => {
+                    members = snap.val();
+                    if (null === members || undefined === members || '' === members) {
+                        return Promise.reject();
+                    };
+                    return Promise.resolve();
+                });
+            };
+
             return Promise.reject();
         }).then(() => {
             callback(members);
@@ -103,7 +116,7 @@ module.exports = (function() {
         Promise.resolve().then(() => {
             if ('string' === typeof groupIds && 'string' === typeof memberId) {
                 var groupId = groupIds;
-                return admin.database().ref('groups/' + groupId + '/members/' + memberId).once('value').then((snap) => {
+                return admin.database().ref('groups/' + groupId + '/members/' + memberId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                     var member = snap.val();
                     if (null === member || undefined === member || '' === member) {
                         return Promise.resolve({});
@@ -125,7 +138,7 @@ module.exports = (function() {
 
             memberId = undefined;
             return Promise.all(groupIds.map((groupId) => {
-                return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
+                return admin.database().ref('groups/' + groupId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                     var group = snap.val();
                     if (null === group || undefined === group || '' === group) {
                         return Promise.resolve(null);
@@ -143,6 +156,7 @@ module.exports = (function() {
         });
     };
     GroupsMembersModel.prototype.update = function(groupId, memberId, member, callback) {
+        member['updatedTime'] = Date.now();
         admin.database().ref('groups/' + groupId + '/members/' + memberId).update(member).then(() => {
             return admin.database().ref('groups/' + groupId + '/members/' + memberId).once('value');
         }).then((snap) => {
@@ -169,7 +183,8 @@ module.exports = (function() {
 
     GroupsMembersModel.prototype.remove = function(groupId, memberId, callback) {
         var deletedMember = {
-            isDeleted: 1
+            isDeleted: 1,
+            updatedTime: Date.now()
         };
         admin.database().ref('groups/' + groupId + '/members/' + memberId).update(deletedMember).then(() => {
             return admin.database().ref('groups/' + groupId + '/members/' + memberId).once('value');

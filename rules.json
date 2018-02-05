@@ -2,58 +2,32 @@
 // user's ID from the Firebase auth token
 {
     "rules": {
-        "apps": { // Line, Fb, ... App
+        "apps": {
             ".read": true,
-            ".write": "data.child('user_id').val() === auth.uid || true"
+            ".write": true,
+            "$app_id": {
+                ".indexOn": "isDeleted"
+            }
         },
         "users": {
             ".read": true,
             ".write": true,
-            "$uid": {
-                ".read": "$uid === auth.uid",
-                ".write": "$uid === auth.uid"
+            "$user_id": {
+                ".read": "$user_id === auth.uid",
+                ".write": "$user_id === auth.uid"
             }
         },
-        "tickets": {
-            "$uid": {
-                ".read": "$uid === auth.uid",
-                ".write": "$uid === auth.uid"
+        "groups": {
+            "$group_id": {
+                ".indexOn": "isDeleted",
+                "members": {
+                    "$member_id": {
+                        ".indexOn": "isDeleted"
+                    }
+                }
             }
         },
         "calendars": {
-            ".read": true,
-            ".write": true
-        },
-        "chats": {
-            ".read": true,
-            ".write": true,
-            "Data": {
-                ".read": true,
-                ".write": true
-            },
-            "AgentChatData": {
-                ".read": true,
-                ".write": true
-            }
-        },
-
-        "tags": {
-            ".read": true,
-            ".write": true
-        },
-        "autoreplies": {
-            ".read": true,
-            ".write": true
-        },
-        "message-overview": {
-            ".read": true,
-            ".write": true
-        },
-        "message-addfriendsreply": {
-            ".read": true,
-            ".write": true
-        },
-        "message-keywordsreply": {
             ".read": true,
             ".write": true
         },
