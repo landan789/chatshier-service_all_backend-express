@@ -69,32 +69,33 @@ module.exports = (function() {
         proceed.then(() => {
             return linebot.getMessageContent(event.message.id);
         }).then((stream) => {
+            let bufs = [];
             stream.on('data', (chunk) => {
-                let url = chunk.toString('base64');
+                bufs.push(chunk);
+            }).on('end', () => {
+                let buf = Buffer.concat(bufs);
+                let data = buf.toString('base64');
+                let url;
                 switch (event.message.type) {
                     case 'image':
-                        let imageUrl = 'data:image/png;base64,' + url;
-                        callback(imageUrl);
+                        url = 'data:image/png;base64, ' + data;
                         break;
                     case 'audio':
-                        let audioUrl = 'data:audio/mp4;base64,' + url;
-                        callback(audioUrl);
+                        url = 'data:audio/m4a;base64, ' + data;
                         break;
                     case 'video':
-                        let videoUrl = 'data:video/mp4;base64,' + url;
-                        callback(videoUrl);
+                        url = 'data:video/mp4;base64, ' + data;
                         break;
                     case 'location':
                         let latitude = event.message.latitude;
                         let longitude = event.message.longitude;
-                        let locationUrl = 'https://www.google.com.tw/maps/place/' + url + '/@' + latitude + ',' + longitude + ',15z/data=!4m5!3m4!1s0x0:0x496596e7748a5757!8m2!3d' + latitude + '!4d' + longitude;
-                        callback(locationUrl);
+                        url = 'https://www.google.com.tw/maps/place/' + url + '/@' + latitude + ',' + longitude + ',15z/data=!4m5!3m4!1s0x0:0x496596e7748a5757!8m2!3d' + latitude + '!4d' + longitude;
                         break;
                     case 'sticker':
                         let stickerId = event.message.stickerId;
-                        let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
-                        callback(stickerUrl);
+                        url = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                 }
+                callback(url);
             });
             stream.on('error', (err) => {
                 console.log(err);

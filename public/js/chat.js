@@ -233,7 +233,7 @@ $(document).ready(function() {
                     for (let u in user_ids[a]) {
                         let userId = user_ids[a][u];
                         let profile = user_profile[a][u];
-                        let message = messages[appId][user_profile[a][u].chatroom_id];
+                        let message = Object.assign({}, messages[appId][user_profile[a][u].chatroom_id]);
                         pushMsg({ profile: profile, obj: message, userId: userId, appId: appId }, () => {
                             pushInfo({ profile: profile, obj: message, userId: userId, appId: appId });
                         });
@@ -291,7 +291,7 @@ $(document).ready(function() {
             let profile = data.profile;
             let historyMsgStr = '';
             if (Object.keys(historyMsg).length < 10) {
-                historyMsgStr += NO_HISTORY_MSG; //history message string head
+                historyMsgStr += NO_HISTORY_MSG; // history message string head
             }
             historyMsgStr += historyMsgToStr(historyMsg);
             $('#user-rooms').append('<option value="' + data.userId + '">' + profile.name + '</option>'); // new a option in select bar
@@ -333,9 +333,13 @@ $(document).ready(function() {
         let nowDateStr = '';
         let prevTime = 0;
         for (let i in messages) {
+            if (undefined === messages[i].text || null === messages[i].text || '' === messages[i].text) {
+                let url = messages[i].url;
+                messages[i].text = '<img src="' + url + '" style="width: 100%; max-width: 500px;" />';
+            }
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
             let d = new Date(messages[i].time).toDateString(); // get msg's date
-            if (d != nowDateStr) {
+            if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
                 returnStr += "<p class='message-day'><strong>" + nowDateStr + '</strong></p>'; // plus date info
@@ -626,11 +630,15 @@ $(document).ready(function() {
                 proceed.then(() => {
                     let message = Object.assign({}, msgs[msgKeys[index]]);
                     return new Promise((resolve, reject) => {
-                        if (undefined !== message.text) {
+                        if (undefined !== message.text || null !== message.text || '' !== message.text) {
                             resolve(message);
                             return;
                         }
                         let url = message.url;
+                        let newUrl = '<img src="' + url + '" style="width: 100%; max-width: 500px;" />';
+                        message.text = newUrl;
+                        console.log(message);
+                        resolve(message);
                         // 按照檔案的類型塞進不同的html tag然後放進 message.text
                     });
                 }).then((message) => {
