@@ -14,7 +14,6 @@ module.exports = (function() {
      */
     AppsGreetingsController.prototype.getAll = (req, res) => {
         var userId = req.params.userid;
-        var appId = req.params.appid;
         var proceed = new Promise((resolve, reject) => {
             resolve();
         });
@@ -35,20 +34,11 @@ module.exports = (function() {
                     });
                 });
             })
-            .then((appIds) => { // 判斷user中是否有目前appId
+            .then((appIds) => { // 取得appIds下所有greetings
                 return new Promise((resolve, reject) => {
-                    if (false === appIds.includes(appId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                        return;
-                    }
-                    resolve();
-                });
-            })
-            .then(() => { // 取得目前appId下所有greetings
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.findAll(appId, (data) => {
+                    appsGreetingsMdl.findAll(appIds, (data) => {
                         if (null === data || '' === data || undefined === data) {
-                            reject(API_ERROR.GREETING_NOT_EXISTS);
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                             return;
                         }
                         resolve(data);
@@ -79,7 +69,6 @@ module.exports = (function() {
      */
     AppsGreetingsController.prototype.getOne = (req, res) => {
         var userId = req.params.userid;
-        var greetingId = req.params.greetingid;
         var appId = req.params.appid;
 
         var proceed = new Promise((resolve, reject) => {
@@ -111,32 +100,11 @@ module.exports = (function() {
                     resolve();
                 });
             })
-            .then(() => { // 取得目前appId下所有greetingIds
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.findGreetings(appId, (data) => {
-                        if (null === data || '' === data || undefined === data) {
-                            reject(API_ERROR.GREETING_NOT_EXISTS);
-                            return;
-                        }
-                        var greetingIds = Object.keys(data);
-                        resolve(greetingIds);
-                    });
-                });
-            })
-            .then((greetingIds) => { // 判斷appId中是否有目前greetingId
-                return new Promise((resolve, reject) => {
-                    if (false === greetingIds.includes(greetingId)) {
-                        reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_GREETING);
-                        return;
-                    }
-                    resolve();
-                });
-            })
             .then(() => { // 取得目前greeting
                 return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.findOne(appId, greetingId, (data) => {
+                    appsGreetingsMdl.find(appId, (data) => {
                         if (null === data || '' === data || undefined === data) {
-                            reject(API_ERROR.GREETING_NOT_EXISTS);
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                             return;
                         }
                         resolve(data);
@@ -210,7 +178,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsGreetingsMdl.insert(appId, postGreeting, (result) => {
                         if (false === result) {
-                            reject(API_ERROR.GREETING_INSERT_FAIL);
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
                             return;
                         }
                         resolve(result);
@@ -280,7 +248,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsGreetingsMdl.findGreetings(appId, (data) => {
                         if (null === data || '' === data || undefined === data) {
-                            reject(API_ERROR.GREETING_NOT_EXISTS);
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                             return;
                         }
                         var greetingIds = Object.keys(data);
@@ -301,7 +269,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsGreetingsMdl.remove(appId, greetingId, (result) => {
                         if (false === result) {
-                            reject(API_ERROR.GREETING_DELETE_FAIL);
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
                         }
                         resolve(result);
                     });

@@ -97,8 +97,8 @@ router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.de
 
 // ==========
 // 加好友回覆
-router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getAll);
-router.get('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.getOne);
+router.get('/apps-greetings/users/:userid', appsGreetingsCtl.getAll);
+router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getOne);
 router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOne);
 router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========

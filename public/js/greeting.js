@@ -54,6 +54,7 @@ function loadAppIdNames() {
 
 function find() {
     $('#MsgCanvas').empty();
+    rowCount = 0;
     var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     appId = $(this).find(':selected').attr('id'); // appId為全域變數
