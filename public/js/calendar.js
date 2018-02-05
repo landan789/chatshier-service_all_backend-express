@@ -84,6 +84,7 @@
         // 初始化 fullCalendar 元件
         $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
         $calendar.fullCalendar({
+            locale: 'zh-tw',
             theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
             buttonIcons: {
                 prev: 'circle-triangle-w',
