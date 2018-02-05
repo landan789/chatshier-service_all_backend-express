@@ -18,6 +18,7 @@ var appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 var users = require('../models/users');
 var utility = require('../helpers/utility');
 var helpersFacebook = require('../helpers/facebook');
+var helpersBot = require('../helpers/bot');
 var webhookMdl = require('../models/webhooks');
 var appsMdl = require('../models/apps');
 var appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
@@ -297,42 +298,51 @@ function init(server) {
                 });
             });
         }).then((messager) => {
+            var text, type;
+            return new Promise((resolve, reject) => {
+                switch (req.app.type) {
+                    case LINE:
+                        text = req.body.events[0].message.text;
+                        type = req.body.events[0].message.type;
+                        break;
+                    case FACEBOOK:
+                        text = req.body.entry[0].messaging[0].message.text;
+                        type = 'text';
+                        break;
+                };
+                var inMessage = {
+                    text: text,
+                    type: type,
+                    from: (req.app.type).toUpperCase(),
+                    messager_id: req.messagerId
+                };
+                resolve({messager, inMessage});
+            });
+        }).then((data) => {
+            let messager = data.messager;
+            let inMessage = data.inMessage;
+            return new Promise((resolve, reject) => {
+                switch (req.app.type) {
+                    case LINE:
+                        let messageEvent = req.body.events[0];
+                        helpersBot.lineMessageType(req.lineBot, messageEvent, inMessage, (newMessage) => {
+                            resolve({messager: messager, inMessage: newMessage});
+                        });
+                        break;
+                    case FACEBOOK:
+                        let message = req.body.entry[0].messaging[0].message;
+                        helpersBot.facebookMessageType(message, inMessage, (newMessage) => {
+                            resolve({messager: messager, inMessage: newMessage});
+                        });
+                        break;
+                }
+            });
+        }).then((data) => {
+            let messager = data.messager;
+            let inMessage = data.inMessage;
             var chatroomId = messager.chatroom_id;
-            var text;
-            var type;
-            switch (req.app.type) {
-                case LINE:
-                    text = req.body.events[0].message.text;
-                    type = req.body.events[0].message.type;
-                    break;
-                case FACEBOOK:
-                    text = req.body.entry[0].messaging[0].message.text;
-                    type = req.body.entry[0].messaging[0].message.text;
-                    break;
-            };
-
-            var inMessage = {
-                text: text,
-                type: type,
-                from: (req.app.type).toUpperCase(),
-                messager_id: req.messagerId
-            };
-            switch (req.app.type) {
-                case LINE:
-                    // utility.lineType(lineBot, req.body.events[0].message.id, (message) => {
-                    //     inMessage.text = message;
-                    // });
-                    let message = req.body.events[0].message.text;
-                    inMessage.text = message;
-                    break;
-                case FACEBOOK:
-                    utility.fbMsgType(req.body.entry[0].messaging[0].message, (message) => {
-                        inMessage.text = message;
-                    });
-                    break;
-            }
-            // 回復訊息與傳入訊息都整合，再寫入 DB
             req.messages.unshift(inMessage);
+            // 回復訊息與傳入訊息都整合，再寫入 DB
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
                 if (LINE !== message.from && FACEBOOK !== message.from) {
@@ -352,7 +362,7 @@ function init(server) {
                             resolve(null);
                             return;
                         }
-                        resolve(message);
+                        resolve();
                     });
                 });
             })).then(() => {
@@ -474,6 +484,8 @@ function init(server) {
         socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
             let vendor = data.data;
             let msg = vendor.msg;
+            let url = vendor.url;
+            let textType = vendor.textType;
             let receiverId = data.userId; // 客戶或是專員的ID
             let agentName = socket.nickname ? socket.nickname : 'agent';
             let msgTime = vendor.msgTime;
@@ -536,11 +548,12 @@ function init(server) {
                 return new Promise((resolve, reject) => {
                     let message = {
                         owner: 'agent',
-                        name: agentName,
+                        type: textType,
                         time: undefined === msgTime ? msgTime : Date.now(),
                         text: msg,
-                        from: vendor.type,
-                        messager_id: receiverId
+                        from: 'CHATSHIER',
+                        messager_id: receiverId,
+                        url: '' === msg ? url : ''
                     };
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (newChatroomId) => {
                         if (null === newChatroomId || undefined === newChatroomId || '' === newChatroomId) {
@@ -704,10 +717,6 @@ function init(server) {
             let time = Date.now();
             Profile.firstChat = time;
             Profile.recentChat = time;
-        });
-        // 5.撈出內部聊天室紀錄
-        socket.on('request internal chat data', (data, callback) => {
-            requestInternalChatData(data, callback);
         });
 
         // 內部聊天室傳訊息

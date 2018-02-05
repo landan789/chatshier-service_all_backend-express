@@ -667,6 +667,30 @@ window.auth.ready.then(function(currentUser) {
         let prevTime = 0;
 
         for (let i in messages) {
+            if (undefined === messages[i].text || null === messages[i].text || '' === messages[i].text) {
+                switch (messages[i].type) {
+                    case 'image':
+                        let imageUrl = messages[i].url;
+                        messages[i].text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
+                        break;
+                    case 'audio':
+                        let audioUrl = messages[i].url;
+                        messages[i].text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
+                        break;
+                    case 'video':
+                        let videoUrl = messages[i].url;
+                        messages[i].text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                        break;
+                    case 'sticker':
+                        let stickerUrl = messages[i].url;
+                        messages[i].text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
+                        break;
+                    case 'location':
+                        let locationUrl = messages[i].url;
+                        messages[i].text = '<a target="_blank" href="' + locationUrl + '">location</a>';
+                        break;
+                }
+            }
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
             let d = new Date(messages[i].time).toDateString(); // get msg's date
             if (d !== nowDateStr) {
@@ -1066,19 +1090,56 @@ window.auth.ready.then(function(currentUser) {
         }
 
         return Promise.all(msgKeys.map(function(msgKey) {
-            return api.messager.getOne(appId, Uid, agentId).then((resJson) => {
-                var messager = resJson.data;
-                var $room = $('.chat-app-item[rel="' + appId + '"]');
-
-                if ($room.length !== 0) {
-                    displayMessage(messager, messages[msgKey], Uid, appId); // update 聊天室
-                    displayClient(messager, messages[msgKey], Uid, appId); // update 客戶清單
-                    displayInfo(messager, messages[msgKey], Uid, appId);
-                    if (-1 === nameList.indexOf(Uid + appId)) {
-                        nameList.push(Uid + appId);
+            let proceed = Promise.resolve();
+            let message = Object.assign({}, messages[msgKey]);
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    switch (message.type) {
+                        case 'text':
+                            resolve(message);
+                            break;
+                        case 'image':
+                            let imageUrl = message.url;
+                            message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
+                            resolve(message);
+                            break;
+                        case 'audio':
+                            let audioUrl = message.url;
+                            message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
+                            resolve(message);
+                            break;
+                        case 'video':
+                            let videoUrl = message.url;
+                            message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                            resolve(message);
+                            break;
+                        case 'sticker':
+                            let stickerUrl = message.url;
+                            message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
+                            resolve(message);
+                            break;
+                        case 'location':
+                            let locationUrl = message.url;
+                            message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
+                            resolve(message);
+                            break;
                     }
-                }
-            });
+                });
+            }).then((message) => {
+                return api.messager.getOne(appId, Uid, agentId).then((resJson) => {
+                    var messager = resJson.data;
+                    var $room = $('.chat-app-item[rel="' + appId + '"]');
+    
+                    if ($room.length !== 0) {
+                        displayMessage(messager, message, Uid, appId); // update 聊天室
+                        displayClient(messager, message, Uid, appId); // update 客戶清單
+                        displayInfo(messager, message, Uid, appId);
+                        if (-1 === nameList.indexOf(Uid + appId)) {
+                            nameList.push(Uid + appId);
+                        }
+                    }
+                });
+            }).catch(() => {});
         }));
     });
     socket.on('new internal message', (data) => {
@@ -1352,7 +1413,7 @@ window.auth.ready.then(function(currentUser) {
                         messageInput.val('');
                         var data = {
                             ...apps,
-                            msg: msg,
+                            msg: '',
                             url: url,
                             textType: textType,
                             type: appType,
@@ -1371,7 +1432,7 @@ window.auth.ready.then(function(currentUser) {
         let msg;
         switch (type) {
             case 'image':
-                msg = '<img src="' + url + '" style="height:100px;width:100px;"/>';
+                msg = '<img src="' + url + '" style="width: 100%; max-width: 500px;"/>';
                 callback(msg);
                 break;
             case 'audio':
@@ -1575,7 +1636,7 @@ window.auth.ready.then(function(currentUser) {
         if (data.message.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
         } else if (data.message.startsWith('<img')) {
-            target.find("#msg").html(toTimeStr(data.time) + '貼圖'); // 未讀訊息字體變大
+            target.find("#msg").html(toTimeStr(data.time) + '檔案'); // 未讀訊息字體變大
         } else {
             target.find("#msg").html(toTimeStr(data.time) + loadMessageInDisplayClient(data.message)); // 未讀訊息字體變大
         }
@@ -1908,4 +1969,22 @@ window.auth.ready.then(function(currentUser) {
         }
     } // end of statusTextToMark
     //=====end utility function
-});
+
+    function findMessagerProfile(appId, msgerId, callback) {
+        var jwt = localStorage.getItem('jwt');
+        $.ajax({
+            type: 'GET',
+            url: '/api/apps-messagers/apps/' + appId + '/messager/' + msgerId,
+            headers: {
+                'Authorization': jwt
+            },
+            success: (data) => {
+                callback(data);
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        });
+    } // end of findMessagerProfile
+
+}); //document ready close

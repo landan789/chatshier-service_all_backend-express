@@ -4,10 +4,10 @@ module.exports = (function() {
     /**
      * 回覆訊息
      *
-     * @param {Object} fbBot 
-     * @param {string} psid 
-     * @param {string} msgStr 
-     * @param {Function} callback 
+     * @param {Object} fbBot
+     * @param {string} psid
+     * @param {string} msgStr
+     * @param {Function} callback
      */
     Facebook.prototype.replyMessages = function(fbBot, psid, msgStr, callback) {
         sendMessage(0, callback);
