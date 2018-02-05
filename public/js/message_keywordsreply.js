@@ -2,12 +2,15 @@
 
 (function() {
     var userId = '';
+    var appId = '';
     var allKeywordreplyData = {};
+    var keywordrepliesData = {};
     var api = window.restfulAPI;
 
     var $jqDoc = $(document);
     var $keywordreplyAddModal = $('#keywordreply_add_modal');
     var $keywordreplyEditModal = $('#keywordreply_edit_modal');
+    var $appIdNames = $('#appId-names');
     var $openTableElem = null;
     var $draftTableElem = null;
     var $appSelector = null;
@@ -15,12 +18,18 @@
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
+        loadAppIdNames();
+
         $jqDoc.on('click', '.tablinks', function switchTable(ev) {
             var targetTableId = $(this).attr('rel');
             $('#' + targetTableId).show().siblings().hide();
             $(ev.target).addClass('enabled').siblings().removeClass('enabled');
         });
 
+        $jqDoc.on('change', '#appId-names', function() {
+            var appId = $appIdNames.find(':selected').attr('id');
+            loadKeywordsReplies(appId, userId);
+        });
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
@@ -45,7 +54,7 @@
             var targetRow = $(event.relatedTarget).parent().parent();
             var appId = targetRow.prop('title');
             var keywordreplyId = targetRow.prop('id');
-            var targetData = allKeywordreplyData[appId].keywordreplies[keywordreplyId];
+            var targetData = keywordrepliesData[keywordreplyId];
 
             var $editForm = $keywordreplyEditModal.find('.modal-body form');
             $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
@@ -68,7 +77,7 @@
 
                 return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
-                    return loadKeywordsReplies();
+                    return loadKeywordsReplies(appId, userId);
                 });
             });
         });
@@ -76,52 +85,67 @@
 
         $openTableElem = $('#keywordreply_open_table tbody');
         $draftTableElem = $('#keywordreply_draft_table tbody');
-        return loadKeywordsReplies().then(function() {
+        return loadKeywordsReplies(appId, userId).then(function() {
             // 資料確定載入完成後才開放新增按鈕供使用者點擊
             $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled');
         });
     });
 
-    function loadKeywordsReplies() {
-        // 先取得使用者所有的 AppId 清單更新至本地端
+    function loadAppIdNames() {
         return api.chatshierApp.getAll(userId).then(function(resJson) {
             allKeywordreplyData = resJson.data;
+            for (let appId in allKeywordreplyData) {
+                var app = allKeywordreplyData[appId];
+                let option = $('<option>').text(app.name).attr('id', appId);
+                $appIdNames.append(option);
+            }
+        });
+    }
+
+    var TableObj = function() {
+        this.tr = $('<tr>');
+        this.th = $('<th>');
+        this.td1 = $('<td>');
+        this.td2 = $('<td>');
+        this.td3 = $('<td>');
+        this.UpdateBtn = $('<button>').attr('type', 'button')
+            .addClass('btn btn-default fa fa-pencil')
+            .attr('id', 'edit-btn')
+            .attr('data-toggle', 'modal')
+            .attr('data-target', '#keywordreply_edit_modal')
+            .attr('aria-hidden', 'true');
+        this.DeleteBtn = $('<button>').attr('type', 'button')
+            .addClass('btn btn-default fa fa-trash-o')
+            .attr('id', 'delete-btn');
+    };
+
+    function loadKeywordsReplies(appId, userId) {
+        // 先取得使用者所有的 AppId 清單更新至本地端
+        return api.keywordreply.getOne(appId, userId).then(function(resJson) {
+            keywordrepliesData = resJson.data;
             $openTableElem.empty();
             $draftTableElem.empty();
 
-            for (var appId in allKeywordreplyData) {
-                var keywordrepliesData = allKeywordreplyData[appId].keywordreplies;
-                if (!keywordrepliesData) {
+            for (var keywordreplyId in keywordrepliesData) {
+                var keywordreplyData = keywordrepliesData[keywordreplyId];
+                if (keywordreplyData.isDeleted) {
                     continue;
                 }
 
-                for (var keywordreplyId in keywordrepliesData) {
-                    var keywordreplyData = keywordrepliesData[keywordreplyId];
-                    if (keywordreplyData.isDeleted) {
-                        continue;
-                    }
-
-                    var htmlTemplate =
-                        '<tr id="' + keywordreplyId + '" title="' + appId + '">' +
-                            '<td>' + keywordreplyData.keyword + '</td>' +
-                            '<td>' + keywordreplyData.text + '</td>' +
-                            '<td>' + keywordreplyData.replyCount + '</td>' +
-                            '<td>' + allKeywordreplyData[appId].name + '</td>' +
-                            '<td>' +
-                                '<a class="btn-feature" data-toggle="modal" data-target="#keywordreply_edit_modal">編輯</a>' +
-                                '<a class="btn-feature btn-row-delete">刪除</a>' +
-                            '</td>' +
-                        '</tr>';
-
-                    if (!keywordreplyData.status) {
-                        $draftTableElem.append(htmlTemplate);
-                    } else {
-                        $openTableElem.append(htmlTemplate);
-                    }
+                var list = new TableObj();
+                var keyword = list.th.text(keywordreplyData.keyword);
+                var text = list.td1.text(keywordreplyData.text);
+                var replyCount = list.td2.text(keywordreplyData.replyCount);
+                var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
+                var trGrop = list.tr.attr('id', keywordreplyId).attr('title', appId).append(keyword, text, replyCount, btns);
+                if (!keywordreplyData.status) {
+                    $draftTableElem.append(trGrop);
+                } else {
+                    $openTableElem.append(trGrop);
                 }
             }
 
-            $jqDoc.find('td .btn-row-delete').off('click').on('click', function(event) {
+            $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
                 var targetRow = $(event.target).parent().parent();
                 var appId = targetRow.prop('title');
                 var keywordreplyId = targetRow.prop('id');
@@ -132,7 +156,7 @@
                     }
 
                     return api.keywordreply.remove(appId, keywordreplyId, userId).then(function() {
-                        return loadKeywordsReplies();
+                        return loadKeywordsReplies(appId, userId);
                     });
                 });
             });
@@ -145,6 +169,7 @@
         var textContent = $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val();
         var isDraft = $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked');
         var $errorMsgElem = $keywordreplyAddModal.find('.text-danger.error-msg');
+        $appIdNames.find('option').removeAttr('selected');
 
         // ==========
         // 檢查資料有無輸入
@@ -173,7 +198,8 @@
 
         return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
-            return loadKeywordsReplies();
+            $appIdNames.find('option#' + appId).attr('selected', 'selected');
+            return loadKeywordsReplies(appId, userId);
         });
     }
 

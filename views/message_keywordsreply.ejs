@@ -146,7 +146,12 @@
                 </div>
 
                 <div class="padding-lr" id="view-all">
-            
+                    <div class="search-add">
+                        <span class="icon"><i class="fa fa-search"></i></span>
+                        <input type="text" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                        <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true"></button>
+                        <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
+                    </div>
                     <div class="tab-wrapper">
                         <div class="tab">
                             <button class="tablinks enabled" rel="keywordreply_open_table">開放</button>
@@ -154,27 +159,25 @@
                         </div>
                     </div>
             
-                    <div class="keywordreply-table-wrapper">
-                        <table class="keywordreply-table" id="keywordreply_open_table">
+                    <div class="table">
+                        <table class="bookmark chsr table" id="keywordreply_open_table">
                             <thead>
                                 <tr>
                                     <th>關鍵字</th>
                                     <th>內容</th>
                                     <th>回應次數</th>
-                                    <th>App</th>
                                     <th>編輯</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
             
-                        <table class="keywordreply-table" id="keywordreply_draft_table" hidden>
+                        <table class="bookmark chsr table" id="keywordreply_draft_table" hidden>
                             <thead>
                                 <tr>
                                     <th>關鍵字</th>
                                     <th>內容</th>
                                     <th>回應次數</th>
-                                    <th>App</th>
                                     <th>編輯</th>
                                 </tr>
                             </thead>

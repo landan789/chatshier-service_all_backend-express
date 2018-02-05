@@ -97,6 +97,57 @@ label *:not(strong) {
     word-wrap: break-word;
 }
 
+.bookmark.chsr.table {
+    border-top: 2px solid #ddd;
+    border-left: 2px solid #ddd;
+    border-right: 2px solid #ddd;
+}
+
+.tab-wrapper {
+    float: top;
+    margin: 4% 0 0;
+}
+
+.tab {
+    background-color: #f1f1f1;
+    height: auto;
+}
+/* Style the buttons inside the tab */
+
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 17px;
+}
+/* Change background color of buttons on hover */
+
+.tab button:hover {
+    background-color: #ddd;
+}
+/* Create an active/current tablink class */
+
+.tab button.active {
+    background-color: #ccc;
+}
+
+.tab .tablinks {
+    padding: 1.5%;
+    margin: 0;
+    border-top: 2px solid #ddd;
+    border-left: 2px solid #ddd;
+    border-right: 2px solid #ddd;
+}
+
+.tab .tablinks.enabled {
+    background-color: #ddd;
+}
+/* Style the tab content */
+
 .pagebtn {
     text-align: right;
 }
