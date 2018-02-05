@@ -1,16 +1,5 @@
 var utility = {};
 
-var languageList = require("../config/tag-language.json");
-utility.translateTag = (prop, langA, langB) => {
-    for (let i = 0; i < languageList.length; i++) {
-        let data = languageList[i];
-        if (data[langA] === prop) {
-            if (data[langB]) return data[langB];
-            else return prop;
-        }
-    }
-    return prop;
-}
 utility.isUrl = str => {
     if (str.indexOf('.com') !== -1) return true;
     else if (str.indexOf('.edu') !== -1) return true;

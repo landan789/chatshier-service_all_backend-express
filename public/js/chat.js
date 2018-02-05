@@ -15,6 +15,7 @@ const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
+
 var agentId = ''; // agent的ID
 var nameList = []; // list of all users
 var userProfiles = []; // array which store all user's profile
@@ -164,23 +165,27 @@ var ticketTableCtrl = (function() {
         $ticketBody.empty();
 
         return api.ticket.getOne(appId, userId).then(function(resJson) {
-            ticketsData = resJson.data[appId].tickets;
+            var appData = resJson.data;
 
-            for (var ticketId in ticketsData) {
-                var ticketData = ticketsData[ticketId];
-                if (ticketData.isDeleted) {
-                    continue;
+            if (appData && appData[appId] && appData[appId].tickets) {
+                ticketsData = appData[appId].tickets;
+
+                for (var ticketId in ticketsData) {
+                    var ticketData = ticketsData[ticketId];
+                    if (ticketData.isDeleted) {
+                        continue;
+                    }
+
+                    var dueTimeDateStr = new Date(ticketData.dueTime - timezoneGap).toISOString().split('T').shift();
+                    $ticketBody.prepend(
+                        '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
+                            '<td class="status" style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + statusNumberToText(ticketData.status) + '</td>' +
+                            '<td>' + dueTimeDateStr + '</td>' +
+                            '<td>' + ((ticketData.description.length <= 10) ? ticketData.description : (ticketData.description.substring(0, 10) + '...')) + '</td>' +
+                            '<td></td>' +
+                        '</tr>'
+                    );
                 }
-
-                var dueTimeDateStr = new Date(ticketData.dueTime - timezoneGap).toISOString().split('T').shift();
-                $ticketBody.prepend(
-                    '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                        '<td class="status" style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + statusNumberToText(ticketData.status) + '</td>' +
-                        '<td>' + dueTimeDateStr + '</td>' +
-                        '<td>' + ((ticketData.description.length <= 10) ? ticketData.description : (ticketData.description.substring(0, 10) + '...')) + '</td>' +
-                        '<td></td>' +
-                    '</tr>'
-                );
             }
 
             // 待辦事項載入完成後，由於相依的 appId 可能變更，因此將以下的事件重新綁定
@@ -447,9 +452,9 @@ window.auth.ready.then(function(currentUser) {
 
     var appsDataPromise = api.chatshierApp.getAll(agentId);
 
-    Promise.all([socketDataPromise, appsDataPromise]).then(function(resp) {
-        var socketData = resp[0];
-        var apiData = resp[1].data;
+    Promise.all([socketDataPromise, appsDataPromise]).then(function(promiseResults) {
+        var socketData = promiseResults[0];
+        var apiData = promiseResults[1].data;
         appsData = {};
         tagsData = {};
 
@@ -660,6 +665,7 @@ window.auth.ready.then(function(currentUser) {
         let returnStr = '';
         let nowDateStr = '';
         let prevTime = 0;
+
         for (let i in messages) {
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
             let d = new Date(messages[i].time).toDateString(); // get msg's date
@@ -673,7 +679,7 @@ window.auth.ready.then(function(currentUser) {
                 returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
             }
             prevTime = messages[i].time;
-            if (SYSTEM === messages[i].from || CHATSHIER === messages[i].from) {
+            if (SYSTEM === messages[i].from || CHATSHIER === messages[i].from || 'agent' === messages[i].owner) {
                 // plus every history msg into string
                 returnStr += toAgentStr(messages[i].text, messages[i].time);
             } else returnStr += toUserStr(messages[i].text, messages[i].time);

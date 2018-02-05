@@ -15,7 +15,6 @@ var appsAutorepliesMdl = require('../models/apps_autoreplies');
 var linetemplate = require('../models/linetemplate');
 var chats = require('../models/chats');
 var appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
-var tags = require('../models/tags');
 var users = require('../models/users');
 var utility = require('../helpers/utility');
 var helpersFacebook = require('../helpers/facebook');
@@ -53,7 +52,6 @@ function init(server) {
     var addFriendBroadcastMsg; // 加好友參數
     let bot = []; // LINE bot設定
     var userId;
-    let appData = [];
     var nickname;
     var channelIds = [-1, -1, -1];
     var overview = {};
@@ -386,112 +384,27 @@ function init(server) {
         socket.on('request chat init data', (frontData, callback) => {
             nickname = socket.nickname;
             userId = frontData.id;
-            var proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
 
-            proceed
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        if ('' === userId || null === userId) {
-                            reject(API_ERROR.USERID_WAS_EMPTY);
-                            return;
-                        }
-                        users.findAppIdsByUserId(userId, (appIds) => {
-                            if (null === appIds || undefined === appIds) {
-                                reject(API_ERROR.APPID_WAS_EMPTY);
-                            } else {
-                                resolve(appIds);
-                            }
-                        })
-                    });
-                })
-                .then((appIds) => {
-                    return new Promise((resolve, reject) => {
-                        appsMdl.findAppsByAppIds(appIds, (data) => {
-                            if (null === data || undefined === data || '' === data) {
-                                reject();
-                                return;
-                            }
-                            resolve(data);
-                            appData = [];
-                            for (let i in appIds) {
-                                appData[i] = {
-                                    id: data[appIds[i]].id1,
-                                    token: data[appIds[i]].token1,
-                                    secret: data[appIds[i]].secret,
-                                    type: data[appIds[i]].type
-                                };
-                            }
+            return new Promise((resolve, reject) => {
+                if (!userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
 
-                        })
-                    })
-                })
-            let allObj = {};
-            let loadTags = new Promise((resolve, reject) => {
-                requestTags((data) => {
-                    allObj.tagsData = data;
-                    resolve();
+                let waitTimer = setTimeout(reject, WAIT_TIME, 'internal network too slow');
+                requestInternalChatData(userId, (internalChatData) => {
+                    clearTimeout(waitTimer);
+                    resolve(internalChatData);
                 });
-                setTimeout(reject, WAIT_TIME, "tag network too slow");
-            });
-
-            loadTags
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        requestInternalChatData(userId, (data) => {
-                            allObj.internalChatData = data;
-                            resolve();
-                        });
-                        setTimeout(reject, WAIT_TIME, "internal network too slow");
-                    });
-                })
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        users.findUserByUserId(userId, data => {
-                            resolve(data);
-                        });
-                        setTimeout(reject, WAIT_TIME, "get user network too slow");
-                    });
-                })
-                .then((data) => {
-                    var appIds = data.app_ids;
-                    return new Promise((resolve, reject) => {
-                        appsMdl.findAppsByAppIds(appIds, (data) => {
-                            var apps = data;
-                            if (null === apps || '' === apps || undefined === apps) {
-                                reject(API_ERROR.APPID_WAS_EMPTY);
-                            }
-                            resolve(apps);
-                        });
-                        setTimeout(reject, WAIT_TIME, "find app network too slow");
-                    });
-                })
-                .then(data => {
-                    return new Promise((resolve, reject) => {
-                        allObj.appsData = data;
-                        resolve();
-                    });
-                })
-                .then(() => {
-                    callback(allObj);
-                })
-                .catch(reason => {
-                    callback(reason);
-                });
-        });
-
-        socket.on('request tags', (callback) => {
-            tags.get(function(tagsData) {
-                callback(tagsData);
+            }).then((promiseResult) => {
+                let socketRespData = {
+                    internalChatData: promiseResult
+                };
+                callback(socketRespData);
+            }).catch((reason) => {
+                callback(reason);
             });
         });
-
-        function requestTags(callback) {
-            tags.get(function(tagsData) {
-                callback(tagsData);
-            });
-        } // end of requestTags
 
         function requestInternalChatData(userId, callback) {
             let thisAgentData = [];
