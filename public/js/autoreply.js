@@ -1,5 +1,6 @@
-var domain = location.host;
 // jQuery
+var $appDropdown = $('.app-dropdown');
+var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 $(document).ready(function() {
     // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失
@@ -28,7 +29,6 @@ $(document).ready(function() {
     $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
     $(document).on('click', '#edit-submit', dataUpdate);
     $(document).on('click', '#delete-btn', dataRemove); // 刪除
-    $(document).on('change', '#appId-names', findOne);
 });
 
 var TableObj = function() {
@@ -62,10 +62,14 @@ function loadAppIdNames() {
             let apps = data.data;
             for (let appId in apps) {
                 var app = apps[appId];
-                let option1 = $('<option>').text(app.name).attr('id', appId);
-                let option2 = $('<option>').text(app.name).attr('id', appId);
-                $('#appId-names').append(option1);
-                $('#app-select').append(option2);
+                let option = $('<option>').text(app.name).attr('id', appId);
+                $('#app-select').append(option);
+                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+                $appDropdown.find('#' + appId).on('click', function(ev) {
+                    var appId = ev.target.id;
+                    $appDropdown.find('.dropdown-text').text(ev.target.text);
+                    findOne(appId);
+                });
             }
         },
         error: (error) => {
@@ -87,10 +91,10 @@ function insert(appId, data) {
             'Authorization': jwt
         },
         success: (data) => {
-            $('option').removeAttr('selected');
             let autoreplies = data.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
+
             var list = new TableObj();
             var title = list.th.text(autoreply.title);
             var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
@@ -98,14 +102,14 @@ function insert(appId, data) {
             var text = list.td3.text(autoreply.text);
             var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
             var trGrop = list.tr.attr('id', autoreplyId).attr('rel', appId).append(title, startedTime, endedTime, text, btns);
+
             $('#autoreply-tables').append(trGrop);
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
             $('#endtime').val('');
             $('#enter-text').val('');
-            $('option#' + appId).attr('selected', 'selected');
-            findOne();
+            $appDropdown.find('#' + appId).click();
             $.notify('新增成功！', { type: 'success' });
         },
         error: (error) => {
@@ -196,11 +200,10 @@ function find() {
     });
 }
 
-function findOne() {
+function findOne(appId) {
     $('#autoreply-tables').empty();
     var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
-    var appId = $('#appId-names').find(':selected').attr('id');
 
     $.ajax({
         type: 'GET',
@@ -212,6 +215,7 @@ function findOne() {
             let autoreplies = data.data[appId].autoreplies;
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];
+
                 var list = new TableObj();
                 var title = list.th.text(autoreply.title);
                 var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
@@ -245,6 +249,7 @@ function update(appId, autosHashId, data) {
             let autoreplies = data.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
+
             $('#' + autoreplyId).empty();
             var list = new TableObj();
             var title = list.th.text(autoreply.title);

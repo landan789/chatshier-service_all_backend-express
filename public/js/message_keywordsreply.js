@@ -10,7 +10,8 @@
     var $jqDoc = $(document);
     var $keywordreplyAddModal = $('#keywordreply_add_modal');
     var $keywordreplyEditModal = $('#keywordreply_edit_modal');
-    var $appIdNames = $('#appId-names');
+    var $appDropdown = $('.app-dropdown');
+    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var $openTableElem = null;
     var $draftTableElem = null;
     var $appSelector = null;
@@ -19,11 +20,6 @@
         userId = currentUser.uid;
 
         loadAppIdNames();
-
-        $jqDoc.on('change', '#appId-names', function() {
-            var appId = $appIdNames.find(':selected').attr('id');
-            loadKeywordsReplies(appId, userId);
-        });
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
@@ -90,8 +86,12 @@
             allKeywordreplyData = resJson.data;
             for (let appId in allKeywordreplyData) {
                 var app = allKeywordreplyData[appId];
-                let option = $('<option>').text(app.name).attr('id', appId);
-                $appIdNames.append(option);
+                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+                $appDropdown.find('#' + appId).on('click', function(ev) {
+                    var appId = ev.target.id;
+                    $appDropdown.find('.dropdown-text').text(ev.target.text);
+                    loadKeywordsReplies(appId, userId);
+                });
             }
         });
     }
@@ -163,7 +163,6 @@
         var textContent = $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val();
         var isDraft = $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked');
         var $errorMsgElem = $keywordreplyAddModal.find('.text-danger.error-msg');
-        $appIdNames.find('option').removeAttr('selected');
 
         // ==========
         // 檢查資料有無輸入
@@ -192,7 +191,7 @@
 
         return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
-            $appIdNames.find('option#' + appId).attr('selected', 'selected');
+            $appDropdown.find('#' + appId).click();
             return loadKeywordsReplies(appId, userId);
         });
     }

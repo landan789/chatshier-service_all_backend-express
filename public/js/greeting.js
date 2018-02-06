@@ -1,5 +1,4 @@
 var rowCount = 0; // new message count from addMsgCanvas
-var appId;
 $(document).ready(function() {
     // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失
@@ -21,7 +20,6 @@ $(document).ready(function() {
     $(document).on('click', '#close-btn', modalClose);
     $(document).on('click', '#add-btn', addMsgCanvas);
     $(document).on('click', '#delete-btn', delMsgCanvas);
-    $(document).on('change', '#appId-names', find);
     setTimeout(loadAppIdNames, 2000);
 });
 
@@ -47,6 +45,8 @@ var TableObj = function() {
 function loadAppIdNames() {
     var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
+    var $appDropdown = $('.app-dropdown');
+    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     $.ajax({
         type: 'GET',
         url: '/api/apps/users/' + userId,
@@ -55,11 +55,14 @@ function loadAppIdNames() {
         },
         success: (data) => {
             let apps = data.data;
-            let option = [];
             for (let appId in apps) {
                 var app = apps[appId];
-                option[appId] = $('<option>').text(app.name).attr('id', appId);
-                $('#appId-names').append(option[appId]);
+                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+                $appDropdown.find('#' + appId).on('click', function(ev) {
+                    var appId = ev.target.id;
+                    $appDropdown.find('.dropdown-text').text(ev.target.text);
+                    find(appId);
+                });
             }
         },
         error: (error) => {
@@ -68,12 +71,11 @@ function loadAppIdNames() {
     });
 }
 
-function find() {
+function find(appId) {
     $('#MsgCanvas').empty();
     rowCount = 0;
     var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
-    appId = $(this).find(':selected').attr('id'); // appId為全域變數
     $('#MsgCanvas').attr('rel', appId);
     $.ajax({
         type: 'GET',
@@ -94,7 +96,7 @@ function find() {
                 rowCount++;
             }
             if (rowCount < 5) {
-                appendNewTr();
+                appendNewTr(appId);
             }
         },
         error: (error) => {
@@ -104,7 +106,7 @@ function find() {
     });
 } // end of loadFriendsReply
 
-function appendNewTr() {
+function appendNewTr(appId) {
     var list = new TableObj();
     var text = list.th.text('');
     var updatedTime = list.td1.text('');
@@ -117,7 +119,7 @@ function addMsgCanvas() {
     rowCount++;
     $(this).parent().parent().remove('tr');
     let nowTime = new Date().getTime();
-
+    let appId = $(this).parent().parent().attr('rel');
     var list = new TableObj();
     var text = list.th.append('<textarea>');
     var updatedTime = list.td1.text(ToLocalTimeString(nowTime));
@@ -126,7 +128,7 @@ function addMsgCanvas() {
     $('table #MsgCanvas').append(trGrop);
 
     if (rowCount < 5) {
-        appendNewTr();
+        appendNewTr(appId);
     }
 } // end of addMsgCanvas
 
@@ -146,7 +148,7 @@ function delMsgCanvas() {
                 $('#' + greetingId).remove();
                 rowCount--;
                 if (4 === rowCount) {
-                    appendNewTr();
+                    appendNewTr(appId);
                 }
             },
             error: (error) => {
@@ -158,10 +160,11 @@ function delMsgCanvas() {
 
 function modalClose() {
     let id = $(this).parent().parent().attr('id');
+    let appId = $(this).parent().parent().attr('rel');
     $('#' + id).remove();
     rowCount--;
     if (4 === rowCount) {
-        appendNewTr();
+        appendNewTr(appId);
     }
 }
 
