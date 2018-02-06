@@ -14,6 +14,7 @@ module.exports = (function() {
     GroupsMembersController.prototype.getAll = function(req, res, next) {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
+
         var proceed = Promise.resolve();
         proceed.then(() => {
             if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {

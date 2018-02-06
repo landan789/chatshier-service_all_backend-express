@@ -135,17 +135,15 @@ module.exports = (function() {
         var userId = req.params.userid;
         var appId = req.params.appid;
 
-        var isDeleted = req.body.isDeleted;
         var status = req.body.status;
         var time = req.body.time;
         var type = req.body.type;
         var text = req.body.text;
-        var postComposesData = {
+        var postCompose = {
             type: type,
             text: text,
             time: time,
-            status: status,
-            isDeleted: isDeleted
+            status: status
         };
 
         var proceed = new Promise((resolve, reject) => {
@@ -176,7 +174,7 @@ module.exports = (function() {
             });
         }).then(() => { // 新增compose到目前appId
             return new Promise((resolve, reject) => {
-                appsComposesMdl.insert(appId, postComposesData, (result) => {
+                appsComposesMdl.insert(appId, postCompose, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
                         return;
@@ -209,9 +207,8 @@ module.exports = (function() {
     AppsComposesController.prototype.putOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         var userId = req.params.userid;
-        var composeId = req.params.composesid;
+        var composeId = req.params.composeid;
         var appId = req.params.appid;
-        var isDeleted = req.body.isDeleted;
         var status = req.body.status;
         var time = req.body.time;
         var type = req.body.type;
@@ -220,8 +217,7 @@ module.exports = (function() {
             type: type,
             text: text,
             time: time,
-            status: status,
-            isDeleted: isDeleted
+            status: status
         };
 
         var proceed = new Promise((resolve, reject) => {
@@ -272,15 +268,15 @@ module.exports = (function() {
             });
         }).then((composeId) => { // 更新目前compose
             return new Promise((resolve, reject) => {
-                appsComposesMdl.update(appId, composeId, putComposesData, (result) => {
-                    if (false === result) {
+                appsComposesMdl.update(appId, composeId, putComposesData, (AppsCompose) => {
+                    if (false === AppsCompose) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }
-                    resolve(result);
+                    resolve(AppsCompose);
                 });
             });
-        }).then((compose) => {
-            let result = compose !== undefined ? compose : {};
+        }).then((AppsCompose) => {
+            let result = AppsCompose !== undefined ? AppsCompose : {};
             var json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
@@ -303,7 +299,7 @@ module.exports = (function() {
     AppsComposesController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         var userId = req.params.userid;
-        var composeId = req.params.composesid;
+        var composeId = req.params.composeid;
         var appId = req.params.appid;
 
         var proceed = new Promise((resolve, reject) => {
@@ -361,8 +357,8 @@ module.exports = (function() {
                     resolve(result);
                 });
             });
-        }).then((compose) => {
-            let result = compose !== undefined ? compose : {};
+        }).then((AppsCompose) => {
+            let result = AppsCompose !== undefined ? AppsCompose : {};
             var json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,

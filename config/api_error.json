@@ -4,7 +4,9 @@
 
     "UNKNOWN": { "MSG": "unknown", "CODE": "0" },
     "INVALID_REQUEST_BODY_DATA": { "MSG": "invalid request body data", "CODE": "1" },
+    "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "1" },
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "1" },
+    "EMAIL_WAS_EMPTY": { "MSG": "email was empty", "CODE": "2" },
     "USERID_WAS_EMPTY": { "MSG": "userid was empty", "CODE": "3" },
     "APPID_WAS_EMPTY": { "MSG": "appid was empty", "CODE": "4" },
     "TICKETID_WAS_EMPTY": { "MSG": "ticketid was empty", "CODE": "5" },

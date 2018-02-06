@@ -63,6 +63,7 @@ module.exports = (function() {
      */
     GroupsMembersModel.prototype.findMembers = function(groupId, memberIds, callback) {
 
+
         var members = {};
         Promise.resolve().then(() => {
             if ('string' === typeof groupId && 'string' === typeof memberIds) {
@@ -112,6 +113,7 @@ module.exports = (function() {
      * @param {function} callback 
      */
     GroupsMembersModel.prototype.findGroupsMembers = function(groupIds, memberId, callback) {
+
         var groupsMembers = {};
         Promise.resolve().then(() => {
             if ('string' === typeof groupIds && 'string' === typeof memberId) {

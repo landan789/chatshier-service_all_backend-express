@@ -6,6 +6,7 @@ var formData = require('express-form-data');
 
 var users = require('../models/users');
 var appsTemplatesMdl = require('../models/apps_templates');
+var authenticationsCtl = require('../controllers/authentications');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsComposesCtl = require('../controllers/apps_composes');
 var appsCtl = require('../controllers/apps');
@@ -36,6 +37,8 @@ router.use(
     formData.stream(),
     formData.union()
 );
+
+router.get('/authentications/users/:userid', authenticationsCtl.getOne);
 
 router.get('/apps/users/:userid', appsCtl.getAll);
 router.get('/apps/apps/:appid/users/:userid', appsCtl.getOne);
@@ -109,8 +112,8 @@ router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid',
 router.get('/apps-composes/users/:userid', appsComposesCtl.getAll);
 router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getOne);
 router.post('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.postOne);
-router.put('/apps-composes/apps/:appid/composes/:composesid/users/:userid', appsComposesCtl.putOne);
-router.delete('/apps-composes/apps/:appid/composes/:composesid/users/:userid', appsComposesCtl.deleteOne);
+router.put('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.putOne);
+router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.deleteOne);
 // ==========
 router.get('/apps-templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
