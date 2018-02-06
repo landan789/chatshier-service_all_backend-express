@@ -3,9 +3,8 @@ var inputNum = 0; //計算訊息的數量
 var inputObj = {};
 var clientIntoArray = [];
 var deleteNum = 0;
-var message = [];
 var appId;
-var apptext;
+var sendtime;
 
 $(document).ready(function() {
     // 設定 bootstrap notify 的預設值
@@ -33,7 +32,7 @@ $(document).ready(function() {
         } else {
             clearInterval(timer_1);
             userId = auth.currentUser.uid;
-            // socket.emit('update bot', userId);
+            socket.emit('update bot', userId);
             loadTable();
         }
     }, 5);
@@ -54,11 +53,11 @@ $(document).ready(function() {
         socket.on('composes info', (data) => {
             for (let key in data) {
                 textInput = data[key].text;
-                titleStaus = data[key].titleStaus;
+                status = data[key].status;
                 time = data[key].time;
                 app = data[key].app;
-                let stringobj = '<tr>' + '<td>' + textInput + '</td>' + '<td>' + titleStaus + '</td>' + '<td>' + time + '</td>' + '<td>' + app + '</td>' + '</tr>';
-                switch (titleStaus) {
+                let stringobj = '<tr>' + '<td>' + textInput + '</td>' + '<td>' + status + '</td>' + '<td>' + DateTimeString(time) + '</td>' + '</tr>';
+                switch (status) {
                     case '1':
                         $('#data-appointment').append(stringobj);
                         break;
@@ -67,7 +66,6 @@ $(document).ready(function() {
                         break;
 
                     case '3':
-
                         $('#data-history').append(stringobj);
                         break;
 
@@ -85,7 +83,7 @@ $(document).ready(function() {
             let j = 1;
             for (let i in appInfo) {
                 option[i] = $('<option>').text('APP' + j).attr('id', appInfo[i]);
-                j++
+                j++;
                 $('#app-select').append(option[i]);
             }
         });
@@ -94,18 +92,16 @@ $(document).ready(function() {
     function storeApp() {
         appId = $(this).find(':selected').attr('id');
         apptext = $('#app-select').val();
-        console.log(apptext)
     } // end of loadFriendsReply
 
-    function DateTimeString() {
-        var today = new Date();
+    function DateTimeString(d) {
+        var today = new Date(d);
         var currentDateTime =
             today.getFullYear() + '年' +
             (today.getMonth() + 1) + '月' +
             today.getDate() + '日' +
             today.getHours() + ':' + today.getMinutes();
         return currentDateTime;
-
     }
 
     function removeInput() {
@@ -148,32 +144,49 @@ $(document).ready(function() {
     }
 
     function modalSubmit() {
-        userId = auth.currentUser.uid;
-        if (inputObj.length === 0) {
+        var userId = auth.currentUser.uid;
+        let messages = [];
+        if (0 === inputObj.length) {
             $('.error-input').show();
         } else {
-            let sendtime = $('#send-time').val();
-            console.log(sendtime);
+            sendtime = $('#send-time').val();
             let status;
             if ($('#send-now').prop('checked')) {
-                status = 'now'
+                status = 'now';
                 for (let key in inputObj) {
-                    let messageobj = {
+                    let message = {
                         type: 'text',
                         text: $('#' + key).val()
                     };
-                    message.push(messageobj);
+                    messages.push(message);
                 }
-
-                console.log(message);
-                socket.emit('push composes to all', { userId, message, appId, status: status });
+                var emitData = {
+                    userId: userId,
+                    messages: messages,
+                    appId: appId
+                };
+                socket.emit('push composes to all', emitData);
+                insertCompose(messages);
+                $('#quickAdd').modal('hide');
+                $('.textinput').val('');
+                $('#send-time').val('');
+                $('#inputText').empty();
+                inputNum = 0;
+                alert('變更已儲存!');
+                location.reload();
             }
-            //預約的程式碼
-            // if ($('#send-sometime').prop('checked')) {
-
-            // 塞入資料庫並重整
-
-            insertCompose();
+        }
+        //預約的程式碼
+        if ($('#send-sometime').prop('checked')) {
+            let messages = [];
+            for (let key in inputObj) {
+                let message = {
+                    type: 'text',
+                    text: $('#' + key).val()
+                };
+                messages.push(message);
+            }
+            insertReservation(messages);
             $('#quickAdd').modal('hide');
             $('.textinput').val('');
             $('#send-time').val('');
@@ -181,37 +194,52 @@ $(document).ready(function() {
             inputNum = 0;
             $.notify('變更已儲存！', { type: 'success' });
             location.reload();
+        }
+        // 塞入資料庫並重整
+    }
 
+    function insertCompose(messages) {
+        let userId = auth.currentUser.uid;
+        let composes = {};
+        let currentDateTime = DateTimeString();
+        for (let i in messages) {
+            composes = {
+                'time': Date.now(currentDateTime),
+                'status': 3,
+                'type': messages[i].type,
+                'text': messages[i].text
+            };
+
+            socket.emit('insert compose', { userId, composes, appId });
         }
     }
 
-    function insertCompose() {
-        userId = auth.currentUser.uid;
-        let composesObj = {};
+    function insertReservation(messages) {
+        let userId = auth.currentUser.uid;
+        let composes = {};
         let currentDateTime = DateTimeString();
-        for (let i in message) {
-            composesObj = {
-                'app': apptext,
-                'time': Date.parse(currentDateTime),
-                'titleStaus': '3',
-                'type': message[i].type,
-                'text': message[i].text
-            }
-
-            socket.emit('insert composes', { userId, composesObj, appId });
+        for (let i in messages) {
+            composes = {
+                'time': ISODateTimeString(sendtime),
+                'status': 1,
+                'type': messages[i].type,
+                'text': messages[i].text
+            };
+            socket.emit('insert Reservation', { userId, composes, appId });
         }
     }
 
     function modalDraft() {
-        userId = auth.currentUser.uid;
+        let userId = auth.currentUser.uid;
+        let messages = [];
         for (let key in inputObj) {
-            let messageobj = {
+            let message = {
                 type: 'text',
                 text: $('#' + key).val()
             };
-            message.push(messageobj);
+            messages.push(message);
         }
-        insertComposeDraft();
+        insertComposeDraft(messages);
         $('#quickAdd').modal('hide');
         $('.textinput').val('');
         $('#send-time').val('');
@@ -221,21 +249,30 @@ $(document).ready(function() {
         location.reload();
     }
 
-    function insertComposeDraft() {
-        userId = auth.currentUser.uid;
-        let composesObj = {};
+    function insertComposeDraft(messages) {
+        let userId = auth.currentUser.uid;
+        let composes = {};
         let currentDateTime = DateTimeString();
-        for (let i in message) {
-            composesObj = {
-                'app': apptext,
+        for (let i in messages) {
+            composes = {
                 'time': currentDateTime,
-                'titleStaus': '2',
-                'type': message[i].type,
-                'text': message[i].text
-            }
+                'status': 2,
+                'type': messages[i].type,
+                'text': messages[i].text
+            };
 
-            socket.emit('insert composesDraft', { userId, composesObj, appId });
+            socket.emit('insert compose', { userId, composes, appId });
         }
     }
 
+    function ISODateTimeString(d) {
+        d = new Date(d);
+
+        function pad(n) { return n < 10 ? '0' + n : n }
+        return d.getFullYear() + '-' +
+            pad(d.getMonth() + 1) + '-' +
+            pad(d.getDate()) + 'T' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes());
+    }
 });

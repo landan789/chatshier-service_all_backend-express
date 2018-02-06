@@ -6,8 +6,8 @@ var formData = require('express-form-data');
 
 var users = require('../models/users');
 var appsTemplatesMdl = require('../models/apps_templates');
-
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
+var appsComposesCtl = require('../controllers/apps_composes');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
@@ -105,6 +105,13 @@ router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOn
 router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
+// 群發
+router.get('/apps-composes/users/:userid', appsComposesCtl.getAll);
+router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getOne);
+router.post('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.postOne);
+router.put('/apps-composes/apps/:appid/composes/:composesid/users/:userid', appsComposesCtl.putOne);
+router.delete('/apps-composes/apps/:appid/composes/:composesid/users/:userid', appsComposesCtl.deleteOne);
+// ==========
 router.get('/apps-templates/users/:userid', (req, res, next) => {
     var userId = req.params.userid;
     var proceed = Promise.resolve();
@@ -261,9 +268,6 @@ router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (r
             };
             res.status(403).json(json);
         });
-
-
-
 });
 //delete
 router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (req, res, next) => {

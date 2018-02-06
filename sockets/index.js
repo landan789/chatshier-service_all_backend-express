@@ -42,7 +42,6 @@ const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
 var linebotParser;
 var globalLineMessageArray = [];
-var composebot = {};
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
@@ -590,38 +589,13 @@ function init(server) {
                         socket.emit('apps APPID', appids);
                         resolve();
                     });
-                })
-            })
-        })
-        socket.on('insert composes', (data) => {
-            let userId = data.userId;
-            let composesObj = data.composesObj;
-            let appId = data.appId;
-            var proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    if (!appId) {
-                        reject();
-                        return;
-                    }
-                    appsComposes.insertByAppId(appId, composesObj, (result) => {
-                        resolve();
-                    });
-                })
-            }).catch((ERR) => {
-                var json = {
-                    "status": 0,
-                    "msg": ERR.MSG,
-                    "code": ERR.CODE
-                };
+                });
             });
         });
-        socket.on('insert composesDraft', (data) => {
+        socket.on('insert compose', (data) => {
             let userId = data.userId;
+            let composes = data.composes;
             let appId = data.appId;
-            let composesObj = data.composesObj;
             var proceed = new Promise((resolve, reject) => {
                 resolve();
             });
@@ -631,22 +605,35 @@ function init(server) {
                         reject();
                         return;
                     }
-                    appsComposes.insertByAppId(appId, composesObj, (result) => {
+                    appsComposes.insert(appId, composes, (result) => {
                         resolve();
                     });
-                })
-            }).catch((ERR) => {
-                var json = {
-                    "status": 0,
-                    "msg": ERR.MSG,
-                    "code": ERR.CODE
-                };
+                });
+            });
+        });
+        socket.on('insert Reservation', (data) => {
+            let userId = data.userId;
+            let composes = data.composes;
+            let appId = data.appId;
+            var proceed = new Promise((resolve, reject) => {
+                resolve();
+            });
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    if (!appId) {
+                        reject();
+                        return;
+                    }
+                    appsComposes.insert(appId, composes, (result) => {
+                        resolve();
+                    });
+                });
             });
         });
         socket.on('find all info', (userId) => {
             var proceed = new Promise((resolve, reject) => {
                 resolve();
-            })
+            });
             proceed.then(() => {
                 return new Promise((resolve, reject) => {
                     if (!userId) {
@@ -657,18 +644,19 @@ function init(server) {
                     users.findAppIdsByUserId(userId, (appids) => {
                         resolve(appids);
                     });
-                })
+                });
             }).then((appId) => {
                 return new Promise((resolve, reject) => {
                     for (let i in appId) {
-                        appsComposes.findAllByAppId(appId[i], (info) => {
+                        appsComposes.findComposes(appId[i], (info) => {
                             socket.emit('composes info', info);
                         });
                     }
-                })
+                });
                 resolve();
-            })
+            });
         });
+
         // 當使用者要看客戶之前的聊天記錄時要向上滾動
         socket.on('upload history msg from front', (data, callback) => {
             let userId = data.userId;
@@ -846,45 +834,47 @@ function init(server) {
         /*===設定end===*/
 
         // 推播全部人
-        socket.on('push composes to all', (composes) => {
-            var userId = composes.userId;
-            var receivers = [];
-            let appId = composes.appId;
-            var proceed = new Promise((resolve, reject) => {
-                resolve();
-            })
-            proceed.then(() => {
-                if (!appId) {
-                    return Promise.reject();
-                }
-                let asyncTasks = [];
-                asyncTasks.push(new Promise((resolve) => {
-                    admin.database().ref('apps/' + appId + '/chatrooms/').once('value', snap => {
-                        let chatrooms = snap.val();
-                        if (chatrooms === undefined || chatrooms === null) {
-                            chatrooms = '';
-                        }
-                        for (let i in chatrooms) {
-                            receivers.push(i);
-                            resolve(receivers);
-                        }
-                    })
-                }))
-                return Promise.all(asyncTasks);
-            }).then((receiver) => {
-                let asyncTasks = [];
-                return new Promise((resolve, reject) => {
-                    asyncTasks.push(new Promise((resolve) => {
-                        composebot[appId].multicast(receiver[0], composes.message);
-                    }))
-                    resolve();
-                    return Promise.all(asyncTasks);
-                })
-            }).catch((ERR) => {
-                var json = {
-                    "msg": ERR.MSG,
-                    "code": ERR.CODE
+        socket.on('push composes to all', (data) => {
+            let userId = data.userId;
+            let appId = data.appId;
+            let messages = data.messages;
+            if (!appId) {
+                return Promise.reject();
+            }
+            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+                let app = snap.val();
+                var lineConfig = {
+                    channelSecret: app.secret,
+                    channelAccessToken: app.token1
                 };
+                var lineBot = new line.Client(lineConfig);
+                return lineBot.multicast(Object.keys(app.messagers), messages).then(() => {
+                    let asyncTasks = [];
+                    for (let messagerId in app.messagers) {
+                        asyncTasks.push(admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
+                            let messagersInfo = snap.val();
+                            let chatroomId = messagersInfo.chatroom_id;
+                            return chatroomId;
+                        }).then((chatroomId) => {
+                            let updateMessage = [];
+                            let messageInfo = {};
+                            for (let j in messages) {
+                                messageInfo = {
+                                    from: SYSTEM,
+                                    messager_id: '',
+                                    name: 'agent',
+                                    text: messages[j].text,
+                                    time: Date.now()
+                                };
+                                updateMessage.push(messageInfo);
+                                admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().then((ref) => {
+                                    var messageId = ref.key;
+                                    return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).update(updateMessage[j]);
+                                });
+                            };
+                        }));
+                    }
+                });
             });
         });
         /*===ticket start===*/
@@ -1162,5 +1152,16 @@ function init(server) {
         }).catch(function(error) {}); //fb_bot
     } //loadFbProfile
     return io;
+}
+
+function ISODateTimeString(d) {
+    d = new Date(d);
+
+    function pad(n) { return n < 10 ? '0' + n : n }
+    return d.getFullYear() + '-' +
+        pad(d.getMonth() + 1) + '-' +
+        pad(d.getDate()) + 'T' +
+        pad(d.getHours()) + ':' +
+        pad(d.getMinutes());
 }
 module.exports = init;

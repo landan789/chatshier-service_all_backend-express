@@ -26,6 +26,8 @@
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "14" },
     "USER_DID_NOT_HAVE_THIS_GROUP": { "MSG": "user did not have this group", "CODE": "14" },
     "USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER": { "MSG": "user did not have permissin to insert numer", "CODE": "14" },
+    "USER_DID_NOT_HAVE_THIS_GREETING": { "MSG": "user did not have this greeting", "CODE": "14" },
+    "USER_DID_NOT_HAVE_THIS_COMPOSE": { "MSG": "user did not have this compose", "CODE": "14" },
     "USER_DID_NOT_HAVE_THIS_CALENDAR": { "MSG": "user did not have this calendar", "CODE": "14" },
     "GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP": { "MSG": "group member was already in this group", "CODE": "14" },
     "GROUP_MEMBER_WAS_DELETED_IN_THIS_GROUP": { "MSG": "group member was deleted in this group", "CODE": "14" },
@@ -78,5 +80,10 @@
 
     "APP_GREETING_FAILED_TO_FIND": { "MSG": "app greeting failed to find", "CODE": "85" },
     "APP_GREETING_FAILED_TO_INSERT": { "MSG": "app greeting failed to insert", "CODE": "86" },
-    "APP_GREETING_FAILED_TO_REMOVE": { "MSG": "app greeting failed to remove", "CODE": "87" }
+    "APP_GREETING_FAILED_TO_REMOVE": { "MSG": "app greeting failed to remove", "CODE": "87" },
+
+    "APP_COMPOSE_FAILED_TO_FIND": { "MSG": "app compose failed to find", "CODE": "88" },
+    "APP_COMPOSE_FAILED_TO_INSERT": { "MSG": "app compose failed to insert", "CODE": "89" },
+    "APP_COMPOSE_FAILED_TO_UPDATE": { "MSG": "app compose failed to update", "CODE": "90" },
+    "APP_COMPOSE_FAILED_TO_REMOVE": { "MSG": "app compose failed to remove", "CODE": "91" }
 }
