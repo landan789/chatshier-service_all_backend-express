@@ -24,7 +24,7 @@ module.exports = (function() {
                         reject(API_ERROR.USERID_WAS_EMPTY);
                         return;
                     }
-                    userMdl.findUserByUserId(userId, (user) => {
+                    userMdl.findUser(userId, (user) => {
                         var appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
@@ -81,7 +81,7 @@ module.exports = (function() {
                         reject(API_ERROR.USERID_WAS_EMPTY);
                         return;
                     }
-                    userMdl.findUserByUserId(userId, (user) => {
+                    userMdl.findUser(userId, (user) => {
                         var appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
@@ -155,7 +155,7 @@ module.exports = (function() {
                         reject(API_ERROR.USERID_WAS_EMPTY);
                         return;
                     }
-                    userMdl.findUserByUserId(userId, (user) => {
+                    userMdl.findUser(userId, (user) => {
                         var appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
@@ -225,7 +225,7 @@ module.exports = (function() {
                         reject(API_ERROR.USERID_WAS_EMPTY);
                         return;
                     }
-                    userMdl.findUserByUserId(userId, (user) => {
+                    userMdl.findUser(userId, (user) => {
                         var appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
