@@ -152,15 +152,9 @@
                         <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true"></button>
                         <select id="appId-names" class="col-sm-2"><option>請選擇</option></select>
                     </div>
-                    <div class="tab-wrapper">
-                        <div class="tab">
-                            <button class="tablinks enabled" rel="keywordreply_open_table">開放</button>
-                            <button class="tablinks" rel="keywordreply_draft_table">草稿</button>
-                        </div>
-                    </div>
-            
                     <div class="table">
-                        <table class="bookmark chsr table" id="keywordreply_open_table">
+                        <table class="chsr table" id="keywordreply_open_table">
+                            <caption>開放</caption>
                             <thead>
                                 <tr>
                                     <th>關鍵字</th>
@@ -172,7 +166,8 @@
                             <tbody></tbody>
                         </table>
             
-                        <table class="bookmark chsr table" id="keywordreply_draft_table" hidden>
+                        <table class="chsr table" id="keywordreply_draft_table">
+                            <caption>草稿</caption>
                             <thead>
                                 <tr>
                                     <th>關鍵字</th>

@@ -20,12 +20,6 @@
 
         loadAppIdNames();
 
-        $jqDoc.on('click', '.tablinks', function switchTable(ev) {
-            var targetTableId = $(this).attr('rel');
-            $('#' + targetTableId).show().siblings().hide();
-            $(ev.target).addClass('enabled').siblings().removeClass('enabled');
-        });
-
         $jqDoc.on('change', '#appId-names', function() {
             var appId = $appIdNames.find(':selected').attr('id');
             loadKeywordsReplies(appId, userId);
