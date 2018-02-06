@@ -37,6 +37,8 @@ const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
+const FOLLOW = 'FOLLOW';
+const MESSAGE = 'MESSAGE';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 
@@ -112,6 +114,10 @@ function init(server) {
     }, (req, res, next) => {
         var appId = req.appId;
         var message;
+        var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
+        if (FOLLOW === event.type.toUpperCase()) {
+            next();
+        }
         switch (req.app.type) {
             case LINE:
                 message = req.body.events[0].message.text;
@@ -162,7 +168,7 @@ function init(server) {
         }
         // 3. 到 models/apps_keywordreplies.js 找到要回應的關鍵字串
         var p1 = new Promise((resolve, reject) => {
-            if (LINE === req.app.type && 'follow' === event.type) {
+            if (LINE === req.app.type && FOLLOW === event.type.toUpperCase()) {
                 resolve({});
                 return;
             }
@@ -177,7 +183,7 @@ function init(server) {
         });
 
         var p2 = new Promise((resolve, reject) => {
-            if (LINE === req.app.type && 'follow' === event.type) {
+            if (LINE === req.app.type && FOLLOW === event.type.toUpperCase()) {
                 resolve({});
                 return;
             }
@@ -191,7 +197,7 @@ function init(server) {
         });
 
         var p3 = new Promise((resolve, reject) => {
-            if (LINE === req.app.type && 'follow' === event.type) {
+            if (LINE === req.app.type && FOLLOW === event.type.toUpperCase()) {
                 resolve({});
                 return;
             }
@@ -213,7 +219,7 @@ function init(server) {
         });
 
         var p4 = new Promise((resolve, reject) => {
-            if (LINE === req.app.type && 'message' === event.type) {
+            if (LINE === req.app.type && MESSAGE === event.type.toUpperCase()) {
                 resolve({});
                 return;
             }
