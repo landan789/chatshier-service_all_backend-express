@@ -41,6 +41,7 @@ const FOLLOW = 'FOLLOW';
 const MESSAGE = 'MESSAGE';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
+const webhookUserId = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
 
 var linebotParser;
 var globalLineMessageArray = [];
@@ -120,6 +121,14 @@ function init(server) {
         }
         switch (req.app.type) {
             case LINE:
+                let userId0 = req.body.events[0].source.userId;
+                let token0 = req.body.events[0].replyToken;
+                let userId1 = req.body.events[1].source.userId;
+                let token1 = req.body.events[1].replyToken;
+                if (webhookUserId === userId0 && REPLY_TOKEN_0 === token0 && webhookUserId === userId1 && REPLY_TOKEN_F === token1) {
+                    res.sendStatus(200);
+                    next('route');
+                }
                 message = req.body.events[0].message.text;
                 break;
             case FACEBOOK:
