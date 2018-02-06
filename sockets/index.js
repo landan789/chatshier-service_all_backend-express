@@ -456,29 +456,7 @@ function init(server) {
                 }
             });
         }
-        // 4.撈出歷史訊息
-        socket.on('find_apps_messagers_chats', (userId, callback) => {
-            var proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
 
-            proceed.then(data => {
-                return new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.findByUserId(userId, (result) => {
-                        if (false === result || null === result || '' === result || undefined === result) {
-                            reject();
-                            return;
-                        }
-                        resolve(result);
-                    });
-                });
-            }).then((data) => {
-                let appsMessagers = data;
-                callback(appsMessagers);
-            }).catch(() => {
-                callback(null);
-            });
-        });
         // 從SHIELD chat傳送訊息
         socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
             let vendor = data.data;
@@ -566,13 +544,7 @@ function init(server) {
 
 
         }); //sent message
-        // 更新客戶資料
-        socket.on('update profile', (data) => {
-            let appId = data.appId;
-            let userId = data.userId;
-            let profObj = data.data
-            chats.updateProfileByMessengerIdAndAppId(appId, userId, profObj);
-        });
+
         //insert compose
         socket.on('find apps', (userId) => {
             var proceed = new Promise((resolve, reject) => {

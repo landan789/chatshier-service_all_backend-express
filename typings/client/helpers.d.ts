@@ -8,6 +8,11 @@ interface Window {
         calendar: CalendarAPI,
         tag: TagAPI,
         chatroom: ChatroomAPI
+    },
+    translate: {
+        ready: Promise<{ [key: string]: string }>,
+        get: (key: string) => Promise<string>,
+        json: () => { [key: string]: string }
     }
 }
 
@@ -51,17 +56,17 @@ interface TagAPI {
     remove: (appId: string, tagId: string, userId: string) => Promise<any>;
     enums: {
         type: {
-            DEFAULT: string,
-            CUSTOM: string
+            SYSTEM: 'SYSTEM',
+            DEFAULT: 'DEFAULT',
+            CUSTOM: 'CUSTOM'
         },
         setsType: {
-            TEXT: string,
-            NUMBER: string,
-            DATE: string,
-            SELECT: string,
-            MULTI_SELECT: string,
-            CHECKBOX: string,
-            RADIO: string
+            TEXT: 'TEXT',
+            NUMBER: 'NUMBER',
+            DATE: 'DATE',
+            SELECT: 'SELECT',
+            MULTI_SELECT: 'MULTI_SELECT',
+            CHECKBOX: 'CHECKBOX'
         }
     }
 }

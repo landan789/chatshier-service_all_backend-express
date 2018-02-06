@@ -103,7 +103,7 @@ function send_to_firebase(obj, pictureUrl, channelId, receiverId, unRead, callba
                     channelId: channelId ? channelId : 'unassigned',
                     gender: obj.gend ? obj.gend : "",
                     age: -1,
-                    telephone: "",
+                    phone: "",
                     firstChat: Date.now(),
                     recentChat: Date.now(),
                     chatTimeCount: 1,

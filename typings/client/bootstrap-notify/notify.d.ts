@@ -1,5 +1,3 @@
-/// <reference path="../../../node_modules/@types/jquery/index.d.ts" />
-
 /* tslint:disable: interface-name no-any */
 
 interface JQueryStatic {

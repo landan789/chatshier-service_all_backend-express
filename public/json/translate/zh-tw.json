@@ -1,0 +1,15 @@
+{
+    "Name": "姓名",
+    "Age": "年齡",
+    "Gender": "性別",
+    "MALE": "男",
+    "Male": "男",
+    "FEMALE": "女",
+    "Female": "女",
+    "Email": "電子郵件",
+    "Phone": "電話",
+    "First chat date": "首次聊天時間",
+    "Recent chat date": "最近聊天時間",
+    "Chat time(s)": "聊天次數",
+    "Remark": "備註"
+}

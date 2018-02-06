@@ -83,7 +83,7 @@ module.exports = (function() {
 
         // 建立並過濾用戶端傳過來的資料
         let postTagData = {
-            name: req.body.name || '',
+            text: req.body.text || '',
             type: req.body.type || appsTagsMdl.typeEnum.CUSTOM,
             sets: req.body.sets || [''],
             setsType: req.body.setsType ? req.body.setsType : 0,
@@ -140,7 +140,7 @@ module.exports = (function() {
 
         // 欲更新的資料只有是自定義型態才可變更名稱及資料
         if (appsTagsMdl.typeEnum.CUSTOM === putTagData.type) {
-            putTagData.name = req.body.name || '';
+            putTagData.text = req.body.text || '';
             putTagData.sets = req.body.sets || [''];
             putTagData.setsType = req.body.setsType ? req.body.setsType : 0;
         }

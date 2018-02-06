@@ -113,21 +113,51 @@ module.exports = (function() {
         let msgerId = req.params.messagerid;
 
         return paramsChecking(req.params).then(() => {
+            if (!msgerId) {
+                return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
+            }
+
+            // 只允許更新 API 可編輯的屬性
+            let messagerData = {};
+            ('string' === typeof req.body.photo) && (messagerData.photo = req.body.photo);
+            ('number' === typeof req.body.age) && (messagerData.age = req.body.age);
+            ('string' === typeof req.body.email) && (messagerData.email = req.body.email);
+            ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
+            ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
+            ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
+
+            if (!(req.body.custom_tags instanceof Array)) {
+                return messagerData;
+            }
+
+            // 將舊的 custom_tags 陣列資料取出合併
+            return new Promise((resolve) => {
+                appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
+                    if (!messager) {
+                        messagerData.custom_tags = req.body.custom_tags;
+                        resolve(messagerData);
+                        return;
+                    }
+
+                    // 預處理 custom_tags 陣列資料，使陣列當中的 tagId 不重複
+                    messagerData.custom_tags = messagerData.custom_tags || [];
+                    messagerData.custom_tags = (function tagArrayUnique(mergedArray) {
+                        let arr = mergedArray.slice();
+                        for (let i = 0; i < arr.length; ++i) {
+                            for (let j = i + 1; j < arr.length; ++j) {
+                                if (arr[i].tag_id === arr[j].tag_id) {
+                                    arr[i].value = arr[j].value;
+                                    arr.splice(j--, 1);
+                                }
+                            }
+                        }
+                        return arr;
+                    })(messagerData.custom_tags.concat(req.body.custom_tags));
+                    resolve(messagerData);
+                });
+            });
+        }).then((messagerData) => {
             return new Promise((resolve, reject) => {
-                if (!msgerId) {
-                    reject(API_ERROR.MESSAGERID_WAS_EMPTY);
-                    return;
-                }
-
-                // 只允許更新 API 可編輯的屬性
-                let messagerData = {};
-                ('string' === typeof req.body.photo) && (messagerData.photo = req.body.photo);
-                ('number' === typeof req.body.age) && (messagerData.age = req.body.age);
-                ('string' === typeof req.body.email) && (messagerData.email = req.body.email);
-                ('string' === typeof req.body.telephone) && (messagerData.telephone = req.body.telephone);
-                ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
-                ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
-
                 appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
                     if (!messager) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);

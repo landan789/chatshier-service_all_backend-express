@@ -438,6 +438,7 @@ window.restfulAPI = (function() {
 
         TagAPI.prototype.enums = Object.freeze({
             type: {
+                SYSTEM: 'SYSTEM',
                 DEFAULT: 'DEFAULT',
                 CUSTOM: 'CUSTOM'
             },
@@ -447,8 +448,7 @@ window.restfulAPI = (function() {
                 DATE: 'DATE',
                 SELECT: 'SELECT',
                 MULTI_SELECT: 'MULTI_SELECT',
-                CHECKBOX: 'CHECKBOX',
-                RADIO: 'RADIO'
+                CHECKBOX: 'CHECKBOX'
             }
         });
 

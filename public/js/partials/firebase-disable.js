@@ -1,35 +1,30 @@
-const ALERT = {
-  SECOND: 10
-};
-
 /**
-* firebase 資料庫空時會提出警告
-*
-*
-*/
-(function firebaseDisable(){
-  $('#alert-chatshier .close').on('click', function(){
-    $('#alert-chatshier').removeClass('alert-in');
-    $('#alert-chatshier').addClass('hidden');
-  });
+ * firebase 連線出錯時會提出警告
+ */
+(function firebaseDisable() {
+    var ALERT = {
+        SECOND: 10
+    };
 
-  var snap = null;
-  database.ref('tags/Data').once('value', (s) => {
-    snap = s;
-  });
+    window.database.ref('.info').once('value', function(snap) {
+        $(document).ready(function() {
+            var $alertChatshier = $('#alert-chatshier');
+            $alertChatshier.find('.close').on('click', function() {
+                $alertChatshier
+                    .removeClass('alert-in')
+                    .addClass('hidden');
+            });
 
-  setInterval(() => {
-
-    if(null === snap){
-      $('#alert-chatshier').removeClass('hidden');
-
-      $('#alert-chatshier').removeClass('alert-out');
-      $('#alert-chatshier').addClass('alert-in');
-
-    }else{
-      $('#alert-chatshier').addClass('hidden');
-
-    }
-  }, ALERT.SECOND * 1000);
-
+            window.setInterval(function() {
+                if (!snap) {
+                    $alertChatshier
+                        .removeClass('hidden')
+                        .removeClass('alert-out')
+                        .addClass('alert-in');
+                } else if (!$alertChatshier.hasClass('hidden')) {
+                    $alertChatshier.addClass('hidden');
+                }
+            }, ALERT.SECOND * 1000);
+        });
+    });
 })();

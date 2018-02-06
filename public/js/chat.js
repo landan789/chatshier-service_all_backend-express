@@ -21,7 +21,6 @@ var nameList = []; // list of all users
 var userProfiles = []; // array which store all user's profile
 var appsData = {}; // 此變數用來裝所有的 app 資料
 var tagsData = {};
-var TagsData; // data of user info tags
 var internalTagsData;
 var agentIdToName;
 // selectors
@@ -31,6 +30,11 @@ var canvas = $('#canvas'); // 聊天室空間
 var infoCanvas = $('#infoCanvas'); // 個人資料空間
 var ocClickShow = $('.on-click-show');
 var searchBox = $('#searchBox');
+
+var transJson = {};
+window.translate.ready.then(function(json) {
+    transJson = json;
+});
 
 /**
  * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -222,7 +226,7 @@ var ticketTableCtrl = (function() {
                     var messager = messagersData[selectedId];
                     $messagerIdElem.prop('value', selectedId);
                     $messagerEmailElem.prop('value', messager.email);
-                    $messagerPhoneElem.prop('value', messager.telephone);
+                    $messagerPhoneElem.prop('value', messager.phone);
                 };
                 updateInfo($messagerNameSelect.val());
 
@@ -415,10 +419,8 @@ window.auth.ready.then(function(currentUser) {
     // =====end chat event=====
 
     // =====start profile event=====
-    $(document).on('click', '#show-profile', showProfile);
-    // $(document).on('click', '.userinfo-td[modify="true"] p#td-inner', userInfoClick);
-    $(document).on('keypress', '.userinfo-td[modify="true"] input[type="text"]', userInfoKeyPress);
-    // $(document).on('blur', '.userinfo-td[modify="true"] input[type="text"]', userInfoBlur);
+    $(document).on('click', '#show_profile', showProfile);
+    $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
     $(document).on('click', '.profile-confirm button', userInfoConfirm);
     $(document).on('click', '.internal-profile-confirm button', internalConfirm);
     $(document).on('click', '.photo-choose', groupPhotoChoose);
@@ -426,7 +428,7 @@ window.auth.ready.then(function(currentUser) {
     // =====end profile event=====
 
     // =====start ticket event=====
-    $(document).on('click', '#show-todo', ticketTableCtrl.show);
+    $(document).on('click', '#show_todo', ticketTableCtrl.show);
     // =====end ticket event=====
 
     // =====start utility event=====
@@ -486,57 +488,54 @@ window.auth.ready.then(function(currentUser) {
             tagsData: tagsData
         };
     }).then(function(initData) {
-        responseChatInitData(initData);
+        if (initData.reject) {
+            $.notify(initData.reject);
+            return;
+        }
+
+        responseInternalChatData(initData.internalChatData);
+        responseUserAppIds(initData.appsData);
     });
     // #endregion
     // ==========
 
     // ==========start initialize function========== //
-    function responseChatInitData(data) {
-        if (data.reject) {
-            $.notify(data.reject);
-            return;
-        }
-
-        responseInternalChatData(data.internalChatData);
-        responseTags(data.tagsData);
-        responseUserAppIds(data.appsData);
-    }
 
     function responseUserAppIds(appsData) {
         if (!appsData) {
-            if ('1' !== window.sessionStorage['notifyModal']) { // 網頁refresh不會出現errorModal(但另開tab會)
+            if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
                 $('#notifyModal').modal('show');
-                window.sessionStorage['notifyModal'] = 1;
+                window.sessionStorage.notifyModal = 1;
             }
             return;
         }
 
         appGroupSort(appsData);
-
-        socket.emit('find_apps_messagers_chats', auth.currentUser.uid, responseChatData);
-    } // end of responseUserAppIds
+        responseChatData(appsData);
+    }
 
     function appGroupSort(appsData) {
+        var $chatApp = $('#chat_App');
+
         for (var appId in appsData) {
             var item = appsData[appId];
 
             switch (item.type) {
                 case LINE:
-                    let lineStr =
+                    var lineStr =
                         '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + item.name + '" rel="' + appId + '">' +
                             '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
-                    $('#chat_App').prepend(lineStr);
+                    $chatApp.prepend(lineStr);
                     break;
                 case FACEBOOK:
-                    let fbStr =
+                    var fbStr =
                         '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + item.name + '" rel="' + appId + '">' +
                             '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
-                    $('#chat_App').prepend(fbStr);
+                    $chatApp.prepend(fbStr);
                     break;
             }
         }
@@ -574,22 +573,6 @@ window.auth.ready.then(function(currentUser) {
         }, 0);
         if (msgContent.attr('data-position') > 0) msgContent.prepend(LOADING_MSG_AND_ICON);
         else msgContent.prepend(NO_HISTORY_MSG);
-    }
-
-    function responseTags(data) {
-        if (!data) { return; }
-
-        for (let i = 0; i < data.length; i++) {
-            if ('assigned' === data[i].id) {
-                let list = [];
-                for (let prop in agentIdToName) {
-                    list.push(agentIdToName[prop]);
-                }
-                data[i].data.set = list;
-                break;
-            }
-        }
-        TagsData = data;
     }
 
     function responseInternalChatData(data) {
@@ -712,16 +695,16 @@ window.auth.ready.then(function(currentUser) {
     } // end of historyMsgToStr
 
     function pushProfile(data) {
-        var profile = data.profile;
+        var messager = data.profile;
         infoCanvas.append(
             '<div class="card-group" id="' + data.appId + '" rel="' + data.userId + '">' +
-                '<div class="card-body" id="profile">' +
+                '<div class="card-body table-responsive" id="profile">' +
                     '<div class="photo-container">' +
-                        '<img src="' + profile.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
+                        '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
                     '</div>' +
-                    loadPanelProfileWithoutTag(profile) +
-                    '<div class="profile-confirm">' +
-                        '<button type="button" class="btn btn-info pull-right">確認</button>' +
+                    loadPanelProfile(data.appId, messager) +
+                    '<div class="profile-confirm text-center">' +
+                        '<button type="button" class="btn btn-info">確認</button>' +
                     '</div>' +
                 '</div>' +
                 '<div class="card-body" id="ticket" style="display:none;"></div>' +
@@ -750,191 +733,101 @@ window.auth.ready.then(function(currentUser) {
         );
     } // end of pushProfile
 
-    /**
-     * 此函式為暫時因應標籤資料無法對應問題而寫的 (Peace 2018/02/03)
-     */
-    function loadPanelProfileWithoutTag(profile) {
-        var table = $.parseHTML("<table class='panel-table'></table>");
-
+    function loadPanelProfile(appId, messager) {
+        var table = $.parseHTML('<table class="table table-hover panel-table"></table>');
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-        var firstChatDateStr = new Date(profile.firstChat - timezoneGap).toISOString().split('.').shift();
-        var recentChatDateStr = new Date(profile.recentChat - timezoneGap).toISOString().split('.').shift();
 
-        $(table).append(
-            '<tr>' +
-                '<th class="userInfo-th" name="name">姓名</th>' +
-                '<td class="userinfo-td" name="name" type="text" modify="false">' +
-                    '<input type="text" id="td-inner" placeholder="尚未輸入" value="' + (profile.name || '') + '" readonly />' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="age">年齡</th>' +
-                '<td class="userinfo-td" name="age" type="number" modify="true">' +
-                    '<input type="text" id="td-inner" placeholder="尚未輸入" value="' + (profile.age || '') + '" />' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="email">電子郵件</th>' +
-                '<td class="userinfo-td" name="email" type="text" modify="true">' +
-                    '<input type="text" id="td-inner" placeholder="尚未輸入" value="' + (profile.email || '') + '" />' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="telephone">電話</th>' +
-                '<td class="userinfo-td" name="telephone" type="text" modify="true">' +
-                    '<input type="text" id="td-inner" placeholder="尚未輸入" value="' + (profile.telephone || '') + '" />' +
-                '</td>' +
-            '</tr>' +
-            // '<tr>' +
-            //     '<th class="userInfo-th" name="gender">性別</th>' +
-            //     '<td class="userinfo-td" name="gender" type="select" modify="false">' +
-            //         '<select id="td-inner">' +
-            //             '<option value="">未選擇</option>' +
-            //             '<option value="">男</option>' +
-            //             '<option value="">女</option>' +
-            //         '</select>' +
-            //     '</td>' +
-            // '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="firstChat">首次聊天時間</th>' +
-                '<td class="userinfo-td" name="firstChat" type="date" modify="false">' +
-                    '<input type="datetime-local" id="td-inner" value="' + firstChatDateStr + '" readonly disabled />' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="recentChat">上次聊天時間</th>' +
-                '<td class="userinfo-td" name="recentChat" type="date" modify="false">' +
-                    '<input type="datetime-local" id="td-inner" value="' + recentChatDateStr + '" readonly disabled />' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="chatTimeCount">聊天次數</th>' +
-                '<td class="userinfo-td" name="chatTimeCount" type="number" modify="false">' +
-                    '<p id="td-inner">' + (profile.chatTimeCount || 0) + '</p>' +
-                '</td>' +
-            '</tr>' +
-            '<tr>' +
-                '<th class="userInfo-th" name="remark">備註</th>' +
-                '<td class="userinfo-td" name="remark" type="text" modify="true">' +
-                    '<input type="text" id="td-inner" placeholder="尚未輸入" value="' + (profile.remark || '') + '" />' +
-                '</td>' +
-            '</tr>'
-        );
+        var customTags = messager.custom_tags || {};
+        var fetchCustomTags = function(tagId) {
+            for (var cTagId in customTags) {
+                if (customTags[cTagId].tag_id === tagId) {
+                    return customTags[cTagId].value;
+                }
+            }
+            return '';
+        };
+
+        var tdHtmlBuilder = function(tagId, tagData) {
+            var setsTypeEnums = api.tag.enums.setsType;
+            var readonly = tagData.type === api.tag.enums.type.SYSTEM;
+            var tagValue = '';
+
+            if (tagData.type === api.tag.enums.type.CUSTOM) {
+                tagValue = fetchCustomTags(tagId);
+            } else {
+                tagValue = messager[tagData.alias] || '';
+            }
+
+            switch (tagData.setsType) {
+                case setsTypeEnums.SELECT:
+                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<select class="form-control td-inner" value="' + tagValue + '">' +
+                            (function(sets) {
+                                var opts = '<option value="">未選擇</option>';
+                                for (var i in sets) {
+                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === tagValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                                }
+                                return opts;
+                            })(tagData.sets) +
+                        '</select>' +
+                    '</td>';
+                case setsTypeEnums.MULTI_SELECT:
+                    tagValue = (tagValue instanceof Array) ? tagValue : [];
+
+                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<div class="btn-group btn-block td-inner">' +
+                            '<button class="btn btn-default btn-block" data-toggle="dropdown" aria-expanded="false">' +
+                                '<span class="caret"></span>' +
+                            '</button>' +
+                            '<ul class="multi-select-container dropdown-menu">' +
+                                (function(sets) {
+                                    var checkboxes = '';
+                                    for (var i in sets) {
+                                        checkboxes += '<li><input type="checkbox" value="' + sets[i] + '"' + (tagValue[i] ? ' checked="true"' : '') + '">' + sets[i] + '</li>';
+                                    }
+                                    return checkboxes;
+                                })(tagData.sets) +
+                            '</ul>' +
+                        '</div>' +
+                    '</td>';
+                case setsTypeEnums.CHECKBOX:
+                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="td-inner" type="checkbox"' + (tagValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
+                    '</td>';
+                case setsTypeEnums.DATE:
+                    tagValue = tagValue || 0;
+                    var tagDateStr = new Date(tagValue - timezoneGap).toISOString().split('.').shift();
+                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                    '</td>';
+                case setsTypeEnums.TEXT:
+                case setsTypeEnums.NUMBER:
+                default:
+                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + tagValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                    '</td>';
+            }
+        };
+
+        // 呈現標籤資料之前先把標籤資料設定的順序排列
+        var tagKeys = Object.keys(tagsData[appId]);
+        tagKeys.sort(function(a, b) {
+            return tagsData[appId][a].order - tagsData[appId][b].order;
+        });
+
+        var messagerProfileHtml = '';
+        for (var i in tagKeys) {
+            var tagId = tagKeys[i];
+            var tagData = tagsData[appId][tagId];
+            messagerProfileHtml +=
+                '<tr id="' + tagId + '">' +
+                    '<th class="user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
+                    tdHtmlBuilder(tagId, tagData) +
+                '</tr>';
+        }
+        $(table).append(messagerProfileHtml);
         return $(table)[0].outerHTML;
     }
-
-    function loadPanelProfile(profile) {
-        function getSingleTextDom(tagD, profD) {
-            let dom = $.parseHTML('<p id="td-inner">尚未輸入</p>');
-            if (profD) $(dom).text(profD);
-            return dom;
-        }
-
-        function getTimeDom(tagD, profD) {
-            let dom = $.parseHTML('<input type="datetime-local" id="td-inner"></input>');
-            if (!tagD.modify) $(dom).prop('readOnly', true);
-
-            if (profD) {
-                var d = new Date(profD);
-                let val = d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
-                $(dom).attr('value', val);
-            }
-            return dom;
-        }
-
-        function getSingleSelectDom(tagD, profD) {
-            let dom = $.parseHTML('<select id="td-inner"></select>');
-            $(dom).append('<option value="">未選擇</option>');
-            if (!tagD.modify) $(dom).prop('readOnly', true);
-            for (let i in tagD.set) {
-                let opt = tagD.set[i];
-                let option = $.parseHTML('<option></option>');
-                $(option).val(opt).text(opt).attr('selected', (opt === profD));
-                $(dom).append(option);
-            }
-            return dom;
-        }
-
-        function getMultiSelectDom(tagD, profD) {
-            let dom = $.parseHTML('<div class="btn-group" id="td-inner"></div>');
-            $(dom).append('<button class="multi-button" type="button" data-toggle="dropdown" aria-expanded="false">');
-            $(dom).append('</button><ul class="multi-select-container dropdown-menu"></ul>');
-            if (!tagD.modify) $(dom).find('button').prop('disabled', true);
-            if (!profD) profD = '';
-
-            let selected = profD.split(',');
-            let set = tagD.set;
-
-            let text = profD && selected.length === set.length ? '全選' : profD;
-            $(dom).find('button').append('<span></span><b class="caret"></b>');
-            $(dom).find('span').attr('class', 'multi-select-text').attr('rel', profD).text(text);
-
-            for (let i in set) {
-                let input = $.parseHTML('<input type="checkbox">');
-                $(input).attr('value', set[i]);
-                if (selected.indexOf(set[i]) !== -1) $(input).attr('checked', '');
-                $(dom).find('ul').append('<li>' + input[0].outerHTML + set[i] + '</li>');
-            }
-            return dom;
-        }
-
-        let table = $.parseHTML("<table class='panel-table'></table>");
-        for (let i = 0; i < TagsData.length; i++) {
-            let tagId = TagsData[i].id;
-            let tagSource = TagsData[i].source;
-            let tagData = TagsData[i].data;
-
-            let name = tagData.name;
-            let type = tagData.type;
-            let set = tagData.set;
-            let modify = tagData.modify;
-
-            let th = $.parseHTML('<th class="userInfo-th"></th>');
-            let td = $.parseHTML('<td class="userinfo-td"></td>');
-            // todo userinfo-td css
-
-            if ('default' === tagSource) {
-                let profData = profile[tagId];
-                let dom = {};
-                if ('name' === tagId ||
-                    'email' === tagId ||
-                    'age' === tagId ||
-                    'remark' === tagId ||
-                    'telephone' === tagId) {
-                    dom = getSingleTextDom(tagData, profData);
-                // } else if ('gender' === tagId) {
-                //     dom = getSingleSelectDom(tagData, profData);
-                } else if ('firstChat' === tagId || 'recentChat' === tagId) {
-                    dom = getTimeDom(tagData, profData);
-                } else if ('chatTimeCount' === tagId) {
-                    dom = getSingleTextDom(tagData, profData);
-                    let text = '尚未輸入' === $(dom).text() ? '1' : $(dom).text();
-                    $(dom).text(text);
-                } else if ('assigned' === tagId) {
-                    dom = getMultiSelectDom(tagData, profData);
-                }
-                $(th).attr('id', tagId).text(name);
-                $(td).attr('id', tagId).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
-            } else {
-                let profData = profile[name];
-                let dom = {};
-                if ('text' === type) {
-                    dom = getSingleTextDom(tagData, profData);
-                } else if ('time' === type) {
-                    dom = getTimeDom(tagData, profData);
-                } else if ('single-select' === type) {
-                    dom = getSingleSelectDom(tagData, profData);
-                } else if ('multi-select' === type) {
-                    dom = getMultiSelectDom(tagData, profData);
-                }
-
-                $(th).attr('id', name).text(name);
-                $(td).attr('id', name).attr('type', type).attr('set', set).attr('modify', modify).html(dom);
-            }
-            $(table).append('<tr>' + th[0].outerHTML + td[0].outerHTML + '</tr>');
-        }
-        return $(table)[0].outerHTML;
-    } // end of loadPanelProfile
 
     function pushInternalMsg(data) {
         let historyMsg = data.Messages;
@@ -997,21 +890,21 @@ window.auth.ready.then(function(currentUser) {
             let tdHtml = "";
             if (type === 'text') {
                 if (data) {
-                    tdHtml = '<p id="td-inner">' + data + '</p>';
+                    tdHtml = '<p class="td-inner">' + data + '</p>';
                 } else {
-                    tdHtml = '<p id="td-inner">尚未輸入</p>';
+                    tdHtml = '<p class="td-inner">尚未輸入</p>';
                 }
             } else if (type === "time") {
-                if (modify) tdHtml = '<input type="datetime-local" id="td-inner" ';
-                else tdHtml = '<input type="datetime-local" id="td-inner" readOnly ';
+                if (modify) tdHtml = '<input type="datetime-local" class="td-inner" ';
+                else tdHtml = '<input type="datetime-local" class="td-inner" readonly ';
                 if (data) {
                     d = new Date(data);
                     tdHtml += 'value="' + d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes()) + '"';
                 }
                 tdHtml += ' ></input>';
             } else if (type === 'single-select') {
-                if (modify) tdHtml = '<select id="td-inner">';
-                else tdHtml = '<select id="td-inner" disabled>';
+                if (modify) tdHtml = '<select class="td-inner">';
+                else tdHtml = '<select class="td-inner" disabled>';
                 if (!data) tdHtml += '<option selected="selected" > 未選擇 </option>';
                 else tdHtml += '<option> 未選擇 </option>';
                 if (name == "owner") {
@@ -1027,7 +920,7 @@ window.auth.ready.then(function(currentUser) {
                 }
                 tdHtml += '</select>';
             } else if (type === 'multi-select') {
-                tdHtml = '<div class="btn-group" id="td-inner">';
+                tdHtml = '<div class="btn-group td-inner">';
                 if (modify === true) tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false">';
                 else tdHtml += '<button type="button" data-toggle="dropdown" aria-expanded="false" disabled>';
                 if (!data) data = "";
@@ -1055,7 +948,7 @@ window.auth.ready.then(function(currentUser) {
                 }
                 tdHtml += '</ul></div>';
             }
-            html += '<tr>' + '<th class="userInfo-th" id="' + name + '">' + name + '</th>' + '<td class="userinfo-td" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
+            html += '<tr>' + '<th class="user-info-th" id="' + name + '">' + name + '</th>' + '<td class="user-info-td" id="' + name + '" type="' + type + '" set="' + set + '" modify="' + modify + '">' + tdHtml + '</td>';
         }
         html += "</table>";
         return html;
@@ -1090,56 +983,46 @@ window.auth.ready.then(function(currentUser) {
         }
 
         return Promise.all(msgKeys.map(function(msgKey) {
-            let proceed = Promise.resolve();
             let message = Object.assign({}, messages[msgKey]);
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    switch (message.type) {
-                        case 'text':
-                            resolve(message);
-                            break;
-                        case 'image':
-                            let imageUrl = message.url;
-                            message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
-                            resolve(message);
-                            break;
-                        case 'audio':
-                            let audioUrl = message.url;
-                            message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
-                            resolve(message);
-                            break;
-                        case 'video':
-                            let videoUrl = message.url;
-                            message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
-                            resolve(message);
-                            break;
-                        case 'sticker':
-                            let stickerUrl = message.url;
-                            message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
-                            resolve(message);
-                            break;
-                        case 'location':
-                            let locationUrl = message.url;
-                            message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
-                            resolve(message);
-                            break;
+
+            switch (message.type) {
+                case 'text':
+                    break;
+                case 'image':
+                    let imageUrl = message.url;
+                    message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
+                    break;
+                case 'audio':
+                    let audioUrl = message.url;
+                    message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
+                    break;
+                case 'video':
+                    let videoUrl = message.url;
+                    message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                    break;
+                case 'sticker':
+                    let stickerUrl = message.url;
+                    message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
+                    break;
+                case 'location':
+                    let locationUrl = message.url;
+                    message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
+                    break;
+            }
+
+            return api.messager.getOne(appId, Uid, agentId).then((resJson) => {
+                var messager = resJson.data;
+                var $room = $('.chat-app-item[rel="' + appId + '"]');
+
+                if ($room.length !== 0) {
+                    displayMessage(messager, message, Uid, appId); // update 聊天室
+                    displayClient(messager, message, Uid, appId); // update 客戶清單
+                    displayInfo(messager, message, Uid, appId);
+                    if (-1 === nameList.indexOf(Uid + appId)) {
+                        nameList.push(Uid + appId);
                     }
-                });
-            }).then((message) => {
-                return api.messager.getOne(appId, Uid, agentId).then((resJson) => {
-                    var messager = resJson.data;
-                    var $room = $('.chat-app-item[rel="' + appId + '"]');
-    
-                    if ($room.length !== 0) {
-                        displayMessage(messager, message, Uid, appId); // update 聊天室
-                        displayClient(messager, message, Uid, appId); // update 客戶清單
-                        displayInfo(messager, message, Uid, appId);
-                        if (-1 === nameList.indexOf(Uid + appId)) {
-                            nameList.push(Uid + appId);
-                        }
-                    }
-                });
-            }).catch(() => {});
+                }
+            });
         }));
     });
     socket.on('new internal message', (data) => {
@@ -1196,7 +1079,7 @@ window.auth.ready.then(function(currentUser) {
             });
         } else if (thisRel === 'assigned') {
             $('.tablinks-area').find('b').hide();
-            $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
+            $('.td-inner .multi-button .multi-select-text').each(function(index, el) {
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
                 if (rel !== '') {
@@ -1207,7 +1090,7 @@ window.auth.ready.then(function(currentUser) {
             });
         } else if (thisRel === 'unassigned') {
             $('.tablinks-area').find('b').hide();
-            $('#td-inner .multi-button .multi-select-text').each(function(index, el) {
+            $('.td-inner .multi-button .multi-select-text').each(function(index, el) {
                 str = $(this).attr('rel').split(',');
                 let rel = str.length === 1 && str[0] === '' ? $(this).attr('rel') : str;
                 if (rel === '') {
@@ -1228,9 +1111,9 @@ window.auth.ready.then(function(currentUser) {
         $('#send-message').show();
         $infoPanel.show();
         if (msgId === 'internal') {
-            $('#show-todo').hide();
+            $('#show_todo').hide();
         } else {
-            $('#show-todo').show();
+            $('#show_todo').show();
         }
         ticketTableCtrl.loadTickets(appId, agentId);
 
@@ -1451,11 +1334,11 @@ window.auth.ready.then(function(currentUser) {
         if (-1 === nameList.indexOf(userId + appId)) {
             infoCanvas.append(
                 '<div class="card-group" id="' + appId + '" rel="' + userId + '">' +
-                    '<div class="card-body" id="profile">' +
+                    '<div class="card-body alice-blue" id="profile">' +
                         "<div class='photo-container'>" +
                             '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
                         '</div>' +
-                        loadPanelProfileWithoutTag(messager) +
+                        loadPanelProfile(appId, messager) +
                         '<div class="profile-confirm">' +
                             '<button type="button" class="btn btn-info pull-right" id="confirm">確認</button>' +
                         '</div>' +
@@ -1553,8 +1436,8 @@ window.auth.ready.then(function(currentUser) {
 
     // function userInfoClick() {
     //     let val = $(this).text(); //抓目前的DATA
-    //     let td = $(this).parents('.userinfo-td');
-    //     td.html('<input id="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
+    //     let td = $(this).parents('.user-info-td');
+    //     td.html('<input class="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
     //     td.find('input').select(); //自動FOCUS該INPUT
     // }
 
@@ -1567,47 +1450,80 @@ window.auth.ready.then(function(currentUser) {
 
     // function userInfoBlur() {
     //     let val = $(this).val() || '尚未輸入'; // 抓INPUT裡的資料
-    //     $(this).parent().html('<p id="td-inner">' + val + '</p>'); // 將INPUT元素刪掉，把資料直接放上去
+    //     $(this).parent().html('<p class="td-inner">' + val + '</p>'); // 將INPUT元素刪掉，把資料直接放上去
     // }
 
     function userInfoConfirm() {
-        var appId = $(this).parents('.card-group').attr('id');
-        var msgerId = $(this).parents('.card-group').attr('rel');
-
         if (confirm('確定要更新對話者的個人資料嗎？')) {
             $('#infoCanvas').scrollTop(0);
-            var profileUiData = {};
+            var messagerUiData = {
+                custom_tags: []
+            };
             var $tds = $(this).parents('.card-group').find('.panel-table tbody td');
 
             $tds.each(function() {
                 var $td = $(this);
-                var prop = $td.attr('name');
-                var type = $td.attr('type');
-                var canModify = 'true' === $td.attr('modify');
+                var tagId = $td.parentsUntil('tbody').last().attr('id');
 
-                if (!canModify) {
+                var alias = $td.attr('alias');
+                var setsType = $td.attr('type');
+                var setsTypeEnums = api.tag.enums.setsType;
+
+                // 此欄位不允許編輯的話，不處理資料
+                if ('true' !== $td.attr('modify')) {
                     return;
                 }
 
                 var value = '';
-                if ('text' === type || 'select' === type) {
-                    value = $td.find('#td-inner').val();
-                } else if ('number' === type) {
-                    value = parseInt($td.find('#td-inner').val(), 10);
-                } else if ('date' === type) {
-                    value = $td.find('#td-inner').val();
-                    value = value ? new Date(value).getTime() : 0;
-                } else if ('multi-select' === type) {
-                    value = $td.find('.multi-select-text').attr('rel');
+                var $tdDataElem = $td.find('.td-inner');
+                switch (setsType) {
+                    case setsTypeEnums.NUMBER:
+                        value = parseInt($tdDataElem.val(), 10);
+                        break;
+                    case setsTypeEnums.DATE:
+                        value = $tdDataElem.val();
+                        value = value ? new Date(value).getTime() : 0;
+                        break;
+                    case setsTypeEnums.CHECKBOX:
+                        value = $tdDataElem.prop('checked');
+                        break;
+                    case setsTypeEnums.MULTI_SELECT:
+                        var checkVals = [];
+                        var $checkboxes = $tdDataElem.find('input[type="checkbox"]');
+                        $checkboxes.each(function() {
+                            checkVals.push($(this).prop('checked'));
+                        });
+                        value = checkVals;
+                        break;
+                    case setsTypeEnums.TEXT:
+                    case setsTypeEnums.SELECT:
+                    default:
+                        value = $tdDataElem.val();
+                        break;
                 }
 
-                value && (profileUiData[prop] = value);
+                if (value !== null && value !== undefined) {
+                    if (alias) {
+                        messagerUiData[alias] = value;
+                    } else {
+                        // 沒有別名的屬性代表是自定義的標籤資料
+                        // 將資料推入堆疊中
+                        messagerUiData.custom_tags.push({
+                            tag_id: tagId,
+                            value: value
+                        });
+                    }
+                }
             });
 
-            // 如果有可編輯的資料再發出更新請求
-            if (Object.keys(profileUiData).length > 0) {
-                // socket.emit('update profile', { appId, msgerId, data });
-                return api.messager.update(appId, msgerId, agentId, profileUiData).then(function() {
+            // 如果有可編輯的資料有變更再發出更新請求
+            if (Object.keys(messagerUiData).length > 0) {
+                var appId = $(this).parents('.card-group').attr('id');
+                var msgerId = $(this).parents('.card-group').attr('rel');
+
+                return api.messager.update(appId, msgerId, agentId, messagerUiData).then(function() {
+                    // 將成功更新的資料覆蓋前端本地端的全域 app 資料
+                    appsData[appId].messagers[msgerId] = Object.assign(appsData[appId].messagers[msgerId], messagerUiData);
                     $.notify('用戶資料更新成功', { type: 'success' });
                 }).catch(function() {
                     $.notify('用戶資料更新失敗，請重試', { type: 'danger' });
@@ -1685,9 +1601,9 @@ window.auth.ready.then(function(currentUser) {
                     let prop = $(this).attr('id');
                     let type = $(this).attr('type');
                     let value;
-                    if (type === "text") value = $(this).find('#td-inner').text();
-                    else if (type === "time") value = $(this).find('#td-inner').val();
-                    else if (type === "single-select") value = $(this).find('#td-inner').val();
+                    if (type === "text") value = $(this).find('.td-inner').text();
+                    else if (type === "time") value = $(this).find('.td-inner').val();
+                    else if (type === "single-select") value = $(this).find('.td-inner').val();
                     else if (type === "multi-select") value = $(this).find('.multi-select-text').attr('rel');
                     if (!value) value = "";
                     data[prop] = value;
@@ -1893,11 +1809,12 @@ window.auth.ready.then(function(currentUser) {
     function loadMessageInDisplayClient(msg) {
         if (msg.length > 10) {
             let newMsg = msg.substr(0, 10) + '...';
-            return newMsg
+            return newMsg;
         } else {
             return msg;
         }
     } // end of loadMessageInDisplayClient
+
     function toDateStr(input) {
         let str = " ";
         let date = new Date(input);
@@ -1906,15 +1823,18 @@ window.auth.ready.then(function(currentUser) {
         str += week[date.getDay()] + ' ' + addZero(date.getHours()) + ':' + addZero(date.getMinutes());
         return str;
     } // end of toDateStr
+
     function toTimeStr(input) {
         let date = new Date(input);
         let dateStr = " (" + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ") ";
         return dateStr;
     } // end of toTimeStr
+
     function toTimeStrMinusQuo(input) {
         let date = new Date(input);
         return addZero(date.getHours()) + ':' + addZero(date.getMinutes());
     } // end of toTimeStrMinusQuo
+
     function multiSelectChange() {
         let valArr = [];
         let textArr = [];
@@ -1930,61 +1850,10 @@ window.auth.ready.then(function(currentUser) {
         else textArr = textArr.join(',');
         $(this).parent().find($('.multi-select-text')).text(textArr).attr('rel', valArr);
     } // end of multiSelectChange
+
     function addZero(val) {
         return val < 10 ? '0' + val : val;
     } // end of addZero
-    function ISODateTimeString(d) {
-        d = new Date(d);
 
-        return d.getFullYear() + '-' + addZero(d.getMonth() + 1) + '-' + addZero(d.getDate()) + 'T' + addZero(d.getHours()) + ':' + addZero(d.getMinutes());
-    } // end of ISODateTimeString
-    function priorityTextToMark(priority) {
-        switch (priority) {
-            case 'Urgent':
-                return 4;
-                break;
-            case 'High':
-                return 3;
-                break;
-            case 'Medium':
-                return 2;
-                break;
-            default:
-                return 1;
-        }
-    } // end of priorityTextToMark
-    function statusTextToMark(status) {
-        switch (status) {
-            case 'Closed':
-                return 5;
-                break;
-            case 'Resolved':
-                return 4;
-                break;
-            case 'Pending':
-                return 3;
-                break;
-            default:
-                return 2;
-        }
-    } // end of statusTextToMark
-    //=====end utility function
-
-    function findMessagerProfile(appId, msgerId, callback) {
-        var jwt = localStorage.getItem('jwt');
-        $.ajax({
-            type: 'GET',
-            url: '/api/apps-messagers/apps/' + appId + '/messager/' + msgerId,
-            headers: {
-                'Authorization': jwt
-            },
-            success: (data) => {
-                callback(data);
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        });
-    } // end of findMessagerProfile
-
-}); //document ready close
+    // =====end utility function
+}); // document ready close

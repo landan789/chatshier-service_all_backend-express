@@ -13,7 +13,8 @@ module.exports = (function() {
             name: '',
             photo: '',
             age: '',
-            telephone: '',
+            gender: '',
+            phone: '',
             assigned: '',
             email: '',
             remark: '',
@@ -23,7 +24,8 @@ module.exports = (function() {
             totalChat: 1,
             chatTimeCount: 1,
             unRead: 1,
-            chatroom_id: ''
+            chatroom_id: '',
+            custom_tags: ''
         };
         callback(json);
     };

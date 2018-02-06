@@ -1,10 +1,18 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 // ===============
-// 標籤 Tab 代碼區塊
+// #region 標籤 Tab 代碼區塊
 (function() {
-    // 宣告用來處理整個標籤容器的控制類別
-    var TagPanelCtrl = (function() {
+    var NEW_TAG_ID_PREFIX = 'temp_tag_id';
+    var userId = '';
+    var api = window.restfulAPI;
+    var tagEnums = api.tag.enums;
+    var transJson = {};
+
+    var tagPanelCtrl = (function() {
+        var instance = new TagPanelCtrl();
+
+        // 宣告用來處理整個標籤容器的控制類別
         function TagPanelCtrl() {
             this.saveListeners = [];
             this.deleteListeners = [];
@@ -63,18 +71,20 @@
             $tagTableBody.sortable(); // 使 jquery ui 的 sortable 的功能作動，讓 table 內的項目可以被拖曳移動
 
             $tagCollapse.find('.btn.add-tag').on('click', function() {
-                _this.addTagItem(appId, 'temp_tag_id' + Date.now(), {
-                    name: '新標籤'
+                _this.addTagItem(appId, NEW_TAG_ID_PREFIX + Date.now(), {
+                    text: '新標籤',
+                    type: tagEnums.type.CUSTOM
                 });
             });
 
             $tagCollapse.find('.btn.all-confirm').on('click', function(ev) {
                 var $tagRows = $tagTableBody.find('tr.tag-content');
                 var uiData = {};
+
                 for (var i = 0; i < $tagRows.length; i++) {
                     var $row = $($tagRows[i]);
                     var data = {
-                        name: $row.find('.tag-name input').val(),
+                        text: $row.find('.tag-name input').val(),
                         setsType: $row.find('.tag-type select option:selected').val(),
                         order: i
                     };
@@ -83,10 +93,7 @@
                     switch (data.setsType) {
                         case tagEnums.setsType.MULTI_SELECT:
                         case tagEnums.setsType.CHECKBOX:
-                            // 多選的資料由之後的應用端處理
-                            break;
                         case tagEnums.setsType.SELECT:
-                        case tagEnums.setsType.RADIO:
                             // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
                             data.sets = $row.find('.tag-sets .sets-item').val().split('\n');
                             break;
@@ -129,11 +136,18 @@
             var getSetsHtml = function(setsType, setsData) {
                 switch (setsType) {
                     case tagEnums.setsType.SELECT:
-                    case tagEnums.setsType.RADIO:
-                        return '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' + setsData.join('\n') + '</textarea>';
                     case tagEnums.setsType.MULTI_SELECT:
+                        return '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
+                            (function(sets) {
+                                var transStrs = [];
+                                for (var i in sets) {
+                                    transStrs.push(transJson[sets[i]] ? transJson[sets[i]] : (sets[i] || ''));
+                                }
+                                return transStrs;
+                            })(setsData).join('\n') +
+                        '</textarea>';
                     case tagEnums.setsType.CHECKBOX:
-                        return '<input class="sets-item form-control" value="無設定" disabled />';
+                        return '<input type="text" class="sets-item form-control" value="無設定" disabled />';
                     case tagEnums.setsType.TEXT:
                     case tagEnums.setsType.DATE:
                     case tagEnums.setsType.NUMBER:
@@ -148,7 +162,7 @@
             $tagTableBody.append(
                 '<tr class="tag-content" id="' + tagId + '">' +
                     '<td class="tag-name long-token">' +
-                        '<input class="form-control" type="text" value="' + (tagData.name || '') + '" />' +
+                        '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
                     '</td>' +
                     '<td class="tag-type">' +
                         '<select class="form-control">' +
@@ -157,15 +171,14 @@
                             '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
                             '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
                             '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
-                            '<option value="' + tagEnums.setsType.CHECKBOX + '">多項勾選</option>' +
-                            '<option value="' + tagEnums.setsType.RADIO + '">單項圈選</option>' +
+                            '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
                         '</select>' +
                     '</td>' +
                     '<td class="tag-sets">' +
                         getSetsHtml(tagData.setsType, tagData.sets) +
                     '</td>' +
                     '<td class="tag-delete">' +
-                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn">' +
+                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
                             '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
                         '</button>' +
                     '</td>' +
@@ -177,7 +190,7 @@
             var $tagTypeSelect = $tagRow.find('.tag-type select');
             $tagTypeSelect.find('option[value="' + tagData.setsType + '"]').prop('selected', true);
 
-            if (tagData.type === tagEnums.type.DEFAULT) {
+            if (tagData.type !== tagEnums.type.CUSTOM) {
                 $tagTypeSelect.prop('disabled', true);
                 $tagRow.find('.tag-name input').prop('disabled', true);
                 $tagRow.find('.tag-sets .sets-item').prop('disabled', true);
@@ -218,13 +231,12 @@
             };
         };
 
-        return TagPanelCtrl;
+        return instance;
     })();
 
-    var userId = '';
-    var api = window.restfulAPI;
-    var tagEnums = api.tag.enums;
-    var tagPanelCtrl = new TagPanelCtrl();
+    window.translate.ready.then(function(json) {
+        transJson = json;
+    });
 
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
@@ -302,7 +314,7 @@
                     if (ev.uiData[tagId] && !hasSameData(tagData, ev.uiData[tagId])) {
                         // 只允許非系統預設的欄位可進行資料變更動作
                         if (tagData.type !== tagEnums.type.DEFAULT) {
-                            tagData.name = ev.uiData[tagId].name;
+                            tagData.text = ev.uiData[tagId].text;
                             tagData.setsType = ev.uiData[tagId].setsType;
                             tagData.sets = ev.uiData[tagId].sets;
                         }
@@ -319,14 +331,14 @@
                     // 將剩下的 id 檢查是否為新增的標籤
                     var newTagIds = Object.keys(ev.uiData);
                     return Promise.all(newTagIds.map(function(tagId) {
-                        // 新增的標籤 id 前綴設定為 temp_tag_id
+                        // 新增的標籤 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
                         // 非新增的標籤資料不進行資料插入動作
-                        if (tagId.indexOf('temp_tag_id') !== 0) {
+                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) !== 0) {
                             return Promise.resolve();
                         }
 
                         var tagData = {
-                            name: ev.uiData[tagId].name,
+                            text: ev.uiData[tagId].text,
                             type: tagEnums.type.CUSTOM,
                             sets: ev.uiData[tagId].sets,
                             setsType: ev.uiData[tagId].setsType,
@@ -356,7 +368,7 @@
         });
     });
 })();
-// 標籤 Tab 代碼區塊
+// #endregion
 // ===============
 
 var domain = location.host;

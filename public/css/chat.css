@@ -472,31 +472,24 @@ div.loading-img {
     #infoPanel td {
         word-wrap: break-word;
     }
-    .panel-table input {
-        width: auto;
-    }
-    .userInfo-th {
+    .table .user-info-th {
         width: 40%;
-        padding-top: 20px;
-        padding-right: 10px;
-        padding-left: 10px;
+        vertical-align: middle;
     }
-    .userinfo-td {
-        padding-right: 10px;
-        padding-top: 20px;
+    .table .user-info-td {
+        vertical-align: middle;
     }
-    #td-inner {
+    .td-inner:not(.btn-group) {
         width: 100%;
         margin: 0px auto;
-        padding: 0px;
+        padding: 0 .5rem;
     }
-    #td-inner[type="datetime-local"] {
+    .td-inner[type="datetime-local"] {
         margin-top: 2px;
     }
     .photo-container {
-        display: block;
-        justify-content: center;
         text-align: center;
+        margin: 5% 0;
     }
     .photo-container img {
         border-radius: 50%;
@@ -612,12 +605,6 @@ button.multi-button {
     overflow-y: scroll;
     overflow-x: hidden;
     width: 100%;
-}
-
-.profile-confirm {
-    margin-top: 10px;
-    margin-bottom: 60px;
-    padding-right: 105px;
 }
 
 .choose {

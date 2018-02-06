@@ -2,6 +2,7 @@ module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
 
     const typeEnum = Object.freeze({
+        SYSTEM: 'SYSTEM',
         DEFAULT: 'DEFAULT',
         CUSTOM: 'CUSTOM'
     });
@@ -12,14 +13,14 @@ module.exports = (function() {
         DATE: 'DATE',
         SELECT: 'SELECT',
         MULTI_SELECT: 'MULTI_SELECT',
-        CHECKBOX: 'CHECKBOX',
-        RADIO: 'RADIO'
+        CHECKBOX: 'CHECKBOX'
     });
 
     function AppsTagsModel() {}
     AppsTagsModel._schema = function() {
         let json = {
-            name: '',
+            text: '',
+            alias: '',
             type: typeEnum.CUSTOM,
             sets: [''],
             setsType: 0,
@@ -80,49 +81,62 @@ module.exports = (function() {
      */
     AppsTagsModel.prototype.insertDefaultTags = function(appId, callback) {
         let defaultTags = [{
-            name: '姓名',
+            text: 'Name',
+            alias: 'name',
+            type: typeEnum.SYSTEM,
             sets: [''],
             setsType: setsTypeEnum.TEXT
         }, {
-            name: '年齡',
+            text: 'Age',
+            alias: 'age',
+            type: typeEnum.DEFAULT,
             sets: [0],
             setsType: setsTypeEnum.NUMBER
         }, {
-            name: '性別',
-            sets: ['男', '女'],
+            text: 'Gender',
+            alias: 'gender',
+            type: typeEnum.DEFAULT,
+            sets: ['MALE', 'FEMALE'],
             setsType: setsTypeEnum.SELECT
         }, {
-            name: '電子郵件',
+            text: 'Email',
+            alias: 'email',
+            type: typeEnum.DEFAULT,
             sets: [''],
             setsType: setsTypeEnum.TEXT
         }, {
-            name: '電話',
+            text: 'Phone',
+            alias: 'phone',
+            type: typeEnum.DEFAULT,
             sets: [''],
             setsType: setsTypeEnum.TEXT
         }, {
-            name: '首次聊天時間',
+            text: 'First chat date',
+            alias: 'firstChat',
+            type: typeEnum.SYSTEM,
             sets: [0],
             setsType: setsTypeEnum.DATE
         }, {
-            name: '上次聊天時間',
+            text: 'Recent chat date',
+            alias: 'recentChat',
+            type: typeEnum.SYSTEM,
             sets: [0],
             setsType: setsTypeEnum.DATE
         }, {
-            name: '聊天次數',
+            text: 'Chat time(s)',
+            alias: 'chatTimeCount',
+            type: typeEnum.SYSTEM,
             sets: [0],
             setsType: setsTypeEnum.NUMBER
         }, {
-            name: '備註',
+            text: 'Remark',
+            alias: 'remark',
+            type: typeEnum.DEFAULT,
             sets: [''],
             setsType: setsTypeEnum.TEXT
-        }, {
-            name: '指派負責人',
-            sets: [''],
-            setsType: setsTypeEnum.CHECKBOX
         }];
 
         Promise.all(defaultTags.map((tag, idx) => {
-            tag.type = typeEnum.DEFAULT;
             tag.order = idx;
             tag.createdTime = tag.updatedTime = Date.now();
 

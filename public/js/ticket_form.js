@@ -310,7 +310,7 @@ var ChatshierAppAPI = (function() {
             var messagerInfo = messagerData[selectedId];
             $messagerIdElem.prop('value', selectedId);
             $messagerEmailElem.prop('value', messagerInfo.email);
-            $messagerPhoneElem.prop('value', messagerInfo.telephone);
+            $messagerPhoneElem.prop('value', messagerInfo.phone);
         };
         updateInfo($messagerSelectElem.val());
 
