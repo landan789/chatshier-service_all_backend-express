@@ -409,8 +409,9 @@ function init(server) {
                 });
             });
         }).then((AppsChatroomsMessages) => {
+            let appName = req.app.name;
             // 6. 用 socket.emit 回傳訊息給 clinet
-            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, AppsChatroomsMessages);
+            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, {AppsChatroomsMessages, appName});
             res.sendStatus(200);
         }).catch((ERR) => {
             res.status(403);

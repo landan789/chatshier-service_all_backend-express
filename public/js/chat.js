@@ -544,6 +544,8 @@ window.auth.ready.then(function(currentUser) {
     function responseChatData(apps) {
         for (var appId in apps) {
             var appData = apps[appId];
+            var appName = apps[appId].name;
+            var appType = apps[appId].type;
             var chatroomsData = appData.chatrooms;
 
             for (var msgerId in appData.messagers) {
@@ -552,7 +554,9 @@ window.auth.ready.then(function(currentUser) {
                     profile: messager,
                     obj: chatroomsData[messager.chatroom_id],
                     userId: msgerId,
-                    appId: appId
+                    appId: appId,
+                    name: appName,
+                    type: appType
                 };
 
                 pushChatroom(chatData);
@@ -588,6 +592,9 @@ window.auth.ready.then(function(currentUser) {
 
     function pushChatroom(data) {
         let profile = data.profile;
+        let appName = data.name;
+        let appType = data.type;
+        let tablinkHtml = '';
         nameList.push(data.userId + data.appId); // make a name list of all chated user
         userProfiles[data.appId] = profile;
 
@@ -606,14 +613,28 @@ window.auth.ready.then(function(currentUser) {
         // 左邊的客戶清單排列
         let lastMsg = historyMsg[Object.keys(historyMsg)[Object.keys(historyMsg).length - 1]];
         let lastMsgStr = lastMsgToStr(lastMsg);
-        let tablinkHtml =
-            '<b><button class="tablinks"' + 'name="' + data.appId + '" rel="' + data.userId + '">' +
-                '<div class="img-holder">' +
-                    '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
-                '</div>' +
-                '<div class="msg-holder">' +
-                    '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
-                '</div>';
+        switch (appType) {
+            case LINE:
+                tablinkHtml = '<b><button class="tablinks"' + 'name="' + data.appId + '" rel="' + data.userId + '">' +
+                    '<div class="img-holder">' +
+                        '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
+                        '<img class="small-software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
+                    '</div>' +
+                    '<div class="msg-holder">' +
+                        '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
+                    '</div><div class="appName"><u>' + appName + '</u></div>';
+                break;
+            case FACEBOOK:
+                tablinkHtml = '<b><button class="tablinks"' + 'name="' + data.appId + '" rel="' + data.userId + '">' +
+                    '<div class="img-holder">' +
+                        '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
+                        '<img class="small-software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
+                    '</div>' +
+                    '<div class="msg-holder">' +
+                        '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
+                    '</div><div class="appName"><u>' + appName + '</u></div>';
+                break;
+        }
 
         if ((profile.unRead > 0) && (profile.unRead <= 99)) {
             tablinkHtml += '<div class="chsr unread-msg badge badge-pill" style="display:block;">' + profile.unRead + '</div>';
@@ -696,6 +717,7 @@ window.auth.ready.then(function(currentUser) {
 
     function pushProfile(data) {
         var messager = data.profile;
+        let appNname = data.name;
         infoCanvas.append(
             '<div class="card-group" id="' + data.appId + '" rel="' + data.userId + '">' +
                 '<div class="card-body table-responsive" id="profile">' +
@@ -1038,29 +1060,6 @@ window.auth.ready.then(function(currentUser) {
             'Profile': data
         });
     });
-    socket.on('autoreplies', (data) => {
-        var sendObj = data.sendObj;
-        var msgText = sendObj.msgText;
-        var userId = data.userId;
-        var appId = data.appId;
-        let str = toAgentStr(msgText, Date.now());
-        $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
-        $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
-        $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText));
-        messageInput.val('');
-    });
-    socket.on('post followMessage to chat', (data) => {
-        var userId = data.userId; // 平台使用者的appId
-        var appId = data.appId; // line打過來的userId
-        var msgText = data.followMessage;
-        for (let i in msgText) {
-            let str = toAgentStr(msgText[i], Date.now());
-            $('#' + userId + '-content' + "[rel='" + appId + "']").append(str); // push message into right canvas
-            $('#' + userId + '-content' + "[rel='" + appId + "']").scrollTop($('#' + userId + '-content' + '[rel="' + appId + '"]')[0].scrollHeight); // scroll to down
-            $('[name="' + userId + '"][rel="' + appId + '"] #msg').html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msgText[i]));
-            messageInput.val('');
-        }
-    });
     //=====end socket function=====
 
     //=====start chat function=====
@@ -1394,7 +1393,12 @@ window.auth.ready.then(function(currentUser) {
     function displayClient(messager, message, userId, appId) {
         let chats = message;
         if (-1 === nameList.indexOf(userId + appId)) {
-            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'><div class='img-holder'>" + "<img src='" + messager.photo + "' alt='無法顯示相片'>" + "</div>" + "<div class='msg-holder'>" + "<span class='clientName'>" + messager.name + '</span><br><div id="msg"></div></div>';
+            let tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'>" +
+            "<div class='img-holder'>" +
+            "<img src='" + messager.photo + "' alt='無法顯示相片'>" +
+            "</div><div class='msg-holder'>" +
+            "<span class='clientName'>" + messager.name + '</span>' +
+            '<br><div id="msg"></div></div>';
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + userId + "']");
