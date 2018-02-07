@@ -41,7 +41,7 @@ const FOLLOW = 'FOLLOW';
 const MESSAGE = 'MESSAGE';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
-const webhookUserId = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
+const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
 
 var linebotParser;
 var globalLineMessageArray = [];
@@ -116,18 +116,22 @@ function init(server) {
         var appId = req.appId;
         var message;
         var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
-        if (FOLLOW === event.type.toUpperCase()) {
-            next();
-        }
         switch (req.app.type) {
             case LINE:
-                let userId0 = req.body.events[0].source.userId;
-                let token0 = req.body.events[0].replyToken;
-                let userId1 = req.body.events[1].source.userId;
-                let token1 = req.body.events[1].replyToken;
-                if (webhookUserId === userId0 && REPLY_TOKEN_0 === token0 && webhookUserId === userId1 && REPLY_TOKEN_F === token1) {
-                    res.sendStatus(200);
-                    next('route');
+                if (FOLLOW === event.type.toUpperCase()) {
+                    next();
+                    return;
+                }
+                if (2 === req.body.events.length) {
+                    let userId0 = req.body.events[0].source.userId;
+                    let token0 = req.body.events[0].replyToken;
+                    let userId1 = req.body.events[1].source.userId;
+                    let token1 = req.body.events[1].replyToken;
+                    if (LINE_WEBHOOK_VERIFY_UID === userId0 && REPLY_TOKEN_0 === token0 && LINE_WEBHOOK_VERIFY_UID === userId1 && REPLY_TOKEN_F === token1) {
+                        res.sendStatus(200);
+                        next('route');
+                        return;
+                    }
                 }
                 message = req.body.events[0].message.text;
                 break;
@@ -316,8 +320,9 @@ function init(server) {
             return new Promise((resolve, reject) => {
                 switch (req.app.type) {
                     case LINE:
-                        text = req.body.events[0].message.text;
-                        type = req.body.events[0].message.type;
+                        var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
+                        text = FOLLOW === event.type.toUpperCase() ? '' : req.body.events[0].message.text;
+                        type = FOLLOW === event.type.toUpperCase() ? '' : req.body.events[0].message.type;
                         break;
                     case FACEBOOK:
                         text = req.body.entry[0].messaging[0].message.text;
@@ -339,6 +344,10 @@ function init(server) {
                 switch (req.app.type) {
                     case LINE:
                         let messageEvent = req.body.events[0];
+                        if (FOLLOW === messageEvent.type.toUpperCase()) {
+                            resolve({messager: messager, inMessage: ''});
+                            break;
+                        }
                         helpersBot.lineMessageType(req.lineBot, messageEvent, inMessage, (newMessage) => {
                             resolve({messager: messager, inMessage: newMessage});
                         });
@@ -355,7 +364,10 @@ function init(server) {
             let messager = data.messager;
             let inMessage = data.inMessage;
             var chatroomId = messager.chatroom_id;
-            req.messages.unshift(inMessage);
+            var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
+            if (MESSAGE === event.type.toUpperCase()) {
+                req.messages.unshift(inMessage);
+            }
             // 回復訊息與傳入訊息都整合，再寫入 DB
             return Promise.all(req.messages.map((message) => {
                 // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
