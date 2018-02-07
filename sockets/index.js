@@ -365,8 +365,8 @@ function init(server) {
             let messager = data.messager;
             let inMessage = data.inMessage;
             var chatroomId = messager.chatroom_id;
-            var event = undefined === req.body.events ? '' : req.body.events[0]; // LINE的event
-            if (MESSAGE === event.type.toUpperCase()) {
+            var eventType = undefined === req.body.events ? '' : req.body.events[0].type; // LINE的event
+            if (MESSAGE === eventType.toUpperCase() || FACEBOOK === req.app.type) {
                 req.messages.unshift(inMessage);
             }
             // 回復訊息與傳入訊息都整合，再寫入 DB
