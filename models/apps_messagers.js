@@ -114,8 +114,6 @@ module.exports = (function() {
             return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
         }).then((snap) => {
             let messagerInDB = snap.val() || {};
-            messager.unRead += messagerInDB.unRead; // 計算未讀訊息
-
             // messagerInDB 裡沒有 chatroom_id 代表之前無資料，視同為新增資料
             if (!messagerInDB.chatroom_id) {
                 let chatroomsRef = admin.database().ref('apps/' + appId + '/chatrooms').push();
@@ -132,6 +130,7 @@ module.exports = (function() {
                     });
                 });
             };
+            messager.unRead += messagerInDB.unRead; // 計算未讀訊息
             return Object.assign(messagerInDB, messager);
         }).then((messager) => {
             return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager).then(() => {
