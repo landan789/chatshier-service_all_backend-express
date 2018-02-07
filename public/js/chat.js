@@ -1284,10 +1284,10 @@ window.auth.ready.then(function(currentUser) {
             }).then(() => {
                 return fileRef.put(file);
             }).then(function(snapshot) {
-                let url = snapshot.downloadURL;
+                let src = snapshot.downloadURL;
                 var textType = $(self).data('type');
                 return new Promise((resolve, reject) => {
-                    formatUrl(textType, url, (msg) => {
+                    formatUrl(textType, src, (msg) => {
                         var appType = 'string' === typeof(userId) && userId.startsWith('U') ? LINE : FACEBOOK;
                         let str = toAgentStr(msg, Date.now());
                         $('#' + appId + '-content' + "[rel='" + userId + "']").append(str);
@@ -1297,7 +1297,7 @@ window.auth.ready.then(function(currentUser) {
                         var data = {
                             ...apps,
                             msg: '',
-                            url: url,
+                            src: src,
                             textType: textType,
                             type: appType,
                             msgTime: Date.now()
