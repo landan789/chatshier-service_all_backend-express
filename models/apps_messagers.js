@@ -114,9 +114,7 @@ module.exports = (function() {
             return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
         }).then((snap) => {
             let messagerInDB = snap.val() || {};
-            let newMessager = Object.assign({}, messager);
-
-            newMessager.unRead += messagerInDB.unRead;
+            messager.unRead += messagerInDB.unRead; // 計算未讀訊息
 
             // messagerInDB 裡沒有 chatroom_id 代表之前無資料，視同為新增資料
             if (!messagerInDB.chatroom_id) {
@@ -128,13 +126,13 @@ module.exports = (function() {
                         // 將欲更新的的 messager 的資料與初始化的 schema 合併，作為新增的資料
                         AppsMessagersModel._schema((initMessager) => {
                             messagerInDB.chatroom_id = chatroomId;
-                            messagerInDB = Object.assign(initMessager, messagerInDB, newMessager);
+                            messagerInDB = Object.assign(initMessager, messagerInDB, messager);
                             resolve(messagerInDB);
                         });
                     });
                 });
             };
-            return Object.assign(messagerInDB, newMessager);
+            return Object.assign(messagerInDB, messager);
         }).then((messager) => {
             return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager).then(() => {
                 return messager;
