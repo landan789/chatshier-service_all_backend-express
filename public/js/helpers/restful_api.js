@@ -575,6 +575,111 @@ window.restfulAPI = (function() {
         return ChatroomAPI;
     })();
 
+    /**
+     * 宣告專門處理相關自動回覆的 API 類別
+     */
+    var AutoreplyAPI = (function() {
+        function AutoreplyAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-autoreplies/';
+        };
+
+        /**
+         * 取得使用者所有自動回覆資料
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AutoreplyAPI.prototype.getAll = function(userId) {
+            var destUrl = this.urlPrefix + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 取得使用者某一個 App 的所有自動回覆的資料
+         *
+         * @param {string} appId - 目標自動回覆的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AutoreplyAPI.prototype.getOne = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 新增一筆自動回覆資料
+         *
+         * @param {string} appId - 目標自動回覆的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} newAutoreplyData - 欲新增的待辦事項資料
+         */
+        AutoreplyAPI.prototype.insert = function(appId, userId, newAutoreplyData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(newAutoreplyData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 修改一筆自動回覆資料
+         *
+         * @param {string} appId - 目標自動回覆的 App ID
+         * @param {string} autoreplyId - 目標自動回覆的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} modifiedAutoreplyData - 已編輯後欲更新的關鍵字回覆資料
+         */
+        AutoreplyAPI.prototype.update = function(appId, userId, autoreplyId, modifiedAutoreplyData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/autoreplies/' + autoreplyId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(modifiedAutoreplyData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 刪除一筆自動回覆資料
+         *
+         * @param {string} appId - 目標自動回覆的 App ID
+         * @param {string} autoreplyId - 目標自動回覆的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AutoreplyAPI.prototype.remove = function(appId, userId, autoreplyId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/autoreplies/' + autoreplyId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+        return AutoreplyAPI;
+    })();
+
     if (window.auth) {
         // 當 firebase 登入完成後自動更新 API 需要的 JSON Web Token
         window.auth.ready.then(function() {
@@ -590,6 +695,7 @@ window.restfulAPI = (function() {
         keywordreply: new KeywordreplyAPI(),
         tag: new TagAPI(),
         chatroom: new ChatroomAPI(),
+        autoreply: new AutoreplyAPI(),
         setJWT: setJWT
     };
 })();

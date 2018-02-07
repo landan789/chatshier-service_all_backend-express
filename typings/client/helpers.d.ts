@@ -75,3 +75,11 @@ interface ChatroomAPI {
     getAllMessages: (userId: string) => Promise<any>;
     getAllMessagesByAppId: (appId: string, userId: string) => Promise<any>;
 }
+
+interface AutoreplyAPI {
+    getAll: (userId: string) => Promise<any>;
+    getOne: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, autoreplyData: any) => Promise<any>;
+    update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
+    remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
+}

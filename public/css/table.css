@@ -95,6 +95,8 @@ label *:not(strong) {
 .chsr.table {
     table-layout: fixed;
     word-wrap: break-word;
+    height: 550px;
+    overflow: auto;
 }
 
 .pagebtn {
@@ -107,6 +109,10 @@ label *:not(strong) {
 
 .padding-lr {
     padding: 0px 50px;
+}
+
+#view-all {
+    margin-bottom: 2%;
 }
 
 tr:nth-child(even) {

@@ -139,22 +139,20 @@
                         <input type="text" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
                         <button type="button" class="btn btn-default fa fa-plus" data-toggle="modal" data-target="#quickAdd" aria-hidden="true"></button>
                     </div>
-                    <div class="tab-content">
-                        <div class="table tabcontent">
-                            <table class="chsr table row-color">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">標題</th>
-                                        <th scope="col">開始時間</th>
-                                        <th scope="col">結束時間</th>
-                                        <th scope="col">訊息內容</th>
-                                        <th scope="col">編輯/刪除</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="autoreply-tables"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
+                <div class="padding-lr chsr table">
+                    <table class="chsr table">
+                        <thead>
+                            <tr>
+                                <th scope="col">標題</th>
+                                <th scope="col">開始時間</th>
+                                <th scope="col">結束時間</th>
+                                <th scope="col">訊息內容</th>
+                                <th scope="col">編輯/刪除</th>
+                            </tr>
+                        </thead>
+                        <tbody id="autoreply-tables"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -167,6 +165,7 @@
     <script src="lib/js/bootstrap-notify.min.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="js/_firebase-auth.js"></script>
+    <script src="js/helpers/restful_api.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/autoreply.js"></script>
     <script src="js/partials/firebase-disable.js"></script>
