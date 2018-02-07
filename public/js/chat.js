@@ -1401,10 +1401,10 @@ window.auth.ready.then(function(currentUser) {
         let currentUnread = messager.unRead;
         let $msgElem = target.find('#msg');
 
-        if (chats.text.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字
+        if (chats.text.startsWith('<a') || chats.text.startsWith('<audio') || chats.text.startsWith('<video')) { // 判斷客戶傳送的是檔案，貼圖還是文字
             $msgElem.html(toTimeStr(chats.time) + '檔案');
         } else if (chats.text.startsWith('<img')) {
-            $msgElem.html(toTimeStr(chats.time) + '貼圖');
+            $msgElem.html(toTimeStr(chats.time) + '圖檔');
         } else {
             $msgElem.html(toTimeStr(chats.time) + loadMessageInDisplayClient(chats.text));
         }
@@ -1797,10 +1797,10 @@ window.auth.ready.then(function(currentUser) {
         }
     } // end of toUserStr
     function lastMsgToStr(msg) {
-        if (msg.text.startsWith('<a')) {
+        if (msg.text.startsWith('<a') || msg.text.startsWith('<video') || msg.text.startsWith('<audio')) {
             return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送檔案</div>';
         } else if (msg.text.startsWith('<img')) {
-            return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送貼圖</div>';
+            return '<br><div id="msg">' + toTimeStr(msg.time) + '客戶傳送圖檔</div>';
         } else {
             return '<br><div id="msg">' + toTimeStr(msg.time) + loadMessageInDisplayClient(msg.text) + '</div>';
         }
