@@ -4,13 +4,15 @@ calendarsEvents._schema = (callback) => {
     var json = {
         isAllDay: 0,
         isDeleted: 0,
-        description: null,
-        endTime: 0,
-        startTime: 0,
-        title: null
+        description: '',
+        createdTime: Date.now(),
+        updatedTime: Date.now(),
+        endedTime: 0,
+        startedTime: 0,
+        title: ''
     };
     callback(json);
-}
+};
 
 calendarsEvents.findCalendarIdByUserId = (userId, callback) => {
     admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {

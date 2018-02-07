@@ -41,8 +41,8 @@ calendarsEvents.postOne = (req, res, next) => {
     let userId = req.params.userid;
     let event = {
         title: undefined === req.body.title ? null : req.body.title,
-        startTime: undefined === req.body.startTime ? null : req.body.startTime,
-        endTime: undefined === req.body.endTime ? null : req.body.endTime,
+        startedTime: undefined === req.body.startedTime ? null : req.body.startedTime,
+        endedTime: undefined === req.body.endedTime ? null : req.body.endedTime,
         description: undefined === req.body.description ? null : req.body.description,
         isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay,
         isDeleted: 0
@@ -95,8 +95,8 @@ calendarsEvents.putOne = (req, res, next) => {
 
     let event = {
         title: undefined === req.body.title ? null : req.body.title,
-        startTime: undefined === req.body.startTime ? null : req.body.startTime,
-        endTime: undefined === req.body.endTime ? null : req.body.endTime,
+        startedTime: undefined === req.body.startedTime ? null : req.body.startedTime,
+        endedTime: undefined === req.body.endedTime ? null : req.body.endedTime,
         description: undefined === req.body.description ? null : req.body.description,
         isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay
     }
