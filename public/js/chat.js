@@ -662,7 +662,7 @@ window.auth.ready.then(function(currentUser) {
                         break;
                     case 'video':
                         let videoUrl = messages[i].src;
-                        messages[i].text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                        messages[i].text = '<video controls><source src="' + videoUrl + '" type="video/mp4"></video>';
                         break;
                     case 'sticker':
                         let stickerUrl = messages[i].src;
@@ -998,7 +998,7 @@ window.auth.ready.then(function(currentUser) {
                     break;
                 case 'video':
                     let videoUrl = message.src;
-                    message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
+                    message.text = '<video controls><source src="' + videoUrl + '" type="video/mp4"></video>';
                     break;
                 case 'sticker':
                     let stickerUrl = message.src;

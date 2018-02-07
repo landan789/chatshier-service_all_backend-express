@@ -59,7 +59,7 @@ utility.lineMsgType = (event, type, callback) => {
             break;
         case 'video':
             event.message.content().then(function(content) {
-                msgObj = '<video width="20%" controls><source src="data:video/mp4;base64,' + content.toString('base64') + '" ' +
+                msgObj = '<video controls><source src="data:video/mp4;base64,' + content.toString('base64') + '" ' +
                     '" type="video/mp4"></video>';
             }).catch(function(error) {
                 console.log('video error: ' + error);
