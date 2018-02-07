@@ -1097,7 +1097,7 @@ function updateUserProfile(data) {
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
-        url: '/api/users/' + id,
+        url: '/api/users/users/' + id,
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
