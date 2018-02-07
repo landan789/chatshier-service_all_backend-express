@@ -1398,7 +1398,7 @@ window.auth.ready.then(function(currentUser) {
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
         }
         let target = $('.tablinks-area').find(".tablinks[name='" + appId + "'][rel='" + userId + "']");
-        let currentUnread = messager.unRead + parseInt(target.find('.unread-msg').text());
+        let currentUnread = messager.unRead;
         let $msgElem = target.find('#msg');
 
         if (chats.text.startsWith('<a')) { // 判斷客戶傳送的是檔案，貼圖還是文字

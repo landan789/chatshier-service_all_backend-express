@@ -292,7 +292,8 @@ function init(server) {
             var msgerId = req.messagerId;
             var messager = {
                 name: '',
-                photo: ''
+                photo: '',
+                unRead: 1
             };
 
             switch (req.app.type) {
