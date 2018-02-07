@@ -653,23 +653,23 @@ window.auth.ready.then(function(currentUser) {
             if (undefined === messages[i].text || null === messages[i].text || '' === messages[i].text) {
                 switch (messages[i].type) {
                     case 'image':
-                        let imageUrl = messages[i].url;
+                        let imageUrl = messages[i].src;
                         messages[i].text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
                         break;
                     case 'audio':
-                        let audioUrl = messages[i].url;
+                        let audioUrl = messages[i].src;
                         messages[i].text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
                         break;
                     case 'video':
-                        let videoUrl = messages[i].url;
+                        let videoUrl = messages[i].src;
                         messages[i].text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
                         break;
                     case 'sticker':
-                        let stickerUrl = messages[i].url;
+                        let stickerUrl = messages[i].src;
                         messages[i].text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
                         break;
                     case 'location':
-                        let locationUrl = messages[i].url;
+                        let locationUrl = messages[i].src;
                         messages[i].text = '<a target="_blank" href="' + locationUrl + '">location</a>';
                         break;
                 }
@@ -989,23 +989,23 @@ window.auth.ready.then(function(currentUser) {
                 case 'text':
                     break;
                 case 'image':
-                    let imageUrl = message.url;
+                    let imageUrl = message.src;
                     message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
                     break;
                 case 'audio':
-                    let audioUrl = message.url;
+                    let audioUrl = message.src;
                     message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
                     break;
                 case 'video':
-                    let videoUrl = message.url;
+                    let videoUrl = message.src;
                     message.text = '<video width="20%" controls><source src="' + videoUrl + '" type="video/mp4"></video>';
                     break;
                 case 'sticker':
-                    let stickerUrl = message.url;
+                    let stickerUrl = message.src;
                     message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
                     break;
                 case 'location':
-                    let locationUrl = message.url;
+                    let locationUrl = message.src;
                     message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
                     break;
             }

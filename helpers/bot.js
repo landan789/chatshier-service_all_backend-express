@@ -63,15 +63,15 @@ module.exports = (function() {
     Bot.prototype.sendMessage = function(bot, receiverId, apps, callback) {
         switch (apps.textType) {
             case 'image':
-                bot.sendImageMessage(receiverId, apps.url, true);
+                bot.sendImageMessage(receiverId, apps.src, true);
                 callback();
                 break;
             case 'audio':
-                bot.sendAudioMessage(receiverId, apps.url, true);
+                bot.sendAudioMessage(receiverId, apps.src, true);
                 callback();
                 break;
             case 'video':
-                bot.sendVideoMessage(receiverId, apps.url, true);
+                bot.sendVideoMessage(receiverId, apps.src, true);
                 callback();
                 break;
             default:
@@ -124,7 +124,7 @@ module.exports = (function() {
                 let stickerId = event.message.stickerId;
                 let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                 message.text = '';
-                message.url = stickerUrl;
+                message.src = stickerUrl;
                 callback(message);
                 break;
             case 'location':
@@ -132,13 +132,13 @@ module.exports = (function() {
                 let longitude = event.message.longitude;
                 let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                 message.text = '';
-                message.url = locationUrl;
+                message.src = locationUrl;
                 callback(message);
                 break;
             default:
                 Bot.prototype._lineFileBinaryConvert(linebot, event, (url) => {
                     message.text = '';
-                    message.url = url;
+                    message.src = url;
                     callback(message);
                 });
         }
@@ -148,31 +148,31 @@ module.exports = (function() {
         if (message.attachments) {
             switch (message.attachments[0].type) {
                 case 'image':
-                    inMessage.url = message.attachments[0].payload.url;
+                    inMessage.src = message.attachments[0].payload.url;
                     inMessage.text = '';
                     inMessage.type = message.attachments[0].type;
                     callback(inMessage);
                     break;
                 case 'video':
-                    inMessage.url = message.attachments[0].payload.url;
+                    inMessage.src = message.attachments[0].payload.url;
                     inMessage.text = '';
                     inMessage.type = message.attachments[0].type;
                     callback(inMessage);
                     break;
                 case 'audio':
-                    inMessage.url = message.attachments[0].payload.url;
+                    inMessage.src = message.attachments[0].payload.url;
                     inMessage.text = '';
                     inMessage.type = message.attachments[0].type;
                     callback(inMessage);
                     break;
                 case 'file':
-                    inMessage.url = message.attachments[0].payload.url;
+                    inMessage.src = message.attachments[0].payload.url;
                     inMessage.text = '';
                     inMessage.type = message.attachments[0].type;
                     callback(inMessage);
                     break;
                 case 'location':
-                    inMessage.url = message.attachments[0].url;
+                    inMessage.src = message.attachments[0].url;
                     inMessage.text = '';
                     inMessage.type = message.attachments[0].type;
                     callback(inMessage);

@@ -489,7 +489,7 @@ function init(server) {
         socket.on(SOCKET_MESSAGE.SEND_MESSAGE_CLIENT_EMIT_SERVER_ON, data => {
             let vendor = data.data;
             let msg = vendor.msg;
-            let url = vendor.url;
+            let src = vendor.src;
             let textType = vendor.textType;
             let receiverId = data.userId; // 客戶或是專員的ID
             let agentName = socket.nickname ? socket.nickname : 'agent';
@@ -558,7 +558,7 @@ function init(server) {
                         text: msg,
                         from: CHATSHIER,
                         messager_id: receiverId,
-                        url: '' === msg ? url : ''
+                        src: '' === msg ? src : ''
                     };
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (newChatroomId) => {
                         if (null === newChatroomId || undefined === newChatroomId || '' === newChatroomId) {
@@ -569,9 +569,7 @@ function init(server) {
                     });
                 });
             }).catch(() => {});
-
-
-        }); //sent message
+        }); // sent message
 
         //insert compose
         socket.on('find apps', (userId) => {
