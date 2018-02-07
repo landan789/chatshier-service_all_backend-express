@@ -57,25 +57,25 @@ module.exports = (function() {
      *
      * @param {Object} bot
      * @param {string} receiverId
-     * @param {Object} apps
+     * @param {Object} app
      * @param {Function} callback
      */
-    Bot.prototype.sendMessage = function(bot, receiverId, apps, callback) {
-        switch (apps.textType) {
+    Bot.prototype.sendMessage = function(bot, receiverId, app, callback) {
+        switch (app.textType) {
             case 'image':
-                bot.sendImageMessage(receiverId, apps.src, true);
+                bot.sendImageMessage(receiverId, app.src, true);
                 callback();
                 break;
             case 'audio':
-                bot.sendAudioMessage(receiverId, apps.src, true);
+                bot.sendAudioMessage(receiverId, app.src, true);
                 callback();
                 break;
             case 'video':
-                bot.sendVideoMessage(receiverId, apps.src, true);
+                bot.sendVideoMessage(receiverId, app.src, true);
                 callback();
                 break;
             default:
-                bot.sendTextMessage(receiverId, apps.msg);
+                bot.sendTextMessage(receiverId, app.msg);
                 callback();
         }
     };
