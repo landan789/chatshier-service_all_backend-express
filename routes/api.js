@@ -29,9 +29,11 @@ var appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
 
 var router = express.Router();
 
+// HTTP body x-www-form-urlencoded parser
 // HTTP body 允許 json 格式
 // HTTP body form-data parser
 router.use(
+    bodyParser.urlencoded({ extended: false }),
     bodyParser.json(),
     formData.parse({ autoFiles: true }),
     formData.format(),
@@ -410,6 +412,8 @@ router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:useri
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
 
 router.get('/groups/users/:userid', groupsCtl.getAll);
+router.post('/groups/users/:userid', groupsCtl.postOne);
+router.put('/groups/groups/:groupid/users/:userid', groupsCtl.putOne);
 
 router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.getAll);
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
