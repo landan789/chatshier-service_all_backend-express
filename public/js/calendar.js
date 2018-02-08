@@ -169,6 +169,9 @@
             },
             eventClick: function(calendarEvent, jsEvent, view) { // 更改事件
                 initDalendarModal(calendarEvent.start, calendarEvent.end || calendarEvent.endedTime);
+                $eventTitle.val(calendarEvent.title);
+                $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
+                $eventContent.val(calendarEvent.description);
                 switch (calendarEvent.eventType) {
                     case CalendarEventTypes.Calendar:
                         $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
@@ -196,10 +199,6 @@
                         $eventContent.prop('disabled', true);
                         break;
                 }
-                $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
-                $eventTitle.val(calendarEvent.title);
-                $eventContent.val(calendarEvent.description);
-
                 // 更新事件
                 $saveCalendarBtn.off('click').on('click', function() {
                     var calendarData = {
@@ -348,7 +347,7 @@
                 dayEnd.setHours(23, 59, 59);
             } else {
                 dayBegin = startDateTimePrev;
-                // dayEnd = endDateTimePrev;
+                dayEnd = endDateTimePrev;
             }
 
             sTimePickerData.date(dayBegin);
