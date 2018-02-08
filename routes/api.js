@@ -16,6 +16,7 @@ var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
 var appsGreetingsCtl = require('../controllers/apps_greetings');
 
+var groupsCtl = require('../controllers/groups');
 var groupsMembersCtl = require('../controllers/groups_members');
 
 // ===============
@@ -407,6 +408,8 @@ router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
 router.put('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.putOne);
 router.delete('/calendars-events/calendars/:calendarid/events/:eventid/users/:userid', calendarsEventsCtl.deleteOne);
+
+router.get('/groups/users/:userid', groupsCtl.getAll);
 
 router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.getAll);
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);

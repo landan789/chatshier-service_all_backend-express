@@ -15,9 +15,9 @@ module.exports = (function() {
         };
         var groups = {};
         Promise.all(groupIds.map((groupId) => {
-            return admin.database().ref('groups/' + groupId).then((snap) => {
+            return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
                 var group = snap.val();
-                if (null === group || undefined === group || '' === group) {
+                if (null === group || undefined === group || '' === group || 0 !== group.isDeleted) {
                     return Promise.resolve(null);
                 };
                 groups[groupId] = group;

@@ -1,28 +1,19 @@
 module.exports = (function() {
     var API_ERROR = require('../config/api_error');
     var API_SUCCESS = require('../config/api_success');
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
 
     var usersMdl = require('../models/users');
-    var groupsMembersMdl = require('../models/groups');
+    var groupsMdl = require('../models/groups');
 
-    function GroupsMembersController() {};
+    function GroupsController() {};
 
-    GroupsMembersController.prototype.getAll = function(req, res, next) {
+    GroupsController.prototype.getAll = function(req, res, next) {
         var userId = req.params.userid;
-        var groupId = req.params.groupid;
 
         var proceed = Promise.resolve();
         proceed.then(() => {
             if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
-            };
-
-            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
-                return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
@@ -37,25 +28,20 @@ module.exports = (function() {
             });
         }).then((user) => {
             var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
-            if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
-            }
-
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findGroupsMembers(groupIds, null, (groupsMembers) => {
-                    if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                        reject(groupsMembers);
+                groupsMdl.findGroups(groupIds, (groups) => {
+                    if (null === groups || undefined === groups || '' === groups) {
+                        reject(groups);
                         return;
                     }
-                    resolve(groupsMembers);
+                    resolve(groups);
                 });
             });
-        }).then((groupsMembers) => {
+        }).then((groups) => {
             var json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: groupsMembers
+                data: groups
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
@@ -68,7 +54,7 @@ module.exports = (function() {
         });
     };
 
-    GroupsMembersController.prototype.postOne = function(req, res, next) {
+    GroupsController.prototype.postOne = function(req, res, next) {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var postMember = {
@@ -117,7 +103,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
+                groupsMdl.findMembers(groupId, null, (members) => {
                     if (null === members || undefined === members || '' === members) {
                         reject(members);
                         return;
@@ -143,7 +129,7 @@ module.exports = (function() {
             return Promise.resolve();
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
+                groupsMdl.insert(groupId, postMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(groupsMembers);
                         return;
@@ -168,7 +154,7 @@ module.exports = (function() {
         });
     };
 
-    GroupsMembersController.prototype.putOne = function(req, res, next) {
+    GroupsController.prototype.putOne = function(req, res, next) {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
@@ -220,7 +206,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
+                groupsMdl.findMembers(groupId, null, (members) => {
                     if (null === members || undefined === members || '' === members) {
                         reject(members);
                         return;
@@ -271,7 +257,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.update(groupId, memberId, putMember, (groupsMembers) => {
+                groupsMdl.update(groupId, memberId, putMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                     };
@@ -295,7 +281,7 @@ module.exports = (function() {
         });
     };
 
-    GroupsMembersController.prototype.deleteOne = function(req, res, next) {
+    GroupsController.prototype.deleteOne = function(req, res, next) {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
@@ -333,7 +319,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
+                groupsMdl.findMembers(groupId, null, (members) => {
                     if (null === members || undefined === members || '' === members) {
                         reject(members);
                         return;
@@ -363,7 +349,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.remove(groupId, memberId, (groupsMembers) => {
+                groupsMdl.remove(groupId, memberId, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
                     };
@@ -386,5 +372,5 @@ module.exports = (function() {
             res.status(403).json(json);
         });
     };
-    return new GroupsMembersController();
+    return new GroupsController();
 })();
