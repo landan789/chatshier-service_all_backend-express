@@ -113,5 +113,36 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
+     * @param {string|string[]} groupIds 
+     * @param {function} callback 
+     * @return {string[]} appIds 
+     */
+    GroupsModel.prototype.findAppIds = function(groupIds, callback) {
+        // 多行處理
+        if ('string' === typeof groupIds) {
+            groupIds = [groupIds];
+        };
+        var appIds = {};
+        Promise.all(groupIds.map((groupId) => {
+            return admin.database().ref('groups/' + groupId).then((snap) => {
+                var group = snap.val();
+                if (null === group || undefined === group || '' === group) {
+                    return Promise.resolve(null);
+                };
+                var _appIds = group.app_ids;
+                _appIds.forEach((appId) => {
+                    appIds[appId] = appId;
+                });
+                return Promise.resolve();
+            });
+        })).then(() => {
+            appIds = Object.keys(appIds);
+            callback(appIds);
+        }).catch(() => {
+            callback(null);
+        });
+    };
     return new GroupsModel();
 })();
