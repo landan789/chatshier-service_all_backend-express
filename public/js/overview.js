@@ -273,9 +273,8 @@
                 let composes = {};
                 for (let i in messages) {
                     composes = {
-                        type: 'text',
                         status: isDraft ? 0 : 1,
-                        time: (Date.now() - 10000),
+                        time: (timeInMs - 10000),
                         text: messages[i].text
                     };
                     socket.emit('insert compose', { userId, composes, appId });
