@@ -129,6 +129,7 @@
             eventLimit: true, // allow "more" link when too many events
             selectable: true, // allows a user to highlight multiple days or timeslots by clicking and dragging.
             selectHelper: true, // whether to draw a "placeholder" event while the user is dragging.
+            allDaySlot: true,
             // events is the main option for calendar.
             events: [],
             // execute after user select timeslots.
@@ -168,6 +169,7 @@
                 $calendarModal.modal('show');
             },
             eventClick: function(calendarEvent, jsEvent, view) { // 更改事件
+                console.log(calendarEvent);
                 initDalendarModal(calendarEvent.start, calendarEvent.end || calendarEvent.endedTime);
                 $eventTitle.val(calendarEvent.title);
                 $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
@@ -253,7 +255,8 @@
                 }
                 var cEventItem = new CalendarEventItem();
                 cEventItem = Object.assign(cEventItem, calendarEvent);
-                cEventItem.allDay = !!calendarEvent.isAllDay;
+                // cEventItem.allDay = !!calendarEvent.isAllDay;
+                cEventItem.allDay = false;
                 cEventItem.description = calendarEvent.description;
                 cEventItem.end = new Date(calendarEvent.endedTime);
                 cEventItem.start = new Date(calendarEvent.startedTime);
@@ -288,6 +291,8 @@
                 calendarEventList.push(tEventItem);
             }
         }
+        console.log(calendarEventList.length);
+        console.log(calendarEventList);
         calendarEventList.length > 0 && $calendar.fullCalendar('renderEvents', calendarEventList, true);
     }).catch(function(error) {
         console.error(error);
