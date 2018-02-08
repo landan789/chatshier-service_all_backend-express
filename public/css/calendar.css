@@ -18,3 +18,7 @@
 .font-red {
     color: red;
 }
+
+.calendar-modal .modal-header .modal-title {
+    margin: 0px 27px;
+}
