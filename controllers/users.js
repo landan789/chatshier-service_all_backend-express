@@ -40,7 +40,7 @@ module.exports = (function() {
         });
     };
 
-    UsersController.prototype.update = (req, res, next) => {
+    UsersController.prototype.putOne = (req, res, next) => {
         let userId = req.params.userid;
         let userData = {
             company: req.body.company,

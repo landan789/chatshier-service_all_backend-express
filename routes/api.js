@@ -327,7 +327,7 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 
 // vendor 的個人資料
 router.get('/users/users/:userid', usersCtl.getOne);
-router.put('/users/users/:userid', usersCtl.update);
+router.put('/users/users/:userid', usersCtl.putOne);
 
 router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);
