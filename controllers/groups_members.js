@@ -146,7 +146,7 @@ module.exports = (function() {
                     isDeleted: 0
                 };
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.update(groupId, _member, (groupsMembers) => {
+                    groupsMembersMdl.update(groupId, memberId, _member, (groupsMembers) => {
                         if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                             reject(groupsMembers);
                             return;
