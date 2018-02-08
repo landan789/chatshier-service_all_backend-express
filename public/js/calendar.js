@@ -140,6 +140,7 @@
                 $formCheckLabel.attr('style', 'display: block');
                 $startDatetimePicker.prop('disabled', false);
                 $endDatetimePicker.prop('disabled', false);
+                $eventIsAllday.prop('disabled', false);
                 $eventContent.prop('disabled', false);
 
                 // 新增行事曆事件處理，先 off 再 on 避免事件疊加
@@ -276,7 +277,7 @@
                 // 由於待辦事項的資料項目與行事曆元件的數據項目不相同，因此需要進行轉換
                 var tEventItem = new TicketEventItem();
                 tEventItem = Object.assign(tEventItem, ticket);
-                tEventItem.allDay = false; // 待辦事項
+                tEventItem.allDay = false; // 待辦事項無視全天項目，都是 false
                 tEventItem.description = ticket.description;
                 tEventItem.end = new Date(ticket.dueTime);
                 tEventItem.start = new Date(ticket.dueTime);
