@@ -114,8 +114,8 @@
                 $addCalendarBtn.off('click').on('click', function() {
                     var calendarData = {
                         title: $eventTitle.val(),
-                        startTime: sTimePickerData.date().toDate().getTime(),
-                        endTime: eTimePickerData.date().toDate().getTime(),
+                        startedTime: sTimePickerData.date().toDate().getTime(),
+                        endedTime: eTimePickerData.date().toDate().getTime(),
                         description: $eventContent.val(),
                         isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                     };
@@ -135,7 +135,7 @@
                 $calendarModal.modal('show');
             },
             eventClick: function(calendarEvent, jsEvent, view) { // 更改事件
-                initDalendarModal(calendarEvent.start, calendarEvent.end || calendarEvent.endTime);
+                initDalendarModal(calendarEvent.start, calendarEvent.end || calendarEvent.endedTime);
                 $calendarModalTitle.text('檢視事件');
 
                 $eventTitle.val(calendarEvent.title);
@@ -151,8 +151,8 @@
                 $saveCalendarBtn.off('click').on('click', function() {
                     var calendarData = {
                         title: $eventTitle.val(),
-                        startTime: sTimePickerData.date().toDate().getTime(),
-                        endTime: eTimePickerData.date().toDate().getTime(),
+                        startedTime: sTimePickerData.date().toDate().getTime(),
+                        endedTime: eTimePickerData.date().toDate().getTime(),
                         description: $eventContent.val(),
                         isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                     };
@@ -177,8 +177,8 @@
                 var timeGap = delta.asMilliseconds();
                 var calendarData = {
                     title: event.title,
-                    startTime: event.startTime + timeGap,
-                    endTime: event.endTime + timeGap,
+                    startedTime: event.startedTime + timeGap,
+                    endedTime: event.endedTime + timeGap,
                     description: event.description,
                     isAllDay: event.allDay ? 1 : 0
                 };
@@ -205,8 +205,8 @@
                 cEventItem = Object.assign(cEventItem, calendarEvent);
                 cEventItem.allDay = !!calendarEvent.isAllDay;
                 cEventItem.description = calendarEvent.description;
-                cEventItem.end = new Date(calendarEvent.endTime);
-                cEventItem.start = new Date(calendarEvent.startTime);
+                cEventItem.end = new Date(calendarEvent.endedTime);
+                cEventItem.start = new Date(calendarEvent.startedTime);
                 cEventItem.title = calendarEvent.title;
                 cEventItem.calendarId = calendarId;
                 cEventItem.id = eventId;
@@ -318,13 +318,13 @@
         $eventErrorMsg.hide();
         $eventTimeErrorMsg.hide();
 
-        if (!calendarData.title || !calendarData.startTime || !calendarData.endTime) {
+        if (!calendarData.title || !calendarData.startedTime || !calendarData.endedTime) {
             $eventErrorMsg.show();
             return false;
         }
 
         // 結束時間不能早於開始時間
-        if (calendarData.endTime < calendarData.startTime) {
+        if (calendarData.endedTime < calendarData.startedTime) {
             $eventTimeErrorMsg.show();
             return false;
         }
@@ -350,8 +350,8 @@
 
                     var eventItem = new CalendarEventItem();
                     eventItem = Object.assign(eventItem, event);
-                    eventItem.start = new Date(event.startTime);
-                    eventItem.end = new Date(event.endTime);
+                    eventItem.start = new Date(event.startedTime);
+                    eventItem.end = new Date(event.endedTime);
                     eventItem.calendarId = calendarId;
                     eventItem.id = eventId;
                     calendarEventMap[eventItem.id] = eventItem;
@@ -370,9 +370,9 @@
             case CalendarEventTypes.Ticket:
                 // 將原本的 ticket 的資料原封不動複製一份，只更新建立時間與到期時間
                 let tickerData = {
-                    createdTime: calendarData.startTime,
+                    createdTime: calendarData.startedTime,
                     description: calendarData.description,
-                    dueTime: calendarData.endTime,
+                    dueTime: calendarData.endedTime,
                     priority: calendarEvent.priority,
                     messagerId: calendarEvent.messagerId,
                     status: calendarEvent.status,
@@ -414,8 +414,8 @@
 
                             var eventItem = new CalendarEventItem();
                             eventItem = Object.assign(eventItem, updatedEvent);
-                            eventItem.start = new Date(updatedEvent.startTime);
-                            eventItem.end = new Date(updatedEvent.endTime);
+                            eventItem.start = new Date(updatedEvent.startedTime);
+                            eventItem.end = new Date(updatedEvent.endedTime);
                             eventItem.calendarId = calendarId;
                             eventItem.id = eventId;
                             calendarEventMap[eventItem.id] = eventItem;
