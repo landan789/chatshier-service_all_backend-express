@@ -217,21 +217,23 @@ p {
         margin-top: 5px 
     }
     .appName {
-        width: 100px;
-        margin: 1% 0 0 71%;
+        max-width: 120px;
         position: absolute;
-        text-align: right;
+        right: 3%;
+        margin-top: 1.5%;
         color: #8e8e8e;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
         font-weight: 400;
-        
+        border: 1px solid #8e8e8e61;
+        border-radius: 5px;
+        padding: 0px 5px 0px 6px;
     }
     .unread-msg {
-        position: fixed;
-        left: 27%;
-        margin-top: 30px;
+        position: absolute;
+        right: 4%;
+        margin-top: 50px;
     }
     .chsr.badge{
         background-color: #33CCFF;

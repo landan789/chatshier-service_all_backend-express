@@ -409,9 +409,13 @@ function init(server) {
                 });
             });
         }).then((AppsChatroomsMessages) => {
-            let appName = req.app.name;
+            let appId = Object.keys(AppsChatroomsMessages)[0];
+            let app = AppsChatroomsMessages[appId];
+            app.name = req.app.name;
+            return Promise.resolve(AppsChatroomsMessages);
+        }).then((AppsChatroomsMessages) => {
             // 6. 用 socket.emit 回傳訊息給 clinet
-            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, {AppsChatroomsMessages, appName});
+            io.sockets.emit(SOCKET_MESSAGE.SEND_MESSAGE_SERVER_EMIT_CLIENT_ON, AppsChatroomsMessages);
             res.sendStatus(200);
         }).catch((ERR) => {
             res.status(403);
