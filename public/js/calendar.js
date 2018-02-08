@@ -173,7 +173,6 @@
                     case CalendarEventTypes.Calendar:
                         $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
                         $delCalendarBtn.attr('style', '');
-                        $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
                         $formCheckLabel.attr('style', 'display: block');
                         $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
                         $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
@@ -197,6 +196,7 @@
                         $eventContent.prop('disabled', true);
                         break;
                 }
+                $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
                 $eventTitle.val(calendarEvent.title);
                 $eventContent.val(calendarEvent.description);
 
