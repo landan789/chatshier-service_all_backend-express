@@ -20,8 +20,8 @@ module.exports = (function() {
     };
     /**
      * 根據 groupid|groupid[] 回傳 Groups 的資料
-     * @param {string|string[]} groupIds 
-     * @param {function} callback 
+     * @param {string|string[]} groupIds
+     * @param {function} callback
      */
     GroupsModel.prototype.findGroups = function(groupIds, callback) {
         // 多行處理
@@ -43,7 +43,6 @@ module.exports = (function() {
         }).catch(() => {
             callback(null);
         });
-
     };
 
     /**

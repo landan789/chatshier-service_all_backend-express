@@ -15,9 +15,11 @@ var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
 var appsGreetingsCtl = require('../controllers/apps_greetings');
+var usersCtl = require('../controllers/users');
 
 var groupsCtl = require('../controllers/groups');
 var groupsMembersCtl = require('../controllers/groups_members');
+var groupsCtl = require('../controllers/groups');
 
 // ===============
 // 訊息相關 Ctrl
@@ -323,88 +325,9 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
         })
 })
 
-// Vendor的個人資料
-router.get('/users/users/:userid', (req, res, next) => {
-    var userId = req.params.userid;
-
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.findUser(userId, (data) => {
-                    if (data === null) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                    } else {
-                        resolve(data);
-                    }
-                })
-            });
-        })
-        .then((data) => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                "data": data
-            };
-            res.status(200).json(json);
-        })
-        .catch((ERR) => {
-            var json = {
-                "status": 0,
-                "mgs": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(403).json(json);
-        });
-});
-
-router.put('/users/users/:userid', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    var userId = req.params.userid;
-    var userObj = {
-        company: req.body.company,
-        phonenumber: req.body.phonenumber,
-        address: req.body.address
-    }
-
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.updateUserByUserId(userId, userObj);
-                resolve();
-            });
-        })
-        .then(() => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG
-            };
-            res.status(200).json(json);
-        })
-        .catch((ERR) => {
-            var json = {
-                "status": 0,
-                "mgs": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(403).json(json);
-        });
-});
+// vendor 的個人資料
+router.get('/users/users/:userid', usersCtl.getOne);
+router.put('/users/users/:userid', usersCtl.update);
 
 router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);

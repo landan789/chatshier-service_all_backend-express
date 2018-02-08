@@ -45,7 +45,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findGroupsMembers(groupIds, null, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                        reject(groupsMembers);
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
                         return;
                     }
                     resolve(groupsMembers);

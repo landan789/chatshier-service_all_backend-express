@@ -625,7 +625,6 @@ button.multi-button {
 }
 
 #infoCanvas {
-    height: 92%;
     overflow-y: scroll;
     overflow-x: hidden;
     width: 100%;

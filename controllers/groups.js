@@ -14,6 +14,7 @@ module.exports = (function() {
 
     GroupsController.prototype.getAll = function(req, res, next) {
         var userId = req.params.userid;
+        var userDataCache = {};
 
         var proceed = Promise.resolve();
         proceed.then(() => {
@@ -40,6 +41,37 @@ module.exports = (function() {
                         return;
                     }
                     resolve(groups);
+                });
+            }).then((groups) => {
+                let userDataPromises = [];
+
+                for (let groupId in groups) {
+                    for (let memberId in groups[groupId].members) {
+                        let memberData = groups[groupId].members[memberId];
+                        let targetUserId = memberData.user_id;
+
+                        if (userDataCache[targetUserId]) {
+                            // 由於不同群組裡可能有相同的使用者
+                            // 如果此筆使用者的資料已經取過，就直接引用，無需再去資料庫取
+                            memberData.user = userDataCache[targetUserId];
+                            continue;
+                        }
+
+                        userDataPromises.push(new Promise((resolve) => {
+                            usersMdl.findUser(targetUserId, (user) => {
+                                if (user) {
+                                    memberData.user = user;
+                                    userDataCache[targetUserId] = user;
+                                }
+                                resolve();
+                            });
+                        }));
+                    }
+                }
+
+                return Promise.all(userDataPromises).then(() => {
+                    userDataCache = void 0;
+                    return groups;
                 });
             });
         }).then((groups) => {
@@ -84,14 +116,33 @@ module.exports = (function() {
                     resolve(user);
                 });
             });
-        }).then(() => {
+        }).then((user) => {
             return new Promise((resolve, reject) => {
                 groupsMdl.insert(userId, postGroup, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
-                        reject(groups);
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                         return;
                     }
                     resolve(groups);
+                });
+            }).then((groups) => {
+                // group 成功新增之後，將 user 的 group_ids 更新
+                let groupId = Object.keys(groups).shift();
+                if (!groupId) {
+                    return groups;
+                }
+
+                if (!(user.group_ids instanceof Array)) {
+                    user.group_ids = [];
+                }
+
+                user.group_ids.push(groupId);
+                return new Promise((resolve) => {
+                    usersMdl.updateUserByUserId(userId, user, () => {
+                        let memberId = Object.keys(groups[groupId].members).shift();
+                        groups[groupId].members[memberId].user = user;
+                        resolve(groups);
+                    });
                 });
             });
         }).then((groups) => {

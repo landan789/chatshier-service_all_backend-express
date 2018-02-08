@@ -692,7 +692,7 @@ function init(server) {
         });
         /*===聊天室end===*/
 
-        /*===內部聊天室start===*/
+        /*===內部群組start===*/
         // 傳遞對照表，轉換agent的Id及Name
         socket.on('get agentIdToName list', function() {
             users.get(agentData => {
@@ -703,19 +703,19 @@ function init(server) {
                 socket.emit('send agentIdToName list', agentIdToName);
             });
         });
-        // 新增內部聊天室
+        // 新增內部群組
         socket.on('create internal room', (Profile) => {
             let time = Date.now();
             Profile.firstChat = time;
             Profile.recentChat = time;
         });
 
-        // 內部聊天室傳訊息
+        // 內部群組傳訊息
         socket.on('send internal message', (data) => {
             let roomId = data.roomId;
             emitIO_and_pushDB_internal(data.sendObj, roomId, socket.nickname);
         });
-        // 更新內部聊天室右邊的資料
+        // 更新內部群組右邊的資料
         socket.on('update internal profile', data => {
             agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
@@ -730,7 +730,7 @@ function init(server) {
                 }
             });
         });
-        /*===內部聊天室end===*/
+        /*===內部群組end===*/
 
         /*===訊息start===*/
         socket.on('post userId', (data) => {

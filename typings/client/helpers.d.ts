@@ -7,9 +7,13 @@ interface Window {
         keywordreply: KeywordreplyAPI,
         calendar: CalendarAPI,
         tag: TagAPI,
-        composes:ComposesAPI,
+        chatroom: ChatroomAPI,
+        auth: AuthAPI,
+        groupsMembers: GroupsMembersAPI,
+        groups: GroupsAPI,
+        users: UsersAPI
+        composes: ComposesAPI,
         chatroom: ChatroomAPI
-        
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -70,12 +74,43 @@ interface TagAPI {
             MULTI_SELECT: 'MULTI_SELECT',
             CHECKBOX: 'CHECKBOX'
         }
-    }
+    };
 }
 
 interface ChatroomAPI {
     getAllMessages: (userId: string) => Promise<any>;
     getAllMessagesByAppId: (appId: string, userId: string) => Promise<any>;
+}
+
+interface AuthAPI {
+    getUser: (userId: string, email: string) => Promise<any>;
+}
+
+interface GroupsMembersAPI {
+    getAll: (groupId: string, userId: string) => Promise<any>;
+    insert: (groupId: string, userId: string, groupMemberData: any) => Promise<any>;
+    update: (groupId: string, memberId: string, userId: string, groupMemberData: any) => Promise<any>;
+    remove: (groupId: string, memberId: string, userId: string) => Promise<any>;
+    enums: {
+        type: {
+            OWNER: 'OWNER',
+            ADMIN: 'ADMIN',
+            WRITE: 'WRITE',
+            READ: 'READ'
+        }
+    };
+}
+
+interface GroupsAPI {
+    getUserGroups: (userId: string) => Promise<any>;
+    insert: (userId: string) => Promise<any>;
+    update: (groupId: string, userId: string, groupData: any) => Promise<any>;
+}
+
+interface UsersAPI {
+    getUser: (userId: string) => Promise<any>;
+    update: (userId: string, userData: any) => Promise<any>;
+
 }
 
 interface AutoreplyAPI {
@@ -85,6 +120,7 @@ interface AutoreplyAPI {
     update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
 }
+
 interface ComposesAPI {
     findAll: (userId: string) => Promise<any>;
     findOne: (appId: string, userId: string) => Promise<any>;

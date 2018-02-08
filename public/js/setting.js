@@ -1,10 +1,14 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
+var userId = '';
+window.auth.ready.then(function(currentUser) {
+    userId = currentUser.uid;
+});
+
 // ===============
 // #region 標籤 Tab 代碼區塊
 (function() {
     var NEW_TAG_ID_PREFIX = 'temp_tag_id';
-    var userId = '';
     var api = window.restfulAPI;
     var tagEnums = api.tag.enums;
     var transJson = {};
@@ -238,10 +242,6 @@
         transJson = json;
     });
 
-    window.auth.ready.then(function(currentUser) {
-        userId = currentUser.uid;
-    });
-
     // 設定頁面中 tab 切換時的事件監聽
     // 切換到標籤頁面時，再抓取標籤資料
     $('a[data-toggle="pill"').on('shown.bs.tab', function(ev) {
@@ -371,6 +371,395 @@
 // #endregion
 // ===============
 
+// ===============
+// #region 內部群組代碼區塊
+(function() {
+    var api = window.restfulAPI;
+    var memberTypes = api.groupsMembers.enums.type;
+    var groups = {};
+
+    var groupCtrl = (function() {
+        var $addGroupModal = $('#add_group_modal');
+        var $groupElems = {};
+
+        var $internalGroupPanel = $('#create-internal-room');
+        var $groupBody = $internalGroupPanel.find('.panel-body');
+
+        $addGroupModal.on('click', '#add_group_submit', function() {
+            $addGroupModal.modal('hide');
+
+            var groupName = $addGroupModal.find('input[name="add_group_name"]').val();
+            if (!groupName) {
+                return;
+            }
+
+            var groupData = {
+                name: groupName
+            };
+
+            return api.groups.insert(userId, groupData).then(function(resJson) {
+                var groupId = Object.keys(resJson.data).shift();
+                groups[groupId] = resJson.data[groupId];
+                instance.addGroup(groupId, groups[groupId]);
+                instance.showCollapse(groupId);
+            });
+        });
+
+        function GroupPanelCtrl() {}
+
+        GroupPanelCtrl.prototype.clearAll = function() {
+            groups = {};
+            $groupElems = {};
+            $groupBody.empty();
+        };
+
+        GroupPanelCtrl.prototype.showCollapse = function(groupId) {
+            instance.hideCollapseAll(groupId);
+            $groupElems[groupId].$collapse.collapse('show');
+        };
+
+        GroupPanelCtrl.prototype.hideCollapseAll = function(excludeId) {
+            for (var groupId in $groupElems) {
+                if (excludeId && excludeId === groupId) {
+                    continue;
+                }
+                $groupElems[groupId].$collapse.collapse('hide');
+            }
+        };
+
+        GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
+            instance.hideCollapseAll(groupId);
+            $groupBody.append(
+                '<div class="group-tab" role="tab">' +
+                    '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+                        (groupData.name || '') +
+                    '</a>' +
+                '</div>' +
+                '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
+                    '<div class="form-group form-group-row">' +
+                        '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+                        '<div class="col-4">' +
+                            '<div class="input-group group-name" id="group_name">' +
+                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                                '<span class="input-group-btn btn-update">' +
+                                    '<button class="btn btn-primary">更新</button>' +
+                                '</span>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                // '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+
+                    // '<div class="form-group form-group-row">' +
+                    //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
+                    //     '<div class="col-4">' +
+                    //         '<div class="input-group file-container" id="group_photo">' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<button class="btn btn-default file-choose">' +
+                    //                     '<i class="fa fa-upload"></i>' +
+                    //                 '</button>' +
+                    //             '</span>' +
+                    //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
+                    //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                    //             '</span>' +
+                    //             '<span class="input-group-btn btn-update">' +
+                    //                 '<button class="btn btn-primary">更新</button>' +
+                    //             '</span>' +
+                    //         '</div>' +
+                    //     '</div>' +
+                    // '</div>' +
+
+                    '<table class="table chsr-group chsr-table">' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<td class="user">' +
+                                    '<div>' +
+                                        '<input type="text" class="text user-email form-control" id="group_add_user" placeholder="Email 地址" autocomplete="off">' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="permission">' +
+                                    '<div class="input-group text-right">' +
+                                        '<div class="input-group-btn">' +
+                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                                '<span class="permission-text">Permission</span>' + '&nbsp;' +
+                                                '<span class="caret"></span>' +
+                                            '</button>' +
+                                            '<ul class="dropdown-menu dropdown-menu-right">' +
+                                                '<li><a role="button">READ</a></li>' +
+                                                '<li><a role="button">WRITE</a></li>' +
+                                                '<li><a role="button">ADMIN</a></li>' +
+                                            '</ul>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="actions">' +
+                                    '<div class="text-right">' +
+                                        '<button class="btn btn-default btn-block outline add-button">' +
+                                            '新增' +
+                                            '<i class="fa fa-user-plus"></i>' +
+                                        '</button>' +
+                                    '</div>' +
+                                '</td>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody></tbody>' +
+                    '</table>' +
+                '</div>'
+            );
+
+            // #region 每個群組相關事件宣告
+            // 將群組中經常取用的 element 一次抓取出來，方便存取
+            var $collapse = $groupBody.find('#' + groupId);
+            $groupElems[groupId] = {
+                $collapse: $collapse,
+                $groupName: $groupBody.find('.group-name'),
+                $groupNameInput: $groupBody.find('.group-name-input'),
+
+                $fileGhost: $collapse.find('.file-container input.file-ghost'),
+                $fileName: $collapse.find('.file-container .file-text'),
+                $imgPreview: $collapse.find('.file-container .img-preview'),
+
+                $memberEmail: $collapse.find('.chsr-group .user-email'),
+                $memberList: $collapse.find('.chsr-group tbody'),
+                $permissionText: $collapse.find('.chsr-group .permission .permission-text')
+            };
+
+            // 群組展開時將其他群組收縮起來
+            $collapse.on('show.bs.collapse', function(e) {
+                instance.hideCollapseAll(e.target.id);
+            });
+
+            // 使用者更新群組名稱的事件處理
+            $collapse.on('click', '.group-name .btn-update', function() {
+                var groupData = {
+                    name: $groupElems[groupId].$groupNameInput.val()
+                };
+
+                return Promise.resolve().then(function() {
+                    if (groups[groupId].name === groupData.name) {
+                        return;
+                    }
+                    return api.groups.update(groupId, userId, groupData);
+                }).then(function() {
+                    groups[groupId].name = groupData.name;
+                    $collapse.parent().find('.group-tab .group-name').text(groupData.name);
+                    $.notify('群組名稱更新成功！', { type: 'success' });
+                });
+            });
+
+            // 使用者刪除群組的事件處理
+            $collapse.on('click', '.group-name .btn-delete', function() {
+                if (!confirm('確定刪除此群組嗎？')) {
+                    return;
+                }
+
+                return api.groups.remove(groupId, userId).then(function() {
+                    $collapse.parent().find('.group-tab').remove();
+                    $collapse.remove();
+                    delete groups[groupId];
+                });
+            });
+
+            // 使用者更新群組頭像的事件處理
+            $collapse.on('click', '.file-container .btn-update', function() {
+                var groupData = {
+                    photo: $groupElems[groupId].groupImgBase64 || ''
+                };
+
+                if (!groupData.photo) {
+                    $.notify('沒有選擇上傳的圖像', { type: 'warning' });
+                    return;
+                }
+                return api.groups.update(groupId, userId, groupData).then(function() {
+                    groups[groupId].photo = groupData.photo;
+                    delete $groupElems[groupId].groupImgBase64;
+                    $.notify('群組圖像上傳成功！', { type: 'success' });
+                });
+            });
+
+            // 使用者選擇新增成員的權限
+            $collapse.on('click', '.permission .dropdown-menu a', function() {
+                $groupElems[groupId].$permissionText.text($(this).text());
+            });
+
+            $collapse.on('click', '.actions .add-button', function() {
+                var memberEmail = $groupElems[groupId].$memberEmail.val();
+                var permission = $groupElems[groupId].$permissionText.text();
+                if (!memberEmail) {
+                    $.notify('請輸入目標成員的 Email', { type: 'warning' });
+                    return;
+                } else if (!memberTypes[permission]) {
+                    $.notify('請選擇目標成員的權限', { type: 'warning' });
+                    return;
+                }
+
+                return api.auth.getUser(userId, memberEmail).then(function(resJson) {
+                    var memberUserId = Object.keys(resJson.data).shift();
+                    var memberUser = resJson.data[memberUserId];
+                    var postMemberData = {
+                        type: memberTypes[permission],
+                        userid: memberUserId
+                    };
+
+                    // 成功更新群組成員後，將新成員的資料合併至本地端的群組資料
+                    // 並且清除新增成員的 email 欄位
+                    return api.groupsMembers.insert(groupId, userId, postMemberData).then(function(resJson) {
+                        var groupMembersData = resJson.data[groupId].members;
+                        var groupMemberId = Object.keys(groupMembersData).shift();
+
+                        groups[groupId].members = Object.assign(groups[groupId].members, groupMembersData);
+                        groups[groupId].members[groupMemberId].user = memberUser;
+                        instance.addMemberToList(groupId, groupMemberId, groupMembersData[groupMemberId]);
+
+                        $groupElems[groupId].$memberEmail.val('');
+                        $groupElems[groupId].$permissionText.text('Permission');
+                        $.notify('群組成員新增成功', { type: 'success' });
+                    });
+                }).catch(function() {
+                    $.notify('群組成員新增失敗', { type: 'danger' });
+                });
+            });
+
+            // 點擊檔案上傳觸發隱藏起來的 html5 的 input file
+            $collapse.on('click', '.file-container .file-choose', function() {
+                $groupElems[groupId].$fileGhost.click();
+            });
+
+            // 選擇圖檔後，將圖像資源載入成 base64 的資料型態
+            $groupElems[groupId].$fileGhost.on('change', function() {
+                var files = this.files;
+                if (files.length) {
+                    $groupElems[groupId].$fileName.text(($(this).val()).split('\\').pop());
+
+                    var file = files[0];
+                    return new Promise(function(resolve, reject) {
+                        var fileReader = new FileReader();
+                        fileReader.onload = function() {
+                            resolve(fileReader.result);
+                        };
+                        fileReader.readAsDataURL(file);
+                    }).then(function(imgBase64) {
+                        $groupElems[groupId].groupImgBase64 = imgBase64;
+                        $groupElems[groupId].$imgPreview.prop('src', imgBase64);
+                    });
+                }
+            });
+            // #endregion
+
+            // 將群組內的成員資料載入至畫面上
+            for (var memberId in groupData.members) {
+                instance.addMemberToList(groupId, memberId, groupData.members[memberId]);
+            }
+        };
+
+        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, memberData) {
+            var userData = memberData.user;
+            if (!userData) {
+                return;
+            }
+
+            var memberItemHtml =
+                '<tr class="group-member" id="' + memberId + '">' +
+                    '<td class="user">' +
+                        '<div class="chips">' +
+                            '<div class="chsr-avatar">' +
+                                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
+                            '</div>' +
+                            '<span class="avatar-name">' + (userData.name || '') + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="permission">' +
+                        '<div class="permission-group text-center">' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="actions">' +
+                        '<div class="text-right">' +
+                            '<a class="btn-remove" role="button">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            $groupElems[groupId].$memberList.append(memberItemHtml);
+
+            var $memberRow = $groupElems[groupId].$memberList.find('#' + memberId);
+            var $memberPermission = $memberRow.find('.permission');
+            var $memberActions = $memberRow.find('.actions');
+
+            // 使用者點擊群組內的事件處理
+            $memberPermission.on('click', '.permission-item', function() {
+                if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                    $.notify('群組擁有者無法變更權限', { type: 'warning' });
+                    return;
+                }
+
+                var $permissionItem = $(this);
+                var putMemberData = {
+                    type: memberTypes[$permissionItem.text()]
+                };
+
+                return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
+                    // 成功更新後更新本地端的資料
+                    groups[groupId].members[memberId].type = putMemberData.type;
+                    $permissionItem.addClass('btn-primary').siblings().removeClass('btn-primary');
+                });
+            });
+
+            $memberActions.on('click', '.btn-remove', function() {
+                if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                    $.notify('群組擁有者無法刪除', { type: 'warning' });
+                    return;
+                } else if (!confirm('確定刪除此成員嗎？')) {
+                    return;
+                }
+
+                return api.groupsMembers.remove(groupId, memberId, userId).then(function() {
+                    // 成功更新後刪除本地端的資料
+                    $memberRow.remove();
+                    delete groups[groupId].members[memberId];
+                });
+            });
+        };
+
+        var instance = new GroupPanelCtrl();
+        return instance;
+    })();
+
+    $('a[data-toggle="pill"').on('shown.bs.tab', function(ev) {
+        if ('#create-internal-room' !== ev.target.hash) {
+            // 非內部群組頁面不處理
+            return;
+        }
+
+        groupCtrl.clearAll();
+        api.groups.getUserGroups(userId).then(function(resJson) {
+            groups = resJson.data || {};
+
+            var firstGroupId = '';
+            for (var groupId in groups) {
+                firstGroupId = firstGroupId || groupId;
+                var groupData = groups[groupId];
+                if (groupData.isDeleted) {
+                    continue;
+                }
+                groupCtrl.addGroup(groupId, groupData);
+            }
+            firstGroupId && groupCtrl.showCollapse(firstGroupId);
+        });
+    });
+})();
+// #endregion
+// ===============
+
 var domain = location.host;
 if (!window.urlConfig) {
     console.warn('Please set up the configuration file of /config/url-config.js');
@@ -389,148 +778,11 @@ $.notifyDefaults({
 });
 
 $(document).ready(function() {
-    var loadSetting = setInterval(() => {
-        if (auth.currentUser) {
-            clearInterval(loadSetting);
-            findAllApps(); // 列出所有設定的APPs
-            findUserProfile();
-        }
-    }, 1000);
-
-    var DEFAULT_INTERNAL_PHOTO = "https://firebasestorage.googleapis.com/v0/b/shield-colman.appspot.com/o/internal-group.png?alt=media&token=4294f99e-42b7-4b2d-8a24-723785ec1a2b";
-    var socket = io.connect();
-
-    // 內部聊天室
-    socket.emit('get agentIdToName list');
-    socket.on('send agentIdToName list', data => {
-        // console.log("send!");
-        // console.log(data);
-        let select = $('#create-internal-owner');
-        let ul = $("#create-internal-agents").parent().siblings('ul').empty();
-        for (let id in data) {
-            ul.append('<li><input type="checkbox" value="' + id + '">' + data[id] + '</li>');
-            select.append('<option value="' + id + '">' + data[id] + '</option>');
-        }
-        select.val('');
+    window.auth.ready.then(function() {
+        findAllApps(); // 列出所有設定的APPs
+        findUserProfile();
     });
-    $(document).on('click', '#prof-submit-create-internal-room', profSubmitCreateInternalRoom); // 完成編輯-新增內部聊天室
-    $(document).on('change', '.multi-select-container', multiSelectChange); // 複選選項改變
-    $(document).on('change', '.multi-select-container[rel="create-internal-agents"]', checkInternalAgents); // 檢查內部群聊的擁有者是否為群組成員
-    $(document).on('change', 'select#create-internal-owner', checkInternalOwner); // 檢查內部群聊的擁有者是否為群組成員
 
-    function multiSelectChange() {
-        changeMultiSelectText($(this));
-    }
-
-    function changeMultiSelectText(container) {
-        let valArr = [];
-        let textArr = [];
-        let boxes = container.find('input');
-        boxes.each(function() {
-            if ($(this).is(':checked')) {
-                valArr.push($(this).val());
-                textArr.push($(this).parents('li').text());
-            }
-        });
-        // console.log(valArr);
-        // console.log(textArr);
-        valArr = valArr.join(',');
-        if (textArr.length === boxes.length) textArr = "全選";
-        else if (textArr.length == 0) textArr = "未選擇";
-        else textArr = textArr.join(',');
-        container.parent().find($('.multi-select-text')).text(textArr).attr('rel', valArr);
-    } //end of changeMultiSelectText
-    function checkInternalAgents() {
-        //編輯內部群聊的成員名單時
-        //檢查擁有者是否為群組成員
-        let $textArea = $('.multi-select-text#create-internal-agents');
-        let $owner = $('#create-internal-owner');
-        let rel = $textArea.attr('rel');
-        let ownerId = $owner.val();
-        if (rel.indexOf(ownerId) === -1) {
-            $owner.val(''); //若owner沒在名單內，則將owner值變empty
-        }
-    }
-
-    function checkInternalOwner() {
-        //編輯內部群聊的擁有者時
-        //檢查擁有者是否為群組成員
-        let $multiSelect = $('.multi-select-container[rel="create-internal-agents"]');
-        let $owner = $('#create-internal-owner');
-        let ownerId = $owner.val();
-        let $checkBox = $multiSelect.find('input[type="checkbox"][value="' + ownerId + '"]');
-        if (!$checkBox.prop('checked')) {
-            $checkBox.prop('checked', true);
-            changeMultiSelectText($multiSelect);
-        }
-    }
-
-    function profSubmitCreateInternalRoom() {
-        if (confirm("確認新建內部聊天室?")) {
-            let roomName = $('#create-internal-room-name').val();
-            let description = $('#create-internal-description').val();
-            let photo = $('#create-internal-photo').val();
-            let owner = $('#create-internal-owner').val();
-            let agent = $('#create-internal-agents').attr('rel');
-            let agents = agent.split(",");
-
-            if (!roomName) $.notify('群組名稱不可為空', { type: 'warning' });
-            else if (!owner || owner == "0") $.notify('請指定擁有者', { type: 'warning' }); //如果擁有者為ID=="0"的System，一樣不給過
-            else if (!agent) $.notify('群組成員需至少一位', { type: 'warning' });
-            else {
-                let data = {
-                    "roomName": roomName,
-                    "description": description,
-                    "photo": photo ? photo : DEFAULT_INTERNAL_PHOTO,
-                    "owner": owner,
-                    "agent": agents,
-                    "type": "chatshier"
-                }
-                socket.emit('create internal room', data);
-                $.notify('成功!', { type: 'success' });
-                clearCreateInternalRoomInput();
-            }
-        }
-    }
-    $('#clear-create-internal-room').on('click', clearCreateInternalRoomInput);
-
-    function clearCreateInternalRoomInput() {
-        $('#create-internal-room-name').val('');
-        $('#create-internal-description').val('');
-        $('#create-internal-photo .file-reset').click();
-        $('#create-internal-owner').val('');
-        $('#create-internal-agents').attr('rel', '').text('未選擇');
-    }
-
-    $(document).on('change', '.file-container input.file-ghost', function() {
-        if (0 < this.files.length) {
-            let fileContainer = $(this).parents('.file-container');
-            let fileText = fileContainer.find('.file-text');
-            fileText.text(($(this).val()).split('\\').pop());
-
-            let file = this.files[0];
-            let storageRef = firebase.storage().ref();
-            let fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
-                let url = snapshot.downloadURL;
-                fileContainer.val(url);
-            });
-        }
-    });
-    $(document).on('click', '.file-container button.file-choose', function() {
-        let fileContainer = $(this).parents('.file-container');
-        let fileGhost = fileContainer.find('.file-ghost');
-        fileGhost.click();
-    });
-    $(document).on('click', '.file-container button.file-reset', function() {
-        let fileContainer = $(this).parents('.file-container');
-        let fileGhost = fileContainer.find('.file-ghost');
-        let fileText = fileContainer.find('.file-text');
-        fileGhost.val(null);
-        fileContainer.val('');
-        fileText.text('');
-    });
-    // 內部聊天室
     // ACTIONS
     $('#setting-modal').on('hidden.bs.modal', function() {
         clearModalBody();

@@ -1,9 +1,25 @@
-/// <reference path='../../../typings/client/config.d.ts' />import { compose } from "./C:/Users/Luke/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/async";import { compose } from "./C:/Users/Luke/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/async";
+/// <reference path='../../../typings/client/config.d.ts' />
 
 window.restfulAPI = (function() {
     var jwt = '';
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
+
+    var prefixUrl = urlConfig.apiUrl + '/api/';
+    var apiUrlTable = Object.freeze({
+        authentications: prefixUrl + 'authentications/',
+        apps: prefixUrl + 'apps/',
+        calendarsEvents: prefixUrl + 'calendars-events/',
+        appsMessagers: prefixUrl + 'apps-messagers/',
+        appsTickets: prefixUrl + 'apps-tickets/',
+        appsKeywordreplies: prefixUrl + 'apps-keywordreplies/',
+        appsTags: prefixUrl + 'apps-tags/',
+        appsChatroomsMessages: prefixUrl + 'apps-chatrooms-messages/',
+        autoreply: prefixUrl + 'apps-autoreplies/',
+        groupsMembers: prefixUrl + 'groups-members/',
+        groups: prefixUrl + 'groups/',
+        users: prefixUrl + 'users/'
+    });
 
     // ======================
     // urlConfig undefined error handle
@@ -21,17 +37,30 @@ window.restfulAPI = (function() {
         reqHeaders.set('Authorization', jwt);
     };
 
+    /**
+     * @param {Response} res
+     */
     var responseChecking = function(res) {
-        return Promise.resolve().then(function() {
-            if (!res.ok) {
-                return Promise.reject(new Error(res.status + ' ' + res.statusText));
-            }
-            return res.json();
-        }).then(function(resJson) {
+        if (!res.ok) {
+            return Promise.reject(new Error(res.status + ' ' + res.statusText));
+        }
+
+        return res.json().then(function(resJson) {
             if (1 !== resJson.status) {
+                console.error(JSON.stringify(resJson, null, 2));
                 return Promise.reject(new Error(resJson.status + ' ' + resJson.msg));
             }
             return resJson;
+        });
+    };
+
+    /**
+     * @param {RequestInfo} reqInfo
+     * @param {RequestInit} reqInit
+     */
+    var sendRequest = function(reqInfo, reqInit) {
+        return window.fetch(reqInfo, reqInit).then(function(res) {
+            return responseChecking(res);
         });
     };
 
@@ -40,7 +69,7 @@ window.restfulAPI = (function() {
      */
     var ChatshierAppAPI = (function() {
         function ChatshierAppAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps/';
+            this.urlPrefix = apiUrlTable.apps;
         }
 
         /**
@@ -54,10 +83,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return ChatshierAppAPI;
@@ -68,7 +94,7 @@ window.restfulAPI = (function() {
      */
     var CalendarAPI = (function() {
         function CalendarAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/calendars-events/';
+            this.urlPrefix = apiUrlTable.calendarsEvents;
         };
 
         /**
@@ -82,10 +108,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -102,10 +125,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(calendarData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -123,10 +143,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(calendarData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -142,10 +159,7 @@ window.restfulAPI = (function() {
                 method: 'DELETE',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return CalendarAPI;
@@ -156,7 +170,7 @@ window.restfulAPI = (function() {
      */
     var MessagerAPI = (function() {
         function MessagerAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-messagers/';
+            this.urlPrefix = apiUrlTable.appsMessagers;
         }
 
         /**
@@ -170,10 +184,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -189,10 +200,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -210,10 +218,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(msgerData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return MessagerAPI;
@@ -224,7 +229,7 @@ window.restfulAPI = (function() {
      */
     var TicketAPI = (function() {
         function TicketAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-tickets/';
+            this.urlPrefix = apiUrlTable.appsTickets;
         }
 
         /**
@@ -238,10 +243,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -256,10 +258,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -276,10 +275,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(ticketData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -297,10 +293,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(ticketData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -316,10 +309,7 @@ window.restfulAPI = (function() {
                 method: 'DELETE',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return TicketAPI;
@@ -330,7 +320,7 @@ window.restfulAPI = (function() {
      */
     var KeywordreplyAPI = (function() {
         function KeywordreplyAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-keywordreplies/';
+            this.urlPrefix = apiUrlTable.appsKeywordreplies;
         }
 
         /**
@@ -344,10 +334,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -362,10 +349,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -382,10 +366,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(newKeywordreplyData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -403,10 +384,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(modifiedKeywordreplyData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -422,10 +400,7 @@ window.restfulAPI = (function() {
                 method: 'DELETE',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return KeywordreplyAPI;
@@ -538,7 +513,7 @@ window.restfulAPI = (function() {
     })();
     var TagAPI = (function() {
         function TagAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-tags/';
+            this.urlPrefix = apiUrlTable.appsTags;
         }
 
         TagAPI.prototype.enums = Object.freeze({
@@ -568,10 +543,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -588,10 +560,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(insertTagData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -609,10 +578,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(modifiedTagData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -628,10 +594,7 @@ window.restfulAPI = (function() {
                 method: 'DELETE',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return TagAPI;
@@ -639,7 +602,7 @@ window.restfulAPI = (function() {
 
     var ChatroomAPI = (function() {
         function ChatroomAPI(jwt) {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-chatrooms-messages/';
+            this.urlPrefix = apiUrlTable.appsChatroomsMessages;
         };
 
         /**
@@ -653,10 +616,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -671,13 +631,33 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: this.reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return ChatroomAPI;
+    })();
+
+    var AuthAPI = (function() {
+        function AuthAPI(jwt) {
+            this.urlPrefix = apiUrlTable.authentications;
+        };
+
+        /**
+         * 取得使用者的個人資料
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} email - 目標使用者的 email address
+         */
+        AuthAPI.prototype.getUser = function(userId, email) {
+            var destUrl = this.urlPrefix + 'users/' + userId + '?email=' + email;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AuthAPI;
     })();
 
     /**
@@ -685,7 +665,7 @@ window.restfulAPI = (function() {
      */
     var AutoreplyAPI = (function() {
         function AutoreplyAPI() {
-            this.urlPrefix = urlConfig.apiUrl + '/api/apps-autoreplies/';
+            this.urlPrefix = apiUrlTable.autoreply;
         };
 
         /**
@@ -699,10 +679,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -717,10 +694,7 @@ window.restfulAPI = (function() {
                 method: 'GET',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -737,10 +711,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(newAutoreplyData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -758,10 +729,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders,
                 body: JSON.stringify(modifiedAutoreplyData)
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -777,15 +745,132 @@ window.restfulAPI = (function() {
                 method: 'DELETE',
                 headers: reqHeaders
             };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
+
         return AutoreplyAPI;
     })();
 
-    if (window.auth) {
+    var GroupsMembersAPI = (function() {
+        function GroupsMembersAPI(jwt) {
+            this.urlPrefix = apiUrlTable.groupsMembers;
+        };
+
+        GroupsMembersAPI.prototype.enums = Object.freeze({
+            type: {
+                OWNER: 'OWNER',
+                ADMIN: 'ADMIN',
+                WRITE: 'WRITE',
+                READ: 'READ'
+            }
+        });
+
+        GroupsMembersAPI.prototype.getAllGroups = function(userId) {
+            var destUrl = this.urlPrefix + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        GroupsMembersAPI.prototype.insert = function(groupId, userId, groupMemberData) {
+            var destUrl = this.urlPrefix + 'groups/' + groupId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(groupMemberData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        GroupsMembersAPI.prototype.update = function(groupId, memberId, userId, groupMemberData) {
+            var destUrl = this.urlPrefix + 'groups/' + groupId + '/members/' + memberId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(groupMemberData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        GroupsMembersAPI.prototype.remove = function(groupId, memberId, userId) {
+            var destUrl = this.urlPrefix + 'groups/' + groupId + '/members/' + memberId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return GroupsMembersAPI;
+    })();
+
+    var GroupsAPI = (function() {
+        function GroupsAPI(jwt) {
+            this.urlPrefix = apiUrlTable.groups;
+        };
+
+        GroupsAPI.prototype.getUserGroups = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        GroupsAPI.prototype.insert = function(userId, groupData) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(groupData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        GroupsAPI.prototype.update = function(groupId, userId, groupData) {
+            var destUrl = this.urlPrefix + 'groups/' + groupId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(groupData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return GroupsAPI;
+    })();
+
+    var UsersAPI = (function() {
+        function UsersAPI(jwt) {
+            this.urlPrefix = apiUrlTable.groups;
+        };
+
+        UsersAPI.prototype.getUser = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        UsersAPI.prototype.update = function(userId, userData) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(userData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return UsersAPI;
+    })();
+
+    if (window.auth && window.auth.ready) {
         // 當 firebase 登入完成後自動更新 API 需要的 JSON Web Token
         window.auth.ready.then(function() {
             setJWT(window.localStorage.getItem('jwt'));
@@ -793,6 +878,7 @@ window.restfulAPI = (function() {
     }
 
     return {
+        setJWT: setJWT,
         chatshierApp: new ChatshierAppAPI(),
         calendar: new CalendarAPI(),
         ticket: new TicketAPI(),
@@ -800,8 +886,11 @@ window.restfulAPI = (function() {
         keywordreply: new KeywordreplyAPI(),
         tag: new TagAPI(),
         chatroom: new ChatroomAPI(),
+        auth: new AuthAPI(),
         autoreply: new AutoreplyAPI(),
-        composes: new ComposesAPI(),
-        setJWT: setJWT
+        groupsMembers: new GroupsMembersAPI(),
+        groups: new GroupsAPI(),
+        users: new UsersAPI(),
+        composes: new ComposesAPI()
     };
 })();
