@@ -125,7 +125,7 @@ function addMsgCanvas() {
     let nowTime = new Date().getTime();
     let appId = $(this).parent().parent().attr('rel');
     var list = new TableObj();
-    var text = list.th.append('<textarea>');
+    var text = list.th.append('<textarea class="greeting-textarea">');
     var updatedTime = list.td1.text(ToLocalTimeString(nowTime));
     var btns = list.td2.append(list.CheckBtn, list.CloseBtn);
     var trGrop = list.tr.attr('id', 'new' + rowCount).attr('rel', appId).append(text, updatedTime, btns);
@@ -216,7 +216,7 @@ function modalSubmit() {
 function ToLocalTimeString(millisecond) {
     var date = new Date(millisecond);
     var localDate = date.toLocaleDateString();
-    var localTime = date.toLocaleTimeString();
+    var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     var localTimeString = localDate + localTime;
     return localTimeString;
 }

@@ -214,17 +214,17 @@
         return new Promise(function(resolve) {
             var dialogModalTemplate =
                 '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
-                    '<div class="modal-dialog" role="document">' +
-                        '<div class="modal-content">' +
-                            '<div class="modal-body">' +
-                                '<h4>' + textContent + '</h4>' +
-                            '</div>' +
-                            '<div class="modal-footer">' +
-                                '<button type="button" class="btn btn-primary">確定</button>' +
-                                '<button type="button" class="btn btn-secondary">取消</button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="modal-dialog" role="document">' +
+                '<div class="modal-content">' +
+                '<div class="modal-body">' +
+                '<h4>' + textContent + '</h4>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary">確定</button>' +
+                '<button type="button" class="btn btn-secondary">取消</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
                 '</div>';
             $('body').append(dialogModalTemplate);
             dialogModalTemplate = void 0;
@@ -250,3 +250,11 @@
         });
     }
 })();
+
+function ToLocalTimeString(millisecond) {
+    var date = new Date(millisecond);
+    var localDate = date.toLocaleDateString();
+    var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    var localTimeString = localDate + localTime;
+    return localTimeString;
+}

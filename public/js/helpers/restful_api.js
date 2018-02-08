@@ -1,4 +1,4 @@
-/// <reference path='../../../typings/client/config.d.ts' />
+/// <reference path='../../../typings/client/config.d.ts' />import { compose } from "./C:/Users/Luke/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/async";import { compose } from "./C:/Users/Luke/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/async";
 
 window.restfulAPI = (function() {
     var jwt = '';
@@ -431,6 +431,111 @@ window.restfulAPI = (function() {
         return KeywordreplyAPI;
     })();
 
+    /**
+     * 宣告專門處理關鍵字回覆相關的 API 類別
+     */
+    var ComposesAPI = (function() {
+        function ComposesAPI() {
+            this.urlPrefix = urlConfig.apiUrl + '/api/apps-composes/';
+        }
+
+        /**
+         * 取得使用者所有群發回覆資料
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ComposesAPI.prototype.getAll = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 取得使用者某一個 App 的所有群發的資料
+         *
+         * @param {string} appId - 目標群發的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ComposesAPI.prototype.getOne = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 新增一筆群發的資料
+         *
+         * @param {string} appId - 目標群發的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} newComposeData - 欲新增的群發資料
+         */
+        ComposesAPI.prototype.insert = function(appId, userId, newComposeData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(newComposeData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 更新目標群發資料
+         *
+         * @param {string} appId - 目標群發的 App ID
+         * @param {string} composeId - 目標群發的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} modifiedComposeData - 已編輯後欲更新的群發資料
+         */
+        ComposesAPI.prototype.update = function(appId, composeId, userId, modifiedComposeData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/composes/' + composeId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(modifiedComposeData)
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        /**
+         * 刪除一筆群發資料
+         *
+         * @param {string} appId - 目標群發的 App ID
+         * @param {string} composeId - 目標群發的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ComposesAPI.prototype.remove = function(appId, composeId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/composes/' + composeId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+
+            return window.fetch(destUrl, reqInit).then(function(response) {
+                return responseChecking(response);
+            });
+        };
+
+        return ComposesAPI;
+    })();
     var TagAPI = (function() {
         function TagAPI() {
             this.urlPrefix = urlConfig.apiUrl + '/api/apps-tags/';
@@ -696,6 +801,7 @@ window.restfulAPI = (function() {
         tag: new TagAPI(),
         chatroom: new ChatroomAPI(),
         autoreply: new AutoreplyAPI(),
+        composes: new ComposesAPI(),
         setJWT: setJWT
     };
 })();

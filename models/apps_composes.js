@@ -5,15 +5,17 @@ module.exports = (function() {
 
     /**
      * 回傳預設的 compose 資料結構
+     * @param {Function} callback
      */
-    AppsComposesModel._schema = function() {
-        return {
+    AppsComposesModel._schema = function(callback) {
+        var json = {
             time: '',
             status: '',
-            type: '',
+            type: 'text',
             text: '',
             isDeleted: 0
         };
+        callback(json);
     };
 
     /**
@@ -115,9 +117,10 @@ module.exports = (function() {
 
         procced.then(() => {
             return new Promise((resolve, reject) => {
-                let initCompose = AppsComposesModel._schema();
-                let compose = Object.assign(initCompose, postCompose);
-                resolve(compose);
+                AppsComposesModel._schema((initCompose) => {
+                    let compose = Object.assign(initCompose, postCompose);
+                    resolve(compose);
+                });
             });
         }).then((compose) => {
             return Promise.all([admin.database().ref('apps/' + appId + '/composes').push(), compose]);

@@ -119,12 +119,12 @@
                     // 將每筆 ticket 資料反映於 html DOM 上
                     $ticketBody.append(
                         '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                            '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                            '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
-                            '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                            '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                            '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
-                            '<td>' + dueDate(ticketData.dueTime) + '</td>' +
+                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
+                        '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                        '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
+                        '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
+                        '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
+                        '<td>' + dueDate(ticketData.dueTime) + '</td>' +
                         '</tr>');
                 }
             }
@@ -201,36 +201,36 @@
 
         var moreInfoHtml =
             '<tr>' +
-                '<th>客戶ID</th>' +
-                '<td class="edit">' + ticketData.messagerId + '</td>' +
+            '<th>客戶ID</th>' +
+            '<td class="edit">' + ticketData.messagerId + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="priority">優先</th>' +
-                '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
+            '<th class="priority">優先</th>' +
+            '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="status">狀態</th>' +
-                '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
+            '<th class="status">狀態</th>' +
+            '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="description">描述</th>' +
-                '<td class="edit form-group">' +
-                    '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
-                '</td>' +
+            '<th class="description">描述</th>' +
+            '<td class="edit form-group">' +
+            '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
+            '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
-                '<td class="form-group">' +
-                    '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
-                '</td>' +
+            '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
+            '<td class="form-group">' +
+            '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
+            '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th>建立日期</th>' +
-                '<td>' + displayDate(ticketData.createdTime) + '</td>' +
+            '<th>建立日期</th>' +
+            '<td>' + displayDate(ticketData.createdTime) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th>最後更新</th>' +
-                '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
+            '<th>最後更新</th>' +
+            '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
             '</tr>';
         infoInputTable.append(moreInfoHtml);
     }
@@ -266,6 +266,7 @@
 
     function displayDateInput(d) {
         d = new Date(d);
+
         function pad(n) { return n < 10 ? '0' + n : n }
         return d.getFullYear() + '-' +
             pad(d.getMonth() + 1) + '-' +
@@ -277,7 +278,7 @@
     function ToLocalTimeString(millisecond) {
         var date = new Date(millisecond);
         var localDate = date.toLocaleDateString();
-        var localTime = date.toLocaleTimeString();
+        var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         var localTimeString = localDate + localTime;
         return localTimeString;
     }

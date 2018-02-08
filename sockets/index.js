@@ -336,7 +336,7 @@ function init(server) {
                     from: (req.app.type).toUpperCase(),
                     messager_id: req.messagerId
                 };
-                resolve({messager, inMessage});
+                resolve({ messager, inMessage });
             });
         }).then((data) => {
             let messager = data.messager;
@@ -350,13 +350,13 @@ function init(server) {
                             break;
                         }
                         helpersBot.lineMessageType(req.lineBot, messageEvent, inMessage, (newMessage) => {
-                            resolve({messager: messager, inMessage: newMessage});
+                            resolve({ messager: messager, inMessage: newMessage });
                         });
                         break;
                     case FACEBOOK:
                         let message = req.body.entry[0].messaging[0].message;
                         helpersBot.facebookMessageType(message, inMessage, (newMessage) => {
-                            resolve({messager: messager, inMessage: newMessage});
+                            resolve({ messager: messager, inMessage: newMessage });
                         });
                         break;
                 }
@@ -719,7 +719,7 @@ function init(server) {
         socket.on('update internal profile', data => {
             agents.get(function(agentChatData) {
                 for (let i in agentChatData) {
-                    if (agentChatData[i].Profile.roomId == data.roomId) {
+                    if (agentChatData[i].Profile.roomId === data.roomId) {
                         let updateObj = {};
                         for (let prop in data) {
                             updateObj[prop] = data[prop];

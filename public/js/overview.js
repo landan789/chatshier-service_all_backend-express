@@ -1,158 +1,268 @@
-var socket = io.connect(); // Socket
-var inputNum = 0; //計算訊息的數量
-var inputObj = {};
-var clientIntoArray = [];
-var deleteNum = 0;
-var appId;
-var sendtime;
+/// <reference path='../../typings/client/index.d.ts' />
 
-$(document).ready(function() {
-    // 設定 bootstrap notify 的預設值
-    // 1. 設定為顯示後2秒自動消失
-    // 2. 預設位置為螢幕中間上方
-    // 3. 進場與結束使用淡入淡出
-    $.notifyDefaults({
-        delay: 2000,
-        placement: {
-            from: 'top',
-            align: 'center'
-        },
-        animate: {
-            enter: 'animated fadeInDown',
-            exit: 'animated fadeOutUp'
+(function() {
+    var allComposesData = {};
+    var composesData = {};
+    var api = window.restfulAPI;
+    var socket = io.connect(); // Socket
+    var inputNum = 0; //計算訊息的數量
+    var inputObj = {};
+    var deleteNum = 0;
+    var appId = '';
+    var userId = '';
+    var sendtime;
+    var $jqDoc = $(document);
+    var $appDropdown = $('.app-dropdown');
+    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+    var $composeEditModal = $('#editModal');
+    var $composesAddModal = $('#quickAdd');
+    var $historyTableElem = null;
+    var $draftTableElem = null;
+    var $reservationTableElem = null;
+    var timeInMs = (Date.now() + 1000);
+    $(document).ready(function() {
+        // 設定 bootstrap notify 的預設值
+        // 1. 設定為顯示後2秒自動消失
+        // 2. 預設位置為螢幕中間上方
+        // 3. 進場與結束使用淡入淡出
+        $.notifyDefaults({
+            delay: 2000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            },
+            animate: {
+                enter: 'animated fadeInDown',
+                exit: 'animated fadeOutUp'
+            }
+        });
+        // ACTIONS
+        var startUserId = setInterval(() => {
+            userId = auth.currentUser.uid;
+            if (auth.currentUser) {
+                clearInterval(startUserId);
+                // find();
+                loadAppIdNames();
+            }
+        }, 1000);
+        $(document).on('change', '#app-select', storeApp);
+        $(document).on('click', '.tablinks', clickMsg);
+        $(document).on('click', '#btn-text', btnText);
+        $(document).on('click', '#remove-btn', removeInput);
+        $(document).on('click', '#modal-submit', insertSubmit); //新增
+        $composesAddModal.find('#quickAdd').on('click', insertSubmit);
+        $historyTableElem = $('#composes_history_table tbody');
+        $reservationTableElem = $('#composes_reservation_table tbody');
+        $draftTableElem = $('#composes_draft_table tbody');
+        // FUNCTIONs
+
+        function storeApp() {
+            appId = $(this).find(':selected').attr('id');
+        } // end of loadFriendsReply
+
+        function removeInput() {
+            var id = $(this).parent().find('form').find('textarea').attr('id');
+            deleteNum++;
+            delete inputObj[id];
+            if (inputNum - deleteNum < 4) { $('.error_msg').hide() }
+            $(this).parent().remove();
         }
+
+        function clickMsg() { // 更換switch
+            var target = $(this).attr('rel');
+            $("#" + target).show().siblings().hide();
+        }
+
+        function btnText() {
+            $('.error-input').hide();
+            inputNum++;
+            if (inputNum - deleteNum > 3) {
+                $('.error-msg').show();
+                console.log('超過三則訊息');
+                inputNum--;
+            } else {
+                $('#inputText').append(
+                    '<div style="margin:2%">' +
+                    '<span class="remove-btn">刪除</span>' +
+                    '<tr>' +
+                    '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td style="background-color: #ddd">' +
+                    '<form style="padding:1%">' +
+                    '<textarea class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                    '</form>' +
+                    '</td>' +
+                    '</tr>' +
+                    '</div>');
+                inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
+            }
+        }
+
+        $composeEditModal.on('shown.bs.modal', function(event) {
+            var targetRow = $(event.relatedTarget).parent().parent();
+            var appId = targetRow.attr('text');
+            var composeId = targetRow.attr('id');
+            var $editForm = $composeEditModal.find('.modal-body form');
+            var targetData = composesData[composeId];
+            $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
+            $editForm.find('#edutinput').val(targetData.text);
+            $composeEditModal.find('#edit-submit').off('click').on('click', function() {
+                var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
+                targetData.text = $editForm.find('#edutinput').val();
+                targetData.time = Date.parse($editForm.find('#edit-time').val());
+                if (true === isDraft) {
+                    targetData.status = 0;
+                    targetData.text = $editForm.find('#edutinput').val();
+                    targetData.time = Date.parse($editForm.find('#edit-time').val());
+                } else {
+                    targetData.status = 1;
+                }
+                return api.composes.update(appId, composeId, userId, targetData).then(function() {
+                    $composeEditModal.modal('hide');
+                    $.notify('修改成功！', { type: 'success' });
+                    return loadComposes(appId, userId);
+                });
+            });
+        });
     });
 
-    // EXECUTION
-    $('#Appointment').show();
-    socket.emit("get tags from chat");
-    let timer_1 = setInterval(function() {
-        if (!auth.currentUser) {
-            return;
-        } else {
-            clearInterval(timer_1);
-            userId = auth.currentUser.uid;
-            socket.emit('update bot', userId);
-            loadTable();
-        }
-    }, 5);
-    // ACTIONS
+    var TableObj = function() {
+        this.tr = $('<tr>').attr('id', 'text');
+        this.th = $('<th>').attr('id', 'text');
+        this.td1 = $('<td>').attr('id', 'time');
+        this.td2 = $('<td>').attr('id', 'status');
+        this.td3 = $('<td>');
+        this.UpdateBtn = $('<button>').attr('type', 'button')
+            .addClass('btn btn-default fa fa-pencil')
+            .attr('id', 'edit-btn')
+            .attr('data-toggle', 'modal')
+            .attr('data-target', '#editModal')
+            .attr('aria-hidden', 'true');
+        this.DeleteBtn = $('<button>').attr('type', 'button')
+            .addClass('btn btn-default fa fa-trash-o')
+            .attr('id', 'delete-btn');
+    };
 
-    $(document).on('change', '#app-select', storeApp);
-    $(document).on('click', '.tablinks', clickMsg);
-    $(document).on('click', '#btn-text', btnText);
-    $(document).on('click', '.remove-btn', removeInput); //移除input
-    $(document).on('click', '#modal-submit', modalSubmit); //新增
-    $(document).on('click', '#modal-draft', modalDraft);
-    // FUNCTIONS
-    function loadTable() {
-        userId = auth.currentUser.uid;
-        findapps();
-        storeApp();
-        socket.emit('find all info', userId);
-        socket.on('composes info', (data) => {
-            for (let key in data) {
-                textInput = data[key].text;
-                status = data[key].status;
-                time = data[key].time;
-                app = data[key].app;
-                let stringobj = '<tr>' + '<td>' + textInput + '</td>' + '<td>' + status + '</td>' + '<td>' + DateTimeString(time) + '</td>' + '</tr>';
-                switch (status) {
-                    case '1':
-                        $('#data-appointment').append(stringobj);
-                        break;
-                    case '2':
-                        $('#data-draft').append(stringobj);
-                        break;
+    function loadAppIdNames() {
+        return api.chatshierApp.getAll(userId).then(function(resJson) {
+            allComposesData = resJson.data;
+            for (let appId in allComposesData) {
+                var app = allComposesData[appId];
+                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+                let option2 = $('<option  value="' + appId + '">').text(app.name).attr('id', appId);
+                $('#app-select').append(option2);
+                $appDropdown.find('#' + appId).on('click', function(ev) {
+                    var appId = ev.target.id;
+                    $appDropdown.find('.dropdown-text').text(ev.target.text);
+                    return loadComposes(appId, userId);
+                });
+            }
+        });
+    }
 
-                    case '3':
-                        $('#data-history').append(stringobj);
-                        break;
-
+    function loadComposes(appId, userId) {
+        // 先取得使用者所有的 AppId 清單更新至本地端
+        $historyTableElem.empty();
+        $draftTableElem.empty();
+        $reservationTableElem.empty();
+        return api.composes.getOne(appId, userId).then(function(resJson) {
+            composesData = resJson.data[appId].composes;
+            for (var composeId in composesData) {
+                var composeData = composesData[composeId];
+                if (composeData.isDeleted) {
+                    continue;
+                }
+                var list = new TableObj();
+                var text = list.th.text(composeData.text);
+                var time = list.td1.text(ToLocalTimeString(composeData.time));
+                var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
+                var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
+                if (0 === composeData.status) {
+                    $draftTableElem.append(trGrop);
+                } else if (1 === composeData.status && composeData.time > timeInMs) {
+                    $reservationTableElem.append(trGrop);
+                } else if (1 === composeData.status && (composeData.time < timeInMs || composeData.time === timeInMs)) {
+                    $historyTableElem.append(trGrop);
                 }
             }
+
+            $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
+                var targetRow = $(event.target).parent().parent();
+                var appId = targetRow.attr('text');
+                var composeId = targetRow.attr('id');
+
+                return showDialog('確定要刪除嗎？').then(function(isOK) {
+                    if (!isOK) {
+                        return;
+                    }
+
+                    return api.composes.remove(appId, composeId, userId).then(function() {
+                        $.notify('刪除成功！', { type: 'success' });
+                        return loadComposes(appId, userId);
+                    });
+                });
+            });
         });
     }
 
-    function findapps() {
-        let userId = auth.currentUser.uid;
-        socket.emit('find apps', userId);
-        socket.on('apps APPID', (appids) => {
-            var appInfo = appids;
-            var option = [];
-            let j = 1;
-            for (let i in appInfo) {
-                option[i] = $('<option>').text('APP' + j).attr('id', appInfo[i]);
-                j++;
-                $('#app-select').append(option[i]);
-            }
+    function ToLocalTimeString(millisecond) {
+        var date = new Date(millisecond);
+        var localDate = date.toLocaleDateString();
+        var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        var localTimeString = localDate + localTime;
+        return localTimeString;
+    }
+
+    function showDialog(textContent) {
+        return new Promise(function(resolve) {
+            var dialogModalTemplate =
+                '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
+                '<div class="modal-dialog" role="document">' +
+                '<div class="modal-content">' +
+                '<div class="modal-body">' +
+                '<h4>' + textContent + '</h4>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary">確定</button>' +
+                '<button type="button" class="btn btn-secondary">取消</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            $('body').append(dialogModalTemplate);
+            dialogModalTemplate = void 0;
+
+            var isOK = false;
+            var $dialogModal = $('#dialog_modal');
+
+            $dialogModal.find('.btn-primary').on('click', function() {
+                isOK = true;
+                resolve(isOK);
+                $dialogModal.remove();
+            });
+
+            $dialogModal.find('.btn-secondary').on('click', function() {
+                resolve(isOK);
+                $dialogModal.remove();
+            });
+
+            $dialogModal.modal({
+                backdrop: false,
+                show: true
+            });
         });
     }
 
-    function storeApp() {
-        appId = $(this).find(':selected').attr('id');
-        apptext = $('#app-select').val();
-    } // end of loadFriendsReply
-
-    function DateTimeString(d) {
-        var today = new Date(d);
-        var currentDateTime =
-            today.getFullYear() + '年' +
-            (today.getMonth() + 1) + '月' +
-            today.getDate() + '日' +
-            today.getHours() + ':' + today.getMinutes();
-        return currentDateTime;
-    }
-
-    function removeInput() {
-        var id = $(this).parent().find('form').find('textarea').attr('id');
-        deleteNum++;
-        delete inputObj[id];
-        if (inputNum - deleteNum < 4) { $('.error_msg').hide() }
-        $(this).parent().remove();
-    }
-
-    function clickMsg() { // 更換switch
-        var target = $(this).attr('rel');
-        $("#" + target).show().siblings().hide();
-    }
-
-    function btnText() {
-        $('.error-input').hide();
-        inputNum++;
-        if (inputNum - deleteNum > 3) {
-            $('.error-msg').show();
-            console.log('超過三則訊息');
-            inputNum--;
-        } else {
-            $('#inputText').append(
-                '<div style="margin:2%">' +
-                '<span class="remove-btn">刪除</span>' +
-                '<tr>' +
-                '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
-                '</tr>' +
-                '<tr>' +
-                '<td style="background-color: #ddd">' +
-                '<form style="padding:1%">' +
-                '<textarea class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                '</form>' +
-                '</td>' +
-                '</tr>' +
-                '</div>');
-            inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
-        }
-    }
-
-    function modalSubmit() {
-        var userId = auth.currentUser.uid;
+    function insertSubmit() {
+        var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         let messages = [];
         if (0 === inputObj.length) {
             $('.error-input').show();
         } else {
             sendtime = $('#send-time').val();
-            let status;
+
             if ($('#send-now').prop('checked')) {
-                status = 'now';
                 for (let key in inputObj) {
                     let message = {
                         type: 'text',
@@ -160,23 +270,48 @@ $(document).ready(function() {
                     };
                     messages.push(message);
                 }
+                let composes = {};
+                for (let i in messages) {
+                    composes = {
+                        type: 'text',
+                        status: isDraft ? 0 : 1,
+                        time: (Date.now() - 10000),
+                        text: messages[i].text
+                    };
+                    socket.emit('insert compose', { userId, composes, appId });
+                }
+
                 var emitData = {
                     userId: userId,
                     messages: messages,
                     appId: appId
                 };
-                socket.emit('push composes to all', emitData);
-                insertCompose(messages);
+                if (false === isDraft) {
+                    socket.emit('push composes to all', emitData);
+                }
                 $('#quickAdd').modal('hide');
                 $('.textinput').val('');
                 $('#send-time').val('');
                 $('#inputText').empty();
                 inputNum = 0;
-                alert('變更已儲存!');
-                location.reload();
+                $.notify('發送成功', { type: 'success' });
+                return loadComposes(appId, userId);
             }
         }
-        //預約的程式碼
+        // ==========
+        // 檢查資料有無輸入
+        // $errorMsgElem.empty().hide();
+        // if (!appId) {
+        //     $errorMsgElem.text('請選擇目標App').show();
+        //     return;
+        // } else if (!keyword) {
+        //     $errorMsgElem.text('請輸入關鍵字').show();
+        //     return;
+        // } else if (!textContent) {
+        //     $errorMsgElem.text('請輸入關鍵字回覆的內容').show();
+        //     return;
+        // }
+        // ==========
         if ($('#send-sometime').prop('checked')) {
             let messages = [];
             for (let key in inputObj) {
@@ -186,93 +321,34 @@ $(document).ready(function() {
                 };
                 messages.push(message);
             }
-            insertReservation(messages);
+            for (let message in messages) {
+                let composeData = {
+                    type: 'text',
+                    text: messages[message].text,
+                    status: isDraft ? 0 : 1,
+                    time: Date.parse(sendtime)
+                };
+                api.composes.insert(appId, userId, composeData).then(function(resJson) {});
+            }
             $('#quickAdd').modal('hide');
             $('.textinput').val('');
             $('#send-time').val('');
             $('#inputText').empty();
             inputNum = 0;
-            $.notify('變更已儲存！', { type: 'success' });
-            location.reload();
-        }
-        // 塞入資料庫並重整
-    }
-
-    function insertCompose(messages) {
-        let userId = auth.currentUser.uid;
-        let composes = {};
-        let currentDateTime = DateTimeString();
-        for (let i in messages) {
-            composes = {
-                'time': Date.now(currentDateTime),
-                'status': 3,
-                'type': messages[i].type,
-                'text': messages[i].text
-            };
-
-            socket.emit('insert compose', { userId, composes, appId });
-        }
-    }
-
-    function insertReservation(messages) {
-        let userId = auth.currentUser.uid;
-        let composes = {};
-        let currentDateTime = DateTimeString();
-        for (let i in messages) {
-            composes = {
-                'time': ISODateTimeString(sendtime),
-                'status': 1,
-                'type': messages[i].type,
-                'text': messages[i].text
-            };
-            socket.emit('insert Reservation', { userId, composes, appId });
-        }
-    }
-
-    function modalDraft() {
-        let userId = auth.currentUser.uid;
-        let messages = [];
-        for (let key in inputObj) {
-            let message = {
-                type: 'text',
-                text: $('#' + key).val()
-            };
-            messages.push(message);
-        }
-        insertComposeDraft(messages);
-        $('#quickAdd').modal('hide');
-        $('.textinput').val('');
-        $('#send-time').val('');
-        $('#inputText').empty();
-        inputNum = 0;
-        $.notify('變更已儲存！', { type: 'success' });
-        location.reload();
-    }
-
-    function insertComposeDraft(messages) {
-        let userId = auth.currentUser.uid;
-        let composes = {};
-        let currentDateTime = DateTimeString();
-        for (let i in messages) {
-            composes = {
-                'time': currentDateTime,
-                'status': 2,
-                'type': messages[i].type,
-                'text': messages[i].text
-            };
-
-            socket.emit('insert compose', { userId, composes, appId });
+            $.notify('新增成功', { type: 'success' });
+            return loadComposes(appId, userId);
         }
     }
 
     function ISODateTimeString(d) {
         d = new Date(d);
 
-        function pad(n) { return n < 10 ? '0' + n : n }
+        function pad(n) { return n < 10 ? '0' + n : n; }
         return d.getFullYear() + '-' +
             pad(d.getMonth() + 1) + '-' +
             pad(d.getDate()) + 'T' +
             pad(d.getHours()) + ':' +
             pad(d.getMinutes());
     }
-});
+
+})();

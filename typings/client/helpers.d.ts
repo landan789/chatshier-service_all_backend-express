@@ -7,7 +7,9 @@ interface Window {
         keywordreply: KeywordreplyAPI,
         calendar: CalendarAPI,
         tag: TagAPI,
+        composes:ComposesAPI,
         chatroom: ChatroomAPI
+        
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -82,4 +84,11 @@ interface AutoreplyAPI {
     insert: (appId: string, userId: string, autoreplyData: any) => Promise<any>;
     update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
+}
+interface ComposesAPI {
+    findAll: (userId: string) => Promise<any>;
+    findOne: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, composeData: any) => Promise<any>;
+    update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<any>;
+    remove: (appId: string, composeId: string, userId: string) => Promise<any>;
 }

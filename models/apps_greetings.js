@@ -4,17 +4,17 @@ module.exports = (function() {
     function AppsGreetingsModel() {}
 
     /**
-     * 回傳預設的 Keywordreply 資料結構
+     * 回傳預設的 Greeting 資料結構
      */
-    AppsGreetingsModel._schema = function() {
-        return {
+    AppsGreetingsModel._schema = function(callback) {
+        var json = {
             updatedTime: Date.now(),
-            type: '',
+            type: 'text',
             text: '',
             isDeleted: 0
         };
+        callback(json);
     };
-
     /**
      * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
      *
@@ -143,9 +143,10 @@ module.exports = (function() {
 
         procced.then(() => {
             return new Promise((resolve, reject) => {
-                let initGreeting = AppsGreetingsModel._schema();
-                let greeting = Object.assign(initGreeting, postGreeting);
-                resolve(greeting);
+                AppsGreetingsModel._schema((initGreeting) => {
+                    let greeting = Object.assign(initGreeting, postGreeting);
+                    resolve(greeting);
+                });
             });
         }).then((greeting) => {
             return Promise.all([admin.database().ref('apps/' + appId + '/greetings').push(), greeting]);
