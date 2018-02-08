@@ -134,14 +134,28 @@ module.exports = (function() {
             var index = userIds.indexOf(req.params.userid);
             var memberId = Object.keys(members)[index];
             var member = members[memberId];
-            if (0 <= userIds.indexOf(req.body.userid)) {
+            if (0 <= userIds.indexOf(req.body.userid) && 0 === member.isDeleted) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
             }
             if (WRITE === member.type || READ === member.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
             };
-            return Promise.resolve();
-        }).then(() => {
+
+            if (0 <= userIds.indexOf(req.body.userid) && 1 === member.isDeleted) {
+                var _member = {
+                    isDeleted: 0
+                };
+                return new Promise((resolve, reject) => {
+                    groupsMembersMdl.update(groupId, _member, (groupsMembers) => {
+                        if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
+                            reject(groupsMembers);
+                            return;
+                        };
+                        resolve(groupsMembers);
+                    });
+                });
+            }
+
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
