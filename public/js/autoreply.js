@@ -100,8 +100,8 @@
     }
 
     function findOne(appId, userId) {
+        $('#autoreply-tables').empty();
         return api.autoreply.getOne(appId, userId).then(function(resJson) {
-            $('#autoreply-tables').empty();
             let autoreplies = resJson.data[appId].autoreplies;
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];

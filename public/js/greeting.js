@@ -1,4 +1,5 @@
 var rowCount = 0; // new message count from addMsgCanvas
+const APP_GREETING_DAILED_TO_FIND = 'APP GREETING FAILED TO FIND';
 $(document).ready(function() {
     // 設定 bootstrap notify 的預設值
     // 1. 設定為顯示後2秒自動消失
@@ -100,8 +101,11 @@ function find(appId) {
             }
         },
         error: (error) => {
+            let msg = error.responseJSON.msg;
+            if (APP_GREETING_DAILED_TO_FIND === msg.toUpperCase()) {
+                appendNewTr(appId);
+            }
             console.log('查詢失敗: ' + error);
-            appendNewTr();
         }
     });
 } // end of loadFriendsReply
