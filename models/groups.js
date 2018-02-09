@@ -52,7 +52,6 @@ module.exports = (function() {
      * @param {function} callback 
      */
     GroupsModel.prototype.insert = function(userId, group, callback) {
-
         var groups = {};
         var groupId;
         group = Object.assign(SCHEMA.GROUP, group);
@@ -125,19 +124,27 @@ module.exports = (function() {
             groupIds = [groupIds];
         };
         var appIds = {};
-        Promise.all(groupIds.map((groupId) => {
-            return admin.database().ref('groups/' + groupId).then((snap) => {
-                var group = snap.val();
-                if (null === group || undefined === group || '' === group) {
-                    return Promise.resolve(null);
-                };
-                var _appIds = group.app_ids;
-                _appIds.forEach((appId) => {
-                    appIds[appId] = appId;
-                });
+        Promise.resolve().then(() => {
+            if (null === groupIds || undefined === groupIds) {
                 return Promise.resolve();
-            });
-        })).then(() => {
+            }
+            return Promise.all(groupIds.map((groupId) => {
+                if (null === groupId || undefined === groupId) {
+                    return Promise.resolve();
+                }
+                return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
+                    var group = snap.val();
+                    if (null === group || undefined === group || '' === group || '' === group.app_ids || undefined === group.app_ids || (group.app_ids instanceof Array && 0 === group.app_ids.length)) {
+                        return Promise.resolve(null);
+                    };
+                    var _appIds = group.app_ids;
+                    _appIds.forEach((appId) => {
+                        appIds[appId] = appId;
+                    });
+                    return Promise.resolve();
+                });
+            }));
+        }).then(() => {
             appIds = Object.keys(appIds);
             callback(appIds);
         }).catch(() => {
@@ -146,39 +153,32 @@ module.exports = (function() {
     };
 
     /**
-     * 根據 groupid|groupid[] 回傳 群組中對應的 使用者 uesrIDs 
-     * @param {string|string[]} groupIds 
-     * @param {function} callback 
-     * @return {string[]} uesrIds 
+     * 根據 groupid|groupid[] 回傳 群組中對應的 使用者 uesrIDs
+     * @param {string|string[]} groupIds
+     * @param {(userIds: string[]) => any} callback
      */
     GroupsModel.prototype.findUserIds = function(groupIds, callback) {
         // 多行處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
         };
-        var uesrIds = {};
+
+        let userIds = [];
         Promise.all(groupIds.map((groupId) => {
             return admin.database().ref('groups/' + groupId + '/members').once('value').then((snap) => {
                 var members = snap.val();
-                if (null === members || undefined === members || '' === members) {
-                    return Promise.resolve(null);
-                };
-                uesrIds = Object.values(members).map((member) => {
-                    var userId = member.user_id;
-                    return userId;
-                });
-                var memberId;
-                for (memberId in members) {
-                    var member = members[memberId];
-                    var userId = member.user_id;
-                    uesrIds[userId] = userId;
+                if (!members) {
+                    return null;
                 };
 
-                return Promise.resolve();
+                for (let memberId in members) {
+                    let member = members[memberId];
+                    let userId = member.user_id;
+                    userId && userIds.push(userId);
+                };
             });
         })).then(() => {
-            uesrIds = Object.keys(uesrIds);
-            callback(uesrIds);
+            callback(userIds);
         }).catch(() => {
             callback(null);
         });
