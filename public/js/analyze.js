@@ -17,6 +17,7 @@
     var HOUR = 3600000;
     var DATE = 86400000;
 
+    var chartInstance = null;
     var messagesData = {}; // 所有訊息的時間
     var startTime; // 決定圖表從哪個時間點開始畫
     var endTime; // 決定圖表畫到那個時間點結束
@@ -26,8 +27,9 @@
     var userId = '';
     var nowSelectAppId = '';
     var api = window.restfulAPI;
-    var analyzeType = AnalyzeType.TIME; // 預設從最小單位顯示分析
+    var analyzeType = AnalyzeType.DAY; // 預設從每日單位顯示分析
 
+    var $chartWrapper = $('#chartdiv');
     var $buttonGroup = $('.button-group');
     var $analyzeSdtPicker = $('#start_datetime_picker');
     var $analyzeEdtPicker = $('#end_datetime_picker');
@@ -37,6 +39,18 @@
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
+
+        $.notifyDefaults({
+            delay: 2000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            },
+            animate: {
+                enter: 'animated fadeInDown',
+                exit: 'animated fadeOutUp'
+            }
+        });
 
         $buttonGroup.find('.view-month').on('click', viewMonth);
         $buttonGroup.find('.view-date').on('click', viewDay);
@@ -82,6 +96,17 @@
         $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
         messageDataPreprocess(messagesData[nowSelectAppId]);
         $('.button-group .btn-view').prop('disabled', false); // 資料載入完成，才開放USER按按鈕
+
+        // 綁定日期變更時的事件
+        $analyzeSdtPicker.on('dp.change', function(ev) {
+            startTime = ev.date.toDate().getTime();
+            renderChart();
+        });
+
+        $analyzeEdtPicker.on('dp.change', function(ev) {
+            endTime = ev.date.toDate().getTime();
+            renderChart();
+        });
     });
 
     function appSourceChanged(ev) {
@@ -106,57 +131,36 @@
         sTimePickerData.date(new Date(startTime));
         eTimePickerData.date(new Date(endTime));
 
-        if (analyzeType === AnalyzeType.MONTH) {
-            viewMonth();
-        } else if (analyzeType === AnalyzeType.DAY) {
-            viewDay();
-        } else if (analyzeType === AnalyzeType.HOUR) {
-            viewHour();
-        } else if (analyzeType === AnalyzeType.TIME) {
-            viewTime();
-        } else if (analyzeType === AnalyzeType.WORDCLOUR) {
-            viewWordCloud();
-        }
+        renderChart();
     }
 
-    function viewWordCloud() {
-        analyzeType = AnalyzeType.WordCloud;
-        var msgData = [];
-        if (!isValidTime()) {
-            // 確認開始時間是否小於結束時間
-            $('#chartdiv').empty();
-            return;
-        } else {
-            // 確認完後，filter出時間區間內的資料
-            msgData = getSelecedMsgData();
+    function renderChart() {
+        // 確認開始時間是否小於結束時間，小於時顯示通知
+        if (startTime > endTime) {
+            $.notify('無資料！開始時段須比結束時段早', { type: 'warning' });
         }
 
-        var text = msgData.join(',');
-        var wordfreq = new window.WordFreqSync({
-            workerUrl: '/lib/js/wordfreq.worker.js',
-            minimumCount: 1 // 過濾文字出現的最小次數最小
-        });
-        var cloudOptions = {
-            list: wordfreq.process(text),
-            weightFactor: 32, // 文字雲字體大小
-            clearCanvas: true
-        };
-        window.WordCloud($('#chartdiv')[0], cloudOptions);
+        switch (analyzeType) {
+            case AnalyzeType.MONTH:
+                return viewMonth();
+            case AnalyzeType.DAY:
+                return viewDay();
+            case AnalyzeType.HOUR:
+                return viewHour();
+            case AnalyzeType.TIME:
+                return viewTime();
+            case AnalyzeType.WORDCLOUR:
+                return viewWordCloud();
+            default:
+                break;
+        }
     }
 
     function viewMonth() {
         analyzeType = AnalyzeType.MONTH;
-        var timeData = [];
-        if (!isValidTime()) {
-            // 確認開始時間是否小於結束時間
-            $('#chartdiv').empty();
-            return;
-        } else {
-            // 確認完後，filter出時間區間內的資料
-            timeData = getSelecedTimeData();
-        }
+        var timeData = getSelecedTimeData();
 
-        function getMonthTime(t, n) {
+        var getMonthTime = function(t, n) {
             // t=10/15 n=1 => return 10/1
             // t=10/15 n=2 => return 11/1
             // 日期都以毫秒number表示
@@ -169,30 +173,37 @@
             }
             var newDate = new Date(y + '/' + m);
             return newDate.getTime();
-        }
+        };
+
         var chartData = []; // 要餵給AmCharts的資料
         var nowSeg = getMonthTime(startTime, 1); // 當前月份的時間
         var nextSeg = getMonthTime(startTime, 2); // 下個月份的時間
         var count = 0; // 當前月份的訊息數
         var i = 0;
+
         while (i <= timeData.length) {
             var nowT = timeData[i];
-            if (timeData[i] <= nextSeg) {
+            if (nowT <= nextSeg) {
                 // 若這筆資料的時間還沒到下個月，則當前月份訊息數++
                 count++;
                 i++;
-            } else {
-                // 若這筆資料已到下個月，則結算當前月份
-                var date = new Date(nowSeg); // 當前月份
-                var timeStr = date.getMonth() + 1 + '月';
-                chartData.push({
-                    time: timeStr,
-                    messages: count
-                });
-                nowSeg = nextSeg; // 開始計算下個月份
-                nextSeg = getMonthTime(nextSeg, 2);
-                count = 0;
-                if (i === timeData.length) break; // 上面while迴圈是跑到i==length的地方，這樣才能正確結算最後一個月份
+                continue;
+            }
+
+            // 若這筆資料已到下個月，則結算當前月份
+            var date = new Date(nowSeg); // 當前月份
+            var timeStr = date.getMonth() + 1 + '月';
+            chartData.push({
+                time: timeStr,
+                messages: count
+            });
+            nowSeg = nextSeg; // 開始計算下個月份
+            nextSeg = getMonthTime(nextSeg, 2);
+            count = 0;
+
+            // 上面 while 迴圈是跑到 i==length 的地方，這樣才能正確結算最後一個月份
+            if (i >= timeData.length) {
+                break;
             }
         }
         generateChart(chartData); // 將資料餵給AmCharts
@@ -200,35 +211,34 @@
 
     function viewDay() {
         analyzeType = AnalyzeType.DAY;
-        var timeData = [];
-        if (!isValidTime()) {
-            $('#chartdiv').empty();
-            return;
-        } else {
-            timeData = getSelecedTimeData();
-        }
+        var timeData = getSelecedTimeData();
 
         var chartData = [];
         var nowSeg = Math.floor(startTime / DATE) * DATE; // 取得第一天的00:00的時間
         var nextSeg = nowSeg + DATE;
         var count = 0;
         var i = 0;
+
         while (i <= timeData.length) {
             var nowT = timeData[i];
             if (nowT <= nextSeg) {
                 count++;
                 i++;
-            } else {
-                var date = new Date(nowSeg);
-                var timeStr = getDateStr(date);
-                chartData.push({
-                    time: timeStr,
-                    messages: count
-                });
-                count = 0;
-                nowSeg = nextSeg;
-                nextSeg += DATE;
-                if (i === timeData.length) break;
+                continue;
+            }
+
+            var date = new Date(nowSeg);
+            var timeStr = getDateStr(date);
+            chartData.push({
+                time: timeStr,
+                messages: count
+            });
+            count = 0;
+            nowSeg = nextSeg;
+            nextSeg += DATE;
+
+            if (i >= timeData.length) {
+                break;
             }
         }
         generateChart(chartData);
@@ -236,13 +246,7 @@
 
     function viewHour() {
         analyzeType = AnalyzeType.HOUR;
-        var timeData = [];
-        if (!isValidTime()) {
-            $('#chartdiv').empty();
-            return;
-        } else {
-            timeData = getSelecedTimeData();
-        }
+        var timeData = getSelecedTimeData();
 
         var chartData = [];
         var nowSeg = Math.floor(startTime / HOUR) * HOUR;
@@ -253,21 +257,25 @@
             if (nowT <= (nowSeg + HOUR)) {
                 count++;
                 i++;
-            } else {
-                var date = new Date(nowSeg);
-                var timeStr = getDateStr(date) + ' ' + getTimeStr(date);
-                // var dateStr = '';
-                // if( date.getHours()==0 ) {
-                //   dateStr = getDateStr(date);
-                // }
-                chartData.push({
-                    time: timeStr,
-                    // date: dateStr,
-                    messages: count
-                });
-                count = 0;
-                nowSeg += HOUR;
-                if (i === timeData.length) break;
+                continue;
+            }
+
+            var date = new Date(nowSeg);
+            var timeStr = getDateStr(date) + ' ' + getTimeStr(date);
+            // var dateStr = '';
+            // if( date.getHours()==0 ) {
+            //   dateStr = getDateStr(date);
+            // }
+            chartData.push({
+                time: timeStr,
+                // date: dateStr,
+                messages: count
+            });
+            count = 0;
+            nowSeg += HOUR;
+
+            if (i >= timeData.length) {
+                break;
             }
         }
         // function getCursorTime(time) {
@@ -283,21 +291,17 @@
     function viewTime() {
         analyzeType = AnalyzeType.TIME;
         // 將所有資料彙整成以小時表示
-        var timeData = [];
-        if (!isValidTime()) {
-            $('#chartdiv').empty();
-            return;
-        } else {
-            timeData = getSelecedTimeData();
-        }
+        var timeData = getSelecedTimeData();
 
         var timeArr = Array(24).fill(0); // 建立陣列，儲存不同小時的訊息數
         var chartData = [];
         var i = 0;
+
         for (i = 0; i < timeData.length; i++) {
             var hour = (new Date(timeData[i])).getHours();
             timeArr[hour - 1]++; // 取得每個訊息的小時，並加至陣列裡
         }
+
         for (i = 0; i < timeArr.length; i++) {
             var hr = minTwoDigits(i + 1);
             chartData.push({
@@ -308,8 +312,27 @@
         generateChart(chartData);
     }
 
+    function viewWordCloud() {
+        analyzeType = AnalyzeType.WordCloud;
+        var msgData = getSelecedTimeData();
+
+        var text = msgData.join(',');
+        var wordfreq = new window.WordFreqSync({
+            workerUrl: '/lib/js/wordfreq.worker.js',
+            minimumCount: 1 // 過濾文字出現的最小次數最小
+        });
+        var cloudOptions = {
+            list: wordfreq.process(text),
+            weightFactor: 32, // 文字雲字體大小
+            clearCanvas: true
+        };
+        window.WordCloud($chartWrapper[0], cloudOptions);
+    }
+
     function generateChart(chartData, cursorProvider) {
-        var chart = AmCharts.makeChart('chartdiv', {
+        chartInstance && chartInstance.clear();
+
+        chartInstance = AmCharts.makeChart('chartdiv', {
             type: 'serial',
             theme: 'light',
             zoomOutButton: {
@@ -361,25 +384,14 @@
         $('a[href="http://www.amcharts.com"]').remove();
     }
 
-    function isValidTime() {
-        // CHECK 開始時間是否小於結束時間
-        if (startTime > endTime) {
-            $('#error_message').show(); // 若否則顯示錯誤訊息
-            return false;
-        } else return true;
-    }
-
     function getSelecedTimeData() {
         // 將資料過濾成在開始 ~ 結束時間內
-        var timeData = [];
-        var messages = messagesData[nowSelectAppId];
-        for (var i = 0; i < messages.length; i++) {
-            var t = messages[i].time;
-            if (t >= startTime && t <= endTime) {
-                timeData.push(t);
+        return messagesData[nowSelectAppId].reduce(function(output, message) {
+            if (message.time >= startTime && message.time <= endTime) {
+                output.push(message.time);
             }
-        }
-        return timeData;
+            return output;
+        }, []);
     }
 
     function getSelecedMsgData() {

@@ -3,6 +3,213 @@
 var userId = '';
 window.auth.ready.then(function(currentUser) {
     userId = currentUser.uid;
+
+    $.notifyDefaults({
+        delay: 2000,
+        placement: {
+            from: 'top',
+            align: 'center'
+        },
+        animate: {
+            enter: 'animated fadeInDown',
+            exit: 'animated fadeOutUp'
+        }
+    });
+
+    // ACTIONS
+    $('#setting-modal').on('hidden.bs.modal', function() {
+        clearAppModalBody();
+    });
+    $(document).on('click', '#edit', function() {
+        let appId = $(this).attr('rel');
+        findOneApp(appId); // 點選編輯後根據appId列出指定的APP
+    });
+    $('#setting-modal-submit-btn').click(function(event) {
+        event.preventDefault();
+        let type = $(this).parent().parent().find('#type').text();
+        // insertNewApp, updateProfile, updateApp
+        switch (type) {
+            case 'insertNewApp':
+                let app = $(this).parent().parent().find('#app-group-select option:selected').val();
+                insertType(app, (data) => {
+                    insertOneApp(data);
+                });
+                break;
+            case 'updateProfile':
+                profSubmitBasic();
+                break;
+            case 'updateApp':
+                let appId = $(this).parent().parent().find('#webhook-id').text();
+                // console.log($('#facebook-name').val())
+                if ($('#facebook-name').val() === undefined) {
+                    let name = $('#name').val();
+                    let id1 = $('#channel-id').val();
+                    let secret = $('#channel-secret').val();
+                    let token1 = $('#channel-token').val();
+                    let type = 'LINE';
+                    let updateObj = {
+                        name,
+                        id1,
+                        secret,
+                        token1,
+                        type
+                    }
+                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
+                } else {
+                    let name = $('#facebook-name').val();
+                    let id1 = $('#facebook-page-id').val();
+                    let id2 = $('#facebook-app-id').val();
+                    let secret = $('#facebook-app-secret').val();
+                    let token1 = $('#facebook-valid-token').val();
+                    let token2 = $('#facebook-page-token').val();
+                    let type = 'FACEBOOK';
+                    let updateObj = {
+                        name,
+                        id1,
+                        id2,
+                        secret,
+                        token1,
+                        token2,
+                        type
+                    }
+                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
+                }
+                break;
+        }
+    });
+    $(document).on('click', '#del', function() {
+        let autoreplyId = $(this).attr('rel');
+        let confirmDelete = confirm('確定刪除?');
+        // console.log(autoreplyId);
+        if (confirmDelete) {
+            removeOneApp(autoreplyId);
+        }
+    });
+    $('#add-new-btn').click(function() {
+        let formStr =
+            '<form>' +
+            '<div id="type" hidden>insertNewApp</div>' +
+            '<br/>' +
+            '<label class="col-2 col-form-label">新增群組: </label>' +
+            '<select id="app-group-select" class="form-control">' +
+            '<option value="LINE" selected>LINE</option>' +
+            '<option value="FACEBOOK">臉書</option>' +
+            '</select>' +
+            '<br/>' +
+            '<div id="line-form">' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">名稱: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="line-name"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Secret: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Token: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="channel-token"/>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div id="facebook-form" hidden>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Facebook粉絲頁名稱: </label>' +
+            ' <div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-name">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Page ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">App ID: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">App Secret: </label>' +
+            ' <div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Validation Token:: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">Page Token: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>';
+        $appModal.append(formStr);
+    });
+    $(document).on('change', '#app-group-select', function() { // 切換模式 LINE或是臉書
+        // console.log($(this).find('option:selected').val());
+        let type = $(this).find('option:selected').val();
+        switch (type) {
+            case 'LINE':
+                $('#line-form').hide();
+                $('#facebook-form').hide();
+                $('#line-form').show();
+                break;
+            case 'FACEBOOK':
+                $('#line-form').hide();
+                $('#facebook-form').hide();
+                $('#facebook-form').show();
+                break;
+        }
+    });
+    $('#profile').click(function() {
+        let company = $('#prof-company').text();
+        let phone = $('#prof-phonenumber').text();
+        let location = $('#prof-address').text();
+        let str =
+            '<div id="line-form">' +
+            '<div id="type" hidden>updateProfile</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">公司名稱: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">手機: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
+            '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="col-2 col-form-label">地區: </label>' +
+            '<div class="col-4">' +
+            '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        $appModal.append(str);
+    });
+
+    findAllApps(); // 列出所有設定的APPs
+    findUserProfile();
 });
 
 // ===============
@@ -472,7 +679,7 @@ window.auth.ready.then(function(currentUser) {
                     //     '</div>' +
                     // '</div>' +
 
-                    '<table class="table chsr-group chsr-table">' +
+                    '<table class="table table-responsive chsr-group chsr-table">' +
                         '<thead>' +
                             '<tr>' +
                                 '<td class="user">' +
@@ -697,16 +904,18 @@ window.auth.ready.then(function(currentUser) {
 
             // 使用者點擊群組內的事件處理
             $memberPermission.on('click', '.permission-item', function() {
+                var $permissionItem = $(this);
+                var wantPermission = memberTypes[$permissionItem.text()];
+
                 if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
                     $.notify('群組擁有者無法變更權限', { type: 'warning' });
                     return;
+                } else if (wantPermission === memberTypes.OWNER) {
+                    $.notify('權限無法變更為群組擁有者', { type: 'warning' });
+                    return;
                 }
 
-                var $permissionItem = $(this);
-                var putMemberData = {
-                    type: memberTypes[$permissionItem.text()]
-                };
-
+                var putMemberData = { type: wantPermission };
                 return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
                     // 成功更新後更新本地端的資料
                     groups[groupId].members[memberId].type = putMemberData.type;
@@ -760,221 +969,7 @@ window.auth.ready.then(function(currentUser) {
 // #endregion
 // ===============
 
-var domain = location.host;
-if (!window.urlConfig) {
-    console.warn('Please set up the configuration file of /config/url-config.js');
-}
-
-$.notifyDefaults({
-    delay: 2000,
-    placement: {
-        from: 'top',
-        align: 'center'
-    },
-    animate: {
-        enter: 'animated fadeInDown',
-        exit: 'animated fadeOutUp'
-    }
-});
-
-$(document).ready(function() {
-    window.auth.ready.then(function() {
-        findAllApps(); // 列出所有設定的APPs
-        findUserProfile();
-    });
-
-    // ACTIONS
-    $('#setting-modal').on('hidden.bs.modal', function() {
-        clearModalBody();
-    });
-    $(document).on('click', '#edit', function() {
-        let appId = $(this).attr('rel');
-        findOneApp(appId); // 點選編輯後根據appId列出指定的APP
-    });
-    $('#setting-modal-submit-btn').click(function(event) {
-        event.preventDefault();
-        let type = $(this).parent().parent().find('#type').text();
-        // insertNewApp, updateProfile, updateApp
-        switch (type) {
-            case 'insertNewApp':
-                let app = $(this).parent().parent().find('#app-group-select option:selected').val();
-                insertType(app, (data) => {
-                    insertOneApp(data);
-                });
-                break;
-            case 'updateProfile':
-                profSubmitBasic();
-                break;
-            case 'updateApp':
-                let appId = $(this).parent().parent().find('#webhook-id').text();
-                // console.log($('#facebook-name').val())
-                if ($('#facebook-name').val() === undefined) {
-                    let name = $('#name').val();
-                    let id1 = $('#channel-id').val();
-                    let secret = $('#channel-secret').val();
-                    let token1 = $('#channel-token').val();
-                    let type = 'LINE';
-                    let updateObj = {
-                        name,
-                        id1,
-                        secret,
-                        token1,
-                        type
-                    }
-                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
-                } else {
-                    let name = $('#facebook-name').val();
-                    let id1 = $('#facebook-page-id').val();
-                    let id2 = $('#facebook-app-id').val();
-                    let secret = $('#facebook-app-secret').val();
-                    let token1 = $('#facebook-valid-token').val();
-                    let token2 = $('#facebook-page-token').val();
-                    let type = 'FACEBOOK';
-                    let updateObj = {
-                        name,
-                        id1,
-                        id2,
-                        secret,
-                        token1,
-                        token2,
-                        type
-                    }
-                    updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
-                }
-                break;
-        }
-    });
-    $(document).on('click', '#del', function() {
-        let autoreplyId = $(this).attr('rel');
-        let confirmDelete = confirm('確定刪除?');
-        // console.log(autoreplyId);
-        if (confirmDelete) {
-            removeOneApp(autoreplyId);
-        }
-    });
-    $('#add-new-btn').click(function() {
-        let formStr =
-            '<form>' +
-            '<div id="type" hidden>insertNewApp</div>' +
-            '<br/>' +
-            '<label class="col-2 col-form-label">新增群組: </label>' +
-            '<select id="app-group-select" class="form-control">' +
-            '<option value="LINE" selected>LINE</option>' +
-            '<option value="FACEBOOK">臉書</option>' +
-            '</select>' +
-            '<br/>' +
-            '<div id="line-form">' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">名稱: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="line-name"/>' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">ID: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Secret: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Token: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="channel-token"/>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '<div id="facebook-form" hidden>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Facebook粉絲頁名稱: </label>' +
-            ' <div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-name">' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Page ID: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">App ID: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">App Secret: </label>' +
-            ' <div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Validation Token:: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Page Token: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</form>';
-        $('.modal-body').append(formStr);
-    });
-    $(document).on('change', '#app-group-select', function() { // 切換模式 LINE或是臉書
-        // console.log($(this).find('option:selected').val());
-        let type = $(this).find('option:selected').val();
-        switch (type) {
-            case 'LINE':
-                $('#line-form').hide();
-                $('#facebook-form').hide();
-                $('#line-form').show();
-                break;
-            case 'FACEBOOK':
-                $('#line-form').hide();
-                $('#facebook-form').hide();
-                $('#facebook-form').show();
-                break;
-        }
-    });
-    $('#profile').click(function() {
-        let company = $('#prof-company').text();
-        let phone = $('#prof-phonenumber').text();
-        let location = $('#prof-address').text();
-        let str =
-            '<div id="line-form">' +
-            '<div id="type" hidden>updateProfile</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">公司名稱: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">手機: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="' + phone + '" id="phone"/>' +
-            '</div>' +
-            '</div>' +
-            '<div class="form-group">' +
-            '<label class="col-2 col-form-label">地區: </label>' +
-            '<div class="col-4">' +
-            '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        $('.modal-body').append(str);
-    });
-});
+var $appModal = $('#setting-modal .modal-body');
 
 function findAllApps() {
     var jwt = localStorage.getItem("jwt");
@@ -1065,8 +1060,6 @@ function insertType(type, callback) {
 }
 
 function insertOneApp(data) { // 未完成
-    console.log(data);
-    console.log(JSON.stringify(data));
     var jwt = localStorage.getItem("jwt");
     var id = auth.currentUser.uid;
     $.ajax({
@@ -1082,7 +1075,7 @@ function insertOneApp(data) { // 未完成
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $.notify('新增成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
-            clearModalBody();
+            clearAppModalBody();
             $('#app-group').empty();
             $('#app-group').append(str);
             findAllApps();
@@ -1109,7 +1102,7 @@ function updateOneApp(appId, data) { // 未完成
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $.notify('修改成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
-            clearModalBody();
+            clearAppModalBody();
             $('#app-group').empty();
             $('#app-group').append(str);
             findAllApps();
@@ -1261,7 +1254,7 @@ function formModalBody(id, item) {
                 '</div>' +
                 '</div>' +
                 '</form>';
-            $('.modal-body').append(appStr);
+            $appModal.append(appStr);
             break;
         case 'FACEBOOK':
             appStr =
@@ -1310,13 +1303,13 @@ function formModalBody(id, item) {
                 '</div>' +
                 '</div>' +
                 '</form>';
-            $('.modal-body').append(appStr);
+            $appModal.append(appStr);
             break;
     }
 }
 
-function clearModalBody() {
-    $('.modal-body').empty();
+function clearAppModalBody() {
+    $appModal.empty();
 }
 
 function findUserProfile() {

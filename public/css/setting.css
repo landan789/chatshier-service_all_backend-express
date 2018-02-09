@@ -137,6 +137,10 @@ p:empty:not(:focus)::before {
     display: flex;
 }
 
+.group-wrapper .group-body {
+    min-width: 800px;
+}
+
 .group-list-panel {
     width: 20%;
 }
@@ -162,7 +166,12 @@ p:empty:not(:focus)::before {
 }
 
 .chsr-avatar + .avatar-name {
+    display: block;
     margin: 0 .5rem;
+    max-width: 18rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .chsr-avatar .chsr-blue {
