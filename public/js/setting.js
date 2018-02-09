@@ -779,7 +779,7 @@ $.notifyDefaults({
 
 $(document).ready(function() {
     window.auth.ready.then(function() {
-        findAllApps(); // 列出所有設定的APPs
+        findAllGroup(); // 列出所有群組
         findUserProfile();
     });
 
@@ -974,16 +974,81 @@ $(document).ready(function() {
             '</div>';
         $('.modal-body').append(str);
     });
+    /**
+     * 新增聊天室群組後的動作
+     */
+    $('#add_group_app_submit').click(function() {
+        let name = $('[name="add_group_name_app"]').val();
+        let groupName = { name };
+        insertOneGroup(groupName);
+    });
 });
+/**
+ * 載入聊天室設定所有的群組
+ */
+function findAllGroup() {
+    var jwt = localStorage.getItem('jwt');
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'GET',
+        url: '/api/groups/users/' + id,
+        headers: {
+            Authorization: jwt
+        },
+        success: (data) => {
+            let groupData, groupId;
+            let proceed = Promise.resolve();
+            // 1.群組載入
+            // loadGroupApp(groupData, groupId);
+            proceed.then(() => {
+                return new Promise((resolve, reject) => {
+                    // 2.載完後新增按鈕可以使用
+                    $('#add-group-name-app-btn').attr('disabled', false); // 先暫時放這裡
+                    resolve();
+                });
+            }).then(() => {
+                // 3.針對群組把apps做分類
+                findAllApps();
+            }).catch(() => {});
+        },
+        error: (error) => {
+            console.log(error);
+        }
+    });
+}
+/**
+ * 新增群組在聊天室設定的分頁
+ */
+function insertOneGroup(groupName) {
+    var jwt = localStorage.getItem('jwt');
+    var id = auth.currentUser.uid;
+    $.ajax({
+        type: 'POST',
+        url: '/api/groups/users/' + id,
+        data: JSON.stringify(groupName),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        headers: {
+            Authorization: jwt
+        },
+        success: () => {
+            $('#menu2 .row .col-md-12.col-lg-12').empty();
+            findAllGroup();
+        },
+        error: (error) => {
+            console.log(error);
+        }
+    });
+}
 
 function findAllApps() {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: '/api/apps/users/' + id,
         headers: {
-            "Authorization": jwt
+            Authorization: jwt
         },
         success: (data) => {
             if (data !== null && data !== undefined) {
@@ -991,8 +1056,6 @@ function findAllApps() {
                 let appKeyArr = Object.keys(appIds);
                 for (let i in appIds) {
                     if (false === appIds[i].hasOwnProperty('isDeleted') || 0 === appIds[i].isDeleted) {
-                        $('#prof-id').append(appIds[i].user_id);
-                        // groupType(appKeyArr[i],appIds[i]);
                         groupType(i, appIds[i]);
                     }
                 }
@@ -1006,13 +1069,14 @@ function findAllApps() {
 }
 
 function findOneApp(appId) {
-    var jwt = localStorage.getItem("jwt");
+    console.log(appId);
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'GET',
         url: '/api/apps/apps/' + appId + '/users/' + userId,
         headers: {
-            "Authorization": jwt
+            Authorization: jwt
         },
         success: (data) => {
             if (data !== null && data !== undefined) {
@@ -1039,7 +1103,7 @@ function insertType(type, callback) {
                 secret: lineSecret,
                 token1: lineToken,
                 type: type
-            }
+            };
             console.log(lineObj);
             callback(lineObj);
             break;
@@ -1058,33 +1122,31 @@ function insertType(type, callback) {
                 token1: fbValidToken,
                 token2: fbPageToken,
                 type: type
-            }
+            };
             callback(fbObj);
             break;
     }
 }
 
 function insertOneApp(data) { // 未完成
-    console.log(data);
-    console.log(JSON.stringify(data));
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var id = auth.currentUser.uid;
     $.ajax({
         type: 'POST',
         url: '/api/apps/users/' + id,
         data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
         headers: {
-            "Authorization": jwt
+            Authorization: jwt
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $.notify('新增成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
             clearModalBody();
-            $('#app-group').empty();
-            $('#app-group').append(str);
+            $('#ted').empty();
+            $('#ted').append(str);
             findAllApps();
         },
         error: (error) => {
@@ -1094,53 +1156,83 @@ function insertOneApp(data) { // 未完成
 }
 
 function updateOneApp(appId, data) { // 未完成
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'PUT',
         url: '/api/apps/apps/' + appId + '/users/' + userId,
         data: JSON.stringify(data),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
         headers: {
-            "Authorization": jwt
+            Authorization: jwt
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $.notify('修改成功!', { type: 'success' });
             $('#setting-modal').modal('hide');
             clearModalBody();
-            $('#app-group').empty();
-            $('#app-group').append(str);
+            $('#ted').empty();
+            $('#ted').append(str);
             findAllApps();
         },
-        error: (error) => {}
+        error: () => {}
     });
 }
 
 function removeOneApp(appId) {
-    var jwt = localStorage.getItem("jwt");
+    var jwt = localStorage.getItem('jwt');
     var userId = auth.currentUser.uid;
     $.ajax({
         type: 'DELETE',
         url: '/api/apps/apps/' + appId + '/users/' + userId,
         headers: {
-            "Authorization": jwt
+            Authorization: jwt
         },
         success: () => {
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $.notify('成功刪除!', { type: 'success' });
-            $('#app-group').empty();
-            $('#app-group').append(str);
+            $('#ted').empty();
+            $('#ted').append(str);
             findAllApps();
         },
-        error: (error) => {}
+        error: () => {}
     });
+}
+/**
+ * 群組資料從ajax載入後把群組視覺化
+ * @param {*} groupData
+ * @param {*} groupId
+ */
+function loadGroupApp(groupData, groupId) {
+    let groupStr =
+    '<div class="group-tab" role="tab">' +
+        '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+            (groupData.name || '') +
+        '</a>' +
+    '</div>' +
+    '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
+        '<div class="form-group form-group-row">' +
+            '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+            '<div class="col-4">' +
+                '<div class="input-group group-name" id="group_name">' +
+                    '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                    '<span class="input-group-btn btn-update">' +
+                        '<button class="btn btn-primary">更新</button>' +
+                    '</span>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<table class="table chsr-group chsr-table">' +
+            '<tbody></tbody>' +
+        '</table>' +
+    '</div>';
+    $('#ted').append(groupStr);
 }
 
 function groupType(index, item) {
     var baseWebhookUrl = urlConfig.webhookUrl;
-    let appStr
+    let appStr;
     switch (item.type) {
         case 'LINE':
             appStr =
@@ -1175,7 +1267,7 @@ function groupType(index, item) {
                 '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
                 '</td>' +
                 '</tr>';
-            $('#app-group').append(appStr);
+            $('#ted').append(appStr);
             break;
         case 'FACEBOOK':
             appStr =
@@ -1218,7 +1310,7 @@ function groupType(index, item) {
                 '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
                 '</td>' +
                 '</tr>';
-            $('#app-group').append(appStr);
+            $('#ted').append(appStr);
             break;
     }
 }
