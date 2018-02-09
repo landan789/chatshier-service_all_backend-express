@@ -91,18 +91,18 @@ utility.LINEMessageTypeForPushMessage = (vendor, callback) => {
             message.type = vendor.textType;
             break;
         case 'image':
-            message.previewImageUrl = vendor.url;
-            message.originalContentUrl = vendor.url;
+            message.previewImageUrl = vendor.src;
+            message.originalContentUrl = vendor.src;
             message.type = vendor.textType;
             break;
         case 'audio':
             message.duration = 240000;
-            message.originalContentUrl = vendor.url;
+            message.originalContentUrl = vendor.src;
             message.type = vendor.textType;
             break;
         case 'video':
             message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
-            message.originalContentUrl = vendor.url;
+            message.originalContentUrl = vendor.src;
             message.type = vendor.textType;
             break;
         case 'sticker':
