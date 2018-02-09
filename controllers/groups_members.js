@@ -39,13 +39,13 @@ module.exports = (function() {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findGroupsMembers(groupIds, null, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                        reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                         return;
                     }
                     resolve(groupsMembers);
@@ -113,7 +113,7 @@ module.exports = (function() {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
@@ -230,7 +230,7 @@ module.exports = (function() {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
@@ -254,7 +254,7 @@ module.exports = (function() {
             var index = userIds.indexOf(req.params.userid);
 
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_IN_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
             }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
@@ -343,7 +343,7 @@ module.exports = (function() {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
@@ -366,7 +366,7 @@ module.exports = (function() {
             });
             var index = userIds.indexOf(req.params.userid);
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_IN_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
             }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
