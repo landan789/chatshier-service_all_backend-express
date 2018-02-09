@@ -86,6 +86,68 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
+        /**
+         * 取得指定的使用者在 Chatshier 內設定的 App
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ChatshierAppAPI.prototype.getOne = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 新增 Chatshier App
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {any} postAppData - 新增的 Chatshier App 資料
+         */
+        ChatshierAppAPI.prototype.insert = function(userId, postAppData) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(postAppData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 更新指定的 Chatshier App
+         *
+         * @param {string} appId - 指定的 AppId
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {any} putAppData - 新增的 Chatshier App 資料
+         */
+        ChatshierAppAPI.prototype.update = function(appId, userId, putAppData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putAppData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 刪除指定的 Chatshier App
+         *
+         * @param {string} appId - 指定的 AppId
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        ChatshierAppAPI.prototype.remove = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
         return ChatshierAppAPI;
     })();
 
@@ -648,8 +710,8 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          * @param {string} email - 目標使用者的 email address
          */
-        AuthAPI.prototype.getUser = function(userId, email) {
-            var destUrl = this.urlPrefix + 'users/' + userId + '?email=' + email;
+        AuthAPI.prototype.getUsers = function(userId, email) {
+            var destUrl = this.urlPrefix + 'users/' + userId + (email ? ('?email=' + email) : '');
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders

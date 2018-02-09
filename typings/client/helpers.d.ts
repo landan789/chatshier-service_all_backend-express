@@ -24,6 +24,10 @@ interface Window {
 
 interface ChatshierAppAPI {
     getAll: (userId: string) => Promise<any>;
+    getOne: (appId: string, userId: string) => Promise<any>;
+    insert: (userId: string, postAppData: any) => Promise<any>;
+    update: (appId: string, userId: string, putAppData: any) => Promise<any>;
+    remove: (appId: string, userId: string) => Promise<any>;
 }
 
 interface MessagerAPI {
@@ -83,7 +87,7 @@ interface ChatroomAPI {
 }
 
 interface AuthAPI {
-    getUser: (userId: string, email: string) => Promise<any>;
+    getUsers: (userId: string, email?: string) => Promise<any>;
 }
 
 interface GroupsMembersAPI {

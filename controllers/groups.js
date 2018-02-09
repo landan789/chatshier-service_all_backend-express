@@ -14,7 +14,6 @@ module.exports = (function() {
 
     GroupsController.prototype.getAll = function(req, res, next) {
         var userId = req.params.userid;
-        var userDataCache = {};
 
         var proceed = Promise.resolve();
         proceed.then(() => {
@@ -33,7 +32,7 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
+            var groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
                 groupsMdl.findGroups(groupIds, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
@@ -41,37 +40,6 @@ module.exports = (function() {
                         return;
                     }
                     resolve(groups);
-                });
-            }).then((groups) => {
-                let userDataPromises = [];
-
-                for (let groupId in groups) {
-                    for (let memberId in groups[groupId].members) {
-                        let memberData = groups[groupId].members[memberId];
-                        let targetUserId = memberData.user_id;
-
-                        if (userDataCache[targetUserId]) {
-                            // 由於不同群組裡可能有相同的使用者
-                            // 如果此筆使用者的資料已經取過，就直接引用，無需再去資料庫取
-                            memberData.user = userDataCache[targetUserId];
-                            continue;
-                        }
-
-                        userDataPromises.push(new Promise((resolve) => {
-                            usersMdl.findUser(targetUserId, (user) => {
-                                if (user) {
-                                    memberData.user = user;
-                                    userDataCache[targetUserId] = user;
-                                }
-                                resolve();
-                            });
-                        }));
-                    }
-                }
-
-                return Promise.all(userDataPromises).then(() => {
-                    userDataCache = void 0;
-                    return groups;
                 });
             });
         }).then((groups) => {
