@@ -13,7 +13,9 @@ interface Window {
         groups: GroupsAPI,
         users: UsersAPI
         composes: ComposesAPI,
-        chatroom: ChatroomAPI
+        chatroom: ChatroomAPI,
+        greeting: GreetingAPI,
+        autoreply: AutoreplyAPI
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -24,6 +26,10 @@ interface Window {
 
 interface ChatshierAppAPI {
     getAll: (userId: string) => Promise<any>;
+    getOne: (appId: string, userId: string) => Promise<any>;
+    insert: (userId: string, postAppData: any) => Promise<any>;
+    update: (appId: string, userId: string, putAppData: any) => Promise<any>;
+    remove: (appId: string, userId: string) => Promise<any>;
 }
 
 interface MessagerAPI {
@@ -83,7 +89,7 @@ interface ChatroomAPI {
 }
 
 interface AuthAPI {
-    getUser: (userId: string, email: string) => Promise<any>;
+    getUsers: (userId: string, email?: string) => Promise<any>;
 }
 
 interface GroupsMembersAPI {
@@ -127,4 +133,11 @@ interface ComposesAPI {
     insert: (appId: string, userId: string, composeData: any) => Promise<any>;
     update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<any>;
     remove: (appId: string, composeId: string, userId: string) => Promise<any>;
+}
+
+interface GreetingAPI {
+    findAll: (userId: string) => Promise<any>;
+    findOne: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, greetingData: any) => Promise<any>;
+    remove: (appId: string, greetingId: string, userId: string) => Promise<any>;
 }

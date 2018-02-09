@@ -507,7 +507,7 @@ function init(server) {
                 appSecret: vendor.secret,
                 validationToken: vendor.token1,
                 pageToken: vendor.token2
-            }
+            };
             var bot = LINE === vendor.type ? new line.Client({ channelAccessToken: token }) : facebook.create(facebookConfig);
             // 1. Server 接收到 client 來的聊天訊息
             var proceed = Promise.resolve();

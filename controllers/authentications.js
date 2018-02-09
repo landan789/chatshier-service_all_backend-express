@@ -9,7 +9,7 @@ module.exports = (function() {
 
     AuthenticationsController.prototype.getAll = function(req, res, next) {
         var userId = req.params.userid;
-        var email = req.query.email;
+        var queryEmail = req.query.email;
 
         Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
@@ -21,22 +21,25 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
+            var groupIds = user.group_ids || [];
+
             return new Promise((resolve, reject) => {
                 groupsMdl.findUserIds(groupIds, (userIds) => {
                     if (null === userIds || undefined === userIds || '' === userIds) {
                         reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
                     };
+                    (userIds.indexOf(userId) < 0) && userIds.push(userId);
                     resolve(userIds);
                 });
             });
         }).then((userIds) => {
             return new Promise((resolve, reject) => {
                 // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
-                if (null !== req.query.email && undefined !== req.query.email && '' !== req.query.email) {
+                if (null !== queryEmail && undefined !== queryEmail && '' !== queryEmail) {
                     userIds = null;
                 }
-                authenticationsMdl.findUser(userIds, null, (authentications) => {
+
+                authenticationsMdl.findUser(userIds, queryEmail, (authentications) => {
                     if (null === authentications || undefined === authentications || '' === authentications) {
                         reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
                     };

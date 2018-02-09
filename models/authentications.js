@@ -8,13 +8,11 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AuthenticationsModel.prototype.findUser = function(userIds, emails, callback) {
-
-
-        if ('string' === typeof userIds || null === userIds) {
+        if ('string' === typeof userIds || !userIds) {
             userIds = [userIds];
         };
 
-        if ('string' === typeof emails || null === emails) {
+        if ('string' === typeof emails || !emails) {
             emails = [emails];
         };
 
@@ -25,11 +23,11 @@ module.exports = (function() {
             };
             return admin.auth().getUser(userId).then((userRecord) => {
                 if (null === userRecord || undefined === userRecord || '' === userRecord) {
-                    return Promise.resolve(null);
+                    return null;
                 };
 
                 authentications[userRecord.uid] = userRecord;
-                return Promise.resolve(userRecord);
+                return userRecord;
             });
         })), Promise.all(emails.map((email) => {
             if (null === email || 0 === email || '0' === email || undefined === email) {
@@ -37,10 +35,10 @@ module.exports = (function() {
             };
             return admin.auth().getUserByEmail(email).then((userRecord) => {
                 if (null === userRecord || undefined === userRecord || '' === userRecord) {
-                    return Promise.resolve(null);
+                    return null;
                 };
                 authentications[userRecord.uid] = userRecord;
-                return Promise.resolve(userRecord);
+                return userRecord;
             });
         }))]).then(() => {
             callback(authentications);
