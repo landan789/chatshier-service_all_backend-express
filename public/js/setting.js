@@ -1123,6 +1123,7 @@ function loadGroups(groupData, groupId) {
             '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
             '<span class="fa fa-plus"></span> 新增APP' +
             '</button>' +
+            '<br/><br/>' +
             '<table class="table chsr-group chsr-table">' +
                 '<tbody id="' + groupId + '-body"></tbody>' +
             '</table>' +
