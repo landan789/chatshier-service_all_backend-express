@@ -10,17 +10,20 @@
     var deleteNum = 0;
     var appId = '';
     var userId = '';
+    var nowSelectAppId = '';
     var sendtime;
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var $composeEditModal = $('#editModal');
     var $composesAddModal = $('#quickAdd');
+    var $appSelector = $('#app-select');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
-    $(document).ready(function() {
+    window.auth.ready.then(function(currentUser) {
+        userId = currentUser.uid;
         // 設定 bootstrap notify 的預設值
         // 1. 設定為顯示後2秒自動消失
         // 2. 預設位置為螢幕中間上方
@@ -37,14 +40,6 @@
             }
         });
         // ACTIONS
-        var startUserId = setInterval(() => {
-            userId = auth.currentUser.uid;
-            if (auth.currentUser) {
-                clearInterval(startUserId);
-                // find();
-                loadAppIdNames();
-            }
-        }, 1000);
         $(document).on('change', '#app-select', storeApp);
         $(document).on('click', '.tablinks', clickMsg);
         $(document).on('click', '#btn-text', btnText);
@@ -125,7 +120,35 @@
                 });
             });
         });
+        return api.chatshierApp.getAll(userId);
+    }).then(function(respJson) {
+        allComposesData = respJson.data;
+
+        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
+        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
+        // 將所有的 messages 的物件全部塞到一個陣列之中
+        nowSelectAppId = '';
+        for (var appId in allComposesData) {
+            $dropdownMenu.append('<li><a id="' + appId + '">' + allComposesData[appId].name + '</a></li>');
+            $appSelector.append('<option id="' + appId + '">' + allComposesData[appId].name + '</option>');
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+
+            if (!nowSelectAppId) {
+                nowSelectAppId = appId;
+            }
+        }
+
+        $appDropdown.find('.dropdown-text').text(allComposesData[nowSelectAppId].name);
+        loadComposes(nowSelectAppId, userId);
+        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
     });
+
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        loadComposes(nowSelectAppId, userId);
+    }
 
     var TableObj = function() {
         this.tr = $('<tr>').attr('id', 'text');
@@ -143,23 +166,6 @@
             .addClass('btn btn-default fa fa-trash-o')
             .attr('id', 'delete-btn');
     };
-
-    function loadAppIdNames() {
-        return api.chatshierApp.getAll(userId).then(function(resJson) {
-            allComposesData = resJson.data;
-            for (let appId in allComposesData) {
-                var app = allComposesData[appId];
-                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
-                let option2 = $('<option  value="' + appId + '">').text(app.name).attr('id', appId);
-                $('#app-select').append(option2);
-                $appDropdown.find('#' + appId).on('click', function(ev) {
-                    var appId = ev.target.id;
-                    $appDropdown.find('.dropdown-text').text(ev.target.text);
-                    return loadComposes(appId, userId);
-                });
-            }
-        });
-    }
 
     function loadComposes(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
@@ -294,6 +300,7 @@
                 $('#inputText').empty();
                 inputNum = 0;
                 $.notify('發送成功', { type: 'success' });
+                $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
                 return loadComposes(appId, userId);
             }
         }
@@ -335,6 +342,7 @@
             $('#inputText').empty();
             inputNum = 0;
             $.notify('新增成功', { type: 'success' });
+            $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
             return loadComposes(appId, userId);
         }
     }
@@ -349,5 +357,4 @@
             pad(d.getHours()) + ':' +
             pad(d.getMinutes());
     }
-
 })();

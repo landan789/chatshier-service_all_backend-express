@@ -15,10 +15,11 @@ window.restfulAPI = (function() {
         appsKeywordreplies: prefixUrl + 'apps-keywordreplies/',
         appsTags: prefixUrl + 'apps-tags/',
         appsChatroomsMessages: prefixUrl + 'apps-chatrooms-messages/',
-        autoreply: prefixUrl + 'apps-autoreplies/',
+        appsAutoreplies: prefixUrl + 'apps-autoreplies/',
         groupsMembers: prefixUrl + 'groups-members/',
         groups: prefixUrl + 'groups/',
-        users: prefixUrl + 'users/'
+        users: prefixUrl + 'users/',
+        appsGreetings: prefixUrl + 'apps-greetings/'
     });
 
     // ======================
@@ -727,7 +728,7 @@ window.restfulAPI = (function() {
      */
     var AutoreplyAPI = (function() {
         function AutoreplyAPI() {
-            this.urlPrefix = apiUrlTable.autoreply;
+            this.urlPrefix = apiUrlTable.appsAutoreplies;
         };
 
         /**
@@ -764,7 +765,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標自動回覆的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} newAutoreplyData - 欲新增的待辦事項資料
+         * @param {*} newAutoreplyData - 欲新增的自動回覆資料
          */
         AutoreplyAPI.prototype.insert = function(appId, userId, newAutoreplyData) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
@@ -782,7 +783,7 @@ window.restfulAPI = (function() {
          * @param {string} appId - 目標自動回覆的 App ID
          * @param {string} autoreplyId - 目標自動回覆的 ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} modifiedAutoreplyData - 已編輯後欲更新的關鍵字回覆資料
+         * @param {*} modifiedAutoreplyData - 已編輯後欲更新的自動回覆資料
          */
         AutoreplyAPI.prototype.update = function(appId, userId, autoreplyId, modifiedAutoreplyData) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/autoreplies/' + autoreplyId + '/users/' + userId;
@@ -932,6 +933,75 @@ window.restfulAPI = (function() {
         return UsersAPI;
     })();
 
+    var GreetingAPI = (function() {
+        function GreetingAPI() {
+            this.urlPrefix = apiUrlTable.appsGreetings;
+        };
+
+        /**
+         * 取得使用者所有加好友回覆資料
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        GreetingAPI.prototype.getAll = function(userId) {
+            var destUrl = this.urlPrefix + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 取得使用者某一個 App 的所有加好友回覆的資料
+         *
+         * @param {string} appId - 目標加好友回覆的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        GreetingAPI.prototype.getOne = function(appId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 新增一筆加好友回覆資料
+         *
+         * @param {string} appId - 目標加好友回覆的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} newGreetingData - 欲新增的好友回覆資料
+         */
+        GreetingAPI.prototype.insert = function(appId, userId, newGreetingData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(newGreetingData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 刪除一筆加好友回覆資料
+         *
+         * @param {string} appId - 目標加好友回覆的 App ID
+         * @param {string} greetingId - 目標加好友回覆的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        GreetingAPI.prototype.remove = function(appId, userId, greetingId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/greetings/' + greetingId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+        return GreetingAPI;
+    })();
+
     if (window.auth && window.auth.ready) {
         // 當 firebase 登入完成後自動更新 API 需要的 JSON Web Token
         window.auth.ready.then(function() {
@@ -953,6 +1023,7 @@ window.restfulAPI = (function() {
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
-        composes: new ComposesAPI()
+        composes: new ComposesAPI(),
+        greeting: new GreetingAPI()
     };
 })();

@@ -3,6 +3,7 @@
 (function() {
     var userId = '';
     var appId = '';
+    var nowSelectAppId = '';
     var allKeywordreplyData = {};
     var keywordrepliesData = {};
     var api = window.restfulAPI;
@@ -19,7 +20,6 @@
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
-        loadAppIdNames();
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
@@ -75,25 +75,33 @@
 
         $openTableElem = $('#keywordreply_open_table tbody');
         $draftTableElem = $('#keywordreply_draft_table tbody');
-        return loadKeywordsReplies(appId, userId).then(function() {
-            // 資料確定載入完成後才開放新增按鈕供使用者點擊
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled');
-        });
+        return api.chatshierApp.getAll(userId);
+    }).then(function(respJson) {
+        allKeywordreplyData = respJson.data;
+
+        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
+        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
+        // 將所有的 messages 的物件全部塞到一個陣列之中
+        nowSelectAppId = '';
+        for (var appId in allKeywordreplyData) {
+            $dropdownMenu.append('<li><a id="' + appId + '">' + allKeywordreplyData[appId].name + '</a></li>');
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+
+            if (!nowSelectAppId) {
+                nowSelectAppId = appId;
+            }
+        }
+
+        $appDropdown.find('.dropdown-text').text(allKeywordreplyData[nowSelectAppId].name);
+        loadKeywordsReplies(nowSelectAppId, userId);
+        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
     });
 
-    function loadAppIdNames() {
-        return api.chatshierApp.getAll(userId).then(function(resJson) {
-            allKeywordreplyData = resJson.data;
-            for (let appId in allKeywordreplyData) {
-                var app = allKeywordreplyData[appId];
-                $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
-                $appDropdown.find('#' + appId).on('click', function(ev) {
-                    var appId = ev.target.id;
-                    $appDropdown.find('.dropdown-text').text(ev.target.text);
-                    loadKeywordsReplies(appId, userId);
-                });
-            }
-        });
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        loadKeywordsReplies(nowSelectAppId, userId);
     }
 
     var TableObj = function() {

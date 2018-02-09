@@ -1,10 +1,12 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var api = window.restfulAPI;
     var userId = '';
+    var nowSelectAppId = '';
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
         // 設定 bootstrap notify 的預設值
@@ -30,19 +32,32 @@
 
         return api.chatshierApp.getAll(userId);
     }).then(function(respJson) {
-        let apps = respJson.data;
-        for (let appId in apps) {
-            var app = apps[appId];
-            let option = $('<option>').text(app.name).attr('id', appId);
-            $('#app-select').append(option);
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
-            $appDropdown.find('#' + appId).on('click', function(ev) {
-                var appId = ev.target.id;
-                $appDropdown.find('.dropdown-text').text(ev.target.text);
-                findOne(appId, userId);
-            });
+        var appsData = respJson.data;
+
+        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
+        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
+        // 將所有的 messages 的物件全部塞到一個陣列之中
+        nowSelectAppId = '';
+        for (var appId in appsData) {
+            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+
+            if (!nowSelectAppId) {
+                nowSelectAppId = appId;
+            }
         }
+
+        $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+        findOne(nowSelectAppId, userId);
+        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
     });
+
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        findOne(nowSelectAppId, userId);
+    }
 
     var TableObj = function() {
         this.tr = $('<tr>');
@@ -250,11 +265,3 @@
         });
     }
 })();
-
-function ToLocalTimeString(millisecond) {
-    var date = new Date(millisecond);
-    var localDate = date.toLocaleDateString();
-    var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    var localTimeString = localDate + localTime;
-    return localTimeString;
-}

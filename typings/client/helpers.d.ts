@@ -13,7 +13,9 @@ interface Window {
         groups: GroupsAPI,
         users: UsersAPI
         composes: ComposesAPI,
-        chatroom: ChatroomAPI
+        chatroom: ChatroomAPI,
+        greeting: GreetingAPI,
+        autoreply: AutoreplyAPI
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -131,4 +133,11 @@ interface ComposesAPI {
     insert: (appId: string, userId: string, composeData: any) => Promise<any>;
     update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<any>;
     remove: (appId: string, composeId: string, userId: string) => Promise<any>;
+}
+
+interface GreetingAPI {
+    findAll: (userId: string) => Promise<any>;
+    findOne: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, greetingData: any) => Promise<any>;
+    remove: (appId: string, greetingId: string, userId: string) => Promise<any>;
 }
