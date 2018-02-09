@@ -1409,7 +1409,8 @@ window.auth.ready.then(function(currentUser) {
                             "<span class='clientName'>" + messager.name + '</span><br>' +
                             '<div id="msg"></div>' +
                         '</div>' +
-                        '<div class="appName"><snap>' + appName + '</snap></div>';
+                        '<div class="appName"><snap>' + appName + '</snap></div>' +
+                        '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
                     break;
                 case FACEBOOK:
                     tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'>" +
@@ -1421,7 +1422,8 @@ window.auth.ready.then(function(currentUser) {
                             "<span class='clientName'>" + messager.name + '</span><br>' +
                             '<div id="msg"></div>' +
                         '</div>' +
-                        '<div class="appName"><snap>' + appName + '</snap></div>';
+                        '<div class="appName"><snap>' + appName + '</snap></div>' +
+                        '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
                     break;
             }
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
