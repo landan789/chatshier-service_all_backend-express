@@ -2,53 +2,46 @@ var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 
 var appsMdl = require('../models/apps');
-var userMdl = require('../models/users');
+var usersMdl = require('../models/users');
+var groupsMdl = require('../models/groups');
 var appsTagsMdl = require('../models/apps_tags');
 
 var apps = {};
 
 apps.getAll = (req, res, next) => {
 
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;
-
             if ('' === userId || null === userId || undefined === userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
-            }
-
-            userMdl.findUser(userId, (data) => {
-                if (null === data) {
+            };
+            usersMdl.findUser(userId, (user) => {
+                if (null === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(data);
+                resolve(user);
             });
         });
-    }).then((data) => {
-        var appIds = data.app_ids;
-
+    }).then((user) => {
+        var groupIds = user.group_ids;
         return new Promise((resolve, reject) => {
-            if (undefined === appIds || '' === appIds || (appIds instanceof Array && 0 === appIds.length)) {
-                var apps = {};
-                resolve(apps);
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                resolve(appIds);
                 return;
-            }
-            appsMdl.findAppsByAppIds(appIds, (data) => {
-                var apps = data;
+            });
+        });
+    }).then((appIds) => {
+        return new Promise((resolve, reject) => {
+            appsMdl.findAppsByAppIds(appIds, (apps) => {
                 if (null === apps || '' === apps || undefined === apps) {
                     apps = {};
                 }
-
                 resolve(apps);
             });
         });
-
     }).then((apps) => {
         var json = {
             status: 1,
@@ -91,7 +84,7 @@ apps.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findAppIdsByUserId(userId, (data) => {
+            usersMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
@@ -154,12 +147,7 @@ apps.postOne = (req, res, next) => {
         type: undefined === req.body.type ? null : req.body.type,
         user_id: req.params.userid
     };
-
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
@@ -301,7 +289,7 @@ apps.putOne = (req, res, next) => {
 
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findAppIdsByUserId(userId, (data) => {
+            usersMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
@@ -369,7 +357,7 @@ apps.deleteOne = (req, res, next) => {
 
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findAppIdsByUserId(userId, (data) => {
+            usersMdl.findAppIdsByUserId(userId, (data) => {
                 var appIds = data;
                 if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);

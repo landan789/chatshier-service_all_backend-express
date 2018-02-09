@@ -125,19 +125,27 @@ module.exports = (function() {
             groupIds = [groupIds];
         };
         var appIds = {};
-        Promise.all(groupIds.map((groupId) => {
-            return admin.database().ref('groups/' + groupId).then((snap) => {
-                var group = snap.val();
-                if (null === group || undefined === group || '' === group) {
-                    return Promise.resolve(null);
-                };
-                var _appIds = group.app_ids;
-                _appIds.forEach((appId) => {
-                    appIds[appId] = appId;
-                });
+        Promise.resolve().then(() => {
+            if (null === groupIds || undefined === groupIds) {
                 return Promise.resolve();
-            });
-        })).then(() => {
+            }
+            return Promise.all(groupIds.map((groupId) => {
+                if (null === groupId || undefined === groupId) {
+                    return Promise.resolve();
+                }
+                return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
+                    var group = snap.val();
+                    if (null === group || undefined === group || '' === group || '' === group.app_ids || undefined === group.app_ids || (group.app_ids instanceof Array && 0 === group.app_ids.length)) {
+                        return Promise.resolve(null);
+                    };
+                    var _appIds = group.app_ids;
+                    _appIds.forEach((appId) => {
+                        appIds[appId] = appId;
+                    });
+                    return Promise.resolve();
+                });
+            }));
+        }).then(() => {
             appIds = Object.keys(appIds);
             callback(appIds);
         }).catch(() => {
