@@ -84,18 +84,25 @@ apps.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+            usersMdl.findUser(userId, (user) => {
+                if (false === user || undefined === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-
-                resolve();
-
+                resolve(user);
             });
         });
-
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                resolve(appIds);
+            });
+        });
+    }).then((appIds) => {
+        if (0 > appIds.indexOf(appId)) {
+            return Promise.reject(API_ERROR.USER_OF_GROUP_DID_NOT_HAVE_THIS_APP);
+        };
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.findByAppId(appId, (data) => {
