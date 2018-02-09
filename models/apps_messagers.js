@@ -130,6 +130,12 @@ module.exports = (function() {
                     });
                 });
             };
+
+            // 防止 unRead 不是數字型態無法加總
+            if (!('number' !== typeof messager.unRead) || isNaN(messager.unRead)) {
+                messager.unRead = 0;
+            }
+
             messager.unRead += messagerInDB.unRead; // 計算未讀訊息
             return Object.assign(messagerInDB, messager);
         }).then((messager) => {
