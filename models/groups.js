@@ -144,5 +144,44 @@ module.exports = (function() {
             callback(null);
         });
     };
+
+    /**
+     * 根據 groupid|groupid[] 回傳 群組中對應的 使用者 uesrIDs 
+     * @param {string|string[]} groupIds 
+     * @param {function} callback 
+     * @return {string[]} uesrIds 
+     */
+    GroupsModel.prototype.findUserIds = function(groupIds, callback) {
+        // 多行處理
+        if ('string' === typeof groupIds) {
+            groupIds = [groupIds];
+        };
+        var uesrIds = {};
+        Promise.all(groupIds.map((groupId) => {
+            return admin.database().ref('groups/' + groupId + '/members').once('value').then((snap) => {
+                var members = snap.val();
+                if (null === members || undefined === members || '' === members) {
+                    return Promise.resolve(null);
+                };
+                uesrIds = Object.values(members).map((member) => {
+                    var userId = member.user_id;
+                    return userId;
+                });
+                var memberId;
+                for (memberId in members) {
+                    var member = members[memberId];
+                    var userId = member.user_id;
+                    uesrIds[userId] = userId;
+                };
+
+                return Promise.resolve();
+            });
+        })).then(() => {
+            uesrIds = Object.keys(uesrIds);
+            callback(uesrIds);
+        }).catch(() => {
+            callback(null);
+        });
+    };
     return new GroupsModel();
 })();
