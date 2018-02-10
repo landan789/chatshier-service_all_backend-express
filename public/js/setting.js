@@ -1112,11 +1112,14 @@ function updateOneApp(appId, appData) {
 }
 
 function removeOneApp(appId) {
-    return api.chatshierApp.remove(appId, userId).then(function() { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+    return api.chatshierApp.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
         let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
         $('#app-group').html(str);
         $.notify('成功刪除!', { type: 'success' });
-        return findAllApps();
+        let app = resJson.data;
+        for (let appId in app) {
+            $('tr.' + appId).remove();
+        }
     });
 }
 /**
