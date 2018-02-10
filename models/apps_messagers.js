@@ -1,6 +1,6 @@
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
-    const SESSIONTIME = 900000;
+    const CHAT_COUNT_TIME_INTERVAL = 900000;
 
     function AppsMessagersModel() {}
 
@@ -138,8 +138,8 @@ module.exports = (function() {
             }
 
             let currentTime = Date.now();
-            let timeDifference = currentTime - parseInt(messagerInDB.recentChat);
-            if (SESSIONTIME <= timeDifference) {
+            let lastChatedTimeGap = currentTime - parseInt(messagerInDB.recentChat);
+            if (CHAT_COUNT_TIME_INTERVAL <= lastChatedTimeGap) {
                 messagerInDB.chatTimeCount++;
             }
             messager.recentChat = currentTime;
