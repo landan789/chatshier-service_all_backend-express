@@ -21,8 +21,11 @@ apps.findByAppId = (appId, callback) => {
     var ref = 'apps/' + appId;
     admin.database().ref(ref).once('value', snap => {
         var app = snap.val();
+        delete app.keywordreplies;
         delete app.autoreplies;
         delete app.templates;
+        delete app.greetings;
+        delete app.composes;
 
         var apps = {};
         apps[snap.key] = app;
@@ -84,28 +87,34 @@ apps.findAppsByAppIds = (appIds, callback) => {
     });
 };
 
-apps.insertByUserid = (userid, postApp, callback) => {
-    var procced = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    procced.then(() => {
+apps.insert = (userId, postApp, callback) => {
+    var groupId = postApp.group_id;
+    var appId;
+    var app;
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             apps._schema(initApp => {
                 resolve(initApp);
             });
         });
     }).then((initApp) => {
-        var app = Object.assign(initApp, postApp);
+        app = Object.assign(initApp, postApp);
 
         return new Promise((resolve, reject) => {
-            var appId = admin.database().ref('apps').push(app).key;
+            appId = admin.database().ref('apps').push(app).key;
             resolve(appId);
         });
     }).then((appId) => {
         return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userid).once('value', snap => {
+            admin.database().ref('users/' + userId).once('value', (snap) => {
                 var user = snap.val();
+                var _groupIds = user.group_ids;
+
+                // 當下 user 沒有 該 group ，則不能新增 app
+                if (0 > _groupIds.indexOf(groupId)) {
+                    return Promise.reject();
+                };
+
                 var appIds = !user.hasOwnProperty('app_ids') ? [] : user.app_ids;
                 if (null === user || '' === user || undefined === user) {
                     reject(new Error());
@@ -135,19 +144,35 @@ apps.insertByUserid = (userid, postApp, callback) => {
                 var user = {
                     app_ids: appIds
                 };
-                var app = {
+                app = {
                     webhook_id: webhookId
                 };
-                return Promise.all([admin.database().ref('users/' + userid).update(user), app]);
-            }).then((result) => {
-                var app = result[1];
+                return app;
+            }).then((app) => {
                 return admin.database().ref('apps/' + appIds[0]).update(app);
             }).then(() => {
-                resolve(appIds[0]);
+                return admin.database().ref('groups/' + groupId).once('value');
+            }).then((snap) => {
+                var group = snap.val();
+                var appIds = group.app_ids || [];
+                appIds.unshift(appId);
+                var _group = {
+                    app_ids: appIds
+                };
+
+                return admin.database().ref('groups/' + groupId).update(_group);
+            }).then(() => {
+                resolve();
             });
         });
-    }).then((appId) => {
-        callback(appId);
+    }).then(() => {
+        return admin.database().ref('apps/' + appId).once('value');
+    }).then((snap) => {
+        app = snap.val();
+        var apps = {
+            [appId]: app
+        };
+        callback(apps);
     }).catch(() => {
         callback(null);
     });
