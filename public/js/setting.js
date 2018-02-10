@@ -34,12 +34,13 @@ window.auth.ready.then(function(currentUser) {
     $('#setting-modal-submit-btn').click(function(event) {
         event.preventDefault();
         let type = $(this).parent().parent().find('#type').text();
+        let groupid
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
                 let app = $(this).parent().parent().find('#app-group-select option:selected').val();
-                let group_id = $('#group_id').text();
-                insertType(app, group_id, (data) => {
+                groupid = $('#groupid').text();
+                insertType(app, groupid, (data) => {
                     insertOneApp(data);
                 });
                 break;
@@ -48,6 +49,7 @@ window.auth.ready.then(function(currentUser) {
                 break;
             case 'updateApp':
                 let appId = $(this).parent().parent().find('#webhook-id').text();
+                groupid = $(this).parent().parent().find('#groupid').text();
                 // console.log($('#facebook-name').val())
                 if ($('#facebook-name').val() === undefined) {
                     let name = $('#name').val();
@@ -60,7 +62,8 @@ window.auth.ready.then(function(currentUser) {
                         id1,
                         secret,
                         token1,
-                        type
+                        type,
+                        groupid
                     };
                     updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 } else {
@@ -78,7 +81,8 @@ window.auth.ready.then(function(currentUser) {
                         secret,
                         token1,
                         token2,
-                        type
+                        type,
+                        groupid
                     };
                     updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 }
@@ -94,11 +98,11 @@ window.auth.ready.then(function(currentUser) {
         }
     });
     $(document).on('click', '#add-new-btn', function() {
-        let group_id = $(this).attr('rel');
+        let groupid = $(this).attr('rel');
         let formStr =
             '<form>' +
             '<div id="type" hidden>insertNewApp</div>' +
-            '<div id="group_id" hidden>' + group_id + '</div>' +
+            '<div id="groupid" hidden>' + groupid + '</div>' +
             '<br/>' +
             '<label class="col-2 col-form-label">新增群組: </label>' +
             '<select id="app-group-select" class="form-control">' +
@@ -219,7 +223,7 @@ window.auth.ready.then(function(currentUser) {
     });
     $('#add_group_app_submit').click(insertOneGroup);
 
-    findAllGroup();
+    findAllGroups();
     findAllApps(); // 列出所有設定的APPs
     findUserProfile();
 });
@@ -988,7 +992,7 @@ window.auth.ready.then(function(currentUser) {
 
 var $appModal = $('#setting-modal .modal-body');
 
-function findAllGroup() {
+function findAllGroups() {
     return api.groups.getUserGroups(userId).then(function(resJson) {
         let groupData = resJson.data;
 
@@ -1008,7 +1012,7 @@ function insertOneGroup() {
     return api.groups.insert(userId, groupName).then(function() {
         $('#add_group_name_app_modal').modal('hide');
         $('#menu2 .panel-body .row .col-md-12.col-lg-12').empty();
-        findAllGroup();
+        findAllGroups();
     });
 }
 
@@ -1033,7 +1037,7 @@ function findOneApp(appId) {
     });
 }
 
-function insertType(type, group_id, callback) {
+function insertType(type, groupid, callback) {
     switch (type) {
         case 'LINE':
             let lineName = $('#line-name').val();
@@ -1046,7 +1050,7 @@ function insertType(type, group_id, callback) {
                 secret: lineSecret,
                 token1: lineToken,
                 type: type,
-                group_id: group_id
+                groupid: groupid
             };
             callback(lineObj);
             break;
@@ -1065,14 +1069,14 @@ function insertType(type, group_id, callback) {
                 token1: fbValidToken,
                 token2: fbPageToken,
                 type: type,
-                group_id: group_id
+                groupid: groupid
             };
             callback(fbObj);
             break;
     }
 }
 
-function insertOneApp(appData) { // 未完成
+function insertOneApp(appData) {
     return api.chatshierApp.insert(userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
@@ -1081,11 +1085,14 @@ function insertOneApp(appData) { // 未完成
         $('#app-group').html(str);
 
         $.notify('新增成功!', { type: 'success' });
+        for (let appid in resJson.data) {
+            $('#' + resJson.data[appid].groupid + '-body').empty();
+        }
         return findAllApps();
     });
 }
 
-function updateOneApp(appId, appData) { // 未完成
+function updateOneApp(appId, appData) {
     return api.chatshierApp.update(appId, userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
@@ -1094,12 +1101,15 @@ function updateOneApp(appId, appData) { // 未完成
         $('#app-group').html(str);
 
         $.notify('修改成功!', { type: 'success' });
+        for (let appid in resJson.data) {
+            $('#' + resJson.data[appid].groupid + '-body').empty();
+        }
         return findAllApps();
     });
 }
 
 function removeOneApp(appId) {
-    return api.chatshierApp.remove(appId, userId).then(function() {
+    return api.chatshierApp.remove(appId, userId).then(function() { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
         let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
         $('#app-group').html(str);
         $.notify('成功刪除!', { type: 'success' });
@@ -1169,7 +1179,7 @@ function groupType(index, item) {
                 '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
                 '</td>' +
                 '</tr>';
-            $('#' + item.group_id + '-body').append(appStr);
+            $('#' + item.groupid + '-body').append(appStr);
             break;
         case 'FACEBOOK':
             appStr =
@@ -1212,7 +1222,7 @@ function groupType(index, item) {
                 '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
                 '</td>' +
                 '</tr>';
-            $('#' + item.group_id + '-body').append(appStr);
+            $('#' + item.groupid + '-body').append(appStr);
             break;
     }
 }
@@ -1227,6 +1237,7 @@ function formModalBody(id, item) {
                 '<div class="form-group" hidden>' +
                 '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
                 '<span id="webhook-id">' + id + '</span>' +
+                '<span id="groupid">' + item.groupid + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-line-1">' +
                 '<div class="form-group">' +
@@ -1264,6 +1275,7 @@ function formModalBody(id, item) {
                 '<div class="form-group" hidden>' +
                 '<label class="col-2 col-form-label">ID</label>' +
                 '<span id="webhook-id">' + id + '</span>' +
+                '<span id="groupid">' + item.groupid + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-fb">' +
                 '<div class="form-group">' +

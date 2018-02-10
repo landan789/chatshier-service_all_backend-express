@@ -148,7 +148,7 @@ apps.postOne = (req, res, next) => {
         token1: undefined === req.body.token1 ? null : req.body.token1,
         token2: undefined === req.body.token2 ? null : req.body.token2,
         type: undefined === req.body.type ? null : req.body.type,
-        group_id: undefined === req.body.groupid ? null : req.body.groupid
+        groupid: undefined === req.body.groupid ? null : req.body.groupid
     };
     var apps;
     Promise.resolve().then(() => {
@@ -296,7 +296,8 @@ apps.putOne = (req, res, next) => {
         token1: undefined === req.body.token1 ? null : req.body.token1,
         token2: undefined === req.body.token2 ? null : req.body.token2,
         type: undefined === req.body.type ? null : req.body.type,
-        user_id: req.params.userid
+        user_id: req.params.userid,
+        groupid: undefined === req.body.groupid ? null : req.body.groupid
     }
 
     // 前端未填入的訊息，不覆蓋

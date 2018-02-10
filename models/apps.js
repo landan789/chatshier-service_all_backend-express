@@ -88,7 +88,7 @@ apps.findAppsByAppIds = (appIds, callback) => {
 };
 
 apps.insert = (userId, postApp, callback) => {
-    var groupId = postApp.group_id;
+    var groupId = postApp.groupid;
     var appId;
     var app;
     Promise.resolve().then(() => {
