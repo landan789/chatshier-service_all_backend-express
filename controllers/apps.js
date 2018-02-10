@@ -341,7 +341,7 @@ apps.putOne = (req, res, next) => {
         });
     }).then((apps) => {
         var app = Object.values(apps)[0];
-        var groupId = app.group_id;
+        var groupId = app.groupid;
         return new Promise((resolve, reject) => {
             groupsMdl.findGroups(groupId, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {

@@ -1009,10 +1009,12 @@ function findAllGroups() {
 function insertOneGroup() {
     let name = $('[name="add_group_name_app"]').val();
     let groupName = { name };
-    return api.groups.insert(userId, groupName).then(function() {
+    return api.groups.insert(userId, groupName).then(function(resJson) {
+        let groupData = resJson.data;
         $('#add_group_name_app_modal').modal('hide');
-        $('#menu2 .panel-body .row .col-md-12.col-lg-12').empty();
-        findAllGroups();
+        for (let groupId in groupData) {
+            loadGroups(groupData[groupId], groupId);
+        }
     });
 }
 
@@ -1085,10 +1087,10 @@ function insertOneApp(appData) {
         $('#app-group').html(str);
 
         $.notify('新增成功!', { type: 'success' });
-        for (let appid in resJson.data) {
-            $('#' + resJson.data[appid].groupid + '-body').empty();
+        let app = resJson.data;
+        for (let appId in app) {
+            groupType(appId, app[appId]);
         }
-        return findAllApps();
     });
 }
 
