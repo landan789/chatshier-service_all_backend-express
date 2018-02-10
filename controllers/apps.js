@@ -219,19 +219,21 @@ apps.postOne = (req, res, next) => {
 
         // userIds 此群組底下所有成員 userIDs
         var userIds = Object.values(members).map((member) => {
-            return member.user_id;
+            if (0 === member.isDeleted) {
+                return member.user_id;
+            }
         });
 
         var index = userIds.indexOf(req.params.userid);
         // member 當下使用者在此群組的 member 物件資料
         var member = Object.values(members)[index];
 
-        if (0 === member.status) {
-            return Promise.reject(API_ERROR.USER_WAS_NOT_ACTIVE_IN_THIS_GROUP_MEMBER);
+        if (0 > index) {
+            return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
         };
 
-        if (1 === member.isDeleted) {
-            return Promise.reject(API_ERROR.USER_WAS_DELETED_FROM_THIS_GROUP_MEMBER);
+        if (0 === member.status) {
+            return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
         };
 
         if (READ === member.type) {
@@ -290,85 +292,105 @@ apps.putOne = (req, res, next) => {
 
     var putApp = {
         id1: undefined === req.body.id1 ? null : req.body.id1,
-        id2: req.body.id2 ? req.body.id2 : '',
+        id2: undefined === req.body.id2 ? null : req.body.id2,
         name: undefined === req.body.name ? null : req.body.name,
         secret: undefined === req.body.secret ? null : req.body.secret,
         token1: undefined === req.body.token1 ? null : req.body.token1,
         token2: undefined === req.body.token2 ? null : req.body.token2,
-        type: undefined === req.body.type ? null : req.body.type,
-        user_id: req.params.userid
-    }
+        type: undefined === req.body.type ? null : req.body.type
+    };
+    // app.group_id 無法經由 HTTP PUT 更改
 
     // 前端未填入的訊息，不覆蓋
     for (var key in putApp) {
         if (null === putApp[key]) {
             delete putApp[key];
-        }
-    }
+        };
+    };
 
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             }
-
-            if ('' === id1 || null === id1 || undefined === id1) {
-                reject(API_ERROR.ID1_WAS_EMPTY);
-                return;
-            }
-
-            if ('' === name || null === name || undefined === name) {
-                reject(API_ERROR.NAME_WAS_EMPTY);
-                return;
-            }
-
-            if ('' === secret || null === secret || undefined === secret) {
-                reject(API_ERROR.TYPE_WAS_EMPTY);
-                return;
-            }
-
-            if ('' === token1 || null === token1 || undefined === token1) {
-                reject(API_ERROR.TOKEN1_WAS_EMPTY);
-                return;
-            }
-
-            if ('' === type || null === type || undefined === type) {
-                reject(API_ERROR.TYPE_WAS_EMPTY);
-                return;
-            }
-
+            if (0 === Object.keys(putApp).length) {
+                reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+            };
             resolve();
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (appIds) => {
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+            usersMdl.findUser(req.params.userid, (user) => {
+                if (false === user || undefined === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve();
+                resolve(user);
             });
         });
+    }).then((user) => {
+        return new Promise((resolve, reject) => {
+            appsMdl.findByAppId(req.params.appid, (apps) => {
+                if (null === apps || undefined === apps || '' === apps) {
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(apps);
+            });
+        });
+    }).then((apps) => {
+        var app = Object.values(apps)[0];
+        var groupId = app.group_id;
+        return new Promise((resolve, reject) => {
+            groupsMdl.findGroups(groupId, (groups) => {
+                if (null === groups || undefined === groups || '' === groups) {
+                    reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                    return;
+                };
+                resolve(groups);
+            });
+        });
+    }).then((groups) => {
+        var group = Object.values(groups)[0];
+        var members = group.members;
+
+        var userIds = Object.values(members).map((member) => {
+            if (0 === member.isDeleted) {
+                return member.user_id;
+            }
+        });
+
+        var index = userIds.indexOf(req.params.userid);
+
+        if (0 > index) {
+            return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+        };
+
+        var member = Object.values(members)[index];
+
+        if (0 === member.status) {
+            return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+        };
+
+        if (READ === member.type) {
+            return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
+        };
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.updateByAppId(appId, putApp, (data) => {
-                if (false === data) {
+            appsMdl.update(req.params.appid, putApp, (apps) => {
+                if (null === apps || undefined === apps || '' === apps) {
                     reject(API_ERROR.APP_FAILED_TO_UPDATE);
                     return;
                 };
-                resolve();
+                resolve(apps);
             });
         });
-    }).then(() => {
+    }).then((apps) => {
         var json = {
             status: 1,
-            msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+            data: apps
         };
         res.status(200).json(json);
     }).catch((ERROR) => {
@@ -421,7 +443,7 @@ apps.deleteOne = (req, res, next) => {
 
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.removeByAppId(appId, (result) => {
+            appsMdl.remove(appId, (result) => {
                 if (false === result) {
                     reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     return;

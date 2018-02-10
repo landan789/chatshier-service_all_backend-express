@@ -178,12 +178,8 @@ apps.insert = (userId, postApp, callback) => {
     });
 };
 
-apps.updateByAppId = (appId, putApp, callback) => {
-    var procced = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    procced.then(() => {
+apps.update = (appId, putApp, callback) => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             admin.database().ref('apps/' + appId).once('value', snap => {
                 var app = snap.val();
@@ -201,15 +197,24 @@ apps.updateByAppId = (appId, putApp, callback) => {
             });
         });
     }).then(() => {
+        putApp.updatedTime = Date.now();
         return admin.database().ref('apps/' + appId).update(putApp);
     }).then(() => {
-        callback(true);
+        return admin.database().ref('apps/' + appId).once('value');
+    }).then((snap) => {
+        var app = snap.val();
+        var apps = {
+            [appId]: app
+        };
+        return Promise.resolve(apps);
+    }).then((apps) => {
+        callback(apps);
     }).catch(() => {
         callback(null);
     });
 };
 
-apps.removeByAppId = (appId, callback) => {
+apps.remove = (appId, callback) => {
     var procced = new Promise((resolve, reject) => {
         resolve();
     });
@@ -217,11 +222,20 @@ apps.removeByAppId = (appId, callback) => {
     var deleteApp = {
         isDeleted: 1
     };
+    deleteApp.updatedTime = Date.now();
 
     procced.then(() => {
         return admin.database().ref('apps/' + appId).update(deleteApp);
     }).then(() => {
-        callback(true);
+        return admin.database().ref('apps/' + appId).once('value');
+    }).then((snap) => {
+        var app = snap.val();
+        var apps = {
+            [appId]: app
+        };
+        return Promise.resolve(apps);
+    }).then((apps) => {
+        callback(apps);
     }).catch(() => {
         callback(null);
     });
