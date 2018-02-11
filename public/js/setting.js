@@ -1024,13 +1024,14 @@ function insertOneGroup() {
 
 function findAllApps() {
     return api.chatshierApp.getAll(userId).then(function(resJson) {
-        let appData = resJson.data;
+        let apps = resJson.data;
 
-        for (let appId in appData) {
-            if (appData[appId].isDeleted) {
+        for (let appId in apps) {
+            if (apps[appId].isDeleted) {
                 continue;
             }
-            groupType(appId, appData[appId]);
+            apps[appId].groupid = apps[appId].group_id;
+            groupType(appId, apps[appId]);
         }
         $('#add-new-btn').attr('disabled', false);
     });
