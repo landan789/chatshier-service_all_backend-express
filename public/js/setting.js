@@ -994,13 +994,17 @@ var $appModal = $('#setting-modal .modal-body');
 
 function findAllGroups() {
     return api.groups.getUserGroups(userId).then(function(resJson) {
-        let groupData = resJson.data;
+        let groups = resJson.data;
+        if (groups instanceof Object && 0 === Object.values(groups).length) {
+            $('#add-group-name-app-btn').attr('disabled', false);
+            return;
+        };
 
-        for (let groupId in groupData) {
-            if (groupData[groupId].isDeleted) {
+        for (let groupId in groups) {
+            if (groups[groupId].isDeleted) {
                 continue;
             }
-            loadGroups(groupData[groupId], groupId);
+            loadGroups(groups[groupId], groupId);
             $('#add-group-name-app-btn').attr('disabled', false);
         }
     });
