@@ -10,7 +10,7 @@ apps._schema = (callback) => {
         token1: '',
         token2: '',
         type: '',
-        user_id: '',
+        group_id: '',
         webhook_id: '',
         isDeleted: 0
     };
@@ -88,7 +88,7 @@ apps.findAppsByAppIds = (appIds, callback) => {
 };
 
 apps.insert = (userId, postApp, callback) => {
-    var groupId = postApp.groupid;
+    var groupId = postApp.group_id;
     var appId;
     var app;
     Promise.resolve().then(() => {
@@ -220,10 +220,9 @@ apps.remove = (appId, callback) => {
     });
 
     var deleteApp = {
-        isDeleted: 1
+        isDeleted: 1,
+        updatedTime: Date.now()
     };
-    deleteApp.updatedTime = Date.now();
-
     procced.then(() => {
         return admin.database().ref('apps/' + appId).update(deleteApp);
     }).then(() => {

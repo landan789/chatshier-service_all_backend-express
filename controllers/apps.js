@@ -148,7 +148,7 @@ apps.postOne = (req, res, next) => {
         token1: undefined === req.body.token1 ? null : req.body.token1,
         token2: undefined === req.body.token2 ? null : req.body.token2,
         type: undefined === req.body.type ? null : req.body.type,
-        groupid: undefined === req.body.groupid ? null : req.body.groupid
+        group_id: undefined === req.body.groupid ? null : req.body.groupid
     };
     var apps;
     Promise.resolve().then(() => {
@@ -239,7 +239,6 @@ apps.postOne = (req, res, next) => {
         if (READ === member.type) {
             return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
         };
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.insert(req.params.userid, postApp, (_apps) => {
@@ -269,7 +268,6 @@ apps.postOne = (req, res, next) => {
             data: apps
         };
         res.status(200).json(json);
-
     }).catch((ERROR) => {
         var json = {
             status: 0,

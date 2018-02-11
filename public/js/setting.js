@@ -34,7 +34,7 @@ window.auth.ready.then(function(currentUser) {
     $('#setting-modal-submit-btn').click(function(event) {
         event.preventDefault();
         let type = $(this).parent().parent().find('#type').text();
-        let groupid
+        let groupid;
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
@@ -58,12 +58,12 @@ window.auth.ready.then(function(currentUser) {
                     let token1 = $('#channel-token').val();
                     let type = 'LINE';
                     let updateObj = {
-                        name,
-                        id1,
-                        secret,
-                        token1,
-                        type,
-                        groupid
+                        name: name,
+                        id1: id1,
+                        secret: secret,
+                        token1: token1,
+                        type: type,
+                        groupdid: groupid
                     };
                     updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 } else {
@@ -75,14 +75,14 @@ window.auth.ready.then(function(currentUser) {
                     let token2 = $('#facebook-page-token').val();
                     let type = 'FACEBOOK';
                     let updateObj = {
-                        name,
-                        id1,
-                        id2,
-                        secret,
-                        token1,
-                        token2,
-                        type,
-                        groupid
+                        name: name,
+                        id1: id1,
+                        id2: id2,
+                        secret: secret,
+                        token1: token1,
+                        token2: token2,
+                        type: type,
+                        groupid: groupid
                     };
                     updateOneApp(appId, updateObj); // 點送出後更新APP的資訊
                 }
@@ -261,33 +261,33 @@ window.auth.ready.then(function(currentUser) {
             var tagCollapseId = appId + '_collapse';
             _this.$tagPanel.append(
                 '<div class="panel-heading" role="tab" id="' + appId + '">' +
-                    '<h4 class="panel-title">' +
-                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
-                            (appData.name || '') +
-                        '</a>' +
-                    '</h4>' +
+                '<h4 class="panel-title">' +
+                '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
+                (appData.name || '') +
+                '</a>' +
+                '</h4>' +
                 '</div>' +
                 '<div id="' + tagCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
-                    '<div class="panel-body">' +
-                        '<button type="button" class="btn btn-default add-tag">' +
-                            '<span class="fa fa-plus fa-fw"></span>新增' +
-                        '</button>' +
-                        '<table class="table table-striped">' +
-                            '<thead>' +
-                                '<tr>' +
-                                    '<th>欄位名稱</th>' +
-                                    '<th>欄位類別</th>' +
-                                    '<th>欄位設定</th>' +
-                                    '<th>刪除</th>' +
-                                    '<th></th>' +
-                                '</tr>' +
-                            '</thead>' +
-                            '<tbody></tbody>' +
-                        '</table>' +
-                        '<div class="align-center">' +
-                            '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="panel-body">' +
+                '<button type="button" class="btn btn-default add-tag">' +
+                '<span class="fa fa-plus fa-fw"></span>新增' +
+                '</button>' +
+                '<table class="table table-striped">' +
+                '<thead>' +
+                '<tr>' +
+                '<th>欄位名稱</th>' +
+                '<th>欄位類別</th>' +
+                '<th>欄位設定</th>' +
+                '<th>刪除</th>' +
+                '<th></th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody></tbody>' +
+                '</table>' +
+                '<div class="align-center">' +
+                '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
+                '</div>' +
+                '</div>' +
                 '</div>'
             );
 
@@ -370,7 +370,7 @@ window.auth.ready.then(function(currentUser) {
                                 }
                                 return transStrs;
                             })(setsData).join('\n') +
-                        '</textarea>';
+                            '</textarea>';
                     case tagEnums.setsType.CHECKBOX:
                         return '<input type="text" class="sets-item form-control" value="無設定" disabled />';
                     case tagEnums.setsType.TEXT:
@@ -378,38 +378,38 @@ window.auth.ready.then(function(currentUser) {
                     case tagEnums.setsType.NUMBER:
                     default:
                         return '<select class="sets-item form-control">' +
-                                '<option value="0">單行</option>' +
-                                '<option value="1">段落</option>' +
+                            '<option value="0">單行</option>' +
+                            '<option value="1">段落</option>' +
                             '</select>';
                 }
             };
 
             $tagTableBody.append(
                 '<tr class="tag-content" id="' + tagId + '">' +
-                    '<td class="tag-name long-token">' +
-                        '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
-                    '</td>' +
-                    '<td class="tag-type">' +
-                        '<select class="form-control">' +
-                            '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
-                            '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
-                            '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
-                            '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
-                            '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
-                            '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
-                        '</select>' +
-                    '</td>' +
-                    '<td class="tag-sets">' +
-                        getSetsHtml(tagData.setsType, tagData.sets) +
-                    '</td>' +
-                    '<td class="tag-delete">' +
-                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
-                            '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
-                        '</button>' +
-                    '</td>' +
-                    '<td class="tag-drag-icon">' +
-                        '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
-                    '</td>' +
+                '<td class="tag-name long-token">' +
+                '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
+                '</td>' +
+                '<td class="tag-type">' +
+                '<select class="form-control">' +
+                '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
+                '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
+                '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
+                '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
+                '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
+                '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
+                '</select>' +
+                '</td>' +
+                '<td class="tag-sets">' +
+                getSetsHtml(tagData.setsType, tagData.sets) +
+                '</td>' +
+                '<td class="tag-delete">' +
+                '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
+                '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
+                '</button>' +
+                '</td>' +
+                '<td class="tag-drag-icon">' +
+                '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
+                '</td>' +
                 '</tr>');
             var $tagRow = $tagTableBody.find('#' + tagId);
             var $tagTypeSelect = $tagRow.find('.tag-type select');
@@ -649,82 +649,82 @@ window.auth.ready.then(function(currentUser) {
             instance.hideCollapseAll(groupId);
             $groupBody.append(
                 '<div class="group-tab" role="tab">' +
-                    '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
-                        (groupData.name || '') +
-                    '</a>' +
+                '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+                (groupData.name || '') +
+                '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                    '<div class="form-group form-group-row">' +
-                        '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
-                        '<div class="col-4">' +
-                            '<div class="input-group group-name" id="group_name">' +
-                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
-                                '<span class="input-group-btn btn-update">' +
-                                    '<button class="btn btn-primary">更新</button>' +
-                                '</span>' +
-                                // '<span class="input-group-btn btn-delete">' +
-                                //     '<button class="btn btn-danger">刪除群組</button>' +
-                                // '</span>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="form-group form-group-row">' +
+                '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+                '<div class="col-4">' +
+                '<div class="input-group group-name" id="group_name">' +
+                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                '<span class="input-group-btn btn-update">' +
+                '<button class="btn btn-primary">更新</button>' +
+                '</span>' +
+                // '<span class="input-group-btn btn-delete">' +
+                //     '<button class="btn btn-danger">刪除群組</button>' +
+                // '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
 
-                    // '<div class="form-group form-group-row">' +
-                    //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
-                    //     '<div class="col-4">' +
-                    //         '<div class="input-group file-container" id="group_photo">' +
-                    //             '<span class="input-group-btn">' +
-                    //                 '<button class="btn btn-default file-choose">' +
-                    //                     '<i class="fa fa-upload"></i>' +
-                    //                 '</button>' +
-                    //             '</span>' +
-                    //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
-                    //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
-                    //             '<span class="input-group-btn">' +
-                    //                 '<img src="image/favicon.ico" class="img-preview" />' +
-                    //             '</span>' +
-                    //             '<span class="input-group-btn btn-update">' +
-                    //                 '<button class="btn btn-primary">更新</button>' +
-                    //             '</span>' +
-                    //         '</div>' +
-                    //     '</div>' +
-                    // '</div>' +
+                // '<div class="form-group form-group-row">' +
+                //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
+                //     '<div class="col-4">' +
+                //         '<div class="input-group file-container" id="group_photo">' +
+                //             '<span class="input-group-btn">' +
+                //                 '<button class="btn btn-default file-choose">' +
+                //                     '<i class="fa fa-upload"></i>' +
+                //                 '</button>' +
+                //             '</span>' +
+                //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
+                //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
+                //             '<span class="input-group-btn">' +
+                //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                //             '</span>' +
+                //             '<span class="input-group-btn btn-update">' +
+                //                 '<button class="btn btn-primary">更新</button>' +
+                //             '</span>' +
+                //         '</div>' +
+                //     '</div>' +
+                // '</div>' +
 
-                    '<table class="table table-responsive chsr-group chsr-table">' +
-                        '<thead>' +
-                            '<tr>' +
-                                '<td class="user">' +
-                                    '<div>' +
-                                        '<input type="text" class="text user-email form-control" id="group_add_user" placeholder="Email 地址" autocomplete="off">' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td class="permission">' +
-                                    '<div class="input-group text-right">' +
-                                        '<div class="input-group-btn">' +
-                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                                                '<span class="permission-text">Permission</span>' + '&nbsp;' +
-                                                '<span class="caret"></span>' +
-                                            '</button>' +
-                                            '<ul class="dropdown-menu dropdown-menu-right">' +
-                                                '<li><a role="button">READ</a></li>' +
-                                                '<li><a role="button">WRITE</a></li>' +
-                                                '<li><a role="button">ADMIN</a></li>' +
-                                            '</ul>' +
-                                        '</div>' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td class="actions">' +
-                                    '<div class="text-right">' +
-                                        '<button class="btn btn-default btn-block outline add-button">' +
-                                            '新增' +
-                                            '<i class="fa fa-user-plus"></i>' +
-                                        '</button>' +
-                                    '</div>' +
-                                '</td>' +
-                            '</tr>' +
-                        '</thead>' +
-                        '<tbody></tbody>' +
-                    '</table>' +
+                '<table class="table table-responsive chsr-group chsr-table">' +
+                '<thead>' +
+                '<tr>' +
+                '<td class="user">' +
+                '<div>' +
+                '<input type="text" class="text user-email form-control" id="group_add_user" placeholder="Email 地址" autocomplete="off">' +
+                '</div>' +
+                '</td>' +
+                '<td class="permission">' +
+                '<div class="input-group text-right">' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                '<span class="permission-text">Permission</span>' + '&nbsp;' +
+                '<span class="caret"></span>' +
+                '</button>' +
+                '<ul class="dropdown-menu dropdown-menu-right">' +
+                '<li><a role="button">READ</a></li>' +
+                '<li><a role="button">WRITE</a></li>' +
+                '<li><a role="button">ADMIN</a></li>' +
+                '</ul>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '<td class="actions">' +
+                '<div class="text-right">' +
+                '<button class="btn btn-default btn-block outline add-button">' +
+                '新增' +
+                '<i class="fa fa-user-plus"></i>' +
+                '</button>' +
+                '</div>' +
+                '</td>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody></tbody>' +
+                '</table>' +
                 '</div>'
             );
 
@@ -887,31 +887,31 @@ window.auth.ready.then(function(currentUser) {
 
             var memberItemHtml =
                 '<tr class="group-member" id="' + memberId + '">' +
-                    '<td class="user">' +
-                        '<div class="chips">' +
-                            '<div class="chsr-avatar">' +
-                                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
-                            '</div>' +
-                            '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="permission">' +
-                        '<div class="permission-group text-center">' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="actions">' +
-                        '<div class="text-right">' +
-                            '<a class="btn-remove" role="button">' +
-                                '<span class="chsr-icon">' +
-                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
-                                '</span>' +
-                            '</a>' +
-                        '</div>' +
-                    '</td>' +
+                '<td class="user">' +
+                '<div class="chips">' +
+                '<div class="chsr-avatar">' +
+                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
+                '</div>' +
+                '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
+                '</div>' +
+                '</td>' +
+                '<td class="permission">' +
+                '<div class="permission-group text-center">' +
+                '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
+                '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
+                '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
+                '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                '</div>' +
+                '</td>' +
+                '<td class="actions">' +
+                '<div class="text-right">' +
+                '<a class="btn-remove" role="button">' +
+                '<span class="chsr-icon">' +
+                '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                '</span>' +
+                '</a>' +
+                '</div>' +
+                '</td>' +
                 '</tr>';
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
@@ -1007,9 +1007,9 @@ function findAllGroups() {
             loadGroups(groups[groupId], groupId);
             $('#add-group-name-app-btn').attr('disabled', false);
         }
-    });
+    }
+);
 }
-
 function insertOneGroup() {
     let name = $('[name="add_group_name_app"]').val();
     let groupName = { name };
@@ -1133,22 +1133,22 @@ function removeOneApp(appId) {
  */
 function loadGroups(groupData, groupId) {
     let groupStr =
-    '<div class="group-tab" role="tab">' +
+        '<div class="group-tab" role="tab">' +
         '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
-            (groupData.name || '') +
+        (groupData.name || '') +
         '</a>' +
-    '</div>' +
-    '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-        '<div class="app-table-space">' +
-            '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-            '<span class="fa fa-plus"></span> 新增APP' +
-            '</button>' +
-            '<br/><br/>' +
-            '<table class="table chsr-group chsr-table">' +
-                '<tbody id="' + groupId + '-body"></tbody>' +
-            '</table>' +
         '</div>' +
-    '</div>';
+        '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
+        '<div class="app-table-space">' +
+        '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+        '<span class="fa fa-plus"></span> 新增APP' +
+        '</button>' +
+        '<br/><br/>' +
+        '<table class="table chsr-group chsr-table">' +
+        '<tbody id="' + groupId + '-body"></tbody>' +
+        '</table>' +
+        '</div>' +
+        '</div>';
     $('#menu2 .panel-body .row .col-md-12.col-lg-12').append(groupStr);
 }
 
@@ -1159,78 +1159,78 @@ function groupType(index, item) {
         case 'LINE':
             appStr =
                 '<tr class="active ' + index + '">' +
-                    '<th class="col-md-3 col-lg-3">LINE</th>' +
-                    '<th class="col-md-9 col-lg-9">' +
-                        '<div id="group1" class="line">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                        '</div>' +
-                    '</th>' +
+                '<th class="col-md-3 col-lg-3">LINE</th>' +
+                '<th class="col-md-9 col-lg-9">' +
+                '<div id="group1" class="line">' +
+                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                '</div>' +
+                '</th>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>LINE應用程式名稱:</td>' +
-                    '<td class="long-token" id="prof-name1">' + item.name + '</td>' +
+                '<td>LINE應用程式名稱:</td>' +
+                '<td class="long-token" id="prof-name1">' + item.name + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Channel Id 1: </td>' +
-                    '<td class="long-token" id="prof-channelId_1">' + item.id1 + '</td>' +
+                '<td>Channel Id 1: </td>' +
+                '<td class="long-token" id="prof-channelId_1">' + item.id1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Channel Secret 1: </td>' +
-                    '<td class="long-token" id="prof-channelSecret_1">' + item.secret + '</td>' +
+                '<td>Channel Secret 1: </td>' +
+                '<td class="long-token" id="prof-channelSecret_1">' + item.secret + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Channel Access Token 1: </td>' +
-                    '<td class="long-token" id="prof-channelAccessToken_1">' + item.token1 + '</td>' +
+                '<td>Channel Access Token 1: </td>' +
+                '<td class="long-token" id="prof-channelAccessToken_1">' + item.token1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Webhook URL: </td>' +
-                    '<td class="long-token">' +
-                        '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
-                    '</td>' +
+                '<td>Webhook URL: </td>' +
+                '<td class="long-token">' +
+                '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
+                '</td>' +
                 '</tr>';
             $('#' + item.groupid + '-body').append(appStr);
             break;
         case 'FACEBOOK':
             appStr =
                 '<tr class="active ' + index + '">' +
-                    '<th class="col-md-3 col-lg-3">Facebook</th>' +
-                    '<th class="col-md-9 col-lg-9">' +
-                        '<div id="group3" class="fb">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                        '</div>' +
-                    '</th>' +
+                '<th class="col-md-3 col-lg-3">Facebook</th>' +
+                '<th class="col-md-9 col-lg-9">' +
+                '<div id="group3" class="fb">' +
+                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                '</div>' +
+                '</th>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Facebook應用程式名稱:</td>' +
-                    '<td class="long-token" id="prof-fbPageName">' + item.name + '</td>' +
+                '<td>Facebook應用程式名稱:</td>' +
+                '<td class="long-token" id="prof-fbPageName">' + item.name + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Page Id: </td>' +
-                    '<td class="long-token" id="prof-fbPageId">' + item.id1 + '</td>' +
+                '<td>Page Id: </td>' +
+                '<td class="long-token" id="prof-fbPageId">' + item.id1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>App Id: </td>' +
-                    '<td class="long-token" id="prof-fbAppId">' + item.id2 + '</td>' +
+                '<td>App Id: </td>' +
+                '<td class="long-token" id="prof-fbAppId">' + item.id2 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>App Secret: </td>' +
-                    '<td class="long-token" id="prof-fbAppSecret">' + item.secret + '</td>' +
+                '<td>App Secret: </td>' +
+                '<td class="long-token" id="prof-fbAppSecret">' + item.secret + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Validation Token: </td>' +
-                    '<td class="long-token" id="prof-fbValidToken">' + item.token1 + '</td>' +
+                '<td>Validation Token: </td>' +
+                '<td class="long-token" id="prof-fbValidToken">' + item.token1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Page Token: </td>' +
-                    '<td class="long-token" id="prof-fbPageToken">' + item.token2 + '</td>' +
+                '<td>Page Token: </td>' +
+                '<td class="long-token" id="prof-fbPageToken">' + item.token2 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                    '<td>Webhook URL: </td>' +
-                    '<td class="long-token">' +
-                        '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
-                    '</td>' +
+                '<td>Webhook URL: </td>' +
+                '<td class="long-token">' +
+                '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, item.webhook_id) + '</span>' +
+                '</td>' +
                 '</tr>';
             $('#' + item.groupid + '-body').append(appStr);
             break;
