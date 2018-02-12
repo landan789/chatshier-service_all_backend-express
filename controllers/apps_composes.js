@@ -2,9 +2,9 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
 
-    const cipher = require('../helpers/cipher');
+    // const cipher = require('../helpers/cipher');
     const appsComposesMdl = require('../models/apps_composes');
-    const appsMessagesMdl = require('../models/apps_messages');
+    // const appsMessagesMdl = require('../models/apps_messages');
     const usersMdl = require('../models/users');
 
     function AppsComposesController() {}
@@ -69,7 +69,7 @@ module.exports = (function() {
      */
     AppsComposesController.prototype.getOne = (req, res) => {
         let userId = req.params.userid;
-        let composeId = req.params.composeid;
+        // let composeId = req.params.composeid;
         let appId = req.params.appid;
 
         let proceed = Promise.resolve();

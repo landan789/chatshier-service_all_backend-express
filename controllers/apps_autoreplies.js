@@ -52,7 +52,7 @@ appsAutoreplies.getAll = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
 
 appsAutoreplies.getOne = (req, res, next) => {
     var appId = req.params.appid;
@@ -65,15 +65,14 @@ appsAutoreplies.getOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+                let appIds = data || [];
+                if (!appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsAutorepliesMdl.find(appId, (data) => {
