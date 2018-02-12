@@ -1109,7 +1109,7 @@ function insertType(type, groupId, callback) {
                 secret: lineSecret,
                 token1: lineToken,
                 type: type,
-                group_id: groupId
+                groupid: groupId
             };
             break;
         case FACEBOOK:
@@ -1127,7 +1127,7 @@ function insertType(type, groupId, callback) {
                 token1: fbValidToken,
                 token2: fbPageToken,
                 type: type,
-                group_id: groupId
+                groupid: groupId
             };
             break;
     }
