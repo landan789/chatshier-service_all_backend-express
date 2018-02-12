@@ -7,7 +7,7 @@ module.exports = (function() {
      * 回傳預設的 Greeting 資料結構
      */
     AppsGreetingsModel._schema = function(callback) {
-        var json = {
+        let json = {
             updatedTime: Date.now(),
             type: 'text',
             text: '',
@@ -18,35 +18,25 @@ module.exports = (function() {
     /**
      * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
      *
-     * @param {string} appId
+     * @param {string[]} appIds
      * @param {Function} callback
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.findAll = (appIds, callback) => {
-        let procced = Promise.resolve();
-        var appsGreetings = {};
-        nextPromise(0).then(() => {
+        let appsGreetings = {};
+
+        Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+                let greeting = snap.val() || {};
+                appsGreetings[appId] = {
+                    greetings: greeting
+                };
+            });
+        })).then(() => {
             callback(appsGreetings);
         }).catch(() => {
             callback(null);
         });
-
-        function nextPromise(i) {
-            return procced.then(() => {
-                var appId = appIds[i];
-                return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value');
-            }).then((snap) => {
-                if (i >= appIds.length) {
-                    return Promise.resolve();
-                }
-                let greeting = snap.val();
-                var appId = snap.ref.parent.key;
-                appsGreetings[appId] = {
-                    greetings: greeting
-                };
-                return nextPromise(i + 1);
-            });
-        }
     };
 
     /**
@@ -57,25 +47,12 @@ module.exports = (function() {
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.find = (appId, callback) => {
-        let procced = new Promise((resolve, reject) => {
-            resolve();
-        });
-        procced.then(() => {
-            return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value', snap => {
-                    let info = snap.val();
-                    if (null === info || undefined === info) {
-                        reject();
-                        return;
-                    }
-                    resolve(info);
-                });
-            });
-        }).then((data) => {
-            let greeting = data;
-            var appsGreetings = {};
-            appsGreetings[appId] = {
-                greetings: greeting
+        return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+            let greeting = snap.val() || {};
+            let appsGreetings = {
+                [appId]: {
+                    greetings: greeting
+                }
             };
             callback(appsGreetings);
         }).catch(() => {
@@ -92,19 +69,18 @@ module.exports = (function() {
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.findOne = (appId, greetingId, callback) => {
-        admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value', snap => {
-            let data = snap.val();
-            if (null === data || undefined === data) {
-                reject();
-                return;
-            }
-            var appsGreetings = {};
-            var _greetings = {};
-            _greetings[greetingId] = data;
-            appsGreetings[appId] = {
-                greetings: _greetings
+        admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value').then((snap) => {
+            let greeting = snap.val() || {};
+            let appsGreetings = {
+                [appId]: {
+                    greetings: {
+                        [greetingId]: greeting
+                    }
+                }
             };
             callback(appsGreetings);
+        }).catch(() => {
+            callback(null);
         });
     };
 
@@ -118,7 +94,7 @@ module.exports = (function() {
 
     AppsGreetingsModel.prototype.findGreetings = (appId, callback) => {
         admin.database().ref('apps/' + appId + '/greetings/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            var greetings = snap.val();
+            let greetings = snap.val();
             if (null === greetings || undefined === greetings || '' === greetings) {
                 return Promise.reject();
             }
@@ -139,7 +115,7 @@ module.exports = (function() {
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.insert = (appId, postGreeting, callback) => {
-        var procced = Promise.resolve();
+        let procced = Promise.resolve();
 
         procced.then(() => {
             return new Promise((resolve, reject) => {
@@ -161,8 +137,8 @@ module.exports = (function() {
         }).then((snap) => {
             let greeting = snap.val();
             let greetingId = snap.ref.key;
-            var appsGreetings = {};
-            var _greetings = {};
+            let appsGreetings = {};
+            let _greetings = {};
             _greetings[greetingId] = greeting;
             appsGreetings[appId] = {
                 greetings: _greetings
@@ -182,11 +158,11 @@ module.exports = (function() {
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.remove = (appId, greetingId, callback) => {
-        var procced = new Promise((resolve, reject) => {
+        let procced = new Promise((resolve, reject) => {
             resolve();
         });
 
-        var deleteGreeting = {
+        let deleteGreeting = {
             isDeleted: 1
         };
         admin.database().ref('apps/' + appId + '/greetings/' + greetingId).update(deleteGreeting).then(() => {
@@ -194,8 +170,8 @@ module.exports = (function() {
         }).then((snap) => {
             let greeting = snap.val();
             let greetingId = snap.ref.key;
-            var appsGreetings = {};
-            var _greetings = {};
+            let appsGreetings = {};
+            let _greetings = {};
             _greetings[greetingId] = greeting;
             appsGreetings[appId] = {
                 greetings: _greetings
