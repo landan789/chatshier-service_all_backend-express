@@ -32,6 +32,9 @@ appsTickets.findTicketsByAppId = (appId, callback) => {
  * @param {(appTickets: any) => any} callback
  */
 appsTickets.findAppTicketsByAppIds = (appIds, callback) => {
+    if ('string' === typeof appIds) {
+        appIds = [appIds];
+    }
     let appTickets = {};
 
     Promise.all(appIds.map((appId) => {

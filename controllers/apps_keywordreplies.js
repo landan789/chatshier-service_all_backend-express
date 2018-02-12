@@ -5,6 +5,7 @@ module.exports = (function() {
     const cipher = require('../helpers/cipher');
     const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
     const appsMessagesMdl = require('../models/apps_messages');
+    const groupsMdl = require('../models/groups');
     const usersMdl = require('../models/users');
 
     function AppsKeywordrepliesController() {}
@@ -15,6 +16,7 @@ module.exports = (function() {
      */
     AppsKeywordrepliesController.prototype.getAll = function(req, res) {
         let userId = req.params.userid;
+        let appId = req.params.appid;
 
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
@@ -24,7 +26,7 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.findAppIdsByUserId(userId, (data) => {
+                usersMdl.findUser(userId, (data) => {
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
@@ -32,10 +34,21 @@ module.exports = (function() {
                     resolve(data);
                 });
             });
-        }).then((appIds) => {
+        }).then((userId) => {
             // 2. 再根據 appId 清單去 keywordreplies model 抓取清單
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appIds, (data) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
+            // 2. 再根據 appId 清單去 keywordreplies model 抓取清單
+            return new Promise((resolve, reject) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
@@ -76,20 +89,30 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.findAppIdsByUserId(userId, (data) => {
+                usersMdl.findUser(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === data.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
                 });
             });
-        }).then((appIds) => {
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (-1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
             return new Promise((resolve, reject) => {
                 // 3. 找到指定的 appId 中的 keywordreply 資料
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
@@ -143,21 +166,30 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-
-                usersMdl.findAppIdsByUserId(userId, (data) => {
+                usersMdl.findUser(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === data.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
                 });
             });
-        }).then((appIds) => {
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (-1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
             return new Promise((resolve, reject) => {
                 // 3. 插入新的 keywordreply 資料至指定的 appId 中
                 appsKeywordrepliesMdl.insert(appId, postKeywordreplyData, (data) => {
@@ -239,21 +271,30 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-
-                usersMdl.findAppIdsByUserId(userId, (data) => {
+                usersMdl.findUser(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === data.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
                 });
             });
-        }).then((appIds) => {
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (-1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
             // 3. 將原本的 keywordreply 資料撈出
             return new Promise((resolve) => {
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => resolve(keywordrepliesData));
@@ -340,20 +381,30 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.findAppIdsByUserId(userId, (data) => {
+                usersMdl.findUser(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    } else if (-1 === data.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
                 });
             });
-        }).then((appIds) => {
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (-1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appId);
+                });
+            });
+        }).then((appId) => {
             return new Promise((resolve, reject) => {
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {

@@ -31,28 +31,24 @@
         $(document).on('click', '#edit-submit', dataUpdate);
         $(document).on('click', '#delete-btn', dataRemove); // 刪除
 
-        return api.chatshierApp.getAll(userId);
+        return api.app.getAll(userId);
     }).then(function(respJson) {
         var appsData = respJson.data;
-
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
-        // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
         for (var appId in appsData) {
             $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
             $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
-
-            if (!nowSelectAppId) {
-                nowSelectAppId = appId;
-            }
+            nowSelectAppId = nowSelectAppId || appId;
         }
 
-        $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-        findOne(nowSelectAppId, userId);
-        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        if (nowSelectAppId) {
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            findOne(nowSelectAppId, userId);
+            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        }
     });
 
     function appSourceChanged(ev) {

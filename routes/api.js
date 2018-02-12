@@ -51,7 +51,7 @@ router.put('/apps/apps/:appid/users/:userid', appsCtl.putOne);
 router.delete('/apps/apps/:appid/users/:userid', appsCtl.deleteOne);
 
 router.get('/apps-tickets/users/:userid', appsTicketsCtl.getAllByUserid);
-router.get('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByAppIdByUserid);
+router.get('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByUserid);
 router.get('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
 router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
 router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);

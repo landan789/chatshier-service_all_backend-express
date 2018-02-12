@@ -35,7 +35,7 @@
         $(document).on('click', '#add-btn', addMsgCanvas);
         $(document).on('click', '#delete-btn', delMsgCanvas);
 
-        return api.chatshierApp.getAll(userId);
+        return api.app.getAll(userId);
     }).then(function(respJson) {
         var appsData = respJson.data;
 

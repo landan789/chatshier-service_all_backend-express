@@ -18,7 +18,7 @@
     var DATE = 24 * HOUR;
 
     var chartInstance = null;
-    var messagesData = {}; // 所有訊息的時間
+    var messagesDataArray = {}; // 所有訊息的時間
     var startTime; // 決定圖表從哪個時間點開始畫
     var endTime; // 決定圖表畫到那個時間點結束
     var FIRST_MSG_TIME = 0; // 預設的startTime
@@ -65,37 +65,41 @@
         sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
         eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
 
-        return api.chatshierApp.getAll(userId);
-    }).then(function(respJson) {
-        var appsData = respJson.data;
-        messagesData = {};
+        return Promise.all([
+            api.app.getAll(userId),
+            api.chatroom.getAll(userId)
+        ]);
+    }).then(function(respJsons) {
+        var appsData = respJsons.shift().data;
+        var messagesData = respJsons.shift().data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
+        messagesDataArray = {};
         for (var appId in appsData) {
-            var chatrooms = appsData[appId].chatrooms;
-            messagesData[appId] = [];
+            messagesDataArray[appId] = [];
             $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            nowSelectAppId = nowSelectAppId || appId;
 
-            if (!nowSelectAppId) {
-                nowSelectAppId = appId;
-            }
+            var chatrooms = messagesData[appId].chatrooms;
+            for (var chatroomId in messagesData[appId].chatrooms) {
+                var messages = chatrooms[chatroomId].messages || {};
 
-            for (var chatroomId in chatrooms) {
-                var messages = chatrooms[chatroomId].messages;
                 for (var messageId in messages) {
-                    messagesData[appId].push(messages[messageId]);
+                    messagesDataArray[appId].push(messages[messageId]);
                 }
             }
         }
 
-        $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-        messageDataPreprocess(messagesData[nowSelectAppId]);
-        $('.button-group .btn-view').prop('disabled', false); // 資料載入完成，才開放USER按按鈕
+        if (nowSelectAppId) {
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            messageDataPreprocess(messagesDataArray[nowSelectAppId]);
+            $('.app-view .dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
+        }
 
         // 綁定日期變更時的事件
         $analyzeSdtPicker.on('dp.change', function(ev) {
@@ -112,7 +116,7 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        messageDataPreprocess(messagesData[nowSelectAppId]);
+        messageDataPreprocess(messagesDataArray[nowSelectAppId]);
     }
 
     function messageDataPreprocess(messages) {
@@ -408,7 +412,7 @@
 
     function getSelecedTimeData() {
         // 將資料過濾成在開始 ~ 結束時間內
-        return messagesData[nowSelectAppId].reduce(function(output, message) {
+        return messagesDataArray[nowSelectAppId].reduce(function(output, message) {
             if (message.time >= startTime && message.time <= endTime) {
                 output.push(message.time);
             }
@@ -418,7 +422,7 @@
 
     function getSelecedMsgData() {
         // 將資料過濾成在開始 ~ 結束時間內
-        var messages = messagesData[nowSelectAppId];
+        var messages = messagesDataArray[nowSelectAppId];
         var filteringMsgs = [];
         for (var i = 0; i < messages.length; i++) {
             var t = messages[i].time;

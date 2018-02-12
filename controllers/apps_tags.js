@@ -4,6 +4,7 @@ module.exports = (function() {
 
     const usersMdl = require('../models/users');
     const appsTagsMdl = require('../models/apps_tags');
+    const groupsMdl = require('../models/groups');
 
     function AppsTagsController() {}
 
@@ -13,7 +14,10 @@ module.exports = (function() {
      * @param {string} userId
      * @param {string} appId
      */
-    AppsTagsController.userAppIdsPreprocedure = function(userId, appId) {
+    let paramsChecking = function(params) {
+        let appId = params.appid;
+        let userId = params.userid;
+
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
@@ -21,11 +25,20 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-
-                usersMdl.findAppIdsByUserId(userId, (appIds) => {
+                usersMdl.findUser(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                    if (!appIds) {
+                    if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(data);
+                });
+            });
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
                     } else if (appId && -1 === appIds.indexOf(appId)) {
                         // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
@@ -43,9 +56,7 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsTagsController.prototype.getAll = function(req, res) {
-        let userId = req.params.userid;
-
-        return AppsTagsController.userAppIdsPreprocedure(userId).then((appIds) => {
+        return paramsChecking(req.params).then((appIds) => {
             // 1. 根據 appId 清單去 tags model 抓取清單
             return new Promise((resolve, reject) => {
                 appsTagsMdl.findTags(appIds, (appsTags) => {
@@ -79,7 +90,6 @@ module.exports = (function() {
      */
     AppsTagsController.prototype.postOne = function(req, res) {
         let appId = req.params.appid;
-        let userId = req.params.userid;
 
         // 建立並過濾用戶端傳過來的資料
         let postTagData = {
@@ -93,7 +103,7 @@ module.exports = (function() {
             isDeleted: 0
         };
 
-        return AppsTagsController.userAppIdsPreprocedure(userId, appId).then(() => {
+        return paramsChecking(req.params).then(() => {
             // 1. 將 tag 資料插入至指定 appId 中
             return new Promise((resolve, reject) => {
                 appsTagsMdl.insertTag(appId, postTagData, (data) => {
@@ -128,7 +138,6 @@ module.exports = (function() {
     AppsTagsController.prototype.putOne = function(req, res) {
         let appId = req.params.appid;
         let tagId = req.params.tagid;
-        let userId = req.params.userid;
 
         // 建立並過濾用戶端傳過來的資料
         let putTagData = {
@@ -145,7 +154,7 @@ module.exports = (function() {
             putTagData.setsType = req.body.setsType ? req.body.setsType : 0;
         }
 
-        return AppsTagsController.userAppIdsPreprocedure(userId, appId).then(() => {
+        return paramsChecking(req.params).then(() => {
             // 1. 將 tag 資料更新至指定 appId 中
             return new Promise((resolve, reject) => {
                 appsTagsMdl.updateTag(appId, tagId, putTagData, (data) => {
@@ -180,9 +189,8 @@ module.exports = (function() {
     AppsTagsController.prototype.deleteOne = function(req, res) {
         let appId = req.params.appid;
         let tagId = req.params.tagid;
-        let userId = req.params.userid;
 
-        return AppsTagsController.userAppIdsPreprocedure(userId, appId).then(() => {
+        return paramsChecking(req.params).then(() => {
             // 1. 藉由 tags model 將指定的 tag 資料刪除
             return new Promise((resolve, reject) => {
                 appsTagsMdl.removeTag(appId, tagId, (data) => {

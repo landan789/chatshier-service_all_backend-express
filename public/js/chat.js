@@ -20,7 +20,9 @@ var agentId = ''; // agent的ID
 var nameList = []; // list of all users
 var userProfiles = []; // array which store all user's profile
 var appsData = {}; // 此變數用來裝所有的 app 資料
-var tagsData = {};
+var appsMessagersData = {};
+var appsChatroomsData = {};
+var appsTagsData = {};
 var internalTagsData;
 var agentIdToName;
 // selectors
@@ -452,40 +454,50 @@ window.auth.ready.then(function(currentUser) {
         }, resolve);
     });
 
-    var appsDataPromise = api.chatshierApp.getAll(agentId);
-
-    Promise.all([socketDataPromise, appsDataPromise]).then(function(promiseResults) {
-        var socketData = promiseResults[0];
-        var apiData = promiseResults[1].data;
-        appsData = {};
-        tagsData = {};
+    Promise.all([
+        socketDataPromise,
+        api.app.getAll(agentId),
+        api.chatroom.getAll(agentId),
+        api.messager.getAll(agentId),
+        api.tag.getAll(agentId)
+    ]).then(function(promiseResults) {
+        var socketData = promiseResults.shift();
+        appsData = promiseResults.shift().data;
+        appsChatroomsData = promiseResults.shift().data;
+        appsMessagersData = promiseResults.shift().data;
+        appsTagsData = promiseResults.shift().data;
 
         // 過濾 API 資料裡已經刪除的 app 資料
-        for (var appId in apiData) {
-            var appData = apiData[appId];
+        for (var appId in appsData) {
+            var appData = appsData[appId];
             if (appData.isDeleted) {
+                delete appsData[appId];
+                delete appsChatroomsData[appId];
+                delete appsMessagersData[appId];
+                delete appsTagsData[appId];
                 continue;
             }
 
-            appsData[appId] = appData;
-            tagsData[appId] = {};
+            // 過濾已經刪除的 chatroom 資料
+            for (var chatroomId in appsChatroomsData[appId].chatrooms) {
+                var chatroomData = appsChatroomsData[appId].chatrooms[chatroomId];
+                if (chatroomData.isDeleted) {
+                    delete appsChatroomsData[appId].chatrooms[chatroomId];
+                }
+            }
 
             // 過濾已經刪除的 tag 資料
-            if (appData.tags) {
-                for (var tagId in appData.tags) {
-                    var tagData = appData.tags[tagId];
-                    if (tagData.isDeleted) {
-                        continue;
-                    }
-                    tagsData[appId][tagId] = tagData;
+            for (var tagId in appsTagsData[appId].tags) {
+                var tagData = appsTagsData[appId].tags[tagId];
+                if (tagData.isDeleted) {
+                    delete appsTagsData[appId].tags[tagId];
                 }
             }
         }
 
         return {
             internalChatData: socketData.internalChatData,
-            appsData: appsData,
-            tagsData: tagsData
+            appsData: appsData
         };
     }).then(function(initData) {
         if (initData.reject) {
@@ -518,12 +530,12 @@ window.auth.ready.then(function(currentUser) {
         var $chatApp = $('#chat_App');
 
         for (var appId in appsData) {
-            var item = appsData[appId];
+            var appData = appsData[appId];
 
-            switch (item.type) {
+            switch (appData.type) {
                 case LINE:
                     var lineStr =
-                        '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + item.name + '" rel="' + appId + '">' +
+                        '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '" rel="' + appId + '">' +
                             '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
@@ -531,7 +543,7 @@ window.auth.ready.then(function(currentUser) {
                     break;
                 case FACEBOOK:
                     var fbStr =
-                        '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + item.name + '" rel="' + appId + '">' +
+                        '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '" rel="' + appId + '">' +
                             '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
@@ -543,16 +555,15 @@ window.auth.ready.then(function(currentUser) {
 
     function responseChatData(apps) {
         for (var appId in apps) {
-            var appData = apps[appId];
+            var appMessagersData = appsMessagersData[appId];
             var appName = apps[appId].name;
             var appType = apps[appId].type;
-            var chatroomsData = appData.chatrooms;
 
-            for (var msgerId in appData.messagers) {
-                var messager = appData.messagers[msgerId];
+            for (var msgerId in appMessagersData.messagers) {
+                var messager = appMessagersData.messagers[msgerId];
                 var chatData = {
                     profile: messager,
-                    obj: chatroomsData[messager.chatroom_id],
+                    obj: appsChatroomsData[appId].chatrooms[messager.chatroom_id],
                     userId: msgerId,
                     appId: appId,
                     name: appName,
@@ -719,7 +730,8 @@ window.auth.ready.then(function(currentUser) {
 
     function pushProfile(data) {
         var messager = data.profile;
-        let appNname = data.name;
+        // var appNname = data.name;
+
         infoCanvas.append(
             '<div class="card-group" id="' + data.appId + '" rel="' + data.userId + '">' +
                 '<div class="card-body table-responsive" id="profile">' +
@@ -834,15 +846,15 @@ window.auth.ready.then(function(currentUser) {
         };
 
         // 呈現標籤資料之前先把標籤資料設定的順序排列
-        var tagKeys = Object.keys(tagsData[appId]);
+        var tagKeys = Object.keys(appsTagsData[appId].tags);
         tagKeys.sort(function(a, b) {
-            return tagsData[appId][a].order - tagsData[appId][b].order;
+            return appsTagsData[appId].tags[a].order - appsTagsData[appId].tags[b].order;
         });
 
         var messagerProfileHtml = '';
         for (var i in tagKeys) {
             var tagId = tagKeys[i];
-            var tagData = tagsData[appId][tagId];
+            var tagData = appsTagsData[appId].tags[tagId];
             messagerProfileHtml +=
                 '<tr id="' + tagId + '">' +
                     '<th class="user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +

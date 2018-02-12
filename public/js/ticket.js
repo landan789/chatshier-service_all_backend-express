@@ -11,7 +11,7 @@
     var $jqDoc = $(document);
     var $ticketBody = null;
 
-    auth.ready.then(function(currentUser) {
+    window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid; // 儲存全域用變數 userId
         $ticketBody = $('.ticket-body');
 

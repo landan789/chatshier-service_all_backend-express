@@ -466,14 +466,19 @@ window.auth.ready.then(function(currentUser) {
 
         var firstAppId = '';
         tagPanelCtrl.$tagPanel.empty();
-        return api.chatshierApp.getAll(userId).then(function(resJson) {
-            var appsData = resJson.data;
+        return Promise.all([
+            api.app.getAll(userId),
+            api.tag.getAll(userId)
+        ]).then(function(resJsons) {
+            var appsData = resJsons.shift().data;
+            var appsTagsData = resJsons.shift().data;
+
             tagPanelCtrl.saveListeners.length = 0;
             tagPanelCtrl.deleteListeners.length = 0;
 
             for (var appId in appsData) {
                 var appData = appsData[appId] || {};
-                var tagsData = appData.tags || {};
+                var tagsData = appsTagsData[appId].tags || {};
                 tagPanelCtrl.addAppItem(appId, appData);
                 firstAppId = firstAppId || appId;
 
@@ -496,7 +501,7 @@ window.auth.ready.then(function(currentUser) {
             // 監聽每行標籤的儲存事件，根據 UI 上資料的變更
             // 檢查哪些資料需要更新哪些資料需要新增
             tagPanelCtrl.onSave(function(ev) {
-                var tagsData = appsData[ev.appId].tags;
+                var tagsData = appsTagsData[ev.appId].tags;
                 var tagIds = Object.keys(tagsData);
 
                 /**
@@ -570,7 +575,7 @@ window.auth.ready.then(function(currentUser) {
 
             // 監聽每行標籤的刪除事件，刪除時在原始資料上標記刪除
             tagPanelCtrl.onDelete(function(ev) {
-                var tagsData = appsData[ev.appId].tags[ev.tagId];
+                var tagsData = appsTagsData[ev.appId].tags[ev.tagId];
                 if (!tagsData) {
                     return;
                 }
@@ -653,77 +658,77 @@ window.auth.ready.then(function(currentUser) {
                 '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                    '<div class="form-group form-group-row">' +
-                        '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
-                        '<div class="col-4">' +
-                            '<div class="input-group group-name" id="group_name">' +
-                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
-                                '<span class="input-group-btn btn-update">' +
-                                    '<button class="btn btn-primary">更新</button>' +
-                                '</span>' +
-                                // '<span class="input-group-btn btn-delete">' +
-                                //     '<button class="btn btn-danger">刪除群組</button>' +
-                                // '</span>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="form-group form-group-row">' +
+                '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+                '<div class="col-4">' +
+                '<div class="input-group group-name" id="group_name">' +
+                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                '<span class="input-group-btn btn-update">' +
+                '<button class="btn btn-primary">更新</button>' +
+                '</span>' +
+                // '<span class="input-group-btn btn-delete">' +
+                //     '<button class="btn btn-danger">刪除群組</button>' +
+                // '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
 
-                    // '<div class="form-group form-group-row">' +
-                    //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
-                    //     '<div class="col-4">' +
-                    //         '<div class="input-group file-container" id="group_photo">' +
-                    //             '<span class="input-group-btn">' +
-                    //                 '<button class="btn btn-default file-choose">' +
-                    //                     '<i class="fa fa-upload"></i>' +
-                    //                 '</button>' +
-                    //             '</span>' +
-                    //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
-                    //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
-                    //             '<span class="input-group-btn">' +
-                    //                 '<img src="image/favicon.ico" class="img-preview" />' +
-                    //             '</span>' +
-                    //             '<span class="input-group-btn btn-update">' +
-                    //                 '<button class="btn btn-primary">更新</button>' +
-                    //             '</span>' +
-                    //         '</div>' +
-                    //     '</div>' +
-                    // '</div>' +
+                // '<div class="form-group form-group-row">' +
+                //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
+                //     '<div class="col-4">' +
+                //         '<div class="input-group file-container" id="group_photo">' +
+                //             '<span class="input-group-btn">' +
+                //                 '<button class="btn btn-default file-choose">' +
+                //                     '<i class="fa fa-upload"></i>' +
+                //                 '</button>' +
+                //             '</span>' +
+                //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
+                //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
+                //             '<span class="input-group-btn">' +
+                //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                //             '</span>' +
+                //             '<span class="input-group-btn btn-update">' +
+                //                 '<button class="btn btn-primary">更新</button>' +
+                //             '</span>' +
+                //         '</div>' +
+                //     '</div>' +
+                // '</div>' +
 
-                    '<table class="table table-responsive chsr-group chsr-table">' +
-                        '<thead>' +
-                            '<tr>' +
-                                '<td class="user">' +
-                                    '<div class="email-input-container">' +
-                                        '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td class="permission">' +
-                                    '<div class="input-group text-right">' +
-                                        '<div class="input-group-btn">' +
-                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                                                '<span class="permission-text">Permission</span>' + '&nbsp;' +
-                                                '<span class="caret"></span>' +
-                                            '</button>' +
-                                            '<ul class="dropdown-menu dropdown-menu-right">' +
-                                                '<li><a role="button">READ</a></li>' +
-                                                '<li><a role="button">WRITE</a></li>' +
-                                                '<li><a role="button">ADMIN</a></li>' +
-                                            '</ul>' +
-                                        '</div>' +
-                                    '</div>' +
-                                '</td>' +
-                                '<td class="actions">' +
-                                    '<div class="text-right">' +
-                                        '<button class="btn btn-default btn-block outline add-button">' +
-                                            '新增' +
-                                            '<i class="fa fa-user-plus"></i>' +
-                                        '</button>' +
-                                    '</div>' +
-                                '</td>' +
-                            '</tr>' +
-                        '</thead>' +
-                        '<tbody></tbody>' +
-                    '</table>' +
+                '<table class="table table-responsive chsr-group chsr-table">' +
+                '<thead>' +
+                '<tr>' +
+                '<td class="user">' +
+                '<div class="email-input-container">' +
+                '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
+                '</div>' +
+                '</td>' +
+                '<td class="permission">' +
+                '<div class="input-group text-right">' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                '<span class="permission-text">Permission</span>' + '&nbsp;' +
+                '<span class="caret"></span>' +
+                '</button>' +
+                '<ul class="dropdown-menu dropdown-menu-right">' +
+                '<li><a role="button">READ</a></li>' +
+                '<li><a role="button">WRITE</a></li>' +
+                '<li><a role="button">ADMIN</a></li>' +
+                '</ul>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '<td class="actions">' +
+                '<div class="text-right">' +
+                '<button class="btn btn-default btn-block outline add-button">' +
+                '新增' +
+                '<i class="fa fa-user-plus"></i>' +
+                '</button>' +
+                '</div>' +
+                '</td>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody></tbody>' +
+                '</table>' +
                 '</div>'
             );
 
@@ -1071,7 +1076,7 @@ function insertOneGroup() {
 }
 
 function findAllApps() {
-    return api.chatshierApp.getAll(userId).then(function(resJson) {
+    return api.app.getAll(userId).then(function(resJson) {
         let apps = resJson.data;
 
         for (let appId in apps) {
@@ -1085,7 +1090,7 @@ function findAllApps() {
 }
 
 function findOneApp(appId) {
-    return api.chatshierApp.getOne(appId, userId).then(function(resJson) {
+    return api.app.getOne(appId, userId).then(function(resJson) {
         let apps = resJson.data;
         formModalBody(appId, apps[appId]);
     });
@@ -1131,7 +1136,7 @@ function insertType(type, groupId, callback) {
 }
 
 function insertOneApp(appData) {
-    return api.chatshierApp.insert(userId, appData).then(function(resJson) {
+    return api.app.insert(userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1147,7 +1152,7 @@ function insertOneApp(appData) {
 }
 
 function updateOneApp(appId, appData) {
-    return api.chatshierApp.update(appId, userId, appData).then(function(resJson) {
+    return api.app.update(appId, userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1177,7 +1182,9 @@ function updateOneApp(appId, appData) {
 }
 
 function removeOneApp(appId) {
-    return api.chatshierApp.remove(appId, userId).then(function(resJson) {
+    return api.app.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+        let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+        $('#app-group').html(str);
         $.notify('成功刪除!', { type: 'success' });
         $('tr.' + appId).remove();
     });
@@ -1190,20 +1197,20 @@ function removeOneApp(appId) {
 function loadGroups(groupData, groupId) {
     let groupStr =
         '<div class="group-tab" role="tab">' +
-            '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
-                (groupData.name || '') +
-            '</a>' +
+        '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
+        (groupData.name || '') +
+        '</a>' +
         '</div>' +
         '<div id="' + groupId + '-group" class="panel-collapse collapse" role="tabpanel">' +
-            '<div class="app-table-space">' +
-                '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                    '<span class="fa fa-plus"></span> 新增APP' +
-                '</button>' +
-                '<br/><br/>' +
-                '<table class="table chsr-group chsr-table">' +
-                    '<tbody id="' + groupId + '-body"></tbody>' +
-                '</table>' +
-            '</div>' +
+        '<div class="app-table-space">' +
+        '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+        '<span class="fa fa-plus"></span> 新增APP' +
+        '</button>' +
+        '<br/><br/>' +
+        '<table class="table chsr-group chsr-table">' +
+        '<tbody id="' + groupId + '-body"></tbody>' +
+        '</table>' +
+        '</div>' +
         '</div>';
     $('#menu2 .panel-body .row .col-md-12.col-lg-12').append(groupStr);
 }

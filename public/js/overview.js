@@ -122,7 +122,7 @@
                 });
             });
         });
-        return api.chatshierApp.getAll(userId);
+        return api.app.getAll(userId);
     }).then(function(respJson) {
         allComposesData = respJson.data;
 

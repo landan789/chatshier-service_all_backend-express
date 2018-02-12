@@ -77,7 +77,7 @@
 
         $openTableElem = $('#keywordreply_open_table tbody');
         $draftTableElem = $('#keywordreply_draft_table tbody');
-        return api.chatshierApp.getAll(userId);
+        return api.app.getAll(userId);
     }).then(function(respJson) {
         allKeywordreplyData = respJson.data;
 

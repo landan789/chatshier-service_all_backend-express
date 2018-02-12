@@ -54,7 +54,9 @@ module.exports = (function() {
                             return;
                         }
                         let messagers = snap.val() || {};
-                        messagersData[appId] = messagers;
+                        messagersData[appId] = {
+                            messagers: messagers
+                        };
                     });
                 })).then(() => {
                     // 同時發送所有查找請求，所有請求處理完畢後再將對應表往下傳
@@ -68,7 +70,9 @@ module.exports = (function() {
                         return;
                     }
                     let messagers = snap.val() || {};
-                    messagersData[appId] = messagers;
+                    messagersData[appId] = {
+                        messagers: messagers
+                    };
                 });
             }
             return messagersData;

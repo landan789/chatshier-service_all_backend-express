@@ -1,7 +1,7 @@
 interface Window {
     restfulAPI: {
         setJWT: (value: string) => void,
-        chatshierApp: ChatshierAppAPI,
+        app: AppAPI,
         messager: MessagerAPI,
         ticket: TicketAPI,
         keywordreply: KeywordreplyAPI,
@@ -24,7 +24,7 @@ interface Window {
     }
 }
 
-interface ChatshierAppAPI {
+interface AppAPI {
     getAll: (userId: string) => Promise<any>;
     getOne: (appId: string, userId: string) => Promise<any>;
     insert: (userId: string, postAppData: any) => Promise<any>;
@@ -84,8 +84,8 @@ interface TagAPI {
 }
 
 interface ChatroomAPI {
-    getAllMessages: (userId: string) => Promise<any>;
-    getAllMessagesByAppId: (appId: string, userId: string) => Promise<any>;
+    getAll: (userId: string) => Promise<any>;
+    getOne: (appId: string, userId: string) => Promise<any>;
 }
 
 interface AuthAPI {
