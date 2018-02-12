@@ -92,11 +92,7 @@ window.auth.ready.then(function(currentUser) {
     });
     $(document).on('click', '#del', function() {
         let autoreplyId = $(this).attr('rel');
-        let confirmDelete = confirm('確定刪除?');
-        // console.log(autoreplyId);
-        if (confirmDelete) {
-            removeOneApp(autoreplyId);
-        }
+        removeOneApp(autoreplyId);
     });
     $(document).on('click', '#add-new-btn', function() {
         let groupId = $(this).attr('rel');
@@ -1181,14 +1177,9 @@ function updateOneApp(appId, appData) {
 }
 
 function removeOneApp(appId) {
-    return api.chatshierApp.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
-        let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-        $('#app-group').html(str);
+    return api.chatshierApp.remove(appId, userId).then(function(resJson) {
         $.notify('成功刪除!', { type: 'success' });
-        let app = resJson.data;
-        for (let appId in app) {
-            $('tr.' + appId).remove();
-        }
+        $('tr.' + appId).remove();
     });
 }
 /**

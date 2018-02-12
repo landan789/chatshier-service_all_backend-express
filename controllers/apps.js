@@ -136,7 +136,6 @@ apps.getOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-
 };
 
 apps.postOne = (req, res, next) => {
@@ -406,11 +405,7 @@ apps.deleteOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
 
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             if ('' === userId || null === userId || undefined === userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
@@ -420,46 +415,82 @@ apps.deleteOne = (req, res, next) => {
             if ('' === appId || null === appId || undefined === appId) {
                 reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
-            }
-
-
+            };
             resolve();
         });
-
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+            usersMdl.findUser(req.params.userid, (user) => {
+                if (false === user || undefined === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-
-                resolve();
-
+                resolve(user);
             });
         });
+    }).then((user) => {
+        return new Promise((resolve, reject) => {
+            appsMdl.findByAppId(req.params.appid, (apps) => {
+                if (null === apps || undefined === apps || '' === apps) {
+                    reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(apps);
+            });
+        });
+    }).then((apps) => {
+        var app = Object.values(apps)[0];
+        var groupId = app.group_id;
+        return new Promise((resolve, reject) => {
+            groupsMdl.findGroups(groupId, (groups) => {
+                if (null === groups || undefined === groups || '' === groups) {
+                    reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                    return;
+                };
+                resolve(groups);
+            });
+        });
+    }).then((groups) => {
+        var group = Object.values(groups)[0];
+        var members = group.members;
 
+        var userIds = Object.values(members).map((member) => {
+            if (0 === member.isDeleted) {
+                return member.user_id;
+            };
+        });
+
+        var index = userIds.indexOf(req.params.userid);
+
+        if (0 > index) {
+            return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+        };
+
+        var member = Object.values(members)[index];
+
+        if (0 === member.status) {
+            return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+        };
+
+        if (READ === member.type) {
+            return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
+        };
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.remove(appId, (result) => {
+            appsMdl.remove(req.params.appid, (result) => {
                 if (false === result) {
                     reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     return;
                 }
-
                 resolve();
-
             });
         });
-
     }).then(() => {
         var json = {
             status: 1,
             msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
-        }
+        };
         res.status(200).json(json);
-
     }).catch((ERROR) => {
         var json = {
             status: 0,
@@ -468,6 +499,5 @@ apps.deleteOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
-
+};
 module.exports = apps;
