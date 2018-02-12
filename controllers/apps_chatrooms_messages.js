@@ -4,6 +4,7 @@ module.exports = (function() {
 
     const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
     const usersMdl = require('../models/users');
+    const groupsMdl = require('../models/groups');
 
     function AppsChatroomsMessagesController() {}
 
@@ -15,15 +16,26 @@ module.exports = (function() {
 
         let proceed = Promise.resolve();
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+        }).then(() => { // 先根據 userId 取得使用者所有設定的 group 清單
             return new Promise((resolve, reject) => {
-                if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                // 先根據 userId 取得使用者所有設定的 app 清單
-                usersMdl.findAppIdsByUserId(userId, (appIds) => {
-                    if (!appIds) {
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(user);
+                });
+            });
+        }).then((user) => { // 再根據 groupId 取得使用者所有設定的 app 清單
+            var groupIds = user.group_ids || [];
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (null === appIds || undefined === appIds || '' === appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
                     }
                     resolve(appIds);
@@ -66,14 +78,33 @@ module.exports = (function() {
 
         let proceed = Promise.resolve();
         proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+            };
+        }).then(() => { // 先根據 userId 取得使用者所有設定的 group 清單
             return new Promise((resolve, reject) => {
-                if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                // 1. 先根據 userId 取得使用者所有設定的 app 清單
-                usersMdl.findAppIdsByUserId(userId, (data) => {
-                    resolve(data);
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(user);
+                });
+            });
+        }).then((user) => { // 再根據 groupId 取得使用者所有設定的 app 清單
+            var groupIds = user.group_ids || [];
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (null === appIds || undefined === appIds || '' === appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    }
+                    resolve(appIds);
                 });
             });
         }).then((appIds) => {

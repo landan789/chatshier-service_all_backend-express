@@ -6,6 +6,7 @@ module.exports = (function() {
     const appsComposesMdl = require('../models/apps_composes');
     // const appsMessagesMdl = require('../models/apps_messages');
     const usersMdl = require('../models/users');
+    const groupsMdl = require('../models/groups');
 
     function AppsComposesController() {}
 
@@ -19,15 +20,30 @@ module.exports = (function() {
 
         let proceed = Promise.resolve();
         proceed.then(() => {
-            // 1. 先用 userId 去 users model 找到 appId 清單
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+        }).then(() => {
+            // 1. 先用 userId 去 groups model 找到 appId 清單
             return new Promise((resolve, reject) => {
-                if (!userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-
-                usersMdl.findAppIdsByUserId(userId, (data) => {
-                    resolve(data);
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(user);
+                });
+            });
+        }).then((user) => {
+            var groupIds = user.group_ids || [];
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (null === appIds || undefined === appIds || '' === appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    }
+                    resolve(appIds);
                 });
             });
         }).then((appIds) => {
@@ -73,20 +89,34 @@ module.exports = (function() {
         let appId = req.params.appid;
 
         let proceed = Promise.resolve();
-        proceed.then(() => { // 取得目前user下所有appIds
+        proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+            };
+        }).then(() => { // 取得目前user下所有groupIds
             return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                usersMdl.findUser(userId, (user) => {
-                    let appIds = user.app_ids || [];
-                    // 判斷 user 中是否有目前 appId
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(user);
+                });
+            });
+        }).then((user) => { // 判斷groups中是否有目前appId
+            var groupIds = user.group_ids || [];
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(groupIds, (appIds) => {
                     if (!appIds.includes(appId)) {
                         reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
-                    resolve(appIds);
+                    resolve();
                 });
             });
         }).then(() => { // 取得目前compose
@@ -140,28 +170,35 @@ module.exports = (function() {
         let proceed = new Promise((resolve, reject) => {
             resolve();
         });
-        proceed.then(() => { // 取得目前user下所有appIds
+        proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+            };
+        }).then(() => { // 取得目前user下所有groupIds
             return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                usersMdl.findUser(userId, (user) => {
-                    let appIds = user.app_ids;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(appIds);
+                    resolve(user);
                 });
             });
-        }).then((appIds) => { // 判斷user中是否有目前appId
+        }).then((user) => { // 判斷groups中是否有目前appId
+            var groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
-                if (false === appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                    return;
-                }
-                resolve();
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (!appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+                    resolve();
+                });
             });
         }).then(() => { // 新增compose到目前appId
             return new Promise((resolve, reject) => {
@@ -215,28 +252,39 @@ module.exports = (function() {
             resolve();
         });
 
-        proceed.then(() => { // 取得目前user下所有appIds
+        proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.composeid || undefined === req.params.composeid || null === req.params.composeid) {
+                return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+            };
+        }).then(() => { // 取得目前user下所有groupIds
             return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                usersMdl.findUser(userId, (user) => {
-                    let appIds = user.app_ids;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(appIds);
+                    resolve(user);
                 });
             });
-        }).then((appIds) => { // 判斷user中是否有目前appId
+        }).then((user) => { // 判斷groups中是否有目前appId
+            var groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
-                if (false === appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                    return;
-                }
-                resolve();
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (!appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+                    resolve();
+                });
             });
         }).then(() => { // 取得目前appId下所有composes
             return new Promise((resolve, reject) => {
@@ -297,28 +345,39 @@ module.exports = (function() {
             resolve();
         });
 
-        proceed.then(() => { // 取得目前user下所有appIds
+        proceed.then(() => {
+            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+            };
+
+            if ('' === req.params.composeid || undefined === req.params.composeid || null === req.params.composeid) {
+                return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+            };
+        }).then(() => { // 取得目前user下所有groupIds
             return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                usersMdl.findUser(userId, (user) => {
-                    let appIds = user.app_ids;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                usersMdl.findUser(userId, (data) => {
+                    var user = data;
+                    if (undefined === user || null === user || '' === user) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(appIds);
+                    resolve(user);
                 });
             });
-        }).then((appIds) => { // 判斷user中是否有目前appId
+        }).then((user) => { // 判斷groups中是否有目前appId
+            var groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
-                if (false === appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                    return;
-                }
-                resolve();
+                groupsMdl.findAppIds(groupIds, (appIds) => {
+                    if (!appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                        return;
+                    }
+                    resolve();
+                });
             });
         }).then(() => { // 取得目前appId下所有composes
             return new Promise((resolve, reject) => {

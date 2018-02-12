@@ -2,6 +2,7 @@ var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
 var usersMdl = require('../models/users');
 var appsMdl = require('../models/apps');
+var groupsMdl = require('../models/groups');
 var appsAutorepliesMdl = require('../models/apps_autoreplies');
 var appsAutoreplies = {};
 
@@ -13,11 +14,26 @@ appsAutoreplies.getAll = (req, res, next) => {
     });
 
     proceed.then(() => {
+        if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+        };
+    }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (undefined === appIds || null === appIds || '' === appIds) {
+            usersMdl.findUser(userId, (data) => {
+                var user = data;
+                if (undefined === user || null === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                if (null === appIds || undefined === appIds || '' === appIds) {
+                    reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 }
                 resolve(appIds);
@@ -32,10 +48,8 @@ appsAutoreplies.getAll = (req, res, next) => {
                     return;
                 }
                 resolve(data);
-
             });
         });
-
     }).then((data) => {
         let apps = data;
         var json = {
@@ -63,9 +77,28 @@ appsAutoreplies.getOne = (req, res, next) => {
     });
 
     proceed.then(() => {
+        if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+            return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+        };
+    }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                let appIds = data || [];
+            usersMdl.findUser(userId, (data) => {
+                var user = data;
+                if (undefined === user || null === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
                 if (!appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
@@ -98,7 +131,7 @@ appsAutoreplies.getOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
 
 appsAutoreplies.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
@@ -117,20 +150,36 @@ appsAutoreplies.postOne = (req, res, next) => {
     });
 
     proceed.then(() => {
+        if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+            return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+        };
+    }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+            usersMdl.findUser(userId, (data) => {
+                var user = data;
+                if (undefined === user || null === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                if (!appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
-
-                resolve(appIds);
-
+                resolve();
             });
         });
-
-    }).then((appIds) => {
+    }).then(() => {
         return new Promise((resolve, reject) => {
             appsAutorepliesMdl.insert(appId, autoreply, (appsAutoreplies) => {
                 if (null === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {
@@ -155,7 +204,7 @@ appsAutoreplies.postOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
 
 appsAutoreplies.putOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
@@ -182,17 +231,58 @@ appsAutoreplies.putOne = (req, res, next) => {
     });
 
     proceed.then(() => {
+        if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+            return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.autoreplyid || undefined === req.params.autoreplyid || null === req.params.autoreplyid) {
+            return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+        };
+    }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+            usersMdl.findUser(userId, (data) => {
+                var user = data;
+                if (undefined === user || null === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                if (!appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
         });
-
+    }).then(() => { // 取得目前appId下所有autoreplies
+        return new Promise((resolve, reject) => {
+            appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                if (null === data || '' === data || undefined === data) {
+                    reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                    return;
+                }
+                let autoreplyIds = Object.keys(data);
+                resolve(autoreplyIds);
+            });
+        });
+    }).then((autoreplyIds) => { // 判斷appId中是否有目前autoreplyId
+        return new Promise((resolve, reject) => {
+            if (false === autoreplyIds.includes(autoreplyId)) {
+                reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                return;
+            }
+            resolve();
+        });
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsAutorepliesMdl.update(appId, autoreplyId, autoreply, (data) => {
@@ -218,7 +308,7 @@ appsAutoreplies.putOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
 
 appsAutoreplies.deleteOne = (req, res, next) => {
     var appId = req.params.appid;
@@ -230,15 +320,57 @@ appsAutoreplies.deleteOne = (req, res, next) => {
     });
 
     proceed.then(() => {
+        if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.appid || undefined === req.params.appid || null === req.params.appid) {
+            return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+        };
+
+        if ('' === req.params.autoreplyid || undefined === req.params.autoreplyid || null === req.params.autoreplyid) {
+            return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+        };
+    }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findAppIdsByUserId(userId, (data) => {
-                var appIds = data;
-                if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length) || !appIds.includes(appId)) {
+            usersMdl.findUser(userId, (data) => {
+                var user = data;
+                if (undefined === user || null === user || '' === user) {
+                    reject(API_ERROR.USER_FAILED_TO_FIND);
+                    return;
+                }
+                resolve(user);
+            });
+        });
+    }).then((user) => {
+        var groupIds = user.group_ids || [];
+        return new Promise((resolve, reject) => {
+            groupsMdl.findAppIds(groupIds, (appIds) => {
+                if (!appIds.includes(appId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                     return;
                 }
                 resolve();
             });
+        });
+    }).then(() => { // 取得目前appId下所有autoreplies
+        return new Promise((resolve, reject) => {
+            appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                if (null === data || '' === data || undefined === data) {
+                    reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                    return;
+                }
+                let autoreplyIds = Object.keys(data);
+                resolve(autoreplyIds);
+            });
+        });
+    }).then((autoreplyIds) => { // 判斷appId中是否有目前autoreplyId
+        return new Promise((resolve, reject) => {
+            if (false === autoreplyIds.includes(autoreplyId)) {
+                reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                return;
+            }
+            resolve();
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
@@ -265,6 +397,6 @@ appsAutoreplies.deleteOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
 
 module.exports = appsAutoreplies;
