@@ -276,7 +276,8 @@ apps.postOne = (req, res, next) => {
         };
         res.status(403).json(json);
     });
-}
+};
+
 apps.putOne = (req, res, next) => {
     var userId = req.params.userid;
     var appId = req.params.appid;
@@ -339,7 +340,7 @@ apps.putOne = (req, res, next) => {
         });
     }).then((apps) => {
         var app = Object.values(apps)[0];
-        var groupId = app.groupid;
+        var groupId = app.group_id;
         return new Promise((resolve, reject) => {
             groupsMdl.findGroups(groupId, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {
