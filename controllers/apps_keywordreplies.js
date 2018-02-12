@@ -227,7 +227,7 @@ module.exports = (function() {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
             text: req.body.text || '',
-            replyCount: req.body.replyCount ? req.body.replyCount : 0,
+            replyCount: 0,
             status: req.body.status ? req.body.status : 0,
             updatedTime: req.body.updatedTime || Date.now()
         };

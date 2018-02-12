@@ -246,6 +246,7 @@ function init(server) {
         });
 
         Promise.all([p1, p2, p3, p4]).then((result) => {
+            req.keywordreplies = result[0];
             var keywordMessages = Object.values(result[0]);
             var templateMessages = Object.values(result[1]);
             var autoMessages = Object.values(result[2]);
@@ -280,6 +281,26 @@ function init(server) {
                         return fbBot.sendTextMessage(req.messagerId, message);
                     }));
             }
+        }).then(() => {
+            var keywordreplies = req.keywordreplies;
+            var keywordreplyIds = req.keywordreplyIds;
+            if (!keywordreplies.length) {
+                Promise.resolve();
+                return;
+            }
+            Promise.all(keywordreplyIds.map((keywordreplyId, index) => {
+                var replyCount = keywordreplies[index].replyCount;
+                replyCount++;
+                let putKeywordreply = {
+                    replyCount: replyCount
+                };
+                appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply, (data) => {
+                    if (!data) {
+                        Promise.reject(new Error());
+                    }
+                    Promise.resolve();
+                });
+            }));
         }).then(() => {
             var Uid = req.messagerId;
             switch (req.app.type) {
