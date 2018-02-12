@@ -1190,11 +1190,11 @@ function removeOneApp(appId) {
 function loadGroups(groupData, groupId) {
     let groupStr =
         '<div class="group-tab" role="tab">' +
-            '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+            '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
                 (groupData.name || '') +
             '</a>' +
         '</div>' +
-        '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
+        '<div id="' + groupId + '-group" class="panel-collapse collapse" role="tabpanel">' +
             '<div class="app-table-space">' +
                 '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
                     '<span class="fa fa-plus"></span> 新增APP' +
