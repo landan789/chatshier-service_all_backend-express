@@ -895,8 +895,8 @@ window.auth.ready.then(function(currentUser) {
                         '</div>' +
                     '</td>' +
                     '<td class="actions">' +
-                        '<div class="text-right">' +
-                            '<a class="btn-remove" role="button">' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
                                 '<span class="chsr-icon">' +
                                     '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
                                 '</span>' +
