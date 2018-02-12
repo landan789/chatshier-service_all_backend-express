@@ -14,8 +14,8 @@
         WORDCLOUR: 4
     });
 
-    var HOUR = 3600000;
-    var DATE = 86400000;
+    var HOUR = 60 * 60 * 1000;
+    var DATE = 24 * HOUR;
 
     var chartInstance = null;
     var messagesData = {}; // 所有訊息的時間
@@ -160,28 +160,17 @@
         analyzeType = AnalyzeType.MONTH;
         var timeData = getSelecedTimeData();
 
-        var getMonthTime = function(t, n) {
-            // t=10/15 n=1 => return 10/1
-            // t=10/15 n=2 => return 11/1
-            // 日期都以毫秒number表示
-            var date = new Date(t);
-            var y = date.getFullYear();
-            var m = date.getMonth() + n;
-            if (m > 12) {
-                m -= 12;
-                y++;
-            }
-            var newDate = new Date(y + '/' + m);
-            return newDate.getTime();
-        };
-
         var chartData = []; // 要餵給AmCharts的資料
+        var beginDate = new Date(startTime);
+        var endDate = new Date(endTime);
+
         var nextDate = new Date(startTime);
-        nextDate.setDate(1);
         nextDate.setHours(0, 0, 0);
         var nowSeg = nextDate.getTime(); // 當前月份的時間
 
-        nextDate.setMonth(nextDate.getMonth() + 1);
+        nextDate < endDate && nextDate.setMonth(nextDate.getMonth() + 1);
+        nextDate > endDate && nextDate.setDate(endDate.getDate());
+
         var nextSeg = nextDate.getTime(); // 下個月份的時間
         var msgCount = 0; // 當前月份的訊息數
 
@@ -211,8 +200,6 @@
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
-        var beginDate = new Date(startTime);
-        var endDate = new Date(endTime);
         var beginLabel = (beginDate.getMonth() + 1) + '月';
         var endLabel = (endDate.getMonth() + 1) + '月';
 
