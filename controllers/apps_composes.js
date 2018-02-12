@@ -68,13 +68,11 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsComposesController.prototype.getOne = (req, res) => {
-        var userId = req.params.userid;
-        var composeId = req.params.composeid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let composeId = req.params.composeid;
+        let appId = req.params.appid;
 
-        var proceed = new Promise((resolve, reject) => {
-            resolve();
-        });
+        let proceed = Promise.resolve();
         proceed.then(() => { // 取得目前user下所有appIds
             return new Promise((resolve, reject) => {
                 if ('' === userId || null === userId) {
@@ -82,26 +80,19 @@ module.exports = (function() {
                     return;
                 }
                 usersMdl.findUser(userId, (user) => {
-                    var appIds = user.app_ids;
-                    if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                    let appIds = user.app_ids || [];
+                    // 判斷 user 中是否有目前 appId
+                    if (!appIds.includes(appId)) {
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
                     resolve(appIds);
                 });
             });
-        }).then((appIds) => { // 判斷user中是否有目前appId
-            return new Promise((resolve, reject) => {
-                if (false === appIds.includes(appId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                    return;
-                }
-                resolve();
-            });
         }).then(() => { // 取得目前compose
             return new Promise((resolve, reject) => {
                 appsComposesMdl.findOne(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
+                    if (!data) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         return;
                     }
@@ -110,14 +101,14 @@ module.exports = (function() {
             });
         }).then((compose) => {
             let result = compose !== undefined ? compose : {};
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 data: result
             };
             res.status(200).json(json);
         }).catch((ERR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERR.MSG,
                 code: ERR.CODE
@@ -132,21 +123,21 @@ module.exports = (function() {
      */
     AppsComposesController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        var userId = req.params.userid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let appId = req.params.appid;
 
-        var status = req.body.status;
-        var time = req.body.time;
-        var type = req.body.type;
-        var text = req.body.text;
-        var postCompose = {
+        let status = req.body.status;
+        let time = req.body.time;
+        let type = req.body.type;
+        let text = req.body.text;
+        let postCompose = {
             type: type,
             text: text,
             time: time,
             status: status
         };
 
-        var proceed = new Promise((resolve, reject) => {
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
         proceed.then(() => { // 取得目前user下所有appIds
@@ -156,7 +147,7 @@ module.exports = (function() {
                     return;
                 }
                 usersMdl.findUser(userId, (user) => {
-                    var appIds = user.app_ids;
+                    let appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -184,14 +175,14 @@ module.exports = (function() {
             });
         }).then((compose) => {
             let result = compose !== undefined ? compose : {};
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 data: result
             };
             res.status(200).json(json);
         }).catch((ERR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERR.MSG,
                 code: ERR.CODE
@@ -206,21 +197,21 @@ module.exports = (function() {
      */
     AppsComposesController.prototype.putOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        var userId = req.params.userid;
-        var composeId = req.params.composeid;
-        var appId = req.params.appid;
-        var status = req.body.status;
-        var time = req.body.time;
-        var type = req.body.type;
-        var text = req.body.text;
-        var putComposesData = {
+        let userId = req.params.userid;
+        let composeId = req.params.composeid;
+        let appId = req.params.appid;
+        let status = req.body.status;
+        let time = req.body.time;
+        let type = req.body.type;
+        let text = req.body.text;
+        let putComposesData = {
             type: type,
             text: text,
             time: time,
             status: status
         };
 
-        var proceed = new Promise((resolve, reject) => {
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
 
@@ -231,7 +222,7 @@ module.exports = (function() {
                     return;
                 }
                 usersMdl.findUser(userId, (user) => {
-                    var appIds = user.app_ids;
+                    let appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -254,7 +245,7 @@ module.exports = (function() {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         return;
                     }
-                    var composeIds = Object.keys(data);
+                    let composeIds = Object.keys(data);
                     resolve(composeIds);
                 });
             });
@@ -277,14 +268,14 @@ module.exports = (function() {
             });
         }).then((AppsCompose) => {
             let result = AppsCompose !== undefined ? AppsCompose : {};
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                 data: result
             };
             res.status(200).json(json);
         }).catch((ERR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERR.MSG,
                 code: ERR.CODE
@@ -298,11 +289,11 @@ module.exports = (function() {
      */
     AppsComposesController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        var userId = req.params.userid;
-        var composeId = req.params.composeid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let composeId = req.params.composeid;
+        let appId = req.params.appid;
 
-        var proceed = new Promise((resolve, reject) => {
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
 
@@ -313,7 +304,7 @@ module.exports = (function() {
                     return;
                 }
                 usersMdl.findUser(userId, (user) => {
-                    var appIds = user.app_ids;
+                    let appIds = user.app_ids;
                     if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -336,7 +327,7 @@ module.exports = (function() {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         return;
                     }
-                    var composeIds = Object.keys(data);
+                    let composeIds = Object.keys(data);
                     resolve(composeIds);
                 });
             });
@@ -359,14 +350,14 @@ module.exports = (function() {
             });
         }).then((AppsCompose) => {
             let result = AppsCompose !== undefined ? AppsCompose : {};
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                 data: result
             };
             res.status(200).json(json);
         }).catch((ERR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERR.MSG,
                 code: ERR.CODE

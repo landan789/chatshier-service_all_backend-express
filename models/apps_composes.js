@@ -61,11 +61,7 @@ module.exports = (function() {
      */
     AppsComposesModel.prototype.findOne = (appId, callback) => {
         return admin.database().ref('apps/' + appId + '/composes').once('value').then((snap) => {
-            let composes = snap.val();
-            if (!composes) {
-                return Promise.reject(new Error());
-            }
-
+            let composes = snap.val() || {};
             let appsComposes = {
                 [appId]: {
                     composes: composes
