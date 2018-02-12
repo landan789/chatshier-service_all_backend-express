@@ -176,10 +176,16 @@
         };
 
         var chartData = []; // 要餵給AmCharts的資料
-        var nowSeg = getMonthTime(startTime, 1); // 當前月份的時間
-        var nextSeg = getMonthTime(startTime, 2); // 下個月份的時間
+        var nextDate = new Date(startTime);
+        nextDate.setDate(1);
+        nextDate.setHours(0, 0, 0);
+        var nowSeg = nextDate.getTime(); // 當前月份的時間
+
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        var nextSeg = nextDate.getTime(); // 下個月份的時間
         var msgCount = 0; // 當前月份的訊息數
 
+        var xAxisLabalMap = {};
         while (timeData.length) {
             var msgTime = timeData.shift();
             if (msgTime <= nextSeg) {
@@ -191,6 +197,7 @@
             // 若這筆資料已到下個月，則結算當前月份
             var date = new Date(nowSeg); // 當前月份
             var xAxisLabal = (date.getMonth() + 1) + '月';
+            xAxisLabalMap[xAxisLabal] = true;
 
             chartData.push({
                 time: xAxisLabal,
@@ -198,7 +205,8 @@
             });
 
             nowSeg = nextSeg; // 開始計算下個月份
-            nextSeg = getMonthTime(nextSeg, 2);
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            nextSeg = nextDate.getTime();
             msgCount = 0;
         }
 
@@ -208,15 +216,17 @@
         var beginLabel = (beginDate.getMonth() + 1) + '月';
         var endLabel = (endDate.getMonth() + 1) + '月';
 
-        chartData.unshift({
+        !xAxisLabalMap[beginLabel] && chartData.unshift({
             time: beginLabel,
             messages: 0
         });
+        xAxisLabalMap[beginLabel] = true;
 
-        beginLabel !== endLabel && chartData.push({
+        !xAxisLabalMap[endLabel] && chartData.push({
             time: endLabel,
             messages: 0
         });
+        xAxisLabalMap[endLabel] = true;
 
         generateChart(chartData); // 將資料餵給AmCharts
     }
