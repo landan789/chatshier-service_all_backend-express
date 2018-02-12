@@ -33,7 +33,7 @@ module.exports = (function() {
     };
 
     AppsTagsModel.prototype.SetsTypeEnum = setsTypeEnum;
-    AppsTagsModel.prototype.typeEnum = typeEnum;
+    AppsTagsModel.prototype.TypeEnum = typeEnum;
 
     /**
      * 根據輸入的 appId 陣列清單取得所有的標籤

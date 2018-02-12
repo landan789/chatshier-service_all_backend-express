@@ -7,15 +7,17 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
-    var usersMdl = require('../models/users');
-    var groupsMdl = require('../models/groups');
+    const appsMdl = require('../models/apps');
+    const appsTagsMdl = require('../models/apps_tags');
+    const usersMdl = require('../models/users');
+    const groupsMdl = require('../models/groups');
 
     function GroupsController() {};
 
     GroupsController.prototype.getAll = function(req, res, next) {
-        var userId = req.params.userid;
+        let userId = req.params.userid;
 
-        var proceed = Promise.resolve();
+        let proceed = Promise.resolve();
         proceed.then(() => {
             if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
@@ -23,7 +25,7 @@ module.exports = (function() {
         }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(userId, (data) => {
-                    var user = data;
+                    let user = data;
                     if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
@@ -32,7 +34,7 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids || [];
+            let groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
                 groupsMdl.findGroups(groupIds, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
@@ -43,14 +45,14 @@ module.exports = (function() {
                 });
             });
         }).then((groups) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 data: groups
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -60,26 +62,22 @@ module.exports = (function() {
     };
 
     GroupsController.prototype.postOne = function(req, res, next) {
-        var userId = req.params.userid;
-        var postGroup = {
+        let userId = req.params.userid;
+        let postGroup = {
             name: req.body.name
         };
 
-        Promise.resolve().then(() => {
-            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
-                return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
-            };
-
-            if ('' === req.body.name || undefined === req.body.name || null === req.body.name) {
-                return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
-            };
-        }).then(() => {
+        return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(req.params.userid, (data) => {
-                    var user = data;
-                    if (undefined === user || null === user || '' === user) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
+                if (!userId) {
+                    return reject(API_ERROR.USERID_WAS_EMPTY);
+                } else if (!postGroup.name) {
+                    return reject(API_ERROR.NAME_WAS_EMPTY);
+                };
+
+                usersMdl.findUser(userId, (user) => {
+                    if (!user) {
+                        return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
                     resolve(user);
                 });
@@ -87,9 +85,8 @@ module.exports = (function() {
         }).then((user) => {
             return new Promise((resolve, reject) => {
                 groupsMdl.insert(userId, postGroup, (groups) => {
-                    if (null === groups || undefined === groups || '' === groups) {
-                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
-                        return;
+                    if (!groups) {
+                        return reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                     }
                     resolve(groups);
                 });
@@ -104,24 +101,49 @@ module.exports = (function() {
                     user.group_ids = [];
                 }
 
-                user.group_ids.push(groupId);
                 return new Promise((resolve) => {
-                    usersMdl.updateUserByUserId(userId, user, () => {
-                        let memberId = Object.keys(groups[groupId].members).shift();
-                        groups[groupId].members[memberId].user = user;
-                        resolve(groups);
+                    user.group_ids.push(groupId);
+                    usersMdl.updateUserByUserId(userId, user, resolve);
+                }).then(() => {
+                    // 群組新增處理完畢後，自動新增一個為內部聊天室的 App
+                    return new Promise((resolve, reject) => {
+                        let postApp = {
+                            name: 'Chatshier app',
+                            type: 'CHATSHIER',
+                            group_id: groupId
+                        };
+
+                        appsMdl.insert(userId, postApp, (apps) => {
+                            if (!apps) {
+                                reject(API_ERROR.APP_FAILED_TO_INSERT);
+                                return;
+                            }
+                            resolve(apps);
+                        });
                     });
+                }).then((apps) => {
+                    let appId = Object.keys(apps).shift();
+                    return new Promise((resolve, reject) => {
+                        appsTagsMdl.insertDefaultTags(appId, (tags) => {
+                            if (!tags) {
+                                return reject(API_ERROR.APP_FAILED_TO_INSERT);
+                            }
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    return groups;
                 });
             });
         }).then((groups) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 data: groups
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -131,14 +153,14 @@ module.exports = (function() {
     };
 
     GroupsController.prototype.putOne = function(req, res, next) {
-        var userId = req.params.userid;
-        var groupId = req.params.groupid;
-        var putGroup = {
+        let userId = req.params.userid;
+        let groupId = req.params.groupid;
+        let putGroup = {
             name: req.body.name || null
         };
 
         // 前端未填入的訊息，不覆蓋
-        for (var key in putGroup) {
+        for (let key in putGroup) {
             if (null === putGroup[key]) {
                 delete putGroup[key];
             };
@@ -158,7 +180,7 @@ module.exports = (function() {
         }).then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(req.params.userid, (data) => {
-                    var user = data;
+                    let user = data;
                     if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
@@ -167,8 +189,8 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
+            let groupIds = user.group_ids;
+            let index = groupIds.indexOf(groupId);
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
@@ -183,16 +205,16 @@ module.exports = (function() {
                 });
             });
         }).then((groups) => {
-            var group = Object.values(groups)[0];
-            var members = group.members;
-            var userIds = Object.values(members).map((member) => {
+            let group = Object.values(groups)[0];
+            let members = group.members;
+            let userIds = Object.values(members).map((member) => {
                 return member.user_id;
             });
 
-            var index = userIds.indexOf(userId);
+            let index = userIds.indexOf(userId);
 
             // member 當下 userid 在此 group 對應到的 群組成員
-            var member = Object.values(members)[index];
+            let member = Object.values(members)[index];
             if (READ === member.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
             };
@@ -207,14 +229,14 @@ module.exports = (function() {
                 });
             });
         }).then((groups) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                 data: groups
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE

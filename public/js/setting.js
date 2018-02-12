@@ -37,13 +37,13 @@ window.auth.ready.then(function(currentUser) {
     $('#setting-modal-submit-btn').click(function(event) {
         event.preventDefault();
         let type = $(this).parent().parent().find('#type').text();
-        let groupid;
+        let groupId;
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
                 let type = $(this).parent().parent().find('#app-group-select option:selected').val();
-                groupid = $('#groupid').text();
-                insertType(type, groupid, (data) => {
+                groupId = $('#groupId').text();
+                insertType(type, groupId, (data) => {
                     insertOneApp(data);
                 });
                 break;
@@ -52,7 +52,7 @@ window.auth.ready.then(function(currentUser) {
                 break;
             case 'updateApp':
                 let appId = $(this).parent().parent().find('#webhook-id').text();
-                groupid = $(this).parent().parent().find('#groupid').text();
+                groupId = $(this).parent().parent().find('#groupId').text();
                 // console.log($('#facebook-name').val())
                 if ($('#facebook-name').val() === undefined) {
                     let name = $('#name').val();
@@ -99,11 +99,11 @@ window.auth.ready.then(function(currentUser) {
         }
     });
     $(document).on('click', '#add-new-btn', function() {
-        let groupid = $(this).attr('rel');
+        let groupId = $(this).attr('rel');
         let formStr =
             '<form>' +
             '<div id="type" hidden>insertNewApp</div>' +
-            '<div id="groupid" hidden>' + groupid + '</div>' +
+            '<div id="groupId" hidden>' + groupId + '</div>' +
             '<br/>' +
             '<label class="col-2 col-form-label">新增群組: </label>' +
             '<select id="app-group-select" class="form-control">' +
@@ -1095,7 +1095,7 @@ function findOneApp(appId) {
     });
 }
 
-function insertType(type, groupid, callback) {
+function insertType(type, groupId, callback) {
     let app = {};
     switch (type) {
         case LINE:
@@ -1109,7 +1109,7 @@ function insertType(type, groupid, callback) {
                 secret: lineSecret,
                 token1: lineToken,
                 type: type,
-                groupid: groupid
+                group_id: groupId
             };
             break;
         case FACEBOOK:
@@ -1127,12 +1127,11 @@ function insertType(type, groupid, callback) {
                 token1: fbValidToken,
                 token2: fbPageToken,
                 type: type,
-                groupid: groupid
+                group_id: groupId
             };
             break;
     }
     callback(app);
-
 }
 
 function insertOneApp(appData) {
@@ -1200,20 +1199,20 @@ function removeOneApp(appId) {
 function loadGroups(groupData, groupId) {
     let groupStr =
         '<div class="group-tab" role="tab">' +
-        '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
-        (groupData.name || '') +
-        '</a>' +
+            '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+                (groupData.name || '') +
+            '</a>' +
         '</div>' +
         '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-        '<div class="app-table-space">' +
-        '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-        '<span class="fa fa-plus"></span> 新增APP' +
-        '</button>' +
-        '<br/><br/>' +
-        '<table class="table chsr-group chsr-table">' +
-        '<tbody id="' + groupId + '-body"></tbody>' +
-        '</table>' +
-        '</div>' +
+            '<div class="app-table-space">' +
+                '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+                    '<span class="fa fa-plus"></span> 新增APP' +
+                '</button>' +
+                '<br/><br/>' +
+                '<table class="table chsr-group chsr-table">' +
+                    '<tbody id="' + groupId + '-body"></tbody>' +
+                '</table>' +
+            '</div>' +
         '</div>';
     $('#menu2 .panel-body .row .col-md-12.col-lg-12').append(groupStr);
 }
@@ -1313,7 +1312,7 @@ function formModalBody(id, app) {
                 '<div class="form-group" hidden>' +
                 '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
                 '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupid">' + app.group_id + '</span>' +
+                '<span id="groupId">' + app.group_id + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-line-1">' +
                 '<div class="form-group">' +
@@ -1351,7 +1350,7 @@ function formModalBody(id, app) {
                 '<div class="form-group" hidden>' +
                 '<label class="col-2 col-form-label">ID</label>' +
                 '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupid">' + app.group_id + '</span>' +
+                '<span id="groupId">' + app.group_id + '</span>' +
                 '</div>' +
                 '<div id="prof-edit-fb">' +
                 '<div class="form-group">' +

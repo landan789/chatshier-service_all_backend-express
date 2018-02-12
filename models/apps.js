@@ -1,6 +1,14 @@
 var admin = require('firebase-admin'); // firebase admin SDK
 var apps = {};
 
+const typeEnum = Object.freeze({
+    LINE: 'LINE',
+    FACEBOOK: 'FACEBOOK',
+    CHATSHIER: 'CHATSHIER'
+});
+
+apps.typeEnum = typeEnum;
+
 apps._schema = (callback) => {
     var json = {
         id1: '',
@@ -88,91 +96,71 @@ apps.findAppsByAppIds = (appIds, callback) => {
 };
 
 apps.insert = (userId, postApp, callback) => {
-    var groupId = postApp.group_id;
-    var appId;
-    var app;
+    let groupId = postApp.group_id;
+    let appId = '';
+
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
-            apps._schema(initApp => {
-                resolve(initApp);
-            });
-        });
-    }).then((initApp) => {
-        app = Object.assign(initApp, postApp);
-
-        return new Promise((resolve, reject) => {
-            appId = admin.database().ref('apps').push(app).key;
-            resolve(appId);
-        });
-    }).then((appId) => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId).once('value', (snap) => {
-                var user = snap.val();
-                var _groupIds = user.group_ids;
-
-                // 當下 user 沒有 該 group ，則不能新增 app
-                if (0 > _groupIds.indexOf(groupId)) {
-                    return Promise.reject();
-                };
-
-                var appIds = !user.hasOwnProperty('app_ids') ? [] : user.app_ids;
-                if (null === user || '' === user || undefined === user) {
-                    reject(new Error());
-                    return;
-                }
-                var n = appIds.length;
-                var i;
-                for (i = 0; i < n; i++) {
-                    var _appId = appIds[i];
-                    if (_appId === appId) {
-                        appIds.slice(i, 1);
-                    }
-                }
-
-                appIds.unshift(appId);
-                resolve(appIds);
-            });
-        });
-    }).then((appIds) => {
-        return new Promise((resolve, reject) => {
-            var webhook = {
-                app_id: appIds[0]
-            };
-
-            admin.database().ref('webhooks').push(webhook).then((ref) => {
-                var webhookId = ref.key;
-                var user = {
-                    app_ids: appIds
-                };
-                app = {
-                    webhook_id: webhookId
-                };
-                return app;
-            }).then((app) => {
-                return admin.database().ref('apps/' + appIds[0]).update(app);
-            }).then(() => {
-                return admin.database().ref('groups/' + groupId).once('value');
-            }).then((snap) => {
-                var group = snap.val();
-                var appIds = group.app_ids || [];
-                appIds.unshift(appId);
-                var _group = {
-                    app_ids: appIds
-                };
-
-                return admin.database().ref('groups/' + groupId).update(_group);
-            }).then(() => {
-                resolve();
+            apps._schema((initApp) => {
+                postApp = Object.assign(initApp, postApp);
+                resolve(postApp);
             });
         });
     }).then(() => {
-        return admin.database().ref('apps/' + appId).once('value');
-    }).then((snap) => {
-        app = snap.val();
-        var apps = {
-            [appId]: app
+        let appPushRef = admin.database().ref('apps').push(postApp);
+        appId = appPushRef.key;
+
+        return appPushRef.then(() => {
+            return admin.database().ref('users/' + userId).once('value').then((snap) => {
+                let user = snap.val();
+                let _groupIds = user.group_ids;
+
+                // 當下 user 沒有該 group ，則不能新增 app
+                if (0 > _groupIds.indexOf(groupId)) {
+                    return Promise.reject(new Error());
+                };
+                return appId;
+            });
+        });
+    }).then((appId) => {
+        // 如果新增的 app 為 CHATSHIER 內部聊天室，則不需進行新增 webhooks 的動作
+        if (apps.typeEnum.CHATSHIER === postApp.type) {
+            return;
+        }
+
+        let webhook = {
+            app_id: appId
         };
-        callback(apps);
+        let webhooksPushRef = admin.database().ref('webhooks').push(webhook);
+        let webhookId = webhooksPushRef.key;
+
+        webhooksPushRef.then(() => {
+            let appWebhook = {
+                webhook_id: webhookId
+            };
+            return admin.database().ref('apps/' + appId).update(appWebhook);
+        });
+    }).then(() => {
+        return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
+            let group = snap.val();
+            let appIds = group.app_ids || [];
+
+            appIds.unshift(appId);
+            let _group = {
+                app_ids: appIds
+            };
+
+            return admin.database().ref('groups/' + groupId).update(_group);
+        });
+    }).then(() => {
+        // 將資料庫中的 app 資料完整取出後回傳
+        return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+            let appInDB = snap.val() || {};
+            let apps = {
+                [appId]: appInDB
+            };
+            callback(apps);
+        });
     }).catch(() => {
         callback(null);
     });

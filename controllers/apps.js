@@ -251,10 +251,10 @@ apps.postOne = (req, res, next) => {
             });
         });
     }).then((apps) => {
-        var appId = Object.keys(apps)[0];
+        var appId = Object.keys(apps).shift();
         return new Promise((resolve, reject) => {
-            appsTagsMdl.insertDefaultTags(appId, (result) => {
-                if (!result) {
+            appsTagsMdl.insertDefaultTags(appId, (tags) => {
+                if (!tags) {
                     reject(API_ERROR.APP_FAILED_TO_INSERT);
                     return;
                 }
