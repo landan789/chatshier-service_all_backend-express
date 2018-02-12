@@ -60,6 +60,7 @@
             }
 
             $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
+                $keywordreplyEditModal.find('button.btn-update-submit').attr('disabled', 'disabled');
                 targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
                 targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
                 targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
@@ -67,6 +68,7 @@
 
                 return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
+                    $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
                 });
             });
@@ -166,6 +168,7 @@
     }
 
     function insertSubmit() {
+        $keywordreplyAddModal.find('button.btn-insert-submit').attr('disabled', 'disabled');
         var appId = $appSelector.find('option:selected').val();
         var keyword = $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val();
         var textContent = $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val();
@@ -200,6 +203,7 @@
         return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
             $appDropdown.find('#' + appId).click();
+            $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
             return loadKeywordsReplies(appId, userId);
         });
     }

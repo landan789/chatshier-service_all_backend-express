@@ -3,6 +3,7 @@
 (function() {
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
+    var $appSelector = $('#app-select');
     var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var api = window.restfulAPI;
     var userId = '';
@@ -41,6 +42,7 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
+            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -78,6 +80,7 @@
     };
 
     function dataInsert() {
+        $('#modal-submit').attr('disabled', 'disabled');
         let appId = $('#app-select option:selected').attr('id');
         let starttime = Date.parse($('#starttime').val());
         let endtime = Date.parse($('#endtime').val());
@@ -111,6 +114,7 @@
             $('#enter-text').val('');
             $appDropdown.find('#' + appId).click();
             $.notify('新增成功！', { type: 'success' });
+            $('#modal-submit').removeAttr('disabled');
         });
     }
 
@@ -134,6 +138,7 @@
     }
 
     function dataUpdate() {
+        $('#edit-submit').attr('disabled', 'disabled');
         let appId = $(this).parent().parent().find('#edit-appid').text();
         let autoreplyId = $(this).parent().parent().find('#edit-autoreplyid').text();
         let userId = auth.currentUser.uid;
@@ -170,6 +175,7 @@
             $('#edit-taskEnd').val('');
             $('#edit-taskContent').val('');
             $.notify('修改成功！', { type: 'success' });
+            $('#edit-submit').removeAttr('disabled');
         });
     }
 
