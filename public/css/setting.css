@@ -128,10 +128,6 @@ p:empty:not(:focus)::before {
     text-decoration: none;
 }
 
-.group-insert {
-    margin: 2rem 1rem 0;
-}
-
 .panel-collapse {
     background-color: white;
     border: 1px solid #ddd;
@@ -190,6 +186,10 @@ table.chsr-group {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
+}
+
+table.chsr-group .status{
+    line-height: 2.4;
 }
 
 table.chsr-group tbody td {

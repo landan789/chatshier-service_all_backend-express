@@ -658,77 +658,82 @@ window.auth.ready.then(function(currentUser) {
                 '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                '<div class="form-group form-group-row">' +
-                '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
-                '<div class="col-4">' +
-                '<div class="input-group group-name" id="group_name">' +
-                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
-                '<span class="input-group-btn btn-update">' +
-                '<button class="btn btn-primary">更新</button>' +
-                '</span>' +
-                // '<span class="input-group-btn btn-delete">' +
-                //     '<button class="btn btn-danger">刪除群組</button>' +
-                // '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div class="form-group form-group-row">' +
+                        '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+                        '<div class="col-4">' +
+                            '<div class="input-group group-name" id="group_name">' +
+                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                                '<span class="input-group-btn btn-update">' +
+                                    '<button class="btn btn-primary">更新</button>' +
+                                '</span>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                // '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
 
-                // '<div class="form-group form-group-row">' +
-                //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
-                //     '<div class="col-4">' +
-                //         '<div class="input-group file-container" id="group_photo">' +
-                //             '<span class="input-group-btn">' +
-                //                 '<button class="btn btn-default file-choose">' +
-                //                     '<i class="fa fa-upload"></i>' +
-                //                 '</button>' +
-                //             '</span>' +
-                //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
-                //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
-                //             '<span class="input-group-btn">' +
-                //                 '<img src="image/favicon.ico" class="img-preview" />' +
-                //             '</span>' +
-                //             '<span class="input-group-btn btn-update">' +
-                //                 '<button class="btn btn-primary">更新</button>' +
-                //             '</span>' +
-                //         '</div>' +
-                //     '</div>' +
-                // '</div>' +
+                    // '<div class="form-group form-group-row">' +
+                    //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
+                    //     '<div class="col-4">' +
+                    //         '<div class="input-group file-container" id="group_photo">' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<button class="btn btn-default file-choose">' +
+                    //                     '<i class="fa fa-upload"></i>' +
+                    //                 '</button>' +
+                    //             '</span>' +
+                    //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
+                    //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                    //             '</span>' +
+                    //             '<span class="input-group-btn btn-update">' +
+                    //                 '<button class="btn btn-primary">更新</button>' +
+                    //             '</span>' +
+                    //         '</div>' +
+                    //     '</div>' +
+                    // '</div>' +
 
-                '<table class="table table-responsive chsr-group chsr-table">' +
-                '<thead>' +
-                '<tr>' +
-                '<td class="user">' +
-                '<div class="email-input-container">' +
-                '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
-                '</div>' +
-                '</td>' +
-                '<td class="permission">' +
-                '<div class="input-group text-right">' +
-                '<div class="input-group-btn">' +
-                '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                '<span class="permission-text">Permission</span>' + '&nbsp;' +
-                '<span class="caret"></span>' +
-                '</button>' +
-                '<ul class="dropdown-menu dropdown-menu-right">' +
-                '<li><a role="button">READ</a></li>' +
-                '<li><a role="button">WRITE</a></li>' +
-                '<li><a role="button">ADMIN</a></li>' +
-                '</ul>' +
-                '</div>' +
-                '</div>' +
-                '</td>' +
-                '<td class="actions">' +
-                '<div class="text-right">' +
-                '<button class="btn btn-default btn-block outline add-button">' +
-                '新增' +
-                '<i class="fa fa-user-plus"></i>' +
-                '</button>' +
-                '</div>' +
-                '</td>' +
-                '</tr>' +
-                '</thead>' +
-                '<tbody></tbody>' +
-                '</table>' +
+                    '<table class="table table-responsive chsr-group chsr-table">' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<td class="user">' +
+                                    '<div class="email-input-container">' +
+                                        '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="permission">' +
+                                    '<div class="input-group text-right">' +
+                                        '<div class="input-group-btn">' +
+                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                                '<span class="permission-text">Permission</span>' + '&nbsp;' +
+                                                '<span class="caret"></span>' +
+                                            '</button>' +
+                                            '<ul class="dropdown-menu dropdown-menu-right">' +
+                                                '<li><a role="button">READ</a></li>' +
+                                                '<li><a role="button">WRITE</a></li>' +
+                                                '<li><a role="button">ADMIN</a></li>' +
+                                            '</ul>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td>' +
+                                    '<div class="status">' +
+                                        '狀態' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="actions">' +
+                                    '<div class="text-right">' +
+                                        '<button class="btn btn-default btn-block outline add-button">' +
+                                            '新增' +
+                                            '<i class="fa fa-user-plus"></i>' +
+                                        '</button>' +
+                                    '</div>' +
+                                '</td>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody></tbody>' +
+                    '</table>' +
                 '</div>'
             );
 
@@ -940,31 +945,33 @@ window.auth.ready.then(function(currentUser) {
 
             var memberItemHtml =
                 '<tr class="group-member" id="' + memberId + '">' +
-                '<td class="user">' +
-                '<div class="chips">' +
-                '<div class="chsr-avatar">' +
-                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
-                '</div>' +
-                '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
-                '</div>' +
-                '</td>' +
-                '<td class="permission">' +
-                '<div class="permission-group text-center">' +
-                '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
-                '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
-                '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
-                '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
-                '</div>' +
-                '</td>' +
-                '<td class="actions">' +
-                '<div class="action-container text-right">' +
-                '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
-                '<span class="chsr-icon">' +
-                '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
-                '</span>' +
-                '</a>' +
-                '</div>' +
-                '</td>' +
+                    '<td class="user">' +
+                        '<div class="chips">' +
+                            '<div class="chsr-avatar">' +
+                                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
+                            '</div>' +
+                            '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="permission">' +
+                        '<div class="permission-group text-left">' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' +
+                    '</td>' +
+                    '<td class="actions">' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                    '</td>' +
                 '</tr>';
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
@@ -1197,20 +1204,20 @@ function removeOneApp(appId) {
 function loadGroups(groupData, groupId) {
     let groupStr =
         '<div class="group-tab" role="tab">' +
-        '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
-        (groupData.name || '') +
-        '</a>' +
+            '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
+                (groupData.name || '') +
+            '</a>' +
         '</div>' +
         '<div id="' + groupId + '-group" class="panel-collapse collapse" role="tabpanel">' +
-        '<div class="app-table-space">' +
-        '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-        '<span class="fa fa-plus"></span> 新增APP' +
-        '</button>' +
-        '<br/><br/>' +
-        '<table class="table chsr-group chsr-table">' +
-        '<tbody id="' + groupId + '-body"></tbody>' +
-        '</table>' +
-        '</div>' +
+            '<div class="app-table-space">' +
+                '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+                    '<span class="fa fa-plus"></span> 新增APP' +
+                '</button>' +
+                '<br/><br/>' +
+                '<table class="table chsr-group chsr-table">' +
+                    '<tbody id="' + groupId + '-body"></tbody>' +
+                '</table>' +
+            '</div>' +
         '</div>';
     $('#menu2 .panel-body .row .col-md-12.col-lg-12').append(groupStr);
 }

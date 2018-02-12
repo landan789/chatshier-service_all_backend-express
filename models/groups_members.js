@@ -20,7 +20,7 @@ module.exports = (function() {
     };
     GroupsMembersModel.prototype.insert = function(groupId, member, callback) {
         var memberId;
-
+        var userId = member.user_id;
         Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
                 GroupsMembersModel.prototype._schema((initMember) => {
@@ -39,7 +39,19 @@ module.exports = (function() {
                 return Promise.reject();
             }
             return Promise.resolve(member);
-        }).then((member) => {
+        }).then(() => {
+            return admin.database().ref('users/' + userId).once('value');
+        }).then((snap) => {
+            var user = snap.val();
+            var groupIds = user.group_ids || [];
+            groupIds.push(groupId);
+            var _user = {
+                group_ids: groupIds,
+                updatedTime: Date.now(),
+                createdTime: Date.now()
+            };
+            return admin.database().ref('users/' + userId).update(_user);
+        }).then(() => {
             var groupsMembers = {
                 [groupId]: {
                     members: {
