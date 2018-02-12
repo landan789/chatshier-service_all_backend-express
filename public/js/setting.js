@@ -59,7 +59,7 @@ window.auth.ready.then(function(currentUser) {
                     let id1 = $('#channel-id').val();
                     let secret = $('#channel-secret').val();
                     let token1 = $('#channel-token').val();
-                    let type = 'LINE';
+                    let type = LINE;
                     let updateObj = {
                         name: name,
                         id1: id1,
@@ -75,7 +75,7 @@ window.auth.ready.then(function(currentUser) {
                     let secret = $('#facebook-app-secret').val();
                     let token1 = $('#facebook-valid-token').val();
                     let token2 = $('#facebook-page-token').val();
-                    let type = 'FACEBOOK';
+                    let type = FACEBOOK;
                     let updateObj = {
                         name: name,
                         id1: id1,
