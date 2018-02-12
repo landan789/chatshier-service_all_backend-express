@@ -1,5 +1,6 @@
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
+    const CHAT_COUNT_INTERVAL_TIME = 900000;
 
     function AppsMessagersModel() {}
 
@@ -130,6 +131,18 @@ module.exports = (function() {
                     });
                 });
             };
+
+            // 防止 unRead 不是數字型態無法加總
+            if (!('number' !== typeof messager.unRead) || isNaN(messager.unRead)) {
+                messager.unRead = 0;
+            }
+
+            let currentTime = Date.now();
+            let lastChatedTimeGap = currentTime - parseInt(messagerInDB.recentChat);
+            if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                messagerInDB.chatTimeCount++;
+            }
+            messager.recentChat = currentTime;
             messager.unRead += messagerInDB.unRead; // 計算未讀訊息
             return Object.assign(messagerInDB, messager);
         }).then((messager) => {

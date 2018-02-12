@@ -103,6 +103,7 @@
             $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
             $editForm.find('#edutinput').val(targetData.text);
             $composeEditModal.find('#edit-submit').off('click').on('click', function() {
+                $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
                 var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
                 targetData.text = $editForm.find('#edutinput').val();
                 targetData.time = Date.parse($editForm.find('#edit-time').val());
@@ -116,6 +117,7 @@
                 return api.composes.update(appId, composeId, userId, targetData).then(function() {
                     $composeEditModal.modal('hide');
                     $.notify('修改成功！', { type: 'success' });
+                    $composeEditModal.find('#edit-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 });
             });
@@ -261,6 +263,7 @@
     }
 
     function insertSubmit() {
+        $composesAddModal.find('#modal-submit').attr('disabled', 'disabled');
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         let messages = [];
         if (0 === inputObj.length) {
@@ -301,6 +304,7 @@
                 inputNum = 0;
                 $.notify('發送成功', { type: 'success' });
                 $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                $composesAddModal.find('#modal-submit').removeAttr('disabled');
                 return loadComposes(appId, userId);
             }
         }

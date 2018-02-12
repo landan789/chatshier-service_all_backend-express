@@ -14,8 +14,8 @@
         WORDCLOUR: 4
     });
 
-    var HOUR = 3600000;
-    var DATE = 86400000;
+    var HOUR = 60 * 60 * 1000;
+    var DATE = 24 * HOUR;
 
     var chartInstance = null;
     var messagesData = {}; // 所有訊息的時間
@@ -27,7 +27,7 @@
     var userId = '';
     var nowSelectAppId = '';
     var api = window.restfulAPI;
-    var analyzeType = AnalyzeType.DAY; // 預設從每日單位顯示分析
+    var analyzeType = AnalyzeType.MONTH; // 預設從每日單位顯示分析
 
     var $chartWrapper = $('#chartdiv');
     var $buttonGroup = $('.button-group');
@@ -160,52 +160,61 @@
         analyzeType = AnalyzeType.MONTH;
         var timeData = getSelecedTimeData();
 
-        var getMonthTime = function(t, n) {
-            // t=10/15 n=1 => return 10/1
-            // t=10/15 n=2 => return 11/1
-            // 日期都以毫秒number表示
-            var date = new Date(t);
-            var y = date.getFullYear();
-            var m = date.getMonth() + n;
-            if (m > 12) {
-                m -= 12;
-                y++;
-            }
-            var newDate = new Date(y + '/' + m);
-            return newDate.getTime();
-        };
-
         var chartData = []; // 要餵給AmCharts的資料
-        var nowSeg = getMonthTime(startTime, 1); // 當前月份的時間
-        var nextSeg = getMonthTime(startTime, 2); // 下個月份的時間
-        var count = 0; // 當前月份的訊息數
-        var i = 0;
+        var beginDate = new Date(startTime);
+        var endDate = new Date(endTime);
 
-        while (i <= timeData.length) {
-            var nowT = timeData[i];
-            if (nowT <= nextSeg) {
+        var nextDate = new Date(startTime);
+        nextDate.setHours(0, 0, 0);
+        var nowSeg = nextDate.getTime(); // 當前月份的時間
+
+        nextDate < endDate && nextDate.setMonth(nextDate.getMonth() + 1);
+        nextDate > endDate && nextDate.setDate(endDate.getDate());
+
+        var nextSeg = nextDate.getTime(); // 下個月份的時間
+        var msgCount = 0; // 當前月份的訊息數
+
+        var xAxisLabalMap = {};
+        while (timeData.length) {
+            var msgTime = timeData.shift();
+            if (msgTime <= nextSeg) {
                 // 若這筆資料的時間還沒到下個月，則當前月份訊息數++
-                count++;
-                i++;
+                msgCount++;
                 continue;
             }
 
             // 若這筆資料已到下個月，則結算當前月份
             var date = new Date(nowSeg); // 當前月份
-            var timeStr = date.getMonth() + 1 + '月';
-            chartData.push({
-                time: timeStr,
-                messages: count
-            });
-            nowSeg = nextSeg; // 開始計算下個月份
-            nextSeg = getMonthTime(nextSeg, 2);
-            count = 0;
+            var xAxisLabal = (date.getMonth() + 1) + '月';
+            xAxisLabalMap[xAxisLabal] = true;
 
-            // 上面 while 迴圈是跑到 i==length 的地方，這樣才能正確結算最後一個月份
-            if (i >= timeData.length) {
-                break;
-            }
+            chartData.push({
+                time: xAxisLabal,
+                messages: msgCount
+            });
+
+            nowSeg = nextSeg; // 開始計算下個月份
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            nextSeg = nextDate.getTime();
+            msgCount = 0;
         }
+
+        // 將起始時間與結束時間加入資料內以便顯示時間區間
+        var beginLabel = (beginDate.getMonth() + 1) + '月';
+        var endLabel = (endDate.getMonth() + 1) + '月';
+
+        !xAxisLabalMap[beginLabel] && chartData.unshift({
+            time: beginLabel,
+            messages: 0
+        });
+        xAxisLabalMap[beginLabel] = true;
+
+        !xAxisLabalMap[endLabel] && chartData.push({
+            time: endLabel,
+            messages: 0
+        });
+        xAxisLabalMap[endLabel] = true;
+
         generateChart(chartData); // 將資料餵給AmCharts
     }
 
@@ -216,31 +225,43 @@
         var chartData = [];
         var nowSeg = Math.floor(startTime / DATE) * DATE; // 取得第一天的00:00的時間
         var nextSeg = nowSeg + DATE;
-        var count = 0;
-        var i = 0;
+        var magCount = 0;
 
-        while (i <= timeData.length) {
-            var nowT = timeData[i];
-            if (nowT <= nextSeg) {
-                count++;
-                i++;
+        while (timeData.length) {
+            var msgTime = timeData.shift();
+            if (msgTime <= nextSeg) {
+                magCount++;
                 continue;
             }
 
             var date = new Date(nowSeg);
-            var timeStr = getDateStr(date);
+            var xAxisLabal = getDateStr(date);
             chartData.push({
-                time: timeStr,
-                messages: count
+                time: xAxisLabal,
+                messages: magCount
             });
-            count = 0;
+
+            magCount = 0;
             nowSeg = nextSeg;
             nextSeg += DATE;
-
-            if (i >= timeData.length) {
-                break;
-            }
         }
+
+        // 將起始時間與結束時間加入資料內以便顯示時間區間
+        var beginDate = new Date(startTime);
+        var endDate = new Date(endTime);
+        var beginLabel = getDateStr(beginDate);
+        var endLabel = getDateStr(endDate);
+
+        chartData.unshift({
+            time: beginLabel,
+            messages: 0
+        });
+
+        beginLabel !== endLabel && chartData.push({
+            time: endLabel,
+            messages: 0
+        });
+
         generateChart(chartData);
     }
 
@@ -250,41 +271,42 @@
 
         var chartData = [];
         var nowSeg = Math.floor(startTime / HOUR) * HOUR;
-        var count = 0;
-        var i = 0;
-        while (i <= timeData.length) {
-            var nowT = timeData[i];
-            if (nowT <= (nowSeg + HOUR)) {
-                count++;
-                i++;
+        var magCount = 0;
+
+        while (timeData.length) {
+            var msgTime = timeData.shift();
+            if (msgTime <= (nowSeg + HOUR)) {
+                magCount++;
                 continue;
             }
 
             var date = new Date(nowSeg);
-            var timeStr = getDateStr(date) + ' ' + getTimeStr(date);
-            // var dateStr = '';
-            // if( date.getHours()==0 ) {
-            //   dateStr = getDateStr(date);
-            // }
-            chartData.push({
-                time: timeStr,
-                // date: dateStr,
-                messages: count
-            });
-            count = 0;
-            nowSeg += HOUR;
+            var xAxisLabal = getDateStr(date) + ' ' + getTimeStr(date);
 
-            if (i >= timeData.length) {
-                break;
-            }
+            chartData.push({
+                time: xAxisLabal,
+                messages: magCount
+            });
+            magCount = 0;
+            nowSeg += HOUR;
         }
-        // function getCursorTime(time) {
-        //   var date = new Date(time);
-        //   var m = minTwoDigits(date.getMonth()+1);
-        //   var d = minTwoDigits(date.getDate());
-        //   var h = minTwoDigits(date.getHours());
-        //   return m + '/' + d + ' ' + h + ':00';
-        // }
+
+        // 將起始時間與結束時間加入資料內以便顯示時間區間
+        var beginDate = new Date(startTime);
+        var endDate = new Date(endTime);
+        var beginLabel = getDateStr(beginDate) + ' ' + getTimeStr(beginDate);
+        var endLabel = getDateStr(endDate) + ' ' + getTimeStr(endDate);
+
+        chartData.unshift({
+            time: beginLabel,
+            messages: 0
+        });
+
+        beginLabel !== endLabel && chartData.push({
+            time: endLabel,
+            messages: 0
+        });
+
         generateChart(chartData);
     }
 
@@ -314,7 +336,7 @@
 
     function viewWordCloud() {
         analyzeType = AnalyzeType.WordCloud;
-        var msgData = getSelecedTimeData();
+        var msgData = getSelecedMsgData();
 
         var text = msgData.join(',');
         var wordfreq = new window.WordFreqSync({

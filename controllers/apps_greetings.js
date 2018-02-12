@@ -1,10 +1,10 @@
 module.exports = (function() {
-    var API_ERROR = require('../config/api_error');
-    var API_SUCCESS = require('../config/api_success');
+    let API_ERROR = require('../config/api_error');
+    let API_SUCCESS = require('../config/api_success');
 
-    var appsMdl = require('../models/apps');
-    var userMdl = require('../models/users');
-    var appsGreetingsMdl = require('../models/apps_greetings');
+    let appsMdl = require('../models/apps');
+    let userMdl = require('../models/users');
+    let appsGreetingsMdl = require('../models/apps_greetings');
 
     function AppsGreetingsController() {}
 
@@ -13,8 +13,8 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsGreetingsController.prototype.getAll = (req, res) => {
-        var userId = req.params.userid;
-        var proceed = new Promise((resolve, reject) => {
+        let userId = req.params.userid;
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
         proceed
@@ -25,7 +25,7 @@ module.exports = (function() {
                         return;
                     }
                     userMdl.findUser(userId, (user) => {
-                        var appIds = user.app_ids;
+                        let appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                             return;
@@ -47,14 +47,14 @@ module.exports = (function() {
             })
             .then((greetings) => {
                 let result = greetings !== undefined ? greetings : {};
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: result
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE
@@ -68,65 +68,53 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsGreetingsController.prototype.getOne = (req, res) => {
-        var userId = req.params.userid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let appId = req.params.appid;
 
-        var proceed = new Promise((resolve, reject) => {
-            resolve();
-        });
-        proceed
-            .then(() => { // 取得目前user下所有appIds
-                return new Promise((resolve, reject) => {
-                    if ('' === userId || null === userId) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
-                        return;
-                    }
-                    userMdl.findUser(userId, (user) => {
-                        var appIds = user.app_ids;
-                        if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
-                            reject(API_ERROR.APPID_WAS_EMPTY);
-                            return;
-                        }
-                        resolve(appIds);
-                    });
-                });
-            })
-            .then((appIds) => { // 判斷user中是否有目前appId
-                return new Promise((resolve, reject) => {
-                    if (false === appIds.includes(appId)) {
+        let proceed = Promise.resolve();
+        proceed.then(() => { // 取得目前user下所有appIds
+            return new Promise((resolve, reject) => {
+                if ('' === userId || null === userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
+                userMdl.findUser(userId, (user) => {
+                    let appIds = user.app_ids || [];
+
+                    // 判斷user中是否有目前appId
+                    if (!appIds.includes(appId)) {
                         reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
                     }
-                    resolve();
+                    resolve(appIds);
                 });
-            })
-            .then(() => { // 取得目前greeting
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.find(appId, (data) => {
-                        if (null === data || '' === data || undefined === data) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
-                });
-            })
-            .then((greeting) => {
-                let result = greeting !== undefined ? greeting : {};
-                var json = {
-                    status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
-                };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                var json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(403).json(json);
             });
+        }).then(() => { // 取得目前greeting
+            return new Promise((resolve, reject) => {
+                appsGreetingsMdl.find(appId, (appGreetings) => {
+                    if (!appGreetings) {
+                        reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appGreetings);
+                });
+            });
+        }).then((appGreetings) => {
+            let result = appGreetings || {};
+            let json = {
+                status: 1,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                data: result
+            };
+            res.status(200).json(json);
+        }).catch((ERR) => {
+            let json = {
+                status: 0,
+                msg: ERR.MSG,
+                code: ERR.CODE
+            };
+            res.status(403).json(json);
+        });
     };
 
     /**
@@ -135,17 +123,17 @@ module.exports = (function() {
      */
     AppsGreetingsController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        var userId = req.params.userid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let appId = req.params.appid;
 
-        var type = req.body.type;
-        var text = req.body.text;
-        var postGreeting = {
+        let type = req.body.type;
+        let text = req.body.text;
+        let postGreeting = {
             type: type,
             text: text
         };
 
-        var proceed = new Promise((resolve, reject) => {
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
         proceed
@@ -156,7 +144,7 @@ module.exports = (function() {
                         return;
                     }
                     userMdl.findUser(userId, (user) => {
-                        var appIds = user.app_ids;
+                        let appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                             return;
@@ -187,7 +175,7 @@ module.exports = (function() {
             })
             .then((greeting) => {
                 let result = greeting !== undefined ? greeting : {};
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: result
@@ -195,7 +183,7 @@ module.exports = (function() {
                 res.status(200).json(json);
             })
             .catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE
@@ -210,11 +198,11 @@ module.exports = (function() {
      */
     AppsGreetingsController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        var userId = req.params.userid;
-        var greetingId = req.params.greetingid;
-        var appId = req.params.appid;
+        let userId = req.params.userid;
+        let greetingId = req.params.greetingid;
+        let appId = req.params.appid;
 
-        var proceed = new Promise((resolve, reject) => {
+        let proceed = new Promise((resolve, reject) => {
             resolve();
         });
 
@@ -226,7 +214,7 @@ module.exports = (function() {
                         return;
                     }
                     userMdl.findUser(userId, (user) => {
-                        var appIds = user.app_ids;
+                        let appIds = user.app_ids;
                         if (false === appIds || undefined === appIds || '' === appIds || (appIds.constructor === Array && 0 === appIds.length)) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                             return;
@@ -251,7 +239,7 @@ module.exports = (function() {
                             reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                             return;
                         }
-                        var greetingIds = Object.keys(data);
+                        let greetingIds = Object.keys(data);
                         resolve(greetingIds);
                     });
                 });
@@ -277,7 +265,7 @@ module.exports = (function() {
             })
             .then((greeting) => {
                 let result = greeting !== undefined ? greeting : {};
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: result
@@ -285,7 +273,7 @@ module.exports = (function() {
                 res.status(200).json(json);
             })
             .catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE

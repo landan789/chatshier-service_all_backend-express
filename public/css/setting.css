@@ -223,6 +223,10 @@ table.chsr-group tbody td {
     align-items: center;
 }
 
+.action-container {
+    padding-right: 1rem;
+}
+
 .actions .remove-icon {
     cursor: pointer;
     color: #bbb;

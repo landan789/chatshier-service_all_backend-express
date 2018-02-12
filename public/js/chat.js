@@ -1409,7 +1409,8 @@ window.auth.ready.then(function(currentUser) {
                             "<span class='clientName'>" + messager.name + '</span><br>' +
                             '<div id="msg"></div>' +
                         '</div>' +
-                        '<div class="appName"><snap>' + appName + '</snap></div>';
+                        '<div class="appName"><snap>' + appName + '</snap></div>' +
+                        '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
                     break;
                 case FACEBOOK:
                     tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'>" +
@@ -1421,7 +1422,8 @@ window.auth.ready.then(function(currentUser) {
                             "<span class='clientName'>" + messager.name + '</span><br>' +
                             '<div id="msg"></div>' +
                         '</div>' +
-                        '<div class="appName"><snap>' + appName + '</snap></div>';
+                        '<div class="appName"><snap>' + appName + '</snap></div>' +
+                        '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
                     break;
             }
             $('.tablinks-area #new-user-list').prepend(tablinkHtml);
@@ -1483,83 +1485,95 @@ window.auth.ready.then(function(currentUser) {
     // }
 
     function userInfoConfirm() {
-        if (confirm('確定要更新對話者的個人資料嗎？')) {
-            $('#infoCanvas').scrollTop(0);
-            var messagerUiData = {
-                custom_tags: []
-            };
-            var $tds = $(this).parents('.card-group').find('.panel-table tbody td');
-
-            $tds.each(function() {
-                var $td = $(this);
-                var tagId = $td.parentsUntil('tbody').last().attr('id');
-
-                var alias = $td.attr('alias');
-                var setsType = $td.attr('type');
-                var setsTypeEnums = api.tag.enums.setsType;
-
-                // 此欄位不允許編輯的話，不處理資料
-                if ('true' !== $td.attr('modify')) {
-                    return;
-                }
-
-                var value = '';
-                var $tdDataElem = $td.find('.td-inner');
-                switch (setsType) {
-                    case setsTypeEnums.NUMBER:
-                        value = parseInt($tdDataElem.val(), 10);
-                        break;
-                    case setsTypeEnums.DATE:
-                        value = $tdDataElem.val();
-                        value = value ? new Date(value).getTime() : 0;
-                        break;
-                    case setsTypeEnums.CHECKBOX:
-                        value = $tdDataElem.prop('checked');
-                        break;
-                    case setsTypeEnums.MULTI_SELECT:
-                        var checkVals = [];
-                        var $checkboxes = $tdDataElem.find('input[type="checkbox"]');
-                        $checkboxes.each(function() {
-                            checkVals.push($(this).prop('checked'));
-                        });
-                        value = checkVals;
-                        break;
-                    case setsTypeEnums.TEXT:
-                    case setsTypeEnums.SELECT:
-                    default:
-                        value = $tdDataElem.val();
-                        break;
-                }
-
-                if (value !== null && value !== undefined) {
-                    if (alias) {
-                        messagerUiData[alias] = value;
-                    } else {
-                        // 沒有別名的屬性代表是自定義的標籤資料
-                        // 將資料推入堆疊中
-                        messagerUiData.custom_tags.push({
-                            tag_id: tagId,
-                            value: value
-                        });
-                    }
-                }
-            });
-
-            // 如果有可編輯的資料有變更再發出更新請求
-            if (Object.keys(messagerUiData).length > 0) {
-                var appId = $(this).parents('.card-group').attr('id');
-                var msgerId = $(this).parents('.card-group').attr('rel');
-
-                return api.messager.update(appId, msgerId, agentId, messagerUiData).then(function() {
-                    // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-                    appsData[appId].messagers[msgerId] = Object.assign(appsData[appId].messagers[msgerId], messagerUiData);
-                    $.notify('用戶資料更新成功', { type: 'success' });
-                }).catch(function() {
-                    $.notify('用戶資料更新失敗，請重試', { type: 'danger' });
-                });
-            }
+        if (!confirm('確定要更新對話者的個人資料嗎？')) {
+            return Promise.resolve();
         }
-        return Promise.resolve();
+
+        $('#infoCanvas').scrollTop(0);
+        var messagerUiData = {
+            custom_tags: []
+        };
+        var $tds = $(this).parents('.card-group').find('.panel-table tbody td');
+
+        $tds.each(function() {
+            var $td = $(this);
+            var tagId = $td.parentsUntil('tbody').last().attr('id');
+
+            var alias = $td.attr('alias');
+            var setsType = $td.attr('type');
+            var setsTypeEnums = api.tag.enums.setsType;
+
+            // 此欄位不允許編輯的話，不處理資料
+            if ('true' !== $td.attr('modify')) {
+                return;
+            }
+
+            var value = '';
+            var $tdDataElem = $td.find('.td-inner');
+            switch (setsType) {
+                case setsTypeEnums.NUMBER:
+                    value = parseInt($tdDataElem.val(), 10);
+                    break;
+                case setsTypeEnums.DATE:
+                    value = $tdDataElem.val();
+                    value = value ? new Date(value).getTime() : 0;
+                    break;
+                case setsTypeEnums.CHECKBOX:
+                    value = $tdDataElem.prop('checked');
+                    break;
+                case setsTypeEnums.MULTI_SELECT:
+                    var checkVals = [];
+                    var $checkboxes = $tdDataElem.find('input[type="checkbox"]');
+                    $checkboxes.each(function() {
+                        checkVals.push($(this).prop('checked'));
+                    });
+                    value = checkVals;
+                    break;
+                case setsTypeEnums.TEXT:
+                case setsTypeEnums.SELECT:
+                default:
+                    value = $tdDataElem.val();
+                    break;
+            }
+
+            if (value !== null && value !== undefined) {
+                if (alias) {
+                    messagerUiData[alias] = value;
+                } else {
+                    // 沒有別名的屬性代表是自定義的標籤資料
+                    // 將資料推入堆疊中
+                    messagerUiData.custom_tags.push({
+                        tag_id: tagId,
+                        value: value
+                    });
+                }
+            }
+        });
+
+        var phoneRule = /^0\d{9,}$/;
+        var emailRule = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
+
+        if (messagerUiData.email !== '' && !emailRule.test(messagerUiData.email)) {
+            $.notify('電子郵件不符合格式', { type: 'warning' });
+            return Promise.resolve();
+        } else if (messagerUiData.phone !== '' && !phoneRule.test(messagerUiData.phone)) {
+            $.notify('電話號碼不符合格式', { type: 'warning' });
+            return Promise.resolve();
+        }
+
+        // 如果有可編輯的資料有變更再發出更新請求
+        if (Object.keys(messagerUiData).length > 0) {
+            var appId = $(this).parents('.card-group').attr('id');
+            var msgerId = $(this).parents('.card-group').attr('rel');
+
+            return api.messager.update(appId, msgerId, agentId, messagerUiData).then(function() {
+                // 將成功更新的資料覆蓋前端本地端的全域 app 資料
+                appsData[appId].messagers[msgerId] = Object.assign(appsData[appId].messagers[msgerId], messagerUiData);
+                $.notify('用戶資料更新成功', { type: 'success' });
+            }).catch(function() {
+                $.notify('用戶資料更新失敗，請重試', { type: 'danger' });
+            });
+        }
     }
     // =====end profile function=====
 

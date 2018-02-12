@@ -461,7 +461,7 @@ window.auth.ready.then(function(currentUser) {
 
     // 設定頁面中 tab 切換時的事件監聽
     // 切換到標籤頁面時，再抓取標籤資料
-    $('a[data-toggle="pill"').on('shown.bs.tab', function(ev) {
+    $('a[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
         if ('#menu3' !== ev.target.hash) {
             // 非標籤頁面不處理
             return;
@@ -904,8 +904,8 @@ window.auth.ready.then(function(currentUser) {
                 '</div>' +
                 '</td>' +
                 '<td class="actions">' +
-                '<div class="text-right">' +
-                '<a class="btn-remove" role="button">' +
+                '<div class="action-container text-right">' +
+                '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
                 '<span class="chsr-icon">' +
                 '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
                 '</span>' +
@@ -960,7 +960,7 @@ window.auth.ready.then(function(currentUser) {
         return instance;
     })();
 
-    $('a[data-toggle="pill"').on('shown.bs.tab', function(ev) {
+    $('a[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
         if ('#create-internal-room' !== ev.target.hash) {
             // 非內部群組頁面不處理
             return;
@@ -1007,9 +1007,9 @@ function findAllGroups() {
             loadGroups(groups[groupId], groupId);
             $('#add-group-name-app-btn').attr('disabled', false);
         }
-    }
-);
+    });
 }
+
 function insertOneGroup() {
     let name = $('[name="add_group_name_app"]').val();
     let groupName = { name };
