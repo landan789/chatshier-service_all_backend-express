@@ -19,7 +19,6 @@ var usersCtl = require('../controllers/users');
 
 var groupsCtl = require('../controllers/groups');
 var groupsMembersCtl = require('../controllers/groups_members');
-var groupsCtl = require('../controllers/groups');
 
 // ===============
 // 訊息相關 Ctrl

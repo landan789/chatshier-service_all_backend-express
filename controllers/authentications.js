@@ -1,60 +1,80 @@
 module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
-    var authenticationsMdl = require('../models/authentications');
-    var usersMdl = require('../models/users');
-    var groupsMdl = require('../models/groups');
+    const authenticationsMdl = require('../models/authentications');
+    const usersMdl = require('../models/users');
+    const groupsMdl = require('../models/groups');
+    const usersFuse = require('../helpers/users_fuse');
 
     function AuthenticationsController() {};
 
     AuthenticationsController.prototype.getAll = function(req, res, next) {
-        var userId = req.params.userid;
-        var queryEmail = req.query.email;
+        let userId = req.params.userid;
+        let queryEmail = req.query.email;
+        let useFuzzy = !!req.query.fuzzy;
 
-        Promise.resolve().then(() => {
+        return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
                 usersMdl.findUser(userId, (user) => {
-                    if (null === user || undefined === user || '' === user) {
+                    if (!user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     };
                     resolve(user);
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids || [];
+            let groupIds = user.group_ids || [];
+
+            if (useFuzzy) {
+                let pattern = queryEmail;
+
+                // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
+                if (!pattern) {
+                    return [];
+                }
+
+                return usersFuse.search(pattern).then((result) => {
+                    // 如果搜尋結果超過5筆，只需回傳5筆
+                    if (result.length > 5) {
+                        result = result.slice(0, 5);
+                    }
+                    return result;
+                });
+            }
 
             return new Promise((resolve, reject) => {
                 groupsMdl.findUserIds(groupIds, (userIds) => {
-                    if (null === userIds || undefined === userIds || '' === userIds) {
+                    if (!userIds) {
                         reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
+                        return;
                     };
                     (userIds.indexOf(userId) < 0) && userIds.push(userId);
                     resolve(userIds);
                 });
-            });
-        }).then((userIds) => {
-            return new Promise((resolve, reject) => {
-                // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
-                if (null !== queryEmail && undefined !== queryEmail && '' !== queryEmail) {
-                    userIds = null;
-                }
+            }).then((userIds) => {
+                return new Promise((resolve, reject) => {
+                    // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
+                    if (null !== queryEmail && undefined !== queryEmail && '' !== queryEmail) {
+                        userIds = null;
+                    }
 
-                authenticationsMdl.findUser(userIds, queryEmail, (authentications) => {
-                    if (null === authentications || undefined === authentications || '' === authentications) {
-                        reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
-                    };
-                    resolve(authentications);
+                    authenticationsMdl.findUser(userIds, queryEmail, (authentications) => {
+                        if (null === authentications || undefined === authentications || '' === authentications) {
+                            reject(API_ERROR.AUTHENTICATION_USER_FAILED_TO_FIND);
+                        };
+                        resolve(authentications);
+                    });
                 });
             });
-        }).then((authentications) => {
-            var json = {
+        }).then((resJson) => {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: authentications
+                data: resJson
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG || ERROR.message,
                 code: ERROR.CODE

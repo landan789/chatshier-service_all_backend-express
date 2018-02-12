@@ -354,7 +354,7 @@
     function generateChart(chartData, cursorProvider) {
         chartInstance && chartInstance.clear();
 
-        chartInstance = AmCharts.makeChart('chartdiv', {
+        chartInstance = window.AmCharts.makeChart('chartdiv', {
             type: 'serial',
             theme: 'light',
             zoomOutButton: {

@@ -1,3 +1,11 @@
+const admin = require('firebase-admin');
+const serviceAccount = require('./config/firebase-adminsdk.json'); // firebase admin requires .json auth
+const databaseURL = require('./config/firebase_admin_database_url.js');
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: databaseURL.url
+});
+
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
@@ -8,6 +16,7 @@ var jwt = require('./middlewares/jwt');
 var index = require('./routes/index');
 var api = require('./routes/api');
 var app = express();
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

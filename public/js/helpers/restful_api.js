@@ -19,7 +19,8 @@ window.restfulAPI = (function() {
         groupsMembers: prefixUrl + 'groups-members/',
         groups: prefixUrl + 'groups/',
         users: prefixUrl + 'users/',
-        appsGreetings: prefixUrl + 'apps-greetings/'
+        appsGreetings: prefixUrl + 'apps-greetings/',
+        searchUsers: prefixUrl + 'search-users/'
     });
 
     // ======================
@@ -713,6 +714,20 @@ window.restfulAPI = (function() {
          */
         AuthAPI.prototype.getUsers = function(userId, email) {
             var destUrl = this.urlPrefix + 'users/' + userId + (email ? ('?email=' + email) : '');
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+        /**
+         * 模糊搜尋目標 email 的所有使用者
+         *
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} pattern - 目標使用者 email 搜尋字串
+         */
+        AuthAPI.prototype.searchUsers = function(userId, email) {
+            var destUrl = this.urlPrefix + 'users/' + userId + '?' + (email ? ('email=' + email + '&') : '') + 'fuzzy=1';
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders

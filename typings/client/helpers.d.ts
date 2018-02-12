@@ -90,6 +90,7 @@ interface ChatroomAPI {
 
 interface AuthAPI {
     getUsers: (userId: string, email?: string) => Promise<any>;
+    searchUsers: (userId: string, email?: string) => Promise<any>;
 }
 
 interface GroupsMembersAPI {

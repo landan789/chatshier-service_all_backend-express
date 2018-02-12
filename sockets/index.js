@@ -5,8 +5,6 @@ var linebot = require('linebot'); // line串接
 var facebook = require('facebook-bot-messenger'); // facebook串接
 var line = require('@line/bot-sdk');
 var admin = require('firebase-admin'); // firebase admin SDK
-var serviceAccount = require('../config/firebase-adminsdk.json'); // firebase admin requires .json auth
-var databaseURL = require('../config/firebase_admin_database_url.js');
 var bodyParser = require('body-parser');
 
 var agents = require('../models/agents');
@@ -42,13 +40,6 @@ const MESSAGE = 'MESSAGE';
 const REPLY_TOKEN_0 = '00000000000000000000000000000000';
 const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
-
-var linebotParser;
-var globalLineMessageArray = [];
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: databaseURL.url
-});
 
 function init(server) {
     var io = socketio(server);
@@ -282,23 +273,22 @@ function init(server) {
                     }));
             }
         }).then(() => {
-            var keywordreplies = req.keywordreplies;
-            var keywordreplyIds = req.keywordreplyIds;
+            let keywordreplies = req.keywordreplies;
+            let keywordreplyIds = req.keywordreplyIds;
             if (!keywordreplies.length) {
-                Promise.resolve();
                 return;
             }
-            Promise.all(keywordreplyIds.map((keywordreplyId, index) => {
-                var replyCount = keywordreplies[index].replyCount;
+
+            return Promise.all(keywordreplyIds.map((keywordreplyId, index) => {
+                let replyCount = keywordreplies[index].replyCount;
                 replyCount++;
                 let putKeywordreply = {
                     replyCount: replyCount
                 };
                 appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply, (data) => {
                     if (!data) {
-                        Promise.reject(new Error());
+                        return Promise.reject(new Error());
                     }
-                    Promise.resolve();
                 });
             }));
         }).then(() => {

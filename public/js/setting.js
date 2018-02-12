@@ -595,6 +595,8 @@ window.auth.ready.then(function(currentUser) {
     var memberTypes = api.groupsMembers.enums.type;
     var groups = {};
     var userGroupMembers = {};
+    var searchCache = {};
+    var keyinWaitTimer = null;
 
     var groupCtrl = (function() {
         var $addGroupModal = $('#add_group_modal');
@@ -654,77 +656,77 @@ window.auth.ready.then(function(currentUser) {
                 '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                '<div class="form-group form-group-row">' +
-                '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
-                '<div class="col-4">' +
-                '<div class="input-group group-name" id="group_name">' +
-                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
-                '<span class="input-group-btn btn-update">' +
-                '<button class="btn btn-primary">更新</button>' +
-                '</span>' +
-                // '<span class="input-group-btn btn-delete">' +
-                //     '<button class="btn btn-danger">刪除群組</button>' +
-                // '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div class="form-group form-group-row">' +
+                        '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
+                        '<div class="col-4">' +
+                            '<div class="input-group group-name" id="group_name">' +
+                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                                '<span class="input-group-btn btn-update">' +
+                                    '<button class="btn btn-primary">更新</button>' +
+                                '</span>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                // '</span>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
 
-                // '<div class="form-group form-group-row">' +
-                //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
-                //     '<div class="col-4">' +
-                //         '<div class="input-group file-container" id="group_photo">' +
-                //             '<span class="input-group-btn">' +
-                //                 '<button class="btn btn-default file-choose">' +
-                //                     '<i class="fa fa-upload"></i>' +
-                //                 '</button>' +
-                //             '</span>' +
-                //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
-                //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
-                //             '<span class="input-group-btn">' +
-                //                 '<img src="image/favicon.ico" class="img-preview" />' +
-                //             '</span>' +
-                //             '<span class="input-group-btn btn-update">' +
-                //                 '<button class="btn btn-primary">更新</button>' +
-                //             '</span>' +
-                //         '</div>' +
-                //     '</div>' +
-                // '</div>' +
+                    // '<div class="form-group form-group-row">' +
+                    //     '<label for="group_photo" class="col-2 col-form-label">群組圖片 (URL): </label>' +
+                    //     '<div class="col-4">' +
+                    //         '<div class="input-group file-container" id="group_photo">' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<button class="btn btn-default file-choose">' +
+                    //                     '<i class="fa fa-upload"></i>' +
+                    //                 '</button>' +
+                    //             '</span>' +
+                    //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
+                    //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
+                    //             '<span class="input-group-btn">' +
+                    //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                    //             '</span>' +
+                    //             '<span class="input-group-btn btn-update">' +
+                    //                 '<button class="btn btn-primary">更新</button>' +
+                    //             '</span>' +
+                    //         '</div>' +
+                    //     '</div>' +
+                    // '</div>' +
 
-                '<table class="table table-responsive chsr-group chsr-table">' +
-                '<thead>' +
-                '<tr>' +
-                '<td class="user">' +
-                '<div>' +
-                '<input type="text" class="text user-email form-control" id="group_add_user" placeholder="Email 地址" autocomplete="off">' +
-                '</div>' +
-                '</td>' +
-                '<td class="permission">' +
-                '<div class="input-group text-right">' +
-                '<div class="input-group-btn">' +
-                '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                '<span class="permission-text">Permission</span>' + '&nbsp;' +
-                '<span class="caret"></span>' +
-                '</button>' +
-                '<ul class="dropdown-menu dropdown-menu-right">' +
-                '<li><a role="button">READ</a></li>' +
-                '<li><a role="button">WRITE</a></li>' +
-                '<li><a role="button">ADMIN</a></li>' +
-                '</ul>' +
-                '</div>' +
-                '</div>' +
-                '</td>' +
-                '<td class="actions">' +
-                '<div class="text-right">' +
-                '<button class="btn btn-default btn-block outline add-button">' +
-                '新增' +
-                '<i class="fa fa-user-plus"></i>' +
-                '</button>' +
-                '</div>' +
-                '</td>' +
-                '</tr>' +
-                '</thead>' +
-                '<tbody></tbody>' +
-                '</table>' +
+                    '<table class="table table-responsive chsr-group chsr-table">' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<td class="user">' +
+                                    '<div class="email-input-container">' +
+                                        '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="permission">' +
+                                    '<div class="input-group text-right">' +
+                                        '<div class="input-group-btn">' +
+                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                                '<span class="permission-text">Permission</span>' + '&nbsp;' +
+                                                '<span class="caret"></span>' +
+                                            '</button>' +
+                                            '<ul class="dropdown-menu dropdown-menu-right">' +
+                                                '<li><a role="button">READ</a></li>' +
+                                                '<li><a role="button">WRITE</a></li>' +
+                                                '<li><a role="button">ADMIN</a></li>' +
+                                            '</ul>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</td>' +
+                                '<td class="actions">' +
+                                    '<div class="text-right">' +
+                                        '<button class="btn btn-default btn-block outline add-button">' +
+                                            '新增' +
+                                            '<i class="fa fa-user-plus"></i>' +
+                                        '</button>' +
+                                    '</div>' +
+                                '</td>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody></tbody>' +
+                    '</table>' +
                 '</div>'
             );
 
@@ -870,6 +872,55 @@ window.auth.ready.then(function(currentUser) {
                         $groupElems[groupId].$imgPreview.prop('src', imgBase64);
                     });
                 }
+            });
+
+            $groupElems[groupId].$memberEmail.typeahead({
+                minLength: 2,
+                fitToElement: true,
+                showHintOnFocus: false,
+                items: 5,
+                source: [],
+                autoSelect: false,
+                matcher: function() {
+                    // 總是回傳 ture 代表無視 keyin 內容
+                    // typeahead 清單資料以 api 回傳的清單為主
+                    return true;
+                },
+                updater: function(item) {
+                    // 選擇項目後，將 email 的部分設於 input value
+                    return { displayName: item.email };
+                },
+                displayText: function(item) {
+                    // 項目顯示樣式為 [username - example@example.com]
+                    return item.displayName + (item.email ? ' - ' + item.email : '');
+                }
+            });
+
+            $groupElems[groupId].$memberEmail.on('keyup', function(ev) {
+                keyinWaitTimer && window.clearTimeout(keyinWaitTimer);
+                if (ev.target.value < 2) {
+                    return;
+                }
+
+                var emailPattern = ev.target.value;
+                keyinWaitTimer = window.setTimeout(function() {
+                    return Promise.resolve().then(function() {
+                        if (searchCache[emailPattern]) {
+                            return searchCache[emailPattern];
+                        }
+
+                        return api.auth.searchUsers(userId, emailPattern).then(function(resJson) {
+                            return resJson.data || [];
+                        });
+                    }).then(function(searchResults) {
+                        // 將搜尋到的結果存到快取中，相同的搜尋字不需再搜尋兩次
+                        searchCache[emailPattern] = searchResults;
+
+                        var typeaheadData = $(ev.target).data('typeahead');
+                        typeaheadData.setSource(searchResults);
+                        typeaheadData.lookup();
+                    });
+                }, 500); // 使用者停止 keyin 500ms 後在確定發送搜尋 api
             });
             // #endregion
 

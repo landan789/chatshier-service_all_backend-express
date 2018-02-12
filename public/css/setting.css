@@ -149,6 +149,10 @@ p:empty:not(:focus)::before {
     width: 20%;
 }
 
+.email-input-container {
+    position: relative;
+}
+
 .file-container .img-preview {
     min-width: 32px;
     width: 32px;
