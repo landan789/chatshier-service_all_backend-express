@@ -72,6 +72,8 @@ module.exports = (function() {
                 }
             };
             callback(appsComposes);
+        }).catch(() => {
+            callback(null);
         });
     };
 
