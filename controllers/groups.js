@@ -170,7 +170,7 @@ module.exports = (function() {
             var groupIds = user.group_ids;
             var index = groupIds.indexOf(groupId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GROUP);
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
             return new Promise((resolve, reject) => {

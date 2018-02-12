@@ -101,6 +101,10 @@ p:empty:not(:focus)::before {
     content: "\e114";
 }
 
+.app-table-space {
+    padding: 1%;
+}
+
 /*******************/
 /* #region 內部群組相關設置 */
 
@@ -108,18 +112,18 @@ p:empty:not(:focus)::before {
     cursor: pointer;
 }
 
-.group-tab {
+.group-tab, .group-app {
     padding: 1rem 0;
     margin-bottom: 0;
     border: 1px solid #ddd;
 }
 
-.group-tab:first-child {
+.group-tab:first-child, .group-app:first-child {
     border-top-left-radius: .5rem;
     border-top-right-radius: .5rem;
 }
 
-.group-tab .group-name {
+.group-tab .group-name, .group-app .group-name {
     padding: 10px 15px;
     text-decoration: none;
 }

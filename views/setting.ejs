@@ -74,8 +74,8 @@
             </div>
             <div id="menu2" class="tab-pane fade in active">
                 <h3 class="margin-left-15">聊天應用程式
-                    <button type="button" class="btn btn-default" id="add-new-btn" data-toggle="modal" data-target="#setting-modal" disabled="true">
-                <span class="fa fa-plus"></span> 新增
+                <button type="button" class="btn btn-default" id="add-group-name-app-btn" data-toggle="modal" data-target="#add_group_name_app_modal" disabled="true">
+                <span class="fa fa-plus"></span> 新增群組
                 </button>
                 </h3>
                 <div class="col-md-10 col-lg-10 panel-info prof-wid">
@@ -88,15 +88,7 @@
                     <div class="col-md-12 col-lg-12 panel-info prof-wid">
                         <div class="panel-body">
                             <div class="row">
-                                <div class=" col-md-12 col-lg-12 ">
-                                    <table class="table table-user-information">
-                                        <tbody id="app-group">
-                                            <tr hidden>
-                                                <td>ID: </td>
-                                                <td id="prof-id"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div class="col-md-12 col-lg-12">
                                 </div>
                             </div>
                         </div>
@@ -142,6 +134,7 @@
             </div>
         </div>
         <% include ../views/partials/add_group_modal.ejs %>
+        <% include ../views/partials/add_group_name_app_modal.ejs %>
         <% include ../views/partials/setting_modal.ejs %>
         <% include ../views/partials/firebase_disable.ejs %>
     </div>
