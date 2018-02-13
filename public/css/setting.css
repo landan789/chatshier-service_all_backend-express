@@ -186,6 +186,7 @@ table.chsr-group {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
+    margin-bottom: 0;
 }
 
 table.chsr-group .status{
@@ -210,7 +211,7 @@ table.chsr-group tbody td {
 }
 
 .chsr-group .actions {
-    width: 10%;
+    width: 7%;
 }
 
 .chsr-group .outline {
@@ -229,6 +230,7 @@ table.chsr-group tbody td {
 
 .action-container {
     padding-right: 1rem;
+    display: inline;
 }
 
 .actions .remove-icon {

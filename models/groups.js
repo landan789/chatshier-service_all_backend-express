@@ -115,11 +115,11 @@ module.exports = (function() {
     /**
      * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
      * @param {string|string[]} groupIds 
-     * @param {function} callback 
-     * @return {string[]} appIds 
+     * @param {(appIds: []) => any} callback
+     * @returns {void}
      */
     GroupsModel.prototype.findAppIds = function(groupIds, callback) {
-        // 多行處理
+        // 多型處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
         };

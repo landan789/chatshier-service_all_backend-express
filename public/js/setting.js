@@ -3,6 +3,8 @@
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
 const CHATSHIER = 'CHATSHIER';
+const ACTIVE = '啟用';
+const INACTIVE = '未啟用';
 var userId = '';
 var api = window.restfulAPI;
 var transJson = {};
@@ -941,8 +943,8 @@ window.auth.ready.then(function(currentUser) {
             var userData = userGroupMembers[memberData.user_id];
             if (!userData) {
                 return;
-            }
-
+            };
+            var currentUid = auth.currentUser.uid;
             var memberItemHtml =
                 '<tr class="group-member" id="' + memberId + '">' +
                     '<td class="user">' +
@@ -961,22 +963,32 @@ window.auth.ready.then(function(currentUser) {
                             '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
                         '</div>' +
                     '</td>' +
-                    '<td>' +
+                    '<td class="status">' +
+                        '<span class="active ' + (0 === memberData.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
+                        '<span class="inactive ' + (1 === memberData.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
                     '</td>' +
                     '<td class="actions">' +
                         '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === memberData.type || 1 === memberData.status || memberData.user_id !== currentUid) ? ' hide' : '') + '">' +
                                 '<span class="chsr-icon">' +
-                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                                    '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
                                 '</span>' +
                             '</a>' +
                         '</div>' +
+                        '<div class="action-container text-right">' +
+                        '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
+                            '<span class="chsr-icon">' +
+                                '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                            '</span>' +
+                        '</a>' +
+                    '</div>' +
                     '</td>' +
                 '</tr>';
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
             var $memberRow = $groupElems[groupId].$memberList.find('#' + memberId);
             var $memberPermission = $memberRow.find('.permission');
+            var $memberStatus = $memberRow.find('.status');
             var $memberActions = $memberRow.find('.actions');
 
             // 使用者點擊群組內的事件處理
@@ -997,6 +1009,19 @@ window.auth.ready.then(function(currentUser) {
                     // 成功更新後更新本地端的資料
                     groups[groupId].members[memberId].type = putMemberData.type;
                     $permissionItem.addClass('btn-primary').siblings().removeClass('btn-primary');
+                });
+            });
+
+            $memberActions.on('click', '.btn-join', function() {
+                var putMemberData = { status: 1 };
+                var $self = $(this);
+                return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
+                    // 更新 API，加入群組
+                    groups[groupId].members[memberId].status = putMemberData.status;
+                    $memberStatus.find('.active').removeClass('hide');
+                    $memberStatus.find('.inactive').addClass('hide');
+                    $self.remove();
+                    $.notify('您已加入群組', { type: 'success' });
                 });
             });
 
