@@ -200,7 +200,7 @@ var ticketTableCtrl = (function() {
             });
 
             $addTicketModal.off('show.bs.modal').on('show.bs.modal', function() {
-                var messagersData = appsData[appId].messagers;
+                var messagersData = appsMessagersData[appId].messagers;
                 var $messagerNameSelect = $addTicketModal.find('select#add-form-name');
                 var $messagerIdElem = $addTicketModal.find('input#add-form-uid');
                 var $messagerEmailElem = $addTicketModal.find('input#add-form-email');
