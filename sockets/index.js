@@ -357,7 +357,7 @@ function init(server) {
                     case LINE:
                         let messageEvent = req.body.events[0];
                         if (FOLLOW === messageEvent.type.toUpperCase()) {
-                            resolve({messager: messager, inMessage: ''});
+                            resolve({ messager: messager, inMessage: '' });
                             break;
                         }
                         helpersBot.lineMessageType(req.lineBot, messageEvent, inMessage, (newMessage) => {

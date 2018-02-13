@@ -14,7 +14,6 @@
     var sendtime;
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
-    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var $composeEditModal = $('#editModal');
     var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
@@ -43,8 +42,9 @@
         $(document).on('change', '#app-select', storeApp);
         $(document).on('click', '.tablinks', clickMsg);
         $(document).on('click', '#btn-text', btnText);
-        $(document).on('click', '#remove-btn', removeInput);
-        $(document).on('click', '#modal-submit', insertSubmit); //新增
+        $(document).on('click', '.remove-btn', removeInput);
+        $(document).on('click', '#modal-submit', insertSubmit);
+        $(document).on('click', '#add-btn', cleanmodal);
         $composesAddModal.find('#quickAdd').on('click', insertSubmit);
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
@@ -52,6 +52,7 @@
         // FUNCTIONs
 
         function storeApp() {
+            appId = '';
             appId = $(this).find(':selected').attr('id');
         } // end of loadFriendsReply
 
@@ -59,17 +60,16 @@
             var id = $(this).parent().find('form').find('textarea').attr('id');
             deleteNum++;
             delete inputObj[id];
-            if (inputNum - deleteNum < 4) { $('.error_msg').hide() }
+            if (inputNum - deleteNum < 4) { $('.error_msg').hide() };
             $(this).parent().remove();
         }
 
         function clickMsg() { // 更換switch
             var target = $(this).attr('rel');
-            $("#" + target).show().siblings().hide();
+            $('#' + target).show().siblings().hide();
         }
 
         function btnText() {
-            $('.error-input').hide();
             inputNum++;
             if (inputNum - deleteNum > 3) {
                 $('.error-msg').show();
@@ -85,7 +85,7 @@
                     '<tr>' +
                     '<td style="background-color: #ddd">' +
                     '<form style="padding:1%">' +
-                    '<textarea class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
                     '</form>' +
                     '</td>' +
                     '</tr>' +
@@ -224,7 +224,22 @@
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
-            $('#textContent').text(textContent);
+            var dialogModalTemplate =
+                '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
+                '<div class="modal-dialog" role="document">' +
+                '<div class="modal-content">' +
+                '<div class="modal-body">' +
+                '<h4>' + textContent + '</h4>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-primary">確定</button>' +
+                '<button type="button" class="btn btn-secondary">取消</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            $('body').append(dialogModalTemplate);
+            dialogModalTemplate = void 0;
 
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
@@ -232,12 +247,12 @@
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
                 resolve(isOK);
-                $dialogModal.modal('hide');
+                $dialogModal.remove();
             });
 
             $dialogModal.find('.btn-secondary').on('click', function() {
                 resolve(isOK);
-                $dialogModal.modal('hide');
+                $dialogModal.remove();
             });
 
             $dialogModal.modal({
@@ -247,12 +262,31 @@
         });
     }
 
+    function cleanmodal() {
+        $('.error-msg').hide();
+        $('.error-input').hide();
+        $('.textinput').val('');
+        $('#send-time').val('');
+        $('#inputText').empty();
+        inputObj = {};
+        inputNum = 0;
+        deleteNum = 0;
+    }
+
     function insertSubmit() {
-        $composesAddModal.find('#modal-submit').attr('disabled', 'disabled');
+        var $errorMsgElem = $composesAddModal.find('.error-input');
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         let messages = [];
-        if (0 === inputObj.length) {
-            $('.error-input').show();
+        $errorMsgElem.empty().hide();
+
+        var isTextVaild = true;
+        $('.textinput').each(function() {
+            isTextVaild &= !!$(this).val();
+        });
+
+        if (!isTextVaild) {
+            $errorMsgElem.text('請輸入群發的內容').show();
+            return;
         } else {
             sendtime = $('#send-time').val();
 
@@ -281,32 +315,30 @@
                 };
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
+                    $composesAddModal.modal('hide');
+                    $('.form-control').val(allComposesData[appId].name);
+                    $('.textinput').val('');
+                    $('#send-time').val('');
+                    $('#inputText').empty();
+                    inputNum = 0;
+                    $.notify('發送成功', { type: 'success' });
+                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                    return loadComposes(appId, userId);
+                } else {
+                    $composesAddModal.modal('hide');
+                    $('.form-control').val(allComposesData[appId].name);
+                    $('.textinput').val('');
+                    $('#send-time').val('');
+                    $('#inputText').empty();
+                    inputNum = 0;
+                    $.notify('儲存成功', { type: 'success' });
+                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                    return loadComposes(appId, userId);
                 }
-                $('#quickAdd').modal('hide');
-                $('.textinput').val('');
-                $('#send-time').val('');
-                $('#inputText').empty();
-                inputNum = 0;
-                $.notify('發送成功', { type: 'success' });
-                $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
-                $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                return loadComposes(appId, userId);
             }
-        }
-        // ==========
-        // 檢查資料有無輸入
-        // $errorMsgElem.empty().hide();
-        // if (!appId) {
-        //     $errorMsgElem.text('請選擇目標App').show();
-        //     return;
-        // } else if (!keyword) {
-        //     $errorMsgElem.text('請輸入關鍵字').show();
-        //     return;
-        // } else if (!textContent) {
-        //     $errorMsgElem.text('請輸入關鍵字回覆的內容').show();
-        //     return;
-        // }
-        // ==========
+        };
         if ($('#send-sometime').prop('checked')) {
             let messages = [];
             for (let key in inputObj) {
@@ -325,7 +357,8 @@
                 };
                 api.composes.insert(appId, userId, composeData).then(function(resJson) {});
             }
-            $('#quickAdd').modal('hide');
+            $composesAddModal.modal('hide');
+            $('.form-control').val(allComposesData[appId].name);
             $('.textinput').val('');
             $('#send-time').val('');
             $('#inputText').empty();
