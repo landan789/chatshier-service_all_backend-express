@@ -210,22 +210,7 @@
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
-            var dialogModalTemplate =
-                '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
-                '<div class="modal-dialog" role="document">' +
-                '<div class="modal-content">' +
-                '<div class="modal-body">' +
-                '<h4>' + textContent + '</h4>' +
-                '</div>' +
-                '<div class="modal-footer">' +
-                '<button type="button" class="btn btn-primary">確定</button>' +
-                '<button type="button" class="btn btn-secondary">取消</button>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                '</div>';
-            $('body').append(dialogModalTemplate);
-            dialogModalTemplate = void 0;
+            $('#textContent').text(textContent);
 
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
@@ -233,12 +218,12 @@
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.find('.btn-secondary').on('click', function() {
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.modal({
