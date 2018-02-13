@@ -5,8 +5,14 @@ module.exports = (function() {
     const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
+    const appsMdl = require('../models/apps');
 
-    let paramsChecking = function(params) {
+    const OWNER = 'OWNER';
+    const ADMIN = 'ADMIN';
+    const WRITE = 'WRITE';
+    const READ = 'READ';
+
+    let paramsCheckingGetAll = function(params) {
         params = params || {};
         let userId = params.userid;
         let appId = params.appid;
@@ -44,6 +50,101 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 使用者的 AppId 清單前置檢查程序
+     *
+     * @param {string} userId
+     * @param {string} appId
+     */
+    let paramsChecking = function(params) {
+        let appId = params.appid;
+        let userId = params.userid;
+
+        return Promise.resolve().then(() => {
+            // 1. 先用 userId 去 users model 找到 appId 清單
+            return new Promise((resolve, reject) => {
+                if (!userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
+                if (!appId) {
+                    reject(API_ERROR.APPID_WAS_EMPTY);
+                    return;
+                };
+                usersMdl.findUser(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(data);
+                });
+            });
+        }).then((userId) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (appId && -1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve();
+                });
+            });
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                appsMdl.findByAppId(appId, (apps) => {
+                    if (null === apps || undefined === apps || '' === apps) {
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(apps);
+                });
+            });
+        }).then((apps) => {
+            var app = Object.values(apps)[0];
+            var groupId = app.group_id;
+            return new Promise((resolve, reject) => {
+                groupsMdl.findGroups(groupId, (groups) => {
+                    if (null === groups || undefined === groups || '' === groups) {
+                        reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                        return;
+                    };
+                    resolve(groups);
+                });
+            });
+        }).then((groups) => {
+            var group = Object.values(groups)[0];
+            var members = group.members;
+
+            var userIds = Object.values(members).map((member) => {
+                if (0 === member.isDeleted) {
+                    return member.user_id;
+                }
+            });
+
+            var index = userIds.indexOf(userId);
+
+            if (0 > index) {
+                return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+            };
+
+            var member = Object.values(members)[index];
+
+            if (0 === member.status) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+            };
+
+            if (READ === member.type) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
+            };
+            return appId;
+        });
+    };
+
     function AppsMessagersController() {}
 
     /**
@@ -52,7 +153,7 @@ module.exports = (function() {
     AppsMessagersController.prototype.getAllMessagers = function(req, res) {
         let appId = req.params.appid;
 
-        return paramsChecking(req.params).then((appIds) => {
+        return paramsCheckingGetAll(req.params).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
@@ -81,16 +182,14 @@ module.exports = (function() {
     };
 
     AppsMessagersController.prototype.getMessager = function(req, res) {
-        let appId = req.params.appid;
         let msgerId = req.params.messagerid;
-
-        return paramsChecking(req.params).then(() => {
+        return paramsChecking(req.params).then((checkedAppId) => {
             return new Promise((resolve, reject) => {
+                let appId = checkedAppId;
                 if (!msgerId) {
                     reject(API_ERROR.MESSAGERID_WAS_EMPTY);
                     return;
                 }
-
                 appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
                     if (!messager) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
@@ -123,10 +222,10 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsMessagersController.prototype.updateMessager = function(req, res) {
-        let appId = req.params.appid;
         let msgerId = req.params.messagerid;
-
-        return paramsChecking(req.params).then(() => {
+        let appId = '';
+        return paramsChecking(req.params).then((checkedAppId) => {
+            appId = checkedAppId;
             if (!msgerId) {
                 return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
             }

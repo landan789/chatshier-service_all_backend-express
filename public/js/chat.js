@@ -185,10 +185,10 @@ var ticketTableCtrl = (function() {
                     var dueTimeDateStr = new Date(ticketData.dueTime - timezoneGap).toISOString().split('T').shift();
                     $ticketBody.prepend(
                         '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                            '<td class="status" style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + statusNumberToText(ticketData.status) + '</td>' +
-                            '<td>' + dueTimeDateStr + '</td>' +
-                            '<td>' + ((ticketData.description.length <= 10) ? ticketData.description : (ticketData.description.substring(0, 10) + '...')) + '</td>' +
-                            '<td></td>' +
+                        '<td class="status" style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + statusNumberToText(ticketData.status) + '</td>' +
+                        '<td>' + dueTimeDateStr + '</td>' +
+                        '<td>' + ((ticketData.description.length <= 10) ? ticketData.description : (ticketData.description.substring(0, 10) + '...')) + '</td>' +
+                        '<td></td>' +
                         '</tr>'
                     );
                 }
@@ -265,36 +265,36 @@ var ticketTableCtrl = (function() {
 
         var moreInfoHtml =
             '<tr>' +
-                '<th>客戶ID</th>' +
-                '<td class="edit">' + ticketData.messagerId + '</td>' +
+            '<th>客戶ID</th>' +
+            '<td class="edit">' + ticketData.messagerId + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="priority">優先</th>' +
-                '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
+            '<th class="priority">優先</th>' +
+            '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="status">狀態</th>' +
-                '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
+            '<th class="status">狀態</th>' +
+            '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="description">描述</th>' +
-                '<td class="edit form-group">' +
-                    '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
-                '</td>' +
+            '<th class="description">描述</th>' +
+            '<td class="edit form-group">' +
+            '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
+            '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
-                '<td class="form-group">' +
-                    '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
-                '</td>' +
+            '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
+            '<td class="form-group">' +
+            '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
+            '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th>建立日期</th>' +
-                '<td>' + displayDate(ticketData.createdTime) + '</td>' +
+            '<th>建立日期</th>' +
+            '<td>' + displayDate(ticketData.createdTime) + '</td>' +
             '</tr>' +
             '<tr>' +
-                '<th>最後更新</th>' +
-                '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
+            '<th>最後更新</th>' +
+            '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
             '</tr>';
         infoInputTable.append(moreInfoHtml);
 
@@ -536,16 +536,16 @@ window.auth.ready.then(function(currentUser) {
                 case LINE:
                     var lineStr =
                         '<div class="chat-app-item" id="LINE" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '" rel="' + appId + '">' +
-                            '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
-                            '<div class="unread-count"></div>' +
+                        '<img class="software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
+                        '<div class="unread-count"></div>' +
                         '</div>';
                     $chatApp.prepend(lineStr);
                     break;
                 case FACEBOOK:
                     var fbStr =
                         '<div class="chat-app-item" id="FB" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '" rel="' + appId + '">' +
-                            '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
-                            '<div class="unread-count"></div>' +
+                        '<img class="software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
+                        '<div class="unread-count"></div>' +
                         '</div>';
                     $chatApp.prepend(fbStr);
                     break;
@@ -628,22 +628,22 @@ window.auth.ready.then(function(currentUser) {
             case LINE:
                 tablinkHtml = '<b><button class="tablinks"' + 'name="' + data.appId + '" rel="' + data.userId + '">' +
                     '<div class="img-holder">' +
-                        '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
-                        '<img class="small-software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
+                    '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
+                    '<img class="small-software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
                     '</div>' +
                     '<div class="msg-holder">' +
-                        '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
+                    '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
                     '</div>' +
                     '<div class="appName"><snap>' + appName + '</snap></div>';
                 break;
             case FACEBOOK:
                 tablinkHtml = '<b><button class="tablinks"' + 'name="' + data.appId + '" rel="' + data.userId + '">' +
                     '<div class="img-holder">' +
-                        '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
-                        '<img class="small-software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
+                    '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
+                    '<img class="small-software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
                     '</div>' +
                     '<div class="msg-holder">' +
-                        '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
+                    '<span class="clientName">' + profile.name + '</span>' + lastMsgStr +
                     '</div>' +
                     '<div class="appName"><snap>' + appName + '</snap></div>';
                 break;
@@ -669,7 +669,7 @@ window.auth.ready.then(function(currentUser) {
         // 中間聊天室
         canvas.append( // push string into canvas
             '<div id="' + data.appId + '" rel="' + data.userId + '" class="tabcontent">' +
-                "<div id='" + data.appId + "-content' rel='" + data.userId + "' class='messagePanel'>" + historyMsgStr + '</div>' +
+            "<div id='" + data.appId + "-content' rel='" + data.userId + "' class='messagePanel'>" + historyMsgStr + '</div>' +
             '</div>'
         ); // close append
 
@@ -734,37 +734,37 @@ window.auth.ready.then(function(currentUser) {
 
         infoCanvas.append(
             '<div class="card-group" id="' + data.appId + '" rel="' + data.userId + '">' +
-                '<div class="card-body table-responsive" id="profile">' +
-                    '<div class="photo-container">' +
-                        '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
-                    '</div>' +
-                    loadPanelProfile(data.appId, messager) +
-                    '<div class="profile-confirm text-center">' +
-                        '<button type="button" class="btn btn-info">確認</button>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="card-body" id="ticket" style="display:none;"></div>' +
-                '<div class="card-body" id="todo" style="display:none; ">' +
-                    '<div class="ticket">' +
-                        '<table class="ticket-table">' +
-                            '<thead>' +
-                                '<tr>' +
-                                    '<th class="sortable">狀態</th>' +
-                                    '<th class="sortable">到期</th>' +
-                                    '<th>' +
-                                        '<input type="text" class="ticket-search-bar" id="exampleInputAmount" placeholder="搜尋" />' +
-                                    '</th>' +
-                                    '<th>' +
-                                        '<a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal">' +
-                                            '<span class="fa fa-plus fa-fw"></span>新增待辦' +
-                                        '</a>' +
-                                    '</th>' +
-                                '</tr>' +
-                            '</thead>' +
-                            '<tbody class="ticket-body" rel="' + data.userId + '"></tbody>' +
-                        '</table>' +
-                    '</div>' +
-                '</div>' +
+            '<div class="card-body table-responsive" id="profile">' +
+            '<div class="photo-container">' +
+            '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
+            '</div>' +
+            loadPanelProfile(data.appId, messager) +
+            '<div class="profile-confirm text-center">' +
+            '<button type="button" class="btn btn-info">確認</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="card-body" id="ticket" style="display:none;"></div>' +
+            '<div class="card-body" id="todo" style="display:none; ">' +
+            '<div class="ticket">' +
+            '<table class="ticket-table">' +
+            '<thead>' +
+            '<tr>' +
+            '<th class="sortable">狀態</th>' +
+            '<th class="sortable">到期</th>' +
+            '<th>' +
+            '<input type="text" class="ticket-search-bar" id="exampleInputAmount" placeholder="搜尋" />' +
+            '</th>' +
+            '<th>' +
+            '<a id="' + data.userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal">' +
+            '<span class="fa fa-plus fa-fw"></span>新增待辦' +
+            '</a>' +
+            '</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody class="ticket-body" rel="' + data.userId + '"></tbody>' +
+            '</table>' +
+            '</div>' +
+            '</div>' +
             '</div>'
         );
     } // end of pushProfile
@@ -798,50 +798,50 @@ window.auth.ready.then(function(currentUser) {
                 case setsTypeEnums.SELECT:
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<select class="form-control td-inner" value="' + tagValue + '">' +
-                            (function(sets) {
-                                var opts = '<option value="">未選擇</option>';
-                                for (var i in sets) {
-                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === tagValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                }
-                                return opts;
-                            })(tagData.sets) +
+                        (function(sets) {
+                            var opts = '<option value="">未選擇</option>';
+                            for (var i in sets) {
+                                opts += '<option value="' + sets[i] + '" ' + (sets[i] === tagValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                            }
+                            return opts;
+                        })(tagData.sets) +
                         '</select>' +
-                    '</td>';
+                        '</td>';
                 case setsTypeEnums.MULTI_SELECT:
                     tagValue = (tagValue instanceof Array) ? tagValue : [];
 
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<div class="btn-group btn-block td-inner">' +
-                            '<button class="btn btn-default btn-block" data-toggle="dropdown" aria-expanded="false">' +
-                                '<span class="caret"></span>' +
-                            '</button>' +
-                            '<ul class="multi-select-container dropdown-menu">' +
-                                (function(sets) {
-                                    var checkboxes = '';
-                                    for (var i in sets) {
-                                        checkboxes += '<li><input type="checkbox" value="' + sets[i] + '"' + (tagValue[i] ? ' checked="true"' : '') + '">' + sets[i] + '</li>';
-                                    }
-                                    return checkboxes;
-                                })(tagData.sets) +
-                            '</ul>' +
+                        '<button class="btn btn-default btn-block" data-toggle="dropdown" aria-expanded="false">' +
+                        '<span class="caret"></span>' +
+                        '</button>' +
+                        '<ul class="multi-select-container dropdown-menu">' +
+                        (function(sets) {
+                            var checkboxes = '';
+                            for (var i in sets) {
+                                checkboxes += '<li><input type="checkbox" value="' + sets[i] + '"' + (tagValue[i] ? ' checked="true"' : '') + '">' + sets[i] + '</li>';
+                            }
+                            return checkboxes;
+                        })(tagData.sets) +
+                        '</ul>' +
                         '</div>' +
-                    '</td>';
+                        '</td>';
                 case setsTypeEnums.CHECKBOX:
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="td-inner" type="checkbox"' + (tagValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                    '</td>';
+                        '</td>';
                 case setsTypeEnums.DATE:
                     tagValue = tagValue || 0;
                     var tagDateStr = new Date(tagValue - timezoneGap).toISOString().split('.').shift();
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                        '</td>';
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + tagValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                        '</td>';
             }
         };
 
@@ -857,8 +857,8 @@ window.auth.ready.then(function(currentUser) {
             var tagData = appsTagsData[appId].tags[tagId];
             messagerProfileHtml +=
                 '<tr id="' + tagId + '">' +
-                    '<th class="user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
-                    tdHtmlBuilder(tagId, tagData) +
+                '<th class="user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
+                tdHtmlBuilder(tagId, tagData) +
                 '</tr>';
         }
         $(table).append(messagerProfileHtml);
@@ -1348,35 +1348,35 @@ window.auth.ready.then(function(currentUser) {
         if (-1 === nameList.indexOf(userId + appId)) {
             infoCanvas.append(
                 '<div class="card-group" id="' + appId + '" rel="' + userId + '">' +
-                    '<div class="card-body alice-blue" id="profile">' +
-                        "<div class='photo-container'>" +
-                            '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
-                        '</div>' +
-                        loadPanelProfile(appId, messager) +
-                        '<div class="profile-confirm">' +
-                            '<button type="button" class="btn btn-info pull-right" id="confirm">確認</button>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="card-body" id="ticket" style="display:none; "></div>' +
-                    '<div class="card-body" id="todo" style="display:none;">' +
-                        '<div class="ticket">' +
-                            '<table class="ticket-table">' +
-                                '<thead>' +
-                                    '<tr>' +
-                                        '<th class="sortable">狀態</th>' +
-                                        '<th class="sortable">到期</th>' +
-                                        '<th><input type="text" class="ticket-search-bar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' +
-                                        '<th>' +
-                                            '<a id="' + userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal">' +
-                                                '<span class="fa fa-plus fa-fw"></span>新增待辦' +
-                                            '</a>' +
-                                        '</th>' +
-                                    '</tr>' +
-                                '</thead>' +
-                                '<tbody class="ticket-body" rel="' + userId + '"></tbody>' +
-                            '</table>' +
-                        '</div>' +
-                    '</div>' +
+                '<div class="card-body alice-blue" id="profile">' +
+                "<div class='photo-container'>" +
+                '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
+                '</div>' +
+                loadPanelProfile(appId, messager) +
+                '<div class="profile-confirm">' +
+                '<button type="button" class="btn btn-info pull-right" id="confirm">確認</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="card-body" id="ticket" style="display:none; "></div>' +
+                '<div class="card-body" id="todo" style="display:none;">' +
+                '<div class="ticket">' +
+                '<table class="ticket-table">' +
+                '<thead>' +
+                '<tr>' +
+                '<th class="sortable">狀態</th>' +
+                '<th class="sortable">到期</th>' +
+                '<th><input type="text" class="ticket-search-bar" id="exampleInputAmount" value="" placeholder="搜尋"/></th>' +
+                '<th>' +
+                '<a id="' + userId + '-modal" data-toggle="modal" data-target="#add-ticket-modal">' +
+                '<span class="fa fa-plus fa-fw"></span>新增待辦' +
+                '</a>' +
+                '</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody class="ticket-body" rel="' + userId + '"></tbody>' +
+                '</table>' +
+                '</div>' +
+                '</div>' +
                 '</div>'
             );
         }
@@ -1414,12 +1414,12 @@ window.auth.ready.then(function(currentUser) {
                 case LINE:
                     tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'>" +
                         "<div class='img-holder'>" +
-                            "<img src='" + messager.photo + "' alt='無法顯示相片'>" +
-                            '<img class="small-software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
+                        "<img src='" + messager.photo + "' alt='無法顯示相片'>" +
+                        '<img class="small-software-icon" src="http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png">' +
                         '</div>' +
                         "<div class='msg-holder'>" +
-                            "<span class='clientName'>" + messager.name + '</span><br>' +
-                            '<div id="msg"></div>' +
+                        "<span class='clientName'>" + messager.name + '</span><br>' +
+                        '<div id="msg"></div>' +
                         '</div>' +
                         '<div class="appName"><snap>' + appName + '</snap></div>' +
                         '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
@@ -1427,12 +1427,12 @@ window.auth.ready.then(function(currentUser) {
                 case FACEBOOK:
                     tablinkHtml = "<b><button class='tablinks'" + "name='" + appId + "' rel='" + userId + "'>" +
                         "<div class='img-holder'>" +
-                            "<img src='" + messager.photo + "' alt='無法顯示相片'>" +
-                            '<img class="small-software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
+                        "<img src='" + messager.photo + "' alt='無法顯示相片'>" +
+                        '<img class="small-software-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png">' +
                         '</div>' +
                         "<div class='msg-holder'>" +
-                            "<span class='clientName'>" + messager.name + '</span><br>' +
-                            '<div id="msg"></div>' +
+                        "<span class='clientName'>" + messager.name + '</span><br>' +
+                        '<div id="msg"></div>' +
                         '</div>' +
                         '<div class="appName"><snap>' + appName + '</snap></div>' +
                         '<div class="chsr unread-msg badge badge-pill" style="display:block;">0</div>';
@@ -1580,7 +1580,7 @@ window.auth.ready.then(function(currentUser) {
 
             return api.messager.update(appId, msgerId, agentId, messagerUiData).then(function() {
                 // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-                appsData[appId].messagers[msgerId] = Object.assign(appsData[appId].messagers[msgerId], messagerUiData);
+                appsMessagersData[appId].messagers[msgerId] = Object.assign(appsMessagersData[appId].messagers[msgerId], messagerUiData);
                 $.notify('用戶資料更新成功', { type: 'success' });
             }).catch(function() {
                 $.notify('用戶資料更新失敗，請重試', { type: 'danger' });
