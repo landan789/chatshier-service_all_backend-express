@@ -23,7 +23,7 @@ module.exports = (function() {
      * @param {string|string[]} groupIds
      * @param {function} callback
      */
-    GroupsModel.prototype.findGroups = function(groupIds, callback) {
+    GroupsModel.prototype.findGroups = function(groupIds, userId, callback) {
         // 多行處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
@@ -33,6 +33,17 @@ module.exports = (function() {
             return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
                 var group = snap.val();
                 if (null === group || undefined === group || '' === group || 0 !== group.isDeleted) {
+                    return Promise.resolve(null);
+                };
+                var members = group.members;
+                var userIds = Object.values(members).map((member) => {
+                    // 如果 member 已刪  就不查詢此 group 底下的 app 資料
+                    if (0 === member.isDeleted) {
+                        return member.user_id;
+                    };
+                });
+
+                if (0 > userIds.indexOf(userId)) {
                     return Promise.resolve(null);
                 };
                 groups[groupId] = group;
@@ -118,7 +129,7 @@ module.exports = (function() {
      * @param {(appIds: []) => any} callback
      * @returns {void}
      */
-    GroupsModel.prototype.findAppIds = function(groupIds, callback) {
+    GroupsModel.prototype.findAppIds = function(groupIds, userId, callback) {
         // 多型處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
@@ -134,9 +145,23 @@ module.exports = (function() {
                 }
                 return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
                     var group = snap.val();
+
                     if (null === group || undefined === group || '' === group || '' === group.app_ids || undefined === group.app_ids || (group.app_ids instanceof Array && 0 === group.app_ids.length)) {
                         return Promise.resolve(null);
                     };
+
+                    var members = group.members;
+                    var userIds = Object.values(members).map((member) => {
+                        // 如果 member 已刪除或未啟用 就不查詢此 group 底下的 app 資料
+                        if (0 === member.isDeleted && 1 === member.status) {
+                            return member.user_id;
+                        };
+                    });
+
+                    if (0 > userIds.indexOf(userId)) {
+                        return Promise.resolve(null);
+                    };
+
                     var _appIds = group.app_ids;
                     _appIds.forEach((appId) => {
                         appIds[appId] = appId;

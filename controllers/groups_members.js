@@ -131,22 +131,28 @@ module.exports = (function() {
                 var userId = member.user_id;
                 return userId;
             });
-            var index = userIds.indexOf(req.params.userid);
-            var memberId = Object.keys(members)[index];
-            var member = members[memberId];
-            if (0 <= userIds.indexOf(req.body.userid) && 0 === member.isDeleted) {
+            var paramsIndex = userIds.indexOf(req.params.userid);
+            var paramsMemberId = Object.keys(members)[paramsIndex];
+            var paramsMember = members[paramsMemberId];
+
+            var bodyIndex = userIds.indexOf(req.body.userid);
+            var bodyMemberId = Object.keys(members)[bodyIndex];
+            var bodyMember = members[bodyMemberId];
+
+            if (0 <= bodyIndex && 0 === bodyMember.isDeleted) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
             }
-            if (WRITE === member.type || READ === member.type) {
+            if (WRITE === paramsMember.type || READ === paramsMember.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
             };
 
-            if (0 <= userIds.indexOf(req.body.userid) && 1 === member.isDeleted) {
+            if (0 <= bodyIndex && 1 === bodyMember.isDeleted) {
                 var _member = {
-                    isDeleted: 0
+                    isDeleted: 0,
+                    status: 0
                 };
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.update(groupId, memberId, _member, (groupsMembers) => {
+                    groupsMembersMdl.update(groupId, bodyMemberId, _member, (groupsMembers) => {
                         if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                             reject(groupsMembers);
                             return;

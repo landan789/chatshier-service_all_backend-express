@@ -46,9 +46,9 @@ module.exports = (function() {
                     resolve(data);
                 });
             });
-        }).then((userId) => {
+        }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -74,7 +74,7 @@ module.exports = (function() {
             var app = Object.values(apps)[0];
             var groupId = app.group_id;
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, (groups) => {
+                groupsMdl.findGroups(groupId, params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
@@ -135,10 +135,10 @@ module.exports = (function() {
                     resolve(data);
                 });
             });
-        }).then((userId) => {
+        }).then((user) => {
             // 2. 再根據 appId 清單去 keywordreplies model 抓取清單
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(userId.group_ids, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, req.params.userid, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;

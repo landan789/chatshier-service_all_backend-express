@@ -659,8 +659,10 @@ window.auth.ready.then(function(currentUser) {
                     return member.user_id;
                 };
             });
-
             var index = userIds.indexOf(auth.currentUser.uid);
+            if (0 > index) {
+                //return;
+            };
             var currentMember = Object.values(members)[index];
             $groupBody.append(
                 '<div class="group-tab" role="tab">' +
@@ -747,7 +749,6 @@ window.auth.ready.then(function(currentUser) {
                     '</table>' +
                 '</div>'
             );
-
             // #region 每個群組相關事件宣告
             // 將群組中經常取用的 element 一次抓取出來，方便存取
             var $collapse = $groupBody.find('#' + groupId);
@@ -764,7 +765,6 @@ window.auth.ready.then(function(currentUser) {
                 $memberList: $collapse.find('.chsr-group tbody'),
                 $permissionText: $collapse.find('.chsr-group .permission .permission-text')
             };
-
             // 群組展開時將其他群組收縮起來
             $collapse.on('show.bs.collapse', function(e) {
                 instance.hideCollapseAll(e.target.id);
@@ -847,7 +847,7 @@ window.auth.ready.then(function(currentUser) {
                         var groupMembersData = resJson.data[groupId].members;
                         var groupMemberId = Object.keys(groupMembersData).shift();
                         groups[groupId].members = Object.assign(groups[groupId].members, groupMembersData);
-
+debugger;
                         return {
                             groupMemberId: groupMemberId,
                             groupMembersData: groupMembersData[groupMemberId]
@@ -856,7 +856,7 @@ window.auth.ready.then(function(currentUser) {
                 }).then(function(insertData) {
                     return api.auth.getUsers(userId).then(function(resJson) {
                         userGroupMembers = resJson.data || {};
-                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData);
+                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, currentMember);
 
                         $groupElems[groupId].$memberEmail.val('');
                         $groupElems[groupId].$permissionText.text('Permission');
@@ -1067,7 +1067,6 @@ window.auth.ready.then(function(currentUser) {
         ]).then(function(resJsons) {
             groups = resJsons[0].data || {};
             userGroupMembers = resJsons[1].data || {};
-
             var firstGroupId = '';
             for (var groupId in groups) {
                 firstGroupId = firstGroupId || groupId;

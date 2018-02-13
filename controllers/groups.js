@@ -36,7 +36,7 @@ module.exports = (function() {
         }).then((user) => {
             let groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupIds, (groups) => {
+                groupsMdl.findGroups(groupIds, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(groups);
                         return;
@@ -196,7 +196,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, (groups) => {
+                groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(groups);
                         return;
