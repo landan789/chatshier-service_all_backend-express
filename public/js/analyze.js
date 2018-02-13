@@ -340,7 +340,7 @@
     }
 
     function viewWordCloud() {
-        analyzeType = AnalyzeType.WordCloud;
+        analyzeType = AnalyzeType.WORDCLOUR;
         var msgData = getSelecedMsgData();
 
         var text = msgData.join(',');
