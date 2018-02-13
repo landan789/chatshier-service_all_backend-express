@@ -653,6 +653,15 @@ window.auth.ready.then(function(currentUser) {
 
         GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
             instance.hideCollapseAll(groupId);
+            var members = groupData.members;
+            var userIds = Object.values(members).map((member) => {
+                if (0 === member.isDeleted) {
+                    return member.user_id;
+                };
+            });
+
+            var index = userIds.indexOf(auth.currentUser.uid);
+            var currentMember = Object.values(members)[index];
             $groupBody.append(
                 '<div class="group-tab" role="tab">' +
                 '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
@@ -660,7 +669,7 @@ window.auth.ready.then(function(currentUser) {
                 '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                    '<div class="form-group form-group-row">' +
+                    '<div class="form-group form-group-row ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
                         '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
                         '<div class="col-4">' +
                             '<div class="input-group group-name" id="group_name">' +
@@ -700,7 +709,7 @@ window.auth.ready.then(function(currentUser) {
                         '<thead>' +
                             '<tr>' +
                                 '<td class="user">' +
-                                    '<div class="email-input-container">' +
+                                    '<div class="email-input-container ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
                                         '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
                                     '</div>' +
                                 '</td>' +
@@ -711,7 +720,7 @@ window.auth.ready.then(function(currentUser) {
                                                 '<span class="permission-text">Permission</span>' + '&nbsp;' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<ul class="dropdown-menu dropdown-menu-right">' +
+                                            '<ul class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
                                                 '<li><a role="button">READ</a></li>' +
                                                 '<li><a role="button">WRITE</a></li>' +
                                                 '<li><a role="button">ADMIN</a></li>' +
@@ -719,13 +728,13 @@ window.auth.ready.then(function(currentUser) {
                                         '</div>' +
                                     '</div>' +
                                 '</td>' +
-                                '<td>' +
-                                    '<div class="status">' +
+                                '<td class="status">' +
+                                    '<div">' +
                                         '狀態' +
                                     '</div>' +
                                 '</td>' +
                                 '<td class="actions">' +
-                                    '<div class="text-right">' +
+                                    '<div class="text-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
                                         '<button class="btn btn-default btn-block outline add-button">' +
                                             '新增' +
                                             '<i class="fa fa-user-plus"></i>' +
@@ -935,16 +944,16 @@ window.auth.ready.then(function(currentUser) {
 
             // 將群組內的成員資料載入至畫面上
             for (var memberId in groupData.members) {
-                instance.addMemberToList(groupId, memberId, groupData.members[memberId]);
+                instance.addMemberToList(groupId, memberId, groupData.members[memberId], currentMember);
             }
         };
 
-        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, memberData) {
+        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, memberData, currentMember) {
             var userData = userGroupMembers[memberData.user_id];
             if (!userData) {
                 return;
             };
-            var currentUid = auth.currentUser.uid;
+
             var memberItemHtml =
                 '<tr class="group-member" id="' + memberId + '">' +
                     '<td class="user">' +
@@ -969,14 +978,14 @@ window.auth.ready.then(function(currentUser) {
                     '</td>' +
                     '<td class="actions">' +
                         '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === memberData.type || 1 === memberData.status || memberData.user_id !== currentUid) ? ' hide' : '') + '">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === memberData.type || 1 === memberData.status || memberData.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
                                 '<span class="chsr-icon">' +
                                     '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
                                 '</span>' +
                             '</a>' +
                         '</div>' +
                         '<div class="action-container text-right">' +
-                        '<a role="button" class="btn-remove' + (memberTypes.OWNER === memberData.type ? ' hide' : '') + '">' +
+                        '<a role="button" class="btn-remove' + ((memberTypes.OWNER === memberData.type || memberTypes.WRITE === currentMember.type || memberTypes.READ === currentMember.type) ? ' hide' : '') + '">' +
                             '<span class="chsr-icon">' +
                                 '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
                             '</span>' +

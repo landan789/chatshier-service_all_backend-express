@@ -210,8 +210,21 @@ table.chsr-group tbody td {
     padding: .5rem;
 }
 
+.chsr-group .user {
+    width: 43%;
+}
+
+.chsr-group .permission {
+    width: 20%;
+}
+
+.chsr-group .status {
+    width: 20%;
+}
+
 .chsr-group .actions {
     width: 7%;
+    text-align: right;
 }
 
 .chsr-group .outline {
