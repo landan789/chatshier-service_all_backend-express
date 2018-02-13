@@ -45,6 +45,7 @@
         $(document).on('click', '.remove-btn', removeInput);
         $(document).on('click', '#modal-submit', insertSubmit);
         $(document).on('click', '#add-btn', cleanmodal);
+        $(document).on('change paste keyup', '.search-bar', dataSearch);
         $composesAddModal.find('#quickAdd').on('click', insertSubmit);
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
@@ -182,7 +183,7 @@
                     continue;
                 }
                 var list = new TableObj();
-                var text = list.th.text(composeData.text);
+                var text = list.th.attr('data-title', composeData.text).text(composeData.text);
                 var time = list.td1.text(ToLocalTimeString(composeData.time));
                 var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
                 var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
@@ -212,6 +213,15 @@
                 });
             });
         });
+    }
+
+    function dataSearch() {
+        let searchText = $(this).val().toLocaleLowerCase();
+        if (!searchText) {
+            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            return;
+        }
+        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
     }
 
     function ToLocalTimeString(millisecond) {

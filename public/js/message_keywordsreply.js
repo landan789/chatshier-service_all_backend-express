@@ -12,6 +12,7 @@
     var $keywordreplyAddModal = $('#keywordreply_add_modal');
     var $keywordreplyEditModal = $('#keywordreply_edit_modal');
     var $appDropdown = $('.app-dropdown');
+    var $searchBar = $('.search-bar');
     var $dropdownMenu = $appDropdown.find('.dropdown-menu');
     var $openTableElem = null;
     var $draftTableElem = null;
@@ -20,6 +21,14 @@
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
+        $searchBar.on('change paste keyup', function() {
+            let searchText = $(this).val().toLocaleLowerCase();
+            if (!searchText) {
+                $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+                return;
+            }
+            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        });
         // ==========
         // 設定關鍵字新增 modal 相關 element 與事件
         $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
@@ -137,7 +146,7 @@
                 }
 
                 var list = new TableObj();
-                var keyword = list.th.text(keywordreplyData.keyword);
+                var keyword = list.th.attr('data-title', keywordreplyData.keyword).text(keywordreplyData.keyword);
                 var text = list.td1.text(keywordreplyData.text);
                 var replyCount = list.td2.text(keywordreplyData.replyCount);
                 var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);

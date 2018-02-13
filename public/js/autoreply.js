@@ -30,6 +30,7 @@
         $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
         $(document).on('click', '#edit-submit', dataUpdate);
         $(document).on('click', '#delete-btn', dataRemove); // 刪除
+        $(document).on('change paste keyup', '.search-bar', dataSearch);
 
         return api.app.getAll(userId);
     }).then(function(respJson) {
@@ -122,7 +123,7 @@
                 let autoreply = autoreplies[autoreplyId];
 
                 var list = new TableObj();
-                var title = list.th.text(autoreply.title);
+                var title = list.th.attr('data-title', autoreply.title).text(autoreply.title);
                 var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
                 var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
                 var text = list.td3.text(autoreply.text);
@@ -207,6 +208,15 @@
         $('#edit-taskEnd').val(endedTime); // 結束時間
         $('#edit-taskContent').val(text); // 任務內容
     } // end open edit
+
+    function dataSearch() {
+        let searchText = $(this).val().toLocaleLowerCase();
+        if (!searchText) {
+            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            return;
+        }
+        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+    }
 
     function ISODateTimeString(d) {
         d = new Date(d);
