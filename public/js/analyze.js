@@ -99,6 +99,7 @@
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             messageDataPreprocess(messagesDataArray[nowSelectAppId]);
             $('.app-view .dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
+            $('div.button-group .btn-view').removeAttr('disabled');
         }
 
         // 綁定日期變更時的事件
@@ -209,13 +210,13 @@
 
         !xAxisLabalMap[beginLabel] && chartData.unshift({
             time: beginLabel,
-            messages: 0
+            messages: msgCount
         });
         xAxisLabalMap[beginLabel] = true;
 
         !xAxisLabalMap[endLabel] && chartData.push({
             time: endLabel,
-            messages: 0
+            messages: msgCount
         });
         xAxisLabalMap[endLabel] = true;
 
@@ -258,12 +259,12 @@
 
         chartData.unshift({
             time: beginLabel,
-            messages: 0
+            messages: magCount
         });
 
         beginLabel !== endLabel && chartData.push({
             time: endLabel,
-            messages: 0
+            messages: magCount
         });
 
         generateChart(chartData);
