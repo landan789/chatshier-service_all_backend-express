@@ -6,6 +6,7 @@ let databaseURL = require('../config/firebase_admin_database_url');
 let timer = require('../helpers/timer');
 
 const API_ERROR = require('../config/api_error');
+const SCHEMA = require('../config/schema');
 
 const SYSTEM = 'SYSTEM';
 const CHATSHIER = 'CHATSHIER';
@@ -64,7 +65,7 @@ let job1 = schedule.scheduleJob('0 * * * * *', () => {
                             messager_id: messagerId,
                             createdTime: Date.now()
                         };
-                        message = Object.assign(message, _message);
+                        message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
                         return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
                     }));
                 }));

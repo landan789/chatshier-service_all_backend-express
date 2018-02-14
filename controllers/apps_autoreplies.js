@@ -141,8 +141,7 @@ appsAutoreplies.postOne = (req, res, next) => {
         title: undefined === req.body.title ? '' : req.body.title,
         startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
         endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-        text: undefined === req.body.text ? '' : req.body.text,
-        isDeleted: 0
+        text: undefined === req.body.text ? '' : req.body.text
     };
 
     var proceed = new Promise((resolve, reject) => {

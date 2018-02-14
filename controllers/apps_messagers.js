@@ -12,7 +12,11 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
-    let paramsCheckingGetAll = function(params) {
+    let instance = new AppsMessagersController();
+
+    function AppsMessagersController() {}
+
+    AppsMessagersController.prototype.paramsCheckingGetAll = function(params) {
         params = params || {};
         let userId = params.userid;
         let appId = params.appid;
@@ -56,7 +60,7 @@ module.exports = (function() {
      * @param {string} userId
      * @param {string} appId
      */
-    let paramsChecking = function(params) {
+    AppsMessagersController.prototype.paramsChecking = function(params) {
         let appId = params.appid;
         let userId = params.userid;
 
@@ -145,15 +149,13 @@ module.exports = (function() {
         });
     };
 
-    function AppsMessagersController() {}
-
     /**
      * 處理取得所有 App 及其所有 Messager 的請求
      */
     AppsMessagersController.prototype.getAllMessagers = function(req, res) {
         let appId = req.params.appid;
 
-        return paramsCheckingGetAll(req.params).then((appIds) => {
+        return instance.paramsCheckingGetAll(req.params).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
@@ -183,7 +185,7 @@ module.exports = (function() {
 
     AppsMessagersController.prototype.getMessager = function(req, res) {
         let msgerId = req.params.messagerid;
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return instance.paramsChecking(req.params).then((checkedAppId) => {
             return new Promise((resolve, reject) => {
                 let appId = checkedAppId;
                 if (!msgerId) {
@@ -224,7 +226,7 @@ module.exports = (function() {
     AppsMessagersController.prototype.updateMessager = function(req, res) {
         let msgerId = req.params.messagerid;
         let appId = '';
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return instance.paramsChecking(req.params).then((checkedAppId) => {
             appId = checkedAppId;
             if (!msgerId) {
                 return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
@@ -271,7 +273,7 @@ module.exports = (function() {
             });
         }).then((messagerData) => {
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
+                appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
                     if (!messager) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
                         return;
@@ -296,5 +298,5 @@ module.exports = (function() {
         });
     };
 
-    return new AppsMessagersController();
+    return instance;
 })();

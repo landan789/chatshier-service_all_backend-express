@@ -8,7 +8,9 @@ module.exports = (function() {
     const READ = 'READ';
 
     const appsMdl = require('../models/apps');
+    const appsChatroomsMdl = require('../models/apps_chatrooms');
     const appsTagsMdl = require('../models/apps_tags');
+    const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
 
@@ -97,15 +99,12 @@ module.exports = (function() {
                     return groups;
                 }
 
-                if (!(user.group_ids instanceof Array)) {
-                    user.group_ids = [];
-                }
-
+                user.group_ids = user.group_ids || [];
                 return new Promise((resolve) => {
                     user.group_ids.push(groupId);
                     usersMdl.updateUserByUserId(userId, user, resolve);
                 }).then(() => {
-                    // 群組新增處理完畢後，自動新增一個為內部聊天室的 App
+                    // 群組新增處理完畢後，自動新增一個內部聊天室的 App
                     return new Promise((resolve, reject) => {
                         let postApp = {
                             name: 'Chatshier app',
@@ -123,12 +122,24 @@ module.exports = (function() {
                     });
                 }).then((apps) => {
                     let appId = Object.keys(apps).shift();
+                    // 將預設的標籤資料新增至 App 中
                     return new Promise((resolve, reject) => {
                         appsTagsMdl.insertDefaultTags(appId, (tags) => {
                             if (!tags) {
                                 return reject(API_ERROR.APP_FAILED_TO_INSERT);
                             }
                             resolve();
+                        });
+                    }).then(() => {
+                        // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
+                        return appsChatroomsMdl.insert(appId).then((chatroomId) => {
+                            let members = Object.values(groups[groupId].members);
+                            return Promise.all(members.map((member) => {
+                                let messager = {
+                                    chatroom_id: chatroomId
+                                };
+                                return appsMessagersMdl.replaceMessager(appId, member.user_id, messager);
+                            }));
                         });
                     });
                 }).then(() => {

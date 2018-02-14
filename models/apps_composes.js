@@ -106,7 +106,11 @@ module.exports = (function() {
     AppsComposesModel.prototype.insert = (appId, postCompose, callback) => {
         return new Promise((resolve, reject) => {
             instance._schema((initCompose) => {
-                let compose = Object.assign(initCompose, postCompose);
+                var _compose = {
+                    createdTime: Date.now(),
+                    updatedTime: Date.now()
+                };
+                let compose = Object.assign(initCompose, postCompose, _compose);
                 resolve(compose);
             });
         }).then((compose) => {

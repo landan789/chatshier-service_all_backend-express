@@ -44,24 +44,21 @@ module.exports = (function() {
      * @param {Object} apps
      * @param {Function} callback
      */
-    Facebook.prototype.sendMessage = function(bot, receiverId, apps, callback) {
-        switch (apps.textType) {
-            case 'image':
-                bot.sendImageMessage(receiverId, apps.url, true);
-                callback();
-                break;
-            case 'audio':
-                bot.sendAudioMessage(receiverId, apps.url, true);
-                callback();
-                break;
-            case 'video':
-                bot.sendVideoMessage(receiverId, apps.url, true);
-                callback();
-                break;
-            default:
-                bot.sendTextMessage(receiverId, apps.msg);
-                callback();
-        }
+    Facebook.prototype.sendMessage = function(bot, receiverId, message, callback) {
+        return Promise.resolve().then(() => {
+            switch (message.type) {
+                case 'image':
+                    return bot.sendImageMessage(receiverId, message.url, true);
+                case 'audio':
+                    return bot.sendAudioMessage(receiverId, message.url, true);
+                case 'video':
+                    return bot.sendVideoMessage(receiverId, message.url, true);
+                default:
+                    return bot.sendTextMessage(receiverId, message.text);
+            }
+        }).then(() => {
+            callback();
+        });
     };
 
     return new Facebook();

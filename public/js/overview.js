@@ -21,6 +21,10 @@
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
+
+
+    var $sendDatetimePicker = $('#send-datetime-picker');
+
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
         // 設定 bootstrap notify 的預設值
@@ -50,6 +54,9 @@
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
         $draftTableElem = $('#composes_draft_table tbody');
+        $sendDatetimePicker.datetimepicker({ locale: 'zh-tw' });
+        var sTimePickerData = $sendDatetimePicker.data('DateTimePicker');
+
         // FUNCTIONs
 
         function storeApp() {

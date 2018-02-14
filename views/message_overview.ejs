@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
     <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
     <link rel="stylesheet" href="lib/css/font-awesome-animation.min.css" />
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
     <link rel="stylesheet" href="lib/css/animate.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css" />
     <link rel="stylesheet" href="css/_main.css" />
@@ -82,8 +84,15 @@
                                     </div>
                                     <div>
                                         <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
-                                        <input type="datetime-local" class="form-control datetime-style" id="send-time" value="Time" />
+                                        <div class="input-group date" id="send-datetime-picker">
+                                            <input type="text" class="form-control" name="end_datetime" id="send-time" value="Time" required="">
+                                            <span class="input-group-addon">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
+                                        </div>
                                     </div>
+
+
                                 </div>
                                 <section>
                                     <!--TEXT AREA -->
@@ -135,7 +144,7 @@
                         <div class="padding-lr" id="view-all">
                             <div class="search-add">
                                 <span class="icon"><i class="fa fa-search"></i></span>
-                                <input type="text" class="search-bar" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                                <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
                                 <button type="button" id="add-btn" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="disabled"></button>
                             </div>
 
@@ -282,8 +291,10 @@
                     <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
                     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
                     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
                     <script src="lib/js/bootstrap.min.js"></script>
                     <script src="lib/js/bootstrap-notify.min.js"></script>
+                    <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
                     <script src="config/firebaseConfig.js"></script>
                     <script src="config/url-config.js"></script>
                     <script src="js/_firebase-auth.js"></script>

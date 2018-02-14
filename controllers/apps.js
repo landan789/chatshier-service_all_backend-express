@@ -14,7 +14,6 @@ var appsTagsMdl = require('../models/apps_tags');
 var apps = {};
 
 apps.getAll = (req, res, next) => {
-
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;

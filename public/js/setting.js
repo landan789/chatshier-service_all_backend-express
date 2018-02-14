@@ -776,15 +776,21 @@ window.auth.ready.then(function(currentUser) {
                     name: $groupElems[groupId].$groupNameInput.val()
                 };
 
-                return Promise.resolve().then(function() {
-                    if (groups[groupId].name === groupData.name) {
-                        return;
-                    }
-                    return api.groups.update(groupId, userId, groupData);
-                }).then(function() {
+                if (groups[groupId].name === groupData.name) {
+                    return;
+                }
+
+                var $updateButton = $(this);
+                $updateButton.attr('disabled', true);
+
+                return api.groups.update(groupId, userId, groupData).then(function() {
                     groups[groupId].name = groupData.name;
                     $collapse.parent().find('.group-tab .group-name').text(groupData.name);
                     $.notify('群組名稱更新成功！', { type: 'success' });
+                }).catch(function() {
+                    $.notify('群組名稱更新失敗！', { type: 'danger' });
+                }).then(function() {
+                    $updateButton.removeAttr('disabled');
                 });
             });
 
@@ -834,6 +840,9 @@ window.auth.ready.then(function(currentUser) {
                     return;
                 }
 
+                var $addButton = $(this);
+                $addButton.attr('disabled', true);
+
                 return api.auth.getUsers(userId, memberEmail).then(function(resJson) {
                     var memberUserId = Object.keys(resJson.data).shift();
                     var postMemberData = {
@@ -847,7 +856,6 @@ window.auth.ready.then(function(currentUser) {
                         var groupMembersData = resJson.data[groupId].members;
                         var groupMemberId = Object.keys(groupMembersData).shift();
                         groups[groupId].members = Object.assign(groups[groupId].members, groupMembersData);
-debugger;
                         return {
                             groupMemberId: groupMemberId,
                             groupMembersData: groupMembersData[groupMemberId]
@@ -864,6 +872,8 @@ debugger;
                     });
                 }).catch(function() {
                     $.notify('群組成員新增失敗', { type: 'danger' });
+                }).then(function() {
+                    $addButton.removeAttr('disabled');
                 });
             });
 
@@ -1005,7 +1015,10 @@ debugger;
                 var $permissionItem = $(this);
                 var wantPermission = memberTypes[$permissionItem.text()];
 
-                if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                if (wantPermission === groups[groupId].members[memberId].type) {
+                    // 想變更的權限與目前的權限一樣，無需執行更新
+                    return;
+                } else if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
                     $.notify('群組擁有者無法變更權限', { type: 'warning' });
                     return;
                 } else if (wantPermission === memberTypes.OWNER) {

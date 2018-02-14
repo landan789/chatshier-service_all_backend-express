@@ -27,10 +27,9 @@
         "document": true,
         "navigator": true,
         "window": true,
-        "auth": true,
+        "SOCKET_EVENTS": true,
         "urlConfig": true,
-        "io": true,
-        "database": true
+        "io": true
     },
 
     "rules": {
