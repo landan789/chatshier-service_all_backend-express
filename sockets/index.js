@@ -400,7 +400,7 @@ function init(server) {
         }).then(() => {
             res.sendStatus(200);
         }).catch(() => {
-            res.sendStatus(403);
+            res.sendStatus(500);
         });
     });
 

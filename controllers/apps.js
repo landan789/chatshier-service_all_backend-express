@@ -59,7 +59,7 @@ apps.getAll = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 
@@ -133,7 +133,7 @@ apps.getOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -272,7 +272,7 @@ apps.postOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -396,7 +396,7 @@ apps.putOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -496,7 +496,7 @@ apps.deleteOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 module.exports = apps;

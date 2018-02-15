@@ -54,8 +54,12 @@
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
         $draftTableElem = $('#composes_draft_table tbody');
-        $sendDatetimePicker.datetimepicker({ locale: 'zh-tw' });
-        var sTimePickerData = $sendDatetimePicker.data('DateTimePicker');
+        let options = {
+            locale: 'zh-tw',
+            sideBySide: true,
+            minDate: Date.now()
+        };
+        $sendDatetimePicker.datetimepicker(options);
 
         // FUNCTIONs
 
@@ -192,6 +196,24 @@
                 var list = new TableObj();
                 var text = list.th.attr('data-title', composeData.text).text(composeData.text);
                 var time = list.td1.text(ToLocalTimeString(composeData.time));
+
+                list.DeleteBtn.off('click').on('click', function(event) {
+                    var targetRow = $(event.target).parent().parent();
+                    var appId = targetRow.attr('text');
+                    var composeId = targetRow.attr('id');
+    
+                    return showDialog('確定要刪除嗎？').then(function(isOK) {
+                        if (!isOK) {
+                            return;
+                        }
+    
+                        return api.composes.remove(appId, composeId, userId).then(function() {
+                            $.notify('刪除成功！', { type: 'success' });
+                            return loadComposes(appId, userId);
+                        });
+                    });
+                });
+
                 var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
                 var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
                 if (0 === composeData.status) {
@@ -202,23 +224,6 @@
                     $historyTableElem.append(trGrop);
                 }
             }
-
-            $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                var targetRow = $(event.target).parent().parent();
-                var appId = targetRow.attr('text');
-                var composeId = targetRow.attr('id');
-
-                return showDialog('確定要刪除嗎？').then(function(isOK) {
-                    if (!isOK) {
-                        return;
-                    }
-
-                    return api.composes.remove(appId, composeId, userId).then(function() {
-                        $.notify('刪除成功！', { type: 'success' });
-                        return loadComposes(appId, userId);
-                    });
-                });
-            });
         });
     }
 
@@ -293,6 +298,7 @@
     function insertSubmit() {
         var $errorMsgElem = $composesAddModal.find('.error-input');
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
+        var sendTime = $composesAddModal.find('#send-time').val();
         let messages = [];
         $errorMsgElem.empty().hide();
 
@@ -300,6 +306,10 @@
         $('.textinput').each(function() {
             isTextVaild &= !!$(this).val();
         });
+        if (new Date(sendTime).getTime() < Date.now()) {
+            $errorMsgElem.text('群發時間必須大於現在時間').show();
+            return;
+        };
 
         if (!isTextVaild) {
             $errorMsgElem.text('請輸入群發的內容').show();
@@ -364,25 +374,61 @@
                     text: $('#' + key).val()
                 };
                 messages.push(message);
-            }
-            for (let message in messages) {
-                let composeData = {
+            };
+
+            Promise.all(messages.map((message) => {
+                let compose = {
                     type: 'text',
-                    text: messages[message].text,
+                    text: message.text,
                     status: isDraft ? 0 : 1,
                     time: Date.parse(sendtime)
                 };
-                api.composes.insert(appId, userId, composeData).then(function(resJson) {});
-            }
-            $composesAddModal.modal('hide');
-            $('.form-control').val(allComposesData[appId].name);
-            $('.textinput').val('');
-            $('#send-time').val('');
-            $('#inputText').empty();
-            inputNum = 0;
-            $.notify('新增成功', { type: 'success' });
-            $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
-            return loadComposes(appId, userId);
+                return api.composes.insert(appId, userId, compose);
+            })).then((responses) => {
+                responses.map((response) => {
+                    if (0 === response.stats) {
+                        return;
+                    };
+                    let appsComposes = response.data;
+                    let appId = Object.keys(appsComposes)[0];
+                    let composes = appsComposes[appId].composes;
+                    let composeId = Object.keys(composes)[0];
+                    let compose = composes[composeId];
+                    var list = new TableObj();
+                    var text = list.th.attr('data-title', compose.text).text(compose.text);
+                    var time = list.td1.text(ToLocalTimeString(compose.time));
+                    var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
+                    var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
+                    if (0 === compose.status) {
+                        $draftTableElem.append(trGrop);
+                    } else if (1 === compose.status && compose.time > timeInMs) {
+                        $reservationTableElem.append(trGrop);
+                    } else if (1 === compose.status && (compose.time < timeInMs || compose.time === timeInMs)) {
+                        $historyTableElem.append(trGrop);
+                    }
+                    composesData[composeId] = compose;
+                });
+                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
+                    var targetRow = $(event.target).parent().parent();
+                    var appId = targetRow.attr('text');
+                    var composeId = targetRow.attr('id');
+    
+                    return showDialog('確定要刪除嗎？').then(function(isOK) {
+                        if (!isOK) {
+                            return;
+                        }
+    
+                        return api.composes.remove(appId, composeId, userId).then(function() {
+                            $.notify('刪除成功！', { type: 'success' });
+                            return loadComposes(appId, userId);
+                        });
+                    });
+                });
+                $composesAddModal.modal('hide');
+                $.notify('新增成功', { type: 'success' });
+            }).catch(() => {
+                $.notify('新增失敗', { type: 'warning' });
+            });
         }
     }
 

@@ -37,26 +37,26 @@ module.exports = (function() {
                     reject(API_ERROR.APPID_WAS_EMPTY);
                     return;
                 };
-                usersMdl.findUser(userId, (data) => {
+                usersMdl.findUser(userId, (user) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                    if (!data) {
+                    if (!user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(user);
                 });
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(user.group_ids, req.params.userid, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
                     if (!appIds) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        reject(API_ERROR.APPID_FAILED_TO_FIND);
                         return;
-                    } else if (appId && -1 === appIds.indexOf(appId)) {
-                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                    };
+                    if (0 > appIds.indexOf(appId)) {
+                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                         return;
-                    }
+                    };
                     resolve();
                 });
             });
@@ -176,7 +176,7 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
@@ -185,7 +185,7 @@ module.exports = (function() {
      * @param {Response} res
      */
     AppsComposesController.prototype.getOne = (req, res) => {
-        return paramsChecking(req.params, req).then((checkedAppId) => {
+        return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 appsComposesMdl.findOne(appId, (data) => {
@@ -210,7 +210,7 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
@@ -235,6 +235,14 @@ module.exports = (function() {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
+                if (postCompose.time < Date.now()) {
+                    reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                };
+                resolve(appId);
+            });
+        }).then((checkedAppId) => {
+            let appId = checkedAppId;
+            return new Promise((resolve, reject) => {
                 appsComposesMdl.insert(appId, postCompose, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
@@ -257,7 +265,7 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
@@ -328,7 +336,7 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
@@ -389,7 +397,7 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 

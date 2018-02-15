@@ -161,7 +161,7 @@ router.get('/apps-templates/users/:userid', (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 });
 // insert
@@ -211,7 +211,7 @@ router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 
 
@@ -273,7 +273,7 @@ router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (r
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 });
 //delete
@@ -320,7 +320,7 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 })
 

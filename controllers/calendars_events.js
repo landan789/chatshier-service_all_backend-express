@@ -32,7 +32,7 @@ calendarsEvents.getAll = function(req, res, next) {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 
@@ -83,7 +83,7 @@ calendarsEvents.postOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 
@@ -155,7 +155,7 @@ calendarsEvents.putOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 
@@ -200,7 +200,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 

@@ -64,7 +64,7 @@ appsAutoreplies.getAll = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -129,7 +129,7 @@ appsAutoreplies.getOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -201,7 +201,7 @@ appsAutoreplies.postOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -305,7 +305,7 @@ appsAutoreplies.putOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -394,7 +394,7 @@ appsAutoreplies.deleteOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
