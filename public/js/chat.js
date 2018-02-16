@@ -552,7 +552,6 @@
                 var senderId = message.messager_id;
                 var appId = socketBody.appId;
                 var appType = socketBody.appType;
-                var appName = appsData[appId].name;
                 var chatroomId = socketBody.chatroomId;
                 var receiverId = CHATSHIER === appType ? userId : socketBody.messagerId;
                 var messagers = appsMessagersData[appId].messagers;
@@ -619,8 +618,8 @@
                         // 因此拿著此 ID 向 server 查詢此人資料
                         // 查詢完後儲存至本地端，下次就無需再查詢
                         return api.messager.getOne(appId, receiverId, userId).then(function(resJson) {
-                            var _appsMessagersData = resJson.data;
-                            sender = _appsMessagersData[appId].messagers[receiverId];
+                            var _appsMessagers = resJson.data;
+                            sender = _appsMessagers[appId].messagers[receiverId];
                             appsMessagersData[appId].messagers[receiverId] = sender;
                             return sender;
                         });
@@ -629,7 +628,7 @@
                     var receiver = messagers[receiverId];
                     (receiverId !== userId) && receiver.unRead++;
 
-                    displayClient(receiver, message, chatroomId, appId, appName); // update 客戶清單
+                    displayClient(receiver, message, chatroomId, appId); // update 客戶清單
                     displayMessage(sender, message, chatroomId, appId); // update 聊天室
 
                     if (chatroomList.indexOf(chatroomId) < 0) {
@@ -710,27 +709,29 @@
         }
 
         function responseChatData(apps) {
+            /**
+             * 取得指定的聊天室內有多少 messager
+             * @param {string} appId
+             * @param {string} chatroomId
+             */
+            var findMessagersInChatroom = function(appId, chatroomId) {
+                var output = {};
+                var messagers = appsMessagersData[appId].messagers;
+                for (var msgerId in messagers) {
+                    var _messager = messagers[msgerId];
+                    if (_messager.chatroom_id === chatroomId) {
+                        output[msgerId] = _messager;
+                    }
+                }
+                return output;
+            };
+
             for (var appId in apps) {
-                var appMessagersData = appsMessagersData[appId];
                 var appName = apps[appId].name;
                 var appType = apps[appId].type;
+                var appChatrooms = appsChatroomsData[appId].chatrooms;
 
-                // 計算每個聊天室內有多少 messager
-                var chatroomMessagers = {};
-                for (var msgerId in appMessagersData.messagers) {
-                    var _messager = appMessagersData.messagers[msgerId];
-                    var msgerChatroomId = _messager.chatroom_id;
-                    if (!msgerChatroomId) {
-                        continue;
-                    }
-
-                    if (!chatroomMessagers[msgerChatroomId]) {
-                        chatroomMessagers[msgerChatroomId] = [];
-                    }
-                    chatroomMessagers[msgerChatroomId].push(msgerId);
-                }
-
-                for (var chatroomId in chatroomMessagers) {
+                for (var chatroomId in appChatrooms) {
                     var uiRequireData = {
                         appId: appId,
                         name: appName,
@@ -738,13 +739,13 @@
                         chatroom: appsChatroomsData[appId].chatrooms[chatroomId] || {},
                         chatroomId: chatroomId
                     };
+                    var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
 
                     switch (appType) {
                         // 由於屬於特定平台 app 的 messager 只會有一位
-                        // 因此陣列裡只會有一個
                         case LINE:
                         case FACEBOOK:
-                            var _msgerId = chatroomMessagers[chatroomId].shift();
+                            var _msgerId = Object.keys(chatroomMessagers).shift();
                             var messager = appsMessagersData[appId].messagers[_msgerId];
                             uiRequireData.profile = messager;
                             uiRequireData.userId = userId;
@@ -787,6 +788,42 @@
             }
         }
 
+        function generateClientHtml(opts) {
+            var unReadStr = opts.unRead > 99 ? '99+' : '' + opts.unRead;
+            var html =
+                '<button class="tablinks"' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
+                    '<div class="img-holder">' +
+                        '<img src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
+                        '<img class="small-software-icon" src="' + opts.iconSrc + '">' +
+                    '</div>' +
+                    '<div class="msg-holder">' +
+                        '<b><span class="client-name">' + opts.clientName + '</span>' + opts.messageHtml + '</b>' +
+                    '</div>' +
+                    '<div class="app-name"><snap>' + opts.appName + '</snap></div>' +
+                    '<div class="chsr unread-msg badge badge-pill"' + (!opts.unRead ? ' style="display: none"' : '') + '>' + unReadStr + '</div>' +
+                '</button>' +
+                '<hr/>';
+            return html;
+        }
+
+        function generateMessageHtml(srcHtml, msgTime, msgType, messagerName, shouldRightSide) {
+            var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
+
+            // 如果訊息是來自於當前使用者則放置於右邊
+            // 如果訊息是來自於其他 messager 的話，訊息預設放在左邊
+            return '<div class="message" message-time="' + msgTime + '" message-type="' + msgType + '">' +
+                '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
+                    '<span>' + messagerName + '</span>' +
+                '</div>' +
+                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
+                    '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="send-time">' + toTimeStr(msgTime) + '</span>' +
+                    '<strong></strong>' +
+                '</span>' +
+                '<br/>' +
+            '</div>';
+        }
+
         function createChatroom(requireData) {
             var profile = requireData.profile;
             var appName = requireData.name;
@@ -808,39 +845,32 @@
             $('#user-rooms').append('<option value="' + requireData.chatroomId + '">' + profile.name + '</option>'); // new a option in select bar
 
             // 左邊的客戶清單排列
-            var lastMsg = historyMsg[historyMsgKeys[historyMsgKeys.length - 1]];
-            var lastMsgStr = messageToClientHtml(lastMsg);
-
-            var buildHtml = function(imgSrc) {
-                var unReadStr = profile.unRead > 99 ? '99+' : '' + profile.unRead;
-                var html =
-                    '<button class="tablinks"' + 'app-id="' + requireData.appId + '" chatroom-id="' + requireData.chatroomId + '" app-type="' + appType + '">' +
-                        '<div class="img-holder">' +
-                            '<img src="' + profile.photo + '" alt="無法顯示相片" />' +
-                            '<img class="small-software-icon" src="' + imgSrc + '">' +
-                        '</div>' +
-                        '<div class="msg-holder">' +
-                            '<b><span class="client-name">' + profile.name + '</span>' + lastMsgStr + '</b>' +
-                        '</div>' +
-                        '<div class="app-name"><snap>' + appName + '</snap></div>' +
-                        '<div class="chsr unread-msg badge badge-pill"' + (!profile.unRead ? ' style="display: none"' : '') + '>' + unReadStr + '</div>' +
-                    '</button>' +
-                    '<hr/>';
-                return html;
+            var lastMessage = historyMsg[historyMsgKeys[historyMsgKeys.length - 1]];
+            var clientUiOpts = {
+                appId: requireData.appId,
+                appName: appName,
+                appType: appType,
+                chatroomId: requireData.chatroomId,
+                clientName: profile.name,
+                clientPhoto: profile.photo,
+                iconSrc: '',
+                unRead: profile.unRead,
+                messageHtml: lastMessage ? messageToClientHtml(lastMessage) : ''
             };
 
-            var tablinkHtml = '';
             switch (appType) {
                 case LINE:
-                    tablinkHtml = buildHtml('http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png');
+                    clientUiOpts.iconSrc = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
                     break;
                 case FACEBOOK:
-                    tablinkHtml = buildHtml('https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png');
+                    clientUiOpts.iconSrc = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
                     break;
                 case CHATSHIER:
-                    tablinkHtml = buildHtml('/image/group-icon.png');
+                default:
+                    clientUiOpts.iconSrc = '/image/group-icon.png';
                     break;
             }
+            var tablinkHtml = generateClientHtml(clientUiOpts);
             $('#clients').append(tablinkHtml);
 
             // if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
@@ -1439,37 +1469,36 @@
             }
         }
 
-        function displayClient(messager, message, chatroomId, appId, appName) {
+        function displayClient(messager, message, chatroomId, appId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
-            var tablinkHtml;
 
             if (chatroomList.indexOf(chatroomId) < 0) {
-                var buildHtml = function(imgSrc) {
-                    var html =
-                        '<button class="tablinks"' + 'app-id="' + appId + '" chatroom-id="' + chatroomId + '" app-type="' + _message.from + '">' +
-                            '<div class="img-holder">' +
-                                '<img src="' + messager.photo + '" alt="無法顯示相片" />' +
-                                '<img class="small-software-icon" src="' + imgSrc + '">' +
-                            '</div>' +
-                            '<div class="msg-holder">' +
-                                '<b><span class="client-name">' + messager.name + '</span></b>' +
-                            '</div>' +
-                            '<div class="app-name"><snap>' + appName + '</snap></div>' +
-                            '<div class="chsr unread-msg badge badge-pill" style="display: none">0</div>' +
-                        '</button>' +
-                        '<hr/>';
-                    return html;
+                var clientUiOpts = {
+                    appId: appId,
+                    appName: appsData[appId].name,
+                    appType: appsData[appId].type,
+                    chatroomId: chatroomId,
+                    clientName: messager.name,
+                    clientPhoto: messager.photo,
+                    iconSrc: '',
+                    unRead: messager.unRead,
+                    messageHtml: messageToClientHtml(message)
                 };
 
-                switch (message.from) {
+                switch (clientUiOpts.appType) {
                     case LINE:
-                        tablinkHtml = buildHtml('http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png');
+                        clientUiOpts.iconSrc = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
                         break;
                     case FACEBOOK:
-                        tablinkHtml = buildHtml('https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png');
+                        clientUiOpts.iconSrc = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
+                        break;
+                    case CHATSHIER:
+                    default:
+                        clientUiOpts.iconSrc = '/image/group-icon.png';
                         break;
                 }
+                var tablinkHtml = generateClientHtml(clientUiOpts);
                 $('.tablinks-area #new-user-list').prepend(tablinkHtml);
             }
 
@@ -1734,7 +1763,7 @@
                         $content.addClass('found');
                         count += 1;
 
-                        // displayClient顯示"找到訊息"並標紅
+                        // 顯示"找到訊息"並標紅
                         var $tablinkMsg = $('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .client-message');
                         $tablinkMsg.css('color', COLOR.FIND).text('找到訊息');
                         display = true;
@@ -1855,24 +1884,6 @@
         // =====end searchBox change func=====
 
         // =====start utility function
-
-        function generateMessageHtml(srcHtml, msgTime, msgType, messagerName, shouldRightSide) {
-            var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
-
-            // 如果訊息是來自於當前使用者則放置於右邊
-            // 如果訊息是來自於其他 messager 的話，訊息預設放在左邊
-            return '<div class="message" message-time="' + msgTime + '" message-type="' + msgType + '">' +
-                '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
-                    '<span>' + messagerName + '</span>' +
-                '</div>' +
-                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
-                    '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + srcHtml + '</span>' +
-                    '<span class="send-time">' + toTimeStr(msgTime) + '</span>' +
-                    '<strong></strong>' +
-                '</span>' +
-                '<br/>' +
-            '</div>';
-        }
 
         function loadMessageInDisplayClient(msg) {
             if (msg.length > 10) {

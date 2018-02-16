@@ -100,7 +100,7 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {*} postCompose
-     * @param {Function} callback
+     * @param {(appsComposes: any) => any} [callback]
      * @returns {Promise<any>}
      */
     AppsComposesModel.prototype.insert = (appId, postCompose, callback) => {
@@ -114,28 +114,23 @@ module.exports = (function() {
                 resolve(compose);
             });
         }).then((compose) => {
-            let composesPushRef = admin.database().ref('apps/' + appId + '/composes').push();
-            let composeId = composesPushRef.key;
-            let composeUpdateRef = admin.database().ref('apps/' + appId + '/composes/' + composeId);
-
-            return composesPushRef.then(() => {
-                return composeUpdateRef.update(compose);
-            }).then(() => {
-                return composeUpdateRef.once('value');
-            });
-        }).then((snap) => {
-            let compose = snap.val();
-            let composeId = snap.ref.key;
-            let appsComposes = {
-                [appId]: {
-                    composes: {
-                        [composeId]: compose
+            return admin.database().ref('apps/' + appId + '/composes').push(compose).then((ref) => {
+                let composeId = ref.key;
+                let appsComposes = {
+                    [appId]: {
+                        composes: {
+                            [composeId]: compose
+                        }
                     }
-                }
-            };
-            callback(appsComposes);
+                };
+                return appsComposes;
+            });
+        }).then((appsComposes) => {
+            ('function' === typeof callback) && callback(appsComposes);
+            return appsComposes;
         }).catch(() => {
-            callback(null);
+            ('function' === typeof callback) && callback(null);
+            return null;
         });
     };
     /**

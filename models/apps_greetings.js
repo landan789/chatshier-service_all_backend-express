@@ -107,14 +107,14 @@ module.exports = (function() {
      * 輸入指定的 appId 新增一筆加好友回覆的資料
      *
      * @param {string} appId
-     * @param {*} postGreeting
-     * @param {Function} callback
-     * @return {object} appsGreetings
+     * @param {any} postGreeting
+     * @param {(appsGreetings: any) => any} [callback]
+     * @returns {Promise<any>}
      */
     AppsGreetingsModel.prototype.insert = (appId, postGreeting, callback) => {
         let procced = Promise.resolve();
 
-        procced.then(() => {
+        return procced.then(() => {
             return new Promise((resolve, reject) => {
                 AppsGreetingsModel._schema((initGreeting) => {
                     let greeting = Object.assign(initGreeting, postGreeting);
@@ -122,27 +122,23 @@ module.exports = (function() {
                 });
             });
         }).then((greeting) => {
-            return Promise.all([admin.database().ref('apps/' + appId + '/greetings').push(), greeting]);
-        }).then((result) => {
-            let ref = result[0];
-            let greeting = result[1];
-            let greetingId = ref.key;
-            return Promise.all([admin.database().ref('apps/' + appId + '/greetings/' + greetingId).update(greeting), greetingId]);
-        }).then((result) => {
-            let greetingId = result[1];
-            return admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value');
-        }).then((snap) => {
-            let greeting = snap.val();
-            let greetingId = snap.ref.key;
-            let appsGreetings = {};
-            let _greetings = {};
-            _greetings[greetingId] = greeting;
-            appsGreetings[appId] = {
-                greetings: _greetings
-            };
-            callback(appsGreetings);
+            return admin.database().ref('apps/' + appId + '/greetings').push(greeting).then((ref) => {
+                let greetingId = ref.key;
+                let appsGreetings = {
+                    [appId]: {
+                        greetings: {
+                            [greetingId]: greeting
+                        }
+                    }
+                };
+                return appsGreetings;
+            });
+        }).then((appsGreetings) => {
+            ('function' === typeof callback) && callback(appsGreetings);
+            return appsGreetings;
         }).catch(() => {
-            callback(null);
+            ('function' === typeof callback) && callback(null);
+            return null;
         });
     };
 

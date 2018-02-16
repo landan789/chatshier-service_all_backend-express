@@ -94,7 +94,7 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string} msgerId
-     * @param {(messager: any) => any} [callback]
+     * @param {(appMessager: any) => any} [callback]
      * @returns {Promise<any>}
      */
     AppsMessagersModel.prototype.findMessager = function(appId, msgerId, callback) {
@@ -104,8 +104,15 @@ module.exports = (function() {
             }
 
             let messager = snap.val() || {};
-            ('function' === typeof callback) && callback(messager);
-            return messager;
+            let appMessager = {
+                [appId]: {
+                    messagers: {
+                        [msgerId]: messager
+                    }
+                }
+            };
+            ('function' === typeof callback) && callback(appMessager);
+            return appMessager;
         }).catch(() => {
             ('function' === typeof callback) && callback(null);
             return null;
@@ -135,7 +142,10 @@ module.exports = (function() {
                         return messager.chatroom_id;
                     }
 
-                    return admin.database().ref('apps/' + appId + '/chatrooms').push().then((ref) => {
+                    let newChatroom = {
+                        createdTime: Date.now()
+                    };
+                    return admin.database().ref('apps/' + appId + '/chatrooms').push(newChatroom).then((ref) => {
                         let chatroomId = ref.key;
                         return chatroomId;
                     });

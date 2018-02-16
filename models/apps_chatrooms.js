@@ -91,7 +91,11 @@ module.exports = (function() {
      * @returns {Promise<string>}
      */
     AppsChatroomsModel.prototype.insert = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/chatrooms').push().then((ref) => {
+        let newChatroom = {
+            createdTime: Date.now()
+        };
+
+        return admin.database().ref('apps/' + appId + '/chatrooms').push(newChatroom).then((ref) => {
             let newChatroomId = ref.key;
             ('function' === typeof callback) && callback(newChatroomId);
             return newChatroomId;

@@ -173,12 +173,13 @@ module.exports = (function() {
             }).then((groupsMembers) => {
                 // 抓取出 group 裡的 app_ids 清單
                 // 將此 group member 加入此 group 裡所有 app 的 messagers
-                return groupsMdl.findAppIds(groupId).then((appIds) => {
+                return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
-                        return appsMessagersMdl.findMessager(appId, userId).then((messager) => {
+                        return appsMessagersMdl.findMessager(appId, userId).then((appMessager) => {
                             // 目前內部聊天室的 chatroom 只會有一個
                             // 因此所有群組成員的 chatroom_id 都會是一樣
                             // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
+                            let messager = appMessager[appId].messagers[userId];
                             let chatroomId = messager.chatroom_id;
                             let newMessager = {
                                 chatroom_id: chatroomId,

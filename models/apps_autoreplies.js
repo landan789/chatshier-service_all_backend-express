@@ -21,33 +21,29 @@ module.exports = (function() {
     };
 
     AppsAutorepliesModel.prototype.insert = (appId, autoreply, callback) => {
-        admin.database().ref('apps/' + appId + '/autoreplies').push().then((ref) => {
-            let autoreplyId = ref.key;
-            return new Promise((resolve, reject) => {
-                instance._schema((initAutoreply) => {
-                    autoreply = Object.assign(initAutoreply, autoreply);
-                    resolve([autoreplyId, autoreply]);
-                });
+        return new Promise((resolve, reject) => {
+            instance._schema((initAutoreply) => {
+                var _autoreply = Object.assign(initAutoreply, autoreply);
+                resolve(_autoreply);
             });
-        }).then((result) => {
-            let autoreplyId = result[0];
-            autoreply = result[1];
-            return Promise.all([admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(autoreply), autoreplyId]);
-        }).then((result) => {
-            let autoreplyId = result[1];
-            return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
-        }).then((snap) => {
-            let autoreply = snap.val();
-            let autoreplyId = snap.ref.key;
-            let appsAutoreplies = {};
-            let _autoreplies = {};
-            _autoreplies[autoreplyId] = autoreply;
-            appsAutoreplies[appId] = {
-                autoreplies: _autoreplies
-            };
-            callback(appsAutoreplies);
+        }).then((_autoreply) => {
+            return admin.database().ref('apps/' + appId + '/autoreplies').push(_autoreply).then((ref) => {
+                let autoreplyId = ref.key;
+                let appsAutoreplies = {
+                    [appId]: {
+                        autoreplies: {
+                            [autoreplyId]: _autoreply
+                        }
+                    }
+                };
+                return appsAutoreplies;
+            });
+        }).then((appsAutoreplies) => {
+            ('function' === typeof callback) && callback(appsAutoreplies);
+            return appsAutoreplies;
         }).catch(() => {
-            callback(null);
+            ('function' === typeof callback) && callback(null);
+            return null;
         });
     };
 

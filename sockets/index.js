@@ -543,15 +543,16 @@ function init(server) {
 
                 // 將舊的 custom_tags 陣列資料取出合併
                 return new Promise((resolve) => {
-                    appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
-                        if (!messager) {
+                    appsMessagersMdl.findMessager(appId, msgerId, (appMessager) => {
+                        if (!appMessager) {
                             messagerData.custom_tags = req.body.custom_tags;
                             resolve(messagerData);
                             return;
                         }
 
                         // 預處理 custom_tags 陣列資料，使陣列當中的 tagId 不重複
-                        messagerData.custom_tags = messagerData.custom_tags || [];
+                        let messager = appMessager[appId].messagers[msgerId];
+                        messager.custom_tags = messager.custom_tags || [];
                         messagerData.custom_tags = (function tagArrayUnique(mergedArray) {
                             let arr = mergedArray.slice();
                             for (let i = 0; i < arr.length; ++i) {
@@ -563,7 +564,7 @@ function init(server) {
                                 }
                             }
                             return arr;
-                        })(messagerData.custom_tags.concat(req.body.custom_tags));
+                        })(messager.custom_tags.concat(req.body.custom_tags));
                         resolve(messagerData);
                     });
                 });
