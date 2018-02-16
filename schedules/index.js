@@ -14,25 +14,29 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
 });
-
-let job1 = schedule.scheduleJob('0 * * * * *', () => {
+let job1 = schedule.scheduleJob('10 * * * * *', () => {
     let nowUnixTime = Date.now();
     console.log('[start] [' + nowUnixTime + '] schedules/index.js is starting ... ');
     Promise.resolve().then(() => {
         return admin.database().ref('apps').once('value');
     }).then((snap) => {
         let apps = snap.val();
+        // 相異 apps 允許 同時間群發。
+        // 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
-            if (CHATSHIER === app.type) {
+            if (CHATSHIER === app.type || 1 === app.isDeleted) {
                 return Promise.resolve();
             }
+
             let messages = [];
             let composes = app.composes === undefined ? '' : app.composes;
             for (let composeId in composes) {
                 if (composes[composeId].text &&
                     1 === composes[composeId].status &&
-                    timer.minutedUnixTime(nowUnixTime) === timer.minutedUnixTime(composes[composeId].time)) {
+                    0 === composes[composeId].isDeleted &&
+                    timer.minutedUnixTime(nowUnixTime) === timer.minutedUnixTime(composes[composeId].time)
+                ) {
                     let message = {
                         type: composes[composeId].type,
                         text: composes[composeId].text
@@ -52,9 +56,23 @@ let job1 = schedule.scheduleJob('0 * * * * *', () => {
                 return Promise.resolve(null);
             };
 
-            return Promise.all(messages.map((message) => {
-                return lineBot.multicast(messagers, message);
-            })).then(() => {
+            // #region 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
+            let multicasts = [];
+            let messageIndex;
+            for (messageIndex in messages) {
+                let j = Math.floor(messageIndex / 5);
+                if (0 === messageIndex % 5) {
+                    let multicast = {
+                        messages: []
+                    };
+                    multicasts[j] = multicast;
+                };
+                let message = messages[messageIndex];
+                multicasts[j].messages.push(message);
+            };
+            // #endregion
+
+            return multicast(Object.keys(messagers), multicasts).then(() => {
                 return Promise.all(Object.keys(messagers).map((messagerId) => {
                     let messager = messagers[messagerId];
                     let chatroomId = messager.chatroom_id;
@@ -70,6 +88,21 @@ let job1 = schedule.scheduleJob('0 * * * * *', () => {
                     }));
                 }));
             });
+
+            function multicast(messagers, multicasts) {
+
+                return nextPromise(0);
+                function nextPromise(i) {
+                    if (i >= multicasts.length) {
+                        return Promise.resolve();
+                    };
+                    let messages = multicasts[i].messages;
+                    return lineBot.multicast(messagers, messages).then(() => {
+                        return nextPromise(i + 1);
+                    });
+                }
+            }
+
         }));
     }).then(() => {
         console.log('[finish] [' + Date.now() + '] schedules/index.js is finishing ... ');

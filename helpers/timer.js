@@ -1,4 +1,4 @@
-module.export = (function() {
+module.exports = (function() {
     function Timer() {};
     /**
      * 輸入 unix time 回傳分鐘化的 unix time
