@@ -730,15 +730,13 @@ img[alt="無法顯示相片"] {
 }
 
 .message .messager-name {
-    margin-bottom: .5rem;
+    margin-bottom: .25rem;
 }
 
 .message .messager-name span {
-    font-size: .5rem;
-    padding: .25rem .5rem;
-    background-color: #ddd;
-    border: 1px solid #ddd;
-    border-radius: .5rem;
+    font-size: 1rem;
+    padding: .25rem;
+    color: #aaa;
 }
 
 .message-group {

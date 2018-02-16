@@ -93,12 +93,11 @@ module.exports = (function() {
 
     /**
      * 藉由 groupid 修改一組 group
-     * @param {groupId} groupId
+     * @param {string} groupId
      * @param {object} group
      * @param {function} callback
      */
     GroupsModel.prototype.update = function(groupId, group, callback) {
-
         let groups = {};
         Promise.resolve().then(() => {
             let _group = {
@@ -125,8 +124,8 @@ module.exports = (function() {
      * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
      * @param {string|string[]} groupIds
      * @param {string} userId
-     * @param {(appIds: []) => any} [callback]
-     * @returns {Promise<any>}
+     * @param {(appIds: string[]) => any} [callback]
+     * @returns {Promise<string[]>}
      */
     GroupsModel.prototype.findAppIds = function(groupIds, userId, callback) {
         // 多型處理
@@ -134,13 +133,14 @@ module.exports = (function() {
             groupIds = [groupIds];
         };
 
+        let _groupIds = groupIds;
         let appIds = {};
         return Promise.resolve().then(() => {
-            if (!groupIds) {
+            if (!_groupIds) {
                 return;
             }
 
-            return Promise.all(groupIds.map((groupId) => {
+            return Promise.all(_groupIds.map((groupId) => {
                 return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
                     let group = snap.val();
 
@@ -167,9 +167,9 @@ module.exports = (function() {
                 });
             }));
         }).then(() => {
-            appIds = Object.keys(appIds);
-            ('function' === typeof callback) && callback(appIds);
-            return appIds;
+            let _appIds = Object.keys(appIds);
+            ('function' === typeof callback) && callback(_appIds);
+            return _appIds;
         }).catch(() => {
             ('function' === typeof callback) && callback(null);
             return null;

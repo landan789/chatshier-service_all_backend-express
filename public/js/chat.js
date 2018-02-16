@@ -453,12 +453,16 @@
             api.app.getAll(userId),
             api.chatroom.getAll(userId),
             api.messager.getAll(userId),
-            api.tag.getAll(userId)
+            api.tag.getAll(userId),
+            api.auth.getUsers(userId)
         ]).then(function(promiseResults) {
             appsData = promiseResults.shift().data;
             appsChatroomsData = promiseResults.shift().data;
             appsMessagersData = promiseResults.shift().data;
             appsTagsData = promiseResults.shift().data;
+
+            var groupAllUsers = promiseResults.shift().data;
+            var regPromises = [];
 
             // 過濾 API 資料裡已經刪除的 app 資料
             for (var appId in appsData) {
@@ -470,7 +474,9 @@
                     delete appsTagsData[appId];
                     continue;
                 }
-                chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
+                regPromises.push(new Promise(function(resolve) {
+                    chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, resolve);
+                }));
 
                 // 過濾已經刪除的 chatroom 資料
                 for (var chatroomId in appsChatroomsData[appId].chatrooms) {
@@ -487,7 +493,30 @@
                         delete appsTagsData[appId].tags[tagId];
                     }
                 }
+
+                // 過濾已經刪除的 messager 資料
+                for (var messagerId in appsMessagersData[appId].messagers) {
+                    var messager = appsMessagersData[appId].messagers[messagerId];
+                    if (messager.isDeleted) {
+                        delete appsMessagersData[appId].messagers[messagerId];
+                    }
+                }
+
+                // 把群組內所有使用者的名字加入對話者資料
+                for (var _userId in groupAllUsers) {
+                    if (appsMessagersData[appId].messagers[_userId]) {
+                        appsMessagersData[appId].messagers[_userId].name = groupAllUsers[_userId].displayName;
+                        appsMessagersData[appId].messagers[_userId].email = groupAllUsers[_userId].email;
+                        continue;
+                    }
+
+                    appsMessagersData[appId].messagers[_userId] = {
+                        name: groupAllUsers[_userId].displayName,
+                        email: groupAllUsers[_userId].email
+                    };
+                }
             }
+            return Promise.all(regPromises);
         }).then(function() {
             responseUserAppIds(appsData);
         });
@@ -519,17 +548,19 @@
                 /** @type {ChatshierChatSocketInterface} */
                 var socketBody = data;
 
+                var message = socketBody.message;
+                var senderId = message.messager_id;
+
+                if (senderId === userId) {
+                    // 發送對象是使用者本人不需處理
+                    return;
+                }
+
                 var appId = socketBody.appId;
                 var appType = socketBody.appType;
                 var appName = appsData[appId].name;
                 var chatroomId = socketBody.chatroomId;
-                var message = socketBody.message;
                 var receiverId = socketBody.messagerId;
-                var senderId = message.messager_id;
-
-                // 目前非 CHATSHIER 的對話者都是各平台的 userId
-                // 因此取用的設置必須不同
-                var targetId = CHATSHIER === appType ? userId : receiverId;
 
                 // 如果是 LINE 的訊息，要根據 LINE 平台的訊息格式轉換資料
                 if (LINE === appType) {
@@ -560,10 +591,11 @@
                 }
 
                 return Promise.resolve().then(function() {
-                    var _messager = appsMessagersData[appId].messagers[targetId] || {};
-                    if (_messager && _messager.name) {
-                        (senderId !== userId) && _messager.unRead++;
-                        return _messager;
+                    var messagers = appsMessagersData[appId].messagers;
+                    var sender = messagers[senderId];
+
+                    if (sender && sender.name) {
+                        return sender;
                     }
 
                     // 如果此對話者沒有在清單內，代表可能是在聊天過程中，中途加入群組的
@@ -574,38 +606,34 @@
                             var groupUsers = resJson.data;
                             var targetUser = groupUsers[userId];
 
-                            if (!_messager.chatroom_id) {
-                                return api.messager.getOne(appId, userId, userId).then(function(resJson) {
+                            if (!sender.chatroom_id) {
+                                return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
                                     var _appsMessagersData = resJson.data;
-                                    _messager = _appsMessagersData[appId].messagers[userId];
-                                    _messager.name = targetUser.displayName;
-                                    _messager.email = targetUser.email;
-                                    appsMessagersData[appId].messagers[userId] = _messager;
-                                    return _messager;
+                                    sender = _appsMessagersData[appId].messagers[senderId];
+                                    sender.name = targetUser.displayName;
+                                    sender.email = targetUser.email;
+                                    appsMessagersData[appId].messagers[senderId] = sender;
+                                    return sender;
                                 });
                             }
 
-                            _messager.name = targetUser.displayName;
-                            _messager.email = targetUser.email;
-                            appsMessagersData[appId].messagers[userId] = _messager;
-                            return _messager;
+                            sender.name = targetUser.displayName;
+                            sender.email = targetUser.email;
+                            appsMessagersData[appId].messagers[userId] = sender;
+                            return sender;
                         });
                     } else {
                         // 因此拿著此 ID 向 server 查詢此人資料
                         // 查詢完後儲存至本地端，下次就無需再查詢
                         return api.messager.getOne(appId, receiverId, userId).then(function(resJson) {
                             var _appsMessagersData = resJson.data;
-                            _messager = _appsMessagersData[appId].messagers[receiverId];
-                            appsMessagersData[appId].messagers[receiverId] = _messager;
-                            return _messager;
+                            sender = _appsMessagersData[appId].messagers[receiverId];
+                            appsMessagersData[appId].messagers[receiverId] = sender;
+                            return sender;
                         });
                     }
                 }).then(function(messager) {
-                    if (CHATSHIER !== appType && receiverId === userId) {
-                        // 非內部聊天室訊息且發送對象是使用者本人不需處理
-                        return;
-                    }
-
+                    messager.unRead++;
                     displayClient(messager, message, chatroomId, appId, appName); // update 客戶清單
                     displayMessage(messager, message, chatroomId, appId); // update 聊天室
 
@@ -666,7 +694,7 @@
 
                 var buildHtml = function(type, imgSrc) {
                     var html =
-                        '<div class="chat-app-item" app-type="' + type + '" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '" rel="' + appId + '">' +
+                        '<div class="chat-app-item" app-type="' + type + '" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '">' +
                             '<img class="software-icon" src="' + imgSrc + '">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
@@ -695,7 +723,12 @@
                 // 計算每個聊天室內有多少 messager
                 var chatroomMessagers = {};
                 for (var msgerId in appMessagersData.messagers) {
-                    var msgerChatroomId = appMessagersData.messagers[msgerId].chatroom_id;
+                    var _messager = appMessagersData.messagers[msgerId];
+                    var msgerChatroomId = _messager.chatroom_id;
+                    if (!msgerChatroomId) {
+                        continue;
+                    }
+
                     if (!chatroomMessagers[msgerChatroomId]) {
                         chatroomMessagers[msgerChatroomId] = [];
                     }
@@ -727,8 +760,7 @@
                             break;
                         // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                         default:
-                            uiRequireData.profile = appsMessagersData[appId].messagers[userId];
-                            uiRequireData.profile.name = apps[appId].name;
+                            uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
                             uiRequireData.profile.photo = '/image/group-icon.png';
 
                             uiRequireData.messagerId = uiRequireData.userId = userId;
@@ -741,17 +773,23 @@
         }
 
         function responseHistoryMsg(data) {
-            var msgContent = $('#' + data.userId + '-content' + '[rel="' + data.channelId + '"]');
-            var originHeight = msgContent[0].scrollHeight;
-            msgContent.find('.message:first').remove();
-            msgContent.find('.message-day:lt(3)').remove();
-            msgContent.prepend(historyMsgToStr(data.messages));
-            var nowHeight = msgContent[0].scrollHeight;
-            msgContent.animate({
+            var $messagePanel = $('.tabcontent[app-id="' + data.appId + '"][chatroom-id="' + data.chatroomId + '"] .message-panel');
+
+            var originHeight = $messagePanel.prop('scrollHeight');
+            $messagePanel.find('.message:first').remove();
+            $messagePanel.find('.message-day:lt(3)').remove();
+            $messagePanel.prepend(historyMsgToStr(data.messages, appsMessagersData[data.appId].messagers));
+
+            var nowHeight = $messagePanel[0].scrollHeight;
+            $messagePanel.animate({
                 scrollTop: nowHeight - originHeight
             }, 0);
-            if (msgContent.attr('data-position') > 0) msgContent.prepend(LOADING_MSG_AND_ICON);
-            else msgContent.prepend(NO_HISTORY_MSG);
+
+            if ($messagePanel.attr('data-position') > 0) {
+                $messagePanel.prepend(LOADING_MSG_AND_ICON);
+            } else {
+                $messagePanel.prepend(NO_HISTORY_MSG);
+            }
         }
 
         function createChatroom(requireData) {
@@ -769,14 +807,14 @@
             var historyMsgKeys = Object.keys(historyMsg);
             var historyMsgStr = '';
             if (historyMsgKeys.length < 10) {
-                historyMsgStr += NO_HISTORY_MSG; // history message string head
+                historyMsgStr += NO_HISTORY_MSG;
             }
-            historyMsgStr += historyMsgToStr(historyMsg);
+            historyMsgStr += historyMsgToStr(historyMsg, appsMessagersData[requireData.appId].messagers);
             $('#user-rooms').append('<option value="' + requireData.chatroomId + '">' + profile.name + '</option>'); // new a option in select bar
 
             // 左邊的客戶清單排列
             var lastMsg = historyMsg[historyMsgKeys[historyMsgKeys.length - 1]];
-            var lastMsgStr = lastMsgToStr(lastMsg);
+            var lastMsgStr = messageToClientHtml(lastMsg);
 
             var buildHtml = function(imgSrc) {
                 var unReadStr = profile.unRead > 99 ? '99+' : '' + profile.unRead;
@@ -830,36 +868,31 @@
             // }
         }
 
-        function historyMsgToStr(messages) {
+        function preprecessMessageHtml(message) {
+            switch (message.type) {
+                case 'image':
+                    return '<img src="' + message.src + '" style="width: 100%; max-width: 500px;" />';
+                case 'audio':
+                    return '<audio controls><source src="' + message.src + '" type="audio/mp4"></audio>';
+                case 'video':
+                    return '<video controls><source src="' + message.src + '" type="video/mp4"></video>';
+                case 'sticker':
+                    return '<img src="' + message.src + '" style="width: 100%; max-width: 200px;" />';
+                case 'location':
+                    return '<a target="_blank" href="' + message.src + '">location</a>';
+                default:
+                    return message.text || '';
+            }
+        }
+
+        function historyMsgToStr(messages, messagers) {
             var returnStr = '';
             var nowDateStr = '';
             var prevTime = 0;
 
             for (var i in messages) {
-                if (!messages[i].text) {
-                    switch (messages[i].type) {
-                        case 'image':
-                            var imageUrl = messages[i].src;
-                            messages[i].text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
-                            break;
-                        case 'audio':
-                            var audioUrl = messages[i].src;
-                            messages[i].text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
-                            break;
-                        case 'video':
-                            var videoUrl = messages[i].src;
-                            messages[i].text = '<video controls><source src="' + videoUrl + '" type="video/mp4"></video>';
-                            break;
-                        case 'sticker':
-                            var stickerUrl = messages[i].src;
-                            messages[i].text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
-                            break;
-                        case 'location':
-                            var locationUrl = messages[i].src;
-                            messages[i].text = '<a target="_blank" href="' + locationUrl + '">location</a>';
-                            break;
-                    }
-                }
+                var srcHtml = preprecessMessageHtml(messages[i]);
+
                 // this loop plus date info into history message, like "----Thu Aug 01 2017----"
                 var d = new Date(messages[i].time).toDateString(); // get msg's date
                 if (d !== nowDateStr) {
@@ -872,12 +905,11 @@
                     returnStr += "<p class='message-day'><strong>" + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
                 }
                 prevTime = messages[i].time;
-                if (SYSTEM === messages[i].from || CHATSHIER === messages[i].from || 'agent' === messages[i].owner) {
-                    // plus every history msg into string
-                    returnStr += generateMessageHtml(messages[i].text, messages[i].time, true);
-                } else {
-                    returnStr += generateMessageHtml(messages[i].text, messages[i].time, false);
-                }
+
+                let shouldRightSide = SYSTEM === messages[i].from || (CHATSHIER === messages[i].from && messages[i].messager_id === userId);
+                let senderId = messages[i].messager_id;
+                let messagerName = messagers[senderId] ? messagers[senderId].name : 'Chatshier';
+                returnStr += generateMessageHtml(srcHtml, messages[i].time, messages[i].type, messagerName, shouldRightSide);
             }
             return returnStr;
         }
@@ -1149,7 +1181,7 @@
                 appsMessagersData[appId].messagers[messagerId].unRead = 0;
 
                 // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
-                $userTablink.find('#msg').css('font-weight', 'normal'); // 取消未讀粗體
+                $userTablink.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
                 $unReadElem.text('0').hide();
             }
 
@@ -1182,15 +1214,18 @@
                 if (head < 0) {
                     head = 0;
                 }
+
                 var request = {
-                    userId: ele.parent().attr('id'),
-                    channelId: ele.parent().attr('rel'),
+                    appId: ele.parent().attr('app-id'),
+                    chatroomId: ele.parent().attr('chatroom-id'),
                     head: head,
                     tail: tail
                 };
+
                 if (!head) {
                     ele.off('scroll');
                 }
+
                 ele.attr('data-position', head);
                 chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
             }
@@ -1246,8 +1281,21 @@
                 message: messageToSend
             };
 
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData);
-            messageInput.val('');
+            return new Promise(function(resolve) {
+                messageInput.val('');
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, resolve);
+            }).then(function() {
+                var sender = appsMessagersData[appId].messagers[userId];
+                var srcHtml = preprecessMessageHtml(messageToSend);
+
+                var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
+                var messageHtml = generateMessageHtml(srcHtml, messageToSend.time, messageToSend.type, sender.name, true);
+                $messagePanel.append(messageHtml);
+                $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+
+                var $tablinkMsg = $('.tablinks[app-id="' + appId + '"] .client-message');
+                $tablinkMsg.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(srcHtml));
+            });
         }
 
         function triggerFileUpload(e) {
@@ -1285,28 +1333,6 @@
             return fileRef.put(file).then(function(snapshot) {
                 var url = snapshot.downloadURL;
                 var msgType = $(_this).data('type');
-                var msg = '';
-
-                switch (msgType) {
-                    case 'image':
-                        msg += '<img src="' + url + '" style="width: 100%; max-width: 500px;"/>';
-                        break;
-                    case 'audio':
-                        msg += '<audio controls><source src="' + url + '" type="audio/mpeg"/></audio>';
-                        break;
-                    case 'video':
-                        msg += '<video controls><source src="' + url + '" type="video/mp4"></video>';
-                        break;
-                }
-
-                var $messagePanel = $('.tabcontent[app-id="' + appId + '"]' + ' .message-panel');
-                var messageHtml = generateMessageHtml(msg, Date.now(), true);
-                $messagePanel.append(messageHtml);
-                $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
-
-                var $tablink = $('.tablinks[app-id="' + appId + '"] #msg');
-                $tablink.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(msg));
-
                 var appType = appsData[appId].type;
                 var messagerId = findChatroomMessagerId(appId, chatroomId);
 
@@ -1329,8 +1355,21 @@
                     message: messageToSend
                 };
 
-                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData);
-                messageInput.val('');
+                return new Promise(function(resolve) {
+                    messageInput.val('');
+                    chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, resolve);
+                }).then(function() {
+                    var sender = appsMessagersData[appId].messagers[userId];
+                    var srcHtml = preprecessMessageHtml(messageToSend);
+
+                    var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
+                    var messageHtml = generateMessageHtml(srcHtml, messageToSend.time, messageToSend.type, sender.name, true);
+                    $messagePanel.append(messageHtml);
+                    $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+
+                    var $tablinkMsg = $('.tablinks[app-id="' + appId + '"] .client-message');
+                    $tablinkMsg.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(srcHtml));
+                });
             });
         }
 
@@ -1357,25 +1396,25 @@
         function displayMessage(messager, message, chatroomId, appId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
+            var srcHtml = preprecessMessageHtml(_message);
+            var shouldRightSide = _message.from === CHATSHIER && _message.messager_id === userId;
             var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-            var isUserSelf = _message.from === CHATSHIER && _message.messager_id === userId;
 
             if (chatroomList.indexOf(appId + chatroomId) >= 0) {
                 // if its chated user
-                var lastMessageTime = parseInt($messagePanel.find('.message:last').attr('rel'), 10);
+                var lastMessageTime = parseInt($messagePanel.find('.message:last').attr('message-time'), 10);
 
                 // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
                 if (_message.time - lastMessageTime >= 900000) {
                     $messagePanel.append('<p class="message-day"><strong>-新訊息-</strong></p>');
                 }
-
-                var messageHtml = generateMessageHtml(_message.text, _message.time, isUserSelf);
+                var messageHtml = generateMessageHtml(srcHtml, _message.time, _message.type, messager.name, shouldRightSide);
                 $messagePanel.append(messageHtml);
                 $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
             } else {
                 // if its new user
                 var historyMsgStr = NO_HISTORY_MSG;
-                historyMsgStr += generateMessageHtml(_message.text, _message.time, isUserSelf);
+                historyMsgStr += generateMessageHtml(srcHtml, _message.time, _message.type, messager.name, shouldRightSide);
 
                 canvas.append(
                     '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
@@ -1422,26 +1461,23 @@
                 }
                 $('.tablinks-area #new-user-list').prepend(tablinkHtml);
             }
-            var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
-            var $msgElem = $selectedTablinks.find('#msg');
-            var currentUnread = messager.unRead;
 
-            // 判斷客戶傳送的是檔案，貼圖還是文字
-            if (_message.text.startsWith('<a') || _message.text.startsWith('<audio') || _message.text.startsWith('<video')) {
-                $msgElem.html(toTimeStr(_message.time) + '檔案');
-            } else if (_message.text.startsWith('<img')) {
-                $msgElem.html(toTimeStr(_message.time) + '圖檔');
-            } else {
-                $msgElem.html(toTimeStr(_message.time) + loadMessageInDisplayClient(_message.text));
-            }
+            // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
+            var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
+            var messagerName = SYSTEM === message.from ? 'Chatshier' : messager.name;
+            $selectedTablinks.find('.client-name').text(messagerName);
+
+            var $msgElem = $selectedTablinks.find('.client-message');
+            var srcHtml = messageToClientHtml(_message);
+            $msgElem.html(srcHtml);
             $selectedTablinks.attr('data-recent-time', _message.time);
 
-            // update tablnks's last msg
+            var currentUnread = messager.unRead;
             var $unreadMsgElem = $selectedTablinks.find('.unread-msg');
             if (currentUnread > 99) {
-                $unreadMsgElem.html('99+').css('display', '');
+                $unreadMsgElem.text('99+').css('display', '');
             } else {
-                $unreadMsgElem.html(currentUnread).css('display', !currentUnread ? 'none' : ''); // 未讀訊息數顯示出來
+                $unreadMsgElem.text(currentUnread).css('display', !currentUnread ? 'none' : ''); // 未讀訊息數顯示出來
             }
 
             $selectedTablinks.remove();
@@ -1569,11 +1605,17 @@
                 // 資料送出後，會再收到群組內的 socket 資料
                 // 設置 flag 防止再次更新 profile
                 preventUpdateProfile = true;
-                chatshierSocket.emit(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, socketRequest);
-
-                // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-                appsMessagersData[appId].messagers[msgerId] = Object.assign(appsMessagersData[appId].messagers[msgerId], messagerUiData);
-                $.notify('用戶資料更新成功', { type: 'success' });
+                return new Promise((resolve, reject) => {
+                    let waitTimer = window.setTimeout(reject, 3000);
+                    chatshierSocket.emit(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, socketRequest, function() {
+                        window.clearTimeout(waitTimer);
+                        resolve();
+                    });
+                }).then(() => {
+                    // 將成功更新的資料覆蓋前端本地端的全域 app 資料
+                    appsMessagersData[appId].messagers[msgerId] = Object.assign(appsMessagersData[appId].messagers[msgerId], messagerUiData);
+                    $.notify('用戶資料更新成功', { type: 'success' });
+                });
             }
         }
         // =====end profile function=====
@@ -1682,7 +1724,7 @@
                         count += 1;
 
                         // displayClient顯示"找到訊息"並標紅
-                        var $tablinkMsg = $('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] #msg');
+                        var $tablinkMsg = $('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .client-message');
                         $tablinkMsg.css('color', COLOR.FIND).text('找到訊息');
                         display = true;
                     } else {
@@ -1762,13 +1804,15 @@
                 var appId = $tablinkElem.attr('app-id');
                 var chatroomId = $tablinkElem.attr('chatroom-id');
                 var $MessagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-                var $tablinkMsg = $tablinkElem.find('#msg');
+                var $tablinkMsg = $tablinkElem.find('.client-message');
                 var $lastMessage = $MessagePanel.find('.message').last();
 
-                var lastMessageText = $lastMessage.find('.content').text().trim();
-                var lastMessageTime = parseInt($lastMessage.attr('rel'), 10);
-                lastMessageText = toTimeStr(lastMessageTime) + loadMessageInDisplayClient(lastMessageText);
-                $tablinkMsg.text(lastMessageText).css('color', 'black');
+                var srcHtml = messageToClientHtml({
+                    text: $lastMessage.find('.content').text().trim(),
+                    type: $lastMessage.attr('message-type'),
+                    time: parseInt($lastMessage.attr('message-time'), 10)
+                });
+                $tablinkMsg.html(srcHtml).css('color', 'black');
 
                 $MessagePanel.find('.message .content').css({
                     color: 'black',
@@ -1801,34 +1845,39 @@
 
         // =====start utility function
 
-        function generateMessageHtml(msg, time, isUserSelf) {
-            var isMedia = msg.startsWith('<a') || msg.startsWith('<img') || msg.startsWith('<audio') || msg.startsWith('<video');
+        function generateMessageHtml(srcHtml, msgTime, msgType, messagerName, shouldRightSide) {
+            var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
             // 如果訊息是來自於當前使用者則放置於右邊
             // 如果訊息是來自於其他 messager 的話，訊息預設放在左邊
-            return '<div class="message" rel="' + time + '" title="' + toDateStr(time) + '">' +
-                // '<div class="messager-name' + (isUserSelf ? ' text-right' : '') + '">' +
-                //     '<span>' + 'My Name' + '</span>' +
-                // '</div>' +
-                '<span class="message-group ' + (isUserSelf ? ' align-right' : '') + '">' +
-                    '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + msg + '</span>' +
-                    '<span class="send-time">' + toTimeStr(time) + '</span>' +
+            return '<div class="message" message-time="' + msgTime + '" message-type="' + msgType + '">' +
+                '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
+                    '<span>' + messagerName + '</span>' +
+                '</div>' +
+                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
+                    '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="send-time">' + toTimeStr(msgTime) + '</span>' +
                     '<strong></strong>' +
                 '</span>' +
                 '<br/>' +
             '</div>';
         }
 
-        function lastMsgToStr(msg) {
-            if (!(msg && msg.text)) {
-                return '';
-            } else if (msg.text.startsWith('<a') || msg.text.startsWith('<video') || msg.text.startsWith('<audio')) {
-                return '<br><div id="msg">' + toTimeStr(msg.time) + '檔案</div>';
-            } else if (msg.text.startsWith('<img')) {
-                return '<br><div id="msg">' + toTimeStr(msg.time) + '圖檔</div>';
-            } else {
-                return '<br><div id="msg">' + toTimeStr(msg.time) + loadMessageInDisplayClient(msg.text) + '</div>';
+        function messageToClientHtml(message) {
+            // 判斷客戶傳送的是檔案，貼圖還是文字回傳對應的 html
+            var lastMsgText = '';
+            switch (message.type) {
+                case 'image':
+                    lastMsgText = '圖檔';
+                    break;
+                case 'text':
+                    lastMsgText = loadMessageInDisplayClient(message.text);
+                    break;
+                default:
+                    lastMsgText = '檔案';
+                    break;
             }
+            return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
         }
 
         function loadMessageInDisplayClient(msg) {

@@ -41,10 +41,10 @@ body, html{
     a[href="/calendar"],
     a[href="/ticket"],
     a[href="/analyze"],
-    a[href="/message_overview"],
-    a[href="/message_autoreply"],
-    a[href="/message_keywordsreply"],
-    a[href="/message_greeting"] {
+    a[href="/compose"],
+    a[href="/autoreply"],
+    a[href="/keywordsreply"],
+    a[href="/greeting"] {
         color: white;
         text-decoration: none;
     }

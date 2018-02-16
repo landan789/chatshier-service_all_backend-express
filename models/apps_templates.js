@@ -8,14 +8,21 @@ templates.findByAppId = (appId, callback) => {
     });
 }
 
-templates.findTemplatesByAppIdByTemplateIds = (appId, templateIds, callback) => {
-
-    Promise.all(templateIds.map((templateId) => {
-        return admin.database().ref('apps/' + appId + '/keywordreplies/' + templateId).once('value');
-    })).then((result) => {
-        callback(result);
+templates.findTemplateMessages = (appId, templateIds, callback) => {
+    let templates = {};
+    return Promise.all(templateIds.map((templateId) => {
+        return admin.database().ref('apps/' + appId + '/templates/' + templateId).once('value').then((snap) => {
+            let template = snap.val();
+            if (templates) {
+                templates[templateId] = template;
+            }
+        });
+    })).then(() => {
+        callback(templates);
+        return templates;
     }).catch(() => {
-        callback(false);
+        callback(null);
+        return null;
     });
 };
 

@@ -14,14 +14,14 @@ router.get('/setting', function(req, res, next) {
 router.get('/autoreply', function(req, res, next) {
     res.render('autoreply', { title: '自動回覆' });
 });
-router.get('/message_keywordsreply', function(req, res, next) {
-    res.render('message_keywordsreply', { title: '關鍵字回覆' });
+router.get('/keywordsreply', function(req, res, next) {
+    res.render('keywordsreply', { title: '關鍵字回覆' });
 });
 router.get('/greeting', function(req, res, next) {
     res.render('greeting', { title: '加好友問候' });
 });
-router.get('/message_overview', function(req, res, next) {
-    res.render('message_overview', { title: '訊息群發' });
+router.get('/compose', function(req, res, next) {
+    res.render('compose', { title: '訊息群發' });
 });
 router.get('/calendar', function(req, res, next) {
     res.render('calendar', { title: '行事曆' });

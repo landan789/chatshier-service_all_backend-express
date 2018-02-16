@@ -610,6 +610,7 @@ window.auth.ready.then(function(currentUser) {
 
         var $internalGroupPanel = $('#create-internal-room');
         var $groupBody = $internalGroupPanel.find('.panel-body');
+        $addGroupModal.find('.modal-body form').submit(false);
 
         $addGroupModal.on('click', '#add_group_submit', function() {
             $addGroupModal.modal('hide');

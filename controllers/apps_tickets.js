@@ -108,11 +108,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsTicketsController.prototype.getAllByUserid = (req, res, next) => {
         var proceed = new Promise((resolve, reject) => {
             resolve();
@@ -179,11 +174,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsTicketsController.prototype.getOne = (req, res, next) => {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
@@ -220,11 +210,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsTicketsController.prototype.postOne = (req, res, next) => {
         var postTikeck = {
             createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
@@ -265,11 +250,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsTicketsController.prototype.putOne = (req, res, next) => {
         var appId = '';
         var ticketId = req.params.ticketid;
@@ -333,11 +313,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsTicketsController.prototype.deleteOne = (req, res, next) => {
         var appId = '';
         var ticketId = req.params.ticketid;

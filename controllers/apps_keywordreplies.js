@@ -18,9 +18,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsChecking = function(params) {
         let appId = params.appid;
@@ -111,10 +108,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsKeywordrepliesController.prototype.getAll = function(req, res) {
         let userId = req.params.userid;
         let appId = req.params.appid;
@@ -174,10 +167,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsKeywordrepliesController.prototype.getOne = function(req, res) {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
@@ -207,10 +196,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsKeywordrepliesController.prototype.postOne = function(req, res) {
         let postKeywordreplyData = {
             keyword: req.body.keyword || '',
@@ -281,10 +266,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsKeywordrepliesController.prototype.putOne = function(req, res) {
         let keywordreplyId = req.params.keywordreplyid;
         let appId = '';
@@ -367,10 +348,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsKeywordrepliesController.prototype.deleteOne = function(req, res) {
         let keywordreplyId = req.params.keywordreplyid;
         let appId = '';

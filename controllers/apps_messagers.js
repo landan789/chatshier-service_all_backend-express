@@ -56,9 +56,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     AppsMessagersController.prototype.paramsChecking = function(params) {
         let appId = params.appid;
@@ -219,9 +216,6 @@ module.exports = (function() {
 
     /**
      * 處理更新 messager 基本資料的 API 請求
-     *
-     * @param {Request} req
-     * @param {Response} res
      */
     AppsMessagersController.prototype.updateMessager = function(req, res) {
         let msgerId = req.params.messagerid;

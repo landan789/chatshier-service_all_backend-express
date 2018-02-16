@@ -26,43 +26,30 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string[]} keywordreplyIds
-     * @param {(messages: { type: string, text: string }[]) => any} callback
+     * @param {(messages: any) => any} [callback]
+     * @returns {Promise<any>}
      */
-    AppsKeywordrepliesModel.prototype.findMessages = function(appId, keywordreplyIds, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+    AppsKeywordrepliesModel.prototype.findReplyMessages = function(appId, keywordreplyIds, callback) {
+        let keywordreplies = {};
+
+        return Promise.resolve().then(() => {
             if (!appId || !keywordreplyIds || !(keywordreplyIds instanceof Array)) {
                 return;
             }
-            let keywordreples = [];
-            let findTasks = [];
 
-            // 準備批次查詢的 promise 工作
-            for (let idx in keywordreplyIds) {
-                let keywordreplyId = keywordreplyIds[idx];
-
-                findTasks.push(new Promise((resolve, reject) => {
-                    admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value', (snap) => {
-                        if (!snap) {
-                            resolve();
-                            return;
-                        }
-
-                        // 這裡沒有做 index 儲存，因此由於非同步工作的關係
-                        // 每次最後所產生的陣列順序可能有所不同
-                        let replyMessage = snap.val();
-                        // 每一次收到回應後將結果丟入陣列
-                        replyMessage && keywordreples.push(replyMessage);
-                        resolve();
-                    });
-                }));
-            }
-
-            return Promise.all(findTasks).then(() => {
-                return keywordreples;
-            });
-        }).then((result) => {
-            callback(result || []);
+            return Promise.all(keywordreplyIds.map((keywordreplyId) => {
+                return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value').then((snap) => {
+                    let keywordreply = snap.val();
+                    if (keywordreply && keywordreply.status) {
+                        keywordreplies[keywordreplyId] = {
+                            text: keywordreply.text,
+                            type: keywordreply.type
+                        };
+                    }
+                });
+            }));
+        }).then(() => {
+            callback(keywordreplies);
         }).catch(() => {
             callback(null);
         });
@@ -211,11 +198,11 @@ module.exports = (function() {
                 return Promise.reject(new Error());
             }
 
-            // 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
-            let messageId = cipher.createHashKey(putKeywordreply.keyword);
-
             // 1. 更新關鍵字回覆的資料
             return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply).then(() => {
+                // 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
+                let messageId = putKeywordreply.keyword ? cipher.createHashKey(putKeywordreply.keyword) : '';
+
                 // 成功更新後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
                 return { keywordreplyId, messageId };
             });
@@ -223,6 +210,32 @@ module.exports = (function() {
             callback(data);
         }).catch(() => {
             callback(null);
+        });
+    };
+
+    /**
+     * 增加指定關鍵字回覆的回覆次數 1 次
+     *
+     * @param {string} appId
+     * @param {string|string[]} keywordreplyIds
+     * @param {() => any} [callback]
+     */
+    AppsKeywordrepliesModel.prototype.increaseReplyCount = (appId, keywordreplyIds, callback) => {
+        if ('string' === typeof keywordreplyIds) {
+            keywordreplyIds = [keywordreplyIds];
+        }
+
+        let _keywordreplyIds = keywordreplyIds || [];
+        return Promise.all(_keywordreplyIds.map((keywordreplyId) => {
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value').then((snap) => {
+                let keywordreply = snap.val();
+                let putKeywordreply = {
+                    replyCount: keywordreply.replyCount + 1
+                };
+                return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply);
+            });
+        })).then(() => {
+            ('function' === typeof callback) && callback();
         });
     };
 

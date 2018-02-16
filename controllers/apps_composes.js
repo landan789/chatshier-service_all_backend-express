@@ -19,10 +19,9 @@ module.exports = (function() {
     /**
      * 使用者的 AppId 清單前置檢查程序
      *
-     * @param {string} userId
-     * @param {string} appId
+     * @param {any} params
      */
-    let paramsChecking = function(params, req) {
+    let paramsChecking = function(params) {
         let appId = params.appid;
         let userId = params.userid;
 
@@ -111,11 +110,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     * @param {Function} next
-     */
     AppsComposesController.prototype.getAll = function(req, res, next) {
         let userId = req.params.userid;
 
@@ -180,10 +174,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsComposesController.prototype.getOne = (req, res) => {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
@@ -214,10 +204,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsComposesController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
 
@@ -269,12 +255,7 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsComposesController.prototype.putOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
         let composeId = req.params.composeid;
         let appId = '';
         let status = req.body.status;
@@ -340,16 +321,12 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsComposesController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         let composeId = req.params.composeid;
         let appId = '';
 
-        return paramsChecking(req.params, req).then((checkedAppId) => {
+        return paramsChecking(req.params).then((checkedAppId) => {
             appId = checkedAppId;
 
             if (!composeId) {

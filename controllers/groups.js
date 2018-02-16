@@ -99,6 +99,7 @@ module.exports = (function() {
                     return groups;
                 }
 
+                let group = groups[groupId];
                 user.group_ids = user.group_ids || [];
                 return new Promise((resolve) => {
                     user.group_ids.push(groupId);
@@ -107,7 +108,7 @@ module.exports = (function() {
                     // 群組新增處理完畢後，自動新增一個內部聊天室的 App
                     return new Promise((resolve, reject) => {
                         let postApp = {
-                            name: 'Chatshier app',
+                            name: 'Chatshier - ' + group.name,
                             type: 'CHATSHIER',
                             group_id: groupId
                         };

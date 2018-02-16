@@ -16,9 +16,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsCheckingGetAll = function(params) {
         let appId = params.appid;
@@ -59,9 +56,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsChecking = function(params) {
         let appId = params.appid;
@@ -152,11 +146,6 @@ module.exports = (function() {
         });
     };
 
-
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsTagsController.prototype.getAll = function(req, res) {
         return paramsCheckingGetAll(req.params).then((appIds) => {
             // 1. 根據 appId 清單去 tags model 抓取清單
@@ -186,10 +175,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsTagsController.prototype.postOne = function(req, res) {
         let appId = req.params.appid;
 
@@ -233,10 +218,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsTagsController.prototype.putOne = function(req, res) {
         let appId = req.params.appid;
         let tagId = req.params.tagid;
@@ -284,10 +265,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsTagsController.prototype.deleteOne = function(req, res) {
         let appId = req.params.appid;
         let tagId = req.params.tagid;

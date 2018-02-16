@@ -16,9 +16,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsChecking = function(params) {
         let appId = params.appid;

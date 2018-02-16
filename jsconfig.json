@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "target": "es6",
+        "module": "commonjs",
+        "checkJs": true,
+        "noEmit": true
+    },
+    "exclude": [
+        "node_modules",
+        "**/node_modules"
+    ],
+    "include": [
+        "typings/server/**/*.d.ts",
+        "controllers/**/*",
+        "helpers/**/*",
+        "middlewares/**/*",
+        "models/**/*",
+        "routes/**/*",
+        "schedules/**/*",
+        "sockets/**/*"
+    ]
+}
