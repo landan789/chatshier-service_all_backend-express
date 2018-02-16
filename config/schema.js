@@ -5,8 +5,7 @@ module.exports = {
         type: 'text',
         messager_id: '',
         from: '',
-        updatedTime: Date.now(),
-        createdTime: Date.now(),
+        time: Date.now(),
         isDeleted: 0
     },
     GROUP: {

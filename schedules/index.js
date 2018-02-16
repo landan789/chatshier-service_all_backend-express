@@ -81,8 +81,8 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                     return Promise.all(messages.map((message) => {
                         let _message = {
                             from: SYSTEM,
-                            messager_id: messagerId,
-                            createdTime: Date.now()
+                            messager_id: '', // 系統發出不需要帶入 messager_id
+                            time: Date.now()
                         };
                         message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
