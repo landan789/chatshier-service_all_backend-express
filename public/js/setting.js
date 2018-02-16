@@ -260,33 +260,33 @@ window.auth.ready.then(function(currentUser) {
             var tagCollapseId = appId + '_collapse';
             _this.$tagPanel.append(
                 '<div class="panel-heading" role="tab" id="' + appId + '">' +
-                '<h4 class="panel-title">' +
-                '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
-                (appData.name || '') +
-                '</a>' +
-                '</h4>' +
+                    '<h4 class="panel-title">' +
+                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
+                            (appData.name || '') +
+                        '</a>' +
+                    '</h4>' +
                 '</div>' +
                 '<div id="' + tagCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
-                '<div class="panel-body">' +
-                '<button type="button" class="btn btn-default add-tag">' +
-                '<span class="fa fa-plus fa-fw"></span>新增' +
-                '</button>' +
-                '<table class="table table-striped">' +
-                '<thead>' +
-                '<tr>' +
-                '<th>欄位名稱</th>' +
-                '<th>欄位類別</th>' +
-                '<th>欄位設定</th>' +
-                '<th>刪除</th>' +
-                '<th></th>' +
-                '</tr>' +
-                '</thead>' +
-                '<tbody></tbody>' +
-                '</table>' +
-                '<div class="align-center">' +
-                '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
-                '</div>' +
-                '</div>' +
+                    '<div class="panel-body">' +
+                        '<button type="button" class="btn btn-default add-tag">' +
+                            '<span class="fa fa-plus fa-fw"></span>新增' +
+                        '</button>' +
+                        '<table class="table table-striped">' +
+                            '<thead>' +
+                                '<tr>' +
+                                    '<th>欄位名稱</th>' +
+                                    '<th>欄位類別</th>' +
+                                    '<th>欄位設定</th>' +
+                                    '<th>刪除</th>' +
+                                    '<th></th>' +
+                                '</tr>' +
+                            '</thead>' +
+                            '<tbody></tbody>' +
+                        '</table>' +
+                        '<div class="align-center">' +
+                            '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
+                        '</div>' +
+                    '</div>' +
                 '</div>'
             );
 
@@ -339,7 +339,7 @@ window.auth.ready.then(function(currentUser) {
                 }
 
                 for (var idx in _this.saveListeners) {
-                    _this.saveListeners[idx]({
+                    _this.saveListeners[idx](ev, {
                         appId: appId,
                         uiData: uiData
                     });
@@ -369,7 +369,7 @@ window.auth.ready.then(function(currentUser) {
                                 }
                                 return transStrs;
                             })(setsData).join('\n') +
-                            '</textarea>';
+                        '</textarea>';
                     case tagEnums.setsType.CHECKBOX:
                         return '<input type="text" class="sets-item form-control" value="無設定" disabled />';
                     case tagEnums.setsType.TEXT:
@@ -379,36 +379,36 @@ window.auth.ready.then(function(currentUser) {
                         return '<select class="sets-item form-control">' +
                             '<option value="0">單行</option>' +
                             '<option value="1">段落</option>' +
-                            '</select>';
+                        '</select>';
                 }
             };
 
             $tagTableBody.append(
                 '<tr class="tag-content" id="' + tagId + '">' +
-                '<td class="tag-name long-token">' +
-                '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
-                '</td>' +
-                '<td class="tag-type">' +
-                '<select class="form-control">' +
-                '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
-                '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
-                '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
-                '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
-                '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
-                '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
-                '</select>' +
-                '</td>' +
-                '<td class="tag-sets">' +
-                getSetsHtml(tagData.setsType, tagData.sets) +
-                '</td>' +
-                '<td class="tag-delete">' +
-                '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
-                '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
-                '</button>' +
-                '</td>' +
-                '<td class="tag-drag-icon">' +
-                '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
-                '</td>' +
+                    '<td class="tag-name long-token">' +
+                        '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
+                    '</td>' +
+                    '<td class="tag-type">' +
+                        '<select class="form-control">' +
+                            '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
+                            '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
+                            '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
+                            '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
+                            '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
+                            '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
+                        '</select>' +
+                    '</td>' +
+                    '<td class="tag-sets">' +
+                        getSetsHtml(tagData.setsType, tagData.sets) +
+                    '</td>' +
+                    '<td class="tag-delete">' +
+                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
+                            '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
+                        '</button>' +
+                    '</td>' +
+                    '<td class="tag-drag-icon">' +
+                        '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
+                    '</td>' +
                 '</tr>');
             var $tagRow = $tagTableBody.find('#' + tagId);
             var $tagTypeSelect = $tagRow.find('.tag-type select');
@@ -502,8 +502,9 @@ window.auth.ready.then(function(currentUser) {
 
             // 監聽每行標籤的儲存事件，根據 UI 上資料的變更
             // 檢查哪些資料需要更新哪些資料需要新增
-            tagPanelCtrl.onSave(function(ev) {
-                var tagsData = appsTagsData[ev.appId].tags;
+            tagPanelCtrl.onSave(function(ev, args) {
+                $(ev.target).attr('disabled', true);
+                var tagsData = appsTagsData[args.appId].tags;
                 var tagIds = Object.keys(tagsData);
 
                 /**
@@ -532,25 +533,25 @@ window.auth.ready.then(function(currentUser) {
                     var tagData = tagsData[tagId];
 
                     // 需對照 UI 上目前每個標籤的順序，更新至對應的標籤
-                    if (ev.uiData[tagId] && !hasSameData(tagData, ev.uiData[tagId])) {
+                    if (args.uiData[tagId] && !hasSameData(tagData, args.uiData[tagId])) {
                         // 只允許非系統預設的欄位可進行資料變更動作
                         if (tagData.type !== tagEnums.type.DEFAULT) {
-                            tagData.text = ev.uiData[tagId].text;
-                            tagData.setsType = ev.uiData[tagId].setsType;
-                            tagData.sets = ev.uiData[tagId].sets;
+                            tagData.text = args.uiData[tagId].text;
+                            tagData.setsType = args.uiData[tagId].setsType;
+                            tagData.sets = args.uiData[tagId].sets;
                         }
-                        tagData.order = ev.uiData[tagId].order;
+                        tagData.order = args.uiData[tagId].order;
                         tagData.updatedTime = Date.now();
-                        delete ev.uiData[tagId];
-                        return api.tag.update(ev.appId, tagId, userId, tagData);
+                        delete args.uiData[tagId];
+                        return api.tag.update(args.appId, tagId, userId, tagData);
                     } else if (tagData.isDeleted) {
-                        return api.tag.remove(ev.appId, tagId, userId);
+                        return api.tag.remove(args.appId, tagId, userId);
                     }
-                    delete ev.uiData[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
+                    delete args.uiData[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
                     return Promise.resolve();
                 })).then(function() {
                     // 將剩下的 id 檢查是否為新增的標籤
-                    var newTagIds = Object.keys(ev.uiData);
+                    var newTagIds = Object.keys(args.uiData);
                     return Promise.all(newTagIds.map(function(tagId) {
                         // 新增的標籤 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
                         // 非新增的標籤資料不進行資料插入動作
@@ -559,19 +560,20 @@ window.auth.ready.then(function(currentUser) {
                         }
 
                         var tagData = {
-                            text: ev.uiData[tagId].text,
+                            text: args.uiData[tagId].text,
                             type: tagEnums.type.CUSTOM,
-                            sets: ev.uiData[tagId].sets,
-                            setsType: ev.uiData[tagId].setsType,
-                            order: ev.uiData[tagId].order,
+                            sets: args.uiData[tagId].sets,
+                            setsType: args.uiData[tagId].setsType,
+                            order: args.uiData[tagId].order,
                             createdTime: Date.now(),
                             updatedTime: Date.now()
                         };
-                        return api.tag.insert(ev.appId, userId, tagData);
+                        return api.tag.insert(args.appId, userId, tagData);
                     }));
                 }).then(function() {
                     // 標籤資料處理完成後顯示訊息在 UI 上
                     $.notify('標籤更新成功', { type: 'success' });
+                    $(ev.target).removeAttr('disabled');
                 });
             });
 

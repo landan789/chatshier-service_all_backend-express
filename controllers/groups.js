@@ -136,7 +136,8 @@ module.exports = (function() {
                             let members = Object.values(groups[groupId].members);
                             return Promise.all(members.map((member) => {
                                 let messager = {
-                                    chatroom_id: chatroomId
+                                    chatroom_id: chatroomId,
+                                    isDeleted: 0
                                 };
                                 return appsMessagersMdl.replaceMessager(appId, member.user_id, messager);
                             }));

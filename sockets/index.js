@@ -420,9 +420,10 @@ function init(server) {
             // 1. Server 接收到 client 來的聊天訊息
             let appId = socketBody.appId;
             let appType = socketBody.appType;
-            let messagerId = socketBody.messagerId;
             let chatroomId = socketBody.chatroomId;
             let message = socketBody.message;
+            let receiverId = socketBody.messagerId;
+            let senderId = message.messager_id;
 
             return Promise.resolve().then(() => {
                 // 2. 將資料寫入至資料庫
@@ -431,9 +432,10 @@ function init(server) {
                     time: message.time || Date.now(),
                     text: message.text,
                     from: CHATSHIER,
-                    messager_id: messagerId,
+                    messager_id: senderId,
                     src: !message.text ? (message.src || '') : ''
                 };
+
                 return new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
                         if (!newChatroomId) {
@@ -458,14 +460,8 @@ function init(server) {
                                 pageToken: apps[appId].token2
                             };
                             let fbBot = facebook.create(facebookConfig);
-                            helpersFacebook.sendMessage(fbBot, messagerId, message, resolve);
+                            helpersFacebook.sendMessage(fbBot, receiverId, message, resolve);
                         });
-                    }).then(() => {
-                        // FACEBOOK server 收到訊息後，不會打 webhook 回來
-                        // 因此將 socket 資料原封不動的廣播到 chatshier chatroom
-                        if (!appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody)) {
-                            return Promise.reject(new Error());
-                        }
                     });
                 } else if (LINE === appType) {
                     return new Promise((resolve) => {
@@ -479,17 +475,25 @@ function init(server) {
                         return new Promise((resolve, reject) => {
                             utility.LINEMessageTypeForPushMessage(message, resolve);
                         }).then((lineMessage) => {
-                            // LINE 的 server 在收到 client 的訊息後會打 webhook 回來
-                            // 因此不需要使用 socket 把訊息 emit 回去 chatshier chatroom
-                            return lineBot.pushMessage(messagerId, lineMessage);
+                            return lineBot.pushMessage(receiverId, lineMessage);
                         });
                     });
                 } else if (CHATSHIER === appType) {
-                    // 內部聊天室使用 socket 直接發送訊息
-                    // 將 socket 資料原封不動的廣播到 chatshier chatroom
-                    if (!appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody)) {
-                        return Promise.reject(new Error());
-                    }
+                    // 若是屬於內部聊天室，則需要將聊天室內所有的 messager 的未讀數 +1
+                    return appsChatroomsMdl.findMessagerIdsInChatroom(appId, chatroomId).then((appMessagers) => {
+                        // 不需更新發送者的未讀數
+                        delete appMessagers[appId].messagers[senderId];
+
+                        let messagerIds = Object.keys(appMessagers[appId].messagers);
+                        return Promise.all(messagerIds.map((_messagerId) => {
+                            return appsMessagersMdl.replaceMessager(appId, _messagerId, { unRead: 1 });
+                        }));
+                    });
+                }
+            }).then(() => {
+                // 將 socket 資料原封不動的廣播到 chatshier chatroom
+                if (!appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody)) {
+                    return Promise.reject(new Error());
                 }
             }).catch((err) => {
                 console.trace(err);
@@ -514,6 +518,7 @@ function init(server) {
                 ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
                 ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
                 ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
+                req.body.assigned && (messagerData.assigned = req.body.assigned);
 
                 if (!(req.body.custom_tags instanceof Array)) {
                     return messagerData;
@@ -659,25 +664,8 @@ function init(server) {
         // 訊息已讀
         socket.on(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, (data) => {
             let appId = data.appId;
-            let appType = data.appType;
-            let chatroomId = data.chatroomId;
-            let userId = data.userId;
-
-            if (CHATSHIER === appType) {
-                return appsChatroomsMessagesMdl.updateUnreadStatus(appId, userId);
-            }
-
-            return new Promise((resolve) => {
-                appsMessagersMdl.findAppMessagers([appId], resolve);
-            }).then((appMessagers) => {
-                let messagers = appMessagers[appId].messagers;
-                for (let messagerId in messagers) {
-                    let messager = messagers[messagerId];
-                    if (messager.chatroom_id === chatroomId) {
-                        return appsChatroomsMessagesMdl.updateUnreadStatus(appId, messagerId);
-                    }
-                }
-            });
+            let messagerId = data.messagerId;
+            return appsChatroomsMessagesMdl.updateUnreadStatus(appId, messagerId);
         });
         /* ===聊天室end=== */
 

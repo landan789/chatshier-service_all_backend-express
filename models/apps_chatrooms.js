@@ -51,17 +51,13 @@ module.exports = (function() {
 
     /**
      * @param {string} appId
-     * @param {string|string[]} chatroomIds
+     * @param {string} chatroomId
      * @param {(chatroomMessagers: any) => any} [callback]
      * @returns {Promise<any>}
      */
-    AppsChatroomsModel.prototype.findMessagerIdsInChatrooms = (appId, chatroomIds, callback) => {
-        if ('string' === typeof chatroomIds) {
-            chatroomIds = [chatroomIds];
-        }
-
+    AppsChatroomsModel.prototype.findMessagerIdsInChatroom = (appId, chatroomId, callback) => {
         return Promise.resolve().then(() => {
-            if (!chatroomIds) {
+            if (!chatroomId) {
                 return Promise.reject(new Error());
             }
             let appsChatroomMessagers = {
@@ -73,13 +69,9 @@ module.exports = (function() {
             return admin.database().ref('apps/' + appId + '/messagers').once('value').then((snap) => {
                 let messagers = snap.val() || {};
 
-                for (let i in chatroomIds) {
-                    let chatroomId = chatroomIds[i];
-
-                    for (let messagerId in messagers) {
-                        if (chatroomId === messagers[messagerId].chatroom_id) {
-                            appsChatroomMessagers[appId].messagers[messagerId] = messagers[messagerId];
-                        }
+                for (let messagerId in messagers) {
+                    if (!messagers[messagerId].isDeleted && chatroomId === messagers[messagerId].chatroom_id) {
+                        appsChatroomMessagers[appId].messagers[messagerId] = messagers[messagerId];
                     }
                 }
                 return appsChatroomMessagers;

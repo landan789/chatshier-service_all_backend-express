@@ -111,6 +111,12 @@ module.exports = (function() {
             sets: [''],
             setsType: setsTypeEnum.TEXT
         }, {
+            text: 'Assigned',
+            alias: 'assigned',
+            type: typeEnum.DEFAULT,
+            sets: [''],
+            setsType: setsTypeEnum.MULTI_SELECT
+        }, {
             text: 'First chat date',
             alias: 'firstChat',
             type: typeEnum.SYSTEM,

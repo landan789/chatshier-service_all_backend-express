@@ -170,7 +170,7 @@ module.exports = (function() {
         });
     };
     GroupsMembersModel.prototype.update = function(groupId, memberId, member, callback) {
-        member['updatedTime'] = Date.now();
+        member.updatedTime = Date.now();
         admin.database().ref('groups/' + groupId + '/members/' + memberId).update(member).then(() => {
             return admin.database().ref('groups/' + groupId + '/members/' + memberId).once('value');
         }).then((snap) => {
@@ -178,7 +178,7 @@ module.exports = (function() {
             if (null === member || undefined === member || '' === member) {
                 return Promise.reject();
             }
-            return Promise.resolve(member);
+            return member;
         }).then((member) => {
             var groupsMembers = {
                 [groupId]: {

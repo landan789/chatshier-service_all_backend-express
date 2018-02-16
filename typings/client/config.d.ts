@@ -7,7 +7,6 @@ interface Window {
         storageBucket: string,
         messagingSenderId: string
     },
-
     urlConfig: {
         wwwUrl: string,
         port: string,
@@ -16,13 +15,23 @@ interface Window {
         privacy: string,
         webhookUrl: string,
         apiUrl: string
+    },
+    chatshierConfig: {
+        imageFileMaxSize: number,
+        videoFileMaxSize: number,
+        audioFileMaxSize: number
     }
 }
 
 declare const SOCKET_EVENTS = {
-    EMIT_MESSAGE_TO_CLIENT: 'EMIT_MESSAGE_TO_CLIENT',
     EMIT_MESSAGE_TO_SERVER: 'EMIT_MESSAGE_TO_SERVER',
+    EMIT_MESSAGE_TO_CLIENT: 'EMIT_MESSAGE_TO_CLIENT',
+
     APP_REGISTRATION: 'APP_REGISTRATION',
+    READ_CHATROOM_MESSAGES: 'READ_CHATROOM_MESSAGES',
+
+    UPDATE_MESSAGER_TO_SERVER: 'UPDATE_MESSAGER_TO_SERVER',
+    UPDATE_MESSAGER_TO_CLIENT: 'UPDATE_MESSAGER_TO_CLIENT',
 
     /**
      * socket.io base event (server only)

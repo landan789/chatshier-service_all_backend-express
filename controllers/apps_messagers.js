@@ -240,6 +240,7 @@ module.exports = (function() {
             ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
+            req.body.assigned && (messagerData.assigned = req.body.assigned);
 
             if (!(req.body.custom_tags instanceof Array)) {
                 return messagerData;
