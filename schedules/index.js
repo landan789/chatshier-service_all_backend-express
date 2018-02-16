@@ -14,9 +14,10 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
 });
+
 let job1 = schedule.scheduleJob('10 * * * * *', () => {
-    let nowUnixTime = Date.now();
-    console.log('[start] [' + nowUnixTime + '] schedules/index.js is starting ... ');
+    let startedUnixTime = Date.now();
+    console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     Promise.resolve().then(() => {
         return admin.database().ref('apps').once('value');
     }).then((snap) => {
@@ -35,7 +36,7 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                 if (composes[composeId].text &&
                     1 === composes[composeId].status &&
                     0 === composes[composeId].isDeleted &&
-                    timer.minutedUnixTime(nowUnixTime) === timer.minutedUnixTime(composes[composeId].time)
+                    timer.minutedUnixTime(startedUnixTime) === timer.minutedUnixTime(composes[composeId].time)
                 ) {
                     let message = {
                         type: composes[composeId].type,
@@ -105,9 +106,11 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
 
         }));
     }).then(() => {
-        console.log('[finish] [' + Date.now() + '] schedules/index.js is finishing ... ');
+        let finishedUnixTime = Date.now();
+        console.log('[finish] [' + finishedUnixTime + '] [' + new Date(finishedUnixTime).toString() + '] schedules/index.js is finishing ... ');
     }).catch((err) => {
-        console.log('[fail] [' + Date.now() + '] schedules/index.js is failing ... ');
+        let failedUnixTime = Date.now();
+        console.log('[fail]   [' + failedUnixTime + '] [' + new Date(failedUnixTime).toString() + '] schedules/index.js is failing ... ');
         console.error(err);
     });
 });
