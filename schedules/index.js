@@ -35,8 +35,8 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
             for (let composeId in composes) {
                 if (composes[composeId].text &&
                     1 === composes[composeId].status &&
-                    0 === composes[composeId].isDeleted &&
-                    timer.minutedUnixTime(startedUnixTime) === timer.minutedUnixTime(composes[composeId].time)
+                    timer.minutedUnixTime(startedUnixTime) === timer.minutedUnixTime(composes[composeId].time) &&
+                    0 === composes[composeId].isDeleted
                 ) {
                     let message = {
                         type: composes[composeId].type,
@@ -85,6 +85,7 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                             createdTime: Date.now()
                         };
                         message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
+                        console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
                         return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
                     }));
                 }));
@@ -98,6 +99,7 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                         return Promise.resolve();
                     };
                     let messages = multicasts[i].messages;
+                    console.log('[multicast] multicast to all messagers in this app[' + appId + '] at most 5 messages ... ');
                     return lineBot.multicast(messagers, messages).then(() => {
                         return nextPromise(i + 1);
                     });
