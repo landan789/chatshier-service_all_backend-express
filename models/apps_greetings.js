@@ -94,11 +94,8 @@ module.exports = (function() {
 
     AppsGreetingsModel.prototype.findGreetings = (appId, callback) => {
         admin.database().ref('apps/' + appId + '/greetings/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let greetings = snap.val();
-            if (null === greetings || undefined === greetings || '' === greetings) {
-                return Promise.reject();
-            }
-            return Promise.resolve(greetings);
+            let greetings = snap.val() || {};
+            return greetings;
         }).then((greetings) => {
             callback(greetings);
         }).catch(() => {
