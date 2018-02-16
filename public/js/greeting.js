@@ -1,6 +1,9 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    var APP_GREETING_DAILED_TO_FIND = 'APP GREETING FAILED TO FIND';
+
+    var appsData = {};
     var rowCount = 0;
     var findedGreetingIds = {};
     var api = window.restfulAPI;
@@ -9,8 +12,6 @@
 
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
-    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-    const APP_GREETING_DAILED_TO_FIND = 'APP GREETING FAILED TO FIND';
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
@@ -37,7 +38,7 @@
 
         return api.app.getAll(userId);
     }).then(function(respJson) {
-        var appsData = respJson.data;
+        appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
@@ -45,7 +46,13 @@
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
         for (var appId in appsData) {
-            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
+            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {

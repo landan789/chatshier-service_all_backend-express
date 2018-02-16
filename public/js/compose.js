@@ -1,11 +1,11 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var allComposesData = {};
+    var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;
     var socket = io.connect(); // Socket
-    var inputNum = 0; //計算訊息的數量
+    var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
     var deleteNum = 0;
     var appId = '';
@@ -21,7 +21,6 @@
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
-
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
@@ -72,7 +71,7 @@
             var id = $(this).parent().find('form').find('textarea').attr('id');
             deleteNum++;
             delete inputObj[id];
-            if (inputNum - deleteNum < 4) { $('.error_msg').hide() };
+            if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
             $(this).parent().remove();
         }
 
@@ -85,7 +84,6 @@
             inputNum++;
             if (inputNum - deleteNum > 3) {
                 $('.error-msg').show();
-                console.log('超過三則訊息');
                 inputNum--;
             } else {
                 $('#inputText').append(
@@ -136,16 +134,22 @@
         });
         return api.app.getAll(userId);
     }).then(function(respJson) {
-        allComposesData = respJson.data;
+        appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in allComposesData) {
-            $dropdownMenu.append('<li><a id="' + appId + '">' + allComposesData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + allComposesData[appId].name + '</option>');
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
+            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -153,7 +157,7 @@
             }
         }
 
-        $appDropdown.find('.dropdown-text').text(allComposesData[nowSelectAppId].name);
+        $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
         loadComposes(nowSelectAppId, userId);
         $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
     });
@@ -201,12 +205,12 @@
                     var targetRow = $(event.target).parent().parent();
                     var appId = targetRow.attr('text');
                     var composeId = targetRow.attr('id');
-    
+
                     return showDialog('確定要刪除嗎？').then(function(isOK) {
                         if (!isOK) {
                             return;
                         }
-    
+
                         return api.composes.remove(appId, composeId, userId).then(function() {
                             $.notify('刪除成功！', { type: 'success' });
                             return loadComposes(appId, userId);
@@ -343,24 +347,24 @@
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
                     $composesAddModal.modal('hide');
-                    $('.form-control').val(allComposesData[appId].name);
+                    $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
                     $.notify('發送成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 } else {
                     $composesAddModal.modal('hide');
-                    $('.form-control').val(allComposesData[appId].name);
+                    $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
                     $.notify('儲存成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 }
@@ -412,12 +416,12 @@
                     var targetRow = $(event.target).parent().parent();
                     var appId = targetRow.attr('text');
                     var composeId = targetRow.attr('id');
-    
+
                     return showDialog('確定要刪除嗎？').then(function(isOK) {
                         if (!isOK) {
                             return;
                         }
-    
+
                         return api.composes.remove(appId, composeId, userId).then(function() {
                             $.notify('刪除成功！', { type: 'success' });
                             return loadComposes(appId, userId);

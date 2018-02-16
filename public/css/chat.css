@@ -222,7 +222,7 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
         min-width: 50px;
         margin-top: 5px 
     }
-    .appName {
+    .app-name {
         max-width: 120px;
         position: absolute;
         right: 3%;
