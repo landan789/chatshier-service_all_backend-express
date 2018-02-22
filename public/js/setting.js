@@ -161,7 +161,7 @@ window.auth.ready.then(function(currentUser) {
             '</div>' +
             '</div>' +
             '<div class="form-group">' +
-            '<label class="col-2 col-form-label">Validation Token:: </label>' +
+            '<label class="col-2 col-form-label">Validation Token: </label>' +
             '<div class="col-4">' +
             '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
             '</div>' +
@@ -1432,7 +1432,7 @@ function formModalBody(id, app) {
                 '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Validation Token:: </label>' +
+                '<label class="col-2 col-form-label">Validation Token: </label>' +
                 '<div class="col-4">' +
                 '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
                 '</div>' +

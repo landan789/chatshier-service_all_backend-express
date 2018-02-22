@@ -41,18 +41,18 @@ module.exports = (function() {
      *
      * @param {Object} bot
      * @param {string} receiverId
-     * @param {Object} apps
-     * @param {Function} callback
+     * @param {ChatshierMessageInterface} message
+     * @param {() => any} callback
      */
     Facebook.prototype.sendMessage = function(bot, receiverId, message, callback) {
         return Promise.resolve().then(() => {
             switch (message.type) {
                 case 'image':
-                    return bot.sendImageMessage(receiverId, message.url, true);
+                    return bot.sendImageMessage(receiverId, message.src, true);
                 case 'audio':
-                    return bot.sendAudioMessage(receiverId, message.url, true);
+                    return bot.sendAudioMessage(receiverId, message.src, true);
                 case 'video':
-                    return bot.sendVideoMessage(receiverId, message.url, true);
+                    return bot.sendVideoMessage(receiverId, message.src, true);
                 default:
                     return bot.sendTextMessage(receiverId, message.text);
             }

@@ -1,19 +1,19 @@
 module.exports = (function() {
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
-    var line = require('@line/bot-sdk');
-    var facebook = require('facebook-bot-messenger'); // facebook串接
-    function Bot() {};
+    const line = require('@line/bot-sdk');
+    const facebook = require('facebook-bot-messenger');
 
-    Bot.prototype.sendMessages = function(replyToken, Uid, messages, type) {
+    function BotHelper() {};
+
+    BotHelper.prototype.sendMessages = function(replyToken, Uid, messages, type) {
         switch (type) {
             case LINE:
                 return line.replyMessage(replyToken, messages);
-
             case FACEBOOK:
                 return Promise.all(messages.map((message) => {
                     return facebook.sendTextMessage(Uid, message);
-                }))
+                }));
         }
     };
 
@@ -25,7 +25,7 @@ module.exports = (function() {
      * @param {string} msgStr
      * @param {Function} callback
      */
-    Bot.prototype.replyMessages = function(fbBot, psid, msgStr, callback) {
+    BotHelper.prototype.replyMessages = function(fbBot, psid, msgStr, callback) {
         sendMessage(0, callback);
 
         function sendMessage(index, cb) {
@@ -34,7 +34,7 @@ module.exports = (function() {
             proceed.then(() => {
                 return new Promise((resolve, reject) => {
                     if (index >= msgStr.length) {
-                        reject();
+                        reject(new Error());
                         return;
                     }
                     resolve();
@@ -60,7 +60,7 @@ module.exports = (function() {
      * @param {Object} app
      * @param {Function} callback
      */
-    Bot.prototype.sendMessage = function(bot, receiverId, app, callback) {
+    BotHelper.prototype.sendMessage = function(bot, receiverId, app, callback) {
         switch (app.textType) {
             case 'image':
                 bot.sendImageMessage(receiverId, app.src, true);
@@ -80,7 +80,7 @@ module.exports = (function() {
         }
     };
 
-    Bot.prototype._lineFileBinaryConvert = function(linebot, event, callback) {
+    BotHelper.prototype._lineFileBinaryConvert = function(linebot, event, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             return linebot.getMessageContent(event.message.id);
@@ -113,19 +113,28 @@ module.exports = (function() {
         });
     };
 
-    Bot.prototype.lineMessageType = function(linebot, event, message, callback) {
+    /**
+     * @param {LineWebhookEventObject} event
+     * @param {ChatshierMessageInterface} message
+     * @param {(outMessages: ChatshierMessageInterface[]) => any} callback
+     */
+    BotHelper.prototype.lineMessageType = function(linebot, event, message, callback) {
+        let outMessages = [];
+
         switch (event.message.type) {
             case 'text':
                 let text = event.message.text;
                 message.text = text;
-                callback(message);
+                outMessages.push(message);
+                callback(outMessages);
                 break;
             case 'sticker':
                 let stickerId = event.message.stickerId;
                 let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                 message.text = '';
                 message.src = stickerUrl;
-                callback(message);
+                outMessages.push(message);
+                callback(outMessages);
                 break;
             case 'location':
                 let latitude = event.message.latitude;
@@ -133,56 +142,61 @@ module.exports = (function() {
                 let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                 message.text = '';
                 message.src = locationUrl;
-                callback(message);
+                outMessages.push(message);
+                callback(outMessages);
                 break;
             default:
-                Bot.prototype._lineFileBinaryConvert(linebot, event, (url) => {
+                instance._lineFileBinaryConvert(linebot, event, (url) => {
                     message.text = '';
                     message.src = url;
-                    callback(message);
+                    outMessages.push(message);
+                    callback(outMessages);
                 });
         }
     };
 
-    Bot.prototype.facebookMessageType = function(message, inMessage, callback) {
-        if (message.attachments) {
-            switch (message.attachments[0].type) {
-                case 'image':
-                    inMessage.src = message.attachments[0].payload.url;
-                    inMessage.text = '';
-                    inMessage.type = message.attachments[0].type;
-                    callback(inMessage);
-                    break;
-                case 'video':
-                    inMessage.src = message.attachments[0].payload.url;
-                    inMessage.text = '';
-                    inMessage.type = message.attachments[0].type;
-                    callback(inMessage);
-                    break;
-                case 'audio':
-                    inMessage.src = message.attachments[0].payload.url;
-                    inMessage.text = '';
-                    inMessage.type = message.attachments[0].type;
-                    callback(inMessage);
-                    break;
-                case 'file':
-                    inMessage.src = message.attachments[0].payload.url;
-                    inMessage.text = '';
-                    inMessage.type = message.attachments[0].type;
-                    callback(inMessage);
-                    break;
+    /**
+     * @param {FacebookMessageEventObject} fbMessage
+     * @param {ChatshierMessageInterface} inMessage
+     * @param {(outMessage: ChatshierMessageInterface[]) => any} callback
+     */
+    BotHelper.prototype.facebookMessageType = function(fbMessage, inMessage, callback) { 
+        if (!fbMessage.attachments) {
+            let outMessages = [inMessage];
+            callback(outMessages);
+            return;
+        }
+
+        let outMessages = fbMessage.attachments.map((attachment) => {
+            /** @type {ChatshierMessageInterface} */
+            let message = {
+                messager_id: inMessage.messager_id,
+                from: inMessage.from,
+                text: '',
+                type: attachment.type
+            };
+
+            switch (attachment.type) {
                 case 'location':
-                    inMessage.src = message.attachments[0].url;
-                    inMessage.text = '';
-                    inMessage.type = message.attachments[0].type;
-                    callback(inMessage);
+                    message.src = attachment.payload.coordinates;
+                    break;
+                case 'fallback':
+                    message.src = attachment.fallback;
+                    break;
+                case 'image':
+                case 'video':
+                case 'audio':
+                case 'file':
+                default:
+                    message.src = attachment.payload.url;
                     break;
             }
-        } else {
-            inMessage.text = message.text;
-            callback(inMessage);
-        }
+            return message;
+        });
+
+        callback(outMessages);
     };
 
-    return new Bot();
+    let instance = new BotHelper();
+    return instance;
 })();

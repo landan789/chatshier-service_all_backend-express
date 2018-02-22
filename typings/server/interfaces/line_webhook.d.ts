@@ -142,20 +142,3 @@ interface LineMessageInterface {
      */
     longitude: number;
 }
-
-interface ChatshierChatSocketInterface {
-    appId: string;
-    chatroomId: string;
-    messagerId: string;
-    appType: string;
-    message: ChatshierMessageInterface
-}
-
-interface ChatshierMessageInterface {
-    from: 'LINE' | 'FACEBOOK' | 'CHATSHIER';
-    messager_id: string;
-    src: string;
-    text: string;
-    time: number;
-    type: string;
-}

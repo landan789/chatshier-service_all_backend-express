@@ -160,7 +160,6 @@ function init(server) {
             }).then(() => {
                 return updateSenderProfile(senderId);
             }).then((messager) => {
-                let text = messageText;
                 let type = 'text';
 
                 switch (app.type) {
@@ -174,8 +173,9 @@ function init(server) {
                         break;
                 };
 
+                /** @type {ChatshierMessageInterface} */
                 let receivedMessage = {
-                    text: text,
+                    text: messageText,
                     type: type,
                     from: app.type,
                     messager_id: senderId
@@ -184,22 +184,20 @@ function init(server) {
                 return new Promise((resolve) => {
                     switch (app.type) {
                         case LINE:
-                            helpersBot.lineMessageType(botManager.lineBot, options.lineEvent, receivedMessage, (newMessage) => {
-                                resolve({ messager: messager, receivedMessage: newMessage });
-                            });
+                            helpersBot.lineMessageType(botManager.lineBot, options.lineEvent, receivedMessage, resolve);
                             break;
                         case FACEBOOK:
-                            helpersBot.facebookMessageType(messageText, receivedMessage, (newMessage) => {
-                                resolve({ messager: messager, receivedMessage: newMessage });
-                            });
+                            helpersBot.facebookMessageType(options.fbMessage, receivedMessage, resolve);
                             break;
                     }
-                    resolve({ messager: messager, receivedMessage: receivedMessage });
+                    resolve([receivedMessage]);
+                }).then((receivedMessages) => {
+                    return { messager, receivedMessages };
                 });
             }).then((promiseResult) => {
                 let sender = promiseResult.messager;
-                let receivedMessage = promiseResult.receivedMessage;
-                totalMessages.unshift(receivedMessage);
+                let receivedMessages = promiseResult.receivedMessages;
+                totalMessages = totalMessages.concat(receivedMessages);
 
                 // 回復訊息與傳入訊息都整合，再寫入 DB
                 return sendMessagesToSockets(sender, senderId, totalMessages);
@@ -393,22 +391,30 @@ function init(server) {
 
                         // 非 message 和 follow 類的事件不處理，直接忽略，回應 200
                         let lineEventType = lineEvent.type.toUpperCase();
+                        let messageOpts = {
+                            lineEvent: lineEvent
+                        };
+
                         if (LINE_WEBHOOK_EVENTS.MESSAGE === lineEventType) {
                             let messageText = lineEvent.message ? (lineEvent.message.text || '') : '';
-                            return messageProcess(messageText, senderId, { lineEvent: lineEvent });
+                            return messageProcess(messageText, senderId, messageOpts);
                         } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
-                            return followProcess(senderId, { lineEvent: lineEvent });
+                            return followProcess(senderId, messageOpts);
                         }
                         return Promise.resolve(null);
                     }));
                 case FACEBOOK:
                     let webhookEntries = req.body.entry || [];
                     return Promise.all(webhookEntries.map((webhookEntry) => {
-                        let fbMessages = webhookEntry.messaging || [];
-                        return Promise.all(fbMessages.map((fbMessage) => {
-                            let senderId = fbMessage.sender.id;
-                            let messageText = fbMessage.message.text;
-                            return messageProcess(messageText, senderId);
+                        let fbMessagesPack = webhookEntry.messaging || [];
+                        return Promise.all(fbMessagesPack.map((messagePack) => {
+                            let senderId = messagePack.sender.id;
+                            let messageText = messagePack.message.text;
+
+                            let messageOpts = {
+                                fbMessage: messagePack.message
+                            };
+                            return messageProcess(messageText, senderId, messageOpts);
                         }));
                     }));
             }
