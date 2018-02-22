@@ -688,7 +688,7 @@
 
                 var buildHtml = function(type, imgSrc) {
                     var html =
-                        '<div class="chat-app-item" app-type="' + type + '" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '">' +
+                        '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '">' +
                             '<img class="software-icon" src="' + imgSrc + '">' +
                             '<div class="unread-count"></div>' +
                         '</div>';
