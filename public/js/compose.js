@@ -338,7 +338,7 @@
                         type: 'text',
                         text: message.text,
                         status: isDraft ? 0 : 1,
-                        time: (Date.now()) - 10000
+                        time: (Date.now()) - 20000
                     };
                     return api.composes.insert(appId, userId, compose);
                 }));
