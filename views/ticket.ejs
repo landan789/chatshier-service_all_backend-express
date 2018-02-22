@@ -10,9 +10,9 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
+
+    <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css">
     <link rel='stylesheet' href='css/ticket.css' />
@@ -20,58 +20,55 @@
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
-        <% include ../views/partials/loading.ejs %>
-            <div class="view-ticket top-toolbar">
-                <a href="/ticket_form" class="btn btn-default ticket-add">
-                    <span class="fa fa-plus fa-fw"></span><span>新增表單</span>
-                </a>
-                <input type="text" class="ticket-search-bar" id="ticket_search_bar" value="" placeholder="搜尋">
-            </div>
+    <% include ../views/partials/loading.ejs %>
 
-            <!--alert bar-->
-            <div id="alert-success" class="chsr alert alert-success alert-dismissible" role="alert">
-                <span></span>
-                <button type="button" class="close"><span>&times;</span></button>
-            </div>
-            <div id="alert-warning" class="chsr alert alert-warning alert-dismissible" role="alert">
-                <p></p>
-                <button type="button" id="no" class="btn-default">否</button>
-                <button type="button" id="yes" class="btn-danger">是</button>
-            </div>
-            <div id="alert-danger" class="chsr alert alert-danger alert-dismissible" role="alert">
-                <span></span>
-                <button type="button" class="close"><span>&times;</span></button>
-            </div>
-            <!--alert bar end-->
+    <!--alert bar-->
+    <div id="alert-success" class="chsr alert alert-success alert-dismissible" role="alert">
+        <span></span>
+        <button type="button" class="close"><span>&times;</span></button>
+    </div>
+    <div id="alert-warning" class="chsr alert alert-warning alert-dismissible" role="alert">
+        <p></p>
+        <button type="button" id="no" class="btn-default">否</button>
+        <button type="button" id="yes" class="btn-danger">是</button>
+    </div>
+    <div id="alert-danger" class="chsr alert alert-danger alert-dismissible" role="alert">
+        <span></span>
+        <button type="button" class="close"><span>&times;</span></button>
+    </div>
+    <!--alert bar end-->
 
-            <div class="main">
-                <div class="ticket">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>客戶姓名</th>
-                                <th>內容</th>
-                                <th>狀態</th>
-                                <th>優先</th>
-                                <th>到期時間</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody class="ticket-body"></tbody>
-                    </table>
-                </div>
-            </div>
-            <% include ../views/partials/ticket_info_modal.ejs %>
-            <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-            <script src="lib/js/bootstrap.min.js"></script>
-            <script src="config/firebaseConfig.js"></script>
-            <script src="config/url-config.js"></script>
-            <script src="js/navigation.js"></script>
-            <script src="js/_firebase-auth.js"></script>
-            <script src="js/helpers/restful_api.js"></script>
-            <script src="js/ticket.js"></script>
-            <script src="js/navigation.js"></script>
+    <div class="main">
+        <div class="view-ticket top-toolbar">
+            <a href="/ticket_form" class="btn btn-default ticket-add">
+                <span class="fa fa-plus fa-fw"></span><span>新增表單</span>
+            </a>
+            <input type="text" class="ticket-search-bar" id="ticket_search_bar" value="" placeholder="搜尋">
+        </div>
+
+        <div class="ticket">
+            <table>
+                <thead>
+                    <tr>
+                        <th>客戶姓名</th>
+                        <th>內容</th>
+                        <th>狀態</th>
+                        <th>優先</th>
+                        <th>到期時間</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="ticket-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <% include ../views/partials/modals/ticket_info_modal.ejs %>
+
+    <% include ../views/partials/require_js.ejs %>
+    <script src="js/navigation.js"></script>
+    <script src="js/ticket.js"></script>
+    <script src="js/navigation.js"></script>
 </body>
 
 </html>

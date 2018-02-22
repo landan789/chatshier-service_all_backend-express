@@ -1228,7 +1228,7 @@
                 $unReadElem.text('0').hide();
             }
 
-            $('#prof-nick').text(appName);
+            $('#chat-content-panel .chat-prof .prof-nick').text(appName);
             $('#user-rooms').val(appId);
 
             // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
@@ -1269,7 +1269,7 @@
                 }
 
                 ele.attr('data-position', head);
-                chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
+                // chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
             }
         }
 
