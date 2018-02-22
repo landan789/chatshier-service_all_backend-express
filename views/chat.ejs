@@ -26,25 +26,25 @@
     <div id="chat-Home">
         <div class="chat-area">
             <div id="chat_App">
-                <div class="chat-app-item" id="agentChat" open="true" rel="internal" data-toggle="tooltip" data-placement="right" title="內部群組">
+                <div class="chat-app-item" open="true" rel="group" data-toggle="tooltip" data-placement="right" title="內部群組">
                     <img class="software-icon" src="image/group-icon.png">
                 </div>
-                <div class="chat-app-item" id="All" open="true" rel="All" data-toggle="tooltip" data-placement="right" title="全部">
+                <div class="chat-app-item" open="true" rel="all" data-toggle="tooltip" data-placement="right" title="全部">
                     <img class="software-icon" src="image/message.png">
                 </div>
-                <div class="chat-app-item" id="all_unread" open="true" rel="unread" data-toggle="tooltip" data-placement="right" title="未讀">
+                <div class="chat-app-item" open="true" rel="unread" data-toggle="tooltip" data-placement="right" title="未讀">
                     <img class="software-icon" src="image/email.png">
                 </div>
-                <div class="chat-app-item" id="assigned" open="true" rel="assigned" data-toggle="tooltip" data-placement="right" title="已指派">
+                <div class="chat-app-item" open="true" rel="assigned" data-toggle="tooltip" data-placement="right" title="已指派">
                     <img class="software-icon" src="image/check.png">
                 </div>
-                <div class="chat-app-item" id="unassigned" open="true" rel="unassigned" data-toggle="tooltip" data-placement="right" title="未指派">
+                <div class="chat-app-item" open="true" rel="unassigned" data-toggle="tooltip" data-placement="right" title="未指派">
                     <img class="software-icon" src="image/close.png">
                 </div>
             </div>
             <div id="user" class="column">
                 <div class="search">
-                    <input type="text" id="searchBox" placeholder="Search for messages..">
+                    <input type="text" id="searchBox" placeholder="搜尋文字訊息...">
                     <span id="search-right" class="invisible">
                         <span class="number">
                             <span id="this-number" class="this-number">1</span>
@@ -112,7 +112,8 @@
     <script src="lib/js/bootstrap-notify.min.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="config/url-config.js"></script>
-    <script src="config/socket-message.js"></script>
+    <script src="config/chatshier-config.js"></script>
+    <script src="config/socket-events.js"></script>
     <script src="js/_firebase-auth.js"></script>
     <script src="js/helpers/restful_api.js"></script>
     <script src="js/helpers/translate.js"></script>

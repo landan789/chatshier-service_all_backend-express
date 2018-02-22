@@ -64,7 +64,7 @@ appsAutoreplies.getAll = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -129,7 +129,7 @@ appsAutoreplies.getOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -141,8 +141,7 @@ appsAutoreplies.postOne = (req, res, next) => {
         title: undefined === req.body.title ? '' : req.body.title,
         startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
         endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-        text: undefined === req.body.text ? '' : req.body.text,
-        isDeleted: 0
+        text: undefined === req.body.text ? '' : req.body.text
     };
 
     var proceed = new Promise((resolve, reject) => {
@@ -202,7 +201,7 @@ appsAutoreplies.postOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -306,7 +305,7 @@ appsAutoreplies.putOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -395,7 +394,7 @@ appsAutoreplies.deleteOne = (req, res, next) => {
             msg: ERR.MSG,
             code: ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 

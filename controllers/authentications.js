@@ -79,7 +79,7 @@ module.exports = (function() {
                 msg: ERROR.MSG || ERROR.message,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 

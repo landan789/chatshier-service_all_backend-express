@@ -1,11 +1,9 @@
-input {
-    width: 80%;
-}
 button {
     border-radius: 5px;
     margin: 5px;
     border: 0;
 }
+
 p {
     padding-left: 2px;
 }
@@ -15,6 +13,14 @@ p {
 /* 強制改成比 modal 的 1050 高的 1051 */
 .alert[data-notify="container"] {
     z-index: 1051 !important; 
+}
+
+/* disable input 時間元素時一併隱藏內建按鈕 */
+input[type="datetime-local"][disabled]::-webkit-inner-spin-button,
+input[type="datetime-local"][disabled]::-webkit-clear-button,
+input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
+    -webkit-appearance: none;
+    display: none;
 }
 
 /*body*/
@@ -48,7 +54,7 @@ p {
         color: #b3b3b3;
     }
     .tablinks-area::-webkit-scrollbar-track,
-    .messagePanel::-webkit-scrollbar-track,
+    .message-panel::-webkit-scrollbar-track,
     #infoCanvas::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
         border-radius: 5px;
@@ -56,14 +62,14 @@ p {
     }
 
     .tablinks-area::-webkit-scrollbar,
-    .messagePanel::-webkit-scrollbar,
+    .message-panel::-webkit-scrollbar,
     #infoCanvas::-webkit-scrollbar {
         width: 4px;
         background-color: transparent;
     }
 
     .tablinks-area::-webkit-scrollbar-thumb,
-    .messagePanel::-webkit-scrollbar-thumb,
+    .message-panel::-webkit-scrollbar-thumb,
     #infoCanvas::-webkit-scrollbar-thumb {
         border-radius: 3px;
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
@@ -216,7 +222,7 @@ p {
         min-width: 50px;
         margin-top: 5px 
     }
-    .appName {
+    .app-name {
         max-width: 120px;
         position: absolute;
         right: 3%;
@@ -244,15 +250,12 @@ p {
 @media all {
     .search {
         width: 100%;
+        padding: .25rem;
     }
     #searchBox {
-        padding-left: 25px;
-        margin: 3px;
-        float: left;
         border: 1px solid #ccc;
-        width: 95%;
+        width: 100%;
         height: 25px;
-        padding-right: 94px;
     }
     .this-number,
     .slash-number,
@@ -277,17 +280,20 @@ p {
         right: 35px;
     }
 }
+
+.content {
+    max-width: 50%;
+}
+
 .content.words {
-    border: 1px solid #b5e7a0;
     padding: 8px;
+    border: 1px solid #b5e7a0;
     border-radius: 10px;
     background-color: #b5e7a0;
-    max-width: 600px;
     display: inline-block;
     word-wrap: break-word;
     text-align: left;
 }
-
 
 .loading-img {
     width: 300px;
@@ -402,14 +408,16 @@ div.loading-img {
         float: right;
         cursor: pointer;
     }
-    .messagePanel {
-        height: 95%;
+    .message-panel {
+        height: 100%;
+        padding-bottom: 5%;
         overflow-y: scroll;
         clear: right;
         display: flex;
         flex-direction: column;
     }
     .send-time {
+        margin: 0 .5rem;
         color: grey;
         font-size: 10px;
         vertical-align: bottom;
@@ -628,6 +636,7 @@ button.multi-button {
     overflow-y: scroll;
     overflow-x: hidden;
     width: 100%;
+    height: 100%;
 }
 
 .choose {
@@ -660,6 +669,7 @@ button.multi-button {
 
 .panel-table {
     margin: 0%;
+    table-layout: fixed;
 }
 
 .tagSpan {
@@ -690,6 +700,7 @@ button.multi-button {
 
 .card-group {
     display: none;
+    min-height: 125%;
 }
 
 img[alt="無法顯示相片"] {
@@ -713,8 +724,28 @@ img[alt="無法顯示相片"] {
 }
 
 .message {
-    margin-left: 10px;
-    margin-right: 10px;
+    width: 100%;
+    padding: 0 10px;
+    line-height: normal;
+}
+
+.message .messager-name {
+    margin-bottom: .25rem;
+}
+
+.message .messager-name span {
+    font-size: 1rem;
+    padding: .25rem;
+    color: #aaa;
+}
+
+.message-group {
+    display: flex;
+    align-items: flex-end;
+}
+
+.message-group.align-right {
+    flex-direction: row-reverse;
 }
 
 [data-target="#add-ticket-modal"],
@@ -752,6 +783,11 @@ img[alt="無法顯示相片"] {
 .multi-select-container input[type="checkbox"] {
     width: auto;
     margin-right: 4px;
+}
+
+.multi-select-values {
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 .chsr .nav>li>a:focus,

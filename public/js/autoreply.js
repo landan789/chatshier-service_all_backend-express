@@ -4,7 +4,10 @@
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
-    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
+    var $autoreplyAddSdtPicker = $('.autoreply-add.modal #start_datetime_picker');
+    var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
+
     var api = window.restfulAPI;
     var userId = '';
     var nowSelectAppId = '';
@@ -26,6 +29,17 @@
             }
         });
 
+        var currentDate = new Date();
+        var datetimePickerInitOpts = {
+            sideBySide: true,
+            minDate: currentDate,
+            defaultDate: currentDate,
+            locale: 'zh-tw'
+        };
+
+        $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
+        $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
+
         $(document).on('click', '#modal-submit', dataInsert); // 新增
         $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
         $(document).on('click', '#edit-submit', dataUpdate);
@@ -39,6 +53,12 @@
 
         nowSelectAppId = '';
         for (var appId in appsData) {
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
             $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
             $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
@@ -79,14 +99,16 @@
     function dataInsert() {
         $('#modal-submit').attr('disabled', 'disabled');
         let appId = $('#app-select option:selected').attr('id');
-        let starttime = Date.parse($('#starttime').val());
-        let endtime = Date.parse($('#endtime').val());
+
+        let startedTime = $autoreplyAddSdtPicker.data('DateTimePicker').date().toDate().getTime();
+        let endedTime = $autoreplyAddEdtPicker.data('DateTimePicker').date().toDate().getTime();
+
         let name = $('#modal-task-name').val();
         let textInput = $('#enter-text').val();
         let autoreplyData = {
             title: name,
-            startedTime: starttime,
-            endedTime: endtime,
+            startedTime: startedTime,
+            endedTime: endedTime,
             text: textInput
         };
 

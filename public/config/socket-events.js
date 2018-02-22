@@ -1,29 +1,4 @@
-interface Window {
-    config: {
-        apiKey: string,
-        authDomain: string,
-        databaseURL: string,
-        projectId: string,
-        storageBucket: string,
-        messagingSenderId: string
-    },
-    urlConfig: {
-        wwwUrl: string,
-        port: string,
-        index: string,
-        terms: string,
-        privacy: string,
-        webhookUrl: string,
-        apiUrl: string
-    },
-    chatshierConfig: {
-        imageFileMaxSize: number,
-        videoFileMaxSize: number,
-        audioFileMaxSize: number
-    }
-}
-
-declare const SOCKET_EVENTS = {
+window.SOCKET_EVENTS = {
     EMIT_MESSAGE_TO_SERVER: 'EMIT_MESSAGE_TO_SERVER',
     EMIT_MESSAGE_TO_CLIENT: 'EMIT_MESSAGE_TO_CLIENT',
 
@@ -52,4 +27,4 @@ declare const SOCKET_EVENTS = {
      * socket.io base event
      */
     DISCONNECT: 'disconnect'
-}
+};

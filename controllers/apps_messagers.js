@@ -12,7 +12,11 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
-    let paramsCheckingGetAll = function(params) {
+    let instance = new AppsMessagersController();
+
+    function AppsMessagersController() {}
+
+    AppsMessagersController.prototype.paramsCheckingGetAll = function(params) {
         params = params || {};
         let userId = params.userid;
         let appId = params.appid;
@@ -52,11 +56,8 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
-    let paramsChecking = function(params) {
+    AppsMessagersController.prototype.paramsChecking = function(params) {
         let appId = params.appid;
         let userId = params.userid;
 
@@ -145,15 +146,13 @@ module.exports = (function() {
         });
     };
 
-    function AppsMessagersController() {}
-
     /**
      * 處理取得所有 App 及其所有 Messager 的請求
      */
     AppsMessagersController.prototype.getAllMessagers = function(req, res) {
         let appId = req.params.appid;
 
-        return paramsCheckingGetAll(req.params).then((appIds) => {
+        return instance.paramsCheckingGetAll(req.params).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
@@ -177,13 +176,13 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
     AppsMessagersController.prototype.getMessager = function(req, res) {
         let msgerId = req.params.messagerid;
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return instance.paramsChecking(req.params).then((checkedAppId) => {
             return new Promise((resolve, reject) => {
                 let appId = checkedAppId;
                 if (!msgerId) {
@@ -211,20 +210,17 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
     /**
      * 處理更新 messager 基本資料的 API 請求
-     *
-     * @param {Request} req
-     * @param {Response} res
      */
     AppsMessagersController.prototype.updateMessager = function(req, res) {
         let msgerId = req.params.messagerid;
         let appId = '';
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return instance.paramsChecking(req.params).then((checkedAppId) => {
             appId = checkedAppId;
             if (!msgerId) {
                 return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
@@ -238,6 +234,7 @@ module.exports = (function() {
             ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
             ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
+            req.body.assigned && (messagerData.assigned = req.body.assigned);
 
             if (!(req.body.custom_tags instanceof Array)) {
                 return messagerData;
@@ -245,15 +242,16 @@ module.exports = (function() {
 
             // 將舊的 custom_tags 陣列資料取出合併
             return new Promise((resolve) => {
-                appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
-                    if (!messager) {
+                appsMessagersMdl.findMessager(appId, msgerId, (appMessager) => {
+                    if (!appMessager) {
                         messagerData.custom_tags = req.body.custom_tags;
                         resolve(messagerData);
                         return;
                     }
 
                     // 預處理 custom_tags 陣列資料，使陣列當中的 tagId 不重複
-                    messagerData.custom_tags = messagerData.custom_tags || [];
+                    let messager = appMessager[appId].messagers[msgerId];
+                    messager.custom_tags = messager.custom_tags || [];
                     messagerData.custom_tags = (function tagArrayUnique(mergedArray) {
                         let arr = mergedArray.slice();
                         for (let i = 0; i < arr.length; ++i) {
@@ -265,13 +263,13 @@ module.exports = (function() {
                             }
                         }
                         return arr;
-                    })(messagerData.custom_tags.concat(req.body.custom_tags));
+                    })(messager.custom_tags.concat(req.body.custom_tags));
                     resolve(messagerData);
                 });
             });
         }).then((messagerData) => {
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.updateMessager(appId, msgerId, messagerData, (messager) => {
+                appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
                     if (!messager) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
                         return;
@@ -292,9 +290,9 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
-    return new AppsMessagersController();
+    return instance;
 })();

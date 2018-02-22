@@ -74,6 +74,15 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.apps;
         }
 
+        AppAPI.prototype.enums = Object.freeze({
+            type: {
+                SYSTEM: 'SYSTEM',
+                CHATSHIER: 'CHATSHIER',
+                LINE: 'LINE',
+                FACEBOOK: 'FACEBOOK'
+            }
+        });
+
         /**
          * 取得使用者所有在 Chatshier 內設定的 App
          *

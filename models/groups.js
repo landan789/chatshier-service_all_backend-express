@@ -8,7 +8,7 @@ module.exports = (function() {
 
 
     GroupsModel.prototype._schema = function(callback) {
-        var json = {
+        let json = {
             app_ids: '',
             name: 'GROUP',
             isDeleted: 0,
@@ -28,15 +28,15 @@ module.exports = (function() {
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
         };
-        var groups = {};
+        let groups = {};
         Promise.all(groupIds.map((groupId) => {
             return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
-                var group = snap.val();
+                let group = snap.val();
                 if (null === group || undefined === group || '' === group || 0 !== group.isDeleted) {
                     return Promise.resolve(null);
                 };
-                var members = group.members;
-                var userIds = Object.values(members).map((member) => {
+                let members = group.members;
+                let userIds = Object.values(members).map((member) => {
                     // 如果 member 已刪  就不查詢此 group 底下的 app 資料
                     if (0 === member.isDeleted) {
                         return member.user_id;
@@ -58,18 +58,18 @@ module.exports = (function() {
 
     /**
      * 在某一個 user 之中 新增一筆 group，並指派為 owner
-     * @param {userId} userId
-     * @param {object} group 
-     * @param {function} callback 
+     *
+     * @param {string} userId
+     * @param {object} group
+     * @param {function} callback
      */
     GroupsModel.prototype.insert = function(userId, group, callback) {
-        var groups = {};
-        var groupId;
+        let groups = {};
+        let groupId;
         group = Object.assign(SCHEMA.GROUP, group);
         admin.database().ref('groups/').push(group).then((ref) => {
             groupId = ref.key;
-        }).then(() => {
-            var member = {
+            let member = {
                 updatedTime: Date.now(),
                 createdTime: Date.now(),
                 status: 1,
@@ -81,12 +81,10 @@ module.exports = (function() {
         }).then((ref) => {
             return admin.database().ref('groups/' + groupId).once('value');
         }).then((snap) => {
-            var group = snap.val();
+            let group = snap.val();
             groups = {
                 [groupId]: group
             };
-            return Promise.resolve();
-        }).then(() => {
             callback(groups);
         }).catch(() => {
             callback(null);
@@ -95,15 +93,14 @@ module.exports = (function() {
 
     /**
      * 藉由 groupid 修改一組 group
-     * @param {groupId} groupId
-     * @param {object} group 
-     * @param {function} callback 
+     * @param {string} groupId
+     * @param {object} group
+     * @param {function} callback
      */
     GroupsModel.prototype.update = function(groupId, group, callback) {
-
-        var groups = {};
+        let groups = {};
         Promise.resolve().then(() => {
-            var _group = {
+            let _group = {
                 updatedTime: Date.now()
             };
             group = Object.assign(group, _group);
@@ -111,7 +108,7 @@ module.exports = (function() {
         }).then(() => {
             return admin.database().ref('groups/' + groupId).once('value');
         }).then((snap) => {
-            var group = snap.val();
+            let group = snap.val();
             groups = {
                 [groupId]: group
             };
@@ -125,33 +122,34 @@ module.exports = (function() {
 
     /**
      * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
-     * @param {string|string[]} groupIds 
-     * @param {(appIds: []) => any} callback
-     * @returns {void}
+     * @param {string|string[]} groupIds
+     * @param {string} userId
+     * @param {(appIds: string[]) => any} [callback]
+     * @returns {Promise<string[]>}
      */
     GroupsModel.prototype.findAppIds = function(groupIds, userId, callback) {
         // 多型處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
         };
-        var appIds = {};
-        Promise.resolve().then(() => {
-            if (null === groupIds || undefined === groupIds) {
-                return Promise.resolve();
+
+        let _groupIds = groupIds;
+        let appIds = {};
+        return Promise.resolve().then(() => {
+            if (!_groupIds) {
+                return;
             }
-            return Promise.all(groupIds.map((groupId) => {
-                if (null === groupId || undefined === groupId) {
-                    return Promise.resolve();
-                }
+
+            return Promise.all(_groupIds.map((groupId) => {
                 return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
-                    var group = snap.val();
+                    let group = snap.val();
 
                     if (null === group || undefined === group || '' === group || '' === group.app_ids || undefined === group.app_ids || (group.app_ids instanceof Array && 0 === group.app_ids.length)) {
                         return Promise.resolve(null);
                     };
 
-                    var members = group.members;
-                    var userIds = Object.values(members).map((member) => {
+                    let members = group.members;
+                    let userIds = Object.values(members).map((member) => {
                         // 如果 member 已刪除或未啟用 就不查詢此 group 底下的 app 資料
                         if (0 === member.isDeleted && 1 === member.status) {
                             return member.user_id;
@@ -162,18 +160,19 @@ module.exports = (function() {
                         return Promise.resolve(null);
                     };
 
-                    var _appIds = group.app_ids;
+                    let _appIds = group.app_ids;
                     _appIds.forEach((appId) => {
                         appIds[appId] = appId;
                     });
-                    return Promise.resolve();
                 });
             }));
         }).then(() => {
-            appIds = Object.keys(appIds);
-            callback(appIds);
+            let _appIds = Object.keys(appIds);
+            ('function' === typeof callback) && callback(_appIds);
+            return _appIds;
         }).catch(() => {
-            callback(null);
+            ('function' === typeof callback) && callback(null);
+            return null;
         });
     };
 
@@ -191,7 +190,7 @@ module.exports = (function() {
         let userIds = [];
         Promise.all(groupIds.map((groupId) => {
             return admin.database().ref('groups/' + groupId + '/members').once('value').then((snap) => {
-                var members = snap.val();
+                let members = snap.val();
                 if (!members) {
                     return null;
                 };

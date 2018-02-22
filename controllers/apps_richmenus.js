@@ -43,7 +43,7 @@ appsRichmenus.getByUserId = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 }
 
@@ -115,7 +115,7 @@ appsRichmenus.getByAppIdByuserId = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 
 }
@@ -211,7 +211,7 @@ appsRichmenus.getOne = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 }
 
@@ -297,7 +297,7 @@ appsRichmenus.postOne = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 
@@ -414,7 +414,7 @@ appsRichmenus.putOne = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 
@@ -519,7 +519,7 @@ appsRichmenus.deleteOne = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 

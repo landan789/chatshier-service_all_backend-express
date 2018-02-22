@@ -11,111 +11,22 @@
     </title>
     <link rel="icon" href="image/favicon.ico" />
     <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
     <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
     <link rel="stylesheet" href="lib/css/animate.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
+    <link rel="stylesheet" href="css/autoreply.css" />
     <link rel="stylesheet" href="css/partials/firebase-disable.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
+
     <div id="home">
-        <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="quickAddTitle"></h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="form-group">
-                                <label class="col-2 col-form-label">App:</label>
-                                <div class="col-4">
-                                    <select class="form-control" id="app-select">
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="modal-task-name" class="col-2 col-form-label">事件名稱(不可重複):</label>
-                                <div class="col-4">
-                                    <input class="form-control" type="text" value="" id="modal-task-name">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="modal-datetime">傳送時間:</label><br>
-                                <form style="padding:3px; height:80px">
-                                    <input type="checkbox" name="Dateandtime" value="Time"> 傳送日期: <input type="datetime-local" id="starttime" style="width:35%" /> - <input type="datetime-local" id="endtime" style="width:35%" />
-                                </form>
-                            </div>
-                            <div class="form-group">
-                                <label for="modal-text">自動回覆訊息:  </label>
-                                <div id="text" style="display:block">
-                                    <input class="form-control" type="text" value="" id="enter-text" style="width:50%;height:50px">
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="modal-submit">Submit</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editModalTitle"></h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="form-group" hidden>
-                                <label class="col-2 col-form-label">APP ID</label>
-                                <span id="edit-appid"></span>
-                            </div>
-                            <div class="form-group" hidden>
-                                <label class="col-2 col-form-label">Autoreply ID</label>
-                                <span id="edit-autoreplyid"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-task-title" class="col-2 col-form-label">標題:  </label>
-                                <div class="col-4">
-                                    <input class="form-control" type="text" value="" id="edit-taskTitle">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-task-time" class="col-2 col-form-label">開始時間:  </label>
-                                <div class="col-4">
-                                    <input class="form-control" type="datetime-local" id="edit-taskStart" style="width:50%" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-task-time" class="col-2 col-form-label">結束時間:  </label>
-                                <div class="col-4">
-                                    <input class="form-control" type="datetime-local" id="edit-taskEnd" style="width:50%" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-task-content" class="col-2 col-form-label">訊息內容:  </label>
-                                <div class="col-4">
-                                    <input class="form-control" type="text" value="" id="edit-taskContent">
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" id="edit-submit">更改</button>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="container margin-top">
             <div class="row panel">
                 <!-- <div class="col-md-6" id="view-all"> -->
@@ -136,7 +47,7 @@
                     </div>
                     <div class="search-add">
                         <span class="icon"><i class="fa fa-search"></i></span>
-                        <input type="text" class="search-bar" id="exampleInputAmount" value="" placeholder="搜尋" aria-hidden="true">
+                        <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
                         <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="disabled"></button>
                     </div>
                 </div>
@@ -156,16 +67,125 @@
                 </div>
             </div>
         </div>
-        <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <h4 id="textContent"></h4>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">確定</button>
-                        <button type="button" class="btn btn-secondary">取消</button>
-                    </div>
+    </div>
+
+    <div class="autoreply-add modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickAddTitle"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label class="col-2 col-form-label">App:</label>
+                            <div class="col-4">
+                                <select class="form-control" id="app-select">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-task-name" class="col-2 col-form-label">事件名稱(不可重複):</label>
+                            <div class="col-4">
+                                <input class="form-control" type="text" value="" id="modal-task-name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-datetime">傳送日期:</label><br>
+                            <div class="date-group">
+                                <div class="input-group date" id="start_datetime_picker">
+                                    <span class="input-group-addon">開始日期</span>
+                                    <input type="text" class="form-control" name="start_datetime" />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                                <div class="input-group date" id="end_datetime_picker">
+                                    <span class="input-group-addon">結束日期</span>
+                                    <input type="text" class="form-control" name="end_datetime" />
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-text">自動回覆訊息:  </label>
+                            <div id="text" style="display:block">
+                                <input class="form-control" type="text" value="" id="enter-text" style="width:50%;height:50px">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modal-submit">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalTitle"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group" hidden>
+                            <label class="col-2 col-form-label">APP ID</label>
+                            <span id="edit-appid"></span>
+                        </div>
+                        <div class="form-group" hidden>
+                            <label class="col-2 col-form-label">Autoreply ID</label>
+                            <span id="edit-autoreplyid"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-task-title" class="col-2 col-form-label">標題:  </label>
+                            <div class="col-4">
+                                <input class="form-control" type="text" value="" id="edit-taskTitle">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-task-time" class="col-2 col-form-label">開始時間:  </label>
+                            <div class="col-4">
+                                <input class="form-control" type="datetime-local" id="edit-taskStart" style="width:50%" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-task-time" class="col-2 col-form-label">結束時間:  </label>
+                            <div class="col-4">
+                                <input class="form-control" type="datetime-local" id="edit-taskEnd" style="width:50%" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-task-content" class="col-2 col-form-label">訊息內容:  </label>
+                            <div class="col-4">
+                                <input class="form-control" type="text" value="" id="edit-taskContent">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="edit-submit">更改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 id="textContent"></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">確定</button>
+                    <button type="button" class="btn btn-secondary">取消</button>
                 </div>
             </div>
         </div>
@@ -174,8 +194,10 @@
     <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
     <script src="lib/js/bootstrap-notify.min.js"></script>
+    <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
     <script src="config/url-config.js"></script>
     <script src="config/firebaseConfig.js"></script>
     <script src="js/_firebase-auth.js"></script>

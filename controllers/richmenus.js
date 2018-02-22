@@ -44,7 +44,7 @@ richmenus.getByUserId = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 }
 
@@ -112,7 +112,7 @@ richmenus.getByAppIdByuserId = (req, res, next) => {
             "msg": ERR.MSG,
             "code": ERR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     })
 
 }
@@ -209,7 +209,7 @@ richmenus.get = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         })
 }
 
@@ -296,7 +296,7 @@ richmenus.post = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 
@@ -414,7 +414,7 @@ richmenus.put = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 
@@ -520,7 +520,7 @@ richmenus.delete = (req, res, next) => {
                 "msg": ERR.MSG,
                 "code": ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
 }
 

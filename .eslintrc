@@ -27,10 +27,12 @@
         "document": true,
         "navigator": true,
         "window": true,
-        "auth": true,
-        "urlConfig": true,
+        "firebase": true,
         "io": true,
-        "database": true
+        "SOCKET_EVENTS": true,
+        "auth": true,
+        "database": true,
+        "urlConfig": true
     },
 
     "rules": {

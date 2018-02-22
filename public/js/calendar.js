@@ -112,6 +112,7 @@
         $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
         $calendar.fullCalendar({
             locale: 'zh-tw',
+            timezone: 'local',
             theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
             buttonIcons: {
                 prev: 'circle-triangle-w',
@@ -169,7 +170,7 @@
                 $calendarModal.modal('show');
             },
             eventClick: function(calendarEvent, jsEvent, view) { // 更改事件
-                initDalendarModal(calendarEvent.start, calendarEvent.end || calendarEvent.endedTime);
+                initDalendarModal(calendarEvent.start, calendarEvent.end);
                 $eventTitle.val(calendarEvent.title);
                 $eventIsAllday.prop('checked', !!calendarEvent.isAllDay);
                 $eventContent.val(calendarEvent.description);

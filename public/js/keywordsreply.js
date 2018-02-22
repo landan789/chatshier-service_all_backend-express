@@ -2,9 +2,8 @@
 
 (function() {
     var userId = '';
-    var appId = '';
     var nowSelectAppId = '';
-    var allKeywordreplyData = {};
+    var appsData = {};
     var keywordrepliesData = {};
     var api = window.restfulAPI;
 
@@ -13,7 +12,7 @@
     var $keywordreplyEditModal = $('#keywordreply_edit_modal');
     var $appDropdown = $('.app-dropdown');
     var $searchBar = $('.search-bar');
-    var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
     var $openTableElem = null;
     var $draftTableElem = null;
     var $appSelector = null;
@@ -38,9 +37,9 @@
 
             // 新增 modal 即將顯示事件發生時，將 App 清單更新
             $appSelector.empty();
-            for (var appId in allKeywordreplyData) {
-                var appData = allKeywordreplyData[appId];
-                $appSelector.append('<option value="' + appId + '">' + appData.name + '</option>');
+            for (var appId in appsData) {
+                var app = appsData[appId];
+                $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             }
         });
         $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
@@ -88,15 +87,21 @@
         $draftTableElem = $('#keywordreply_draft_table tbody');
         return api.app.getAll(userId);
     }).then(function(respJson) {
-        allKeywordreplyData = respJson.data;
+        appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in allKeywordreplyData) {
-            $dropdownMenu.append('<li><a id="' + appId + '">' + allKeywordreplyData[appId].name + '</a></li>');
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
+            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -104,9 +109,11 @@
             }
         }
 
-        $appDropdown.find('.dropdown-text').text(allKeywordreplyData[nowSelectAppId].name);
-        loadKeywordsReplies(nowSelectAppId, userId);
-        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        if (nowSelectAppId) {
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            loadKeywordsReplies(nowSelectAppId, userId);
+            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        }
     });
 
     function appSourceChanged(ev) {

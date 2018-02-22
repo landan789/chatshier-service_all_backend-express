@@ -16,9 +16,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsChecking = function(params) {
         let appId = params.appid;
@@ -109,10 +106,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsGreetingsController.prototype.getAll = (req, res) => {
         let userId = req.params.userid;
         let proceed = new Promise((resolve, reject) => {
@@ -168,14 +161,10 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsGreetingsController.prototype.getOne = (req, res) => {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
@@ -202,14 +191,10 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsGreetingsController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         let type = req.body.type;
@@ -243,14 +228,10 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
-    /**
-     * @param {Request} req
-     * @param {Response} res
-     */
     AppsGreetingsController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         let greetingId = req.params.greetingid;
@@ -304,7 +285,7 @@ module.exports = (function() {
                 msg: ERR.MSG,
                 code: ERR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 

@@ -14,7 +14,6 @@ var appsTagsMdl = require('../models/apps_tags');
 var apps = {};
 
 apps.getAll = (req, res, next) => {
-
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;
@@ -60,7 +59,7 @@ apps.getAll = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 }
 
@@ -134,7 +133,7 @@ apps.getOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -273,7 +272,7 @@ apps.postOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -397,7 +396,7 @@ apps.putOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 
@@ -497,7 +496,7 @@ apps.deleteOne = (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        res.status(403).json(json);
+        res.status(500).json(json);
     });
 };
 module.exports = apps;

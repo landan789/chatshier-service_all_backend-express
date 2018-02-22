@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="icon" href="image/favicon.ico" />
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/sb-admin-2.css">
+
+    <link rel="stylesheet" href="css/_main.css" />
+    <link rel="stylesheet" href="css/table.css" />
+    <link rel="stylesheet" href="css/partials/firebase-disable.css" />
+</head>
+
+<body>
+    <% include ../views/partials/wrapper.ejs %>
+    <% include ../views/partials/loading.ejs %>
+
+    <div id="home">
+        <div class="container margin-top">
+            <div class="row panel">
+                <div class="title title-top">
+                    <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
+                    <hr class="hr-margin-bottom">
+                    <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
+                    <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
+                </div>
+
+                <div class="padding-lr" id="view-all">
+                    <div class="dropdown app-dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <span class="dropdown-text">請選擇應用程式</span>
+                    <span class="caret"></span>
+                </button>
+                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                    </div>
+                    <div class="search-add">
+                        <span class="icon"><i class="fa fa-search"></i></span>
+                        <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
+                        <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="disabled"></button>
+                    </div>
+                </div>
+                <div class="padding-lr chsr table">
+                    <table class="chsr table" id="keywordreply_open_table">
+                        <caption>開放</caption>
+                        <thead>
+                            <tr>
+                                <th>關鍵字</th>
+                                <th>內容</th>
+                                <th>回應次數</th>
+                                <th>編輯</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <table class="chsr table" id="keywordreply_draft_table">
+                        <caption>草稿</caption>
+                        <thead>
+                            <tr>
+                                <th>關鍵字</th>
+                                <th>內容</th>
+                                <th>回應次數</th>
+                                <th>編輯</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="keywordreply_edit_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_edit_modal_title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordreply_edit_modal_title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+                </div>
+
+                <div class="modal-body">
+                    <form>
+                        <!-- 關鍵字 -->
+                        <div class="form-group">
+                            <label for="keywordreply-keyword" class="col-2 col-form-label">關鍵字:  </label>
+                            <input class="form-control" type="text" name="keywordreply-keyword">
+                        </div>
+
+                        <!-- 副關鍵字 -->
+                        <!-- <div class="form-group">
+                    <label for="keywordreply-subkeyword" class="col-2 col-form-label">副關鍵字:  </label>
+                    <input class="form-control" type="text" name="keywordreply-subkeyword">
+                </div> -->
+
+                        <!-- 回覆內容 -->
+                        <div class="form-group">
+                            <label for="keywordreply-text" class="col-2 col-form-label">內容:  </label>
+                            <div class="col-4">
+                                <textarea class="form-control" type="text" name="keywordreply-text"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-check checkbox-is-draft">
+                            <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
+                        是否儲存為草稿？
+                    </label>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary btn-update-submit">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="keywordreply_add_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_add_modal_title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keywordreply_add_modal_title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Form Content -->
+                    <div class="form-group">
+                        <label for="keywordreply-app-name" class="col-2 col-form-label">目標App:</label>
+                        <div class="col-4">
+                            <select class="form-control" name="keywordreply-app-name">
+                        <option value=''>載入中...</option>
+                    </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keywordreply-keyword" class="col-2 col-form-label">關鍵字:</label>
+                        <div class="col-4">
+                            <input class="form-control" type="text" name="keywordreply-keyword">
+                        </div>
+                    </div>
+
+                    <!-- <div class="form-group">
+                <label for="modal-task-name" class="col-2 col-form-label">
+                    副關鍵字:
+                    <p>可設定多個關鍵字，請用 ',' 隔開，不需空格。範例：你好,哈囉,嗨</p>
+                </label>
+
+                <div class="col-4">
+                    <div class="col-4" id="subKeyCanvas"></div>
+                    <input class="form-control" type="text" value="" id="modal-subKey" />
+                </div>
+            </div> -->
+
+                    <div class="form-group">
+                        <label for="modal-text">回覆內容:  </label>
+                        <div id="text" style="display:block">
+                            <textarea class="form-control" type="text" name="keywordreply-text" style="width:100%; height:100px; resize: vertical"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
+                    是否儲存為草稿？
+                </label>
+                    </div>
+
+                    <span class="text-danger error-msg"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-primary btn-insert-submit">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 id="textContent"></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">確定</button>
+                    <button type="button" class="btn btn-secondary">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
+    <script src="config/firebaseConfig.js"></script>
+    <script src="config/url-config.js"></script>
+    <script src="js/_firebase-auth.js"></script>
+    <script src="js/helpers/restful_api.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/keywordsreply.js"></script>
+</body>
+
+</html>

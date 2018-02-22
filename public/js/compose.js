@@ -1,11 +1,11 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var allComposesData = {};
+    var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;
     var socket = io.connect(); // Socket
-    var inputNum = 0; //計算訊息的數量
+    var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
     var deleteNum = 0;
     var appId = '';
@@ -21,6 +21,9 @@
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
+
+    var $sendDatetimePicker = $('#send-datetime-picker');
+
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
         // 設定 bootstrap notify 的預設值
@@ -50,6 +53,13 @@
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
         $draftTableElem = $('#composes_draft_table tbody');
+        let options = {
+            locale: 'zh-tw',
+            sideBySide: true,
+            minDate: Date.now()
+        };
+        $sendDatetimePicker.datetimepicker(options);
+
         // FUNCTIONs
 
         function storeApp() {
@@ -61,7 +71,7 @@
             var id = $(this).parent().find('form').find('textarea').attr('id');
             deleteNum++;
             delete inputObj[id];
-            if (inputNum - deleteNum < 4) { $('.error_msg').hide() };
+            if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
             $(this).parent().remove();
         }
 
@@ -74,7 +84,6 @@
             inputNum++;
             if (inputNum - deleteNum > 3) {
                 $('.error-msg').show();
-                console.log('超過三則訊息');
                 inputNum--;
             } else {
                 $('#inputText').append(
@@ -125,16 +134,22 @@
         });
         return api.app.getAll(userId);
     }).then(function(respJson) {
-        allComposesData = respJson.data;
+        appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
-        for (var appId in allComposesData) {
-            $dropdownMenu.append('<li><a id="' + appId + '">' + allComposesData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + allComposesData[appId].name + '</option>');
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
+            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -142,9 +157,11 @@
             }
         }
 
-        $appDropdown.find('.dropdown-text').text(allComposesData[nowSelectAppId].name);
-        loadComposes(nowSelectAppId, userId);
-        $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        if (nowSelectAppId) {
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            loadComposes(nowSelectAppId, userId);
+            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        }
     });
 
     function appSourceChanged(ev) {
@@ -185,6 +202,24 @@
                 var list = new TableObj();
                 var text = list.th.attr('data-title', composeData.text).text(composeData.text);
                 var time = list.td1.text(ToLocalTimeString(composeData.time));
+
+                list.DeleteBtn.off('click').on('click', function(event) {
+                    var targetRow = $(event.target).parent().parent();
+                    var appId = targetRow.attr('text');
+                    var composeId = targetRow.attr('id');
+
+                    return showDialog('確定要刪除嗎？').then(function(isOK) {
+                        if (!isOK) {
+                            return;
+                        }
+
+                        return api.composes.remove(appId, composeId, userId).then(function() {
+                            $.notify('刪除成功！', { type: 'success' });
+                            return loadComposes(appId, userId);
+                        });
+                    });
+                });
+
                 var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
                 var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
                 if (0 === composeData.status) {
@@ -195,23 +230,6 @@
                     $historyTableElem.append(trGrop);
                 }
             }
-
-            $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                var targetRow = $(event.target).parent().parent();
-                var appId = targetRow.attr('text');
-                var composeId = targetRow.attr('id');
-
-                return showDialog('確定要刪除嗎？').then(function(isOK) {
-                    if (!isOK) {
-                        return;
-                    }
-
-                    return api.composes.remove(appId, composeId, userId).then(function() {
-                        $.notify('刪除成功！', { type: 'success' });
-                        return loadComposes(appId, userId);
-                    });
-                });
-            });
         });
     }
 
@@ -286,6 +304,7 @@
     function insertSubmit() {
         var $errorMsgElem = $composesAddModal.find('.error-input');
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
+        var sendTime = $composesAddModal.find('#send-time').val();
         let messages = [];
         $errorMsgElem.empty().hide();
 
@@ -293,6 +312,10 @@
         $('.textinput').each(function() {
             isTextVaild &= !!$(this).val();
         });
+        if (new Date(sendTime).getTime() < Date.now()) {
+            $errorMsgElem.text('群發時間必須大於現在時間').show();
+            return;
+        };
 
         if (!isTextVaild) {
             $errorMsgElem.text('請輸入群發的內容').show();
@@ -326,24 +349,24 @@
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
                     $composesAddModal.modal('hide');
-                    $('.form-control').val(allComposesData[appId].name);
+                    $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
                     $.notify('發送成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 } else {
                     $composesAddModal.modal('hide');
-                    $('.form-control').val(allComposesData[appId].name);
+                    $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
                     $.notify('儲存成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
+                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 }
@@ -357,25 +380,61 @@
                     text: $('#' + key).val()
                 };
                 messages.push(message);
-            }
-            for (let message in messages) {
-                let composeData = {
+            };
+
+            Promise.all(messages.map((message) => {
+                let compose = {
                     type: 'text',
-                    text: messages[message].text,
+                    text: message.text,
                     status: isDraft ? 0 : 1,
                     time: Date.parse(sendtime)
                 };
-                api.composes.insert(appId, userId, composeData).then(function(resJson) {});
-            }
-            $composesAddModal.modal('hide');
-            $('.form-control').val(allComposesData[appId].name);
-            $('.textinput').val('');
-            $('#send-time').val('');
-            $('#inputText').empty();
-            inputNum = 0;
-            $.notify('新增成功', { type: 'success' });
-            $appDropdown.find('.dropdown-text').text(allComposesData[appId].name);
-            return loadComposes(appId, userId);
+                return api.composes.insert(appId, userId, compose);
+            })).then((responses) => {
+                responses.map((response) => {
+                    if (0 === response.stats) {
+                        return;
+                    };
+                    let appsComposes = response.data;
+                    let appId = Object.keys(appsComposes)[0];
+                    let composes = appsComposes[appId].composes;
+                    let composeId = Object.keys(composes)[0];
+                    let compose = composes[composeId];
+                    var list = new TableObj();
+                    var text = list.th.attr('data-title', compose.text).text(compose.text);
+                    var time = list.td1.text(ToLocalTimeString(compose.time));
+                    var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
+                    var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
+                    if (0 === compose.status) {
+                        $draftTableElem.append(trGrop);
+                    } else if (1 === compose.status && compose.time > timeInMs) {
+                        $reservationTableElem.append(trGrop);
+                    } else if (1 === compose.status && (compose.time < timeInMs || compose.time === timeInMs)) {
+                        $historyTableElem.append(trGrop);
+                    }
+                    composesData[composeId] = compose;
+                });
+                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
+                    var targetRow = $(event.target).parent().parent();
+                    var appId = targetRow.attr('text');
+                    var composeId = targetRow.attr('id');
+
+                    return showDialog('確定要刪除嗎？').then(function(isOK) {
+                        if (!isOK) {
+                            return;
+                        }
+
+                        return api.composes.remove(appId, composeId, userId).then(function() {
+                            $.notify('刪除成功！', { type: 'success' });
+                            return loadComposes(appId, userId);
+                        });
+                    });
+                });
+                $composesAddModal.modal('hide');
+                $.notify('新增成功', { type: 'success' });
+            }).catch(() => {
+                $.notify('新增失敗', { type: 'warning' });
+            });
         }
     }
 

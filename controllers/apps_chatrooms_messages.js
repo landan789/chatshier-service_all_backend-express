@@ -16,9 +16,6 @@ module.exports = (function() {
 
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
     let paramsChecking = function(params) {
         let appId = params.appid;
@@ -166,7 +163,7 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 
@@ -198,7 +195,7 @@ module.exports = (function() {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            res.status(403).json(json);
+            res.status(500).json(json);
         });
     };
 

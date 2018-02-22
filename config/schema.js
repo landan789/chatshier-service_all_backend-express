@@ -1,5 +1,13 @@
 const READ = 'READ';
 module.exports = {
+    APP_CHATROOM_MESSAGE: {
+        text: '',
+        type: 'text',
+        messager_id: '',
+        from: '',
+        time: Date.now(),
+        isDeleted: 0
+    },
     GROUP: {
         name: '',
         app_ids: '',

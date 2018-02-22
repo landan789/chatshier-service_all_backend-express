@@ -30,6 +30,14 @@ interface AppAPI {
     insert: (userId: string, postAppData: any) => Promise<any>;
     update: (appId: string, userId: string, putAppData: any) => Promise<any>;
     remove: (appId: string, userId: string) => Promise<any>;
+    enums: {
+        type: {
+            SYSTEM: 'SYSTEM',
+            CHATSHIER: 'CHATSHIER',
+            LINE: 'LINE',
+            FACEBOOK: 'FACEBOOK'
+        }
+    };
 }
 
 interface MessagerAPI {

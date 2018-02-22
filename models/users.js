@@ -3,13 +3,6 @@ module.exports = (function() {
 
     function UsersModel() {}
 
-    UsersModel.prototype.get = function(callback) {
-        admin.database().ref('users/').once('value', snap => {
-            let data = snap.val();
-            callback(data);
-        });
-    };
-
     /**
      * 根據 使用者ID 取得該使用者
      * @param {string} userId
@@ -39,13 +32,6 @@ module.exports = (function() {
 
     UsersModel.prototype.findCalendarIdByUserId = function(userId, callback) {
         admin.database().ref('users/' + userId + '/calendar_id').once('value', snap => {
-            let data = snap.val();
-            callback(data);
-        });
-    };
-
-    UsersModel.prototype.findUser = function(userId, callback) {
-        admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);
         });

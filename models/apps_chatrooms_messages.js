@@ -102,13 +102,14 @@ module.exports = (function() {
     };
 
     /**
-     * 根據app ID跟messager ID去修改客戶未讀訊息
+     * 根據 app ID 跟 messager ID 去修改客戶未讀訊息
      *
      * @param {string} appId
      * @param {string} msgId
+     * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.updateUnreadStatus = function(appId, msgId) {
-        admin.database().ref('apps/' + appId + '/messagers/' + msgId).update({ unRead: 0 });
+        return admin.database().ref('apps/' + appId + '/messagers/' + msgId).update({ unRead: 0 });
     };
 
     /**
@@ -116,28 +117,27 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string} chatroomId
-     * @param {Object} message
-     * @param {Function} callback
+     * @param {any} message
+     * @param {(newMessage: any) => any} [callback]
+     * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
-        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().then((ref) => {
-            var messageId = ref.key;
-            return Promise.resolve(messageId);
-        }).then((messageId) => {
-            return new Promise((resolve, reject) => {
-                AppsChatroomsMessages.prototype._schema((_message) => {
-                    message = Object.assign(_message, message);
-                    resolve([messageId, message]);
-                });
+        return new Promise((resolve, reject) => {
+            AppsChatroomsMessages.prototype._schema((initMessage) => {
+                var _message = Object.assign(initMessage, message);
+                resolve(_message);
             });
-        }).then((result) => {
-            var messageId = result[0];
-            message = result[1];
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).set(message);
-        }).then(() => {
-            callback(message);
+        }).then((_message) => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(_message).then((ref) => {
+                // var messageId = ref.key;
+                return _message;
+            });
+        }).then((newMessage) => {
+            ('function' === typeof callback) && callback(newMessage);
+            return newMessage;
         }).catch(() => {
-            callback(null);
+            ('function' === typeof callback) && callback(null);
+            return null;
         });
     };
 
