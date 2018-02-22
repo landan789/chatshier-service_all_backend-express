@@ -4,7 +4,8 @@
     var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;
-    var socket = io.connect(); // Socket
+    var SOCKET_NAMESPACE = '/chatshier';
+    const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
     var deleteNum = 0;
@@ -147,6 +148,7 @@
                 delete appsData[appId];
                 continue;
             }
+            socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
             $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
             $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
@@ -331,16 +333,15 @@
                     };
                     messages.push(message);
                 }
-                let composes = {};
-                for (let i in messages) {
-                    composes = {
+                Promise.all(messages.map((message) => {
+                    let compose = {
+                        type: 'text',
+                        text: message.text,
                         status: isDraft ? 0 : 1,
-                        time: (timeInMs - 10000),
-                        text: messages[i].text
+                        time: (Date.now()) - 20000
                     };
-                    socket.emit('insert compose', { userId, composes, appId });
-                }
-
+                    return api.composes.insert(appId, userId, compose);
+                }));
                 var emitData = {
                     userId: userId,
                     messages: messages,

@@ -221,14 +221,6 @@ module.exports = (function() {
         return paramsChecking(req.params).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                if (postCompose.time < Date.now()) {
-                    reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
-                };
-                resolve(appId);
-            });
-        }).then((checkedAppId) => {
-            let appId = checkedAppId;
-            return new Promise((resolve, reject) => {
                 appsComposesMdl.insert(appId, postCompose, (result) => {
                     if (false === result) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
