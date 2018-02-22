@@ -297,7 +297,7 @@ function init(server) {
                     messager_id: message.messager_id || '',
                     src: message.src || '',
                     text: message.text || '',
-                    time: message.time || 0,
+                    time: message.time || Date.now(),
                     type: message.type || ''
                 };
 
