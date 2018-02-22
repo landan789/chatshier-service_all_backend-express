@@ -757,7 +757,7 @@
                         // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                         default:
                             uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
-                            uiRequireData.profile.photo = '/image/logo-no-transparent.png';
+                            uiRequireData.profile.photo = '/image/group.png';
 
                             uiRequireData.messagerId = uiRequireData.userId = userId;
                             createChatroom(uiRequireData);
@@ -867,7 +867,7 @@
                     break;
                 case CHATSHIER:
                 default:
-                    clientUiOpts.iconSrc = '/image/group-icon.png';
+                    clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
                     break;
             }
             var tablinkHtml = generateClientHtml(clientUiOpts);
