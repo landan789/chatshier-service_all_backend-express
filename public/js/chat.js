@@ -662,7 +662,7 @@
                 var $profileCard = $('.card-group[app-id="' + appId + '"][messager-id="' + msgerId + '"]');
                 $profileCard.find('.panel-table').remove();
 
-                var newProfileNode = $.parseHTML(loadPanelProfile(appId, messager));
+                var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, messager));
                 $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
             });
         }
@@ -748,22 +748,18 @@
                             var _msgerId = Object.keys(chatroomMessagers).shift();
                             var messager = appsMessagersData[appId].messagers[_msgerId];
                             uiRequireData.profile = messager;
-                            uiRequireData.userId = userId;
                             uiRequireData.messagerId = _msgerId;
-
-                            createChatroom(uiRequireData);
-                            createProfilePanel(uiRequireData);
                             break;
                         // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                         default:
                             uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
                             uiRequireData.profile.photo = '/image/group.png';
-
                             uiRequireData.messagerId = uiRequireData.userId = userId;
-                            createChatroom(uiRequireData);
-                            // createProfilePanel(uiRequireData);
                             break;
                     }
+
+                    createChatroom(uiRequireData);
+                    createProfilePanel(uiRequireData);
                 }
             }
         }
@@ -825,11 +821,14 @@
         }
 
         function createChatroom(requireData) {
-            var profile = requireData.profile;
+            var appId = requireData.appId;
             var appName = requireData.name;
             var appType = requireData.type;
-            chatroomList.push(requireData.chatroomId); // make a name list of all chated user
-            userProfiles[requireData.appId] = profile;
+            var profile = requireData.profile;
+            var chatroomId = requireData.chatroomId;
+
+            chatroomList.push(chatroomId); // make a name list of all chated user
+            userProfiles[appId] = profile;
 
             if (!(requireData && requireData.chatroom)) {
                 return;
@@ -841,8 +840,8 @@
             if (historyMsgKeys.length < 10) {
                 historyMsgStr += NO_HISTORY_MSG;
             }
-            historyMsgStr += historyMsgToStr(historyMsg, appsMessagersData[requireData.appId].messagers);
-            $('#user-rooms').append('<option value="' + requireData.chatroomId + '">' + profile.name + '</option>'); // new a option in select bar
+            historyMsgStr += historyMsgToStr(historyMsg, appsMessagersData[appId].messagers);
+            $('#user-rooms').append('<option value="' + chatroomId + '">' + profile.name + '</option>'); // new a option in select bar
 
             // 左邊的客戶清單排列
             var lastMessage = historyMsg[historyMsgKeys[historyMsgKeys.length - 1]];
@@ -881,13 +880,13 @@
 
             // 中間聊天室
             canvas.append(
-                '<div class="tabcontent" app-id="' + requireData.appId + '" chatroom-id="' + requireData.chatroomId + '">' +
+                '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
                     '<div class="message-panel">' + historyMsgStr + '</div>' +
                 '</div>'
             );
 
             // if (requireData.position) {
-            //     $('.tabcontent[app-id="' + requireData.appId + '"]' + '[chatroom-id="' + requireData.chatroomId + '"]').on('scroll', function() {
+            //     $('.tabcontent[app-id="' + appId + '"]' + '[chatroom-id="' + requireData.chatroomId + '"]').on('scroll', function() {
             //         detectScrollTop($(this));
             //     });
             // }
@@ -957,18 +956,31 @@
         }
 
         function createProfilePanel(requireData) {
+            var appId = requireData.appId;
+            var appType = requireData.type;
+            var messagerId = requireData.messagerId;
             var messager = requireData.profile;
 
-            infoCanvas.append(
-                '<div class="card-group" app-id="' + requireData.appId + '" user-id="' + requireData.userId + '" messager-id="' + requireData.messagerId + '">' +
+            var profilePanelHtml =
+                '<div class="card-group" app-id="' + appId + '" messager-id="' + messagerId + '">' +
                     '<div class="card-body table-responsive" id="profile">' +
                         '<div class="photo-container">' +
                             '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
                         '</div>' +
-                        loadPanelProfile(requireData.appId, messager) +
-                        '<div class="profile-confirm text-center">' +
-                            '<button type="button" class="btn btn-info">確認</button>' +
-                        '</div>' +
+                        (function generateProfileHtml() {
+                            var html = '';
+
+                            if (CHATSHIER !== appType) {
+                                html = generatePersonProfileHtml(appId, messager) +
+                                    '<div class="profile-confirm text-center">' +
+                                        '<button type="button" class="btn btn-info">確認</button>' +
+                                    '</div>';
+                            } else {
+                                var groupName = requireData.name;
+                                html = generateChatroomProfileHtml(appId, groupName);
+                            }
+                            return html;
+                        })() +
                     '</div>' +
                     '<div class="card-body" id="ticket" style="display:none;"></div>' +
                     '<div class="card-body" id="todo" style="display:none; ">' +
@@ -982,24 +994,22 @@
                                             '<input type="text" class="ticket-search-bar" placeholder="搜尋" />' +
                                         '</th>' +
                                         '<th>' +
-                                            '<a class="modal-toggler" messager-id="' + requireData.messagerId + '" data-toggle="modal" data-target="#add-ticket-modal">' +
+                                            '<a class="modal-toggler" messager-id="' + messagerId + '" data-toggle="modal" data-target="#add-ticket-modal">' +
                                                 '<span class="fa fa-plus fa-fw"></span>新增待辦' +
                                             '</a>' +
                                         '</th>' +
                                     '</tr>' +
                                 '</thead>' +
-                                '<tbody class="ticket-body" messager-id="' + requireData.messagerId + '"></tbody>' +
+                                '<tbody class="ticket-body" messager-id="' + messagerId + '"></tbody>' +
                             '</table>' +
                         '</div>' +
                     '</div>' +
-                '</div>'
-            );
+                '</div>';
+
+            infoCanvas.append(profilePanelHtml);
         }
 
-        function loadPanelProfile(appId, messager) {
-            var table = $.parseHTML('<table class="table table-hover panel-table"></table>');
-            var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-
+        function generatePersonProfileHtml(appId, messager) {
             var customTags = messager.custom_tags || {};
             var fetchCustomTags = function(tagId) {
                 for (var cTagId in customTags) {
@@ -1011,6 +1021,7 @@
             };
 
             var tdHtmlBuilder = function(tagId, tagData) {
+                var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
                 var setsTypeEnums = api.tag.enums.setsType;
                 var readonly = tagData.type === api.tag.enums.type.SYSTEM;
                 var tagValue = '';
@@ -1023,7 +1034,7 @@
 
                 switch (tagData.setsType) {
                     case setsTypeEnums.SELECT:
-                        return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        return '<td class="profile-content user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                             '<select class="form-control td-inner" value="' + tagValue + '">' +
                                 (function(sets) {
                                     var opts = '<option value="">未選擇</option>';
@@ -1079,73 +1090,115 @@
                 }
             };
 
-            // 呈現標籤資料之前先把標籤資料設定的順序排列
-            var tagKeys = Object.keys(appsTagsData[appId].tags);
-            tagKeys.sort(function(a, b) {
-                return appsTagsData[appId].tags[a].order - appsTagsData[appId].tags[b].order;
-            });
+            var asyncLoadAgants = function() {
+                return getAppAgants(appId).then(function(agents) {
+                    var agentData = (function() {
+                        var nameList = [];
+                        var idList = [];
+                        var nameSelected = [];
+
+                        for (var agentUserId in agents) {
+                            idList.push(agentUserId);
+                            nameList.push(agents[agentUserId].name);
+                            if (messager.assigned.indexOf(agentUserId) >= 0) {
+                                nameSelected.push(agents[agentUserId].name);
+                            };
+                        }
+
+                        return {
+                            nameList: nameList,
+                            idList: idList,
+                            nameSelected: nameSelected
+                        };
+                    })();
+
+                    // 找到指定的 app 底下的指派人欄位
+                    // 如有沒有找到的話就不用處理
+                    var $tdOfAgant = $('.card-group[app-id="' + appId + '"] .user-info-td[alias="assigned"]');
+                    if (!$tdOfAgant.length) {
+                        return;
+                    }
+                    $tdOfAgant.find('.multi-select-values').text(agentData.nameSelected.join(','));
+
+                    var $dropdownMenu = $tdOfAgant.find('.multi-select-container.dropdown-menu');
+                    $dropdownMenu.empty();
+                    for (var i in agentData.nameList) {
+                        var hasChecked = agentData.nameSelected.indexOf(agentData.nameList[i]) >= 0;
+                        $dropdownMenu.append(
+                            '<li>' +
+                                '<input type="checkbox" value="' + agentData.idList[i] + '"' + (hasChecked ? ' checked="true"' : '') + '">' + agentData.nameList[i] +
+                            '</li>'
+                        );
+                    }
+                });
+            };
 
             messager.assigned = messager.assigned || [];
-            var messagerProfileHtml = '';
+            var messagerProfileHtml =
+                '<table class="table table-hover panel-table">' +
+                    (function() {
+                        // 呈現標籤資料之前先把標籤資料設定的順序排列
+                        var tagKeys = Object.keys(appsTagsData[appId].tags);
+                        tagKeys.sort(function(a, b) {
+                            return appsTagsData[appId].tags[a].order - appsTagsData[appId].tags[b].order;
+                        });
+                        var rowsHtml = '';
 
-            for (var i in tagKeys) {
-                var tagId = tagKeys[i];
-                var tagData = appsTagsData[appId].tags[tagId];
-                messagerProfileHtml +=
-                    '<tr id="' + tagId + '">' +
-                        '<th class="user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
-                        tdHtmlBuilder(tagId, tagData) +
-                    '</tr>';
+                        for (var i in tagKeys) {
+                            var tagId = tagKeys[i];
+                            var tagData = appsTagsData[appId].tags[tagId];
+                            rowsHtml +=
+                                '<tr id="' + tagId + '">' +
+                                    '<th class="profile-label user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
+                                    tdHtmlBuilder(tagId, tagData) +
+                                '</tr>';
 
-                // 指派人的資料是屬於非同步的工作
-                // 因此在 html append 到 dom 上後，在抓取資料
-                // 找到指派人的欄位把資料填入
-                if ('assigned' === tagData.alias) {
-                    getAppAgants(appId).then(function(agents) {
-                        var agentData = (function() {
-                            var nameList = [];
-                            var idList = [];
-                            var nameSelected = [];
-
-                            for (var agentUserId in agents) {
-                                idList.push(agentUserId);
-                                nameList.push(agents[agentUserId].name);
-                                if (messager.assigned.indexOf(agentUserId) >= 0) {
-                                    nameSelected.push(agents[agentUserId].name);
-                                };
+                            // 指派人的資料是屬於非同步的工作
+                            // 因此在 html append 到 dom 上後，在抓取資料
+                            // 找到指派人的欄位把資料填入
+                            if ('assigned' === tagData.alias) {
+                                asyncLoadAgants();
                             }
-
-                            return {
-                                nameList: nameList,
-                                idList: idList,
-                                nameSelected: nameSelected
-                            };
-                        })();
-
-                        // 找到指定的 app 底下的指派人欄位
-                        // 如有沒有找到的話就不用處理
-                        var $tdOfAgant = $('.card-group[app-id="' + appId + '"] .user-info-td[alias="assigned"]');
-                        if (!$tdOfAgant.length) {
-                            return;
                         }
-                        $tdOfAgant.find('.multi-select-values').text(agentData.nameSelected.join(','));
+                        return rowsHtml;
+                    })() +
+                '</table>';
 
-                        var $dropdownMenu = $tdOfAgant.find('.multi-select-container.dropdown-menu');
-                        $dropdownMenu.empty();
-                        for (var i in agentData.nameList) {
-                            var hasChecked = agentData.nameSelected.indexOf(agentData.nameList[i]) >= 0;
-                            $dropdownMenu.append(
-                                '<li>' +
-                                    '<input type="checkbox" value="' + agentData.idList[i] + '"' + (hasChecked ? ' checked="true"' : '') + '">' + agentData.nameList[i] +
-                                '</li>'
-                            );
-                        }
-                    });
-                }
-            }
-            $(table).append(messagerProfileHtml);
+            return messagerProfileHtml;
+        }
 
-            return $(table)[0].outerHTML;
+        function generateChatroomProfileHtml(appId, groupName) {
+            var members = appsMessagersData[appId].messagers;
+
+            var html =
+                '<table class="table table-hover panel-table">' +
+                    '<tr>' +
+                        '<th class="profile-label">群組名稱</th>' +
+                        '<td class="profile-content">' +
+                            '<input class="form-control td-inner" type="text" value="' + groupName + '"' + ' readonly disabled />' +
+                        '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                        '<th class="profile-label align-top">群組成員</th>' +
+                        '<td class="profile-content">' +
+                            (function() {
+                                var html = '';
+                                for (var memberUserId in members) {
+                                    var member = members[memberUserId];
+
+                                    html +=
+                                        '<div class="person-chip">' +
+                                            '<img src="' + (member.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
+                                            member.name +
+                                        '</div>';
+                                }
+                                return html;
+                            })() +
+                        '</td>' +
+                    '</tr>' +
+                '</table>';
+
+            return html;
         }
 
         // ==========end initialize function========== //
@@ -1201,7 +1254,6 @@
 
         function clickUserTablink() {
             var $userTablink = $(this);
-            var $ticketTodoPanel = $('#show_todo');
             var $messageInputPanel = $('#send-message');
 
             var appId = $userTablink.attr('app-id');
@@ -1240,12 +1292,15 @@
             $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
             $profilePanel.show().siblings().hide();
 
-            if (CHATSHIER === appType) {
-                $infoPanel.hide();
-                $ticketTodoPanel.hide();
-            } else {
-                $infoPanel.show();
+            var $profileTab = $('#show_profile');
+            var $ticketTodoPanel = $('#show_todo');
+            $infoPanel.show();
+            if (CHATSHIER !== appType) {
+                $profileTab.text('用戶資料');
                 $ticketTodoPanel.show();
+            } else {
+                $profileTab.text('群組資料');
+                $ticketTodoPanel.hide();
             }
         }
 

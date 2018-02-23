@@ -504,13 +504,39 @@ div.loading-img {
     #infoPanel td {
         word-wrap: break-word;
     }
-    .table .user-info-th {
-        width: 40%;
+
+    .card-group .profile-label {
+        width: 35%;
+    }
+
+    .card-group .profile-label.align-top {
+        vertical-align: top;
+    }
+
+    .card-group .profile-label,
+    .card-group .user-info-td {
         vertical-align: middle;
     }
-    .table .user-info-td {
+
+    .person-chip {
+        display: inline-block;
+        margin: .5rem .5rem .5rem 0;
+        padding: 0 .5rem;
+        max-width: 50%;
+        font-size: 1rem;
+        line-height: 2rem;
+        border-radius: .5rem;
         vertical-align: middle;
     }
+
+    .person-chip .person-avatar {
+        width: 2rem;
+        height: 2rem;
+        float: left;
+        margin-right: .5rem;
+        border-radius: 50%;
+    }
+
     .td-inner:not(.btn-group) {
         width: 100%;
         margin: 0px auto;
