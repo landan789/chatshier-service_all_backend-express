@@ -761,7 +761,6 @@
                             uiRequireData.messagerId = uiRequireData.userId = userId;
                             break;
                     }
-
                     createChatroom(uiRequireData);
                     createProfilePanel(uiRequireData);
                 }

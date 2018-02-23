@@ -1,11 +1,15 @@
 module.exports = (function() {
     var API_ERROR = require('../config/api_error');
     var API_SUCCESS = require('../config/api_success');
+
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
     const WRITE = 'WRITE';
     const READ = 'READ';
 
+    const CHATSHIER = 'CHATSHIER';
+
+    const appsMdl = require('../models/apps');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
     const groupsMembersMdl = require('../models/groups_members');
@@ -175,17 +179,28 @@ module.exports = (function() {
                 // 將此 group member 加入此 group 裡所有 app 的 messagers
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
-                        return appsMessagersMdl.findMessager(appId, userId).then((appMessager) => {
-                            // 目前內部聊天室的 chatroom 只會有一個
-                            // 因此所有群組成員的 chatroom_id 都會是一樣
-                            // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
-                            let messager = appMessager[appId].messagers[userId];
-                            let chatroomId = messager.chatroom_id;
-                            let newMessager = {
-                                chatroom_id: chatroomId,
-                                isDeleted: 0
-                            };
-                            return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
+                        return new Promise((resolve) => {
+                            appsMdl.findByAppId(appId, resolve);
+                        }).then((apps) => {
+                            let app = apps[appId];
+
+                            // 非內部聊天室的 app 不處理
+                            // 否則會造成加一個群組新成員 chatroom 就會新創一個
+                            if (CHATSHIER !== app.type) {
+                                return;
+                            }
+
+                            return appsMessagersMdl.findMessager(appId, userId).then((appMessagers) => {
+                                // 目前內部聊天室的 chatroom 只會有一個
+                                // 因此所有群組成員的 chatroom_id 都會是一樣
+                                // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
+                                let messager = appMessagers[appId].messagers[userId];
+                                let newMessager = {
+                                    chatroom_id: messager.chatroom_id,
+                                    isDeleted: 0
+                                };
+                                return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
+                            });
                         });
                     }));
                 }).then(() => {
