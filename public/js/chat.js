@@ -474,6 +474,7 @@
                     delete appsTagsData[appId];
                     continue;
                 }
+                // 一個 app 一個 socket 
                 regPromises.push(new Promise(function(resolve) {
                     chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, resolve);
                 }));

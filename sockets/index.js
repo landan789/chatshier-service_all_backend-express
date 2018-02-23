@@ -1,10 +1,9 @@
 let cipher = require('../helpers/cipher');
 let app = require('../app');
 let socketio = require('socket.io');
-let facebook = require('facebook-bot-messenger'); // facebook串接
 let line = require('@line/bot-sdk');
+let facebook = require('facebook-bot-messenger'); // facebook串接
 let admin = require('firebase-admin'); // firebase admin SDK
-let bodyParser = require('body-parser');
 
 const appsMessagersCtl = require('../controllers/apps_messagers');
 const appsSocketCtl = require('./controllers/apps');
@@ -18,8 +17,8 @@ let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 let utility = require('../helpers/utility');
 let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
+let botSvc = require('../services/bot');
 
-let webhookMdl = require('../models/webhooks');
 let appsMdl = require('../models/apps');
 let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 let appsChatroomsMdl = require('../models/apps_chatrooms');
@@ -57,6 +56,7 @@ function init(server) {
         let webhookId = req.params.webhookId;
         let nowTime = new Date().getTime();
         let botManager = {};
+        let bot = {};
         let appId = '';
         let app = null;
         let totalMessages = [];
@@ -158,10 +158,10 @@ function init(server) {
                     switch (app.type) {
                         case LINE:
                             let replyToken = options.lineEvent.replyToken;
-                            return botManager.lineBot.replyMessage(replyToken, replyMessages);
+                            return bot.replyMessage(replyToken, replyMessages);
                         case FACEBOOK:
                             return Promise.all(replyMessages.map((message) => {
-                                return botManager.fbBot.sendTextMessage(senderId, message);
+                                return bot.sendTextMessage(senderId, message);
                             }));
                     }
                 }).then(() => {
@@ -197,7 +197,7 @@ function init(server) {
                 return new Promise((resolve) => {
                     switch (app.type) {
                         case LINE:
-                            helpersBot.lineMessageType(botManager.lineBot, options.lineEvent, receivedMessage, resolve);
+                            helpersBot.lineMessageType(bot, options.lineEvent, receivedMessage, resolve);
                             break;
                         case FACEBOOK:
                             helpersBot.facebookMessageType(options.fbMessage, receivedMessage, resolve);
@@ -238,10 +238,10 @@ function init(server) {
                     switch (app.type) {
                         case LINE:
                             let replyToken = options.lineEvent.replyToken;
-                            return botManager.lineBot.replyMessage(replyToken, greetingMessages);
+                            return bot.replyMessage(replyToken, greetingMessages);
                         case FACEBOOK:
                             return Promise.all(greetingMessages.map((message) => {
-                                return botManager.fbBot.sendTextMessage(senderId, message);
+                                return bot.sendTextMessage(senderId, message);
                             }));
                     }
                 }).then(() => {
@@ -264,9 +264,9 @@ function init(server) {
 
                 switch (app.type) {
                     case LINE:
-                        return botManager.lineBot.getProfile(senderId);
+                        return bot.getProfile(senderId);
                     case FACEBOOK:
-                        return botManager.fbBot.getProfile(senderId);
+                        return bot.getProfile(senderId);
                 }
             }).then((profile) => {
                 // =========
@@ -347,44 +347,9 @@ function init(server) {
         }).then((apps) => {
             appId = Object.keys(apps).shift();
             app = apps[appId];
-
-            // 根據目前支援的 app webhook 類型，產生 SDK 的類別物件
-            switch (app.type) {
-                case LINE:
-                    return new Promise((resolve) => {
-                        let lineConfig = {
-                            channelSecret: app.secret,
-                            channelAccessToken: app.token1
-                        };
-
-                        // 中介軟體執行中介軟體的方法
-                        // 當前的 request 資料是屬於 http 的最原始資料
-                        // LINE 的 middleware 會自行進行 bodyParser 後做相關的驗證動作
-                        line.middleware(lineConfig)(req, res, () => {
-                            botManager.lineBot = new line.Client(lineConfig);
-                            resolve();
-                        });
-                    });
-                case FACEBOOK:
-                    return new Promise((resolve) => {
-                        // 由於目前 request 資料屬於 http 的原始資料
-                        // FACEBOOK 沒有 middleware
-                        // 沒有經過 bodyParser 的話沒有辦法解析出 json 格式資料
-                        bodyParser.json()(req, res, () => {
-                            let facebookConfig = {
-                                pageID: app.id1,
-                                appID: app.id2 || '',
-                                appSecret: app.secret,
-                                validationToken: app.token1,
-                                pageToken: app.token2 || ''
-                            };
-                            // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                            botManager.fbBot = facebook.create(facebookConfig, server);
-                            resolve();
-                        });
-                    });
-            }
-        }).then(() => {
+            return botSvc.parser(req, res, server, app);
+        }).then((_bot) => {
+            bot = _bot;
             switch (app.type) {
                 case LINE:
                     /** @type {LineWebhookEventObject[]} */
@@ -414,9 +379,9 @@ function init(server) {
                         return Promise.resolve(null);
                     }));
                 case FACEBOOK:
-                    let webhookEntries = req.body.entry || [];
-                    return Promise.all(webhookEntries.map((webhookEntry) => {
-                        let fbMessagesPack = webhookEntry.messaging || [];
+                    let facebookEntries = req.body.entry || [];
+                    return Promise.all(facebookEntries.map((facehookEntry) => {
+                        let fbMessagesPack = facehookEntry.messaging || [];
                         return Promise.all(fbMessagesPack.map((messagePack) => {
                             let senderId = messagePack.sender.id;
                             let messageText = messagePack.message.text;
