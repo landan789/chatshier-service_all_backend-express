@@ -517,14 +517,15 @@ div.loading-img {
     }
 
     .person-chip {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
         margin: .5rem .5rem .5rem 0;
         padding: 0 .5rem;
-        max-width: 50%;
         font-size: 1rem;
         line-height: 2rem;
         border-radius: .5rem;
-        vertical-align: middle;
     }
 
     .person-chip .person-avatar {

@@ -114,7 +114,7 @@
                     ticketData.ticketId = ticketId;
                     ticketData.ticketAppId = ticketAppId;
                     ticketInfo[ticketId] = ticketData;
-                    var messagerInfo = messagersData[ticketData.messagerId] || {};
+                    var messagerInfo = messagersData.messagers[ticketData.messagerId] || {};
 
                     // 將每筆 ticket 資料反映於 html DOM 上
                     $ticketBody.append(
