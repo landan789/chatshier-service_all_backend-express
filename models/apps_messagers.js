@@ -78,7 +78,6 @@ module.exports = (function() {
                     return messagersData;
                 });
             }
-            // return messagersData;
         }).then((result) => {
             if (!result) {
                 callback(null);
