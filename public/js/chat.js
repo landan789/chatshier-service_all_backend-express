@@ -455,13 +455,13 @@
             api.messager.getAll(userId),
             api.tag.getAll(userId),
             api.auth.getUsers(userId)
-        ]).then(function(promiseResults) {
-            appsData = promiseResults.shift().data;
-            appsChatroomsData = promiseResults.shift().data;
-            appsMessagersData = promiseResults.shift().data;
-            appsTagsData = promiseResults.shift().data;
+        ]).then(function(responses) {
+            appsData = responses.shift().data;
+            appsChatroomsData = responses.shift().data;
+            appsMessagersData = responses.shift().data;
+            appsTagsData = responses.shift().data;
 
-            var groupAllUsers = promiseResults.shift().data;
+            var groupAllUsers = responses.shift().data;
             var regPromises = [];
 
             // 過濾 API 資料裡已經刪除的 app 資料
