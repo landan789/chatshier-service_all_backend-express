@@ -606,27 +606,6 @@ function init(server) {
             });
         });
 
-        // insert compose
-        socket.on('insert compose', (data) => {
-            let userId = data.userId;
-            let composes = data.composes;
-            let appId = data.appId;
-            let proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    if (!appId) {
-                        reject(new Error());
-                        return;
-                    }
-                    appsComposes.insert(appId, composes, (result) => {
-                        resolve();
-                    });
-                });
-            });
-        });
-
         // 推播全部人
         socket.on('push composes to all', (data) => {
             let userId = data.userId;
@@ -635,39 +614,39 @@ function init(server) {
             if (!appId) {
                 return Promise.reject(new Error());
             }
-            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-                let app = snap.val();
+            return appsMdl.findByAppId(appId, (apps) => {
+                let app = apps[appId];
                 let lineConfig = {
                     channelSecret: app.secret,
                     channelAccessToken: app.token1
                 };
-                let lineBot = new line.Client(lineConfig);
-                return lineBot.multicast(Object.keys(app.messagers), messages).then(() => {
-                    let asyncTasks = [];
-                    for (let messagerId in app.messagers) {
-                        asyncTasks.push(admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
-                            let messagersInfo = snap.val();
-                            let chatroomId = messagersInfo.chatroom_id;
-                            return chatroomId;
-                        }).then((chatroomId) => {
-                            let updateMessage = [];
-                            let messageInfo = {};
-                            for (let j in messages) {
-                                messageInfo = {
-                                    from: SYSTEM,
-                                    messager_id: '',
-                                    name: 'agent',
-                                    text: messages[j].text,
-                                    time: Date.now()
+                appsMessagersMdl.findAppMessagers(appId, (messagersinfo) => {
+                    var messagers = messagersinfo;
+
+                    let lineBot = new line.Client(lineConfig);
+                    return lineBot.multicast(Object.keys(messagers[appId].messagers), messages).then(() => {
+                        let asyncTasks = [];
+                        for (let messagerId in app.messagers) {
+                            asyncTasks.push(appsMessagersMdl.findMessager(appId, messagerId, (messagersInfo) => {
+                                let chatroomId = messagersInfo.chatroom_id;
+                                return chatroomId;
+                            }).then((chatroomId) => {
+                                let updateMessage = [];
+                                let messageInfo = {};
+                                for (let j in messages) {
+                                    messageInfo = {
+                                        from: SYSTEM,
+                                        messager_id: '',
+                                        name: 'agent',
+                                        text: messages[j].text,
+                                        time: Date.now()
+                                    };
+                                    updateMessage.push(messageInfo);
+                                    appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, updateMessage[j], (result) => {});
                                 };
-                                updateMessage.push(messageInfo);
-                                admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().then((ref) => {
-                                    let messageId = ref.key;
-                                    return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).update(updateMessage[j]);
-                                });
-                            };
-                        }));
-                    }
+                            }));
+                        }
+                    });
                 });
             });
         });
