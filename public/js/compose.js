@@ -326,26 +326,21 @@
             sendtime = $('#send-time').val();
 
             if ($('#send-now').prop('checked')) {
+                let composes = [];
                 for (let key in inputObj) {
-                    let message = {
-                        type: 'text',
-                        text: $('#' + key).val()
-                    };
-                    messages.push(message);
-                }
-                Promise.all(messages.map((message) => {
                     let compose = {
                         type: 'text',
-                        text: message.text,
-                        status: isDraft ? 0 : 1,
+                        text: $('#' + key).val(),
+                        status: 1,
                         time: (Date.now()) - 60000
                     };
-                    return api.composes.insert(appId, userId, compose);
-                }));
+                    composes.push(compose);
+                }
+
                 var emitData = {
                     userId: userId,
-                    messages: messages,
-                    appId: appId
+                    appId: appId,
+                    composes: composes
                 };
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
