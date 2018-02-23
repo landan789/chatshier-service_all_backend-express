@@ -917,18 +917,13 @@
 
         function messageToClientHtml(message) {
             // 判斷客戶傳送的是檔案，貼圖還是文字回傳對應的 html
-            var lastMsgText = '';
-            switch (message.type) {
-                case 'image':
-                    lastMsgText = '圖檔';
-                    break;
-                case 'text':
-                    lastMsgText = loadMessageInDisplayClient(message.text);
-                    break;
-                default:
-                    lastMsgText = '檔案';
-                    break;
-            }
+
+            var lastMsgText = {
+                image: '圖像',
+                video: '影像',
+                audio: '聲音'
+            }[message.type] || loadMessageInDisplayClient(message.text);
+
             return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
         }
 
@@ -1194,7 +1189,7 @@
                                     html +=
                                         '<div class="person-chip">' +
                                             '<img src="' + (member.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
-                                            member.name +
+                                            '<span>' + member.name + '</span>' +
                                         '</div>';
                                 }
                                 return html;
@@ -1945,13 +1940,8 @@
         // =====start utility function
 
         function loadMessageInDisplayClient(msg) {
-            if (msg.length > 10) {
-                var newMsg = msg.substr(0, 10) + '...';
-                return newMsg;
-            } else {
-                return msg;
-            }
-        } // end of loadMessageInDisplayClient
+            return msg.length > 10 ? (msg.substr(0, 10) + '...') : msg;
+        }
 
         function toDateStr(input) {
             var str = ' ';
