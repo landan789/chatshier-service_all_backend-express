@@ -639,7 +639,8 @@ function init(server) {
                                         messager_id: '',
                                         name: 'agent',
                                         text: messages[j].text,
-                                        time: Date.now()
+                                        time: Date.now(),
+                                        type: 'text'
                                     };
                                     updateMessage.push(messageInfo);
                                     appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, updateMessage[j], (result) => {});
