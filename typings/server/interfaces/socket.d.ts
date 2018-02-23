@@ -7,10 +7,10 @@ interface ChatshierChatSocketInterface {
 }
 
 interface ChatshierMessageInterface {
-    from: 'LINE' | 'FACEBOOK' | 'CHATSHIER';
+    from: 'LINE' | 'FACEBOOK' | 'CHATSHIER' | 'SYSTEM';
     messager_id: string;
     src?: any;
     text: string;
-    time?: number;
+    time: number;
     type: string;
 }

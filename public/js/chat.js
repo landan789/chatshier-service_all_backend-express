@@ -503,6 +503,7 @@
                 }
 
                 // 把群組內所有使用者的名字加入對話者資料
+                // 使 messagers 的資料具有群組成員的資料
                 for (var _userId in groupAllUsers) {
                     if (appsMessagersData[appId].messagers[_userId]) {
                         appsMessagersData[appId].messagers[_userId].name = groupAllUsers[_userId].displayName;
@@ -548,11 +549,11 @@
                 /** @type {ChatshierChatSocketInterface} */
                 var socketBody = data;
 
-                var message = socketBody.message;
-                var senderId = message.messager_id;
                 var appId = socketBody.appId;
                 var appType = socketBody.appType;
                 var chatroomId = socketBody.chatroomId;
+                var message = socketBody.message;
+                var senderId = message.messager_id;
                 var receiverId = CHATSHIER === appType ? userId : socketBody.messagerId;
                 var messagers = appsMessagersData[appId].messagers;
 
@@ -585,7 +586,7 @@
                 }
 
                 return Promise.resolve().then(function() {
-                    var sender = messagers[senderId];
+                    var sender = senderId ? messagers[senderId] : {};
                     if (sender && sender.name) {
                         return sender;
                     }
@@ -596,34 +597,37 @@
                         // 所以需要使用 auth api 來獲得使用者資料
                         return api.auth.getUsers(userId).then((resJson) => {
                             var groupUsers = resJson.data;
-                            var targetUser = groupUsers[userId];
+                            var senderUser = groupUsers[senderId];
 
                             if (!sender.chatroom_id) {
                                 return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
                                     var _appsMessagersData = resJson.data;
                                     sender = _appsMessagersData[appId].messagers[senderId];
-                                    sender.name = targetUser.displayName;
-                                    sender.email = targetUser.email;
+                                    sender.name = senderUser.displayName;
+                                    sender.email = senderUser.email;
                                     appsMessagersData[appId].messagers[senderId] = sender;
                                     return sender;
                                 });
                             }
 
-                            sender.name = targetUser.displayName;
-                            sender.email = targetUser.email;
-                            appsMessagersData[appId].messagers[userId] = sender;
-                            return sender;
-                        });
-                    } else {
-                        // 因此拿著此 ID 向 server 查詢此人資料
-                        // 查詢完後儲存至本地端，下次就無需再查詢
-                        return api.messager.getOne(appId, receiverId, userId).then(function(resJson) {
-                            var _appsMessagers = resJson.data;
-                            sender = _appsMessagers[appId].messagers[receiverId];
-                            appsMessagersData[appId].messagers[receiverId] = sender;
+                            sender.name = senderUser.displayName;
+                            sender.email = senderUser.email;
+                            appsMessagersData[appId].messagers[senderId] = sender;
                             return sender;
                         });
                     }
+
+                    if (senderId) {
+                        // 因此拿著此 ID 向 server 查詢此人資料
+                        // 查詢完後儲存至本地端，下次就無需再查詢
+                        return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
+                            var _appsMessagers = resJson.data;
+                            sender = _appsMessagers[appId].messagers[senderId];
+                            appsMessagersData[appId].messagers[senderId] = sender;
+                            return sender;
+                        });
+                    }
+                    return sender;
                 }).then(function(sender) {
                     var receiver = messagers[receiverId];
                     (receiverId !== userId) && receiver.unRead++;
@@ -802,18 +806,21 @@
             return html;
         }
 
-        function generateMessageHtml(srcHtml, msgTime, msgType, messagerName, shouldRightSide) {
+        function generateMessageHtml(srcHtml, message, messagerName) {
+            messagerName = SYSTEM === message.from ? 'Chatshier' : (messagerName || '');
             var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
-            // 如果訊息是來自於當前使用者則放置於右邊
-            // 如果訊息是來自於其他 messager 的話，訊息預設放在左邊
-            return '<div class="message" message-time="' + msgTime + '" message-type="' + msgType + '">' +
+            // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
+            // 如果訊息是來自於其他平台的話，訊息一律放在左邊
+            var shouldRightSide = SYSTEM === message.from || CHATSHIER === message.from;
+
+            return '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
                     '<span>' + messagerName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
                     '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + srcHtml + '</span>' +
-                    '<span class="send-time">' + toTimeStr(msgTime) + '</span>' +
+                    '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                     '<strong></strong>' +
                 '</span>' +
                 '<br/>' +
@@ -947,10 +954,9 @@
                 }
                 prevTime = messages[i].time;
 
-                let shouldRightSide = SYSTEM === messages[i].from || (CHATSHIER === messages[i].from && messages[i].messager_id === userId);
                 let senderId = messages[i].messager_id;
-                let messagerName = messagers[senderId] ? messagers[senderId].name : 'Chatshier';
-                returnStr += generateMessageHtml(srcHtml, messages[i].time, messages[i].type, messagerName, shouldRightSide);
+                let messagerName = messagers[senderId] ? messagers[senderId].name : '';
+                returnStr += generateMessageHtml(srcHtml, messages[i], messagerName);
             }
             return returnStr;
         }
@@ -1386,7 +1392,7 @@
                 // var srcHtml = messageToPanelHtml(messageToSend);
 
                 // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                // var messageHtml = generateMessageHtml(srcHtml, messageToSend.time, messageToSend.type, sender.name, true);
+                // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name);
                 // $messagePanel.append(messageHtml);
                 // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
 
@@ -1455,7 +1461,7 @@
                     // var srcHtml = messageToPanelHtml(messageToSend);
 
                     // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend.time, messageToSend.type, sender.name, true);
+                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name);
                     // $messagePanel.append(messageHtml);
                     // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
 
@@ -1494,7 +1500,6 @@
             /** @type {ChatshierMessageInterface} */
             var _message = message;
             var srcHtml = messageToPanelHtml(_message);
-            var shouldRightSide = _message.from === CHATSHIER && _message.messager_id === userId;
             var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
 
             if (chatroomList.indexOf(chatroomId) >= 0) {
@@ -1504,13 +1509,13 @@
                 if (_message.time - lastMessageTime >= 900000) {
                     $messagePanel.append('<p class="message-day"><strong>-新訊息-</strong></p>');
                 }
-                var messageHtml = generateMessageHtml(srcHtml, _message.time, _message.type, messager.name, shouldRightSide);
+                var messageHtml = generateMessageHtml(srcHtml, _message, messager.name);
                 $messagePanel.append(messageHtml);
                 $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
             } else {
                 // if its new user
                 var historyMsgStr = NO_HISTORY_MSG;
-                historyMsgStr += generateMessageHtml(srcHtml, _message.time, _message.type, messager.name, shouldRightSide);
+                historyMsgStr += generateMessageHtml(srcHtml, _message, messager.name);
 
                 canvas.append(
                     '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +

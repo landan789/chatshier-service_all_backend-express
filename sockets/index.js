@@ -135,13 +135,25 @@ function init(server) {
 
                 let textOnlyMessages = replyMessages.slice();
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
-                totalMessages = replyMessages;
 
                 return Promise.resolve().then(() => {
                     // 沒有訊息資料就不對 SDK 發送訊息
                     if (!replyMessages.length) {
                         return;
                     };
+
+                    replyMessages = replyMessages.map((message) => {
+                        /** @type {ChatshierMessageInterface} */
+                        let _message = {
+                            messager_id: '',
+                            from: SYSTEM,
+                            text: message.text || '',
+                            type: message.type || 'text',
+                            time: Date.now(), // 將要回覆的訊息加上時戳
+                            src: ''
+                        };
+                        return _message;
+                    });
 
                     switch (app.type) {
                         case LINE:
@@ -153,6 +165,7 @@ function init(server) {
                             }));
                     }
                 }).then(() => {
+                    totalMessages = replyMessages;
                     // 處理與訊息匹配的關鍵字回覆的次數更新
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
                 });
@@ -175,6 +188,7 @@ function init(server) {
                 /** @type {ChatshierMessageInterface} */
                 let receivedMessage = {
                     text: messageText,
+                    time: Date.now(),
                     type: type,
                     from: app.type,
                     messager_id: senderId
@@ -188,15 +202,17 @@ function init(server) {
                         case FACEBOOK:
                             helpersBot.facebookMessageType(options.fbMessage, receivedMessage, resolve);
                             break;
+                        default:
+                            resolve([receivedMessage]);
+                            break;
                     }
-                    resolve([receivedMessage]);
                 }).then((receivedMessages) => {
                     return { messager, receivedMessages };
                 });
             }).then((promiseResult) => {
                 let sender = promiseResult.messager;
                 let receivedMessages = promiseResult.receivedMessages;
-                totalMessages = totalMessages.concat(receivedMessages);
+                totalMessages = receivedMessages.concat(totalMessages);
 
                 // 回復訊息與傳入訊息都整合，再寫入 DB
                 return sendMessagesToSockets(sender, senderId, totalMessages);
@@ -300,11 +316,6 @@ function init(server) {
                     time: message.time || Date.now(),
                     type: message.type || ''
                 };
-
-                // 不是從 LINE FACEBOOK 客戶端傳來的訊息就帶上 SYSTEM
-                if (LINE !== _message.from && FACEBOOK !== _message.from) {
-                    _message.from = SYSTEM; // FACEBOOK 客戶來的訊息； SYSTEM 系統發的訊息； LINE 客戶來的訊息
-                }
 
                 return new Promise((resolve, reject) => {
                     // 寫入 DB Promise.all 批次寫入 DB
@@ -417,6 +428,7 @@ function init(server) {
                         }));
                     }));
             }
+            return Promise.resolve([]);
         }).then(() => {
             res.sendStatus(200);
         }).catch(() => {
