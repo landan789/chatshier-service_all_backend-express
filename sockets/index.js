@@ -606,69 +606,85 @@ function init(server) {
             });
         });
 
-        // insert compose
-        socket.on('insert compose', (data) => {
-            let userId = data.userId;
-            let composes = data.composes;
-            let appId = data.appId;
-            let proceed = new Promise((resolve, reject) => {
-                resolve();
-            });
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    if (!appId) {
-                        reject(new Error());
-                        return;
-                    }
-                    appsComposes.insert(appId, composes, (result) => {
-                        resolve();
-                    });
-                });
-            });
-        });
-
         // 推播全部人
         socket.on('push composes to all', (data) => {
             let userId = data.userId;
             let appId = data.appId;
-            let messages = data.messages;
+            let composes = data.composes;
+            var messages = composes;
+
             if (!appId) {
                 return Promise.reject(new Error());
             }
-            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-                let app = snap.val();
-                let lineConfig = {
-                    channelSecret: app.secret,
-                    channelAccessToken: app.token1
-                };
-                let lineBot = new line.Client(lineConfig);
-                return lineBot.multicast(Object.keys(app.messagers), messages).then(() => {
-                    let asyncTasks = [];
-                    for (let messagerId in app.messagers) {
-                        asyncTasks.push(admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
-                            let messagersInfo = snap.val();
-                            let chatroomId = messagersInfo.chatroom_id;
-                            return chatroomId;
-                        }).then((chatroomId) => {
-                            let updateMessage = [];
-                            let messageInfo = {};
-                            for (let j in messages) {
-                                messageInfo = {
-                                    from: SYSTEM,
-                                    messager_id: '',
-                                    name: 'agent',
-                                    text: messages[j].text,
-                                    time: Date.now()
-                                };
-                                updateMessage.push(messageInfo);
-                                admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push().then((ref) => {
-                                    let messageId = ref.key;
-                                    return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).update(updateMessage[j]);
-                                });
-                            };
-                        }));
-                    }
+
+            /** @type {ChatshierChatSocketInterface} */
+            let messageToSocket = {
+                appId: appId,
+                appType: '',
+                chatroomId: '',
+                messagerId: '',
+                message: null
+            };
+
+            Promise.resolve().then(() => {
+                return new Promise((resolve, reject) => {
+                    appsMdl.findByAppId(appId, (apps) => {
+                        let app = apps[appId];
+                        let lineConfig = {
+                            channelSecret: app.secret,
+                            channelAccessToken: app.token1
+                        };
+                        messageToSocket.appType = app.type;
+                        let lineBot = new line.Client(lineConfig);
+                        resolve(lineBot);
+                    });
                 });
+            }).then((lineBot) => {
+                return new Promise((resolve, reject) => {
+                    appsMessagersMdl.findAppMessagers(appId, resolve);
+                }).then((messagers) => {
+                    return lineBot.multicast(Object.keys(messagers[appId].messagers), messages).then(() => {
+                        return messagers[appId].messagers;
+                    });
+                });
+            }).then((messagers) => {
+                return Promise.all(messages.map((message) => {
+                    return new Promise((resolve) => {
+                        appsComposes.insert(appId, message, (result) => {
+                            resolve(messagers);
+                        });
+                    });
+                }));
+            }).then((messagers) => {
+                let messagerIds = Object.keys(messagers);
+
+                return Promise.all(messagerIds.map((messagerId) => {
+                    return new Promise((resolve) => {
+                        appsMessagersMdl.findMessager(appId, messagerId, (messagersInfo) => {
+                            let chatroomId = messagersInfo[appId].messagers[messagerId].chatroom_id;
+                            resolve(chatroomId);
+                        });
+                    }).then((chatroomId) => {
+                        return Promise.all(messages.map((message) => {
+                            /** @type {ChatshierMessageInterface} */
+                            let messageInfo = {
+                                from: SYSTEM,
+                                messager_id: '',
+                                text: message.text,
+                                time: Date.now(),
+                                type: 'text'
+                            };
+
+                            return new Promise((resolve) => {
+                                appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, messageInfo, resolve);
+                            }).then(() => {
+                                messageToSocket.chatroomId = chatroomId;
+                                messageToSocket.message = messageInfo;
+                                appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageInfo);
+                            });
+                        }));
+                    });
+                }));
             });
         });
 

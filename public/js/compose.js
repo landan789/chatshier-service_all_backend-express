@@ -326,26 +326,21 @@
             sendtime = $('#send-time').val();
 
             if ($('#send-now').prop('checked')) {
+                let composes = [];
                 for (let key in inputObj) {
-                    let message = {
-                        type: 'text',
-                        text: $('#' + key).val()
-                    };
-                    messages.push(message);
-                }
-                Promise.all(messages.map((message) => {
                     let compose = {
                         type: 'text',
-                        text: message.text,
-                        status: isDraft ? 0 : 1,
-                        time: (Date.now()) - 20000
+                        text: $('#' + key).val(),
+                        status: 1,
+                        time: (Date.now()) - 60000
                     };
-                    return api.composes.insert(appId, userId, compose);
-                }));
+                    composes.push(compose);
+                }
+
                 var emitData = {
                     userId: userId,
-                    messages: messages,
-                    appId: appId
+                    appId: appId,
+                    composes: composes
                 };
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
@@ -382,16 +377,7 @@
                 };
                 messages.push(message);
             };
-
-            Promise.all(messages.map((message) => {
-                let compose = {
-                    type: 'text',
-                    text: message.text,
-                    status: isDraft ? 0 : 1,
-                    time: Date.parse(sendtime)
-                };
-                return api.composes.insert(appId, userId, compose);
-            })).then((responses) => {
+            insert(appId, userId, isDraft, messages).then((responses) => {
                 responses.map((response) => {
                     if (0 === response.stats) {
                         return;
@@ -437,6 +423,28 @@
                 $.notify('新增失敗', { type: 'warning' });
             });
         }
+    }
+
+    function insert(appId, userId, isDraft, messages) {
+        let respJsons = [];
+
+        function nextPromise(i) {
+            if (i >= messages.length) {
+                return Promise.resolve(respJsons);
+            };
+
+            let compose = {
+                type: 'text',
+                text: messages[i].text,
+                status: isDraft ? 0 : 1,
+                time: Date.parse(sendtime)
+            };
+            return api.composes.insert(appId, userId, compose).then((resJson) => {
+                respJsons.push(resJson);
+                return nextPromise(i + 1);
+            });
+        }
+        return nextPromise(0);
     }
 
     function ISODateTimeString(d) {

@@ -75,9 +75,9 @@ module.exports = (function() {
                     messagersData[appId] = {
                         messagers: messagers
                     };
+                    return messagersData;
                 });
             }
-            return messagersData;
         }).then((result) => {
             if (!result) {
                 callback(null);
