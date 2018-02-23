@@ -81,30 +81,30 @@ module.exports = (function() {
     };
 
     BotHelper.prototype._lineFileBinaryConvert = function(linebot, event, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
-            return linebot.getMessageContent(event.message.id);
-        }).then((stream) => {
+        return linebot.getMessageContent(event.message.id).then((stream) => {
             let bufs = [];
             stream.on('data', (chunk) => {
                 bufs.push(chunk);
-            }).on('end', () => {
+            });
+
+            stream.on('end', () => {
                 let buf = Buffer.concat(bufs);
-                let data = buf.toString('base64');
-                let url;
+                let base64Data = buf.toString('base64');
+                let base64Url = '';
                 switch (event.message.type) {
                     case 'image':
-                        url = 'data:image/png;base64, ' + data;
+                        base64Url = 'data:image/png;base64,' + base64Data;
                         break;
                     case 'audio':
-                        url = 'data:audio/m4a;base64, ' + data;
+                        base64Url = 'data:audio/m4a;base64,' + base64Data;
                         break;
                     case 'video':
-                        url = 'data:video/mp4;base64, ' + data;
+                        base64Url = 'data:video/mp4;base64,' + base64Data;
                         break;
                 }
-                callback(url);
+                callback(base64Url);
             });
+
             stream.on('error', (err) => {
                 console.log(err);
             });
@@ -145,6 +145,7 @@ module.exports = (function() {
                 outMessages.push(message);
                 callback(outMessages);
                 break;
+            case 'image':
             default:
                 instance._lineFileBinaryConvert(linebot, event, (url) => {
                     message.text = '';
@@ -170,10 +171,11 @@ module.exports = (function() {
         let outMessages = fbMessage.attachments.map((attachment) => {
             /** @type {ChatshierMessageInterface} */
             let message = {
-                messager_id: inMessage.messager_id,
                 from: inMessage.from,
+                time: inMessage.time,
                 text: '',
-                type: attachment.type
+                type: attachment.type,
+                messager_id: inMessage.messager_id
             };
 
             switch (attachment.type) {

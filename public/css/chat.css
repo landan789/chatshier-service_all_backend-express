@@ -281,18 +281,24 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
     }
 }
 
-.content {
-    max-width: 50%;
+.message .content {
+    max-width: 60%;
 }
 
-.content.words {
-    padding: 8px;
+.message .content.words {
+    padding: .75rem;
     border: 1px solid #b5e7a0;
-    border-radius: 10px;
+    border-radius: 1rem;
     background-color: #b5e7a0;
     display: inline-block;
     word-wrap: break-word;
     text-align: left;
+}
+
+.message .content img,
+.message .content video {
+    width: 100%;
+    border-radius: .5rem;
 }
 
 .loading-img {
@@ -359,14 +365,6 @@ div.loading-img {
         transform: rotate(360deg);
     }
 }
-
-.content img,
-.content video {
-    max-width: 300px;
-    border-radius: 5px;
-}
-
-
 
 /*message panel*/
 @media all {
