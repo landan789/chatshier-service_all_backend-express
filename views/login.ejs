@@ -8,8 +8,8 @@
     <meta name="description" content="" />
     <title>登入</title>
     <link rel="icon" href="image/favicon.ico" />
-    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+
+    <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/login_signup.css" />
 </head>
 
@@ -58,12 +58,8 @@
             </div>
         </div>
     </div>
-    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-    <script src="lib/js/bootstrap.min.js"></script>
-    <script src="config/firebaseConfig.js"></script>
-    <script src="js/_firebase-auth.js"></script>
-    <script src="config/url-config.js"></script>
+
+    <% include ../views/partials/require_js.ejs %>
     <script src="js/login.js"></script>
 </body>
 

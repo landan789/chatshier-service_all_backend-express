@@ -13,7 +13,6 @@ let agents = require('../models/agents');
 let appsComposes = require('../models/apps_composes');
 let appsAutorepliesMdl = require('../models/apps_autoreplies');
 let linetemplate = require('../models/linetemplate');
-let chats = require('../models/chats');
 let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
 let utility = require('../helpers/utility');
@@ -298,7 +297,7 @@ function init(server) {
                     messager_id: message.messager_id || '',
                     src: message.src || '',
                     text: message.text || '',
-                    time: message.time || 0,
+                    time: message.time || Date.now(),
                     type: message.type || ''
                 };
 
@@ -658,32 +657,6 @@ function init(server) {
                         }));
                     }
                 });
-            });
-        });
-
-        // 當使用者要看客戶之前的聊天記錄時要向上滾動
-        socket.on('upload history msg from front', (data, callback) => {
-            let userId = data.userId;
-            let channelId = data.channelId;
-            let head = data.head;
-            let tail = data.tail;
-            let sendData = [];
-
-            chats.findChatData(function(chatData) {
-                for (let i in chatData) {
-                    if (utility.isSameUser(chatData[i].Profile, userId, channelId)) {
-                        for (let j = head; j < tail + 1; j++) {
-                            sendData.push(chatData[i].Messages[j]);
-                        }
-                        break;
-                    }
-                }
-                let obj = {
-                    userId: userId,
-                    channelId: channelId,
-                    messages: sendData
-                };
-                callback(obj);
             });
         });
 

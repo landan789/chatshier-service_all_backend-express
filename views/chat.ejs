@@ -10,10 +10,8 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
-    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome-animation.min.css" />
-    <link rel="stylesheet" href="lib/css/animate.min.css" />
+    
+    <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/sb-admin-2.css" />
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/chat.css" />
@@ -27,7 +25,7 @@
         <div class="chat-area">
             <div id="chat_App">
                 <div class="chat-app-item" open="true" rel="group" data-toggle="tooltip" data-placement="right" title="內部群組">
-                    <img class="software-icon" src="image/group-icon.png">
+                    <img class="software-icon" src="image/logo-no-transparent.png">
                 </div>
                 <div class="chat-app-item" open="true" rel="all" data-toggle="tooltip" data-placement="right" title="全部">
                     <img class="software-icon" src="image/message.png">
@@ -63,11 +61,11 @@
             </div>
             <div id="chat-content-panel" class="column">
                 <div class="chat-prof">
-                    <h4 id="prof-nick"></h4>
+                    <h4 class="prof-nick"></h4>
                 </div>
                 <div id="canvas"></div>
                 <div id="send-message">
-                    <div class="form-upper">
+                    <div class="message-input form-upper">
                         <div class="user-room-container">
                             <select id="user-rooms"></select>
                         </div>
@@ -75,12 +73,12 @@
                             <button data-id="file-image" data-type="image" id="attImg" class="on-click-show"><i class="fa fa-file-image-o fa" aria-hidden="true"></i></button>
                             <button data-id="file-video" data-type="video" id="attVid" class="on-click-show"><i class="fa fa-file-video-o fa" aria-hidden="true"></i></button>
                             <button data-id="file-audio" data-type="audio" id="attAud" class="on-click-show"><i class="fa fa-file-audio-o fa" aria-hidden="true"></i></button>
-                            <input type="file" id="file-image" data-type="image" class="send-file" accept="image/*" />
-                            <input type="file" id="file-video" data-type="video" class="send-file" accept="video/*" />
-                            <input type="file" id="file-audio" data-type="audio" class="send-file" accept="audio/*" />
+                            <input class="send-file hide" type="file" id="file-image" data-type="image" accept="image/*" />
+                            <input class="send-file hide" type="file" id="file-video" data-type="video" accept="video/*" />
+                            <input class="send-file hide" type="file" id="file-audio" data-type="audio" accept="audio/*" />
                         </div>
                     </div>
-                    <div class="form-lower">
+                    <div class="message-input form-lower">
                         <input type="text" placeholder="輸入訊息..." size="35" id="message" />
                         <input type="button" id="submitMsg" />
                     </div>
@@ -101,22 +99,13 @@
             </div>
         </div>
     </div>
-    <% include ../views/partials/add_ticket_modal.ejs %>
-    <% include ../views/partials/ticket_info_modal.ejs %>
-    <% include ../views/partials/error_modal.ejs %>
+    <% include ../views/partials/modals/add_ticket_modal.ejs %>
+    <% include ../views/partials/modals/ticket_info_modal.ejs %>
+    <% include ../views/partials/modals/error_modal.ejs %>
     <% include ../views/partials/firebase_disable.ejs %>
-    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <% include ../views/partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
-    <script src="lib/js/bootstrap.min.js"></script>
-    <script src="lib/js/bootstrap-notify.min.js"></script>
-    <script src="config/firebaseConfig.js"></script>
-    <script src="config/url-config.js"></script>
-    <script src="config/chatshier-config.js"></script>
-    <script src="config/socket-events.js"></script>
-    <script src="js/_firebase-auth.js"></script>
-    <script src="js/helpers/restful_api.js"></script>
-    <script src="js/helpers/translate.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

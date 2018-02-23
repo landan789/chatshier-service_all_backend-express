@@ -371,29 +371,27 @@ div.loading-img {
 /*message panel*/
 @media all {
     #chat-content-panel {
+        position: relative;
         width: 40%;
-        float: left;
-        display: flex;
-        flex-direction: column;
+        height: 100%;
         background-color: #f7f8f9;
         resize: both;
     }
     .chat-prof {
+        display: flex;
+        align-items: center;
         width: 100%;
-        height: 50px;
-        padding-bottom: 1%;
+        height: 10%;
         background-color: #f7f8f9;
         position: relative;
     }
-    #prof-nick {
-        position: absolute;
+    .chat-prof .prof-nick {
         font-size: 100%;
         padding: 2%;
     }
     #canvas {
-        height: 60%;
+        height: 75%;
         width: 100%;
-        flex: 1;
     }
     .tabcontent {
         float: left;
@@ -423,11 +421,11 @@ div.loading-img {
         vertical-align: bottom;
     }
     #send-message {
-        position: relative;
+        position: absolute;
+        bottom: 0;
         width: 100%;
-        height: 100px;
-        flex-direction: column;
-        justify-content: flex-end;
+        height: 15%;
+        min-height: 100px;
         border-top: 1px solid lightgray;
         background-color: lightgray;
         display: none;
@@ -449,12 +447,15 @@ div.loading-img {
         display: none;
     }
     /*input檔案區塊*/
+    .message-input {
+        display: flex;
+        align-items: center;
+    }
+
     .form-upper {
-        height: 50px;
+        height: 50%;
         background-color: white;
-        position: absolute;
         width: 100%;
-        top: 0;
         z-index: 1;
     }
     .on-click-show {
@@ -477,15 +478,14 @@ div.loading-img {
     }
 
     .form-lower {
-        padding: 0 10px;
+        height: 50%;
+        padding: 0 1rem;
         background-color: white;
-        position: absolute;
         width: 100%;
-        bottom: 0;
         z-index: 1;
     }
     .form-lower #message {
-        width: calc(100% - 40px);
+        width: 100%;
         height: 50px;
         border: 0;
     }

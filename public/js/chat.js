@@ -757,7 +757,7 @@
                         // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                         default:
                             uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
-                            uiRequireData.profile.photo = '/image/logo-no-transparent.png';
+                            uiRequireData.profile.photo = '/image/group.png';
 
                             uiRequireData.messagerId = uiRequireData.userId = userId;
                             createChatroom(uiRequireData);
@@ -867,7 +867,7 @@
                     break;
                 case CHATSHIER:
                 default:
-                    clientUiOpts.iconSrc = '/image/group-icon.png';
+                    clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
                     break;
             }
             var tablinkHtml = generateClientHtml(clientUiOpts);
@@ -1228,7 +1228,7 @@
                 $unReadElem.text('0').hide();
             }
 
-            $('#prof-nick').text(appName);
+            $('#chat-content-panel .chat-prof .prof-nick').text(appName);
             $('#user-rooms').val(appId);
 
             // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
@@ -1269,7 +1269,7 @@
                 }
 
                 ele.attr('data-position', head);
-                chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
+                // chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
             }
         }
 

@@ -59,7 +59,7 @@
 .view-ticket.top-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin: 2% 10% -2%;
+  margin: 2% 10% 0;
 }
 
 .view-ticket .btn.ticket-add {
@@ -131,10 +131,15 @@ h2 {
 .ticket {
   display: flex;
   justify-content: center;
-  margin: 5% 10% ;
-  border : 1px solid gray ;
-  border-radius: 5px;
+  margin-top: 2.5%;
+  padding: 0 10%;
   width: 100%
+}
+
+.ticket table {
+  width: 100%;
+  border: 1px solid gray;
+  border-radius: 5px;
 }
 
 td, th {
@@ -149,21 +154,16 @@ tr:nth-child(even) {
     background-color: #ddd;
     color: #333;
 }
-table { width: 100%}
-.sidebar{
+
+.sidebar {
   width: 20%;
 }
-.main{
-  display: flex;
-  margin: 0;
-  width: 100%
-}
 
-.select{
+.select {
   width : 70%;
 }
 
-.inner{
+.inner {
   margin: 0 15px ;
   position: relative;
   float: left;
