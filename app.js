@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const serviceAccount = require('./config/firebase-adminsdk.json'); // firebase admin requires .json auth
-const databaseURL = require('./config/firebase_admin_database_url.js');
+const databaseURL = require('./config/firebase_admin_database_url');
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
@@ -46,9 +46,5 @@ app.get('/webhook/:webhookId', function(req, res) {
         res.sendStatus(500);
     }
 }); // app.get-->facebook webhook
-
-app.use('/', (err, req, res, next) => {
-    console.log(err);
-});
 
 module.exports = app;

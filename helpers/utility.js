@@ -87,31 +87,30 @@ var utility = {
      * @param {(message: LineMessageInterface) => any} callback
      */
     LINEMessageTypeForPushMessage: (vendor, callback) => {
-        let message = {};
+        /** @type {LineMessageInterface} */
+        let message = {
+            type: vendor.type
+        };
+
         switch (vendor.type) {
             case 'text':
                 message.text = vendor.text;
-                message.type = vendor.type;
                 break;
             case 'image':
                 message.previewImageUrl = vendor.src;
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'audio':
                 message.duration = 240000;
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'video':
                 message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'sticker':
-                message.stickerId = parseInt(vendor.msg.substr(vendor.msg.lastIndexOf(' ')));
-                message.packageId = parseInt(vendor.msg.substr(vendor.msg.indexOf(' ')));
-                message.type = vendor.type;
+                message.stickerId = vendor.msg.substr(vendor.msg.lastIndexOf(' '));
+                message.packageId = vendor.msg.substr(vendor.msg.indexOf(' '));
                 break;
         }
         callback(message);

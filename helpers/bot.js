@@ -115,18 +115,54 @@ module.exports = (function() {
 
     /**
      * @param {LineWebhookEventObject} event
-     * @param {ChatshierMessageInterface} message
+     * @param {ChatshierMessageInterface} prototypeMsg
      * @param {(outMessages: ChatshierMessageInterface[]) => any} callback
      */
-    BotHelper.prototype.lineMessageType = function(linebot, event, message, callback) {
-        let outMessages = [];
+    BotHelper.prototype.convertMsgByLineMsgType = function(linebot, event, prototypeMsg, callback) {
+        /** @type {ChatshierMessageInterface} */
+        let _message = {
+            from: prototypeMsg.from,
+            time: prototypeMsg.time,
+            text: '',
+            type: prototypeMsg.type,
+            messager_id: prototypeMsg.messager_id
+        };
+
+        Promise.resolve().then(() => {
+            switch (event.message.type) {
+                case 'text':
+                    let text = event.message.text;
+                    _message.text = text;
+                    return;
+                case 'sticker':
+                    let stickerId = event.message.stickerId;
+                    let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
+                    _message.src = stickerUrl;
+                    return;
+                case 'location':
+                    let latitude = event.message.latitude;
+                    let longitude = event.message.longitude;
+                    let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                    _message.src = locationUrl;
+                    return;
+                case 'image':
+                default:
+                    return new Promise((resolve) => {
+                        instance._lineFileBinaryConvert(linebot, event, (url) => {
+                            _message.src = url;
+                            resolve();
+                        });
+                    });
+            }
+        }).then(() => {
+            let outMessages = [_message];
+            callback(outMessages);
+        });
 
         switch (event.message.type) {
             case 'text':
                 let text = event.message.text;
-                message.text = text;
-                outMessages.push(message);
-                callback(outMessages);
+                _message.text = text;
                 break;
             case 'sticker':
                 let stickerId = event.message.stickerId;
@@ -158,42 +194,47 @@ module.exports = (function() {
 
     /**
      * @param {FacebookMessageEventObject} fbMessage
-     * @param {ChatshierMessageInterface} inMessage
+     * @param {ChatshierMessageInterface} prototypeMsg
      * @param {(outMessage: ChatshierMessageInterface[]) => any} callback
      */
-    BotHelper.prototype.facebookMessageType = function(fbMessage, inMessage, callback) { 
+    BotHelper.prototype.convertMsgByFbAttachType = function(fbMessage, prototypeMsg, callback) { 
         if (!fbMessage.attachments) {
-            let outMessages = [inMessage];
+            let outMessages = [prototypeMsg];
             callback(outMessages);
             return;
         }
 
         let outMessages = fbMessage.attachments.map((attachment) => {
             /** @type {ChatshierMessageInterface} */
-            let message = {
-                from: inMessage.from,
-                time: inMessage.time,
+            let _message = {
+                from: prototypeMsg.from,
+                time: prototypeMsg.time,
                 text: '',
                 type: attachment.type,
-                messager_id: inMessage.messager_id
+                messager_id: prototypeMsg.messager_id
             };
 
             switch (attachment.type) {
                 case 'location':
-                    message.src = attachment.payload.coordinates;
+                    let coordinates = attachment.payload.coordinates;
+                    let latitude = coordinates.lat;
+                    let longitude = coordinates.long;
+                    let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                    _message.src = locationUrl;
                     break;
                 case 'fallback':
-                    message.src = attachment.fallback;
+                    _message.text = attachment.fallback.title;
+                    _message.src = attachment.fallback.url;
                     break;
                 case 'image':
                 case 'video':
                 case 'audio':
                 case 'file':
                 default:
-                    message.src = attachment.payload.url;
+                    _message.src = attachment.payload.url;
                     break;
             }
-            return message;
+            return _message;
         });
 
         callback(outMessages);

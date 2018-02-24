@@ -235,39 +235,8 @@ module.exports = (function() {
             ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
             req.body.assigned && (messagerData.assigned = req.body.assigned);
+            req.body.custom_tags && (messagerData.custom_tags = req.body.custom_tags);
 
-            if (!(req.body.custom_tags instanceof Array)) {
-                return messagerData;
-            }
-
-            // 將舊的 custom_tags 陣列資料取出合併
-            return new Promise((resolve) => {
-                appsMessagersMdl.findMessager(appId, msgerId, (appMessager) => {
-                    if (!appMessager) {
-                        messagerData.custom_tags = req.body.custom_tags;
-                        resolve(messagerData);
-                        return;
-                    }
-
-                    // 預處理 custom_tags 陣列資料，使陣列當中的 tagId 不重複
-                    let messager = appMessager[appId].messagers[msgerId];
-                    messager.custom_tags = messager.custom_tags || [];
-                    messagerData.custom_tags = (function tagArrayUnique(mergedArray) {
-                        let arr = mergedArray.slice();
-                        for (let i = 0; i < arr.length; ++i) {
-                            for (let j = i + 1; j < arr.length; ++j) {
-                                if (arr[i].tag_id === arr[j].tag_id) {
-                                    arr[i].value = arr[j].value;
-                                    arr.splice(j--, 1);
-                                }
-                            }
-                        }
-                        return arr;
-                    })(messager.custom_tags.concat(req.body.custom_tags));
-                    resolve(messagerData);
-                });
-            });
-        }).then((messagerData) => {
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
                     if (!messager) {

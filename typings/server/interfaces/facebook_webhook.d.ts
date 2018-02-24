@@ -35,7 +35,7 @@ interface FacebookMessagingObject {
 interface FacebookMessageEventObject {
     mid: string,
     text: string,
-    quick_reply?: {
+    quick_reply: {
         payload: string
     },
     attachments: {
@@ -44,11 +44,11 @@ interface FacebookMessageEventObject {
             /** 
              * image, audio, video, file only
              */
-            url?: string,
+            url: string,
             /**
              * location only
              */
-            coordinates?: {
+            coordinates: {
                 lat: number,
                 long: number
             }
@@ -56,7 +56,7 @@ interface FacebookMessageEventObject {
         /**
          * fallback only
          */
-        fallback?: {
+        fallback: {
             title: string,
             url: string,
             payload: null,

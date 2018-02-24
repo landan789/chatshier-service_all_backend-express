@@ -180,7 +180,9 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
-                            appsMdl.findByAppId(appId, resolve);
+                            appsMdl.findByAppId(appId, (apps) => {
+                                resolve(apps);
+                            });
                         }).then((apps) => {
                             let app = apps[appId];
 
@@ -439,11 +441,13 @@ module.exports = (function() {
                     let updateUser = {
                         group_ids: userGroupIds
                     };
-                    usersMdl.updateUserByUserId(msgerId, updateUser, resolve);
+                    usersMdl.updateUserByUserId(msgerId, updateUser, () => {
+                        resolve();
+                    });
                 }).then(() => {
                     // 抓取出 group 裡的 app_ids 清單
                     // 將此 group member 從所有 app 裡的 messagers 刪除
-                    return groupsMdl.findAppIds(groupId).then((appIds) => {
+                    return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                         return Promise.all(appIds.map((appId) => {
                             return appsMessagersMdl.deleteMessager(appId, msgerId);
                         }));

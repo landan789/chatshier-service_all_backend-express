@@ -25,7 +25,6 @@ module.exports = (function() {
             avgChat: 0,
             totalChat: 0,
             chatTimeCount: 0,
-            unRead: 0,
             chatroom_id: '',
             custom_tags: '',
             isDeleted: 0
@@ -160,12 +159,6 @@ module.exports = (function() {
                     });
                 });
             };
-
-            // 防止 unRead 不是數字型態無法加總
-            if ('number' !== typeof messager.unRead || isNaN(parseInt(messager.unRead))) {
-                messager.unRead = 0;
-            }
-            messager.unRead += (messagerInDB.unRead || 0); // 計算未讀訊息
 
             let currentTime = Date.now();
             if (messagerInDB.recentChat) {

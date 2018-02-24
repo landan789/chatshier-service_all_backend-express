@@ -95,50 +95,50 @@ interface LineMessageInterface {
     /**
      * type: text
      */
-    text: string;
+    text?: string;
 
     /**
      * type: sticker
      */
-    packageId: string;
+    packageId?: string;
 
     /**
      * type: sticker
      */
-    stickerId: string;
+    stickerId?: string;
 
     /**
      * type: image | video | audio
      */
-    originalContentUrl: string;
+    originalContentUrl?: string;
 
     /**
      * type: image | video
      */
-    previewImageUrl: string;
+    previewImageUrl?: string;
 
     /**
      * type: audio
      */
-    duration: number;
+    duration?: number;
 
     /**
      * type: location
      */
-    title: string;
+    title?: string;
 
     /**
      * type: location
      */
-    address: string;
+    address?: string;
 
     /**
      * type: location
      */
-    latitude: number;
+    latitude?: number;
 
     /**
      * type: location
      */
-    longitude: number;
+    longitude?: number;
 }

@@ -610,12 +610,11 @@ window.auth.ready.then(function(currentUser) {
 
         var $internalGroupPanel = $('#create-internal-room');
         var $groupBody = $internalGroupPanel.find('.panel-body');
-        $addGroupModal.find('.modal-body form').submit(false);
 
         $addGroupModal.on('click', '#add_group_submit', function() {
             $addGroupModal.modal('hide');
 
-            var groupName = $addGroupModal.find('input[name="add_group_name"]').val();
+            var groupName = $addGroupModal.find('input#add_group_name').val();
             if (!groupName) {
                 return;
             }
@@ -1278,78 +1277,78 @@ function groupType(index, app) {
         case LINE:
             appStr =
                 '<tr class="active ' + index + '">' +
-                '<th class="col-md-3 col-lg-3">LINE</th>' +
-                '<th class="col-md-9 col-lg-9">' +
-                '<div id="group1" class="line">' +
-                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                '</div>' +
-                '</th>' +
+                    '<th class="col-md-3 col-lg-3">LINE</th>' +
+                    '<th class="col-md-9 col-lg-9">' +
+                        '<div id="group1" class="line">' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                        '</div>' +
+                    '</th>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>LINE應用程式名稱:</td>' +
-                '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
+                    '<td>LINE應用程式名稱:</td>' +
+                    '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Channel Id 1: </td>' +
-                '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
+                    '<td>Channel Id 1: </td>' +
+                    '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Channel Secret 1: </td>' +
-                '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
+                    '<td>Channel Secret 1: </td>' +
+                    '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Channel Access Token 1: </td>' +
-                '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
+                    '<td>Channel Access Token 1: </td>' +
+                    '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Webhook URL: </td>' +
-                '<td class="long-token">' +
-                '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                '</td>' +
+                    '<td>Webhook URL: </td>' +
+                    '<td class="long-token">' +
+                        '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                    '</td>' +
                 '</tr>';
             $('#' + app.group_id + '-body').append(appStr);
             break;
         case FACEBOOK:
             appStr =
                 '<tr class="active ' + index + '">' +
-                '<th class="col-md-3 col-lg-3">Facebook</th>' +
-                '<th class="col-md-9 col-lg-9">' +
-                '<div id="group3" class="fb">' +
-                '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
-                '</div>' +
-                '</th>' +
+                    '<th class="col-md-3 col-lg-3">Facebook</th>' +
+                    '<th class="col-md-9 col-lg-9">' +
+                        '<div id="group3" class="fb">' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                        '</div>' +
+                    '</th>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Facebook應用程式名稱:</td>' +
-                '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
+                    '<td>Facebook應用程式名稱:</td>' +
+                    '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Page Id: </td>' +
-                '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
+                    '<td>Page Id: </td>' +
+                    '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>App Id: </td>' +
-                '<td class="long-token" id="prof-fbAppId">' + app.id2 + '</td>' +
+                    '<td>App Id: </td>' +
+                    '<td class="long-token" id="prof-fbAppId">' + app.id2 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>App Secret: </td>' +
-                '<td class="long-token" id="prof-fbAppSecret">' + app.secret + '</td>' +
+                    '<td>App Secret: </td>' +
+                    '<td class="long-token" id="prof-fbAppSecret">' + app.secret + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Validation Token: </td>' +
-                '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
+                    '<td>Validation Token: </td>' +
+                    '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Page Token: </td>' +
-                '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
+                    '<td>Page Token: </td>' +
+                    '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
                 '</tr>' +
                 '<tr class="' + index + '">' +
-                '<td>Webhook URL: </td>' +
-                '<td class="long-token">' +
-                '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                '</td>' +
+                    '<td>Webhook URL: </td>' +
+                    '<td class="long-token">' +
+                        '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                    '</td>' +
                 '</tr>';
             $('#' + app.group_id + '-body').append(appStr);
             break;

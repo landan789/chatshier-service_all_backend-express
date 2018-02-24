@@ -124,7 +124,7 @@ module.exports = (function() {
      * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
      * @param {string|string[]} groupIds
      * @param {string} userId
-     * @param {(appIds: string[]) => any} [callback]
+     * @param {(appIds: string[]|null) => any} [callback]
      * @returns {Promise<string[]>}
      */
     GroupsModel.prototype.findAppIds = function(groupIds, userId, callback) {
@@ -179,7 +179,7 @@ module.exports = (function() {
     /**
      * 根據 groupid|groupid[] 回傳 群組中對應的 使用者 uesrIDs
      * @param {string|string[]} groupIds
-     * @param {(userIds: string[]) => any} callback
+     * @param {(userIds: string[]|null) => any} callback
      */
     GroupsModel.prototype.findUserIds = function(groupIds, callback) {
         // 多行處理

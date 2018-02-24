@@ -80,7 +80,7 @@
     var $calendarSdtPicker = $('#start_datetime_picker');
     var $calendarEdtPicker = $('#end_datetime_picker');
     var $calendarModalTitle = $calendarModal.find('.modal-title');
-    var $calendarModalForm = $calendarModal.find('form.calendar-modal-form');
+    var $calendarModalForm = $calendarModal.find('input-wrapper');
     var $eventTitle = $calendarModalForm.find('input.event-title');
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
