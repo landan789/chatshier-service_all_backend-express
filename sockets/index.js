@@ -635,7 +635,8 @@ function init(server) {
             let appId = data.appId;
             let composes = data.composes;
             let messages = composes;
-
+            let messagers;
+            // reject 後 沒有 catch
             if (!appId) {
                 return Promise.reject(new Error());
             }
@@ -658,18 +659,20 @@ function init(server) {
                 });
             }).then((lineBot) => {
                 return new Promise((resolve, reject) => {
-                    appsMessagersMdl.findAppMessagers(appId, (appsMessagers) => {
-                        resolve(appsMessagers);
-                    });
-                }).then((appsMessagers) => {
-                    return lineBot.multicast(Object.keys(appsMessagers[appId].messagers), messages).then(() => {
-                        return appsMessagers[appId].messagers;
+                    // 使用 callback 再 resolve
+                    appsMessagersMdl.findAppMessagers(appId, resolve);
+                }).then((_messagers) => {
+                    messagers = _messagers;
+                    // 減少使用 巢狀 promise 結構
+                    return lineBot.multicast(Object.keys(messagers[appId].messagers), messages).then(() => {
+                        return messagers[appId].messagers;
                     });
                 });
             }).then((messagers) => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve) => {
                         appsComposes.insert(appId, message, (result) => {
+                            // 失敗需要 reject, catch
                             resolve(messagers);
                         });
                     });
@@ -677,6 +680,7 @@ function init(server) {
             }).then((messagers) => {
                 let messagerIds = Object.keys(messagers);
 
+                // 直接使用 580 與613行的 messagers 變數 做 foreach 或 promise all ，不需要再個別查找，每一次對DB查詢就會多一次網路傳輸
                 return Promise.all(messagerIds.map((messagerId) => {
                     return new Promise((resolve) => {
                         appsMessagersMdl.findMessager(appId, messagerId, (messagersInfo) => {
@@ -686,6 +690,8 @@ function init(server) {
                     }).then((chatroomId) => {
                         return Promise.all(messages.map((message) => {
                             /** @type {ChatshierMessageInterface} */
+                            // 不需使用 info 命名
+
                             let messageInfo = {
                                 from: SYSTEM,
                                 messager_id: '',
@@ -695,9 +701,8 @@ function init(server) {
                             };
 
                             return new Promise((resolve) => {
-                                appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, messageInfo, (messageInDB) => {
-                                    resolve(messageInDB);
-                                });
+                                // () => { resolve() } 的寫法較好
+                                appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, messageInfo, resolve);
                             }).then(() => {
                                 /** @type {ChatshierChatSocketInterface} */
                                 let messageToSocket = {
