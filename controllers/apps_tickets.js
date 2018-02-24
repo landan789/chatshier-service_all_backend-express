@@ -13,15 +13,58 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
+    const GET = 'GET';
+    const POST = 'POST';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
+
     /**
      * 使用者的 AppId 清單前置檢查程序
-     *
-     * @param {string} userId
-     * @param {string} appId
      */
-    let paramsChecking = function(params) {
+    let _paramsCheckingGetAll = function(params) {
         let appId = params.appid;
         let userId = params.userid;
+
+        return Promise.resolve().then(() => {
+            // 1. 先用 userId 去 users model 找到 appId 清單
+            return new Promise((resolve, reject) => {
+                if (!userId) {
+                    reject(API_ERROR.USERID_WAS_EMPTY);
+                    return;
+                }
+                usersMdl.findUser(userId, (data) => {
+                    // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
+                    if (!data) {
+                        reject(API_ERROR.USER_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(data);
+                });
+            });
+        }).then((user) => {
+            return new Promise((resolve, reject) => {
+                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
+                    if (!appIds) {
+                        reject(API_ERROR.APPID_WAS_EMPTY);
+                        return;
+                    } else if (appId && -1 === appIds.indexOf(appId)) {
+                        // 如果指定的 appId 沒有在使用者設定的 app 清單中，則回應錯誤
+                        reject(API_ERROR.APP_FAILED_TO_FIND);
+                        return;
+                    }
+                    resolve(appIds);
+                });
+            });
+        });
+    };
+
+    /**
+     * 使用者的 AppId 清單前置檢查程序
+     */
+    let _requestChecking = function(req) {
+        let appId = req.params.appid;
+        let userId = req.params.userid;
+        let method = req.method;
 
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
@@ -45,7 +88,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, userId, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -71,7 +114,7 @@ module.exports = (function() {
             var app = Object.values(apps)[0];
             var groupId = app.group_id;
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, params.userid, (groups) => {
+                groupsMdl.findGroups(groupId, userId, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
@@ -101,7 +144,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
             };
 
-            if (READ === member.type) {
+            if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
             };
             return appId;
@@ -109,43 +152,8 @@ module.exports = (function() {
     };
 
     AppsTicketsController.prototype.getAllByUserid = (req, res, next) => {
-        var proceed = new Promise((resolve, reject) => {
-            resolve();
-        });
-
-        proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                let userId = req.params.userid;
-
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-
-                usersMdl.findUser(userId, (data) => {
-                    var user = data;
-                    if ('' === user || null === user || undefined === user) {
-                        reject(API_ERROR.USER_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(user);
-                });
-            });
-        }).then((userId) => {
-            // 2. 再根據 appId 清單去 keywordreplies model 抓取清單
-            return new Promise((resolve, reject) => {
-                var groupId = userId.group_ids;
-                groupsMdl.findAppIds(groupId, req.params.userid, (appIds) => {
-                    if (!appIds) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                        return;
-                    }
-                    resolve(appIds);
-                });
-            });
-        }).then((appIds) => {
+        return _paramsCheckingGetAll(req.params).then((appIds) => {
             let appId = req.params.appid;
-
             return new Promise((resolve, reject) => {
                 appsTicketsMdl.findAppTicketsByAppIds(appId || appIds, (data) => {
                     var apps = data;
@@ -175,7 +183,7 @@ module.exports = (function() {
     };
 
     AppsTicketsController.prototype.getOne = (req, res, next) => {
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             let appId = checkedAppId;
             let ticketId = req.params.ticketid;
             return new Promise((resolve, reject) => {
@@ -222,7 +230,7 @@ module.exports = (function() {
             isDeleted: 0
         };
 
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
@@ -262,7 +270,7 @@ module.exports = (function() {
             updatedTime: req.body.updatedTime ? req.body.updatedTime : 0
         };
 
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
 
             if (!ticketId) {
@@ -317,7 +325,7 @@ module.exports = (function() {
         var appId = '';
         var ticketId = req.params.ticketid;
 
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
 
             if (!ticketId) {

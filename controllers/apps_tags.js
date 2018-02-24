@@ -12,12 +12,16 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
+    const GET = 'GET';
+    const POST = 'POST';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
     function AppsTagsController() {}
 
     /**
      * 使用者的 AppId 清單前置檢查程序
      */
-    let paramsCheckingGetAll = function(params) {
+    let _paramsCheckingGetAll = function(params) {
         let appId = params.appid;
         let userId = params.userid;
 
@@ -57,10 +61,10 @@ module.exports = (function() {
     /**
      * 使用者的 AppId 清單前置檢查程序
      */
-    let paramsChecking = function(params) {
-        let appId = params.appid;
-        let userId = params.userid;
-
+    let _requestChecking = function(req) {
+        let appId = req.params.appid;
+        let userId = req.params.userid;
+        let method = req.method;
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
@@ -83,7 +87,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, userId, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -109,7 +113,7 @@ module.exports = (function() {
             var app = Object.values(apps)[0];
             var groupId = app.group_id;
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, params.userid, (groups) => {
+                groupsMdl.findGroups(groupId, userId, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
@@ -139,7 +143,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
             };
 
-            if (READ === member.type) {
+            if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
             };
             return appId;
@@ -147,7 +151,7 @@ module.exports = (function() {
     };
 
     AppsTagsController.prototype.getAll = function(req, res) {
-        return paramsCheckingGetAll(req.params).then((appIds) => {
+        return _paramsCheckingGetAll(req.params).then((appIds) => {
             // 1. 根據 appId 清單去 tags model 抓取清單
             return new Promise((resolve, reject) => {
                 appsTagsMdl.findTags(appIds, (appsTags) => {
@@ -190,7 +194,7 @@ module.exports = (function() {
             isDeleted: 0
         };
 
-        return paramsChecking(req.params).then(() => {
+        return _requestChecking(req).then(() => {
             // 1. 將 tag 資料插入至指定 appId 中
             return new Promise((resolve, reject) => {
                 appsTagsMdl.insertTag(appId, postTagData, (data) => {
@@ -237,7 +241,7 @@ module.exports = (function() {
             putTagData.setsType = req.body.setsType ? req.body.setsType : 0;
         }
 
-        return paramsChecking(req.params).then(() => {
+        return _requestChecking(req).then(() => {
             // 1. 將 tag 資料更新至指定 appId 中
             return new Promise((resolve, reject) => {
                 appsTagsMdl.updateTag(appId, tagId, putTagData, (data) => {
@@ -269,7 +273,7 @@ module.exports = (function() {
         let appId = req.params.appid;
         let tagId = req.params.tagid;
 
-        return paramsChecking(req.params).then(() => {
+        return _requestChecking(req).then(() => {
             // 1. 藉由 tags model 將指定的 tag 資料刪除
             return new Promise((resolve, reject) => {
                 appsTagsMdl.removeTag(appId, tagId, (data) => {

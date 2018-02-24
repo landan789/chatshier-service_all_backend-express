@@ -13,23 +13,10 @@
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
 
+    const unpermittedCode = '3.16';
+
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
-        // 設定 bootstrap notify 的預設值
-        // 1. 設定為顯示後2秒自動消失
-        // 2. 預設位置為螢幕中間上方
-        // 3. 進場與結束使用淡入淡出
-        $.notifyDefaults({
-            delay: 2000,
-            placement: {
-                from: 'top',
-                align: 'center'
-            },
-            animate: {
-                enter: 'animated fadeInDown',
-                exit: 'animated fadeOutUp'
-            }
-        });
 
         $(document).on('click', '#check-btn', modalSubmit);
         $(document).on('click', '#close-btn', modalClose);
@@ -152,6 +139,13 @@
                 if (4 === rowCount) {
                     appendNewTr(appId);
                 }
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (unpermittedCode === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
             });
         }
     } // end of delMsgCanvas
@@ -199,6 +193,13 @@
             }
             $(trGrop).insertAfter('#' + appendId);
             findedGreetingIds[greetingId] = greetingId;
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $.notify('失敗', { type: 'danger' });
+            }
+            if (unpermittedCode === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
         });
     } // end of modalSubmit
 

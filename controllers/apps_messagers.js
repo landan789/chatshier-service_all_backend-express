@@ -12,11 +12,15 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
+    const GET = 'GET';
+    const POST = 'POST';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
     let instance = new AppsMessagersController();
 
     function AppsMessagersController() {}
 
-    AppsMessagersController.prototype.paramsCheckingGetAll = function(params) {
+    AppsMessagersController.prototype._paramsCheckingGetAll = function(params) {
         params = params || {};
         let userId = params.userid;
         let appId = params.appid;
@@ -57,10 +61,10 @@ module.exports = (function() {
     /**
      * 使用者的 AppId 清單前置檢查程序
      */
-    AppsMessagersController.prototype.paramsChecking = function(params) {
-        let appId = params.appid;
-        let userId = params.userid;
-
+    AppsMessagersController.prototype._requestChecking = function(req) {
+        let appId = req.params.appid;
+        let userId = req.params.userid;
+        let method = req.method;
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
             return new Promise((resolve, reject) => {
@@ -83,7 +87,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, userId, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -109,7 +113,7 @@ module.exports = (function() {
             var app = Object.values(apps)[0];
             var groupId = app.group_id;
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, params.userid, (groups) => {
+                groupsMdl.findGroups(groupId, userId, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
@@ -139,7 +143,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
             };
 
-            if (READ === member.type) {
+            if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
             };
             return appId;
@@ -152,7 +156,7 @@ module.exports = (function() {
     AppsMessagersController.prototype.getAllMessagers = function(req, res) {
         let appId = req.params.appid;
 
-        return instance.paramsCheckingGetAll(req.params).then((appIds) => {
+        return instance._paramsCheckingGetAll(req.params).then((appIds) => {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
@@ -182,7 +186,7 @@ module.exports = (function() {
 
     AppsMessagersController.prototype.getMessager = function(req, res) {
         let msgerId = req.params.messagerid;
-        return instance.paramsChecking(req.params).then((checkedAppId) => {
+        return instance._requestChecking(req).then((checkedAppId) => {
             return new Promise((resolve, reject) => {
                 let appId = checkedAppId;
                 if (!msgerId) {
@@ -220,7 +224,7 @@ module.exports = (function() {
     AppsMessagersController.prototype.updateMessager = function(req, res) {
         let msgerId = req.params.messagerid;
         let appId = '';
-        return instance.paramsChecking(req.params).then((checkedAppId) => {
+        return instance._requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
             if (!msgerId) {
                 return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);

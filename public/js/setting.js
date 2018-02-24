@@ -16,18 +16,6 @@ window.translate.ready.then(function(json) {
 window.auth.ready.then(function(currentUser) {
     userId = currentUser.uid;
 
-    $.notifyDefaults({
-        delay: 2000,
-        placement: {
-            from: 'top',
-            align: 'center'
-        },
-        animate: {
-            enter: 'animated fadeInDown',
-            exit: 'animated fadeOutUp'
-        }
-    });
-
     // ACTIONS
     $('#setting-modal').on('hidden.bs.modal', function() {
         clearAppModalBody();

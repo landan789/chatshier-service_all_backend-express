@@ -43,14 +43,19 @@ window.restfulAPI = (function() {
      * @param {Response} res
      */
     var responseChecking = function(res) {
-        if (!res.ok) {
+        if (!res.ok && res.status < 500) {
             return Promise.reject(new Error(res.status + ' ' + res.statusText));
+        }
+
+        if (!res.ok && res.status >= 500) {
+            return res.json().then(function(resJson) {
+                return Promise.reject(resJson);
+            });
         }
 
         return res.json().then(function(resJson) {
             if (1 !== resJson.status) {
-                console.error(JSON.stringify(resJson, null, 2));
-                return Promise.reject(new Error(resJson.status + ' ' + resJson.msg));
+                return Promise.reject(resJson);
             }
             return resJson;
         });

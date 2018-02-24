@@ -14,14 +14,19 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
-    function AppsKeywordrepliesController() {}
+    const GET = 'GET';
+    const POST = 'POST';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
+    function AppsKeywordrepliesController() {};
 
     /**
      * 使用者的 AppId 清單前置檢查程序
      */
-    let paramsChecking = function(params) {
-        let appId = params.appid;
-        let userId = params.userid;
+    let _requestChecking = function(req) {
+        let appId = req.params.appid;
+        let userId = req.params.userid;
+        let method = req.method;
 
         return Promise.resolve().then(() => {
             // 1. 先用 userId 去 users model 找到 appId 清單
@@ -45,7 +50,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(user.group_ids, params.userid, (appIds) => {
+                groupsMdl.findAppIds(user.group_ids, userId, (appIds) => {
                     if (!appIds) {
                         reject(API_ERROR.APPID_WAS_EMPTY);
                         return;
@@ -71,7 +76,7 @@ module.exports = (function() {
             var app = Object.values(apps)[0];
             var groupId = app.group_id;
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, params.userid, (groups) => {
+                groupsMdl.findGroups(groupId, userId, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
@@ -101,7 +106,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
             };
 
-            if (READ === member.type) {
+            if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
             };
             return appId;
@@ -168,7 +173,7 @@ module.exports = (function() {
     };
 
     AppsKeywordrepliesController.prototype.getOne = function(req, res) {
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (data) => {
@@ -208,7 +213,7 @@ module.exports = (function() {
             isDeleted: 0
         };
         var appId = '';
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 appsKeywordrepliesMdl.insert(appId, postKeywordreplyData, (result) => {
@@ -278,7 +283,7 @@ module.exports = (function() {
             updatedTime: req.body.updatedTime || Date.now()
         };
 
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve) => {
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => resolve(keywordrepliesData));
@@ -352,7 +357,7 @@ module.exports = (function() {
         let keywordreplyId = req.params.keywordreplyid;
         let appId = '';
 
-        return paramsChecking(req.params).then((checkedAppId) => {
+        return _requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
