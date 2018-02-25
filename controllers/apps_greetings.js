@@ -1,6 +1,9 @@
 module.exports = (function() {
     let API_ERROR = require('../config/api_error');
     let API_SUCCESS = require('../config/api_success');
+    let util = require('util'); 
+
+    let controllerCre = require('../cores/controller');
 
     let appsMdl = require('../models/apps');
     let usersMdl = require('../models/users');
@@ -16,7 +19,10 @@ module.exports = (function() {
     const POST = 'POST';
     const PUT = 'PUT';
     const DELETE = 'DELETE';
+
     function AppsGreetingsController() {}
+
+    util.inherits(AppsGreetingsController, controllerCre.constructor);
 
     /**
      * 使用者的 AppId 清單前置檢查程序
@@ -151,7 +157,7 @@ module.exports = (function() {
         });
     };
 
-    AppsGreetingsController.prototype.getAll = (req, res) => {
+    AppsGreetingsController.prototype.getAll = function(req, res) {
         return _paramsCheckingGetAll(req.params).then((appIds) => {
             return new Promise((resolve, reject) => {
                 appsGreetingsMdl.findAll(appIds, (data) => {
@@ -180,7 +186,7 @@ module.exports = (function() {
         });
     };
 
-    AppsGreetingsController.prototype.getOne = (req, res) => {
+    AppsGreetingsController.prototype.getOne = function(req, res) {
         return _requestChecking(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
