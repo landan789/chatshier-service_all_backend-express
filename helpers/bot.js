@@ -197,7 +197,7 @@ module.exports = (function() {
      * @param {ChatshierMessageInterface} prototypeMsg
      * @param {(outMessage: ChatshierMessageInterface[]) => any} callback
      */
-    BotHelper.prototype.convertMsgByFbAttachType = function(fbMessage, prototypeMsg, callback) { 
+    BotHelper.prototype.convertMsgByFbAttachType = function(fbbot, fbMessage, prototypeMsg, callback) { 
         if (!fbMessage.attachments) {
             let outMessages = [prototypeMsg];
             callback(outMessages);
@@ -239,6 +239,15 @@ module.exports = (function() {
 
         callback(outMessages);
     };
+
+    BotHelper.prototype.convertMsg = function(bot, event, prototypeMessage, app, callback) {
+        switch (app.type) {
+            case LINE:
+                break;
+            case FACEBOOK:
+                break;
+        }
+    }
 
     let instance = new BotHelper();
     return instance;

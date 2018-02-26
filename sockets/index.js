@@ -207,7 +207,7 @@ function init(server) {
                             });
                             break;
                         case FACEBOOK:
-                            helpersBot.convertMsgByFbAttachType(options.fbMessage, prototypeMessage, (receivedMessages) => {
+                            helpersBot.convertMsgByFbAttachType(bot, options.fbMessage, prototypeMessage, (receivedMessages) => {
                                 resolve(receivedMessages);
                             });
                             break;
