@@ -75,17 +75,17 @@
             } else {
                 $('#inputText').append(
                     '<div style="margin:2%">' +
-                    '<span class="remove-btn">刪除</span>' +
-                    '<tr>' +
-                    '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td style="background-color: #ddd">' +
-                    '<form style="padding:1%">' +
-                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                    '</form>' +
-                    '</td>' +
-                    '</tr>' +
+                        '<span class="remove-btn">刪除</span>' +
+                        '<tr>' +
+                            '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td style="background-color: #ddd">' +
+                                '<form style="padding:1%">' +
+                                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                                '</form>' +
+                            '</td>' +
+                        '</tr>' +
                     '</div>'
                 );
                 inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
@@ -181,7 +181,7 @@
         $historyTableElem.empty();
         $draftTableElem.empty();
         $reservationTableElem.empty();
-        return api.composes.getOne(appId, userId).then(function(resJson) {
+        return api.composes.getAll(userId, appId).then(function(resJson) {
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];

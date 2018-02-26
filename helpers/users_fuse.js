@@ -3,10 +3,9 @@ module.exports = (function() {
     const Fuse = require('fuse.js');
 
     /** @type {Fuse} */
-    let fuseRunner = null;
+    let fuseRunner;
     /** @type {FuzzySearchUser[]} */
     let usersList = [];
-    let instance = new UsersFuzzySearch();
 
     /** @type {Fuse.FuseOptions} */
     let fuseOptions = {
@@ -86,5 +85,6 @@ module.exports = (function() {
         });
     };
 
+    let instance = new UsersFuzzySearch();
     return instance;
 })();

@@ -9,7 +9,9 @@ module.exports = (function() {
 
     let lineBot;
     let fbBot;
-    function BotService() {};
+    function BotService() {
+        this.bot = {};
+    };
 
     BotService.prototype.parser = function(req, res, server, app) {
         return new Promise((resolve, reject) => {
@@ -21,6 +23,7 @@ module.exports = (function() {
                     };
                     line.middleware(lineConfig)(req, res, () => {
                         lineBot = new line.Client(lineConfig);
+                        this.bot = lineBot;
                         resolve(lineBot);
                     });
                     break;
@@ -35,6 +38,8 @@ module.exports = (function() {
                         };
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
                         fbBot = facebook.create(facebookConfig, server);
+                        this.bot = fbBot;
+
                         resolve(fbBot);
                     });
                     break;
@@ -46,8 +51,20 @@ module.exports = (function() {
         return Promise.resolve().then(() => {
             
         });
-
     };
+
+    BotService.prototype.replyMessage = function(senderId, replyToken, messages, app) {
+        return Promise.resolve().then(() => {
+            switch (app.type) {
+                case LINE:
+                    return this.bot.replyMessage(replyToken, messages);
+                case FACEBOOK:
+                    return Promise.all(messages.map((message) => {
+                        return this.bot.sendTextMessage(senderId, message);
+                    }));
+            };
+        });
+    }
 
     return new BotService();
 })();

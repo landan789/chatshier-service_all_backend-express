@@ -227,7 +227,7 @@ function init(server) {
          */
         function followProcess(senderId, option) {
             let totalMessages = [];
-
+            let sender;
             return new Promise((resolve) => {
                 appsGreetingsMdl.findGreetings(appId, (greetings) => {
                     resolve(greetings);
@@ -238,30 +238,16 @@ function init(server) {
 
                 // 沒有訊息資料就不對 SDK 發送訊息
                 if (0 === totalMessages.length) {
-                    return;
+                    return Promise.resolve();
                 };
-
-                return Promise.resolve().then(() => {
-                    switch (app.type) {
-                        case LINE:
-                            let replyToken = option.event.replyToken;
-                            return bot.replyMessage(replyToken, greetingMessages);
-                        case FACEBOOK:
-                            return Promise.all(greetingMessages.map((message) => {
-                                return bot.sendTextMessage(senderId, message);
-                            }));
-                    }
-                });
+                return botSvc.replyMessage(senderId, option.event.replyToken, totalMessages, app);
             }).then(() => {
                 return updateSenderProfile(appId, senderId);
-            }).then((sender) => {
-                if (0 === totalMessages.length) {
-                    return;
-                };
-
-                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length).then(() => {
-                    return sendMessagesToSockets(sender, senderId, totalMessages);
-                });
+            }).then((_sender) => {
+                sender = _sender;
+                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
+            }).then(() => {
+                return sendMessagesToSockets(sender, senderId, totalMessages);
             });
         }
 
@@ -304,8 +290,8 @@ function init(server) {
                 };
 
                 return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messagerInDB) => {
-                        resolve(messagerInDB);
+                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
+                        resolve(messager);
                     });
                 });
             });
@@ -433,6 +419,8 @@ function init(server) {
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
                         }).then(() => {
+
+                        }).then(() => {
                             return nextMessage(i + 1);
                         });
                     })(0);
@@ -459,7 +447,8 @@ function init(server) {
             return Promise.resolve([]);
         }).then(() => {
             res.sendStatus(200);
-        }).catch(() => {
+        }).catch((error) => {
+            console.trace(error);
             res.sendStatus(500);
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);

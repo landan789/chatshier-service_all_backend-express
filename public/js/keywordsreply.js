@@ -85,13 +85,13 @@
                         $keywordreplyEditModal.modal('hide');
                         $.notify('失敗', { type: 'danger' });
                         $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                        // return loadKeywordsReplies(appId, userId);
+                        return loadKeywordsReplies(appId, userId);
                     }
                     if (unpermittedCode === resJson.code) {
                         $keywordreplyEditModal.modal('hide');
                         $.notify('無此權限', { type: 'danger' });
                         $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                        // return loadKeywordsReplies(appId, userId);
+                        return loadKeywordsReplies(appId, userId);
                     }
                 });
             });
@@ -156,7 +156,7 @@
 
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
-        return api.keywordreply.getOne(appId, userId).then(function(resJson) {
+        return api.keywordreply.getAll(userId, appId).then(function(resJson) {
             keywordrepliesData = resJson.data;
             $openTableElem.empty();
             $draftTableElem.empty();
@@ -248,13 +248,13 @@
                 $keywordreplyAddModal.modal('hide');
                 $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
                 $.notify('失敗', { type: 'danger' });
-                // return loadKeywordsReplies(appId, userId);
+                return loadKeywordsReplies(appId, userId);
             }
             if (unpermittedCode === resJson.code) {
                 $keywordreplyAddModal.modal('hide');
                 $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
                 $.notify('無此權限', { type: 'danger' });
-                // return loadKeywordsReplies(appId, userId);
+                return loadKeywordsReplies(appId, userId);
             }
         });
     }
