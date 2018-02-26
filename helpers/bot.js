@@ -1,8 +1,10 @@
 module.exports = (function() {
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
+    const FOLLOW = 'FOLLOW';
     const line = require('@line/bot-sdk');
     const facebook = require('facebook-bot-messenger');
+    let appsGreetingsMdl = require('../models/apps_greetings');
 
     function BotHelper() {};
 
@@ -211,6 +213,37 @@ module.exports = (function() {
             return outMessages;
         });
     };
+
+    /**
+     * 取得 Chatshier 平台需要回傳的訊息
+     */
+    BotHelper.prototype.findChatshierReplyMessages = function(type, text, senderId, option, apps) {
+        let appId = Object.keys(apps)[0];
+        let app = apps[appId];
+        return Promise.all([
+            new Promise((resolve, reject) => {
+                if (FOLLOW !== type) {
+                    resolve(null);
+                };
+                appsGreetingsMdl.findGreetings(appId, (greetings) => {
+                    if (null === greetings) {
+                        resolve(null);
+                    };
+                    resolve(greetings);
+                });
+            }),
+            new Promise((resolve, reject) => {
+
+            }),
+            new Promise((resolve, reject) => {
+
+            }),
+            new Promise((resolve, reject) => {
+
+            })
+        ]);
+
+    }
 
     let instance = new BotHelper();
     return instance;

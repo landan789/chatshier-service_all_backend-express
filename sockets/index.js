@@ -290,8 +290,8 @@ function init(server) {
                 };
 
                 return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messagerInDB) => {
-                        resolve(messagerInDB);
+                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
+                        resolve(messager);
                     });
                 });
             });
@@ -418,6 +418,8 @@ function init(server) {
                                 return followProcess(senderId, option);
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
+                        }).then(() => {
+
                         }).then(() => {
                             return nextMessage(i + 1);
                         });

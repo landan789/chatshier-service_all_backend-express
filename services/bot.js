@@ -10,7 +10,7 @@ module.exports = (function() {
     let lineBot;
     let fbBot;
     function BotService() {
-        this.bot;
+        this.bot = {};
     };
 
     BotService.prototype.parser = function(req, res, server, app) {
