@@ -170,7 +170,7 @@
             var $ticketBody = $ticketTable.find('.ticket-body');
             $ticketBody.empty();
 
-            return api.ticket.getOne(appId, userId).then(function(resJson) {
+            return api.ticket.getAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
 
                 if (appData && appData[appId] && appData[appId].tickets) {
@@ -382,7 +382,7 @@
 
     window.auth.ready.then(function(currentUser) {
         var preventUpdateProfile = false;
-        userId = window.auth.currentUser.uid;
+        userId = currentUser.uid;
 
         // 攜帶欲 appId 向伺服器端註冊依據
         // 使伺服器端可以針對特定 app 發送 socket 資料

@@ -181,7 +181,7 @@
         $historyTableElem.empty();
         $draftTableElem.empty();
         $reservationTableElem.empty();
-        return api.composes.getAll(userId, appId).then(function(resJson) {
+        return api.composes.getAll(appId, userId).then(function(resJson) {
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];

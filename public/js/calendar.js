@@ -266,7 +266,7 @@
 
         return Promise.all([
             api.calendar.getAll(userId), // 取得所有的行事曆事件
-            api.ticket.getAll(userId) // 取得所有的待辦事項
+            api.ticket.getAll('', userId) // 取得所有的待辦事項
         ]);
     }).then(function(respJsons) {
         var calendars = respJsons[0].data;

@@ -156,7 +156,7 @@
 
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
-        return api.keywordreply.getAll(userId, appId).then(function(resJson) {
+        return api.keywordreply.getAll(appId, userId).then(function(resJson) {
             keywordrepliesData = resJson.data;
             $openTableElem.empty();
             $draftTableElem.empty();
