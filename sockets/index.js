@@ -61,10 +61,10 @@ function init(server) {
         /**
          * @param {string} messageText
          * @param {string} senderId
-         * @param {any} [options]
+         * @param {any} [option]
          * @returns {Promise<any>}
          */
-        function messageProcess(messageText, senderId, options) {
+        function messageProcess(messageText, senderId, option) {
             let messageId = cipher.createHashKey(messageText);
             let totalMessages = [];
 
@@ -162,7 +162,7 @@ function init(server) {
 
                     switch (app.type) {
                         case LINE:
-                            let replyToken = options.lineEvent.replyToken;
+                            let replyToken = option.event.replyToken;
                             return bot.replyMessage(replyToken, replyMessages);
                         case FACEBOOK:
                             return Promise.all(replyMessages.map((message) => {
@@ -182,7 +182,7 @@ function init(server) {
 
                 switch (app.type) {
                     case LINE:
-                        let messageType = options.lineEvent.message.type;
+                        let messageType = option.event.message.type;
                         type = messageType;
                         break;
                     case FACEBOOK:
@@ -201,7 +201,7 @@ function init(server) {
                 };
 
                 return new Promise((resolve) => {
-                    helpersBot.convertMessage(bot, prototypeMessage, app.type, options, (receivedMessages) => {
+                    helpersBot.convertMessage(bot, prototypeMessage, app.type, option, (receivedMessages) => {
                         resolve(receivedMessages);
                     });
                 }).then((receivedMessages) => {
@@ -222,10 +222,10 @@ function init(server) {
 
         /**
          * @param {string} senderId
-         * @param {any} [options]
+         * @param {any} [option]
          * @returns {Promise<any>}
          */
-        function followProcess(senderId, options) {
+        function followProcess(senderId, option) {
             let totalMessages = [];
 
             return new Promise((resolve) => {
@@ -244,7 +244,7 @@ function init(server) {
                 return Promise.resolve().then(() => {
                     switch (app.type) {
                         case LINE:
-                            let replyToken = options.lineEvent.replyToken;
+                            let replyToken = option.event.replyToken;
                             return bot.replyMessage(replyToken, greetingMessages);
                         case FACEBOOK:
                             return Promise.all(greetingMessages.map((message) => {
@@ -418,8 +418,8 @@ function init(server) {
                         }
 
                         let lineEventType = lineEvent.type.toUpperCase();
-                        let messageOpts = {
-                            lineEvent: lineEvent
+                        let option = {
+                            event: lineEvent
                         };
 
                         return Promise.resolve().then(() => {
@@ -427,9 +427,9 @@ function init(server) {
                                 !messageCacheMap.get(lineEvent.message.id) && lineEvent.message) {
                                 messageCacheMap.set(lineEvent.message.id, true);
                                 let messageText = lineEvent.message.text || '';
-                                return messageProcess(messageText, senderId, messageOpts);
+                                return messageProcess(messageText, senderId, option);
                             } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
-                                return followProcess(senderId, messageOpts);
+                                return followProcess(senderId, option);
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
                         }).then(() => {
@@ -448,11 +448,11 @@ function init(server) {
 
                             let senderId = messaging[i].sender.id;
                             let messageText = messaging[i].message.text;
-                            let messageOpts = {
-                                fbMessage: messaging[i].message
+                            let option = {
+                                message: messaging[i].message
                             };
 
-                            return messageProcess(messageText, senderId, messageOpts);
+                            return messageProcess(messageText, senderId, option);
                         })(0);
                     }));
             }

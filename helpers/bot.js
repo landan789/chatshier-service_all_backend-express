@@ -121,7 +121,7 @@ module.exports = (function() {
      * @param {(outMessage: ChatshierMessageInterface[]) => any} [callback]
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, opts, callback) {
+    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, option, callback) {
         return Promise.resolve().then(() => {
             switch (appType) {
                 case LINE:
@@ -133,29 +133,28 @@ module.exports = (function() {
                         type: protoMessage.type,
                         messager_id: protoMessage.messager_id
                     };
-                    let lineEvent = opts.lineEvent;
 
                     return Promise.resolve().then(() => {
-                        switch (lineEvent.message.type) {
+                        switch (option.event.message.type) {
                             case 'text':
-                                let text = lineEvent.message.text;
+                                let text = option.event.message.text;
                                 _message.text = text;
                                 return [_message];
                             case 'sticker':
-                                let stickerId = lineEvent.message.stickerId;
+                                let stickerId = option.event.eventvent.message.stickerId;
                                 let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                                 _message.src = stickerUrl;
                                 return [_message];
                             case 'location':
-                                let latitude = lineEvent.message.latitude;
-                                let longitude = lineEvent.message.longitude;
+                                let latitude = option.event.message.latitude;
+                                let longitude = option.event.message.longitude;
                                 let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                                 _message.src = locationUrl;
                                 return [_message];
                             case 'image':
                             default:
                                 return new Promise((resolve) => {
-                                    instance._lineFileBinaryConvert(bot, lineEvent, (url) => {
+                                    instance._lineFileBinaryConvert(bot, option.event, (url) => {
                                         _message.src = url;
                                         resolve([_message]);
                                     });
@@ -163,15 +162,15 @@ module.exports = (function() {
                         }
                     });
                 case FACEBOOK:
-                    let fbMessage = opts.fbMessage;
+                    let message = option.message;
 
                     return Promise.resolve().then(() => {
-                        if (!fbMessage.attachments) {
+                        if (!message.attachments) {
                             let outMessages = [protoMessage];
                             return outMessages;
                         }
 
-                        return fbMessage.attachments.map((attachment) => {
+                        return message.attachments.map((attachment) => {
                             /** @type {ChatshierMessageInterface} */
                             let _message = {
                                 from: protoMessage.from,
