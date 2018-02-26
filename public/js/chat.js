@@ -553,34 +553,6 @@
                 var senderId = message.messager_id;
                 var messagers = appsMessagersData[appId].messagers;
 
-                // 如果是 LINE 的訊息，要根據 LINE 平台的訊息格式轉換資料
-                if (LINE === appType) {
-                    switch (message.type) {
-                        case 'text':
-                            break;
-                        case 'image':
-                            var imageUrl = message.src;
-                            message.text = '<img src="' + imageUrl + '" style="width: 100%; max-width: 500px;" />';
-                            break;
-                        case 'audio':
-                            var audioUrl = message.src;
-                            message.text = '<audio controls><source src="' + audioUrl + '" type="audio/mp4"></audio>';
-                            break;
-                        case 'video':
-                            var videoUrl = message.src;
-                            message.text = '<video controls><source src="' + videoUrl + '" type="video/mp4"></video>';
-                            break;
-                        case 'sticker':
-                            var stickerUrl = message.src;
-                            message.text = '<img src="' + stickerUrl + '" style="width: 100%; max-width: 200px;" />';
-                            break;
-                        case 'location':
-                            var locationUrl = message.src;
-                            message.text = '<a target="_blank" href="' + locationUrl + '">location</a>';
-                            break;
-                    }
-                }
-
                 return Promise.resolve().then(function() {
                     var sender = senderId ? messagers[senderId] : {};
                     if (sender && sender.name) {
@@ -828,7 +800,7 @@
 
         function generateMessageHtml(srcHtml, message, messagerName, appType) {
             messagerName = SYSTEM === message.from ? 'Chatshier' : (messagerName || '');
-            var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
+            var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
             // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
             // 如果訊息是來自於其他平台的話，訊息一律放在左邊
@@ -842,7 +814,7 @@
                     '<span>' + messagerName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
-                    '<span class="content ' + (isMedia ? 'stikcer' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                     '<strong></strong>' +
                 '</span>' +
@@ -935,7 +907,7 @@
                 case 'sticker':
                     return '<img src="' + message.src + '" style="width: 100%; max-width: 200px;" />';
                 case 'location':
-                    return '<a target="_blank" href="' + message.src + '">location</a>';
+                    return '<i class="fa fa-location-arrow location-icon"></i><span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>';
                 default:
                     return message.text || '';
             }

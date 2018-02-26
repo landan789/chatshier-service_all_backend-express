@@ -295,6 +295,11 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
     text-align: left;
 }
 
+.message .location-icon {
+    margin-right: .5rem;
+    color: red;
+}
+
 .message .content img,
 .message .content video {
     width: 100%;
