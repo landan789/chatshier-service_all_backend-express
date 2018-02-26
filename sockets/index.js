@@ -450,18 +450,17 @@ function init(server) {
                 case FACEBOOK:
                     let facebookEntries = req.body.entry || [];
                     return Promise.all(facebookEntries.map((facehookEntry) => {
-                        let fbMessagesPack = facehookEntry.messaging || [];
+                        let messaging = facehookEntry.messaging || [];
 
                         return (function nextMessage(i) {
-                            if (i >= fbMessagesPack.length) {
+                            if (i >= messaging.length) {
                                 return Promise.resolve();
                             }
 
-                            let messagePack = fbMessagesPack[i];
-                            let senderId = messagePack.sender.id;
-                            let messageText = messagePack.message.text;
+                            let senderId = messaging[i].sender.id;
+                            let messageText = messaging[i].message.text;
                             let messageOpts = {
-                                fbMessage: messagePack.message
+                                fbMessage: messaging[i].message
                             };
 
                             return messageProcess(messageText, senderId, messageOpts);
