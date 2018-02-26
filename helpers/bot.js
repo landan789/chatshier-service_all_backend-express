@@ -114,140 +114,104 @@ module.exports = (function() {
     };
 
     /**
-     * @param {LineWebhookEventObject} event
-     * @param {ChatshierMessageInterface} prototypeMsg
-     * @param {(outMessages: ChatshierMessageInterface[]) => any} callback
+     * @param {any} bot
+     * @param {ChatshierMessageInterface} protoMessage
+     * @param {string} appType
+     * @param {any} opts
+     * @param {(outMessage: ChatshierMessageInterface[]) => any} [callback]
+     * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMsgByLineMsgType = function(linebot, event, prototypeMsg, callback) {
-        /** @type {ChatshierMessageInterface} */
-        let _message = {
-            from: prototypeMsg.from,
-            time: prototypeMsg.time,
-            text: '',
-            type: prototypeMsg.type,
-            messager_id: prototypeMsg.messager_id
-        };
+    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, opts, callback) {
+        return Promise.resolve().then(() => {
+            switch (appType) {
+                case LINE:
+                    /** @type {ChatshierMessageInterface} */
+                    let _message = {
+                        from: protoMessage.from,
+                        time: protoMessage.time,
+                        text: '',
+                        type: protoMessage.type,
+                        messager_id: protoMessage.messager_id
+                    };
+                    let lineEvent = opts.lineEvent;
 
-        Promise.resolve().then(() => {
-            switch (event.message.type) {
-                case 'text':
-                    let text = event.message.text;
-                    _message.text = text;
-                    return;
-                case 'sticker':
-                    let stickerId = event.message.stickerId;
-                    let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
-                    _message.src = stickerUrl;
-                    return;
-                case 'location':
-                    let latitude = event.message.latitude;
-                    let longitude = event.message.longitude;
-                    let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                    _message.src = locationUrl;
-                    return;
-                case 'image':
-                default:
-                    return new Promise((resolve) => {
-                        instance._lineFileBinaryConvert(linebot, event, (url) => {
-                            _message.src = url;
-                            resolve();
+                    return Promise.resolve().then(() => {
+                        switch (lineEvent.message.type) {
+                            case 'text':
+                                let text = lineEvent.message.text;
+                                _message.text = text;
+                                return [_message];
+                            case 'sticker':
+                                let stickerId = lineEvent.message.stickerId;
+                                let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
+                                _message.src = stickerUrl;
+                                return [_message];
+                            case 'location':
+                                let latitude = lineEvent.message.latitude;
+                                let longitude = lineEvent.message.longitude;
+                                let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                                _message.src = locationUrl;
+                                return [_message];
+                            case 'image':
+                            default:
+                                return new Promise((resolve) => {
+                                    instance._lineFileBinaryConvert(bot, lineEvent, (url) => {
+                                        _message.src = url;
+                                        resolve([_message]);
+                                    });
+                                });
+                        }
+                    });
+                case FACEBOOK:
+                    let fbMessage = opts.fbMessage;
+
+                    return Promise.resolve().then(() => {
+                        if (!fbMessage.attachments) {
+                            let outMessages = [protoMessage];
+                            return outMessages;
+                        }
+
+                        return fbMessage.attachments.map((attachment) => {
+                            /** @type {ChatshierMessageInterface} */
+                            let _message = {
+                                from: protoMessage.from,
+                                time: protoMessage.time,
+                                text: '',
+                                type: attachment.type,
+                                messager_id: protoMessage.messager_id
+                            };
+
+                            switch (attachment.type) {
+                                case 'location':
+                                    let coordinates = attachment.payload.coordinates;
+                                    let latitude = coordinates.lat;
+                                    let longitude = coordinates.long;
+                                    let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                                    _message.src = locationUrl;
+                                    break;
+                                case 'fallback':
+                                    _message.text = attachment.fallback.title;
+                                    _message.src = attachment.fallback.url;
+                                    break;
+                                case 'image':
+                                case 'video':
+                                case 'audio':
+                                case 'file':
+                                default:
+                                    _message.src = attachment.payload.url;
+                                    break;
+                            }
+                            return _message;
                         });
                     });
-            }
-        }).then(() => {
-            let outMessages = [_message];
-            callback(outMessages);
-        });
-
-        switch (event.message.type) {
-            case 'text':
-                let text = event.message.text;
-                _message.text = text;
-                break;
-            case 'sticker':
-                let stickerId = event.message.stickerId;
-                let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
-                message.text = '';
-                message.src = stickerUrl;
-                outMessages.push(message);
-                callback(outMessages);
-                break;
-            case 'location':
-                let latitude = event.message.latitude;
-                let longitude = event.message.longitude;
-                let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                message.text = '';
-                message.src = locationUrl;
-                outMessages.push(message);
-                callback(outMessages);
-                break;
-            case 'image':
-            default:
-                instance._lineFileBinaryConvert(linebot, event, (url) => {
-                    message.text = '';
-                    message.src = url;
-                    outMessages.push(message);
-                    callback(outMessages);
-                });
-        }
-    };
-
-    /**
-     * @param {FacebookMessageEventObject} fbMessage
-     * @param {ChatshierMessageInterface} prototypeMsg
-     * @param {(outMessage: ChatshierMessageInterface[]) => any} callback
-     */
-    BotHelper.prototype.convertMsgByFbAttachType = function(fbbot, fbMessage, prototypeMsg, callback) { 
-        if (!fbMessage.attachments) {
-            let outMessages = [prototypeMsg];
-            callback(outMessages);
-            return;
-        }
-
-        let outMessages = fbMessage.attachments.map((attachment) => {
-            /** @type {ChatshierMessageInterface} */
-            let _message = {
-                from: prototypeMsg.from,
-                time: prototypeMsg.time,
-                text: '',
-                type: attachment.type,
-                messager_id: prototypeMsg.messager_id
-            };
-
-            switch (attachment.type) {
-                case 'location':
-                    let coordinates = attachment.payload.coordinates;
-                    let latitude = coordinates.lat;
-                    let longitude = coordinates.long;
-                    let locationUrl = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                    _message.src = locationUrl;
-                    break;
-                case 'fallback':
-                    _message.text = attachment.fallback.title;
-                    _message.src = attachment.fallback.url;
-                    break;
-                case 'image':
-                case 'video':
-                case 'audio':
-                case 'file':
                 default:
-                    _message.src = attachment.payload.url;
-                    break;
+                    return [protoMessage];
             }
-            return _message;
+        }).then((outMessages) => {
+            ('function' === typeof callback) && callback(outMessages);
+            return outMessages;
         });
-
-        callback(outMessages);
     };
-
-    BotHelper.prototype.convertMsg = function(bot, event, prototypeMessage, app, callback) {
-        switch (app.type) {
-            case LINE:
-                break;
-            case FACEBOOK:
-                break;
-        }
-    }
 
     let instance = new BotHelper();
     return instance;

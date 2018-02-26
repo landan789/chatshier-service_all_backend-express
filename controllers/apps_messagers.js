@@ -224,6 +224,7 @@ module.exports = (function() {
     AppsMessagersController.prototype.updateMessager = function(req, res) {
         let msgerId = req.params.messagerid;
         let appId = '';
+
         return instance._requestChecking(req).then((checkedAppId) => {
             appId = checkedAppId;
             if (!msgerId) {

@@ -1033,9 +1033,11 @@ window.restfulAPI = (function() {
     })();
 
     if (window.auth && window.auth.ready) {
-        // 當 firebase 登入完成後自動更新 API 需要的 JSON Web Token
-        window.auth.ready.then(function() {
-            setJWT(window.localStorage.getItem('jwt'));
+        // 當 firebase 更新時同時更新 API 需要的 JSON Web Token
+        window.auth.onIdTokenChanged(function(currentUser) {
+            return currentUser.getIdToken(false).then(function(jwt) {
+                setJWT(jwt);
+            });
         });
     }
 

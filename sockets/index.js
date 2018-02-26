@@ -52,9 +52,8 @@ function init(server) {
     let messageCacheMap = new Map();
     let webhookProcQueue = [];
 
-    app.post('/webhook/:webhookid', (req, res, next) => {
-        let webhookid = req.params.webhookid;
-        let nowTime = new Date().getTime();
+    app.post('/webhook/:webhookId', (req, res, next) => {
+        let webhookId = req.params.webhookId;
         let bot = {};
         let appId = '';
         let app = {};
@@ -102,10 +101,12 @@ function init(server) {
                 let autorepliesPromise = new Promise((resolve) => {
                     appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
                         autoreplies = autoreplies || {};
+                        let timeNow = Date.now();
+
                         for (let key in autoreplies) {
                             let endedTime = autoreplies[key].endedTime;
                             let startedTime = autoreplies[key].startedTime;
-                            if (startedTime <= nowTime && nowTime < endedTime) {
+                            if (startedTime <= timeNow && timeNow < endedTime) {
                                 continue;
                             }
                             delete autoreplies[key];
@@ -200,21 +201,9 @@ function init(server) {
                 };
 
                 return new Promise((resolve) => {
-                    switch (app.type) {
-                        case LINE:
-                            helpersBot.convertMsgByLineMsgType(bot, options.lineEvent, prototypeMessage, (receivedMessages) => {
-                                resolve(receivedMessages);
-                            });
-                            break;
-                        case FACEBOOK:
-                            helpersBot.convertMsgByFbAttachType(bot, options.fbMessage, prototypeMessage, (receivedMessages) => {
-                                resolve(receivedMessages);
-                            });
-                            break;
-                        default:
-                            resolve([prototypeMessage]);
-                            break;
-                    }
+                    helpersBot.convertMessage(bot, prototypeMessage, app.type, options, (receivedMessages) => {
+                        resolve(receivedMessages);
+                    });
                 }).then((receivedMessages) => {
                     return { messager, receivedMessages };
                 });
@@ -395,7 +384,7 @@ function init(server) {
 
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
             return new Promise((resolve, reject) => {
-                appsMdl.findAppsByWebhookId(webhookid, (apps) => {
+                appsMdl.findAppsByWebhookId(webhookId, (apps) => {
                     if (!apps) {
                         return reject(API_ERROR.APP_DID_NOT_EXIST);
                     }
@@ -469,11 +458,12 @@ function init(server) {
             }
             return Promise.resolve([]);
         }).then(() => {
-            let idx = webhookProcQueue.indexOf(webhookPromise);
-            idx >= 0 && webhookProcQueue.splice(idx, 1);
             res.sendStatus(200);
         }).catch(() => {
             res.sendStatus(500);
+        }).then(() => {
+            let idx = webhookProcQueue.indexOf(webhookPromise);
+            idx >= 0 && webhookProcQueue.splice(idx, 1);
         });
 
         webhookProcQueue.push(webhookPromise);
@@ -591,7 +581,7 @@ function init(server) {
             let msgerId = req.messagerid;
             let appId = '';
 
-            return appsMessagersCtl.paramsChecking(req).then((checkedAppId) => {
+            return appsMessagersCtl._requestChecking(req).then((checkedAppId) => {
                 appId = checkedAppId;
                 if (!msgerId) {
                     return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
