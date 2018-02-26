@@ -75,17 +75,17 @@
             } else {
                 $('#inputText').append(
                     '<div style="margin:2%">' +
-                        '<span class="remove-btn">刪除</span>' +
-                        '<tr>' +
-                            '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td style="background-color: #ddd">' +
-                                '<form style="padding:1%">' +
-                                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                                '</form>' +
-                            '</td>' +
-                        '</tr>' +
+                    '<span class="remove-btn">刪除</span>' +
+                    '<tr>' +
+                    '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td style="background-color: #ddd">' +
+                    '<form style="padding:1%">' +
+                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                    '</form>' +
+                    '</td>' +
+                    '</tr>' +
                     '</div>'
                 );
                 inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
@@ -257,19 +257,19 @@
                 '</div>';
             $('body').append(dialogModalTemplate);
             dialogModalTemplate = void 0;
-
+            $('#textContent').text(textContent);
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.find('.btn-secondary').on('click', function() {
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.modal({
@@ -284,6 +284,7 @@
         $('.error-input').hide();
         $('.textinput').val('');
         $('#send-time').val('');
+        $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
         inputObj = {};
         inputNum = 0;
@@ -342,6 +343,7 @@
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 } else {
+                    insert(appId, userId, isDraft, composes);
                     $composesAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
@@ -419,17 +421,30 @@
             if (i >= messages.length) {
                 return Promise.resolve(respJsons);
             };
+            if (false === isDraft) {
+                let compose = {
+                    type: 'text',
+                    text: messages[i].text,
+                    status: isDraft ? 0 : 1,
+                    time: Date.parse(sendtime)
+                };
+                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                    respJsons.push(resJson);
+                    return nextPromise(i + 1);
+                });
+            } else {
+                let compose = {
+                    type: 'text',
+                    text: messages[i].text,
+                    status: isDraft ? 0 : 1,
+                    time: Date.now()
+                };
+                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                    respJsons.push(resJson);
+                    return nextPromise(i + 1);
+                });
+            }
 
-            let compose = {
-                type: 'text',
-                text: messages[i].text,
-                status: isDraft ? 0 : 1,
-                time: Date.parse(sendtime)
-            };
-            return api.composes.insert(appId, userId, compose).then((resJson) => {
-                respJsons.push(resJson);
-                return nextPromise(i + 1);
-            });
         }
         return nextPromise(0);
     }
