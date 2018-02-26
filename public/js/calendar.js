@@ -80,7 +80,7 @@
     var $calendarSdtPicker = $('#start_datetime_picker');
     var $calendarEdtPicker = $('#end_datetime_picker');
     var $calendarModalTitle = $calendarModal.find('.modal-title');
-    var $calendarModalForm = $calendarModal.find('input-wrapper');
+    var $calendarModalForm = $calendarModal.find('.input-wrapper');
     var $eventTitle = $calendarModalForm.find('input.event-title');
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
@@ -140,10 +140,10 @@
                 $endDatetimePicker.parent().parent().show();
                 $eventTitle.removeAttr('disabled');
                 $formCheckLabel.attr('style', 'display: block');
-                $startDatetimePicker.prop('disabled', false);
-                $endDatetimePicker.prop('disabled', false);
-                $eventIsAllday.prop('disabled', false);
-                $eventContent.prop('disabled', false);
+                $startDatetimePicker.removeAttr('disabled');
+                $endDatetimePicker.removeAttr('disabled');
+                $eventIsAllday.removeAttr('disabled');
+                $eventContent.removeAttr('disabled');
 
                 // 新增行事曆事件處理，先 off 再 on 避免事件疊加
                 $addCalendarBtn.off('click').on('click', function() {
@@ -183,11 +183,11 @@
                         $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
                         $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
                         $endDatetimePicker.parent().parent().show();
-                        $eventTitle.prop('disabled', false);
-                        $startDatetimePicker.prop('disabled', false);
-                        $endDatetimePicker.prop('disabled', false);
-                        $eventIsAllday.prop('disabled', false);
-                        $eventContent.prop('disabled', false);
+                        $eventTitle.removeAttr('disabled');
+                        $startDatetimePicker.removeAttr('disabled');
+                        $endDatetimePicker.removeAttr('disabled');
+                        $eventIsAllday.removeAttr('disabled');
+                        $eventContent.removeAttr('disabled');
                         break;
                     case CalendarEventTypes.Ticket:
                         $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
@@ -195,11 +195,11 @@
                         $formCheckLabel.hide();
                         $startDatetime.text(CalendarEventLabels.TICKETENDEDTIME);
                         $endDatetimePicker.parent().parent().hide();
-                        $eventTitle.prop('disabled', true);
-                        $startDatetimePicker.prop('disabled', true);
-                        $endDatetimePicker.prop('disabled', true);
-                        $eventIsAllday.prop('disabled', true);
-                        $eventContent.prop('disabled', true);
+                        $eventTitle.attr('disabled', true);
+                        $startDatetimePicker.attr('disabled', true);
+                        $endDatetimePicker.attr('disabled', true);
+                        $eventIsAllday.attr('disabled', true);
+                        $eventContent.attr('disabled', true);
                         break;
                 }
                 // 更新事件
@@ -229,14 +229,37 @@
             // execute after user drag and drop an event.
             eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
                 var timeGap = delta.asMilliseconds();
-                var calendarData = {
-                    title: event.title,
-                    startedTime: event.startedTime + timeGap,
-                    endedTime: event.endedTime + timeGap,
-                    description: event.description,
-                    isAllDay: event.allDay ? 1 : 0
-                };
-                return api.calendar.update(event.calendarId, event.id, userId, calendarData);
+
+                return Promise.resolve().then(function() {
+                    switch (event.eventType) {
+                        case CalendarEventTypes.Calendar:
+                            var calendarId = event.calendarId;
+                            var calendarEventId = event.id;
+                            var calendarData = {
+                                title: event.title,
+                                startedTime: event.startedTime + timeGap,
+                                endedTime: event.endedTime + timeGap,
+                                description: event.description,
+                                isAllDay: event.allDay ? 1 : 0
+                            };
+                            return api.calendar.update(calendarId, calendarEventId, userId, calendarData);
+                        case CalendarEventTypes.Ticket:
+                            var appId = event.calendarId;
+                            var ticketId = event.id;
+                            var tickerData = {
+                                description: event.description,
+                                dueTime: event.dueTime + timeGap,
+                                priority: event.priority,
+                                messagerId: event.messager_id,
+                                status: event.status
+                            };
+                            return api.ticket.update(appId, ticketId, userId, tickerData);
+                        default:
+                            return Promise.reject(new Error());
+                    }
+                }).catch(function() {
+                    revertFunc();
+                });
             },
             eventDurationEditable: true
         });
@@ -246,14 +269,17 @@
             api.ticket.getAll(userId) // 取得所有的待辦事項
         ]);
     }).then(function(respJsons) {
-        var allAppEvents = respJsons[0].data;
+        var calendars = respJsons[0].data;
         var calendarEventList = [];
-        for (var calendarId in allAppEvents) {
-            for (var eventId in allAppEvents[calendarId].events) {
-                var calendarEvent = allAppEvents[calendarId].events[eventId];
+
+        for (var calendarId in calendars) {
+            var calendarEvents = calendars[calendarId].events;
+            for (var eventId in calendarEvents) {
+                var calendarEvent = calendarEvents[eventId];
                 if (calendarEvent.isDeleted) {
                     continue; // 如果此行事曆事件已被刪除，則忽略不處理
                 }
+
                 var cEventItem = new CalendarEventItem();
                 cEventItem = Object.assign(cEventItem, calendarEvent);
                 // cEventItem.allDay = !!calendarEvent.isAllDay;
@@ -269,10 +295,12 @@
             }
         }
 
-        var allAppTickets = respJsons[1].data;
-        for (var ticketAppId in allAppTickets) {
-            for (var ticketId in allAppTickets[ticketAppId].tickets) {
-                var ticket = allAppTickets[ticketAppId].tickets[ticketId];
+        var appTickets = respJsons[1].data;
+        for (var ticketAppId in appTickets) {
+            var tickets = appTickets[ticketAppId].tickets;
+
+            for (var ticketId in tickets) {
+                var ticket = tickets[ticketId];
                 if (ticket.isDeleted) {
                     continue;
                 }
@@ -323,7 +351,7 @@
             }
         });
 
-        if (undefined !== end) {
+        if (end) {
             var endDateTime = ('number' === typeof end) ? new Date(end) : end.toDate();
             var endDateTimePrev = new Date(endDateTime);
             eTimePickerData.date(endDateTime);
@@ -425,14 +453,12 @@
         switch (calendarEvent.eventType) {
             case CalendarEventTypes.Ticket:
                 // 將原本的 ticket 的資料原封不動複製一份，只更新建立時間與到期時間
-                let tickerData = {
-                    createdTime: calendarData.startedTime,
+                var tickerData = {
                     description: calendarData.description,
                     dueTime: calendarData.endedTime,
                     priority: calendarEvent.priority,
-                    messagerId: calendarEvent.messagerId,
-                    status: calendarEvent.status,
-                    updatedTime: Date.now()
+                    messagerId: calendarEvent.messager_id,
+                    status: calendarEvent.status
                 };
 
                 return api.ticket.update(calendarEvent.calendarId, calendarEvent.id, userId, tickerData).then(function(response) {

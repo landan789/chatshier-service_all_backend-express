@@ -172,17 +172,12 @@
             // var ownerAgent = $('#add-form-agents option:selected').val();
             var description = $('#add-form-description').val();
 
-            var nowTime = Date.now();
-            var dueTime = nowTime + 86400000 * 3; // 過期時間預設為3天後
-
             var newTicket = {
-                createdTime: nowTime,
                 description: description || '',
-                dueTime: dueTime,
+                dueTime: Date.now() + (86400000 * 3), // 過期時間預設為3天後
                 priority: priority,
-                messagerId: messagerId,
-                status: status,
-                updatedTime: nowTime
+                messager_id: messagerId,
+                status: status
             };
 
             return api.ticket.insert(ticketAppId, userId, newTicket).then(function() {

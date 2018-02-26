@@ -220,13 +220,11 @@ module.exports = (function() {
 
     AppsTicketsController.prototype.postOne = (req, res, next) => {
         var postTikeck = {
-            createdTime: req.body.createdTime === undefined ? '' : req.body.createdTime,
             description: req.body.description === undefined ? '' : req.body.description,
             dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
             priority: req.body.priority === undefined ? '' : req.body.priority,
-            messagerId: req.body.messagerId === undefined ? '' : req.body.messagerId,
+            messager_id: req.body.messager_id === undefined ? '' : req.body.messager_id,
             status: req.body.status === undefined ? '' : req.body.status,
-            updatedTime: req.body.updatedTime === undefined ? '' : req.body.updatedTime,
             isDeleted: 0
         };
 

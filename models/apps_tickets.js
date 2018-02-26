@@ -3,11 +3,11 @@ var appsTickets = {};
 
 appsTickets._schema = (callback) => {
     var json = {
-        createdTime: '',
+        createdTime: Date.now(),
         description: '',
         dueTime: Date.now(),
         priority: 1,
-        messagerId: '',
+        messager_id: '',
         status: 2,
         updatedTime: Date.now(),
         isDeleted: 0
@@ -110,11 +110,10 @@ appsTickets.insertByAppid = (appId, postTicket, callback) => {
 };
 
 appsTickets.updateByAppIdByticketId = (appId, ticketId, putTicket, callback) => {
-    var procced = new Promise((resolve, reject) => {
-        resolve();
-    });
+    var procced = Promise.resolve();
 
     procced.then(() => {
+        putTicket.updatedTime = Date.now();
         return admin.database().ref('apps/' + appId + '/tickets/' + ticketId).update(putTicket);
     }).then(() => {
         callback(true);
@@ -129,6 +128,7 @@ appsTickets.removeByAppIdByTicketId = (appId, ticketId, callback) => {
     });
 
     var deleteTicket = {
+        updatedTime: Date.now(),
         isDeleted: 1
     };
 
