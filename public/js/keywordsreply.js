@@ -36,7 +36,7 @@
         $keywordreplyAddModal.on('show.bs.modal', function() {
             $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
             $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
-
+            $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
             // 新增 modal 即將顯示事件發生時，將 App 清單更新
             $appSelector.empty();
             for (var appId in appsData) {

@@ -266,7 +266,7 @@
             var moreInfoHtml =
                 '<tr>' +
                     '<th>客戶ID</th>' +
-                    '<td class="edit">' + ticketData.messagerId + '</td>' +
+                    '<td class="edit">' + ticketData.messager_id + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="priority">優先</th>' +
@@ -320,13 +320,11 @@
                 var priority = parseInt($addTicketModal.find('#add-form-priority option:selected').val(), 10);
 
                 var newTicket = {
-                    createdTime: Date.now(),
                     description: description || '',
                     dueTime: Date.now() + (86400000 * 3), // 過期時間預設為3天後
                     priority: priority,
-                    messagerId: msgerId,
-                    status: status,
-                    updatedTime: Date.now()
+                    messager_id: msgerId,
+                    status: status
                 };
 
                 return api.ticket.insert(appId, userId, newTicket).then(function() {
@@ -788,12 +786,15 @@
         }
 
         function responseHistoryMsg(data) {
-            var $messagePanel = $('.tabcontent[app-id="' + data.appId + '"][chatroom-id="' + data.chatroomId + '"] .message-panel');
+            var appId = data.appId;
+            var appType = appsData[appId].type;
+            var chatroomId = data.chatroomId;
+            var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
 
             var originHeight = $messagePanel.prop('scrollHeight');
             $messagePanel.find('.message:first').remove();
             $messagePanel.find('.message-day:lt(3)').remove();
-            $messagePanel.prepend(historyMsgToStr(data.messages, appsMessagersData[data.appId].messagers));
+            $messagePanel.prepend(historyMsgToStr(data.messages, appsMessagersData[data.appId].messagers, appType));
 
             var nowHeight = $messagePanel[0].scrollHeight;
             $messagePanel.animate({
@@ -825,13 +826,16 @@
             return html;
         }
 
-        function generateMessageHtml(srcHtml, message, messagerName) {
+        function generateMessageHtml(srcHtml, message, messagerName, appType) {
             messagerName = SYSTEM === message.from ? 'Chatshier' : (messagerName || '');
             var isMedia = srcHtml.startsWith('<a') || srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
             // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
             // 如果訊息是來自於其他平台的話，訊息一律放在左邊
-            var shouldRightSide = SYSTEM === message.from || CHATSHIER === message.from;
+            var senderId = message.messager_id;
+            var shouldRightSide =
+                (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from)) ||
+                (appType === CHATSHIER && userId === senderId);
 
             return '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
@@ -906,7 +910,7 @@
             if (msgKeys.length < 10) {
                 msgStr += NO_HISTORY_MSG;
             }
-            msgStr += historyMsgToStr(messages, appsMessagersData[appId].messagers);
+            msgStr += historyMsgToStr(messages, appsMessagersData[appId].messagers, appType);
             canvas.append(
                 '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
                     '<div class="message-panel">' + msgStr + '</div>' +
@@ -952,7 +956,7 @@
             return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
         }
 
-        function historyMsgToStr(messages, messagers) {
+        function historyMsgToStr(messages, messagers, appType) {
             var returnStr = '';
             var nowDateStr = '';
             var prevTime = 0;
@@ -975,7 +979,7 @@
 
                 let senderId = messages[i].messager_id;
                 let messagerName = messagers[senderId] ? messagers[senderId].name : '';
-                returnStr += generateMessageHtml(srcHtml, messages[i], messagerName);
+                returnStr += generateMessageHtml(srcHtml, messages[i], messagerName, appType);
             }
             return returnStr;
         }
@@ -1409,7 +1413,7 @@
                 // var srcHtml = messageToPanelHtml(messageToSend);
 
                 // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name);
+                // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name, appType);
                 // $messagePanel.append(messageHtml);
                 // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
 
@@ -1480,7 +1484,7 @@
                     // var srcHtml = messageToPanelHtml(messageToSend);
 
                     // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name);
+                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name, appType);
                     // $messagePanel.append(messageHtml);
                     // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
 
@@ -1518,6 +1522,7 @@
         function updateMessagePanel(messager, message, chatroomId, appId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
+            var appType = appsData[appId].type;
             var srcHtml = messageToPanelHtml(_message);
             var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
 
@@ -1528,13 +1533,13 @@
                 if (_message.time - lastMessageTime >= 900000) {
                     $messagePanel.append('<p class="message-day"><strong>-新訊息-</strong></p>');
                 }
-                var messageHtml = generateMessageHtml(srcHtml, _message, messager.name);
+                var messageHtml = generateMessageHtml(srcHtml, _message, messager.name, appType);
                 $messagePanel.append(messageHtml);
                 $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
             } else {
                 // if its new user
                 var historyMsgStr = NO_HISTORY_MSG;
-                historyMsgStr += generateMessageHtml(srcHtml, _message, messager.name);
+                historyMsgStr += generateMessageHtml(srcHtml, _message, messager.name, appType);
 
                 canvas.append(
                     '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +

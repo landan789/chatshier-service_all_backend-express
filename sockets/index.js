@@ -61,10 +61,10 @@ function init(server) {
         /**
          * @param {string} messageText
          * @param {string} senderId
-         * @param {any} [options]
+         * @param {any} [option]
          * @returns {Promise<any>}
          */
-        function messageProcess(messageText, senderId, options) {
+        function messageProcess(messageText, senderId, option) {
             let messageId = cipher.createHashKey(messageText);
             let totalMessages = [];
 
@@ -162,7 +162,7 @@ function init(server) {
 
                     switch (app.type) {
                         case LINE:
-                            let replyToken = options.lineEvent.replyToken;
+                            let replyToken = option.event.replyToken;
                             return bot.replyMessage(replyToken, replyMessages);
                         case FACEBOOK:
                             return Promise.all(replyMessages.map((message) => {
@@ -182,7 +182,7 @@ function init(server) {
 
                 switch (app.type) {
                     case LINE:
-                        let messageType = options.lineEvent.message.type;
+                        let messageType = option.event.message.type;
                         type = messageType;
                         break;
                     case FACEBOOK:
@@ -201,7 +201,7 @@ function init(server) {
                 };
 
                 return new Promise((resolve) => {
-                    helpersBot.convertMessage(bot, prototypeMessage, app.type, options, (receivedMessages) => {
+                    helpersBot.convertMessage(bot, prototypeMessage, app.type, option, (receivedMessages) => {
                         resolve(receivedMessages);
                     });
                 }).then((receivedMessages) => {
@@ -222,10 +222,10 @@ function init(server) {
 
         /**
          * @param {string} senderId
-         * @param {any} [options]
+         * @param {any} [option]
          * @returns {Promise<any>}
          */
-        function followProcess(senderId, options) {
+        function followProcess(senderId, option) {
             let totalMessages = [];
 
             return new Promise((resolve) => {
@@ -244,7 +244,7 @@ function init(server) {
                 return Promise.resolve().then(() => {
                     switch (app.type) {
                         case LINE:
-                            let replyToken = options.lineEvent.replyToken;
+                            let replyToken = option.event.replyToken;
                             return bot.replyMessage(replyToken, greetingMessages);
                         case FACEBOOK:
                             return Promise.all(greetingMessages.map((message) => {
@@ -418,8 +418,8 @@ function init(server) {
                         }
 
                         let lineEventType = lineEvent.type.toUpperCase();
-                        let messageOpts = {
-                            lineEvent: lineEvent
+                        let option = {
+                            event: lineEvent
                         };
 
                         return Promise.resolve().then(() => {
@@ -427,9 +427,9 @@ function init(server) {
                                 !messageCacheMap.get(lineEvent.message.id) && lineEvent.message) {
                                 messageCacheMap.set(lineEvent.message.id, true);
                                 let messageText = lineEvent.message.text || '';
-                                return messageProcess(messageText, senderId, messageOpts);
+                                return messageProcess(messageText, senderId, option);
                             } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
-                                return followProcess(senderId, messageOpts);
+                                return followProcess(senderId, option);
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
                         }).then(() => {
@@ -448,11 +448,11 @@ function init(server) {
 
                             let senderId = messaging[i].sender.id;
                             let messageText = messaging[i].message.text;
-                            let messageOpts = {
-                                fbMessage: messaging[i].message
+                            let option = {
+                                message: messaging[i].message
                             };
 
-                            return messageProcess(messageText, senderId, messageOpts);
+                            return messageProcess(messageText, senderId, option);
                         })(0);
                     }));
             }
@@ -625,16 +625,18 @@ function init(server) {
             let composes = data.composes;
             let messages = composes;
             let messagers;
-            // reject 後 沒有 catch
-            if (!appId) {
-                return Promise.reject(new Error());
-            }
-
+            let lineBot;
             let appType = '';
 
             Promise.resolve().then(() => {
+                if (!appId) {
+                    return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
+                };
                 return new Promise((resolve, reject) => {
                     appsMdl.findByAppId(appId, (apps) => {
+                        if (!apps) {
+                            reject(API_ERROR.APPID_WAS_EMPTY);
+                        }
                         let app = apps[appId];
                         appType = app.type;
 
@@ -642,70 +644,68 @@ function init(server) {
                             channelSecret: app.secret,
                             channelAccessToken: app.token1
                         };
-                        let lineBot = new line.Client(lineConfig);
+                        lineBot = new line.Client(lineConfig);
                         resolve(lineBot);
                     });
                 });
             }).then((lineBot) => {
                 return new Promise((resolve, reject) => {
-                    // 使用 callback 再 resolve
-                    appsMessagersMdl.findAppMessagers(appId, resolve);
-                }).then((_messagers) => {
-                    messagers = _messagers;
-                    // 減少使用 巢狀 promise 結構
-                    return lineBot.multicast(Object.keys(messagers[appId].messagers), messages).then(() => {
-                        return messagers[appId].messagers;
+                    appsMessagersMdl.findAppMessagers(appId, (result) => {
+                        if (!result) {
+                            reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                        }
+                        resolve(result);
                     });
                 });
-            }).then((messagers) => {
+            }).then((_messagers) => {
+                messagers = _messagers;
+                return lineBot.multicast(Object.keys(messagers[appId].messagers), messages);
+            }).then(() => {
                 return Promise.all(messages.map((message) => {
-                    return new Promise((resolve) => {
+                    return new Promise((resolve, reject) => {
                         appsComposes.insert(appId, message, (result) => {
                             // 失敗需要 reject, catch
+                            if (!result) {
+                                reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
+                            }
                             resolve(messagers);
                         });
                     });
                 }));
-            }).then((messagers) => {
-                let messagerIds = Object.keys(messagers);
-
-                // 直接使用 580 與613行的 messagers 變數 做 foreach 或 promise all ，不需要再個別查找，每一次對DB查詢就會多一次網路傳輸
-                return Promise.all(messagerIds.map((messagerId) => {
-                    return new Promise((resolve) => {
-                        appsMessagersMdl.findMessager(appId, messagerId, (messagersInfo) => {
-                            let chatroomId = messagersInfo[appId].messagers[messagerId].chatroom_id;
-                            resolve(chatroomId);
-                        });
-                    }).then((chatroomId) => {
-                        return Promise.all(messages.map((message) => {
-                            /** @type {ChatshierMessageInterface} */
-                            // 不需使用 info 命名
-
-                            let messageInfo = {
-                                from: SYSTEM,
-                                messager_id: '',
-                                text: message.text,
-                                time: Date.now(),
-                                type: 'text'
-                            };
-
-                            return new Promise((resolve) => {
-                                // () => { resolve() } 的寫法較好
-                                appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, messageInfo, resolve);
-                            }).then(() => {
-                                /** @type {ChatshierChatSocketInterface} */
-                                let messageToSocket = {
-                                    appId: appId,
-                                    appType: appType,
-                                    chatroomId: chatroomId,
-                                    messagerId: '',
-                                    message: messageInfo
+            }).then(() => {
+                return Promise.all(Object.keys(messagers[appId].messagers).map((messagerIds) => {
+                    let messager = messagers[appId];
+                    let chatroomId = messager.messagers[messagerIds].chatroom_id;
+                    return Promise.all(messages.map((message) => {
+                        let _message = {
+                            from: SYSTEM,
+                            messager_id: '',
+                            text: message.text,
+                            time: Date.now(),
+                            type: 'text'
+                        };
+                        return new Promise((resolve, reject) => {
+                            appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerIds, _message, (message) => {
+                                if (!message) {
+                                    reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                                 };
-                                appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                                resolve(message);
                             });
-                        }));
-                    });
+                        }).then(() => {
+                            /** @type {ChatshierChatSocketInterface} */
+                            let messageToSocket = {
+                                appId: appId,
+                                appType: appType,
+                                chatroomId: chatroomId,
+                                messagerId: '',
+                                message: _message
+                            };
+                            appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                        });
+                    }));
                 }));
+            }).catch((err) => {
+                console.log(err);
             });
         });
 

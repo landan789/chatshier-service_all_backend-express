@@ -94,8 +94,9 @@
                 // 把此用戶的所有 App 裡的所有 Messagers 製成一份 ID 對應的清單
                 var appsMessagersData = respJsons[1].data;
                 for (var appId in appsMessagersData) {
-                    for (var messagerId in appsMessagersData[appId]) {
-                        messagersData[messagerId] = appsMessagersData[appId][messagerId];
+                    var messagers = appsMessagersData[appId].messagers;
+                    for (var messagerId in messagers) {
+                        messagersData[messagerId] = messagers[messagerId];
                     }
                 }
             }
@@ -114,7 +115,7 @@
                     ticketData.ticketId = ticketId;
                     ticketData.ticketAppId = ticketAppId;
                     ticketInfo[ticketId] = ticketData;
-                    var messagerInfo = messagersData.messagers[ticketData.messagerId] || {};
+                    var messagerInfo = messagersData[ticketData.messager_id] || {};
 
                     // 將每筆 ticket 資料反映於 html DOM 上
                     $ticketBody.append(
@@ -194,7 +195,7 @@
         lastSelectedTicket = ticketData;
 
         var infoInputTable = $('.info-input-table').empty();
-        var messagerInfo = messagersData[ticketData.messagerId] || {};
+        var messagerInfo = messagersData[ticketData.messager_id] || {};
         $('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
         $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
         $('.modal-title').text(messagerInfo.name || '');
@@ -202,7 +203,7 @@
         var moreInfoHtml =
             '<tr>' +
             '<th>客戶ID</th>' +
-            '<td class="edit">' + ticketData.messagerId + '</td>' +
+            '<td class="edit">' + ticketData.messager_id + '</td>' +
             '</tr>' +
             '<tr>' +
             '<th class="priority">優先</th>' +
