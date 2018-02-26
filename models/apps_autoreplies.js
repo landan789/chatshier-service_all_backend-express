@@ -6,6 +6,9 @@ module.exports = (function() {
 
     function AppsAutorepliesModel() {};
 
+    /**
+     * 回傳預設的 Autoreply 資料結構
+     */
     AppsAutorepliesModel.prototype._schema = (callback) => {
         let json = {
             isDeleted: 0,
@@ -20,6 +23,12 @@ module.exports = (function() {
         callback(json);
     };
 
+    /**
+     * 輸入 指定 appId 的陣列清單，新增一筆自動回覆的資料
+     *
+     * @param {string} appId
+     * @param {Function} callback
+     */
     AppsAutorepliesModel.prototype.insert = (appId, autoreply, callback) => {
         return new Promise((resolve, reject) => {
             instance._schema((initAutoreply) => {
@@ -47,6 +56,12 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 輸入 指定 appId 的陣列清單，取得該 App 所有自動回覆的資料
+     *
+     * @param {string} appId
+     * @param {Function} callback
+     */
     AppsAutorepliesModel.prototype.find = (appId, callback) => {
         admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
             let autoreplies = snap.val() || {};
@@ -61,6 +76,12 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 輸入 指定 appId 的陣列清單，修改一筆自動回覆的資料
+     *
+     * @param {string} appId
+     * @param {Function} callback
+     */
     AppsAutorepliesModel.prototype.update = (appId, autoreplyId, autoreply, callback) => {
         admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value').then((snap) => {
             let autoreplyCheck = snap.val();
@@ -85,6 +106,12 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 輸入 指定 appId 的陣列清單，刪除一筆自動回覆的資料
+     *
+     * @param {string} appId
+     * @param {Function} callback
+     */
     AppsAutorepliesModel.prototype.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
         let autoreply = {
             isDeleted: 1
@@ -122,6 +149,12 @@ module.exports = (function() {
         });
     };
 
+    /**
+     * 輸入 appId 的陣列清單，取得每個 app 的關鍵字回覆的資料
+     *
+     * @param {string[]} appIds
+     * @param {Function} callback
+     */
     AppsAutorepliesModel.prototype.findByAppIds = (appIds, callback) => {
         let appsAutoreplies = {};
 
@@ -133,6 +166,28 @@ module.exports = (function() {
                 };
             });
         })).then(() => {
+            callback(appsAutoreplies);
+        }).catch(() => {
+            callback(null);
+        });
+    };
+
+    /**
+     * 輸入指定的 appId 取得一筆關鍵字回覆的資料
+     *
+     * @param {string} appId
+     * @param {*} autoreplyId
+     * @param {Function} callback
+     */
+    AppsAutorepliesModel.prototype.findOne = (appId, autoreplyId, callback) => {
+        let appsAutoreplies = {};
+
+        return admin.database().ref('apps/' + appId + '/autoreplies' + autoreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+            let autoreplies = snap.val() || {};
+            appsAutoreplies[appId] = {
+                autoreplies: autoreplies
+            };
+        }).then(() => {
             callback(appsAutoreplies);
         }).catch(() => {
             callback(null);

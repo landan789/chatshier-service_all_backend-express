@@ -147,6 +147,28 @@ module.exports = (function() {
     };
 
     /**
+     * 輸入指定的 appId 取得一筆關鍵字回覆的資料
+     *
+     * @param {string} appId
+     * @param {*} keywordreplyId
+     * @param {Function} callback
+     */
+    AppsKeywordrepliesModel.prototype.findOne = (appId, keywordreplyId, callback) => {
+        let appsKeywordreplies = {};
+
+        return admin.database().ref('apps/' + appId + '/autoreplies' + keywordreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+            let keywordreplies = snap.val() || {};
+            appsKeywordreplies[appId] = {
+                keywordreplies: keywordreplies
+            };
+        }).then(() => {
+            callback(appsKeywordreplies);
+        }).catch(() => {
+            callback(null);
+        });
+    };
+
+    /**
      * 輸入指定的 appId 新增一筆關鍵字回覆的資料
      *
      * @param {string} appId

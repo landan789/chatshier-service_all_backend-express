@@ -82,7 +82,7 @@
     function findOne(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
-        return api.greeting.getOne(appId, userId).then(function(resJson) {
+        return api.greeting.getAll(userId, appId).then(function(resJson) {
             let greetings = resJson.data;
             let greeting = greetings[appId].greetings;
             for (let greetingId in greeting) {
