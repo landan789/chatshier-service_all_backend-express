@@ -63,13 +63,15 @@ module.exports = (function() {
                 return Promise.resolve([req.params.appid]);
             };
 
-            return Promise.resolve().then((resolve, reject) => {
-                appsMdl.findByAppId(appId, (apps) => {
-                    if (null === apps || undefined === apps || '' === apps) {
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(apps);
+            return Promise.resolve().then(() => {
+                return new Promise((resolve, reject) => {
+                    appsMdl.findByAppId(appId, (apps) => {
+                        if (null === apps || undefined === apps || '' === apps) {
+                            reject(API_ERROR.APP_FAILED_TO_FIND);
+                            return;
+                        }
+                        resolve(apps);
+                    });
                 });
             }).then((apps) => {
                 var app = Object.values(apps)[0];
@@ -86,23 +88,23 @@ module.exports = (function() {
             }).then((groups) => {
                 var group = Object.values(groups)[0];
                 var members = group.members;
-    
+
                 var userIds = Object.values(members).map((member) => {
                     if (0 === member.isDeleted) {
                         return member.user_id;
                     }
                 });
-    
+
                 var index = userIds.indexOf(userId);
-                var member = members[index];
-    
+                var member = members[Object.keys(members)[index]];
+
                 if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
                 };
-                
+
                 return Promise.resolve([req.params.appid]);
             });
-        }).then((appIds) =>{
+        }).then((appIds) => {
             return Promise.resolve(appIds);
         });
     };
