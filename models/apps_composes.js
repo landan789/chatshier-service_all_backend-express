@@ -22,30 +22,24 @@ module.exports = (function() {
     /**
      * 輸入指定的 appId 取得該 App 所有群發的資料
      *
-     * @param {string} appId
-     * @param {(appsComposes: any) => any} callback
-     * @returns {Promise<any>}
+     * @param {string[]} appIds
+     * @param {Function} callback
      */
-    AppsComposesModel.prototype.findAll = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/composes').once('value').then((snap) => {
-            let compose = snap.val();
-            if (!compose) {
-                return Promise.reject(new Error());
-            }
+    AppsComposesModel.prototype.findAll = (appIds, callback) => {
+        let appsComposes = {};
 
-            for (let a in compose) {
-                if (1 === compose[a].isDeleted) {
-                    delete compose[a];
+        Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+                let compose = snap.val();
+                if (!compose) {
+                    return Promise.reject(new Error());
                 }
-            }
-            let appsComposes = {
-                [appId]: {
+                appsComposes[appId] = {
                     composes: compose
-                }
-            };
-            return appsComposes;
-        }).then((data) => {
-            callback(data);
+                };
+            });
+        })).then(() => {
+            callback(appsComposes);
         }).catch(() => {
             callback(null);
         });
@@ -59,8 +53,8 @@ module.exports = (function() {
      * @param {function({ type: string, text: string}[])} callback
      * @returns {Promise<any>}
      */
-    AppsComposesModel.prototype.findOne = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/composes').once('value').then((snap) => {
+    AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
+        return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
             let composes = snap.val() || {};
             let appsComposes = {
                 [appId]: {
