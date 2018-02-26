@@ -637,8 +637,8 @@
                     var chatroomUserSelf = chatroomMsgers[userId];
                     senderId !== userId && chatroomUserSelf.unRead++;
 
-                    updateClientTab(sender, message, chatroomId, appId); // update 客戶清單
-                    updateMessagePanel(sender, message, chatroomId, appId); // update 聊天室
+                    updateClientTab(sender, message, appId, chatroomId); // update 客戶清單
+                    updateMessagePanel(sender, message, appId, chatroomId); // update 聊天室
                 });
             });
 
@@ -780,6 +780,14 @@
             }
         }
 
+        function generateLoadingJqElem() {
+            return $($.parseHTML(
+                '<div class="loading-container">' +
+                    '<img src="image/loading.gif" alt="loading..." />' +
+                '</div>'
+            ).shift());
+        }
+
         function generateClientHtml(opts) {
             var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
             var html =
@@ -918,11 +926,13 @@
                 return '<div class="client-message"></div>';
             }
 
-            // 判斷客戶傳送的是檔案，貼圖還是文字回傳對應的 html
+            // 判斷客戶傳送的是檔案，貼圖還是文字，回傳對應的 html
             var lastMsgText = {
                 image: '圖像',
                 video: '影像',
-                audio: '聲音'
+                audio: '聲音',
+                sticker: '貼圖',
+                location: '地理位置'
             }[message.type] || loadMessageInDisplayClient(message.text);
 
             return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
@@ -1279,12 +1289,11 @@
 
             // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
             var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-            var $messagePanel = $messageWrapper.find('.message-panel');
             var $profilePanel = $('.card-group[app-id="' + appId + '"]');
             $messageInputPanel.show();
             $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
-            $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
             $profilePanel.show().siblings().hide();
+            scrollMessagePanelToBottom(appId, chatroomId);
 
             var $profileTab = $('#show_profile');
             var $ticketTodoPanel = $('#show_todo');
@@ -1346,7 +1355,8 @@
         function submitMessage(ev) {
             ev.preventDefault();
             var $evElem = $(ev.target);
-            var $messageView = $evElem.parentsUntil('#chat-content-panel').siblings('#canvas').find('.tabcontent.shown');
+            var $contentPanel = $evElem.parentsUntil('#chat-content-panel');
+            var $messageView = $contentPanel.siblings('#canvas').find('.tabcontent.shown');
 
             var appId = $messageView.attr('app-id');
             var appType = appsData[appId].type;
@@ -1375,9 +1385,15 @@
                 message: messageToSend
             };
 
+            var $loadingElem = generateLoadingJqElem();
+            $messageView.find('.message-panel').append($loadingElem);
+            scrollMessagePanelToBottom(appId, chatroomId);
+
             return new Promise(function(resolve) {
                 messageInput.val('');
                 chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                    $loadingElem.remove();
+                    $loadingElem = void 0;
                     resolve();
                 });
             }).then(function() {
@@ -1397,9 +1413,9 @@
         function fileUpload() {
             var _this = this;
             var $contentPanel = $(_this).parents('#chat-content-panel');
-            var $messagesContent = $contentPanel.find('#canvas .tabcontent.shown');
-            var appId = $messagesContent.attr('app-id');
-            var chatroomId = $messagesContent.attr('chatroom-id');
+            var $messageView = $contentPanel.find('#canvas .tabcontent.shown');
+            var appId = $messageView.attr('app-id');
+            var chatroomId = $messageView.attr('chatroom-id');
 
             if (!_this.files.length) {
                 return;
@@ -1420,6 +1436,10 @@
 
             var storageRef = firebase.storage().ref();
             var fileRef = storageRef.child(new Date().getTime() + '_' + file.name);
+
+            var $loadingElem = generateLoadingJqElem();
+            $messageView.find('.message-panel').append($loadingElem);
+            scrollMessagePanelToBottom(appId, chatroomId);
 
             return fileRef.put(file).then(function(snapshot) {
                 var url = snapshot.downloadURL;
@@ -1449,6 +1469,8 @@
                 return new Promise(function(resolve) {
                     messageInput.val('');
                     chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                        $loadingElem.remove();
+                        $loadingElem = void 0;
                         resolve();
                     });
                 }).then(function() {
@@ -1491,7 +1513,13 @@
             }
         }
 
-        function updateMessagePanel(messager, message, chatroomId, appId) {
+        function scrollMessagePanelToBottom(appId, chatroomId) {
+            var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+            var $messagePanel = $messageWrapper.find('.message-panel');
+            $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+        }
+
+        function updateMessagePanel(messager, message, appId, chatroomId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
             var appType = appsData[appId].type;
@@ -1507,7 +1535,7 @@
                 }
                 var messageHtml = generateMessageHtml(srcHtml, _message, messager.name, appType);
                 $messagePanel.append(messageHtml);
-                $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
+                scrollMessagePanelToBottom(appId, chatroomId);
             } else {
                 // if its new user
                 var historyMsgStr = NO_HISTORY_MSG;
@@ -1521,7 +1549,7 @@
             }
         }
 
-        function updateClientTab(messager, message, chatroomId, appId) {
+        function updateClientTab(messager, message, appId, chatroomId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
             var chatroom = appsChatroomsData[appId].chatrooms[chatroomId];
@@ -1920,18 +1948,18 @@
             var week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             str += week[date.getDay()] + ' ' + addZero(date.getHours()) + ':' + addZero(date.getMinutes());
             return str;
-        } // end of toDateStr
+        }
 
         function toTimeStr(input) {
             var date = new Date(input);
             var dateStr = ' (' + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ') ';
             return dateStr;
-        } // end of toTimeStr
+        }
 
         function toTimeStrMinusQuo(input) {
             var date = new Date(input);
             return addZero(date.getHours()) + ':' + addZero(date.getMinutes());
-        } // end of toTimeStrMinusQuo
+        }
 
         function multiSelectChange(ev) {
             var $selectContainer = $(ev.target).parents('.multi-select-container');
@@ -1952,7 +1980,7 @@
 
         function addZero(val) {
             return val < 10 ? '0' + val : val;
-        } // end of addZero
+        }
 
         // =====end utility function
     });

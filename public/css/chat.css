@@ -417,6 +417,18 @@ div.loading-img {
         display: flex;
         flex-direction: column;
     }
+
+    .message-panel .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .message-panel .loading-container img {
+        width: 48px;
+        height: 48px;
+    }
+
     .send-time {
         margin: 0 .5rem;
         color: grey;
@@ -794,22 +806,6 @@ img[alt="無法顯示相片"] {
     padding-right: 10px;
 }
 
-.info-input-table td,
-.info-input-table th {
-    border-bottom: 1px solid rgb(5, 82, 87);
-    text-align: left;
-    padding: 8px;
-    margin: 2px 0;
-}
-
-.info-input-table {
-    width: 100%;
-}
-
-.info-input-table tr:nth-child(even) {
-    background-color: #33CCFF;
-    color: white;
-}
 .multi-select-container input[type="checkbox"] {
     width: auto;
     margin-right: 4px;
