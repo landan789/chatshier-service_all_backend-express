@@ -117,7 +117,7 @@ module.exports = (function() {
      * @param {any} bot
      * @param {ChatshierMessageInterface} protoMessage
      * @param {string} appType
-     * @param {any} opts
+     * @param {any} option
      * @param {(outMessage: ChatshierMessageInterface[]) => any} [callback]
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
