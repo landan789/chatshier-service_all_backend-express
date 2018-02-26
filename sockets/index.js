@@ -459,7 +459,8 @@ function init(server) {
             return Promise.resolve([]);
         }).then(() => {
             res.sendStatus(200);
-        }).catch(() => {
+        }).catch((error) => {
+            console.trace(error);
             res.sendStatus(500);
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);

@@ -141,7 +141,7 @@ module.exports = (function() {
                                 _message.text = text;
                                 return [_message];
                             case 'sticker':
-                                let stickerId = option.event.eventvent.message.stickerId;
+                                let stickerId = option.event.message.stickerId;
                                 let stickerUrl = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                                 _message.src = stickerUrl;
                                 return [_message];
