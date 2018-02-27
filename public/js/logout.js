@@ -1,24 +1,17 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
 (function() {
-    if (!window.urlConfig) {
-        console.warn('Please set up the configuration file of /config/url-config.js');
-    }
+    var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
+    var cookieManager = window.chatshierCookie.manager;
 
-    var serviceUrl = location.host;
-    var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
+    var logout = function() {
+        cookieManager.deleteCookie(CHSR_COOKIE.USER_NAME);
+        cookieManager.deleteCookie(CHSR_COOKIE.USER_EMAIL);
 
-    var clearCookie = function(name, domain) {
-        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ' + 'domain=' + domain;
+        return window.auth.signOut();
     };
 
-    var logout = function(callback) {
-        clearCookie('name', domain);
-        clearCookie('email', domain);
-        window.auth.signOut().then(function() {
-            callback();
-        });
-    };
-
-    logout(function() {
+    logout().then(function() {
         // location.replace('/login');
     });
 })();

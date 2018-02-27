@@ -44,7 +44,7 @@ module.exports = (function() {
         let userId = req.params.userid;
         let userData = {
             company: req.body.company,
-            phonenumber: req.body.phonenumber,
+            phone: req.body.phone,
             address: req.body.address
         };
 
@@ -54,13 +54,18 @@ module.exports = (function() {
                 return;
             }
 
-            usersMdl.updateUserByUserId(userId, userData, () => {
-                resolve();
+            usersMdl.updateUserByUserId(userId, userData, (users) => {
+                if (!users) {
+                    reject(API_SUCCESS.USER_FAILED_TO_UPDATE);
+                    return;
+                }
+                resolve(users);
             });
-        }).then(() => {
+        }).then((users) => {
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                data: users
             };
             res.status(200).json(json);
         }).catch((ERR) => {

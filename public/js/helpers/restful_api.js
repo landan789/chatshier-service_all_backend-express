@@ -864,7 +864,7 @@ window.restfulAPI = (function() {
 
     var UsersAPI = (function() {
         function UsersAPI(jwt) {
-            this.urlPrefix = apiUrlTable.groups;
+            this.urlPrefix = apiUrlTable.users;
         };
 
         UsersAPI.prototype.getUser = function(userId) {
@@ -947,6 +947,9 @@ window.restfulAPI = (function() {
     if (window.auth && window.auth.ready) {
         // 當 firebase 更新時同時更新 API 需要的 JSON Web Token
         window.auth.onIdTokenChanged(function(currentUser) {
+            if (!currentUser) {
+                return;
+            }
             return currentUser.getIdToken(false).then(function(jwt) {
                 setJWT(jwt);
             });
