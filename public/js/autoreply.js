@@ -80,7 +80,7 @@
             .attr('data-target', '#editModal')
             .attr('aria-hidden', 'true');
         this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-trash-o')
+            .addClass('btn btn-danger fa fa-trash-o')
             .attr('id', 'delete-btn');
     };
 

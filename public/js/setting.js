@@ -669,8 +669,8 @@ window.auth.ready.then(function(currentUser) {
                                 '<span class="input-group-btn btn-update">' +
                                     '<button class="btn btn-primary">更新</button>' +
                                 '</span>' +
-                                // '<span class="input-group-btn btn-delete">' +
-                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                // '<span class="input-group-btn btn-de刪除lete">' +
+                                //     '<button class="btn btn-danger">群組</button>' +
                                 // '</span>' +
                             '</div>' +
                         '</div>' +
@@ -1268,7 +1268,7 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">LINE</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group1" class="line">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span>刪除</button>' +
                             '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
