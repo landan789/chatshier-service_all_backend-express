@@ -74,7 +74,7 @@
         this.td3 = $('<td>').attr('id', 'text');
         this.td4 = $('<td>');
         this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-pencil')
+            .addClass('btn btn-grey fa fa-pencil')
             .attr('id', 'edit-btn')
             .attr('data-toggle', 'modal')
             .attr('data-target', '#editModal')

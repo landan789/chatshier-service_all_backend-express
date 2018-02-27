@@ -69,7 +69,7 @@
             .addClass('btn btn-danger fa fa-trash-o')
             .attr('id', 'delete-btn');
         this.AddBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-plus')
+            .addClass('btn btn-grey fa fa-plus')
             .attr('id', 'add-btn');
         this.CheckBtn = $('<button>').attr('type', 'button')
             .addClass('btn btn-default fa fa-check')

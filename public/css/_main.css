@@ -245,6 +245,11 @@ body, html{
     .alignCenter {
         text-align: center;
     }
+
+    .btn-grey {
+        border: 1px solid #bbb;
+        margin-right: 5px;
+    }
     
     #home {
         position: relative;
