@@ -13,7 +13,7 @@
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
 
-    const unpermittedCode = '3.16';
+    const NO_PERMISSION_CODE = '3.16';
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
@@ -143,7 +143,7 @@
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
                 }
-                if (unpermittedCode === resJson.code) {
+                if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
                 }
             });
@@ -197,7 +197,7 @@
             if (undefined === resJson.status) {
                 $.notify('失敗', { type: 'danger' });
             }
-            if (unpermittedCode === resJson.code) {
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $.notify('無此權限', { type: 'danger' });
             }
         });
