@@ -10,8 +10,8 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
-    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
+
+    <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css">
     <link rel="stylesheet" href="css/ticket.css">
@@ -100,16 +100,11 @@
                 <br />
             </form>
         </div>
-        <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
-        <script src="lib/js/bootstrap.min.js"></script>
-        <script src="config/firebaseConfig.js"></script>
-        <script src="config/url-config.js"></script>
-        <script src="js/navigation.js"></script>
-        <script src="js/_firebase-auth.js"></script>
-        <script src="js/helpers/restful_api.js"></script>
-        <script src="js/ticket_form.js"></script>
-        <script src="js/sb-admin-2.js"></script>
+
+    <% include ../views/partials/require_js.ejs %>
+    <script src="js/navigation.js"></script>
+    <script src="js/ticket_form.js"></script>
+    <script src="js/sb-admin-2.js"></script>
 </body>
 
 </html>

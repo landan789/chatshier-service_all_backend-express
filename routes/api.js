@@ -81,7 +81,8 @@ router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid',
 // ==========
 // 自動回覆
 router.get('/apps-autoreplies/users/:userid', appsAutorepliesCtl.getAll);
-router.get('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.getOne);
+router.get('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.getAll);
+router.get('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.getOne);
 router.post('/apps-autoreplies/apps/:appid/users/:userid', appsAutorepliesCtl.postOne);
 router.put('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.putOne);
 router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:userid', appsAutorepliesCtl.deleteOne);
@@ -90,7 +91,8 @@ router.delete('/apps-autoreplies/apps/:appid/autoreplies/:autoreplyid/users/:use
 // ==========
 // 關鍵字回覆
 router.get('/apps-keywordreplies/users/:userid', appsKeywordrepliesCtl.getAll);
-router.get('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.getOne);
+router.get('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.getAll);
+router.get('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.getOne);
 router.post('/apps-keywordreplies/apps/:appid/users/:userid', appsKeywordrepliesCtl.postOne);
 router.put('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.putOne);
 router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/users/:userid', appsKeywordrepliesCtl.deleteOne);
@@ -107,14 +109,16 @@ router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.de
 // ==========
 // 加好友回覆
 router.get('/apps-greetings/users/:userid', appsGreetingsCtl.getAll);
-router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getOne);
+router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getAll);
+router.get('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.getOne);
 router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOne);
 router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
 // 群發
 router.get('/apps-composes/users/:userid', appsComposesCtl.getAll);
-router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getOne);
+router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getAll);
+router.get('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.getOne);
 router.post('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.postOne);
 router.put('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.putOne);
 router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.deleteOne);

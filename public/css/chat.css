@@ -281,18 +281,29 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
     }
 }
 
-.content {
-    max-width: 50%;
+.message .content {
+    max-width: 60%;
 }
 
-.content.words {
-    padding: 8px;
+.message .content.words {
+    padding: .75rem;
     border: 1px solid #b5e7a0;
-    border-radius: 10px;
+    border-radius: 1rem;
     background-color: #b5e7a0;
     display: inline-block;
     word-wrap: break-word;
     text-align: left;
+}
+
+.message .location-icon {
+    margin-right: .5rem;
+    color: red;
+}
+
+.message .content img,
+.message .content video {
+    width: 100%;
+    border-radius: .5rem;
 }
 
 .loading-img {
@@ -360,40 +371,30 @@ div.loading-img {
     }
 }
 
-.content img,
-.content video {
-    max-width: 300px;
-    border-radius: 5px;
-}
-
-
-
 /*message panel*/
 @media all {
     #chat-content-panel {
+        position: relative;
         width: 40%;
-        float: left;
-        display: flex;
-        flex-direction: column;
+        height: 100%;
         background-color: #f7f8f9;
         resize: both;
     }
     .chat-prof {
+        display: flex;
+        align-items: center;
         width: 100%;
-        height: 50px;
-        padding-bottom: 1%;
+        height: 10%;
         background-color: #f7f8f9;
         position: relative;
     }
-    #prof-nick {
-        position: absolute;
+    .chat-prof .prof-nick {
         font-size: 100%;
         padding: 2%;
     }
     #canvas {
-        height: 60%;
+        height: 75%;
         width: 100%;
-        flex: 1;
     }
     .tabcontent {
         float: left;
@@ -416,6 +417,18 @@ div.loading-img {
         display: flex;
         flex-direction: column;
     }
+
+    .message-panel .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .message-panel .loading-container img {
+        width: 48px;
+        height: 48px;
+    }
+
     .send-time {
         margin: 0 .5rem;
         color: grey;
@@ -423,11 +436,11 @@ div.loading-img {
         vertical-align: bottom;
     }
     #send-message {
-        position: relative;
+        position: absolute;
+        bottom: 0;
         width: 100%;
-        height: 100px;
-        flex-direction: column;
-        justify-content: flex-end;
+        height: 15%;
+        min-height: 100px;
         border-top: 1px solid lightgray;
         background-color: lightgray;
         display: none;
@@ -449,12 +462,15 @@ div.loading-img {
         display: none;
     }
     /*input檔案區塊*/
+    .message-input {
+        display: flex;
+        align-items: center;
+    }
+
     .form-upper {
-        height: 50px;
+        height: 50%;
         background-color: white;
-        position: absolute;
         width: 100%;
-        top: 0;
         z-index: 1;
     }
     .on-click-show {
@@ -477,15 +493,14 @@ div.loading-img {
     }
 
     .form-lower {
-        padding: 0 10px;
+        height: 50%;
+        padding: 0 1rem;
         background-color: white;
-        position: absolute;
         width: 100%;
-        bottom: 0;
         z-index: 1;
     }
     .form-lower #message {
-        width: calc(100% - 40px);
+        width: 100%;
         height: 50px;
         border: 0;
     }
@@ -504,13 +519,40 @@ div.loading-img {
     #infoPanel td {
         word-wrap: break-word;
     }
-    .table .user-info-th {
-        width: 40%;
+
+    .card-group .profile-label {
+        width: 35%;
+    }
+
+    .card-group .profile-label.align-top {
+        vertical-align: top;
+    }
+
+    .card-group .profile-label,
+    .card-group .user-info-td {
         vertical-align: middle;
     }
-    .table .user-info-td {
+
+    .person-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         vertical-align: middle;
+        margin: .5rem .5rem .5rem 0;
+        padding: 0 .5rem;
+        font-size: 1rem;
+        line-height: 2rem;
+        border-radius: .5rem;
     }
+
+    .person-chip .person-avatar {
+        width: 2rem;
+        height: 2rem;
+        float: left;
+        margin-right: .5rem;
+        border-radius: 50%;
+    }
+
     .td-inner:not(.btn-group) {
         width: 100%;
         margin: 0px auto;
@@ -764,22 +806,6 @@ img[alt="無法顯示相片"] {
     padding-right: 10px;
 }
 
-.info-input-table td,
-.info-input-table th {
-    border-bottom: 1px solid rgb(5, 82, 87);
-    text-align: left;
-    padding: 8px;
-    margin: 2px 0;
-}
-
-.info-input-table {
-    width: 100%;
-}
-
-.info-input-table tr:nth-child(even) {
-    background-color: #33CCFF;
-    color: white;
-}
 .multi-select-container input[type="checkbox"] {
     width: auto;
     margin-right: 4px;

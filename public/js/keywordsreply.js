@@ -17,6 +17,8 @@
     var $draftTableElem = null;
     var $appSelector = null;
 
+    const NO_PERMISSION_CODE = '3.16';
+
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
 
@@ -34,7 +36,7 @@
         $keywordreplyAddModal.on('show.bs.modal', function() {
             $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
             $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
-
+            $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
             // 新增 modal 即將顯示事件發生時，將 App 清單更新
             $appSelector.empty();
             for (var appId in appsData) {
@@ -78,6 +80,19 @@
                     $keywordreplyEditModal.modal('hide');
                     $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $keywordreplyEditModal.modal('hide');
+                        $.notify('失敗', { type: 'danger' });
+                        $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
+                        return loadKeywordsReplies(appId, userId);
+                    }
+                    if (NO_PERMISSION_CODE === resJson.code) {
+                        $keywordreplyEditModal.modal('hide');
+                        $.notify('無此權限', { type: 'danger' });
+                        $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
+                        return loadKeywordsReplies(appId, userId);
+                    }
                 });
             });
         });
@@ -141,7 +156,7 @@
 
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
-        return api.keywordreply.getOne(appId, userId).then(function(resJson) {
+        return api.keywordreply.getAll(appId, userId).then(function(resJson) {
             keywordrepliesData = resJson.data;
             $openTableElem.empty();
             $draftTableElem.empty();
@@ -177,6 +192,13 @@
 
                     return api.keywordreply.remove(appId, keywordreplyId, userId).then(function() {
                         return loadKeywordsReplies(appId, userId);
+                    }).catch((resJson) => {
+                        if (undefined === resJson.status) {
+                            $.notify('失敗', { type: 'danger' });
+                        }
+                        if (NO_PERMISSION_CODE === resJson.code) {
+                            $.notify('無此權限', { type: 'danger' });
+                        }
                     });
                 });
             });
@@ -221,6 +243,19 @@
             $appDropdown.find('#' + appId).click();
             $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
             return loadKeywordsReplies(appId, userId);
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $keywordreplyAddModal.modal('hide');
+                $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
+                $.notify('失敗', { type: 'danger' });
+                return loadKeywordsReplies(appId, userId);
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $keywordreplyAddModal.modal('hide');
+                $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return loadKeywordsReplies(appId, userId);
+            }
         });
     }
 

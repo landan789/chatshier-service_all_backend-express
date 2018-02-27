@@ -26,7 +26,7 @@ var utility = {
             case 'sticker':
                 let stickerId = event.message.stickerId;
                 msgObj = '<img src="https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png"' +
-                    'width="20%" alt="sticker cant display!"/>';
+                    'width="20%" alt="sticker can\'t display!"/>';
                 break;
             case 'location':
                 event.message.content().then(function(content) {
@@ -87,31 +87,30 @@ var utility = {
      * @param {(message: LineMessageInterface) => any} callback
      */
     LINEMessageTypeForPushMessage: (vendor, callback) => {
-        let message = {};
+        /** @type {LineMessageInterface} */
+        let message = {
+            type: vendor.type
+        };
+
         switch (vendor.type) {
             case 'text':
                 message.text = vendor.text;
-                message.type = vendor.type;
                 break;
             case 'image':
                 message.previewImageUrl = vendor.src;
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'audio':
                 message.duration = 240000;
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'video':
                 message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
                 message.originalContentUrl = vendor.src;
-                message.type = vendor.type;
                 break;
             case 'sticker':
-                message.stickerId = parseInt(vendor.msg.substr(vendor.msg.lastIndexOf(' ')));
-                message.packageId = parseInt(vendor.msg.substr(vendor.msg.indexOf(' ')));
-                message.type = vendor.type;
+                message.stickerId = vendor.msg.substr(vendor.msg.lastIndexOf(' '));
+                message.packageId = vendor.msg.substr(vendor.msg.indexOf(' '));
                 break;
         }
         callback(message);
@@ -120,23 +119,23 @@ var utility = {
         let msgObj;
         if (fbMsg.attachments) {
             switch (fbMsg.attachments[0].type) {
-                case "image":
+                case 'image':
                     let imageURL = fbMsg.attachments[0].payload.url;
                     msgObj = '<img src="' + imageURL + '" style="width: 100%; max-width: 500px;"/>';
                     break;
-                case "video":
+                case 'video':
                     var videoURL = fbMsg.attachments[0].payload.url;
                     msgObj = '<video controls><source src="' + videoURL + '" type="video/mp4"></video>';
                     break;
-                case "audio":
+                case 'audio':
                     var audioURL = fbMsg.attachments[0].payload.url;
                     msgObj = '<audio controls><source src="' + audioURL + '" type="audio/mpeg"/></audio>';
                     break;
-                case "file":
+                case 'file':
                     var fileURL = fbMsg.attachments[0].payload.url;
                     msgObj = 'The user sent a file, click <a target="blank" href="' + fileURL + '">HERE</a> for download.';
                     break;
-                case "location":
+                case 'location':
                     var locateURL = fbMsg.attachments[0].url;
                     msgObj = 'The user sent a location, click <a target="blank" href="' + locateURL + '">HERE</a> for map link.';
                     break;
@@ -159,7 +158,7 @@ var utility = {
                 chanId_2: chatInfo.ids.chanId_2,
                 fbName: chatInfo.ids.fbName,
                 fbPageId: chatInfo.ids.fbPageId
-            }
+            };
         } else {
             channelObj = {
                 name1: '',
@@ -168,17 +167,17 @@ var utility = {
                 chanId_2: '',
                 fbName: '',
                 fbPageId: ''
-            }
+            };
         }
-        callback(channelObj)
+        callback(channelObj);
     },
     checkEachClient: (data, callback) => {
-        data['list'].map(item => {
+        data.list.map(item => {
             callback(item['userId'], item['chanId']);
         });
     },
     checkMessageLength: (data, callback) => {
-        data['message'].map(item => {
+        data.message.map(item => {
             if (item !== '未設定') {
                 callback(item);
             }

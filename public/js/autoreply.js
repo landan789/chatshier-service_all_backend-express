@@ -11,23 +11,11 @@
     var api = window.restfulAPI;
     var userId = '';
     var nowSelectAppId = '';
+
+    const NO_PERMISSION_CODE = '3.16';
+
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
-        // 設定 bootstrap notify 的預設值
-        // 1. 設定為顯示後2秒自動消失
-        // 2. 預設位置為螢幕中間上方
-        // 3. 進場與結束使用淡入淡出
-        $.notifyDefaults({
-            delay: 2000,
-            placement: {
-                from: 'top',
-                align: 'center'
-            },
-            animate: {
-                enter: 'animated fadeInDown',
-                exit: 'animated fadeOutUp'
-            }
-        });
 
         var currentDate = new Date();
         var datetimePickerInitOpts = {
@@ -134,12 +122,31 @@
             $appDropdown.find('#' + appId).click();
             $.notify('新增成功！', { type: 'success' });
             $('#modal-submit').removeAttr('disabled');
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $('#quickAdd').modal('hide');
+                $('#modal-task-name').val('');
+                $('#starttime').val('');
+                $('#endtime').val('');
+                $('#enter-text').val('');
+                $.notify('失敗', { type: 'danger' });
+                $('#modal-submit').removeAttr('disabled');
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $('#quickAdd').modal('hide');
+                $('#modal-task-name').val('');
+                $('#starttime').val('');
+                $('#endtime').val('');
+                $('#enter-text').val('');
+                $.notify('無此權限', { type: 'danger' });
+                $('#modal-submit').removeAttr('disabled');
+            }
         });
     }
 
     function findOne(appId, userId) {
         $('#autoreply-tables').empty();
-        return api.autoreply.getOne(appId, userId).then(function(resJson) {
+        return api.autoreply.getAll(appId, userId).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];
@@ -195,6 +202,17 @@
             $('#edit-taskContent').val('');
             $.notify('修改成功！', { type: 'success' });
             $('#edit-submit').removeAttr('disabled');
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $('#editModal').modal('hide');
+                $.notify('失敗', { type: 'danger' });
+                $('#edit-submit').removeAttr('disabled');
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $('#editModal').modal('hide');
+                $.notify('無此權限', { type: 'danger' });
+                $('#edit-submit').removeAttr('disabled');
+            }
         });
     }
 
@@ -209,6 +227,13 @@
             return api.autoreply.remove(appId, userId, autoreplyId).then(function(resJson) {
                 $('#' + autoreplyId).remove();
                 $.notify('刪除成功！', { type: 'success' });
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
             });
         });
     }

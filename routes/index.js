@@ -53,4 +53,8 @@ router.get('/template', function(req, res, next) {
 router.get('/richmenus', function(req, res, next) {
     res.render('richmenus', { title: '圖文選單' });
 });
+
+router.get('/loading', function(req, res) {
+    res.send(303);
+});
 module.exports = router;

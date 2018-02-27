@@ -1,3 +1,5 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
 // Initialize Firebase
 window.firebase.initializeApp(window.config);
 window.auth = window.firebase.auth();
@@ -16,7 +18,7 @@ window.database = window.firebase.database();
     // var serviceUrl = location.host;
     // var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
 
-    auth.ready = (function() {
+    window.auth.ready = (function() {
         var readyPromiseResolver;
         var readyPromiseRejecter;
         var readyPromise = new Promise(function(resolve, reject) {
@@ -24,8 +26,22 @@ window.database = window.firebase.database();
             readyPromiseRejecter = reject;
         });
 
+        function keepTokenRefresh(currentUser) {
+            // 每 55 分鐘更新一次 firebase token
+            return new Promise(function(resolve) {
+                window.setTimeout(function() {
+                    resolve();
+                }, 55 * 60 * 1000);
+            }).then(function() {
+                return currentUser.getIdToken(true);
+            }).then(function(jwt) {
+                window.localStorage.setItem('jwt', jwt);
+                return keepTokenRefresh(currentUser);
+            });
+        }
+
         $(document).ready(function() {
-            auth.authStateListener = auth.onAuthStateChanged(function(currentUser) {
+            window.auth.authStateListener = window.auth.onAuthStateChanged(function(currentUser) {
                 var state = getState(currentUser);
                 var asyncFlag = false;
                 var readyFlag = false;
@@ -42,9 +58,11 @@ window.database = window.firebase.database();
                     $('#loading').fadeOut();
 
                     // 更新 firebase jwt 並寫入到 localStorage
-                    currentUser.getIdToken(false).then(function(jwt) {
+                    // https://firebase.google.com/docs/reference/js/firebase.User#getIdToken
+                    currentUser.getIdToken(true).then(function(jwt) {
                         window.localStorage.setItem('jwt', jwt);
                         readyPromiseResolver(currentUser);
+                        return keepTokenRefresh(currentUser);
                     }).catch(function(error) {
                         // Handle error
                         if (error) {

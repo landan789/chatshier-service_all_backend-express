@@ -10,10 +10,9 @@
         <%= title %>
     </title>
     <link rel="icon" href="image/favicon.ico" />
+
+    <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="lib/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="lib/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="lib/css/animate.min.css" />
     <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/tag.css" />
@@ -33,6 +32,7 @@
                 <li><a data-toggle="pill" href="#create-internal-room">內部群組</a></li>
             </ul>
         </div>
+
         <div class="tab-content">
             <div id="menu0" class="tab-pane fade">
                 <h3>基本設定
@@ -134,24 +134,18 @@
                 </div>
             </div>
         </div>
-        <% include ../views/partials/add_group_modal.ejs %>
-        <% include ../views/partials/add_group_name_app_modal.ejs %>
-        <% include ../views/partials/setting_modal.ejs %>
-        <% include ../views/partials/firebase_disable.ejs %>
     </div>
-    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <% include ../views/partials/modals/add_group_modal.ejs %>
+    <% include ../views/partials/modals/add_group_name_app_modal.ejs %>
+    <% include ../views/partials/modals/setting_modal.ejs %>
+    <% include ../views/partials/firebase_disable.ejs %>
+
+    <% include ../views/partials/require_js.ejs %>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-    <script src="lib/js/bootstrap.min.js"></script>
-    <script src="lib/js/bootstrap-notify.min.js"></script>
     <script src="lib/js/bootstrap3-typeahead.min.js"></script>
-    <script src="config/firebaseConfig.js"></script>
-    <script src="config/url-config.js"></script>
-    <script src="js/_firebase-auth.js"></script>
-    <script src="js/helpers/restful_api.js"></script>
-    <script src="js/helpers/translate.js"></script>
     <script src="js/setting.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

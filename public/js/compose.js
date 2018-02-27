@@ -4,7 +4,8 @@
     var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;
-    var socket = io.connect(); // Socket
+    var SOCKET_NAMESPACE = '/chatshier';
+    const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
     var deleteNum = 0;
@@ -21,26 +22,13 @@
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
+    const unpermittedCode = '3.16';
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
-        // 設定 bootstrap notify 的預設值
-        // 1. 設定為顯示後2秒自動消失
-        // 2. 預設位置為螢幕中間上方
-        // 3. 進場與結束使用淡入淡出
-        $.notifyDefaults({
-            delay: 2000,
-            placement: {
-                from: 'top',
-                align: 'center'
-            },
-            animate: {
-                enter: 'animated fadeInDown',
-                exit: 'animated fadeOutUp'
-            }
-        });
+
         // ACTIONS
         $(document).on('change', '#app-select', storeApp);
         $(document).on('click', '.tablinks', clickMsg);
@@ -88,18 +76,19 @@
             } else {
                 $('#inputText').append(
                     '<div style="margin:2%">' +
-                    '<span class="remove-btn">刪除</span>' +
-                    '<tr>' +
-                    '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td style="background-color: #ddd">' +
-                    '<form style="padding:1%">' +
-                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                    '</form>' +
-                    '</td>' +
-                    '</tr>' +
-                    '</div>');
+                        '<span class="remove-btn">刪除</span>' +
+                        '<tr>' +
+                            '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td style="background-color: #ddd">' +
+                                '<form style="padding:1%">' +
+                                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                                '</form>' +
+                            '</td>' +
+                        '</tr>' +
+                    '</div>'
+                );
                 inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
             }
         }
@@ -129,6 +118,19 @@
                     $.notify('修改成功！', { type: 'success' });
                     $composeEditModal.find('#edit-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composeEditModal.modal('hide');
+                        $.notify('失敗', { type: 'danger' });
+                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composeEditModal.modal('hide');
+                        $.notify('無此權限', { type: 'danger' });
+                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                        return loadComposes(appId, userId);
+                    }
                 });
             });
         });
@@ -147,6 +149,7 @@
                 delete appsData[appId];
                 continue;
             }
+            socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
             $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
             $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
@@ -192,7 +195,7 @@
         $historyTableElem.empty();
         $draftTableElem.empty();
         $reservationTableElem.empty();
-        return api.composes.getOne(appId, userId).then(function(resJson) {
+        return api.composes.getAll(appId, userId).then(function(resJson) {
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];
@@ -216,6 +219,13 @@
                         return api.composes.remove(appId, composeId, userId).then(function() {
                             $.notify('刪除成功！', { type: 'success' });
                             return loadComposes(appId, userId);
+                        }).catch((resJson) => {
+                            if (undefined === resJson.status) {
+                                $.notify('失敗', { type: 'danger' });
+                            }
+                            if (unpermittedCode === resJson.code) {
+                                $.notify('無此權限', { type: 'danger' });
+                            }
                         });
                     });
                 });
@@ -268,19 +278,19 @@
                 '</div>';
             $('body').append(dialogModalTemplate);
             dialogModalTemplate = void 0;
-
+            $('#textContent').text(textContent);
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.find('.btn-secondary').on('click', function() {
                 resolve(isOK);
-                $dialogModal.remove();
+                $dialogModal.modal('hide');
             });
 
             $dialogModal.modal({
@@ -295,6 +305,7 @@
         $('.error-input').hide();
         $('.textinput').val('');
         $('#send-time').val('');
+        $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
         inputObj = {};
         inputNum = 0;
@@ -324,27 +335,21 @@
             sendtime = $('#send-time').val();
 
             if ($('#send-now').prop('checked')) {
+                let composes = [];
                 for (let key in inputObj) {
-                    let message = {
+                    let compose = {
                         type: 'text',
-                        text: $('#' + key).val()
+                        text: $('#' + key).val(),
+                        status: 1,
+                        time: (Date.now()) - 60000
                     };
-                    messages.push(message);
-                }
-                let composes = {};
-                for (let i in messages) {
-                    composes = {
-                        status: isDraft ? 0 : 1,
-                        time: (timeInMs - 10000),
-                        text: messages[i].text
-                    };
-                    socket.emit('insert compose', { userId, composes, appId });
+                    composes.push(compose);
                 }
 
                 var emitData = {
                     userId: userId,
-                    messages: messages,
-                    appId: appId
+                    appId: appId,
+                    composes: composes
                 };
                 if (false === isDraft) {
                     socket.emit('push composes to all', emitData);
@@ -354,11 +359,29 @@
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
-                    $.notify('發送成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
-                    $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                    return loadComposes(appId, userId);
+                    socket.on('verify', (json) => {
+                        if (!json) {
+                            $.notify('發送成功', { type: 'success' });
+                            $appDropdown.find('.dropdown-text').text(appsData[appId].name);
+                            $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                            return loadComposes(appId, userId);
+                        } else {
+                            if (undefined === json.status) {
+                                $composesAddModal.modal('hide');
+                                $.notify('失敗', { type: 'danger' });
+                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                                return loadComposes(appId, userId);
+                            }
+                            if (unpermittedCode === json.code) {
+                                $composesAddModal.modal('hide');
+                                $.notify('無此權限', { type: 'danger' });
+                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                                return loadComposes(appId, userId);
+                            }
+                        }
+                    });
                 } else {
+                    insert(appId, userId, isDraft, composes);
                     $composesAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
@@ -381,16 +404,7 @@
                 };
                 messages.push(message);
             };
-
-            Promise.all(messages.map((message) => {
-                let compose = {
-                    type: 'text',
-                    text: message.text,
-                    status: isDraft ? 0 : 1,
-                    time: Date.parse(sendtime)
-                };
-                return api.composes.insert(appId, userId, compose);
-            })).then((responses) => {
+            insert(appId, userId, isDraft, messages).then((responses) => {
                 responses.map((response) => {
                     if (0 === response.stats) {
                         return;
@@ -414,28 +428,71 @@
                     }
                     composesData[composeId] = compose;
                 });
-                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('text');
-                    var composeId = targetRow.attr('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.composes.remove(appId, composeId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadComposes(appId, userId);
-                        });
-                    });
-                });
                 $composesAddModal.modal('hide');
                 $.notify('新增成功', { type: 'success' });
-            }).catch(() => {
-                $.notify('新增失敗', { type: 'warning' });
             });
         }
+    }
+
+    function insert(appId, userId, isDraft, messages) {
+        let respJsons = [];
+
+        function nextPromise(i) {
+            if (i >= messages.length) {
+                return Promise.resolve(respJsons);
+            };
+            if (false === isDraft) {
+                let compose = {
+                    type: 'text',
+                    text: messages[i].text,
+                    status: isDraft ? 0 : 1,
+                    time: Date.parse(sendtime)
+                };
+                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                    respJsons.push(resJson);
+                    return nextPromise(i + 1);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('失敗', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('無此權限', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                });
+            } else {
+                let compose = {
+                    type: 'text',
+                    text: messages[i].text,
+                    status: isDraft ? 0 : 1,
+                    time: Date.now()
+                };
+                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                    respJsons.push(resJson);
+                    return nextPromise(i + 1);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('失敗', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('無此權限', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                });
+            }
+
+        }
+        return nextPromise(0);
     }
 
     function ISODateTimeString(d) {

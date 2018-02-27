@@ -103,7 +103,9 @@ module.exports = (function() {
                 user.group_ids = user.group_ids || [];
                 return new Promise((resolve) => {
                     user.group_ids.push(groupId);
-                    usersMdl.updateUserByUserId(userId, user, resolve);
+                    usersMdl.updateUserByUserId(userId, user, () => {
+                        resolve();
+                    });
                 }).then(() => {
                     // 群組新增處理完畢後，自動新增一個內部聊天室的 App
                     return new Promise((resolve, reject) => {

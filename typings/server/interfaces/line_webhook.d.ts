@@ -95,67 +95,50 @@ interface LineMessageInterface {
     /**
      * type: text
      */
-    text: string;
+    text?: string;
 
     /**
      * type: sticker
      */
-    packageId: string;
+    packageId?: string;
 
     /**
      * type: sticker
      */
-    stickerId: string;
+    stickerId?: string;
 
     /**
      * type: image | video | audio
      */
-    originalContentUrl: string;
+    originalContentUrl?: string;
 
     /**
      * type: image | video
      */
-    previewImageUrl: string;
+    previewImageUrl?: string;
 
     /**
      * type: audio
      */
-    duration: number;
+    duration?: number;
 
     /**
      * type: location
      */
-    title: string;
+    title?: string;
 
     /**
      * type: location
      */
-    address: string;
+    address?: string;
 
     /**
      * type: location
      */
-    latitude: number;
+    latitude?: number;
 
     /**
      * type: location
      */
-    longitude: number;
-}
-
-interface ChatshierChatSocketInterface {
-    appId: string;
-    chatroomId: string;
-    messagerId: string;
-    appType: string;
-    message: ChatshierMessageInterface
-}
-
-interface ChatshierMessageInterface {
-    from: 'LINE' | 'FACEBOOK' | 'CHATSHIER';
-    messager_id: string;
-    src: string;
-    text: string;
-    time: number;
-    type: string;
+    longitude?: number;
 }

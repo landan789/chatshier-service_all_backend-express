@@ -40,18 +40,6 @@
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
 
-        $.notifyDefaults({
-            delay: 2000,
-            placement: {
-                from: 'top',
-                align: 'center'
-            },
-            animate: {
-                enter: 'animated fadeInDown',
-                exit: 'animated fadeOutUp'
-            }
-        });
-
         $buttonGroup.find('.view-month').on('click', viewMonth);
         $buttonGroup.find('.view-date').on('click', viewDay);
         $buttonGroup.find('.view-hour').on('click', viewHour);

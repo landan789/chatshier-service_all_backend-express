@@ -102,17 +102,6 @@ module.exports = (function() {
     };
 
     /**
-     * 根據 app ID 跟 messager ID 去修改客戶未讀訊息
-     *
-     * @param {string} appId
-     * @param {string} msgId
-     * @returns {Promise<any>}
-     */
-    AppsChatroomsMessages.prototype.updateUnreadStatus = function(appId, msgId) {
-        return admin.database().ref('apps/' + appId + '/messagers/' + msgId).update({ unRead: 0 });
-    };
-
-    /**
      * 存單一訊息
      *
      * @param {string} appId

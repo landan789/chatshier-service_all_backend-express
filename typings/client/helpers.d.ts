@@ -47,16 +47,14 @@ interface MessagerAPI {
 }
 
 interface TicketAPI {
-    getAll: (userId: string) => Promise<any>;
-    getOne: (appId: string, userId: string) => Promise<any>;
+    getAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, newTicketData: any) => Promise<any>;
     update: (appId: string, ticketId: string, userId: string, modifiedTicketData: any) => Promise<any>;
     remove: (appId: string, ticketId: string, userId: string) => Promise<any>;
 }
 
 interface KeywordreplyAPI {
-    getAll: (userId: string) => Promise<any>;
-    getOne: (appId: string, userId: string) => Promise<any>;
+    getAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, keywordreplyData: any) => Promise<any>;
     update: (appId: string, keywordreplyId: string, userId: string, keywordreplyData: any) => Promise<any>;
     remove: (appId: string, keywordreplyId: string, userId: string) => Promise<any>;
@@ -93,7 +91,6 @@ interface TagAPI {
 
 interface ChatroomAPI {
     getAll: (userId: string) => Promise<any>;
-    getOne: (appId: string, userId: string) => Promise<any>;
 }
 
 interface AuthAPI {
@@ -129,24 +126,21 @@ interface UsersAPI {
 }
 
 interface AutoreplyAPI {
-    getAll: (userId: string) => Promise<any>;
-    getOne: (appId: string, userId: string) => Promise<any>;
+    getAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, autoreplyData: any) => Promise<any>;
     update: (appId: string, autoreplyId: string, userId: string, autoreplyData: any) => Promise<any>;
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
 }
 
 interface ComposesAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
+    getAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, composeData: any) => Promise<any>;
     update: (appId: string, composeId: string, userId: string, composeData: any) => Promise<any>;
     remove: (appId: string, composeId: string, userId: string) => Promise<any>;
 }
 
 interface GreetingAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
+    getAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, greetingData: any) => Promise<any>;
     remove: (appId: string, greetingId: string, userId: string) => Promise<any>;
 }
