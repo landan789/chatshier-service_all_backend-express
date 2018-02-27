@@ -665,7 +665,9 @@ function init(server) {
                 return Promise.all(Object.keys(messagers[appId].messagers).map((messagerIds) => {
                     let messager = messagers[appId];
                     let chatroomId = messager.messagers[messagerIds].chatroom_id;
+
                     return Promise.all(messages.map((message) => {
+                        /** @type {ChatshierMessageInterface} */
                         let _message = {
                             from: SYSTEM,
                             messager_id: '',
@@ -673,6 +675,7 @@ function init(server) {
                             time: Date.now(),
                             type: 'text'
                         };
+
                         return new Promise((resolve, reject) => {
                             appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerIds, _message, (message) => {
                                 if (!message) {
