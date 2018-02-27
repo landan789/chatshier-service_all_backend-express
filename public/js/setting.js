@@ -200,7 +200,7 @@ window.auth.ready.then(function(currentUser) {
             '</div>' +
             '</div>' +
             '<div class="form-group">' +
-            '<label class="col-2 col-form-label">地區: </label>' +
+            '<label class="col-2 col-form-label">地址: </label>' +
             '<div class="col-4">' +
             '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
             '</div>' +
@@ -1472,10 +1472,8 @@ function profSubmitBasic() {
     };
     var phoneRule = /^09\d{8}$/;
     if (!phone.match(phoneRule)) {
-        $('#prof-edit-phonenumber').tooltip('show');
-        setTimeout(function() {
-            $('#prof-edit-phonenumber').tooltip('destroy');
-        }, 3000);
+        $('#setting-modal').modal('hide');
+        $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
     } else {
         updateUserProfile(users);
         $('#setting-modal').modal('hide');
