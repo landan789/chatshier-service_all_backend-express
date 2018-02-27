@@ -15,8 +15,8 @@ window.database = window.firebase.database();
     var NO_USER = parseInt('000', 2);
     var NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
-    // var serviceUrl = location.host;
-    // var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
+    var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
+    var cookieManager = window.chatshierCookie.manager;
 
     window.auth.ready = (function() {
         var readyPromiseResolver;
@@ -87,32 +87,13 @@ window.database = window.firebase.database();
         return readyPromise;
     })();
 
-    function getCookie(cName) {
-        // if (document.cookie.length > 0) {
-        //     var cStart = document.cookie.indexOf(cName + '=');
-        //     if (-1 === cStart) {
-        //         cStart += cName.length + 1;
-        //         var cEnd = document.cookie.indexOf(';', cStart);
-        //         if (-1 === cEnd) cEnd = document.cookie.length;
-        //         return unescape(document.cookie.substring(cStart, cEnd));
-        //     }
-        // }
-
-        var cookieValue = '; ' + document.cookie;
-        var parts = cookieValue.split('; ' + cName + '=');
-        if (2 === parts.length) {
-            return unescape(parts.pop().split(';').shift());
-        }
-        return '';
-    }
-
     function getState(user) {
         var state = parseInt('000', 2);
-        var name = getCookie('name');
-        var email = getCookie('email');
+        var username = cookieManager.getCookie(CHSR_COOKIE.USER_NAME);
+        var email = cookieManager.getCookie(CHSR_COOKIE.USER_EMAIL);
         var pathname = location.pathname;
 
-        if ('' !== name && '' !== email) {
+        if (username && email) {
             state = state | HAS_COOKIES;
         }
 

@@ -1,14 +1,19 @@
+/// <reference path='../../typings/client/index.d.ts' />
+
 (function() {
     if (!window.urlConfig) {
         console.warn('Please set up the configuration file of /config/url-config.js');
     }
     var serviceUrl = location.host;
     var wwwUrl = serviceUrl.replace(/^[\w-]+\./i, 'www.').replace(/:\d+$/i, '');
-    var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
 
     urlConfig.wwwwUrl = urlConfig.wwwUrl.replace(/^https?:\/\//i, '');
     var url = 'http://' + ('' === urlConfig.wwwwUrl ? wwwUrl : urlConfig.wwwUrl) + ('' === urlConfig.port ? '' : ':' + urlConfig.port);
     var indexUrl = url + urlConfig.index;
+
+    var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
+    var cookieManager = window.chatshierCookie.manager;
+
     $(document).ready(function() {
         $('#index').attr('href', indexUrl);
         $('[data-toggle="tooltip"]').tooltip('show'); // 避免蓋掉"請填寫這個欄位"
@@ -38,8 +43,8 @@
             var name = auth.currentUser.displayName;
             email = auth.currentUser.email;
 
-            document.cookie = 'name=' + name + ';domain=' + domain;
-            document.cookie = 'email=' + email + ';domain=' + domain;
+            cookieManager.setCookie(CHSR_COOKIE.USER_NAME, name);
+            cookieManager.setCookie(CHSR_COOKIE.USER_EMAIL, email);
 
             // 資料寫入完畢後才跳轉至 /chat
             location.replace('/chat');

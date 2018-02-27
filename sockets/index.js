@@ -569,10 +569,10 @@ function init(server) {
         });
 
         socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, (req, callback) => {
-            let msgerId = req.messagerid;
+            let msgerId = req.params.messagerid;
             let appId = '';
 
-            return appsMessagersCtl._requestChecking(req).then((checkedAppId) => {
+            return appsMessagersCtl.AppsRequestVerify(req).then((checkedAppId) => {
                 appId = checkedAppId;
                 if (!msgerId) {
                     return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);

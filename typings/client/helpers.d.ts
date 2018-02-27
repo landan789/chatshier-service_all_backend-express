@@ -21,6 +21,17 @@ interface Window {
         ready: Promise<{ [key: string]: string }>,
         get: (key: string) => Promise<string>,
         json: () => { [key: string]: string }
+    },
+    chatshierCookie: {
+        CHSR_COOKIE: {
+            USER_EMAIL: '_chsr_email',
+            USER_NAME: '_chsr_username'
+        },
+        manager: {
+            setCookie: (name: string, val: string, expires: string, domain: string) => boolean,
+            getCookie: (name: string) => string,
+            deleteCookie: (name: string) => string
+        }
     }
 }
 
