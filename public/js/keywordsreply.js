@@ -17,7 +17,7 @@
     var $draftTableElem = null;
     var $appSelector = null;
 
-    const unpermittedCode = '3.16';
+    const NO_PERMISSION_CODE = '3.16';
 
     window.auth.ready.then(function(currentUser) {
         userId = currentUser.uid;
@@ -87,7 +87,7 @@
                         $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                         return loadKeywordsReplies(appId, userId);
                     }
-                    if (unpermittedCode === resJson.code) {
+                    if (NO_PERMISSION_CODE === resJson.code) {
                         $keywordreplyEditModal.modal('hide');
                         $.notify('無此權限', { type: 'danger' });
                         $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
@@ -196,7 +196,7 @@
                         if (undefined === resJson.status) {
                             $.notify('失敗', { type: 'danger' });
                         }
-                        if (unpermittedCode === resJson.code) {
+                        if (NO_PERMISSION_CODE === resJson.code) {
                             $.notify('無此權限', { type: 'danger' });
                         }
                     });
@@ -250,7 +250,7 @@
                 $.notify('失敗', { type: 'danger' });
                 return loadKeywordsReplies(appId, userId);
             }
-            if (unpermittedCode === resJson.code) {
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $keywordreplyAddModal.modal('hide');
                 $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
                 $.notify('無此權限', { type: 'danger' });
