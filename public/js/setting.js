@@ -745,7 +745,6 @@ window.auth.ready.then(function(currentUser) {
             $groupElems[groupId] = {
                 $collapse: $collapse,
                 $groupName: $groupBody.find('.group-name'),
-                $groupNameInput: $groupBody.find('.group-name-input'),
 
                 $fileGhost: $collapse.find('.file-container input.file-ghost'),
                 $fileName: $collapse.find('.file-container .file-text'),
@@ -763,7 +762,7 @@ window.auth.ready.then(function(currentUser) {
             // 使用者更新群組名稱的事件處理
             $collapse.on('click', '.group-name .btn-update', function() {
                 var groupData = {
-                    name: $groupElems[groupId].$groupNameInput.val()
+                    name: $(this).parent().find('input').val()
                 };
 
                 if (groups[groupId].name === groupData.name) {
@@ -775,7 +774,7 @@ window.auth.ready.then(function(currentUser) {
 
                 return api.groups.update(groupId, userId, groupData).then(function() {
                     groups[groupId].name = groupData.name;
-                    $collapse.parent().find('.group-tab .group-name').text(groupData.name);
+                    $collapse.parent().find('.group-tab .group-name[aria-controls="' + groupId + '"]').text(groupData.name);
                     $.notify('群組名稱更新成功！', { type: 'success' });
                 }).catch(function() {
                     $.notify('群組名稱更新失敗！', { type: 'danger' });
