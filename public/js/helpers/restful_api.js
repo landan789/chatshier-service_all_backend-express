@@ -313,27 +313,11 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有設定待辦事項
          *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} appId - 目標待辦事項的 App ID
-         */
-        TicketAPI.prototype.getAll = function(userId, appId) {
-            var destUrl = undefined === appId ? this.urlPrefix + 'users/' + userId : this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * 取得使用者某一個 App 的待辦事項
-         *
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {string} ticketId - 目標待辦事項的 ID
          */
-        TicketAPI.prototype.getOne = function(appId, ticketId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
+        TicketAPI.prototype.getAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -406,27 +390,11 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有關鍵字回覆資料
          *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} appId - 目標關鍵字回覆的 App ID
-         */
-        KeywordreplyAPI.prototype.getAll = function(userId, appId) {
-            var destUrl = undefined === appId ? this.urlPrefix + 'users/' + userId : this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * 取得使用者某一個 App 的所有關鍵字回覆的資料
-         *
          * @param {string} appId - 目標關鍵字回覆的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {string} keywordreplyId -目標關鍵字回覆的 ID
          */
-        KeywordreplyAPI.prototype.getOne = function(appId, keywordreplyId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
+        KeywordreplyAPI.prototype.getAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -499,30 +467,11 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有群發回覆資料
          *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} appId - 目標群發的 App ID
-         */
-        ComposesAPI.prototype.getAll = function(userId, appId) {
-            var destUrl = undefined === appId ? this.urlPrefix + 'users/' + userId : this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
-        };
-
-        /**
-         * 取得使用者某一個 App 的所有群發的資料
-         *
          * @param {string} appId - 目標群發的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {string} composeId - 目標群發的 ID
          */
-        ComposesAPI.prototype.getOne = function(appId, composeId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + 'composes' + composeId + '/users/' + userId;
+        ComposesAPI.prototype.getAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -704,21 +653,6 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
-        /**
-         * 取得使用者指定的 App 內的所有聊天室資訊
-         *
-         * @param {string} appId - 要查找的使用者的 App ID
-         * @param {string} userId - 使用者的 firebase ID
-         */
-        ChatroomAPI.prototype.getOne = function(appId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: this.reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
         return ChatroomAPI;
     })();
 
@@ -770,27 +704,11 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有自動回覆資料
          *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} appId - 目標自動回覆的 App ID
-         */
-        AutoreplyAPI.prototype.getAll = function(userId, appId) {
-            var destUrl = undefined === appId ? this.urlPrefix + 'users/' + userId : this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * 取得使用者某一個 App 的所有自動回覆的資料
-         *
          * @param {string} appId - 目標自動回覆的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {string} autorepliesId - 目標自動回覆的 ID
          */
-        AutoreplyAPI.prototype.getOne = function(appId, autorepliesId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/autoreplies/' + autorepliesId + '/users/' + userId;
+        AutoreplyAPI.prototype.getAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -979,27 +897,11 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有加好友回覆資料
          *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} appId - 目標加好友回覆的 App ID
-         */
-        GreetingAPI.prototype.getAll = function(userId, appId) {
-            var destUrl = undefined === appId ? this.urlPrefix + 'users/' + userId : this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * 取得使用者某一個 App 的所有加好友回覆的資料
-         *
          * @param {string} appId - 目標加好友回覆的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {string} greetingId -目標加好友回覆的 ID
          */
-        GreetingAPI.prototype.getOne = function(appId, greetingId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/greetings/' + greetingId + '/users/' + userId;
+        GreetingAPI.prototype.getAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders

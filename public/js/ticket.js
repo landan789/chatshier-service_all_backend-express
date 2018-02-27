@@ -78,7 +78,10 @@
     function loadTable() {
         $ticketBody.empty();
 
-        var asyncLoadTasks = [api.ticket.getAll(userId)];
+        var asyncLoadTasks = [
+            api.ticket.getAll('', userId)
+        ];
+
         // 如果沒有載入過 Messagers 才進行載入動作
         if (0 === Object.keys(messagersData).length) {
             asyncLoadTasks.push(api.messager.getAll(userId));

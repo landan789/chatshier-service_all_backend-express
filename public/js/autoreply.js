@@ -12,7 +12,7 @@
     var userId = '';
     var nowSelectAppId = '';
 
-    const unpermittedCode = '3.16';
+    const NO_PERMISSION_CODE = '3.16';
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
@@ -132,7 +132,7 @@
                 $.notify('失敗', { type: 'danger' });
                 $('#modal-submit').removeAttr('disabled');
             }
-            if (unpermittedCode === resJson.code) {
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $('#quickAdd').modal('hide');
                 $('#modal-task-name').val('');
                 $('#starttime').val('');
@@ -146,7 +146,7 @@
 
     function findOne(appId, userId) {
         $('#autoreply-tables').empty();
-        return api.autoreply.getAll(userId, appId).then(function(resJson) {
+        return api.autoreply.getAll(appId, userId).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];
@@ -208,7 +208,7 @@
                 $.notify('失敗', { type: 'danger' });
                 $('#edit-submit').removeAttr('disabled');
             }
-            if (unpermittedCode === resJson.code) {
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $('#editModal').modal('hide');
                 $.notify('無此權限', { type: 'danger' });
                 $('#edit-submit').removeAttr('disabled');
@@ -231,7 +231,7 @@
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
                 }
-                if (unpermittedCode === resJson.code) {
+                if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
                 }
             });

@@ -22,6 +22,7 @@
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
+    const unpermittedCode = '3.16';
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
@@ -117,6 +118,19 @@
                     $.notify('修改成功！', { type: 'success' });
                     $composeEditModal.find('#edit-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composeEditModal.modal('hide');
+                        $.notify('失敗', { type: 'danger' });
+                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composeEditModal.modal('hide');
+                        $.notify('無此權限', { type: 'danger' });
+                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                        return loadComposes(appId, userId);
+                    }
                 });
             });
         });
@@ -181,7 +195,7 @@
         $historyTableElem.empty();
         $draftTableElem.empty();
         $reservationTableElem.empty();
-        return api.composes.getAll(userId, appId).then(function(resJson) {
+        return api.composes.getAll(appId, userId).then(function(resJson) {
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];
@@ -205,6 +219,13 @@
                         return api.composes.remove(appId, composeId, userId).then(function() {
                             $.notify('刪除成功！', { type: 'success' });
                             return loadComposes(appId, userId);
+                        }).catch((resJson) => {
+                            if (undefined === resJson.status) {
+                                $.notify('失敗', { type: 'danger' });
+                            }
+                            if (unpermittedCode === resJson.code) {
+                                $.notify('無此權限', { type: 'danger' });
+                            }
                         });
                     });
                 });
@@ -338,10 +359,27 @@
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
-                    $.notify('發送成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
-                    $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                    return loadComposes(appId, userId);
+                    socket.on('verify', (json) => {
+                        if (!json) {
+                            $.notify('發送成功', { type: 'success' });
+                            $appDropdown.find('.dropdown-text').text(appsData[appId].name);
+                            $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                            return loadComposes(appId, userId);
+                        } else {
+                            if (undefined === json.status) {
+                                $composesAddModal.modal('hide');
+                                $.notify('失敗', { type: 'danger' });
+                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                                return loadComposes(appId, userId);
+                            }
+                            if (unpermittedCode === json.code) {
+                                $composesAddModal.modal('hide');
+                                $.notify('無此權限', { type: 'danger' });
+                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                                return loadComposes(appId, userId);
+                            }
+                        }
+                    });
                 } else {
                     insert(appId, userId, isDraft, composes);
                     $composesAddModal.modal('hide');
@@ -390,26 +428,8 @@
                     }
                     composesData[composeId] = compose;
                 });
-                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('text');
-                    var composeId = targetRow.attr('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.composes.remove(appId, composeId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadComposes(appId, userId);
-                        });
-                    });
-                });
                 $composesAddModal.modal('hide');
                 $.notify('新增成功', { type: 'success' });
-            }).catch(() => {
-                $.notify('新增失敗', { type: 'warning' });
             });
         }
     }
@@ -431,6 +451,19 @@
                 return api.composes.insert(appId, userId, compose).then((resJson) => {
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('失敗', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('無此權限', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
                 });
             } else {
                 let compose = {
@@ -442,6 +475,19 @@
                 return api.composes.insert(appId, userId, compose).then((resJson) => {
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('失敗', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
+                    if (unpermittedCode === resJson.code) {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                        $.notify('無此權限', { type: 'danger' });
+                        return loadComposes(appId, userId);
+                    }
                 });
             }
 

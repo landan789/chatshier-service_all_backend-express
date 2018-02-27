@@ -117,7 +117,8 @@ router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid',
 
 // 群發
 router.get('/apps-composes/users/:userid', appsComposesCtl.getAll);
-router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getOne);
+router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getAll);
+router.get('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.getOne);
 router.post('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.postOne);
 router.put('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.putOne);
 router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.deleteOne);

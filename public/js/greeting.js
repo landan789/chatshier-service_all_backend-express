@@ -13,7 +13,7 @@
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
 
-    const unpermittedCode = '3.16';
+    const NO_PERMISSION_CODE = '3.16';
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
@@ -82,7 +82,7 @@
     function findOne(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
-        return api.greeting.getAll(userId, appId).then(function(resJson) {
+        return api.greeting.getAll(appId, userId).then(function(resJson) {
             let greetings = resJson.data;
             let greeting = greetings[appId].greetings;
             for (let greetingId in greeting) {
@@ -143,7 +143,7 @@
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
                 }
-                if (unpermittedCode === resJson.code) {
+                if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
                 }
             });
@@ -197,7 +197,7 @@
             if (undefined === resJson.status) {
                 $.notify('失敗', { type: 'danger' });
             }
-            if (unpermittedCode === resJson.code) {
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $.notify('無此權限', { type: 'danger' });
             }
         });

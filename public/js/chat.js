@@ -170,7 +170,7 @@
             var $ticketBody = $ticketTable.find('.ticket-body');
             $ticketBody.empty();
 
-            return api.ticket.getOne(appId, userId).then(function(resJson) {
+            return api.ticket.getAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
 
                 if (appData && appData[appId] && appData[appId].tickets) {
@@ -382,7 +382,7 @@
 
     window.auth.ready.then(function(currentUser) {
         var preventUpdateProfile = false;
-        userId = window.auth.currentUser.uid;
+        userId = currentUser.uid;
 
         // 攜帶欲 appId 向伺服器端註冊依據
         // 使伺服器端可以針對特定 app 發送 socket 資料
@@ -1411,18 +1411,22 @@
         }
 
         function fileUpload() {
+            /** @type {HTMLInputElement} */
             var _this = this;
+            if (!_this.files.length) {
+                _this.value = '';
+                return;
+            }
+
             var $contentPanel = $(_this).parents('#chat-content-panel');
             var $messageView = $contentPanel.find('#canvas .tabcontent.shown');
             var appId = $messageView.attr('app-id');
             var chatroomId = $messageView.attr('chatroom-id');
 
-            if (!_this.files.length) {
-                return;
-            }
-
             /** @type {File} */
             var file = _this.files[0];
+            _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
+
             if (file.type.indexOf('image') >= 0 && file.size > window.chatshierConfig.imageFileMaxSize) {
                 $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.imageFileMaxSize / (1024 * 1000)) + ' MB');
                 return;

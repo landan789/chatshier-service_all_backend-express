@@ -27,6 +27,8 @@ let appsTemplatesMdl = require('../models/apps_templates');
 let appsGreetingsMdl = require('../models/apps_greetings');
 let groupsMdl = require('../models/groups');
 
+let controllerCre = require('../cores/controller');
+
 const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
 const API_SUCCESS = require('../config/api_success');
@@ -616,8 +618,15 @@ function init(server) {
             let messagers;
             let lineBot;
             let appType = '';
+            let req = {
+                method: 'POST',
+                params: {
+                    appid: appId,
+                    userid: userId
+                }
+            };
 
-            Promise.resolve().then(() => {
+            return controllerCre.AppsRequestVerify(req).then(() => {
                 if (!appId) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };
@@ -665,7 +674,9 @@ function init(server) {
                 return Promise.all(Object.keys(messagers[appId].messagers).map((messagerIds) => {
                     let messager = messagers[appId];
                     let chatroomId = messager.messagers[messagerIds].chatroom_id;
+
                     return Promise.all(messages.map((message) => {
+                        /** @type {ChatshierMessageInterface} */
                         let _message = {
                             from: SYSTEM,
                             messager_id: '',
@@ -673,6 +684,7 @@ function init(server) {
                             time: Date.now(),
                             type: 'text'
                         };
+
                         return new Promise((resolve, reject) => {
                             appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerIds, _message, (message) => {
                                 if (!message) {
@@ -695,6 +707,12 @@ function init(server) {
                 }));
             }).catch((err) => {
                 console.log(err);
+                let json = {
+                    status: 0,
+                    msg: err.MSG,
+                    code: err.CODE
+                };
+                socket.emit('verify', json);
             });
         });
 
