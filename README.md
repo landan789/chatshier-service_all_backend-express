@@ -1,28 +1,73 @@
-# project-shield
+# Chatshier 錢掌櫃
 
-## Progress
-2017/06/20 first commit, 完成行事曆功能 - TED
+## **資料夾**
 
-2017/06/21 新增“刪除鍵”在關閉的來單上 - TED
-2017/06/22 針對登入系統的問題做修改 - TED
-2017/06/26 測試line功能 - TED<br />
-2017/09/27 beta version 1, wait for others to chip in - TED
-2017/09/27 Profile送出修改調整 (ejs, js) - HCW, TED
-2017/09/27 已指派/未指派篩選功能 (新增一個tag) - TED
-2017/09/27 last talked to功能 - TED
-2017/09/30 to do list串接 - WWY
-2017/09/30 note功能 - WWY
-2017/09/30 Calendar串接todo - WWY/LCE
-2017/10/02 Calendar UI - LCE
-2017/10/02 Chat頁面個人資料修改優化 - CKK
-2017/10/03 to do 通知功能 - WYA
-2017/10/06 新增FB群組資訊至setting頁面 - CKK
-2017/10/06 Line@ manager後台功能總覽 - WWY
-2017/10/06 Line@ manager加入好友後訊息傳輸 - TED
+### bin
+系統開始服務的地方  
 
-## Issues report<br />
-2017/09/27 API.ai bug修正 - TED
-2017/10/02 Line@ manager自動回覆訊息(包含ai) - WWY
-2017/10/02 Line@ manager時效性訊息 - WWY
+### config
+錯誤/成功格式訊息  
+資料庫設定檔  
+群組/聊天室的資料庫格式  
+Socket設定
+
+### controllers
+執行對應api路徑下的需求取得models的資料  
+處理完後把資料傳給前端  
+一個檔案代表一個資料庫集合(collection)
+
+### cores
+內部核心功能  
+controllers用來管理群組跟使用者驗證
+
+### helpers
+處理內部server端的函式庫(cipher訊息加密, timer, utility, bot, facebook)
 
 
+### middlewares
+中介函式  
+web token及bot parse的功能
+
+
+### models
+處理資料庫存取的地方  
+一個檔案代表一個資料庫集合(collection)
+
+### public
+處理client端的檔案  
+裡面包含javascripts, stylesheets, 圖檔, 設定檔, 函式庫(bootstrap, font-awesome, fullcalendar等)
+
+### routes
+處理view engine跟api的路徑  
+api的路徑規劃，實際處理交給controllers  
+view engine(ejs)的路徑在index.js規劃好，格式跟api一樣
+
+### schedules
+排程功能
+
+### services
+處理外部server端的函式庫  
+LINE跟Facebook bot的訊息接收功能
+
+### sockets
+所有跟socket有關的事情都在這裡處理  
+底下的controllers只在socket底下使用
+
+### typings
+Typescript的設定檔, 介面
+
+### view
+網頁的畫面
+
+view engine: ejs
+
+**檔案**
+
+### .eslintrc
+ES Lint的設定檔
+
+### app.js
+執行中介軟體(middlewares)的檔案
+
+### package.json
+專案的設定檔
