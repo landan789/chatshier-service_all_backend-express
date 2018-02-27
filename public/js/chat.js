@@ -748,7 +748,7 @@
                         default:
                             uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
                             uiRequireData.profile.photo = '/image/group.png';
-                            uiRequireData.messagerId = uiRequireData.userId = userId;
+                            uiRequireData.messagerId = userId;
                             break;
                     }
                     createChatroom(uiRequireData);
@@ -1692,9 +1692,11 @@
                 var msgerId = $messagerCard.attr('messager-id');
 
                 var socketRequest = {
-                    userid: userId,
-                    appid: appId,
-                    messagerid: msgerId,
+                    params: {
+                        userid: userId,
+                        appid: appId,
+                        messagerid: msgerId
+                    },
                     body: messagerUiData
                 };
 

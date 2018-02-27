@@ -947,6 +947,9 @@ window.restfulAPI = (function() {
     if (window.auth && window.auth.ready) {
         // 當 firebase 更新時同時更新 API 需要的 JSON Web Token
         window.auth.onIdTokenChanged(function(currentUser) {
+            if (!currentUser) {
+                return;
+            }
             return currentUser.getIdToken(false).then(function(jwt) {
                 setJWT(jwt);
             });

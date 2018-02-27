@@ -17,11 +17,14 @@
     var serviceUrl = location.host;
     var wwwUrl = serviceUrl.replace(/^[\w-]+\./i, 'www.').replace(/:\d+$/i, '');
     urlConfig.wwwwUrl = urlConfig.wwwUrl.replace(/^https?:\/\//i, '');
-    var domain = serviceUrl.replace(/^[\w-]+\./i, '.').replace(/:\d+$/i, '');
+
     var url = 'http://' + ('' === urlConfig.wwwwUrl ? wwwUrl : urlConfig.wwwUrl) + ('' === urlConfig.port ? '' : ':' + urlConfig.port);
     var indexUrl = url + urlConfig.index;
     var termsUrl = url + urlConfig.terms;
     var privacyUrl = url + urlConfig.privacy;
+
+    var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
+    var cookieManager = window.chatshierCookie.manager;
 
     $(document).ready(function() {
         $('#index').attr('href', indexUrl);
@@ -74,8 +77,8 @@
             auth.authStateListener && auth.authStateListener();
 
             auth.createUserWithEmailAndPassword(email, password).then(function() {
-                document.cookie = 'name=' + name + ';domain=' + domain;
-                document.cookie = 'email=' + email + ';domain=' + domain;
+                cookieManager.setCookie(CHSR_COOKIE.USER_NAME, name);
+                cookieManager.setCookie(CHSR_COOKIE.USER_EMAIL, email);
 
                 // 更新 firebase 上 Authentication 的使用者個人資料
                 var userProfile = {
