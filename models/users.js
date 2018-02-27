@@ -37,9 +37,14 @@ module.exports = (function() {
         });
     };
 
-    UsersModel.prototype.updateUserByUserId = function(userId, obj, callback) {
-        admin.database().ref('users/' + userId).update(obj).then(() => {
-            callback();
+    UsersModel.prototype.updateUserByUserId = function(userId, user, callback) {
+        admin.database().ref('users/' + userId).update(user).then(() => {
+            let users = {
+                [userId]: user
+            };
+            callback(users);
+        }).catch(() => {
+            callback(null);
         });
     };
 

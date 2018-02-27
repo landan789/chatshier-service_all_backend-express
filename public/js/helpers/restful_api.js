@@ -864,7 +864,7 @@ window.restfulAPI = (function() {
 
     var UsersAPI = (function() {
         function UsersAPI(jwt) {
-            this.urlPrefix = apiUrlTable.groups;
+            this.urlPrefix = apiUrlTable.users;
         };
 
         UsersAPI.prototype.getUser = function(userId) {

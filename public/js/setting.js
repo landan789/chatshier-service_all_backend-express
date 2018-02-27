@@ -1449,7 +1449,7 @@ function findUserProfile() {
         $('#prof-email').text(profile.email);
         $('#prof-IDnumber').text(userId);
         $('#prof-company').text(profile.company);
-        $('#prof-phonenumber').text(profile.phonenumber);
+        $('#prof-phonenumber').text(profile.phone);
         $('#prof-address').text(profile.address);
     });
 }
@@ -1457,28 +1457,28 @@ function findUserProfile() {
 function updateUserProfile(userData) {
     return api.users.update(userId, userData).then(function() {
         $('#prof-company').text(userData.company);
-        $('#prof-phonenumber').text(userData.phonenumber);
+        $('#prof-phonenumber').text(userData.phone);
         $('#prof-address').text(userData.address);
     });
 }
 
 function profSubmitBasic() {
     let company = $('#company').val();
-    let phonenumber = $('#phone').val();
+    let phone = $('#phone').val();
     let address = $('#location').val();
-    let obj = {
+    let users = {
         company,
-        phonenumber,
+        phone,
         address
     };
     var phoneRule = /^09\d{8}$/;
-    if (!phonenumber.match(phoneRule)) {
+    if (!phone.match(phoneRule)) {
         $('#prof-edit-phonenumber').tooltip('show');
         setTimeout(function() {
             $('#prof-edit-phonenumber').tooltip('destroy');
         }, 3000);
     } else {
-        updateUserProfile(obj);
+        updateUserProfile(users);
         $('#setting-modal').modal('hide');
     }
 }
