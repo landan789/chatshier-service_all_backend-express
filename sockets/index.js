@@ -1,11 +1,8 @@
 let cipher = require('../helpers/cipher');
 let app = require('../app');
-let socketio = require('socket.io');
+let socketIO = require('socket.io');
 let line = require('@line/bot-sdk');
 let facebook = require('facebook-bot-messenger'); // facebook串接
-
-const appsMessagersCtl = require('../controllers/apps_messagers');
-const appsSocketCtl = require('./controllers/apps');
 
 let agents = require('../models/agents');
 let appsComposes = require('../models/apps_composes');
@@ -13,6 +10,7 @@ let appsAutorepliesMdl = require('../models/apps_autoreplies');
 let linetemplate = require('../models/linetemplate');
 let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
+const socketManager = require('../helpers/socket_manager');
 let utility = require('../helpers/utility');
 let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
@@ -47,8 +45,8 @@ const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
 const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
 
 function init(server) {
-    let io = socketio(server);
-    let chatshierNsp = io.of('/chatshier');
+    let socketIOServer = socketIO(server);
+    let chatshierNsp = socketIOServer.of('/chatshier');
 
     /** @type {Map<string, boolean>} */
     let messageCacheMap = new Map();
@@ -140,7 +138,7 @@ function init(server) {
                 replyMessages = keywordMessages ? replyMessages.concat(keywordMessages) : replyMessages;
                 replyMessages = autoMessages ? replyMessages.concat(autoMessages) : replyMessages;
 
-                let textOnlyMessages = replyMessages.slice();
+                // let textOnlyMessages = replyMessages.slice();
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
 
                 return Promise.resolve().then(() => {
@@ -365,7 +363,7 @@ function init(server) {
 
                     // 用 socket.emit 回傳訊息給 client
                     // 指定 appId 為限制只有擁有此 app 的 user 才會收到此 socket 資料
-                    appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                    return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
                 });
             }));
         }
@@ -462,12 +460,12 @@ function init(server) {
 
     chatshierNsp.on(SOCKET_EVENTS.CONNECTION, (socket) => {
         socket.on(SOCKET_EVENTS.APP_REGISTRATION, (appId, callback) => {
-            appsSocketCtl.addSocket(appId, socket);
+            socketManager.addSocket(appId, socket);
             ('function' === typeof callback) && callback();
         });
 
         socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-            appsSocketCtl.removeSocket(socket);
+            socketManager.removeSocket(socket);
         });
 
         socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, (data, callback) => {
@@ -563,7 +561,8 @@ function init(server) {
                 }));
             }).then(() => {
                 // 將 socket 資料原封不動的廣播到 chatshier chatroom
-                appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+            }).then(() => {
                 ('function' === typeof callback) && callback();
             });
         });
@@ -572,7 +571,7 @@ function init(server) {
             let msgerId = req.params.messagerid;
             let appId = '';
 
-            return appsMessagersCtl.AppsRequestVerify(req).then((checkedAppId) => {
+            return controllerCre.AppsRequestVerify(req).then((checkedAppId) => {
                 appId = checkedAppId;
                 if (!msgerId) {
                     return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
@@ -599,12 +598,13 @@ function init(server) {
                     });
                 });
             }).then((messager) => {
-                let socketResponse = {
+                let messagerToSocket = {
                     appId: appId,
                     messageId: msgerId,
                     messager: messager
                 };
-                appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, socketResponse);
+                return socketManager.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
+            }).then(() => {
                 ('function' === typeof callback) && callback();
             });
         });
@@ -701,7 +701,7 @@ function init(server) {
                                 messagerId: '',
                                 message: _message
                             };
-                            appsSocketCtl.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                            return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
                         });
                     }));
                 }));
@@ -765,7 +765,7 @@ function init(server) {
         /* ===template end=== */
     });
 
-    return io;
+    return socketIOServer;
 }
 
 module.exports = init;
