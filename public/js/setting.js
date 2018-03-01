@@ -631,6 +631,7 @@ window.auth.ready.then(function(currentUser) {
                 groups[groupId] = resJson.data[groupId];
                 instance.addGroup(groupId, groups[groupId]);
                 instance.showCollapse(groupId);
+                $addGroupModal.find('input').val('');
             });
         });
 
