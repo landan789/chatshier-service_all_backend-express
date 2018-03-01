@@ -44,7 +44,7 @@ window.auth.ready.then(function(currentUser) {
             case 'updateApp':
                 let appId = $(this).parent().parent().find('#webhook-id').text();
                 groupId = $(this).parent().parent().find('#groupId').text();
-                // console.log($('#facebook-name').val())
+
                 if ($('#facebook-name').val() === undefined) {
                     let name = $('#name').val();
                     let id1 = $('#channel-id').val();
@@ -166,7 +166,6 @@ window.auth.ready.then(function(currentUser) {
         $appModal.append(formStr);
     });
     $(document).on('change', '#app-group-select', function() { // 切換模式 LINE或是臉書
-        // console.log($(this).find('option:selected').val());
         let type = $(this).find('option:selected').val();
         switch (type) {
             case LINE:
@@ -292,7 +291,7 @@ window.auth.ready.then(function(currentUser) {
 
             $tagCollapse.find('.btn.all-confirm').on('click', function(ev) {
                 var $tagRows = $tagTableBody.find('tr.tag-content');
-                var uiData = {};
+                var uiTags = {};
 
                 for (var i = 0; i < $tagRows.length; i++) {
                     var $row = $($tagRows[i]);
@@ -324,13 +323,13 @@ window.auth.ready.then(function(currentUser) {
                     }
 
                     // 每一行的 td 標籤的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
-                    uiData[$row.prop('id')] = data;
+                    uiTags[$row.attr('id')] = data;
                 }
 
                 for (var idx in _this.saveListeners) {
                     _this.saveListeners[idx](ev, {
                         appId: appId,
-                        uiData: uiData
+                        uiTags: uiTags
                     });
                 }
             });
@@ -469,23 +468,24 @@ window.auth.ready.then(function(currentUser) {
 
             for (var appId in appsData) {
                 var appData = appsData[appId] || {};
-                var tagsData = appsTagsData[appId].tags || {};
+                var tags = appsTagsData[appId].tags || {};
                 tagPanelCtrl.addAppItem(appId, appData);
                 firstAppId = firstAppId || appId;
 
                 // 將標籤資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                var tagIds = Object.keys(tagsData);
+                var tagIds = Object.keys(tags);
                 tagIds.sort(function(a, b) {
-                    return tagsData[a].order - tagsData[b].order;
+                    return tags[a].order - tags[b].order;
                 });
 
                 for (var i in tagIds) {
                     var tagId = tagIds[i];
-                    var tagData = tagsData[tagId];
-                    if (tagData.isDeleted) {
+                    var tag = tags[tagId];
+                    if (tag.isDeleted) {
+                        delete tags[tagId];
                         continue;
                     }
-                    tagPanelCtrl.addTagItem(appId, tagId, tagData);
+                    tagPanelCtrl.addTagItem(appId, tagId, tag);
                 }
             }
 
@@ -493,71 +493,85 @@ window.auth.ready.then(function(currentUser) {
             // 檢查哪些資料需要更新哪些資料需要新增
             tagPanelCtrl.onSave(function(ev, args) {
                 $(ev.target).attr('disabled', true);
-                var tagsData = appsTagsData[args.appId].tags;
-                var tagIds = Object.keys(tagsData);
+                var tagsOrg = appsTagsData[args.appId].tags;
+                var tagIds = Object.keys(tagsOrg);
 
                 /**
                  * 深層比對目標物件中的資料在來源物件中是否具有相同資料
                  */
-                var hasSameData = function(srcTag, destTag) {
+                var tagHasChanged = function(srcTag, destTag) {
                     for (var key in destTag) {
-                        if (destTag[key] === srcTag[key]) {
+                        // 因為有翻譯文字的關係
+                        // 非自定義標籤的名稱與系統性別的設定不檢查
+                        if (('text' === key && tagEnums.type.CUSTOM !== srcTag.type) ||
+                            ('sets' === key && 'gender' === srcTag.alias)) {
                             continue;
-                        } else if (!(destTag[key] instanceof Array && srcTag[key] instanceof Array)) {
-                            return false;
-                        } else if (destTag[key].length !== srcTag[key].length) {
-                            return false;
+                        }
+
+                        if (srcTag[key] === destTag[key]) {
+                            continue;
+                        }
+
+                        if (!(srcTag[key] instanceof Array && destTag[key] instanceof Array)) {
+                            return true;
+                        } else if (srcTag[key].length !== destTag[key].length) {
+                            return true;
                         }
 
                         for (var i in destTag[key]) {
-                            if (destTag[key][i] !== srcTag[key][i]) {
-                                return false;
+                            if (srcTag[key][i] !== destTag[key][i]) {
+                                return true;
                             }
                         }
                     }
-                    return true;
+                    return false;
                 };
 
                 return Promise.all(tagIds.map(function(tagId) {
-                    var tagData = tagsData[tagId];
+                    var tagOrg = tagsOrg[tagId];
+                    var tagOnUI = Object.assign({}, args.uiTags[tagId]);
+                    delete args.uiTags[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
 
                     // 需對照 UI 上目前每個標籤的順序，更新至對應的標籤
-                    if (args.uiData[tagId] && !hasSameData(tagData, args.uiData[tagId])) {
-                        // 只允許非系統預設的欄位可進行資料變更動作
-                        if (tagData.type !== tagEnums.type.DEFAULT) {
-                            tagData.text = args.uiData[tagId].text;
-                            tagData.setsType = args.uiData[tagId].setsType;
-                            tagData.sets = args.uiData[tagId].sets;
+                    if (!!tagOnUI && tagHasChanged(tagOrg, tagOnUI)) {
+                        // 只允許自定義的欄位可進行資料變更動作
+                        if (tagOrg.type === tagEnums.type.CUSTOM) {
+                            tagOrg.text = tagOnUI.text;
+                            tagOrg.setsType = tagOnUI.setsType;
+                            tagOrg.sets = tagOnUI.sets;
                         }
-                        tagData.order = args.uiData[tagId].order;
-                        tagData.updatedTime = Date.now();
-                        delete args.uiData[tagId];
-                        return api.tag.update(args.appId, tagId, userId, tagData);
-                    } else if (tagData.isDeleted) {
-                        return api.tag.remove(args.appId, tagId, userId);
+                        tagOrg.order = tagOnUI.order;
+                        return api.tag.update(args.appId, tagId, userId, tagOrg);
+                    } else if (tagOrg.isDeleted) {
+                        return api.tag.remove(args.appId, tagId, userId).then(function() {
+                            delete appsTagsData[args.appId].tags[tagId];
+                        });
                     }
-                    delete args.uiData[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
                     return Promise.resolve();
                 })).then(function() {
-                    // 將剩下的 id 檢查是否為新增的標籤
-                    var newTagIds = Object.keys(args.uiData);
-                    return Promise.all(newTagIds.map(function(tagId) {
+                    return Promise.all(Object.keys(args.uiTags).map(function(tagId) {
+                        // 將剩下的 id 檢查是否為新增的標籤
                         // 新增的標籤 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
                         // 非新增的標籤資料不進行資料插入動作
-                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) !== 0) {
+                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) < 0) {
                             return Promise.resolve();
                         }
 
-                        var tagData = {
-                            text: args.uiData[tagId].text,
+                        var tagOnUI = args.uiTags[tagId];
+                        var newTag = {
+                            text: tagOnUI.text,
                             type: tagEnums.type.CUSTOM,
-                            sets: args.uiData[tagId].sets,
-                            setsType: args.uiData[tagId].setsType,
-                            order: args.uiData[tagId].order,
-                            createdTime: Date.now(),
-                            updatedTime: Date.now()
+                            sets: tagOnUI.sets,
+                            setsType: tagOnUI.setsType,
+                            order: tagOnUI.order
                         };
-                        return api.tag.insert(args.appId, userId, tagData);
+                        return api.tag.insert(args.appId, userId, newTag).then(function(resJson) {
+                            // 完成資料庫儲存後，將暫時使用的 tagId 替換成真正資料庫的 tagId
+                            var insertTags = resJson.data;
+                            var newTagId = Object.keys(insertTags[args.appId].tags).shift();
+                            appsTagsData[args.appId].tags[newTagId] = insertTags[args.appId].tags[newTagId];
+                            $('#' + tagId + '.tag-content').attr('id', newTagId);
+                        });
                     }));
                 }).then(function() {
                     // 標籤資料處理完成後顯示訊息在 UI 上
@@ -652,7 +666,7 @@ window.auth.ready.then(function(currentUser) {
             });
             var index = userIds.indexOf(auth.currentUser.uid);
             if (0 > index) {
-                //return;
+                // return;
             };
             var currentMember = Object.values(members)[index];
             $groupBody.append(
@@ -670,8 +684,8 @@ window.auth.ready.then(function(currentUser) {
                                 '<span class="input-group-btn btn-update">' +
                                     '<button class="btn btn-primary">更新</button>' +
                                 '</span>' +
-                                // '<span class="input-group-btn btn-de刪除lete">' +
-                                //     '<button class="btn btn-danger">群組</button>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
                                 // '</span>' +
                             '</div>' +
                         '</div>' +
@@ -1410,88 +1424,88 @@ function formModalBody(id, app) {
         case LINE:
             appStr =
                 '<form>' +
-                '<div id="type" hidden>updateApp</div>' +
-                '<div class="form-group" hidden>' +
-                '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
-                '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupId">' + app.group_id + '</span>' +
-                '</div>' +
-                '<div id="prof-edit-line-1">' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Channel Name 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div id="type" hidden>updateApp</div>' +
+                    '<div class="form-group" hidden>' +
+                        '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
+                        '<span id="webhook-id">' + id + '</span>' +
+                        '<span id="groupId">' + app.group_id + '</span>' +
+                    '</div>' +
+                    '<div id="prof-edit-line-1">' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Channel Name 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
                 '</form>';
             $appModal.append(appStr);
             break;
         case FACEBOOK:
             appStr =
                 '<form>' +
-                '<div id="type" hidden>updateApp</div>' +
-                '<div class="form-group" hidden>' +
-                '<label class="col-2 col-form-label">ID</label>' +
-                '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupId">' + app.group_id + '</span>' +
-                '</div>' +
-                '<div id="prof-edit-fb">' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
-                ' <div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Page Id: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">App ID: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">App Secret: </label>' +
-                ' <div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Validation Token: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Page Token: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div id="type" hidden>updateApp</div>' +
+                    '<div class="form-group" hidden>' +
+                        '<label class="col-2 col-form-label">ID</label>' +
+                        '<span id="webhook-id">' + id + '</span>' +
+                        '<span id="groupId">' + app.group_id + '</span>' +
+                    '</div>' +
+                    '<div id="prof-edit-fb">' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Page Id: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">App ID: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">App Secret: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Validation Token: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Page Token: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
                 '</form>';
             $appModal.append(appStr);
             break;

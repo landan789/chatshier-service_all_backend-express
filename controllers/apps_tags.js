@@ -62,10 +62,7 @@ module.exports = (function() {
             type: req.body.type || appsTagsMdl.TypeEnum.CUSTOM,
             sets: req.body.sets || [''],
             setsType: req.body.setsType ? req.body.setsType : 0,
-            order: req.body.order ? req.body.order : 0,
-            createdTime: req.body.createdTime || Date.now(),
-            updatedTime: req.body.updatedTime || Date.now(),
-            isDeleted: 0
+            order: req.body.order ? req.body.order : 0
         };
 
         return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
@@ -103,9 +100,7 @@ module.exports = (function() {
         // 建立並過濾用戶端傳過來的資料
         let putTagData = {
             type: req.body.type || appsTagsMdl.TypeEnum.CUSTOM,
-            order: req.body.order ? req.body.order : 0,
-            updatedTime: req.body.updatedTime || Date.now(),
-            isDeleted: req.body.isDeleted ? req.body.isDeleted : 0
+            order: req.body.order ? req.body.order : 0
         };
 
         // 欲更新的資料只有是自定義型態才可變更名稱及資料

@@ -43,11 +43,11 @@ module.exports = (function() {
      */
     AppsTagsModel.prototype.findTags = function(appIds, callback) {
         Promise.resolve().then(() => {
+            let appsTagsMap = {};
             if (!appIds || !(appIds instanceof Array)) {
-                return;
+                return appsTagsMap;
             }
 
-            let appsTagsMap = {};
             return Promise.all(appIds.map((appId) => {
                 appsTagsMap[appId] = {};
                 return admin.database().ref('apps/' + appId + '/tags').once('value').then((snap) => {
@@ -67,7 +67,7 @@ module.exports = (function() {
                 return appsTagsMap;
             });
         }).then((result) => {
-            callback(result || {});
+            callback(result);
         }).catch(() => {
             callback(null);
         });
@@ -77,7 +77,7 @@ module.exports = (function() {
      * 將預設的 tag 資料批次新增到指定的 app 裡，完成插入後回傳所有 tag ID
      *
      * @param {string} appId
-     * @param {(tagIds: string[]) => any} callback
+     * @param {(tagIds: any[]|null) => any} callback
      */
     AppsTagsModel.prototype.insertDefaultTags = function(appId, callback) {
         let defaultTags = [{
@@ -147,8 +147,17 @@ module.exports = (function() {
             tag.createdTime = tag.updatedTime = Date.now();
 
             let postTagData = Object.assign(AppsTagsModel._schema(), tag);
-            let databaseRef = admin.database().ref('apps/' + appId + '/tags').push(postTagData);
-            return databaseRef.then(() => databaseRef.key);
+            return admin.database().ref('apps/' + appId + '/tags').push(postTagData).then((ref) => {
+                let tagId = ref.key;
+                let appsTags = {
+                    [appId]: {
+                        tags: {
+                            [tagId]: postTagData
+                        }
+                    }
+                };
+                return appsTags;
+            });
         })).then((data) => {
             callback(data || []);
         }).catch(() => {
@@ -158,10 +167,14 @@ module.exports = (function() {
 
     /**
      * @param {string} appId
-     * @param {any} insertTagData
-     * @param {(data: { tagId: string } => any} callback
+     * @param {any} postTagData
+     * @param {(appsTags: any|null) => any} callback
      */
     AppsTagsModel.prototype.insertTag = function(appId, postTagData, callback) {
+        postTagData = postTagData || {};
+        postTagData.createdTime = Date.now();
+        postTagData.updatedTime = Date.now();
+
         Promise.resolve().then(() => {
             if (!appId) {
                 return Promise.reject(new Error());
@@ -171,14 +184,20 @@ module.exports = (function() {
             let initTagData = AppsTagsModel._schema();
             let newTagData = Object.assign(initTagData, postTagData);
 
-            // 2. 將資料插入至資料庫中，完成插入後回傳 ID 鍵值
-            let databaseRef = admin.database().ref('apps/' + appId + '/tags').push(newTagData);
-            let tagId = databaseRef.key;
-            return databaseRef.then(() => {
-                return { tagId };
+            // 2. 將資料插入至資料庫中
+            return admin.database().ref('apps/' + appId + '/tags').push(newTagData).then((ref) => {
+                let tagId = ref.key;
+                let appsTags = {
+                    [appId]: {
+                        tags: {
+                            [tagId]: newTagData
+                        }
+                    }
+                };
+                return appsTags;
             });
         }).then((data) => {
-            callback(data || {});
+            callback(data);
         }).catch(() => {
             callback(null);
         });
@@ -188,9 +207,12 @@ module.exports = (function() {
      * @param {string} appId
      * @param {string} tagId
      * @param {any} putTagData
-     * @param {(data: { tagId: string } => any} callback
+     * @param {(data: any|null) => any} callback
      */
     AppsTagsModel.prototype.updateTag = function(appId, tagId, putTagData, callback) {
+        putTagData = putTagData || {};
+        putTagData.updatedTime = Date.now();
+
         Promise.resolve().then(() => {
             if (!appId || !tagId) {
                 return Promise.reject(new Error());
@@ -198,10 +220,20 @@ module.exports = (function() {
 
             // 1. 將資料更新至資料庫中，完成更新後回傳 ID 鍵值
             return admin.database().ref('apps/' + appId + '/tags/' + tagId).update(putTagData).then(() => {
-                return { tagId };
+                return admin.database().ref('apps/' + appId + '/tags/' + tagId).once('value');
+            }).then((snap) => {
+                let tagInDB = snap.val();
+                let appsTags = {
+                    [appId]: {
+                        tags: {
+                            [tagId]: tagInDB
+                        }
+                    }
+                };
+                return appsTags;
             });
         }).then((data) => {
-            callback(data || {});
+            callback(data);
         }).catch(() => {
             callback(null);
         });
@@ -210,7 +242,7 @@ module.exports = (function() {
     /**
      * @param {string} appId
      * @param {string} tagId
-     * @param {(data: { tagId: string } => any} callback
+     * @param {(data: any|null) => any} callback
      */
     AppsTagsModel.prototype.removeTag = function(appId, tagId, callback) {
         Promise.resolve().then(() => {
@@ -219,15 +251,26 @@ module.exports = (function() {
             }
 
             let deleteTagData = {
-                isDeleted: 1
+                isDeleted: 1,
+                updatedTime: Date.now()
             };
 
-            // 1. 將資料更新至資料庫中，完成更新後回傳 ID 鍵值
+            // 1. 將資料更新至資料庫中，完成更新後回傳
             return admin.database().ref('apps/' + appId + '/tags/' + tagId).update(deleteTagData).then(() => {
-                return { tagId };
+                return admin.database().ref('apps/' + appId + '/tags/' + tagId).once('value');
+            }).then((snap) => {
+                let tagInDB = snap.val();
+                let appsTags = {
+                    [appId]: {
+                        tags: {
+                            [tagId]: tagInDB
+                        }
+                    }
+                };
+                return appsTags;
             });
         }).then((data) => {
-            callback(data || {});
+            callback(data);
         }).catch(() => {
             callback(null);
         });
