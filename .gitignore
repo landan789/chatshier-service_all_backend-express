@@ -1,6 +1,7 @@
 /node_modules/
 /config/firebase-adminsdk.json
 /config/firebase_admin_database_url.js
+/config/chatshier.js
 /public/config/firebaseConfig.js
 /public/config/url-config.js
 /npm-debug.log

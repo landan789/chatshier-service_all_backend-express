@@ -1,12 +1,12 @@
 module.exports = (function() {
     const redis = require('redis');
-    const chatshierConfig = require('../config/chatshier_config');
+    const chatshierCfg = require('../config/chatshier');
     const REDIS_SOCKET_CHANNEL = 'REDIS_SOCKET_CHANNEL';
 
     // http://redis.js.org/#api-rediscreateclient
     let redisClientOpts = {
-        host: chatshierConfig.REDIS.host,
-        port: chatshierConfig.REDIS.port,
+        host: chatshierCfg.REDIS.HOST,
+        port: chatshierCfg.REDIS.PORT,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
             // if (options.error && 'ECONNREFUSED' === options.error.code) {

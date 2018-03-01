@@ -1,7 +1,7 @@
 module.exports = (function() {
     const crypto = require('crypto');
-    const chatshierConfig = require('../config/chatshier_config');
-    const SECRET = chatshierConfig.SECRET;
+    const chatshierCfg = require('../config/chatshier');
+    const SECRET = chatshierCfg.SECRET;
 
     function Cipher() {}
 

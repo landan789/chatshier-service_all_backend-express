@@ -4,7 +4,7 @@ module.exports = {
         ALGORITHM: 'sha1'
     },
     REDIS: {
-        host: '10.0.0.11',
-        port: 6379
+        HOST: '127.0.0.1',
+        PORT: 6379
     }
 };
