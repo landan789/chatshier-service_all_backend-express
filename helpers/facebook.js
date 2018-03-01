@@ -42,9 +42,8 @@ module.exports = (function() {
      * @param {Object} bot
      * @param {string} receiverId
      * @param {ChatshierMessageInterface} message
-     * @param {() => any} callback
      */
-    Facebook.prototype.sendMessage = function(bot, receiverId, message, callback) {
+    Facebook.prototype.sendMessage = function(bot, receiverId, message) {
         return Promise.resolve().then(() => {
             switch (message.type) {
                 case 'image':
@@ -56,8 +55,6 @@ module.exports = (function() {
                 default:
                     return bot.sendTextMessage(receiverId, message.text);
             }
-        }).then(() => {
-            callback();
         });
     };
 

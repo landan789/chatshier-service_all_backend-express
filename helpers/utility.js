@@ -83,37 +83,36 @@ var utility = {
         callback(msgObj);
     },
     /**
-     * @param {any} vendor
-     * @param {(message: LineMessageInterface) => any} callback
+     * @param {ChatshierMessageInterface} message
+     * @returns {any}
      */
-    LINEMessageTypeForPushMessage: (vendor, callback) => {
-        /** @type {LineMessageInterface} */
-        let message = {
-            type: vendor.type
+    lineMessageTypeForPushMessage: (message) => {
+        let _message = {
+            type: message.type
         };
 
-        switch (vendor.type) {
+        switch (message.type) {
             case 'text':
-                message.text = vendor.text;
+                _message.text = message.text;
                 break;
             case 'image':
-                message.previewImageUrl = vendor.src;
-                message.originalContentUrl = vendor.src;
+                _message.previewImageUrl = message.src;
+                _message.originalContentUrl = message.src;
                 break;
             case 'audio':
-                message.duration = 240000;
-                message.originalContentUrl = vendor.src;
+                _message.duration = 240000;
+                _message.originalContentUrl = message.src;
                 break;
             case 'video':
-                message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
-                message.originalContentUrl = vendor.src;
+                _message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
+                _message.originalContentUrl = message.src;
                 break;
             case 'sticker':
-                message.stickerId = vendor.msg.substr(vendor.msg.lastIndexOf(' '));
-                message.packageId = vendor.msg.substr(vendor.msg.indexOf(' '));
+                _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
+                _message.packageId = message.text.substr(message.text.indexOf(' '));
                 break;
         }
-        callback(message);
+        return _message;
     },
     fbMsgType: (fbMsg, callback) => {
         let msgObj;

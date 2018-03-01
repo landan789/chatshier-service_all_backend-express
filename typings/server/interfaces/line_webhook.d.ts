@@ -90,7 +90,7 @@ interface LineWebhookEventObject {
     }
 }
 
-interface LineMessageInterface {
+interface LineWebhookMessage {
     type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location';
     /**
      * type: text

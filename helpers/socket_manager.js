@@ -7,6 +7,7 @@ module.exports = (function() {
     let redisClientOpts = {
         host: chatshierCfg.REDIS.HOST,
         port: chatshierCfg.REDIS.PORT,
+        connect_timeout: 3000,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
             // if (options.error && 'ECONNREFUSED' === options.error.code) {
@@ -32,7 +33,7 @@ module.exports = (function() {
         constructor() {
             /** @type {{ [socketId: string]: { [appId: string]: SocketIO.Socket } }} */
             this.socketsAppsMap = {};
-            this.noRedis = false;
+            this.noRedis = true;
             this.publisher = redis.createClient(redisClientOpts);
             this.subscriber = redis.createClient(redisClientOpts);
             this.redisReady = this._initRedisClient();
@@ -56,12 +57,13 @@ module.exports = (function() {
             ]);
 
             this.publisher.on('connect', () => {
+                this.noRedis = false;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
             });
 
             this.publisher.on('error', (err) => {
-                if (err && 'ECONNREFUSED' === err.code) {
+                if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
                     this.noRedis = true;
                 }
                 publisherReadyResolve && publisherReadyResolve();
@@ -82,12 +84,13 @@ module.exports = (function() {
             });
 
             this.subscriber.on('connect', () => {
+                this.noRedis = false;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
             });
 
             this.subscriber.on('error', (err) => {
-                if (err && 'ECONNREFUSED' === err.code) {
+                if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
                     this.noRedis = true;
                 }
                 subscriberReadyResolve && subscriberReadyResolve();

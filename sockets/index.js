@@ -510,8 +510,8 @@ function init(server) {
             }).then((app) => {
                 // 3. 利用 SDK 傳給各平台的 server
                 return Promise.resolve().then(() => {
-                    if (FACEBOOK === appType) {
-                        return new Promise((resolve) => {
+                    switch (appType) {
+                        case FACEBOOK:
                             let facebookConfig = {
                                 pageID: app.id1,
                                 appID: app.id2,
@@ -519,24 +519,19 @@ function init(server) {
                                 validationToken: app.token1,
                                 pageToken: app.token2
                             };
-                            let fbBot = facebook.create(facebookConfig);
-                            helpersFacebook.sendMessage(fbBot, receiverId, message, () => {
-                                resolve();
-                            });
-                        });
-                    } else if (LINE === appType) {
-                        let lineClientConfig = {
-                            channelAccessToken: app.token1
-                        };
-                        let lineBot = new line.Client(lineClientConfig);
 
-                        return new Promise((resolve, reject) => {
-                            utility.LINEMessageTypeForPushMessage(message, (lineMessage) => {
-                                resolve(lineMessage);
-                            });
-                        }).then((lineMessage) => {
+                            let fbBot = facebook.create(facebookConfig);
+                            return helpersFacebook.sendMessage(fbBot, receiverId, message);
+                        case LINE:
+                            let lineClientConfig = {
+                                channelAccessToken: app.token1
+                            };
+
+                            let lineBot = new line.Client(lineClientConfig);
+                            let lineMessage = utility.lineMessageTypeForPushMessage(message);
                             return lineBot.pushMessage(receiverId, lineMessage);
-                        });
+                        default:
+                            break;
                     }
                 }).then(() => {
                     return app;
