@@ -5,6 +5,7 @@ const FACEBOOK = 'FACEBOOK';
 const CHATSHIER = 'CHATSHIER';
 const ACTIVE = '啟用';
 const INACTIVE = '未啟用';
+const NO_PERMISSION_CODE = '3.16';
 var userId = '';
 var api = window.restfulAPI;
 var transJson = {};
@@ -81,8 +82,8 @@ window.auth.ready.then(function(currentUser) {
         }
     });
     $(document).on('click', '#del', function() {
-        let autoreplyId = $(this).attr('rel');
-        removeOneApp(autoreplyId);
+        let appId = $(this).attr('rel');
+        removeOneApp(appId);
     });
     $(document).on('click', '#add-new-btn', function() {
         let groupId = $(this).attr('rel');
@@ -602,7 +603,7 @@ window.auth.ready.then(function(currentUser) {
         $addGroupModal.on('click', '#add_group_submit', function() {
             $addGroupModal.modal('hide');
 
-            var groupName = $addGroupModal.find('input#add_group_name').val();
+            var groupName = $addGroupModal.find('input').val();
             if (!groupName) {
                 return;
             }
@@ -1190,6 +1191,17 @@ function insertOneApp(appData) {
         for (let appId in apps) {
             groupType(appId, apps[appId]);
         }
+    }).catch((resJson) => {
+        if (undefined === resJson.status) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('失敗', { type: 'danger' });
+        }
+        if (NO_PERMISSION_CODE === resJson.code) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('無此權限', { type: 'danger' });
+        }
     });
 }
 
@@ -1220,17 +1232,67 @@ function updateOneApp(appId, appData) {
                 $('.' + appId + ' #prof-fbPageToken').html(app.token2);
                 break;
         };
+    }).catch((resJson) => {
+        if (undefined === resJson.status) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('失敗', { type: 'danger' });
+        }
+        if (NO_PERMISSION_CODE === resJson.code) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('無此權限', { type: 'danger' });
+        }
     });
 }
 
 function removeOneApp(appId) {
-    return api.app.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
-        let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-        $('#app-group').html(str);
-        $.notify('成功刪除!', { type: 'success' });
-        $('tr.' + appId).remove();
+    return showDialog('確定要刪除嗎？').then(function(isOK) {
+        if (!isOK) {
+            return;
+        }
+
+        return api.app.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+            let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+            $('#app-group').html(str);
+            $.notify('成功刪除!', { type: 'success' });
+            $('tr.' + appId).remove();
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $.notify('失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
+        });
     });
 }
+
+function showDialog(textContent) {
+    return new Promise(function(resolve) {
+        $('#textContent').text(textContent);
+
+        var isOK = false;
+        var $dialogModal = $('#dialog_modal');
+
+        $dialogModal.find('.btn-primary').on('click', function() {
+            isOK = true;
+            resolve(isOK);
+            $dialogModal.modal('hide');
+        });
+
+        $dialogModal.find('.btn-secondary').on('click', function() {
+            resolve(isOK);
+            $dialogModal.modal('hide');
+        });
+
+        $dialogModal.modal({
+            backdrop: false,
+            show: true
+        });
+    });
+}
+
 /**
  * 群組資料從ajax載入後把群組視覺化
  * @param {*} groupData
