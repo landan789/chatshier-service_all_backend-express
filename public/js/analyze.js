@@ -36,6 +36,7 @@
     var $appDropdown = $('.tooltip-container .app-dropdown');
     var sTimePickerData = null;
     var eTimePickerData = null;
+    var date = Date.now();
 
     window.auth.ready.then((currentUser) => {
         userId = currentUser.uid;
@@ -48,8 +49,8 @@
 
         // 初始化 modal 裡的 datetime picker
         // 使用 moment.js 的 locale 設定 i18n 日期格式
-        $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw' });
-        $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw' });
+        $analyzeSdtPicker.datetimepicker({locale: 'zh-tw', defaultDate: date });
+        $analyzeEdtPicker.datetimepicker({locale: 'zh-tw', defaultDate: date });
         sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
         eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
 
@@ -89,14 +90,12 @@
             $('.app-view .dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
             $('div.button-group .btn-view').removeAttr('disabled');
         }
-
         // 綁定日期變更時的事件
         $analyzeSdtPicker.on('dp.change', function(ev) {
             startTime = ev.date.toDate().getTime();
             renderChart();
         });
-
-        $analyzeEdtPicker.on('dp.change', function(ev) {
+        $analyzeEdtPicker.on('dp.change', function(ev) {  
             endTime = ev.date.toDate().getTime();
             renderChart();
         });
@@ -116,7 +115,7 @@
             FIRST_MSG_TIME = messages[0].time; // 預設的 startTime 為最早的訊息的時間
             LAST_MSG_TIME = messages[messages.length - 1].time;
         } else {
-            FIRST_MSG_TIME = LAST_MSG_TIME = 0;
+            FIRST_MSG_TIME = LAST_MSG_TIME = date;
         }
         startTime = FIRST_MSG_TIME;
         endTime = LAST_MSG_TIME;
