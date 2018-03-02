@@ -657,31 +657,19 @@ window.auth.ready.then(function(currentUser) {
             }
         };
 
-        GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
-            instance.hideCollapseAll(groupId);
-            var members = groupData.members;
-            var userIds = Object.values(members).map((member) => {
-                if (0 === member.isDeleted) {
-                    return member.user_id;
-                };
-            });
-            var index = userIds.indexOf(auth.currentUser.uid);
-            if (0 > index) {
-                // return;
-            };
-            var currentMember = Object.values(members)[index];
-            $groupBody.append(
+        GroupPanelCtrl.prototype.generateGroupHtml = function(groupId, groupName, member) {
+            var html =
                 '<div class="group-tab" role="tab">' +
-                '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
-                (groupData.name || '') +
-                '</a>' +
+                    '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+                        (groupName || '') +
+                    '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                    '<div class="form-group form-group-row ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                    '<div class="form-group form-group-row ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                         '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
                         '<div class="col-4">' +
                             '<div class="input-group group-name" id="group_name">' +
-                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                                '<input class="group-name-input form-control" type="text" value="' + groupName + '" placeholder="我的群組" />' +
                                 '<span class="input-group-btn btn-update">' +
                                     '<button class="btn btn-primary">更新</button>' +
                                 '</span>' +
@@ -717,7 +705,7 @@ window.auth.ready.then(function(currentUser) {
                         '<thead>' +
                             '<tr>' +
                                 '<td class="user">' +
-                                    '<div class="email-input-container ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                    '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                         '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
                                     '</div>' +
                                 '</td>' +
@@ -728,7 +716,7 @@ window.auth.ready.then(function(currentUser) {
                                                 '<span class="permission-text">Permission</span>' + '&nbsp;' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<ul class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                            '<ul class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                                 '<li><a role="button">READ</a></li>' +
                                                 '<li><a role="button">WRITE</a></li>' +
                                                 '<li><a role="button">ADMIN</a></li>' +
@@ -742,7 +730,7 @@ window.auth.ready.then(function(currentUser) {
                                     '</div>' +
                                 '</td>' +
                                 '<td class="actions">' +
-                                    '<div class="text-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                    '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                         '<button class="btn btn-default btn-block outline add-button">' +
                                             '新增' +
                                             '<i class="fa fa-user-plus"></i>' +
@@ -753,8 +741,69 @@ window.auth.ready.then(function(currentUser) {
                         '</thead>' +
                         '<tbody></tbody>' +
                     '</table>' +
-                '</div>'
-            );
+                '</div>';
+            return html;
+        };
+
+        GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, user, member, memberSelf) {
+            var html =
+                '<tr class="group-member" member-id="' + memberId + '">' +
+                    '<td class="user">' +
+                        '<div class="chips">' +
+                            '<div class="avatar-container">' +
+                                '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
+                            '</div>' +
+                            '<span class="avatar-name">' + (user.name || user.displayName || '') + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="permission">' +
+                        '<div class="permission-group text-left">' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">READ</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">WRITE</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">ADMIN</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="status">' +
+                        '<span class="active ' + (0 === member.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
+                        '<span class="inactive ' + (1 === member.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
+                    '</td>' +
+                    '<td class="actions">' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || 1 === member.status || member.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-remove' + ((memberTypes.OWNER === member.type || memberTypes.WRITE === memberSelf.type || memberTypes.READ === memberSelf.type) ? ' hide' : '') + '">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            return html;
+        };
+
+        GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
+            instance.hideCollapseAll(groupId);
+            var members = groupData.members;
+            var userIds = Object.values(members).map((member) => {
+                if (0 === member.isDeleted) {
+                    return member.user_id;
+                };
+            });
+            var index = userIds.indexOf(auth.currentUser.uid);
+            if (0 > index) {
+                // return;
+            };
+
+            var memberSelf = Object.values(members)[index];
+            $groupBody.append(instance.generateGroupHtml(groupId, groupData.name, memberSelf));
+
             // #region 每個群組相關事件宣告
             // 將群組中經常取用的 element 一次抓取出來，方便存取
             var $collapse = $groupBody.find('#' + groupId);
@@ -770,6 +819,7 @@ window.auth.ready.then(function(currentUser) {
                 $memberList: $collapse.find('.chsr-group tbody'),
                 $permissionText: $collapse.find('.chsr-group .permission .permission-text')
             };
+
             // 群組展開時將其他群組收縮起來
             $collapse.on('show.bs.collapse', function(e) {
                 instance.hideCollapseAll(e.target.id);
@@ -869,7 +919,7 @@ window.auth.ready.then(function(currentUser) {
                 }).then(function(insertData) {
                     return api.auth.getUsers(userId).then(function(resJson) {
                         userGroupMembers = resJson.data || {};
-                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, currentMember);
+                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
                         $groupElems[groupId].$memberEmail.val('');
                         $groupElems[groupId].$permissionText.text('Permission');
@@ -959,58 +1009,20 @@ window.auth.ready.then(function(currentUser) {
 
             // 將群組內的成員資料載入至畫面上
             for (var memberId in groupData.members) {
-                instance.addMemberToList(groupId, memberId, groupData.members[memberId], currentMember);
+                instance.addMemberToList(groupId, memberId, groupData.members[memberId], memberSelf);
             }
         };
 
-        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, memberData, currentMember) {
-            var userData = userGroupMembers[memberData.user_id];
-            if (!userData) {
+        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
+            var user = userGroupMembers[member.user_id];
+            if (!user) {
                 return;
             };
 
-            var memberItemHtml =
-                '<tr class="group-member" id="' + memberId + '">' +
-                    '<td class="user">' +
-                        '<div class="chips">' +
-                            '<div class="chsr-avatar">' +
-                                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
-                            '</div>' +
-                            '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="permission">' +
-                        '<div class="permission-group text-left">' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="status">' +
-                        '<span class="active ' + (0 === memberData.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
-                        '<span class="inactive ' + (1 === memberData.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
-                    '</td>' +
-                    '<td class="actions">' +
-                        '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === memberData.type || 1 === memberData.status || memberData.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
-                                '<span class="chsr-icon">' +
-                                    '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
-                                '</span>' +
-                            '</a>' +
-                        '</div>' +
-                        '<div class="action-container text-right">' +
-                        '<a role="button" class="btn-remove' + ((memberTypes.OWNER === memberData.type || memberTypes.WRITE === currentMember.type || memberTypes.READ === currentMember.type) ? ' hide' : '') + '">' +
-                            '<span class="chsr-icon">' +
-                                '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
-                            '</span>' +
-                        '</a>' +
-                    '</div>' +
-                    '</td>' +
-                '</tr>';
+            var memberItemHtml = instance.generateMemberHtml(memberId, user, member, memberSelf);
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
-            var $memberRow = $groupElems[groupId].$memberList.find('#' + memberId);
+            var $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
             var $memberPermission = $memberRow.find('.permission');
             var $memberStatus = $memberRow.find('.status');
             var $memberActions = $memberRow.find('.actions');
@@ -1530,11 +1542,11 @@ function findUserProfile() {
     });
 }
 
-function updateUserProfile(userData) {
-    return api.users.update(userId, userData).then(function() {
-        $('#prof-company').text(userData.company);
-        $('#prof-phonenumber').text(userData.phone);
-        $('#prof-address').text(userData.address);
+function updateUserProfile(user) {
+    return api.users.update(userId, user).then(function() {
+        $('#prof-company').text(user.company);
+        $('#prof-phonenumber').text(user.phone);
+        $('#prof-address').text(user.address);
     });
 }
 

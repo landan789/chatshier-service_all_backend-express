@@ -199,7 +199,7 @@
 
         var infoInputTable = $('.info-input-table').empty();
         var messagerInfo = messagersData[ticketData.messager_id] || {};
-        $('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
+        $('#ID-num').css('background-color', priorityColor(ticketData.priority));
         $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
         $('.modal-title').text(messagerInfo.name || '');
 

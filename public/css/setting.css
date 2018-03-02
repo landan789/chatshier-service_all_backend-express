@@ -165,21 +165,18 @@ p:empty:not(:focus)::before {
     padding: 8px;
 }
 
-.chsr-avatar .chsr-blue {
-    color: blue;
+.avatar-container .member-avatar {
+    width: 2rem;
+    height: 2rem;
 }
 
-.chsr-avatar + .avatar-name {
+.avatar-container + .avatar-name {
     display: block;
     margin: 0 .5rem;
     max-width: 18rem;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-}
-
-.chsr-avatar .chsr-blue {
-    color: blue;
 }
 
 table.chsr-group {
