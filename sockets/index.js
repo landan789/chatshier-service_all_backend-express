@@ -176,23 +176,10 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
                 });
             }).then(() => {
-                return bot.getProfile(senderId);
+                return botSvc.getProfile(senderId, app);
             }).then((profile) => {
-                let messager = {};
-                switch (app.type) {
-                    case LINE:
-                        messager.name = profile ? profile.displayName : '';
-                        messager.photo = profile ? profile.pictureUrl : '';
-                        break;
-                    case FACEBOOK:
-                        messager.name = profile ? profile.first_name + ' ' + profile.last_name : '';
-                        messager.photo = profile ? profile.profile_pic : '';
-                        break;
-                };
-                return Promise.resolve(messager);
-            }).then((messager) => {
                 return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
                         resolve(messager);
                     });
                 });
@@ -262,23 +249,10 @@ function init(server) {
                 };
                 return botSvc.replyMessage(senderId, option.event.replyToken, totalMessages, app);
             }).then(() => {
-                return bot.getProfile(senderId);
+                return botSvc.getProfile(senderId, app);
             }).then((profile) => {
-                let messager = {};
-                switch (app.type) {
-                    case LINE:
-                        messager.name = profile ? profile.displayName : '';
-                        messager.photo = profile ? profile.pictureUrl : '';
-                        break;
-                    case FACEBOOK:
-                        messager.name = profile ? profile.first_name + ' ' + profile.last_name : '';
-                        messager.photo = profile ? profile.profile_pic : '';
-                        break;
-                };
-                return Promise.resolve(messager);
-            }).then((messager) => {
                 return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
                         resolve(messager);
                     });
                 });

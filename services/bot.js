@@ -46,10 +46,25 @@ module.exports = (function() {
             }
         });
     };
-
-    BotService.prototype.getProfile = function() {
-        return Promise.resolve().then(() => {
-            
+    /**
+     * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
+     * @param {*} senderId 
+     * @param {*} app 
+     */
+    BotService.prototype.getProfile = function(senderId, app) {
+        return this.bot.getProfile(senderId).then((_profile) => {
+            let profile = {};
+            switch (app.type) {
+                case LINE:
+                    profile.name = _profile ? _profile.displayName : '';
+                    profile.photo = _profile ? _profile.pictureUrl : '';
+                    break;
+                case FACEBOOK:
+                    profile.name = _profile ? _profile.first_name + ' ' + _profile.last_name : '';
+                    profile.photo = _profile ? _profile.profile_pic : '';
+                    break;
+            };
+            return Promise.resolve(profile);
         });
     };
 
