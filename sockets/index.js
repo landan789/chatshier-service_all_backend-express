@@ -176,7 +176,26 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
                 });
             }).then(() => {
-                return updateSenderProfile(appId, senderId);
+                return bot.getProfile(senderId);
+            }).then((profile) => {
+                let messager = {};
+                switch (app.type) {
+                    case LINE:
+                        messager.name = profile ? profile.displayName : '';
+                        messager.photo = profile ? profile.pictureUrl : '';
+                        break;
+                    case FACEBOOK:
+                        messager.name = profile ? profile.first_name + ' ' + profile.last_name : '';
+                        messager.photo = profile ? profile.profile_pic : '';
+                        break;
+                };
+                return Promise.resolve(messager);
+            }).then((messager) => {
+                return new Promise((resolve) => {
+                    appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
+                        resolve(messager);
+                    });
+                });
             }).then((messager) => {
                 let type = 'text';
 
@@ -228,6 +247,7 @@ function init(server) {
         function followProcess(senderId, option) {
             let totalMessages = [];
             let sender;
+            let appId;
             return new Promise((resolve) => {
                 appsGreetingsMdl.findGreetings(appId, (greetings) => {
                     resolve(greetings);
@@ -242,41 +262,8 @@ function init(server) {
                 };
                 return botSvc.replyMessage(senderId, option.event.replyToken, totalMessages, app);
             }).then(() => {
-                return updateSenderProfile(appId, senderId);
-            }).then((_sender) => {
-                sender = _sender;
-                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
-            }).then(() => {
-                return sendMessagesToSockets(sender, senderId, totalMessages);
-            });
-        }
-
-        /**
-         * @param {string} appId
-         * @param {string} senderId
-         * @returns {Promise<any>}
-         */
-        function updateSenderProfile(appId, senderId) {
-            return Promise.resolve().then(() => {
-                // =========
-                // 此 Promise 區塊為取得各平台的 messager 資料
-                // =========
-
-                switch (app.type) {
-                    case LINE:
-                        return bot.getProfile(senderId);
-                    case FACEBOOK:
-                        return bot.getProfile(senderId);
-                }
+                return bot.getProfile(senderId);
             }).then((profile) => {
-                // =========
-                // 此 Promise 區塊為將各平台的 messager 資料更新至資料庫中
-                // =========
-
-                if (!profile) {
-                    return;
-                }
-
                 let messager = {};
                 switch (app.type) {
                     case LINE:
@@ -288,12 +275,18 @@ function init(server) {
                         messager.photo = profile ? profile.profile_pic : '';
                         break;
                 };
-
+                return Promise.resolve(messager);
+            }).then((messager) => {
                 return new Promise((resolve) => {
                     appsMessagersMdl.replaceMessager(appId, senderId, messager, (messager) => {
                         resolve(messager);
                     });
                 });
+            }).then((_sender) => {
+                sender = _sender;
+                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
+            }).then(() => {
+                return sendMessagesToSockets(sender, senderId, totalMessages);
             });
         }
 
