@@ -94,6 +94,12 @@
                 };
                 return database.ref('users/' + auth.currentUser.uid).update(userInfo);
             }).then(function() {
+                // 從Firebase 發送Email 驗證信
+                return firebase.auth().currentUser.sendEmailVerification();
+            }).then(function() {
+                // Popup 提醒Email 驗證信已發出
+                $.notify('已寄送 Email 驗證信', { type: 'success' });
+            }).then(function() {
                 // 非同步工作寫入完成後才進行網址跳轉動作
                 location.replace('/chat');
             }).catch(function(error) {
