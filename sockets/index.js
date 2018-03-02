@@ -159,7 +159,7 @@ function init(server) {
                         };
                         return _message;
                     });
-                    let replyToken = option.event.replyToken || '';
+                    let replyToken = option.event ? option.event.replyToken : '';
 
                     return botSvc.replyMessage(senderId, replyToken, replyMessages, app);
                 }).then(() => {

@@ -75,7 +75,17 @@ module.exports = (function() {
                     return this.bot.replyMessage(replyToken, messages);
                 case FACEBOOK:
                     return Promise.all(messages.map((message) => {
-                        return this.bot.sendTextMessage(senderId, message);
+                        switch (message.type) {
+                            case 'image':
+                                return this.bot.sendImageMessage(senderId, message.src);
+                            case 'audio':
+                                return this.bot.sendAudioMessage(senderId, message.src);
+                            case 'video':
+                                return this.bot.sendVideoMessage(senderId, message.src);
+                            case 'text':
+                            default:
+                                return this.bot.sendTextMessage(senderId, message.text);
+                        }
                     }));
             };
         });
