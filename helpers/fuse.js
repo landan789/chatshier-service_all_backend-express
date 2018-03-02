@@ -1,8 +1,8 @@
 module.exports = (function() {
     const admin = require('firebase-admin');
-    const Fuse = require('fuse.js');
+    const _Fuse = require('fuse.js');
 
-    /** @type {Fuse} */
+    /** @type {_Fuse} */
     let fuseRunner;
     /** @type {FuzzySearchUser[]} */
     let usersList = [];
@@ -39,17 +39,17 @@ module.exports = (function() {
                 email: user.email
             };
         });
-        fuseRunner = new Fuse(usersList, fuseOptions);
+        fuseRunner = new _Fuse(usersList, fuseOptions);
     });
 
-    function UsersFuzzySearch() {}
+    function Fuse() {};
 
     /**
      * @param {string} userId
      * @param {any} user
      * @returns {boolean}
      */
-    UsersFuzzySearch.prototype.updateUser = function(userId, user) {
+    Fuse.prototype.updateUser = function(userId, user) {
         if (!(userId && user)) {
             return false;
         }
@@ -58,7 +58,7 @@ module.exports = (function() {
             if (userId === usersList[i].user_id) {
                 usersList[i].displayName = user.name;
                 usersList[i].email = user.email;
-                fuseRunner = new Fuse(usersList, fuseOptions);
+                fuseRunner = new _Fuse(usersList, fuseOptions);
                 return true;
             }
         }
@@ -71,7 +71,7 @@ module.exports = (function() {
         };
 
         usersList.push(fuseUser);
-        fuseRunner = new Fuse(usersList, fuseOptions);
+        fuseRunner = new _Fuse(usersList, fuseOptions);
         return true;
     };
 
@@ -79,12 +79,12 @@ module.exports = (function() {
      * @param {string} searchPattern
      * @returns {Promise<FuzzySearchUser[]>}
      */
-    UsersFuzzySearch.prototype.search = function(searchPattern) {
+    Fuse.prototype.search = function(searchPattern) {
         return readyPromise.then(() => {
             return fuseRunner.search(searchPattern);
         });
     };
 
-    let instance = new UsersFuzzySearch();
+    let instance = new Fuse();
     return instance;
 })();
