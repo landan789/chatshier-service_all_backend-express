@@ -159,16 +159,9 @@ function init(server) {
                         };
                         return _message;
                     });
+                    let replyToken = option.event.replyToken || '';
 
-                    switch (app.type) {
-                        case LINE:
-                            let replyToken = option.event.replyToken;
-                            return bot.replyMessage(replyToken, replyMessages);
-                        case FACEBOOK:
-                            return Promise.all(replyMessages.map((message) => {
-                                return bot.sendTextMessage(senderId, message);
-                            }));
-                    }
+                    return botSvc.replyMessage(senderId, replyToken, replyMessages, app);
                 }).then(() => {
                     totalMessages = replyMessages;
 
