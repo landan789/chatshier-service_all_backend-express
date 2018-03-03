@@ -571,7 +571,7 @@ function init(server) {
             let composes = data.composes;
             let messages = composes;
             let messagers;
-            let lineBot;
+            let bot = {};
             let appType = '';
             let req = {
                 method: 'POST',
@@ -591,17 +591,36 @@ function init(server) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                         }
                         let app = apps[appId];
-                        appType = app.type;
-
-                        let lineConfig = {
-                            channelSecret: app.secret,
-                            channelAccessToken: app.token1
-                        };
-                        lineBot = new line.Client(lineConfig);
-                        resolve(lineBot);
+                        resolve(app);
                     });
                 });
-            }).then((lineBot) => {
+            }).then((app) => {
+                appType = app.type;
+                return new Promise((resolve, reject) => {
+                    switch (app.type) {
+                        case LINE:
+                            let lineConfig = {
+                                channelSecret: app.secret,
+                                channelAccessToken: app.token1
+                            };
+                            bot = new line.Client(lineConfig);
+                            resolve();
+                            break;
+                        case FACEBOOK:
+                            let facebookConfig = {
+                                pageID: app.id1,
+                                appID: app.id2 || '',
+                                appSecret: app.secret,
+                                validationToken: app.token1,
+                                pageToken: app.token2 || ''
+                            };
+                            // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
+                            bot = facebook.create(facebookConfig, server);
+                            resolve();
+                            break;
+                    }
+                });
+            }).then(() => {
                 return new Promise((resolve, reject) => {
                     appsMessagersMdl.findAppMessagers(appId, (result) => {
                         if (!result) {
@@ -612,7 +631,16 @@ function init(server) {
                 });
             }).then((_messagers) => {
                 messagers = _messagers;
-                return lineBot.multicast(Object.keys(messagers[appId].messagers), messages);
+                switch (appType) {
+                    case LINE:
+                        return bot.multicast(Object.keys(messagers[appId].messagers), messages);
+                    case FACEBOOK:
+                        return Promise.all(Object.keys(messagers[appId].messagers).map((messager) => {
+                            return Promise.all(messages.map((message) => {
+                                return bot.sendTextMessage(messager, message.text);
+                            }));
+                        }));
+                }
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
