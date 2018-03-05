@@ -11,7 +11,6 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var cors = require('cors');
-const compression = require('compression');
 
 var jwt = require('./middlewares/jwt');
 var index = require('./routes/index');
@@ -22,8 +21,6 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
-
-app.use(compression());
 
 app.use(cors());
 app.use(cookieParser());
