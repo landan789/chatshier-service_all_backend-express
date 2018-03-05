@@ -120,10 +120,9 @@ module.exports = (function() {
      * @param {ChatshierMessageInterface} protoMessage
      * @param {string} appType
      * @param {any} option
-     * @param {(outMessage: ChatshierMessageInterface[]) => any} [callback]
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, option, callback) {
+    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, option) {
         return Promise.resolve().then(() => {
             switch (appType) {
                 case LINE:
@@ -209,8 +208,7 @@ module.exports = (function() {
                     return [protoMessage];
             }
         }).then((outMessages) => {
-            ('function' === typeof callback) && callback(outMessages);
-            return outMessages;
+            return Promise.resolve(outMessages);
         });
     };
 

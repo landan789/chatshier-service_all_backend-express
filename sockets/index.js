@@ -67,7 +67,7 @@ function init(server) {
         function messageProcess(messageText, senderId, option) {
             let messageId = cipher.createHashKey(messageText);
             let totalMessages = [];
-
+            let messager;
             return new Promise((resolve, reject) => {
                 // 到 models/apps_messages.js，找到 keywordreply_ids
                 appsMessagesMdl.findMessage(appId, messageId, (messageInDB) => {
@@ -172,11 +172,12 @@ function init(server) {
                 return botSvc.getProfile(senderId, app);
             }).then((profile) => {
                 return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
-                        resolve(messager);
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (_messager) => {
+                        messager = _messager;
+                        resolve();
                     });
                 });
-            }).then((messager) => {
+            }).then(() => {
                 let type = 'text';
 
                 switch (app.type) {
@@ -198,14 +199,9 @@ function init(server) {
                     from: app.type,
                     messager_id: senderId
                 };
-
-                return new Promise((resolve) => {
-                    helpersBot.convertMessage(bot, prototypeMessage, app.type, option, (receivedMessages) => {
-                        resolve(receivedMessages);
-                    });
-                }).then((receivedMessages) => {
-                    return { messager, receivedMessages };
-                });
+                return helpersBot.convertMessage(bot, prototypeMessage, app.type, option);
+            }).then((receivedMessages) => {
+                return { messager, receivedMessages };
             }).then((promiseResult) => {
                 let sender = promiseResult.messager;
                 let receivedMessages = promiseResult.receivedMessages;
