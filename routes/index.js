@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -33,8 +33,8 @@ router.get('/ticket_form', function(req, res, next) {
     res.render('ticket_form', { title: '新增待辦事項' });
 });
 // authentication
-router.get('/login', function(req, res, next) {
-    res.render('login', { title: '登入' });
+router.get('/signin', function(req, res, next) {
+    res.render('react');
 });
 
 router.get('/logout', function(req, res, next) {
@@ -42,7 +42,7 @@ router.get('/logout', function(req, res, next) {
 });
 
 router.get('/signup', function(req, res, next) {
-    res.render('signup', { title: '註冊' });
+    res.render('react');
 });
 router.get('/analyze', function(req, res, next) {
     res.render('analyze', { title: '分析' });

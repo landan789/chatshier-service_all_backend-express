@@ -75,7 +75,7 @@ window.database = window.firebase.database();
                     location.replace('/chat');
                 } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
                     // 沒有進行登入卻欲瀏覽其他登入或註冊以外的頁面，直接導向登入頁面
-                    location.replace('/login');
+                    location.replace('/signin');
                 } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
                     // 已在登入頁面並且沒有登入資料
                 }
