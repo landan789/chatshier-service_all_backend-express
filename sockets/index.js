@@ -10,7 +10,7 @@ let appsAutorepliesMdl = require('../models/apps_autoreplies');
 let linetemplate = require('../models/linetemplate');
 let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
-const socketManager = require('../helpers/socket_manager');
+let socketHlp = require('../helpers/socket');
 let utility = require('../helpers/utility');
 let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
@@ -320,7 +320,7 @@ function init(server) {
 
                     // 用 socket.emit 回傳訊息給 client
                     // 指定 appId 為限制只有擁有此 app 的 user 才會收到此 socket 資料
-                    return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                    return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
                 });
             }));
         }
@@ -417,12 +417,12 @@ function init(server) {
 
     chatshierNsp.on(SOCKET_EVENTS.CONNECTION, (socket) => {
         socket.on(SOCKET_EVENTS.APP_REGISTRATION, (appId, callback) => {
-            socketManager.addSocket(appId, socket);
+            socketHlp.addSocket(appId, socket);
             ('function' === typeof callback) && callback();
         });
 
         socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-            socketManager.removeSocket(socket);
+            socketHlp.removeSocket(socket);
         });
 
         socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, (data, callback) => {
@@ -513,7 +513,7 @@ function init(server) {
                 }));
             }).then(() => {
                 // 將 socket 資料原封不動的廣播到 chatshier chatroom
-                return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             });
@@ -555,7 +555,7 @@ function init(server) {
                     messageId: msgerId,
                     messager: messager
                 };
-                return socketManager.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
+                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             });
@@ -681,7 +681,7 @@ function init(server) {
                                 messagerId: '',
                                 message: _message
                             };
-                            return socketManager.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
+                            return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
                         });
                     }));
                 }));
