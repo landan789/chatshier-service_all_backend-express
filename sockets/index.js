@@ -68,6 +68,7 @@ function init(server) {
             let messageId = cipher.createHashKey(messageText);
             let totalMessages = [];
             let messager;
+            let sender;
             return new Promise((resolve, reject) => {
                 // 到 models/apps_messages.js，找到 keywordreply_ids
                 appsMessagesMdl.findMessage(appId, messageId, (messageInDB) => {
@@ -203,14 +204,14 @@ function init(server) {
             }).then((receivedMessages) => {
                 return Promise.resolve(receivedMessages);
             }).then((receivedMessages) => {
-                let sender = messager;
+                sender = messager;
 
                 // 回復訊息與傳入訊息都整合，再寫入 DB
                 totalMessages = receivedMessages.concat(totalMessages);
 
-                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length).then(() => {
-                    return sendMessagesToSockets(sender, senderId, totalMessages);
-                });
+                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
+            }).then(() => {
+                return sendMessagesToSockets(sender, senderId, totalMessages);
             });
         }
 
@@ -269,13 +270,14 @@ function init(server) {
                 });
             }).then((memberUserIds) => {
                 // 將聊天室內所有的群組成員的未讀數 +1
-                return Promise.all(memberUserIds.map((memberUserId) => {
+                let messagerIds = memberUserIds;
+                return Promise.all(messagerIds.map((messagerId) => {
                     // 不需更新發送者的未讀數
-                    if (senderId === memberUserId) {
+                    if (senderId === messagerId) {
                         return Promise.resolve();
                     }
 
-                    return appsChatroomsMessagersMdl.increaseMessagerUnRead(appId, chatroomId, memberUserId, unReadCount);
+                    return appsChatroomsMessagersMdl.increaseMessagerUnRead(appId, chatroomId, messagerId, unReadCount);
                 }));
             }).then(() => {
                 return messager;
