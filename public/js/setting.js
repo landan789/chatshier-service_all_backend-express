@@ -216,6 +216,36 @@ window.auth.ready.then(function(currentUser) {
     findUserProfile();
 });
 
+// 動態載入 gapi
+window.googleClientHelper.loadAPI().then(function() {
+    var url = window.googleCalendarHelper.configJsonUrl;
+    return window.googleClientHelper.init(url);
+}).then(function(gAuth) {
+    var $gCalendarRow = $('#gcalendar_row');
+    $gCalendarRow.removeClass('hide');
+
+    var $gCalendarCbx = $gCalendarRow.find('#gcalendar_cbx');
+    $gCalendarCbx.prop('checked', gAuth.isSignedIn.get());
+    $gCalendarCbx.on('change', function(ev) {
+        var elem = ev.target;
+        if (elem.checked) {
+            elem.checked = !elem.checked;
+            return window.googleClientHelper.signIn().then(function() {
+                elem.checked = true;
+            }).catch(function() {
+                elem.checked = false;
+            });
+        } else {
+            elem.checked = !elem.checked;
+            return window.googleClientHelper.signOut().then(function() {
+                elem.checked = false;
+            }).catch(function() {
+                elem.checked = true;
+            });
+        }
+    });
+});
+
 // ===============
 // #region 客戶分類條件 Tab 代碼區塊
 (function() {

@@ -70,6 +70,20 @@
                                             <td>地址: </td>
                                             <td class="long-token" id="prof-address"></td>
                                         </tr>
+                                        <tr class="hide" id="gcalendar_row">
+                                            <td>
+                                                <div class="feature-icon">
+                                                    <img src="image/google_calendar.png" alt="Google Calendar Logo" />
+                                                </div>
+                                                Google 行事曆:
+                                            </td>
+                                            <td>
+                                                <div class="form-check setting-cbx">
+                                                    <input class="form-check-input" type="checkbox" id="gcalendar_cbx">
+                                                    <label class="form-check-label" for="gcalendar_cbx">啟用</label>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -164,6 +178,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     <script src="lib/js/bootstrap3-typeahead.min.js"></script>
+    <script src="js/helpers/google_client.js"></script>
+    <script src="js/helpers/google_calendar.js"></script>
     <script src="js/setting.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

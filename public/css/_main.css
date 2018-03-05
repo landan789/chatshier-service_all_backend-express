@@ -256,7 +256,6 @@ body, html{
         padding: 0 50px;
     }
     
-    #calendar-wrap,
     #profile-wrap,
     #ticket-wrap {
         position: relative;
@@ -278,17 +277,7 @@ body, html{
         color: #ff3535;
         cursor: pointer;
     }
-    /*Calendar*/
     
-    #calendar {
-        position: absolute;
-        padding: 5%;
-    }
-    
-    #startDate,
-    #endDate {
-        width: 40%;
-    }
     /*Chat*/
     
     #chat {
