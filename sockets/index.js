@@ -52,8 +52,8 @@ function init(server) {
     let messageCacheMap = new Map();
     let webhookProcQueue = [];
 
-    app.post('/webhook/:webhookId', (req, res, next) => {
-        let webhookId = req.params.webhookId;
+    app.post('/webhook/:webhookid', (req, res, next) => {
+        let webhookid = req.params.webhookid;
         let bot = {};
         let appId = '';
         let app = {};
@@ -330,7 +330,7 @@ function init(server) {
 
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
             return new Promise((resolve, reject) => {
-                appsMdl.findAppsByWebhookId(webhookId, (apps) => {
+                appsMdl.findAppsBywebhookid(webhookid, (apps) => {
                     if (!apps) {
                         return reject(API_ERROR.APP_DID_NOT_EXIST);
                     }
