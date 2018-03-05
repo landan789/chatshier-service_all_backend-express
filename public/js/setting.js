@@ -212,6 +212,7 @@ window.auth.ready.then(function(currentUser) {
 
     findAllGroups();
     findAllApps(); // 列出所有設定的APPs
+    findAuthUserProfile();
     findUserProfile();
 });
 
@@ -1528,13 +1529,23 @@ function formModalBody(id, app) {
 function clearAppModalBody() {
     $appModal.empty();
 }
+function findAuthUserProfile() {
+    return api.auth.getUsers(userId).then(function(resJson) {
+        let users = resJson.data;
+        let user = users[userId];
+        if (userId) {
+            // User 已登入
+            $('h3.panel-title').text(user.displayName);
+            $('#prof-email').text(user.email);
+            $('#prof-id').text(userId);
+        };
+    });
+}
 
 function findUserProfile() {
     return api.users.getUser(userId).then(function(resJson) {
         var profile = resJson.data;
         $('#prof-id').text(userId);
-        $('h3.panel-title').text(profile.name);
-        $('#prof-email').text(profile.email);
         $('#prof-IDnumber').text(userId);
         $('#prof-company').text(profile.company);
         $('#prof-phonenumber').text(profile.phone);

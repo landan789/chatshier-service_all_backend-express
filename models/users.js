@@ -1,5 +1,6 @@
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
+    const SCHEMA = require('../config/schema');
 
     function UsersModel() {}
 
@@ -14,6 +15,25 @@ module.exports = (function() {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);
+        });
+    };
+
+    UsersModel.prototype.insert = function(userId, user, callback) {
+        let users = {};
+
+        Promise.resolve().then(() => {
+            user = Object.assign(SCHEMA.USER, user);
+            return admin.database().ref('users/' + userId).push(user);
+        }).then(() => {
+            return admin.database().ref('users/' + userId).once('value');
+        }).then((snap) => {
+            let user = snap.val();
+            users = {
+                [userId]: user
+            };
+            callback(users);
+        }).catch(() => {
+            callback(null);
         });
     };
 
