@@ -122,9 +122,9 @@ module.exports = (function() {
      * @param {any} option
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, option) {
+    BotHelper.prototype.convertMessage = function(bot, protoMessage, option, app) {
         return Promise.resolve().then(() => {
-            switch (appType) {
+            switch (app.type) {
                 case LINE:
                     /** @type {ChatshierMessageInterface} */
                     let _message = {

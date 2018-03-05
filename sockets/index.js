@@ -199,12 +199,11 @@ function init(server) {
                     from: app.type,
                     messager_id: senderId
                 };
-                return helpersBot.convertMessage(bot, prototypeMessage, app.type, option);
+                return helpersBot.convertMessage(bot, prototypeMessage, option, app);
             }).then((receivedMessages) => {
-                return { messager, receivedMessages };
-            }).then((promiseResult) => {
-                let sender = promiseResult.messager;
-                let receivedMessages = promiseResult.receivedMessages;
+                return Promise.resolve(receivedMessages);
+            }).then((receivedMessages) => {
+                let sender = messager;
 
                 // 回復訊息與傳入訊息都整合，再寫入 DB
                 totalMessages = receivedMessages.concat(totalMessages);
@@ -326,7 +325,7 @@ function init(server) {
 
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
             return new Promise((resolve, reject) => {
-                appsMdl.findAppsBywebhookid(webhookid, (apps) => {
+                appsMdl.findAppsByWebhookId(webhookid, (apps) => {
                     if (!apps) {
                         return reject(API_ERROR.APP_DID_NOT_EXIST);
                     }
