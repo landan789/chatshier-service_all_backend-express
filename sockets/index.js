@@ -138,8 +138,6 @@ function init(server) {
                 let replyMessages = [];
                 replyMessages = keywordMessages ? replyMessages.concat(keywordMessages) : replyMessages;
                 replyMessages = autoMessages ? replyMessages.concat(autoMessages) : replyMessages;
-
-                // let textOnlyMessages = replyMessages.slice();
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
 
                 return Promise.resolve().then(() => {
@@ -209,8 +207,6 @@ function init(server) {
          * @returns {Promise<any>}
          */
         function followProcess(senderId, option) {
-            let totalMessages = [];
-            let sender;
             return new Promise((resolve) => {
                 appsGreetingsMdl.findGreetings(appId, (greetings) => {
                     resolve(greetings);
@@ -223,21 +219,6 @@ function init(server) {
                     return Promise.resolve([]);
                 };
                 return Promise.resolve(messages);
-            }).then((messages) => {
-                return botSvc.replyMessage(senderId, option.event.replyToken, messages, app);
-            }).then(() => {
-                return botSvc.getProfile(senderId, app);
-            }).then((profile) => {
-                return new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
-                        resolve(messager);
-                    });
-                });
-            }).then((_sender) => {
-                sender = _sender;
-                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
-            }).then(() => {
-                return sendMessagesToSockets(sender, senderId, totalMessages);
             });
         }
 
@@ -352,7 +333,8 @@ function init(server) {
                         let option = {
                             event: lineEvent
                         };
-
+                        let sender;
+                        let messages = [];
                         return Promise.resolve().then(() => {
                             if (LINE_WEBHOOK_EVENTS.MESSAGE === lineEventType &&
                                 !messageCacheMap.get(lineEvent.message.id) && lineEvent.message) {
@@ -360,7 +342,24 @@ function init(server) {
                                 let messageText = lineEvent.message.text || '';
                                 return messageProcess(messageText, senderId, option);
                             } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
-                                return followProcess(senderId, option);
+                                return followProcess(senderId, option).then((_messages) => {
+                                    messages = _messages;
+                                    return botSvc.replyMessage(senderId, option.event.replyToken, messages, app);
+                                }).then(() => {
+                                    return botSvc.getProfile(senderId, app);
+                                    // TODO 需要把訊息寫入 DB
+                                }).then((profile) => {
+                                    return new Promise((resolve) => {
+                                        appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
+                                            resolve(messager);
+                                        });
+                                    });
+                                }).then((_sender) => {
+                                    sender = _sender;
+                                    return increaseMembersUnRead(appId, senderId, sender, messages.length);
+                                }).then(() => {
+                                    return sendMessagesToSockets(sender, senderId, messages);
+                                });;
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
                         }).then(() => {
