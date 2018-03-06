@@ -193,14 +193,14 @@ function init(server) {
                 };
 
                 /** @type {ChatshierMessageInterface} */
-                let prototypeMessage = {
+                let message = {
                     text: messageText,
                     time: Date.now(),
                     type: type,
                     from: app.type,
                     messager_id: senderId
                 };
-                return helpersBot.convertMessage(bot, prototypeMessage, option, app);
+                return helpersBot.convertMessage(bot, message, option, app);
             }).then((receivedMessages) => {
                 return Promise.resolve(receivedMessages);
             }).then((receivedMessages) => {
@@ -228,14 +228,15 @@ function init(server) {
                     resolve(greetings);
                 });
             }).then((greetings) => {
-                let greetingMessages = Object.values(greetings);
-                totalMessages = greetingMessages;
+                let messages = Object.values(greetings);
 
                 // 沒有訊息資料就不對 SDK 發送訊息
-                if (0 === totalMessages.length) {
+                if (0 === messages.length) {
                     return Promise.resolve();
                 };
-                return botSvc.replyMessage(senderId, option.event.replyToken, totalMessages, app);
+                return Promise.resolve(messages);
+            }).then((messages) => {
+                return botSvc.replyMessage(senderId, option.event.replyToken, messages, app);
             }).then(() => {
                 return botSvc.getProfile(senderId, app);
             }).then((profile) => {
