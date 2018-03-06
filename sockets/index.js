@@ -220,7 +220,7 @@ function init(server) {
 
                 // 沒有訊息資料就不對 SDK 發送訊息
                 if (0 === messages.length) {
-                    return Promise.resolve();
+                    return Promise.resolve([]);
                 };
                 return Promise.resolve(messages);
             }).then((messages) => {
