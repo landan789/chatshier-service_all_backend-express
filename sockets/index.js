@@ -69,6 +69,10 @@ function init(server) {
             let totalMessages = [];
             let messager;
             let sender;
+            let keywordreplies;
+            let templates;
+            let autoreplies;
+
             return new Promise((resolve, reject) => {
                 // 到 models/apps_messages.js，找到 keywordreply_ids
                 appsMessagesMdl.findMessage(appId, messageId, (messageInDB) => {
@@ -126,13 +130,13 @@ function init(server) {
                 // 此 Promise 區塊處理訊息發送
                 // =========
 
-                let keywordreplies = promiseResults[0];
+                keywordreplies = promiseResults[0];
                 let keywordMessages = Object.values(keywordreplies);
 
-                let templates = promiseResults[1];
+                templates = promiseResults[1];
                 let templateMessages = Object.values(templates);
 
-                let autoreplies = promiseResults[2];
+                autoreplies = promiseResults[2];
                 let autoMessages = Object.values(autoreplies);
 
                 let replyMessages = [];
@@ -140,6 +144,8 @@ function init(server) {
                 replyMessages = autoMessages ? replyMessages.concat(autoMessages) : replyMessages;
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
 
+                return Promise.resolve(replyMessages);
+            }).then((replyMessages) => {
                 return Promise.resolve().then(() => {
                     // 沒有訊息資料就不對 SDK 發送訊息
                     if (!replyMessages.length) {
@@ -177,7 +183,6 @@ function init(server) {
                     });
                 });
             }).then(() => {
-
                 /** @type {ChatshierMessageInterface} */
                 let message = {
                     text: messageText,
@@ -359,7 +364,7 @@ function init(server) {
                                     return increaseMembersUnRead(appId, senderId, sender, messages.length);
                                 }).then(() => {
                                     return sendMessagesToSockets(sender, senderId, messages);
-                                });;
+                                });
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
                         }).then(() => {
