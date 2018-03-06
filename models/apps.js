@@ -81,7 +81,7 @@ apps.findAppsByWebhookId = (webhookId, callback) => {
 /**
      * 多型判斷要回傳apps還是appid下資料
      *
-     * @param {string} appIds || ''
+     * @param {string|string[]} appIds || ''
      * @param {Function} callback
      * @returns {Promise<any>}
      */
@@ -93,7 +93,7 @@ apps.findAppsByAppIds = (appIds, callback) => {
         if ('' === appIds || !appIds) {
             return admin.database().ref('apps').once('value').then((snap) => {
                 apps = snap.val();
-                return Promise.resolve(apps);
+                return Promise.resolve();
             });
         };
         if ('string' === typeof appIds) {

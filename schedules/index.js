@@ -29,7 +29,7 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
             resolve(appsObj);
         });
     }).then((appsObj) => {
-        let apps = appsObj.val();
+        let apps = appsObj;
         // 相異 apps 允許 同時間群發。
         // 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
