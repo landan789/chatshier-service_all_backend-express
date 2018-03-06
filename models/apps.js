@@ -89,10 +89,11 @@ apps.findAppsByAppIds = (appIds, callback) => {
     var apps = {};
 
     Promise.resolve().then(() => {
-        //值為空回傳整包apps
+        // 值為空回傳整包apps
         if ('' === appIds || !appIds) {
             return admin.database().ref('apps').once('value').then((snap) => {
-                apps = snap;
+                apps = snap.val();
+                return Promise.resolve(apps);
             });
         };
         if ('string' === typeof appIds) {
