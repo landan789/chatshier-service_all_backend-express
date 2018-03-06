@@ -24,7 +24,6 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
     let startedUnixTime = Date.now();
     let appIds = '';
     let bot = {};
-    let appType = '';
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
         appsMdl.findAppsByAppIds(appIds, (apps) => {
@@ -34,8 +33,8 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
             resolve(apps);
         });
     }).then((apps) => {
-        // 相異 apps 允許 同時間群發。
-        // 相同 apps 只能 同時間發最多五則訊息。
+        // LINE BOT 相異 apps 允許 同時間群發。
+        // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
             if (CHATSHIER === app.type || 1 === app.isDeleted) {
@@ -77,7 +76,6 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                 multicasts[j].messages.push(message);
             };
             // #endregion
-            appType = app.type;
             switch (app.type) {
                 case LINE:
                     let lineConfig = {
@@ -98,7 +96,7 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                     bot = facebook.create(facebookConfig);
                     break;
             }
-            switch (appType) {
+            switch (app.type) {
                 case LINE:
                     return multicast(Object.keys(messagers), multicasts).then(() => {
                         return Promise.all(Object.keys(messagers).map((messagerId) => {
@@ -112,10 +110,8 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                                 };
                                 message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
                                 console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                                console.log(_message);
                                 return new Promise((resolve) => {
                                     appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {
-                                        console.log(message);
                                         resolve();
                                     });
                                 });
