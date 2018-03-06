@@ -1,6 +1,7 @@
 let schedule = require('node-schedule');
 let line = require('@line/bot-sdk');
 let admin = require('firebase-admin');
+let facebook = require('facebook-bot-messenger'); // facebook串接
 let serviceAccount = require('../config/firebase-adminsdk');
 let databaseURL = require('../config/firebase_admin_database_url');
 let timer = require('../helpers/timer');
@@ -12,6 +13,8 @@ let appsMdl = require('../models/apps');
 let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const SYSTEM = 'SYSTEM';
 const CHATSHIER = 'CHATSHIER';
+const LINE = 'LINE';
+const FACEBOOK = 'FACEBOOK';
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: databaseURL.url
@@ -20,6 +23,8 @@ admin.initializeApp({
 let job1 = schedule.scheduleJob('10 * * * * *', () => {
     let startedUnixTime = Date.now();
     let appIds = '';
+    let bot = {};
+    let appType = '';
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
         appsMdl.findAppsByAppIds(appIds, (apps) => {
@@ -53,17 +58,10 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                 }
             };
             let messagers = app.messagers || {};
-            let config = {
-                channelSecret: app.secret,
-                channelAccessToken: app.token1
-            };
-            let lineBot = new line.Client(config);
-
             // 沒有訊息對象 或 沒有群發訊息 就不做處理
             if (0 === Object.keys(messagers).length || 0 === messages.length) {
                 return Promise.resolve(null);
             };
-
             // #region 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
             let multicasts = [];
             let messageIndex;
@@ -79,28 +77,68 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                 multicasts[j].messages.push(message);
             };
             // #endregion
+            appType = app.type;
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+                    bot = new line.Client(lineConfig);
+                    break;
+                case FACEBOOK:
+                    let facebookConfig = {
+                        pageID: app.id1,
+                        appID: app.id2 || '',
+                        appSecret: app.secret,
+                        validationToken: app.token1,
+                        pageToken: app.token2 || ''
+                    };
+                    // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
+                    bot = facebook.create(facebookConfig);
+                    break;
+            }
+            switch (appType) {
+                case LINE:
+                    return multicast(Object.keys(messagers), multicasts).then(() => {
+                        return Promise.all(Object.keys(messagers).map((messagerId) => {
+                            return Promise.all(messages.map((message) => {
+                                let _message = {
+                                    from: SYSTEM,
+                                    messager_id: '',
+                                    text: message.text,
+                                    time: Date.now(),
+                                    type: 'text'
+                                };
+                                message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
+                                console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
+                                console.log(_message);
+                                return new Promise((resolve) => {
+                                    appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {
+                                        console.log(message);
+                                        resolve();
+                                    });
+                                });
+                            }));
+                        }));
+                    });
 
-            return multicast(Object.keys(messagers), multicasts).then(() => {
-                return Promise.all(Object.keys(messagers).map((messagerId) => {
-                    let messager = messagers[messagerId];
-                    var messagerIds = Object.keys(messagers);
-                    let chatroomId = messager.chatroom_id;
-                    return Promise.all(messages.map((message) => {
-                        let _message = {
-                            from: SYSTEM,
-                            messager_id: '',
-                            text: message.text,
-
-                            time: Date.now(),
-                            type: 'text'
-                        };
-                        message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
-                        console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {});
+                case FACEBOOK:
+                    return Promise.all(Object.keys(messagers).map((messagerId) => {
+                        return Promise.all(messages.map((message) => {
+                            return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                let _message = {
+                                    from: SYSTEM,
+                                    messager_id: '',
+                                    text: message.text,
+                                    time: Date.now(),
+                                    type: 'text'
+                                };
+                                appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message));
+                            });
+                        }));
                     }));
-                }));
-            });
-
+            }
             function multicast(messagers, multicasts) {
                 return nextPromise(0);
                 function nextPromise(i) {
@@ -109,12 +147,11 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
                     };
                     let messages = multicasts[i].messages;
                     console.log('[multicast] multicast to all messagers in this app[' + appId + '] at most 5 messages ... ');
-                    return lineBot.multicast(messagers, messages).then(() => {
+                    return bot.multicast(messagers, messages).then(() => {
                         return nextPromise(i + 1);
                     });
                 }
             }
-
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();
