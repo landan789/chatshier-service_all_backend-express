@@ -524,7 +524,16 @@
             }
             return Promise.all(socketRegPromises);
         }).then(function() {
-            responseUserAppIds(apps);
+            if (!apps) {
+                if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
+                    $('#notifyModal').modal('show');
+                    window.sessionStorage.notifyModal = 1;
+                }
+                return;
+            }
+
+            generateAppsIcons(apps);
+            responseChatData(apps);
         });
         // #endregion
         // ==========
@@ -681,20 +690,7 @@
             });
         }
 
-        function responseUserAppIds(apps) {
-            if (!apps) {
-                if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
-                    $('#notifyModal').modal('show');
-                    window.sessionStorage.notifyModal = 1;
-                }
-                return;
-            }
-
-            appGroupSort(apps);
-            responseChatData(apps);
-        }
-
-        function appGroupSort(apps) {
+        function generateAppsIcons(apps) {
             var $chatApp = $('#chat_App');
 
             for (var appId in apps) {
@@ -775,6 +771,21 @@
                     createProfilePanel(uiRequireData);
                 }
             }
+
+            // 根據訊息時間排序聊天室(訊息時間越晚越上面)
+            var sortByMessageTime = function(elA, elB) {
+                var tA = parseInt($(elA).find('.client-message').attr('message-time'));
+                var tB = parseInt($(elB).find('.client-message').attr('message-time'));
+                return tA < tB;
+            };
+
+            var $tablinksArea = $('#user .tablinks-area');
+            var $clients = $tablinksArea.find('#clients');
+            var $clientTabs = $clients.find('.tablinks');
+            $clientTabs.sort(sortByMessageTime);
+
+            $clients.empty();
+            $clients.append($clientTabs);
         }
 
         function responseHistoryMsg(data) {
@@ -899,12 +910,6 @@
             var tablinkHtml = generateClientHtml(clientUiOpts);
             $('#clients').append(tablinkHtml);
 
-            // if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
-            //     $('#vip_list').prepend(tablinkHtml);
-            // } else {
-            //     $('#clients').append(tablinkHtml);
-            // }
-
             // 中間聊天室
             var msgStr = '';
             if (msgKeys.length < 10) {
@@ -943,7 +948,7 @@
 
         function messageToClientHtml(message) {
             if (!message) {
-                return '<div class="client-message"></div>';
+                return '<div class="client-message" message-time="0"></div>';
             }
 
             // 判斷客戶傳送的是檔案，貼圖還是文字，回傳對應的 html
@@ -955,7 +960,7 @@
                 location: '地理位置'
             }[message.type] || loadMessageInDisplayClient(message.text);
 
-            return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
+            return '<div class="client-message" message-time="' + message.time + '">' + toTimeStr(message.time) + lastMsgText + '</div>';
         }
 
         function historyMsgToStr(messages, messagers, appType) {
