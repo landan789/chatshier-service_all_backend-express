@@ -567,7 +567,7 @@ window.restfulAPI = (function() {
         });
 
         /**
-         * 取得使用者所有標籤資料
+         * 取得使用者所有客戶分類條件資料
          *
          * @param {string} userId - 使用者的 firebase ID
          */
@@ -581,7 +581,7 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 新增一筆 App 標籤的資料
+         * 新增一筆 App 客戶分類條件的資料
          *
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} userId - 使用者的 firebase ID
@@ -598,12 +598,12 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 更新一筆目標 App 標籤資料
+         * 更新一筆目標 App 客戶分類條件資料
          *
-         * @param {string} appId - 目標標籤所屬的 App ID
-         * @param {string} tagId - 目標標籤的 ID
+         * @param {string} appId - 目標客戶分類條件所屬的 App ID
+         * @param {string} tagId - 目標客戶分類條件的 ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} modifiedTagData - 已編輯後欲更新的標籤資料
+         * @param {*} modifiedTagData - 已編輯後欲更新的客戶分類條件資料
          */
         TagAPI.prototype.update = function(appId, tagId, userId, modifiedTagData) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/tags/' + tagId + '/users/' + userId;
@@ -616,10 +616,10 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 刪除一筆目標 App 標籤資料
+         * 刪除一筆目標 App 客戶分類條件資料
          *
-         * @param {string} appId - 目標標籤所屬的 App ID
-         * @param {string} tagId - 目標標籤的 ID
+         * @param {string} appId - 目標客戶分類條件所屬的 App ID
+         * @param {string} tagId - 目標客戶分類條件的 ID
          * @param {string} userId - 使用者的 firebase ID
          */
         TagAPI.prototype.remove = function(appId, tagId, userId) {

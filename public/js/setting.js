@@ -217,7 +217,7 @@ window.auth.ready.then(function(currentUser) {
 });
 
 // ===============
-// #region 標籤 Tab 代碼區塊
+// #region 客戶分類條件 Tab 代碼區塊
 (function() {
     var NEW_TAG_ID_PREFIX = 'temp_tag_id';
     var tagEnums = api.tag.enums;
@@ -225,7 +225,7 @@ window.auth.ready.then(function(currentUser) {
     var tagPanelCtrl = (function() {
         var instance = new TagPanelCtrl();
 
-        // 宣告用來處理整個標籤容器的控制類別
+        // 宣告用來處理整個客戶分類條件容器的控制類別
         function TagPanelCtrl() {
             this.saveListeners = [];
             this.deleteListeners = [];
@@ -285,7 +285,7 @@ window.auth.ready.then(function(currentUser) {
 
             $tagCollapse.find('.btn.add-tag').on('click', function() {
                 _this.addTagItem(appId, NEW_TAG_ID_PREFIX + Date.now(), {
-                    text: '新標籤',
+                    text: '新客戶分類條件',
                     type: tagEnums.type.CUSTOM
                 });
             });
@@ -323,7 +323,7 @@ window.auth.ready.then(function(currentUser) {
                             break;
                     }
 
-                    // 每一行的 td 標籤的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
+                    // 每一行的 td 客戶分類條件的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
                     uiTags[$row.attr('id')] = data;
                 }
 
@@ -448,10 +448,10 @@ window.auth.ready.then(function(currentUser) {
     })();
 
     // 設定頁面中 tab 切換時的事件監聽
-    // 切換到標籤頁面時，再抓取標籤資料
+    // 切換到客戶分類條件頁面時，再抓取客戶分類條件資料
     $('a[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
         if ('#menu3' !== ev.target.hash) {
-            // 非標籤頁面不處理
+            // 非客戶分類條件頁面不處理
             return;
         }
 
@@ -473,7 +473,7 @@ window.auth.ready.then(function(currentUser) {
                 tagPanelCtrl.addAppItem(appId, appData);
                 firstAppId = firstAppId || appId;
 
-                // 將標籤資料依照設定的 order 進行排序，根據順序擺放到 UI 上
+                // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
                 var tagIds = Object.keys(tags);
                 tagIds.sort(function(a, b) {
                     return tags[a].order - tags[b].order;
@@ -490,7 +490,7 @@ window.auth.ready.then(function(currentUser) {
                 }
             }
 
-            // 監聽每行標籤的儲存事件，根據 UI 上資料的變更
+            // 監聽每行客戶分類條件的儲存事件，根據 UI 上資料的變更
             // 檢查哪些資料需要更新哪些資料需要新增
             tagPanelCtrl.onSave(function(ev, args) {
                 $(ev.target).attr('disabled', true);
@@ -503,7 +503,7 @@ window.auth.ready.then(function(currentUser) {
                 var tagHasChanged = function(srcTag, destTag) {
                     for (var key in destTag) {
                         // 因為有翻譯文字的關係
-                        // 非自定義標籤的名稱與系統性別的設定不檢查
+                        // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
                         if (('text' === key && tagEnums.type.CUSTOM !== srcTag.type) ||
                             ('sets' === key && 'gender' === srcTag.alias)) {
                             continue;
@@ -533,7 +533,7 @@ window.auth.ready.then(function(currentUser) {
                     var tagOnUI = Object.assign({}, args.uiTags[tagId]);
                     delete args.uiTags[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
 
-                    // 需對照 UI 上目前每個標籤的順序，更新至對應的標籤
+                    // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
                     if (!!tagOnUI && tagHasChanged(tagOrg, tagOnUI)) {
                         // 只允許自定義的欄位可進行資料變更動作
                         if (tagOrg.type === tagEnums.type.CUSTOM) {
@@ -551,9 +551,9 @@ window.auth.ready.then(function(currentUser) {
                     return Promise.resolve();
                 })).then(function() {
                     return Promise.all(Object.keys(args.uiTags).map(function(tagId) {
-                        // 將剩下的 id 檢查是否為新增的標籤
-                        // 新增的標籤 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
-                        // 非新增的標籤資料不進行資料插入動作
+                        // 將剩下的 id 檢查是否為新增的客戶分類條件
+                        // 新增的客戶分類條件 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
+                        // 非新增的客戶分類條件資料不進行資料插入動作
                         if (tagId.indexOf(NEW_TAG_ID_PREFIX) < 0) {
                             return Promise.resolve();
                         }
@@ -575,13 +575,13 @@ window.auth.ready.then(function(currentUser) {
                         });
                     }));
                 }).then(function() {
-                    // 標籤資料處理完成後顯示訊息在 UI 上
-                    $.notify('標籤更新成功', { type: 'success' });
+                    // 客戶分類條件資料處理完成後顯示訊息在 UI 上
+                    $.notify('客戶分類條件更新成功', { type: 'success' });
                     $(ev.target).removeAttr('disabled');
                 });
             });
 
-            // 監聽每行標籤的刪除事件，刪除時在原始資料上標記刪除
+            // 監聽每行客戶分類條件的刪除事件，刪除時在原始資料上標記刪除
             tagPanelCtrl.onDelete(function(ev) {
                 var tagsData = appsTagsData[ev.appId].tags[ev.tagId];
                 if (!tagsData) {

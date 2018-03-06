@@ -99,7 +99,7 @@ router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/u
 // ==========
 
 // ==========
-// 資料標籤
+// 資料客戶分類條件
 router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
 router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
 router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);

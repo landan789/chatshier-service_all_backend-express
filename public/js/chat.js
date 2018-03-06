@@ -1161,7 +1161,7 @@
             var messagerProfileHtml =
                 '<table class="table table-hover panel-table">' +
                     (function() {
-                        // 呈現標籤資料之前先把標籤資料設定的順序排列
+                        // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
                         var tagKeys = Object.keys(appsTags[appId].tags);
                         tagKeys.sort(function(a, b) {
                             return appsTags[appId].tags[a].order - appsTags[appId].tags[b].order;
@@ -1687,7 +1687,7 @@
                     if (alias) {
                         messagerUiData[alias] = value;
                     } else {
-                        // 沒有別名的屬性代表是自定義的標籤資料
+                        // 沒有別名的屬性代表是自定義的客戶分類條件資料
                         messagerUiData.custom_tags[tagId] = {
                             value: value
                         };

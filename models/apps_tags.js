@@ -36,7 +36,7 @@ module.exports = (function() {
     AppsTagsModel.prototype.TypeEnum = typeEnum;
 
     /**
-     * 根據輸入的 appId 陣列清單取得所有的標籤
+     * 根據輸入的 appId 陣列清單取得所有的客戶分類條件
      *
      * @param {string[]} appIds
      * @param {(appsTags: any) => any} callback
