@@ -117,22 +117,22 @@ module.exports = (function() {
 
     /**
      * @param {any} bot
-     * @param {ChatshierMessageInterface} protoMessage
+     * @param {ChatshierMessageInterface} message
      * @param {string} appType
      * @param {any} option
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMessage = function(bot, protoMessage, option, app) {
+    BotHelper.prototype.convertMessage = function(bot, message, option, app) {
         return Promise.resolve().then(() => {
             switch (app.type) {
                 case LINE:
                     /** @type {ChatshierMessageInterface} */
                     let _message = {
-                        from: protoMessage.from,
-                        time: protoMessage.time,
+                        from: message.from,
+                        time: message.time,
                         text: '',
-                        type: protoMessage.type,
-                        messager_id: protoMessage.messager_id
+                        type: option.event.message.type,
+                        messager_id: message.messager_id
                     };
 
                     return Promise.resolve().then(() => {
@@ -163,22 +163,20 @@ module.exports = (function() {
                         }
                     });
                 case FACEBOOK:
-                    let message = option.message;
-
                     return Promise.resolve().then(() => {
-                        if (!message.attachments) {
-                            let outMessages = [protoMessage];
-                            return outMessages;
+                        if (!option.message.attachments) {
+                            let messages = [message];
+                            return Promise.resolve(messages);
                         }
 
-                        return message.attachments.map((attachment) => {
+                        return option.message.attachments.map((attachment) => {
                             /** @type {ChatshierMessageInterface} */
                             let _message = {
-                                from: protoMessage.from,
-                                time: protoMessage.time,
+                                from: message.from,
+                                time: message.time,
                                 text: '',
                                 type: attachment.type,
-                                messager_id: protoMessage.messager_id
+                                messager_id: message.messager_id
                             };
 
                             switch (attachment.type) {
@@ -205,10 +203,11 @@ module.exports = (function() {
                         });
                     });
                 default:
-                    return [protoMessage];
+                    let messages = [message];
+                    return Promise.resolve(messages);
             }
-        }).then((outMessages) => {
-            return Promise.resolve(outMessages);
+        }).then((messages) => {
+            return Promise.resolve(messages);
         });
     };
 

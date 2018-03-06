@@ -179,24 +179,12 @@ function init(server) {
                     });
                 });
             }).then(() => {
-                let type = 'text';
-
-                switch (app.type) {
-                    case LINE:
-                        let messageType = option.event.message.type;
-                        type = messageType;
-                        break;
-                    case FACEBOOK:
-                    default:
-                        type = 'text';
-                        break;
-                };
 
                 /** @type {ChatshierMessageInterface} */
                 let message = {
                     text: messageText,
                     time: Date.now(),
-                    type: type,
+                    type: '',
                     from: app.type,
                     messager_id: senderId
                 };
