@@ -39,8 +39,8 @@
         $appSelectElem.off('change');
 
         return Promise.all([
-            api.app.getAll(userId),
-            api.messager.getAll(userId)
+            api.apps.findAll(userId),
+            api.appsMessagers.findAll(userId)
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
             appsMessagers = respJsons.shift().data;
@@ -198,7 +198,7 @@
             };
 
             $submitBtn.attr('disabled', true);
-            return api.ticket.insert(ticketAppId, userId, newTicket).then(function() {
+            return api.appsTickets.insert(ticketAppId, userId, newTicket).then(function() {
                 $submitBtn.removeAttr('disabled');
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });

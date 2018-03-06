@@ -76,7 +76,7 @@
                 targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
                 targetData.updatedTime = Date.now();
 
-                return api.keywordreply.update(appId, keywordreplyId, userId, targetData).then(function() {
+                return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
                     $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
@@ -100,7 +100,7 @@
 
         $openTableElem = $('#keywordreply_open_table tbody');
         $draftTableElem = $('#keywordreply_draft_table tbody');
-        return api.app.getAll(userId);
+        return api.apps.findAll(userId);
     }).then(function(respJson) {
         appsData = respJson.data;
 
@@ -111,7 +111,7 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
                 delete appsData[appId];
                 continue;
             }
@@ -156,7 +156,7 @@
 
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
-        return api.keywordreply.getAll(appId, userId).then(function(resJson) {
+        return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
             keywordrepliesData = resJson.data;
             $openTableElem.empty();
             $draftTableElem.empty();
@@ -190,7 +190,7 @@
                         return;
                     }
 
-                    return api.keywordreply.remove(appId, keywordreplyId, userId).then(function() {
+                    return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
                         return loadKeywordsReplies(appId, userId);
                     }).catch((resJson) => {
                         if (undefined === resJson.status) {
@@ -238,7 +238,7 @@
             updatedTime: Date.now()
         };
 
-        return api.keywordreply.insert(appId, userId, keywordreplyData).then(function(resJson) {
+        return api.appsKeywordreplies.insert(appId, userId, keywordreplyData).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
             $appDropdown.find('#' + appId).click();
             $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');

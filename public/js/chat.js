@@ -170,7 +170,7 @@
             var $ticketBody = $ticketTable.find('.ticket-body');
             $ticketBody.empty();
 
-            return api.ticket.getAll(appId, userId).then(function(resJson) {
+            return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
 
                 if (appData && appData[appId] && appData[appId].tickets) {
@@ -327,7 +327,7 @@
                     status: status
                 };
 
-                return api.ticket.insert(appId, userId, newTicket).then(function() {
+                return api.appsTickets.insert(appId, userId, newTicket).then(function() {
                     $.notify('待辦事項已新增', { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
@@ -357,7 +357,7 @@
             };
 
             // 發送修改請求 api 至後端進行 ticket 修改
-            return api.ticket.update(appId, ticketId, userId, modifiedTicket).then(function() {
+            return api.appsTickets.update(appId, ticketId, userId, modifiedTicket).then(function() {
                 $.notify('待辦事項已更新', { type: 'success' });
                 instance.loadTickets(appId, userId);
             }).catch(function() {
@@ -367,7 +367,7 @@
 
         TicketTableCtrl.prototype.deleteTicket = function(appId, ticketId) {
             if (confirm('確認刪除表單？')) {
-                return api.ticket.remove(appId, ticketId, userId).then(function() {
+                return api.appsTickets.remove(appId, ticketId, userId).then(function() {
                     $.notify('待辦事項已刪除', { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
@@ -432,12 +432,12 @@
         // ==========
         // #region 準備聊天室初始化資料區塊
         Promise.all([
-            api.app.getAll(userId),
-            api.chatroom.getAll(userId),
-            api.messager.getAll(userId),
-            api.tag.getAll(userId),
-            api.groups.getUserGroups(userId),
-            api.auth.getUsers(userId)
+            api.apps.findAll(userId),
+            api.appsChatroomsMessages.findAll(userId),
+            api.appsMessagers.findAll(userId),
+            api.appsTags.findAll(userId),
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(responses) {
             apps = responses.shift().data;
             appsChatrooms = responses.shift().data;
@@ -592,12 +592,12 @@
                     if (CHATSHIER === appType) {
                         // 內部聊天室的對話者 ID 是 user ID
                         // 所以需要使用 auth api 來獲得使用者資料
-                        return api.auth.getUsers(userId).then((resJson) => {
+                        return api.authentications.findUsers(userId).then((resJson) => {
                             var groupUsers = resJson.data;
                             var senderUser = groupUsers[senderId];
 
                             if (!sender.chatroom_id) {
-                                return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
+                                return api.appsMessagers.findOne(appId, senderId, userId).then(function(resJson) {
                                     var _appsMessagers = resJson.data;
                                     sender = _appsMessagers[appId].messagers[senderId];
                                     sender.name = senderUser.displayName;
@@ -617,7 +617,7 @@
                     if (senderId) {
                         // 因此拿著此 ID 向 server 查詢此人資料
                         // 查詢完後儲存至本地端，下次就無需再查詢
-                        return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
+                        return api.appsMessagers.findOne(appId, senderId, userId).then(function(resJson) {
                             var _appsMessagers = resJson.data;
                             sender = _appsMessagers[appId].messagers[senderId];
                             appsMessagers[appId].messagers[senderId] = sender;
@@ -1051,11 +1051,11 @@
 
             var tdHtmlBuilder = function(tagId, tagData) {
                 var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-                var setsTypeEnums = api.tag.enums.setsType;
-                var readonly = tagData.type === api.tag.enums.type.SYSTEM;
+                var setsTypeEnums = api.appsTags.enums.setsType;
+                var readonly = tagData.type === api.appsTags.enums.type.SYSTEM;
                 var tagValue = '';
 
-                if (tagData.type === api.tag.enums.type.CUSTOM) {
+                if (tagData.type === api.appsTags.enums.type.CUSTOM) {
                     tagValue = customTags[tagId] ? customTags[tagId].value : '';
                 } else {
                     tagValue = messager[tagData.alias] || '';
@@ -1653,7 +1653,7 @@
 
                 var alias = $td.attr('alias');
                 var setsType = $td.attr('type');
-                var setsTypeEnums = api.tag.enums.setsType;
+                var setsTypeEnums = api.appsTags.enums.setsType;
 
                 // 此欄位不允許編輯的話，不處理資料
                 if ('true' !== $td.attr('modify')) {
@@ -2023,8 +2023,8 @@
         }
 
         return Promise.all([
-            api.groups.getUserGroups(userId),
-            api.auth.getUsers(userId)
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(resJsons) {
             var groups = resJsons.shift().data;
             var allGroupUsers = resJsons.shift().data;

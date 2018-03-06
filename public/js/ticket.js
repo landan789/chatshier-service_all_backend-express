@@ -35,7 +35,7 @@
             alertWarning.find('#yes').off('click').on('click', function() {
                 alertWarning.hide();
 
-                return api.ticket.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
+                return api.appsTickets.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
                     loadTable();
 
                     var alertDanger = $('#alert-danger');
@@ -79,12 +79,12 @@
         $ticketBody.empty();
 
         var asyncLoadTasks = [
-            api.ticket.getAll('', userId)
+            api.appsTickets.findAll('', userId)
         ];
 
         // 如果沒有載入過 Messagers 才進行載入動作
         if (0 === Object.keys(messagersData).length) {
-            asyncLoadTasks.push(api.messager.getAll(userId));
+            asyncLoadTasks.push(api.appsMessagers.findAll(userId));
         }
 
         // 取得所有的 appId tickets
@@ -309,7 +309,7 @@
         };
 
         // 發送修改請求 api 至後端進行 ticket 修改
-        return api.ticket.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
+        return api.appsTickets.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
             loadTable();
 
             var alertSuccess = $('#alert-success');

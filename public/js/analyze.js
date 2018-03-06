@@ -49,14 +49,14 @@
 
         // 初始化 modal 裡的 datetime picker
         // 使用 moment.js 的 locale 設定 i18n 日期格式
-        $analyzeSdtPicker.datetimepicker({locale: 'zh-tw', defaultDate: date });
-        $analyzeEdtPicker.datetimepicker({locale: 'zh-tw', defaultDate: date });
+        $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
+        $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
         sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
         eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
 
         return Promise.all([
-            api.app.getAll(userId),
-            api.chatroom.getAll(userId)
+            api.apps.findAll(userId),
+            api.appsChatroomsMessages.findAll(userId)
         ]);
     }).then(function(respJsons) {
         var appsData = respJsons.shift().data;

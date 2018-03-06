@@ -113,7 +113,7 @@
                 } else {
                     targetData.status = 1;
                 }
-                return api.composes.update(appId, composeId, userId, targetData).then(function() {
+                return api.appsComposes.update(appId, composeId, userId, targetData).then(function() {
                     $composeEditModal.modal('hide');
                     $.notify('修改成功！', { type: 'success' });
                     $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -134,7 +134,7 @@
                 });
             });
         });
-        return api.app.getAll(userId);
+        return api.apps.findAll(userId);
     }).then(function(respJson) {
         appsData = respJson.data;
 
@@ -145,7 +145,7 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
                 delete appsData[appId];
                 continue;
             }
@@ -195,7 +195,7 @@
         $historyTableElem.empty();
         $draftTableElem.empty();
         $reservationTableElem.empty();
-        return api.composes.getAll(appId, userId).then(function(resJson) {
+        return api.appsComposes.findAll(appId, userId).then(function(resJson) {
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];
@@ -216,7 +216,7 @@
                             return;
                         }
 
-                        return api.composes.remove(appId, composeId, userId).then(function() {
+                        return api.appsComposes.remove(appId, composeId, userId).then(function() {
                             $.notify('刪除成功！', { type: 'success' });
                             return loadComposes(appId, userId);
                         }).catch((resJson) => {
@@ -448,7 +448,7 @@
                     status: isDraft ? 0 : 1,
                     time: Date.parse(sendtime)
                 };
-                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
                 }).catch((resJson) => {
@@ -472,7 +472,7 @@
                     status: isDraft ? 0 : 1,
                     time: Date.now()
                 };
-                return api.composes.insert(appId, userId, compose).then((resJson) => {
+                return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
                 }).catch((resJson) => {

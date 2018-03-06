@@ -23,7 +23,7 @@
         $(document).on('click', '#add-btn', addMsgCanvas);
         $(document).on('click', '#delete-btn', delMsgCanvas);
 
-        return api.app.getAll(userId);
+        return api.apps.findAll(userId);
     }).then(function(respJson) {
         appsData = respJson.data;
 
@@ -34,7 +34,7 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
                 delete appsData[appId];
                 continue;
             }
@@ -82,7 +82,7 @@
     function findOne(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
-        return api.greeting.getAll(appId, userId).then(function(resJson) {
+        return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
             let greetings = resJson.data;
             let greeting = greetings[appId].greetings;
             for (let greetingId in greeting) {
@@ -132,7 +132,7 @@
         var appId = $(this).parent().parent().attr('rel');
         let greetingId = $(this).parent().parent().attr('id');
         if ('-' === greetingId.charAt(0)) {
-            return api.greeting.remove(appId, userId, greetingId).then(function(resJson) {
+            return api.appsGreetings.remove(appId, userId, greetingId).then(function(resJson) {
                 $('#' + greetingId).remove();
                 delete findedGreetingIds[greetingId];
                 rowCount--;
@@ -176,7 +176,7 @@
             type: 'text',
             text: $textarea.val()
         };
-        return api.greeting.insert(appId, userId, greetingData).then(function(resJson) {
+        return api.appsGreetings.insert(appId, userId, greetingData).then(function(resJson) {
             $('#' + trId).remove();
             let greeting = resJson.data[appId].greetings;
             let greetingId = Object.keys(greeting)[0];

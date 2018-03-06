@@ -250,7 +250,7 @@ window.googleClientHelper.loadAPI().then(function() {
 // #region 客戶分類條件 Tab 代碼區塊
 (function() {
     var NEW_TAG_ID_PREFIX = 'temp_tag_id';
-    var tagEnums = api.tag.enums;
+    var tagEnums = api.appsTags.enums;
 
     var tagPanelCtrl = (function() {
         var instance = new TagPanelCtrl();
@@ -488,8 +488,8 @@ window.googleClientHelper.loadAPI().then(function() {
         var firstAppId = '';
         tagPanelCtrl.$tagPanel.empty();
         return Promise.all([
-            api.app.getAll(userId),
-            api.tag.getAll(userId)
+            api.apps.findAll(userId),
+            api.appsTags.findAll(userId)
         ]).then(function(resJsons) {
             var appsData = resJsons.shift().data;
             var appsTagsData = resJsons.shift().data;
@@ -572,9 +572,9 @@ window.googleClientHelper.loadAPI().then(function() {
                             tagOrg.sets = tagOnUI.sets;
                         }
                         tagOrg.order = tagOnUI.order;
-                        return api.tag.update(args.appId, tagId, userId, tagOrg);
+                        return api.appsTags.update(args.appId, tagId, userId, tagOrg);
                     } else if (tagOrg.isDeleted) {
-                        return api.tag.remove(args.appId, tagId, userId).then(function() {
+                        return api.appsTags.remove(args.appId, tagId, userId).then(function() {
                             delete appsTagsData[args.appId].tags[tagId];
                         });
                     }
@@ -596,7 +596,7 @@ window.googleClientHelper.loadAPI().then(function() {
                             setsType: tagOnUI.setsType,
                             order: tagOnUI.order
                         };
-                        return api.tag.insert(args.appId, userId, newTag).then(function(resJson) {
+                        return api.appsTags.insert(args.appId, userId, newTag).then(function(resJson) {
                             // 完成資料庫儲存後，將暫時使用的 tagId 替換成真正資料庫的 tagId
                             var insertTags = resJson.data;
                             var newTagId = Object.keys(insertTags[args.appId].tags).shift();
@@ -929,7 +929,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 var $addButton = $(this);
                 $addButton.attr('disabled', true);
 
-                return api.auth.getUsers(userId, memberEmail).then(function(resJson) {
+                return api.authentications.findUsers(userId, memberEmail).then(function(resJson) {
                     var memberUserId = Object.keys(resJson.data).shift();
                     var postMemberData = {
                         type: memberTypes[permission],
@@ -948,7 +948,7 @@ window.googleClientHelper.loadAPI().then(function() {
                         };
                     });
                 }).then(function(insertData) {
-                    return api.auth.getUsers(userId).then(function(resJson) {
+                    return api.authentications.findUsers(userId).then(function(resJson) {
                         userGroupMembers = resJson.data || {};
                         instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
@@ -1023,7 +1023,7 @@ window.googleClientHelper.loadAPI().then(function() {
                             return searchCache[emailPattern];
                         }
 
-                        return api.auth.searchUsers(userId, emailPattern).then(function(resJson) {
+                        return api.authentications.searchUsers(userId, emailPattern).then(function(resJson) {
                             return resJson.data || [];
                         });
                     }).then(function(searchResults) {
@@ -1123,8 +1123,8 @@ window.googleClientHelper.loadAPI().then(function() {
 
         groupCtrl.clearAll();
         Promise.all([
-            api.groups.getUserGroups(userId),
-            api.auth.getUsers(userId)
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(resJsons) {
             groups = resJsons[0].data || {};
             userGroupMembers = resJsons[1].data || {};
@@ -1147,7 +1147,7 @@ window.googleClientHelper.loadAPI().then(function() {
 var $appModal = $('#setting-modal .modal-body');
 
 function findAllGroups() {
-    return api.groups.getUserGroups(userId).then(function(resJson) {
+    return api.groups.findAll(userId).then(function(resJson) {
         let groups = resJson.data;
         if (groups instanceof Object && 0 === Object.values(groups).length) {
             $('#add-group-name-app-btn').attr('disabled', false);
@@ -1177,7 +1177,7 @@ function insertOneGroup() {
 }
 
 function findAllApps() {
-    return api.app.getAll(userId).then(function(resJson) {
+    return api.apps.findAll(userId).then(function(resJson) {
         let apps = resJson.data;
 
         for (let appId in apps) {
@@ -1191,7 +1191,7 @@ function findAllApps() {
 }
 
 function findOneApp(appId) {
-    return api.app.getOne(appId, userId).then(function(resJson) {
+    return api.apps.findOne(appId, userId).then(function(resJson) {
         let apps = resJson.data;
         formModalBody(appId, apps[appId]);
     });
@@ -1237,7 +1237,7 @@ function insertType(type, groupId, callback) {
 }
 
 function insertOneApp(appData) {
-    return api.app.insert(userId, appData).then(function(resJson) {
+    return api.apps.insert(userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1264,7 +1264,7 @@ function insertOneApp(appData) {
 }
 
 function updateOneApp(appId, appData) {
-    return api.app.update(appId, userId, appData).then(function(resJson) {
+    return api.apps.update(appId, userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1310,7 +1310,7 @@ function removeOneApp(appId) {
             return;
         }
 
-        return api.app.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+        return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
             let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
             $('#app-group').html(str);
             $.notify('成功刪除!', { type: 'success' });
@@ -1560,7 +1560,7 @@ function clearAppModalBody() {
     $appModal.empty();
 }
 function findAuthUserProfile() {
-    return api.auth.getUsers(userId).then(function(resJson) {
+    return api.authentications.findUsers(userId).then(function(resJson) {
         let users = resJson.data;
         let user = users[userId];
         if (userId) {
@@ -1573,7 +1573,7 @@ function findAuthUserProfile() {
 }
 
 function findUserProfile() {
-    return api.users.getUser(userId).then(function(resJson) {
+    return api.users.findOne(userId).then(function(resJson) {
         var profile = resJson.data;
         $('#prof-id').text(userId);
         $('#prof-IDnumber').text(userId);

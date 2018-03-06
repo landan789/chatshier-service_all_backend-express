@@ -281,8 +281,8 @@
         });
 
         return Promise.all([
-            api.calendar.getAll(userId), // 取得所有的行事曆事件
-            api.ticket.getAll('', userId), // 取得所有的待辦事項
+            api.calendarsEvents.findAll(userId), // 取得所有的行事曆事件
+            api.appsTickets.findAll('', userId), // 取得所有的待辦事項
             gCalendarPromise
         ]);
     }).then(function(resJsons) {
@@ -464,7 +464,7 @@
      * 確定新增或更改行事曆上的事件
      */
     function insertCalendarEvent(calendarData) {
-        return api.calendar.insert(userId, calendarData).then(function(response) {
+        return api.calendarsEvents.insert(userId, calendarData).then(function(response) {
             $calendarModal.modal('hide');
 
             var calendarEventList = [];
@@ -509,7 +509,7 @@
         // 根據事件型態來判斷發送不同 API 進行資料更新動作
         switch (event.eventType) {
             case CalendarEventTypes.Calendar:
-                return api.calendar.update(calendarId, eventId, userId, calendar).then(function(res) {
+                return api.calendarsEvents.update(calendarId, eventId, userId, calendar).then(function(res) {
                     $calendarModal.modal('hide');
                     if (!shouldReRender) {
                         return;
@@ -540,7 +540,7 @@
                     dueTime: calendar.endedTime
                 };
 
-                return api.ticket.update(calendarId, eventId, userId, ticket).then(function(res) {
+                return api.appsTickets.update(calendarId, eventId, userId, ticket).then(function(res) {
                     $calendarModal.modal('hide');
                     if (!shouldReRender) {
                         return;
@@ -623,9 +623,9 @@
         return Promise.resolve().then(function() {
             switch (event.eventType) {
                 case CalendarEventTypes.Calendar:
-                    return api.calendar.remove(calendarId, eventId, userId);
+                    return api.calendarsEvents.remove(calendarId, eventId, userId);
                 case CalendarEventTypes.Ticket:
-                    return api.ticket.remove(calendarId, eventId, userId);
+                    return api.appsTickets.remove(calendarId, eventId, userId);
                 case CalendarEventTypes.Google:
                     return window.googleCalendarHelper.deleteEvent(calendarId, eventId);
                 default:

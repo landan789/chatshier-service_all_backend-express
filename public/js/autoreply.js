@@ -34,7 +34,7 @@
         $(document).on('click', '#delete-btn', dataRemove); // 刪除
         $(document).on('change paste keyup', '.search-bar', dataSearch);
 
-        return api.app.getAll(userId);
+        return api.apps.findAll(userId);
     }).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
@@ -42,7 +42,7 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.app.enums.type.CHATSHIER) {
+            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
                 delete appsData[appId];
                 continue;
             }
@@ -100,7 +100,7 @@
             text: textInput
         };
 
-        return api.autoreply.insert(appId, userId, autoreplyData).then(function(resJson) {
+        return api.appsAutoreplies.insert(appId, userId, autoreplyData).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
@@ -146,7 +146,7 @@
 
     function findOne(appId, userId) {
         $('#autoreply-tables').empty();
-        return api.autoreply.getAll(appId, userId).then(function(resJson) {
+        return api.appsAutoreplies.findAll(appId, userId).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];
@@ -178,7 +178,7 @@
             endedTime: endtime,
             text: textInput
         };
-        return api.autoreply.update(appId, userId, autoreplyId, data).then(function(resJson) {
+        return api.appsAutoreplies.update(appId, userId, autoreplyId, data).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
@@ -224,7 +224,7 @@
             if (!isOK) {
                 return;
             }
-            return api.autoreply.remove(appId, userId, autoreplyId).then(function(resJson) {
+            return api.appsAutoreplies.remove(appId, userId, autoreplyId).then(function(resJson) {
                 $('#' + autoreplyId).remove();
                 $.notify('刪除成功！', { type: 'success' });
             }).catch((resJson) => {
