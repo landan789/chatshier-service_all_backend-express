@@ -8,6 +8,8 @@ let timer = require('../helpers/timer');
 const API_ERROR = require('../config/api_error');
 const SCHEMA = require('../config/schema');
 
+let appsMdl = require('../models/apps');
+let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const SYSTEM = 'SYSTEM';
 const CHATSHIER = 'CHATSHIER';
 admin.initializeApp({
@@ -17,11 +19,17 @@ admin.initializeApp({
 
 let job1 = schedule.scheduleJob('10 * * * * *', () => {
     let startedUnixTime = Date.now();
+    let appIds = '';
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
-    Promise.resolve().then(() => {
-        return admin.database().ref('apps').once('value');
-    }).then((snap) => {
-        let apps = snap.val();
+    return new Promise((resolve, reject) => {
+        appsMdl.findAppsByAppIds(appIds, (appsObj) => {
+            if (!appsObj) {
+                reject(API_ERROR.APPS_FAILED_TO_FIND);
+            }
+            resolve(appsObj);
+        });
+    }).then((appsObj) => {
+        let apps = appsObj.val();
         // 相異 apps 允許 同時間群發。
         // 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
@@ -76,23 +84,25 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
             return multicast(Object.keys(messagers), multicasts).then(() => {
                 return Promise.all(Object.keys(messagers).map((messagerId) => {
                     let messager = messagers[messagerId];
+                    var messagerIds = Object.keys(messagers);
                     let chatroomId = messager.chatroom_id;
-
                     return Promise.all(messages.map((message) => {
                         let _message = {
                             from: SYSTEM,
-                            messager_id: '', // 系統發出不需要帶入 messager_id
-                            time: Date.now()
+                            messager_id: '',
+                            text: message.text,
+
+                            time: Date.now(),
+                            type: 'text'
                         };
                         message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
+                        appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {});
                     }));
                 }));
             });
 
             function multicast(messagers, multicasts) {
-
                 return nextPromise(0);
                 function nextPromise(i) {
                     if (i >= multicasts.length) {
