@@ -22,14 +22,13 @@ let job1 = schedule.scheduleJob('10 * * * * *', () => {
     let appIds = '';
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
-        appsMdl.findAppsByAppIds(appIds, (appsObj) => {
-            if (!appsObj) {
+        appsMdl.findAppsByAppIds(appIds, (apps) => {
+            if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
             }
-            resolve(appsObj);
+            resolve(apps);
         });
-    }).then((appsObj) => {
-        let apps = appsObj;
+    }).then((apps) => {
         // 相異 apps 允許 同時間群發。
         // 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
