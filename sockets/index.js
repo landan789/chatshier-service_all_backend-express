@@ -223,7 +223,6 @@ function init(server) {
         function followProcess(senderId, option) {
             let totalMessages = [];
             let sender;
-            let appId;
             return new Promise((resolve) => {
                 appsGreetingsMdl.findGreetings(appId, (greetings) => {
                     resolve(greetings);
@@ -375,8 +374,6 @@ function init(server) {
                                 return followProcess(senderId, option);
                             }
                             // 非 message 和 follow 類的事件不處理，直接忽略
-                        }).then(() => {
-
                         }).then(() => {
                             return nextMessage(i + 1);
                         });
