@@ -104,7 +104,7 @@ var utility = {
                 _message.originalContentUrl = message.src;
                 break;
             case 'video':
-                _message.previewImageUrl = 'https://tinichats.com/assets/images/tab.png';
+                _message.previewImageUrl = 'https://www.chatshier.com/image/chatshier_logo.png';
                 _message.originalContentUrl = message.src;
                 break;
             case 'sticker':
