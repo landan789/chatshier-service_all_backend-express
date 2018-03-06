@@ -2,6 +2,13 @@ body, html{
     height: 100%
 }
 
+/* 由於 notify 在顯示時會設定 element 的 z-index 為 1030 */
+/* 為了能夠在 modal 上也能顯示訊息，因此將原本的 1030 */
+/* 強制改成比 modal 的 1050 高的 1051 */
+.alert[data-notify="container"] {
+    z-index: 1051 !important; 
+}
+
     /*導覽列*/
     
     .navbar-default .navbar-brand.white {

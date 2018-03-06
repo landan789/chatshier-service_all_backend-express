@@ -2,5 +2,5 @@
     "API_KEY": "AIzaSyBDc3LSRXpplII3ZwAPpJ5vlkrYmQf56A8",
     "CLIENT_ID": "185667191445-g4es10vb23gm1jbt12m3c5me5vm5h8pr.apps.googleusercontent.com",
     "DISCOVERY_DOCS": ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-    "SCOPES": "https://www.googleapis.com/auth/calendar.readonly"
+    "SCOPES": "https://www.googleapis.com/auth/calendar"
 }

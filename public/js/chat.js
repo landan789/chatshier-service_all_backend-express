@@ -182,7 +182,7 @@
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(ticket.dueTime - timezoneGap).toISOString().split('T').shift();
+                        var dueTimeDateStr = new Date(ticket.dueTime - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
@@ -1101,7 +1101,7 @@
                         '</td>';
                     case setsTypeEnums.DATE:
                         tagValue = tagValue || 0;
-                        var tagDateStr = new Date(tagValue - timezoneGap).toISOString().split('.').shift();
+                        var tagDateStr = new Date(tagValue - timezoneGap).toJSON().split('.').shift();
                         return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                             '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                         '</td>';

@@ -155,7 +155,7 @@ module.exports = (function() {
         return _paramsCheckingGetAll(req.params).then((appIds) => {
             let appId = req.params.appid;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicketsByAppIds(appId || appIds, (data) => {
+                appsTicketsMdl.findAppTickets(appId || appIds, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -187,7 +187,7 @@ module.exports = (function() {
             let appId = checkedAppId;
             let ticketId = req.params.ticketid;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicketByAppIdByTicketId(appId, ticketId, (data) => {
+                appsTicketsMdl.findAppTicket(appId, ticketId, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -231,19 +231,20 @@ module.exports = (function() {
         return _requestChecking(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.insertByAppid(appId, postTikeck, (result) => {
-                    if (false === result || null === result || undefined === result) {
+                appsTicketsMdl.insert(appId, postTikeck, (appsTickets) => {
+                    if (false === appsTickets || null === appsTickets || undefined === appsTickets) {
                         reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                         return;
                     }
 
-                    resolve();
+                    resolve(appsTickets);
                 });
             });
-        }).then(() => {
+        }).then((data) => {
             var json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
@@ -264,8 +265,7 @@ module.exports = (function() {
             description: req.body.description || '',
             dueTime: req.body.dueTime ? req.body.dueTime : 0,
             priority: req.body.priority ? req.body.priority : 0,
-            status: req.body.status ? req.body.status : 0,
-            updatedTime: req.body.updatedTime ? req.body.updatedTime : 0
+            status: req.body.status ? req.body.status : 0
         };
 
         return _requestChecking(req).then((checkedAppId) => {
@@ -275,7 +275,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                appsTicketsMdl.findTicketsByAppId(appId, (data) => {
+                appsTicketsMdl.findTickets(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -294,19 +294,20 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.updateByAppIdByticketId(appId, ticketId, putTikcket, (result) => {
-                    if (false === result || null === result || undefined === result) {
+                appsTicketsMdl.update(appId, ticketId, putTikcket, (appsTickets) => {
+                    if (false === appsTickets || null === appsTickets || undefined === appsTickets) {
                         reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
                         return;
                     }
 
-                    resolve();
+                    resolve(appsTickets);
                 });
             });
-        }).then(() => {
+        }).then((data) => {
             var json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
@@ -330,7 +331,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                appsTicketsMdl.findTicketsByAppId(appId, (data) => {
+                appsTicketsMdl.findTickets(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -349,7 +350,7 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.removeByAppIdByTicketId(appId, ticketId, (result) => {
+                appsTicketsMdl.remove(appId, ticketId, (result) => {
                     if (false === result || null === result || undefined === result) {
                         reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
                         return;

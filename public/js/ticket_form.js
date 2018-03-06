@@ -2,8 +2,8 @@
 
 (function() {
     var userId = '';
-    var appsData = {};
-    var appsMessagersData = {};
+    var apps = {};
+    var appsMessagers = {};
     var api = window.restfulAPI;
 
     var jqDoc = $(document);
@@ -42,18 +42,29 @@
             api.app.getAll(userId),
             api.messager.getAll(userId)
         ]).then(function(respJsons) {
-            appsData = respJsons[0].data;
-            $appSelectElem.empty();
-            if (appsData && Object.keys(appsData).length > 0) {
-                // 確定取回來的資料有數據，重新配置選取器內的選項資料
-                appsMessagersData = respJsons[1].data;
+            apps = respJsons.shift().data;
+            appsMessagers = respJsons.shift().data;
 
-                for (var appId in appsData) {
-                    $appSelectElem.append('<option value=' + appId + '>' + appsData[appId].name + '</option>');
+            $appSelectElem.empty();
+            if (apps && Object.keys(apps).length > 0) {
+                // 確定取回來的資料有數據，重新配置選取器內的選項資料
+
+                for (var appId in apps) {
+                    var app = apps[appId];
+                    if (app.isDeleted || 'CHATSHIER' === app.type) {
+                        delete apps[appId];
+                        delete appsMessagers[appId];
+                        continue;
+                    }
+                    $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
                 }
 
-                var selectedId = $appSelectElem.find('option:selected').val();
-                updateMessagerInfoElems(appsMessagersData[selectedId].messagers);
+                if (0 === Object.keys(apps).length) {
+                    $appSelectElem.append('<option value="">無資料</option>');
+                } else {
+                    var selectedAppId = $appSelectElem.find('option:selected').val();
+                    updateMessagerInfoElems(appsMessagers[selectedAppId].messagers);
+                }
             } else {
                 $appSelectElem.append('<option value="">無資料</option>');
             }
@@ -61,7 +72,7 @@
             // 啟用選取器選取的事件
             $appSelectElem.on('change', function(ev) {
                 var appId = ev.target.value;
-                updateMessagerInfoElems(appsMessagersData[appId].messagers);
+                updateMessagerInfoElems(appsMessagers[appId].messagers);
             });
         });
     }
