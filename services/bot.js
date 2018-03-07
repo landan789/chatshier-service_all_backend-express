@@ -177,7 +177,7 @@ module.exports = (function() {
          * @param {any} app
          * @returns {Promise<any>}
          */
-        sendMulticast(recipientIds, multicasts, appId, app) {
+        multicast(recipientIds, multicasts, appId, app) {
             let bot = this.bots[appId];
 
             switch (app.type) {

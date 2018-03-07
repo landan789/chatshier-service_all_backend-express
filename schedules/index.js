@@ -64,7 +64,7 @@ let jobProcess = () => {
                 multicasts.push(messages.splice(0, 5));
             }
             multicasts.push(messages);
-            return botSvc.sendMulticast(Object.keys(messagers), multicasts, appId, app);
+            return botSvc.multicast(Object.keys(messagers), multicasts, appId, app);
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();
