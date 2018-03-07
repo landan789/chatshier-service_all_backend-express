@@ -146,7 +146,7 @@ function init(server) {
                 let data = {
                     messages: replyMessages,
                     keywordreplies: keywordMessages
-                }
+                };
                 return Promise.resolve(data);
             });
         }
@@ -299,7 +299,7 @@ function init(server) {
                                     if (!messages.length) {
                                         return Promise.resolve(null);
                                     };
-                    
+
                                     replyMessages = messages.map((message) => {
                                         /** @type {ChatshierMessageInterface} */
                                         let _message = {
@@ -312,14 +312,14 @@ function init(server) {
                                         };
                                         return _message;
                                     });
-                    
+
                                     let replyToken = option.event ? option.event.replyToken : '';
-                                    return botSvc.replyMessage(senderId, replyToken, replyMessages, app);
+                                    return botSvc.replyMessage(senderId, replyToken, replyMessages, appId, app);
                                 }).then(() => {
                                     // 處理與訊息匹配的關鍵字回覆的次數更新
                                     return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
                                 }).then(() => {
-                                    return botSvc.getProfile(senderId, app);
+                                    return botSvc.getProfile(senderId, appId, app);
                                 }).then((profile) => {
                                     return new Promise((resolve) => {
                                         appsMessagersMdl.replaceMessager(appId, senderId, profile, (_messager) => {
@@ -341,15 +341,14 @@ function init(server) {
                                     return Promise.resolve(receivedMessages);
                                 }).then((receivedMessages) => {
                                     sender = messager;
-                    
+
                                     // 回復訊息與傳入訊息都整合，再寫入 DB
                                     replyMessages = receivedMessages.concat(replyMessages);
-                    
+
                                     return increaseMembersUnRead(appId, senderId, sender, replyMessages.length);
                                 }).then(() => {
                                     return sendMessagesToSockets(sender, senderId, replyMessages);
                                 });
-                                
                             } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
                                 return followProcess(senderId, option).then((_messages) => {
                                     messages = _messages;
@@ -400,7 +399,7 @@ function init(server) {
                                 if (!messages.length) {
                                     return Promise.resolve(null);
                                 };
-                
+
                                 replyMessages = messages.map((message) => {
                                     /** @type {ChatshierMessageInterface} */
                                     let _message = {
@@ -413,14 +412,14 @@ function init(server) {
                                     };
                                     return _message;
                                 });
-                
+
                                 let replyToken = option.event ? option.event.replyToken : '';
-                                return botSvc.replyMessage(senderId, replyToken, replyMessages, app);
+                                return botSvc.replyMessage(senderId, replyToken, replyMessages, appId, app);
                             }).then(() => {
                                 // 處理與訊息匹配的關鍵字回覆的次數更新
                                 return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
                             }).then(() => {
-                                return botSvc.getProfile(senderId, app);
+                                return botSvc.getProfile(senderId, appId, app);
                             }).then((profile) => {
                                 return new Promise((resolve) => {
                                     appsMessagersMdl.replaceMessager(appId, senderId, profile, (_messager) => {
@@ -442,10 +441,10 @@ function init(server) {
                                 return Promise.resolve(receivedMessages);
                             }).then((receivedMessages) => {
                                 sender = messager;
-                
+
                                 // 回復訊息與傳入訊息都整合，再寫入 DB
                                 replyMessages = receivedMessages.concat(replyMessages);
-                
+
                                 return increaseMembersUnRead(appId, senderId, sender, replyMessages.length);
                             }).then(() => {
                                 return sendMessagesToSockets(sender, senderId, replyMessages);
