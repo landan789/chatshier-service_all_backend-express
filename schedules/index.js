@@ -5,7 +5,7 @@ const serviceAccount = require('../config/firebase-adminsdk');
 const databaseURL = require('../config/firebase_admin_database_url');
 const API_ERROR = require('../config/api_error');
 
-const timer = require('../helpers/timer');
+const timerHlp = require('../helpers/timerHlp');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
 
@@ -42,7 +42,7 @@ let jobProcess = () => {
             for (let composeId in composes) {
                 if (composes[composeId].text &&
                     1 === composes[composeId].status &&
-                    timer.minutedUnixTime(startedUnixTime) === timer.minutedUnixTime(composes[composeId].time) &&
+                    timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
                     0 === composes[composeId].isDeleted
                 ) {
                     let message = {
