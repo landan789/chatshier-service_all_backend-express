@@ -58,26 +58,26 @@ module.exports = (function() {
      * 發送FACEBOOK訊息
      *
      * @param {Object} bot
-     * @param {string} receiverId
+     * @param {string} recipientId
      * @param {Object} app
      * @param {Function} callback
      */
-    BotHelper.prototype.sendMessage = function(bot, receiverId, app, callback) {
+    BotHelper.prototype.sendMessage = function(bot, recipientId, app, callback) {
         switch (app.textType) {
             case 'image':
-                bot.sendImageMessage(receiverId, app.src, true);
+                bot.sendImageMessage(recipientId, app.src, true);
                 callback();
                 break;
             case 'audio':
-                bot.sendAudioMessage(receiverId, app.src, true);
+                bot.sendAudioMessage(recipientId, app.src, true);
                 callback();
                 break;
             case 'video':
-                bot.sendVideoMessage(receiverId, app.src, true);
+                bot.sendVideoMessage(recipientId, app.src, true);
                 callback();
                 break;
             default:
-                bot.sendTextMessage(receiverId, app.msg);
+                bot.sendTextMessage(recipientId, app.msg);
                 callback();
         }
     };
