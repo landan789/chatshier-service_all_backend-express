@@ -19,6 +19,35 @@ module.exports = (function() {
             this.bots = {};
         }
 
+        init(appId, app) {
+            return new Promise((resolve, reject) => {
+                switch (app.type) {
+                    case LINE:
+                        let lineConfig = {
+                            channelSecret: app.secret,
+                            channelAccessToken: app.token1
+                        };
+                        let lineBot = new line.Client(lineConfig);
+                        this.bots[appId] = lineBot;
+                        resolve(lineBot);
+                        break;
+                    case FACEBOOK:
+                        let facebookConfig = {
+                            pageID: app.id1,
+                            appID: app.id2 || '',
+                            appSecret: app.secret,
+                            validationToken: app.token1,
+                            pageToken: app.token2 || ''
+                        };
+                        // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
+                        let facebookBot = facebook.create(facebookConfig);
+                        this.bots[appId] = facebookBot;
+                        resolve(facebookBot);
+                        break;
+                }
+            });
+        };
+
         /**
          * @param {any} req
          * @param {any} res
@@ -54,9 +83,9 @@ module.exports = (function() {
                                 pageToken: app.token2 || ''
                             };
                             // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                            let fbBot = facebook.create(facebookConfig, server);
-                            this.bots[appId] = fbBot;
-                            resolve(fbBot);
+                            let facebookBot = facebook.create(facebookConfig, server);
+                            this.bots[appId] = facebookBot;
+                            resolve(facebookBot);
                         });
                         break;
                     default:
@@ -141,7 +170,6 @@ module.exports = (function() {
                 }
             });
         }
-
         /**
          * @param {string[]} recipientIds
          * @param {any[][]} multicasts
