@@ -25,8 +25,8 @@ module.exports = (function() {
             user = Object.assign(SCHEMA.USER, user);
             return admin.database().ref('users/' + userId).once('value');
         }).then((snap) => {
-            let user = snap.val();
-            if (user) {
+            let _user = snap.val();
+            if (_user) {
                 return Promise.reject();
             };
             return admin.database().ref('users/' + userId).set(user);
