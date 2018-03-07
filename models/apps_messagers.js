@@ -183,20 +183,22 @@ module.exports = (function() {
     };
 
     /**
-     * 根據app ID跟messager ID找到chatroom ID
+     * 根據 messagerId 找到 chatroom_id
      *
      * @param {string} appId
-     * @param {string} msgerId
-     * @param {Function} callback
+     * @param {string} messagerId
+     * @param {(chatroomId: string) => any} [callback]
      */
-    AppsMessagersModel.prototype.findChatroomIdByAppIdByMessagerId = function(appId, msgerId, callback) {
-        admin.database().ref('apps/' + appId + '/messagers/' + msgerId + '/chatroom_id').once('value').then((snap) => {
-            let chatroomId = snap.val();
-            if (null === chatroomId || undefined === chatroomId || '' === chatroomId) {
-                callback(null);
-                return;
-            }
-            callback(chatroomId);
+    AppsMessagersModel.prototype.findMessagerChatroomId = function(appId, messagerId, callback) {
+        let chatroomId = '';
+
+        return admin.database().ref('apps/' + appId + '/messagers/' + messagerId + '/chatroom_id').once('value').then((snap) => {
+            chatroomId = snap.val() || '';
+            ('function' === typeof callback) && callback(chatroomId);
+            return chatroomId;
+        }).catch(() => {
+            ('function' === typeof callback) && callback(chatroomId);
+            return chatroomId;
         });
     };
 

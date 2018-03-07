@@ -256,7 +256,7 @@ function init(server) {
                 });
             });
         }).then((app) => {
-            return botSvc.parser(req, res, server, app);
+            return botSvc.parser(req, res, server, appId, app);
         }).then((_bot) => {
             bot = _bot;
             switch (app.type) {
@@ -353,9 +353,9 @@ function init(server) {
                             } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
                                 return followProcess(senderId, option).then((_messages) => {
                                     messages = _messages;
-                                    return botSvc.replyMessage(senderId, option.event.replyToken, messages, app);
+                                    return botSvc.replyMessage(senderId, option.event.replyToken, messages, appId, app);
                                 }).then(() => {
-                                    return botSvc.getProfile(senderId, app);
+                                    return botSvc.getProfile(senderId, appId, app);
                                     // TODO 需要把訊息寫入 DB
                                 }).then((profile) => {
                                     return new Promise((resolve) => {
@@ -487,7 +487,7 @@ function init(server) {
             let appType = socketBody.appType;
             let chatroomId = socketBody.chatroomId;
             let message = socketBody.message;
-            let receiverId = socketBody.messagerId;
+            let recipientId = socketBody.messagerId;
             let senderId = message.messager_id;
 
             return Promise.resolve().then(() => {
@@ -531,7 +531,7 @@ function init(server) {
                             };
 
                             let fbBot = facebook.create(facebookConfig);
-                            return helpersFacebook.sendMessage(fbBot, receiverId, message);
+                            return helpersFacebook.sendMessage(fbBot, recipientId, message);
                         case LINE:
                             let lineClientConfig = {
                                 channelAccessToken: app.token1
@@ -539,7 +539,7 @@ function init(server) {
 
                             let lineBot = new line.Client(lineClientConfig);
                             let _message = chatshierHlp.toLineMessage(message);
-                            return lineBot.pushMessage(receiverId, _message);
+                            return lineBot.pushMessage(recipientId, _message);
                         default:
                             break;
                     }

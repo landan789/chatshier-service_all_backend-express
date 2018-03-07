@@ -1,22 +1,9 @@
 module.exports = (function() {
     const admin = require('firebase-admin');
+    const SCHEMA = require('../config/schema');
 
     function AppsChatroomsMessages() {}
 
-    /**
-     * 初始化Message的資訊
-     *
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype._schema = function(callback) {
-        var json = {
-            from: '',
-            messager_id: '',
-            text: '',
-            time: Date.now()
-        };
-        callback(json);
-    };
     /**
      * 根據 App ID 清單，取得對應的所有聊天室訊息
      *
@@ -111,12 +98,8 @@ module.exports = (function() {
      * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
-        return new Promise((resolve, reject) => {
-            AppsChatroomsMessages.prototype._schema((initMessage) => {
-                var _message = Object.assign(initMessage, message);
-                resolve(_message);
-            });
-        }).then((_message) => {
+        return Promise.resolve().then(() => {
+            var _message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message);
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(_message).then((ref) => {
                 // var messageId = ref.key;
                 return _message;
@@ -138,7 +121,6 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsChatroomsMessages.prototype.insertMessageByAppIdByMessagerId = function(appId, messagerId, message, callback) {
-
         admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
             var messager = snap.val();
             return Promise.resolve(messager);
@@ -154,7 +136,6 @@ module.exports = (function() {
                 });
             }
             return Promise.resolve(chatroomId);
-
         }).then((chatroomId) => {
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
         }).then((ref) => {
@@ -185,7 +166,7 @@ module.exports = (function() {
                 admin.database().ref('users/' + userId).once('value', snap => {
                     var user = snap.val();
                     if (null === user || undefined === user || '' === user) {
-                        reject();
+                        reject(new Error());
                         return;
                     }
                     resolve(user);
@@ -193,7 +174,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             var appIds = user.app_ids;
-            AppsChatroomsMessages.prototype.findByAppIds(appIds, (data) => {
+            instance.findByAppIds(appIds, (data) => {
                 var appsMessagers = data;
                 callback(appsMessagers);
             });
@@ -207,14 +188,13 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string} chatroomId
-     * @param {string} messageId
      * @param {Function} callback
      */
     AppsChatroomsMessages.prototype.findAppsChatroomsMessages = function(appId, chatroomId, callback) {
         admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
             let messages = snap.val();
             if (null === messages || undefined === messages || '' === messages) {
-                return Promise.reject();
+                return Promise.reject(new Error());
             }
             var appsChatroomsMessages = {};
             var chatroomsMessages = {};
@@ -236,14 +216,13 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string} chatroomId
-     * @param {string} messageId
      * @param {Function} callback
      */
     AppsChatroomsMessages.prototype.findMessages = function(appId, chatroomId, callback) {
         admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
             let messages = snap.val();
             if (null === messages || undefined === messages || '' === messages) {
-                return Promise.reject();
+                return Promise.reject(new Error());
             }
             return Promise.resolve(messages);
         }).then((messages) => {
@@ -275,5 +254,6 @@ module.exports = (function() {
         });
     };
 
-    return new AppsChatroomsMessages();
+    let instance = new AppsChatroomsMessages();
+    return instance;
 })();
