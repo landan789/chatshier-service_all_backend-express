@@ -8,11 +8,39 @@ module.exports = (function() {
     const FACEBOOK = 'FACEBOOK';
 
     let lineBot;
-    let fbBot;
+    let facebookBot;
     function BotService() {
         this.bot = {};
     };
 
+    BotService.prototype.init = function(app) {
+        return new Promise((resolve, reject) => {
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+                    lineBot = new line.Client(lineConfig);
+                    this.bot = lineBot;
+                    resolve(lineBot);
+                    break;
+                case FACEBOOK:
+                    let facebookConfig = {
+                        pageID: app.id1,
+                        appID: app.id2 || '',
+                        appSecret: app.secret,
+                        validationToken: app.token1,
+                        pageToken: app.token2 || ''
+                    };
+                    // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
+                    facebookBot = facebook.create(facebookConfig);
+                    this.bot = facebookBot;
+                    resolve(facebookBot);
+                    break;
+            }
+        });
+    };
     BotService.prototype.parser = function(req, res, server, app) {
         return new Promise((resolve, reject) => {
             switch (app.type) {
@@ -37,10 +65,10 @@ module.exports = (function() {
                             pageToken: app.token2 || ''
                         };
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                        fbBot = facebook.create(facebookConfig, server);
-                        this.bot = fbBot;
+                        facebookBot = facebook.create(facebookConfig, server);
+                        this.bot = facebookBot;
 
-                        resolve(fbBot);
+                        resolve(facebookBot);
                     });
                     break;
             }
@@ -89,7 +117,35 @@ module.exports = (function() {
                     }));
             };
         });
-    }
+    };
+
+    BotService.prototype.pushMessage = function(senderId, replyToken, messages, app) {
+        return Promise.resolve().then(() => {
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+                    this.bot = new line.Client(lineConfig);
+                    return this.bot.replyMessage(replyToken, messages);
+                case FACEBOOK:
+                    return Promise.all(messages.map((message) => {
+                        switch (message.type) {
+                            case 'image':
+                                return this.bot.sendImageMessage(senderId, message.src);
+                            case 'audio':
+                                return this.bot.sendAudioMessage(senderId, message.src);
+                            case 'video':
+                                return this.bot.sendVideoMessage(senderId, message.src);
+                            case 'text':
+                            default:
+                                return this.bot.sendTextMessage(senderId, message.text);
+                        }
+                    }));
+            };
+        });
+    };
 
     return new BotService();
 })();

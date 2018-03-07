@@ -630,6 +630,7 @@ function init(server) {
                     userid: userId
                 }
             };
+            let app;
 
             return controllerCre.AppsRequestVerify(req).then(() => {
                 if (!appId) {
@@ -644,44 +645,21 @@ function init(server) {
                         resolve(app);
                     });
                 });
-            }).then((app) => {
-                appType = app.type;
+            }).then((_app) => {
+                app = _app;
+                return botSvc.init(app);
+            }).then((_bot) => {
+                bot = _bot;
                 return new Promise((resolve, reject) => {
-                    switch (app.type) {
-                        case LINE:
-                            let lineConfig = {
-                                channelSecret: app.secret,
-                                channelAccessToken: app.token1
-                            };
-                            bot = new line.Client(lineConfig);
-                            resolve();
-                            break;
-                        case FACEBOOK:
-                            let facebookConfig = {
-                                pageID: app.id1,
-                                appID: app.id2 || '',
-                                appSecret: app.secret,
-                                validationToken: app.token1,
-                                pageToken: app.token2 || ''
-                            };
-                            // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                            bot = facebook.create(facebookConfig, server);
-                            resolve();
-                            break;
-                    }
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMessagersMdl.findAppMessagers(appId, (result) => {
-                        if (!result) {
+                    appsMessagersMdl.findAppMessagers(appId, (messagers) => {
+                        if (!messagers) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         }
-                        resolve(result);
+                        resolve(messagers);
                     });
                 });
-            }).then((_messagers) => {
-                messagers = _messagers;
-                switch (appType) {
+            }).then((messagers) => {
+                switch (app.type) {
                     case LINE:
                         return bot.multicast(Object.keys(messagers[appId].messagers), messages);
                     case FACEBOOK:
