@@ -52,12 +52,12 @@ module.exports = (function() {
                 if (!userId) {
                     return reject(API_ERROR.USERID_WAS_EMPTY);
                 };
-                usersMdl.insert(userId, postUser, (user) => {
-                    if (!user) {
+                usersMdl.insert(userId, postUser, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_INSERT);
                         return;
                     }
-                    resolve(user);
+                    resolve(users);
                 });
             });
         }).then((users) => {
