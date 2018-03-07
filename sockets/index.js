@@ -72,7 +72,6 @@ function init(server) {
             let keywordreplies;
             let templates;
             let autoreplies;
-            let replyMessages;
 
             return new Promise((resolve, reject) => {
                 // 到 models/apps_messages.js，找到 keywordreply_ids
@@ -146,6 +145,59 @@ function init(server) {
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
 
                 return Promise.resolve(replyMessages);
+            }).then((replyMessages) => {
+                if (!replyMessages.length) {
+                    return Promise.resolve(null);
+                };
+
+                replyMessages = replyMessages.map((message) => {
+                    /** @type {ChatshierMessageInterface} */
+                    let _message = {
+                        messager_id: '',
+                        from: SYSTEM,
+                        text: message.text || '',
+                        type: message.type || 'text',
+                        time: Date.now(), // 將要回覆的訊息加上時戳
+                        src: ''
+                    };
+                    return _message;
+                });
+
+                let replyToken = option.event ? option.event.replyToken : '';
+                return botSvc.replyMessage(senderId, replyToken, replyMessages, app);
+            }).then(() => {
+                // 處理與訊息匹配的關鍵字回覆的次數更新
+                return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
+            }).then(() => {
+                return botSvc.getProfile(senderId, app);
+            }).then((profile) => {
+                return new Promise((resolve) => {
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (_messager) => {
+                        messager = _messager;
+                        resolve();
+                    });
+                });
+            }).then(() => {
+                /** @type {ChatshierMessageInterface} */
+                let message = {
+                    text: messageText,
+                    time: Date.now(),
+                    type: '',
+                    from: app.type,
+                    messager_id: senderId
+                };
+                return helpersBot.convertMessage(bot, message, option, app);
+            }).then((receivedMessages) => {
+                return Promise.resolve(receivedMessages);
+            }).then((receivedMessages) => {
+                sender = messager;
+
+                // 回復訊息與傳入訊息都整合，再寫入 DB
+                totalMessages = receivedMessages.concat(totalMessages);
+
+                return increaseMembersUnRead(appId, senderId, sender, totalMessages.length);
+            }).then(() => {
+                return sendMessagesToSockets(sender, senderId, totalMessages);
             });
         }
 
