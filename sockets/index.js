@@ -1,17 +1,16 @@
 let cipher = require('../helpers/cipher');
-let app = require('../app');
 let socketIO = require('socket.io');
-let line = require('@line/bot-sdk');
-let facebook = require('facebook-bot-messenger'); // facebook串接
+let utility = require('../helpers/utility');
 
-let agents = require('../models/agents');
+let line = require('@line/bot-sdk');
+let facebook = require('facebook-bot-messenger');
+
+let app = require('../app');
 let appsComposes = require('../models/apps_composes');
 let appsAutorepliesMdl = require('../models/apps_autoreplies');
-let linetemplate = require('../models/linetemplate');
 let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
 let socketHlp = require('../helpers/socket');
-let utility = require('../helpers/utility');
 let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
 let botSvc = require('../services/bot');
