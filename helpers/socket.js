@@ -29,7 +29,7 @@ module.exports = (function() {
         }
     };
 
-    class SocketManager {
+    class SocketHelper {
         constructor() {
             /** @type {{ [socketId: string]: { [appId: string]: SocketIO.Socket } }} */
             this.socketsAppsMap = {};
@@ -214,6 +214,6 @@ module.exports = (function() {
         };
     }
 
-    let instance = new SocketManager();
+    let instance = new SocketHelper();
     return instance;
 })();
