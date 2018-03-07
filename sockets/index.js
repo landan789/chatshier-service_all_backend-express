@@ -1,27 +1,28 @@
 let cipher = require('../helpers/cipher');
 let socketIO = require('socket.io');
-let utility = require('../helpers/utility');
 
 let line = require('@line/bot-sdk');
 let facebook = require('facebook-bot-messenger');
 
 let app = require('../app');
-let appsComposes = require('../models/apps_composes');
-let appsAutorepliesMdl = require('../models/apps_autoreplies');
-let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
+let chatshierHlp = require('../helpers/chatshier');
 let socketHlp = require('../helpers/socket');
 let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
 let botSvc = require('../services/bot');
 
 let appsMdl = require('../models/apps');
-let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
-let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 let appsMessagersMdl = require('../models/apps_messagers');
 let appsMessagesMdl = require('../models/apps_messages');
 let appsTemplatesMdl = require('../models/apps_templates');
 let appsGreetingsMdl = require('../models/apps_greetings');
+let appsComposes = require('../models/apps_composes');
+let appsAutorepliesMdl = require('../models/apps_autoreplies');
+let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
+let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
+let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
+
 let groupsMdl = require('../models/groups');
 
 let controllerCre = require('../cores/controller');
@@ -392,8 +393,9 @@ function init(server) {
                             let replyMessages;
                             let messager;
                             let sender;
+                            let keywordreplies;
                             return messageProcess(messageText, senderId, option).then((result) => {
-                                let keywordreplies = result.keywordreplies;
+                                keywordreplies = result.keywordreplies;
                                 let messages = result.messages;
                                 if (!messages.length) {
                                     return Promise.resolve(null);
@@ -476,7 +478,8 @@ function init(server) {
         });
 
         socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, (data, callback) => {
-            /** @type {ChatshierChatSocketInterface} */
+            /** @type {
+             * } */
             let socketBody = data;
 
             // 1. Server 接收到 client 來的聊天訊息
@@ -535,8 +538,8 @@ function init(server) {
                             };
 
                             let lineBot = new line.Client(lineClientConfig);
-                            let lineMessage = utility.lineMessageTypeForPushMessage(message);
-                            return lineBot.pushMessage(receiverId, lineMessage);
+                            let _message = chatshierHlp.toLineMessage(message);
+                            return lineBot.pushMessage(receiverId, _message);
                         default:
                             break;
                     }
@@ -754,45 +757,6 @@ function init(server) {
             return appsChatroomsMessagersMdl.resetMessagerUnRead(appId, chatroomId, messagerId);
         });
         /* ===聊天室end=== */
-
-        /* ===內部群組start=== */
-
-        // 更新內部群組右邊的資料
-        socket.on('update internal profile', data => {
-            agents.get(function(agentChatData) {
-                for (let i in agentChatData) {
-                    if (agentChatData[i].Profile.roomId === data.roomId) {
-                        let updateObj = {};
-                        for (let prop in data) {
-                            updateObj[prop] = data[prop];
-                        }
-                        agents.updateProf(i, updateObj);
-                        break;
-                    }
-                }
-            });
-        });
-        /* ===內部群組end=== */
-
-        /* ===template start=== */
-        socket.on('create template', (userId, data, callback) => {
-            linetemplate.create(userId, data);
-            callback();
-        });
-
-        socket.on('request template', (userId, callback) => {
-            linetemplate.get(userId, callback);
-        });
-
-        socket.on('get template', (userId, channelId, keyword, callback) => {
-            linetemplate.getTemplate(channelId, keyword, callback);
-        });
-
-        socket.on('change template', (userId, id, updateObj, callback) => {
-            linetemplate.set(userId, id, updateObj);
-            callback();
-        });
-        /* ===template end=== */
     });
 
     return socketIOServer;

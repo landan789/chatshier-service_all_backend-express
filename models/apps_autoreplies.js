@@ -1,6 +1,5 @@
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
-    // const utility = require('../helpers/utility');
 
     let instance = new AppsAutorepliesModel();
 
