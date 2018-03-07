@@ -54,7 +54,7 @@ module.exports = (function() {
                 };
                 usersMdl.insert(userId, postUser, (user) => {
                     if (!user) {
-                        reject(API_SUCCESS.USER_FAILED_TO_FIND);
+                        reject(API_ERROR.USER_FAILED_TO_INSERT);
                         return;
                     }
                     resolve(user);

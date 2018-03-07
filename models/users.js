@@ -23,11 +23,14 @@ module.exports = (function() {
 
         Promise.resolve().then(() => {
             user = Object.assign(SCHEMA.USER, user);
-            return admin.database().ref('users/' + userId).push(user);
-        }).then(() => {
             return admin.database().ref('users/' + userId).once('value');
         }).then((snap) => {
             let user = snap.val();
+            if (user) {
+                return Promise.reject();
+            };
+            return admin.database().ref('users/' + userId).set(user);
+        }).then(() => {
             users = {
                 [userId]: user
             };
