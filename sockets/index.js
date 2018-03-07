@@ -339,12 +339,11 @@ function init(server) {
                                     return helpersBot.convertMessage(bot, message, option, app);
                                 }).then((receivedMessages) => {
                                     return Promise.resolve(receivedMessages);
-                                }).then((receivedMessages) => {
+                                }).then((receiveMessages) => {
                                     sender = messager;
 
                                     // 回復訊息與傳入訊息都整合，再寫入 DB
-                                    replyMessages = receivedMessages.concat(replyMessages);
-
+                                    receiveMessages = replyMessages ? receiveMessages.concat(replyMessages) : receiveMessages;
                                     return increaseMembersUnRead(appId, senderId, sender, replyMessages.length);
                                 }).then(() => {
                                     return sendMessagesToSockets(sender, senderId, replyMessages);

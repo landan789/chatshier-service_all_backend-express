@@ -56,9 +56,9 @@ module.exports = (function() {
          * @param {any} app
          */
         parser(req, res, server, appId, app) {
-            if (this.bots[appId]) {
-                return Promise.resolve(this.bots[appId]);
-            }
+            // if (this.bots[appId]) {
+            //     return Promise.resolve(this.bots[appId]);
+            // }
 
             return new Promise((resolve, reject) => {
                 switch (app.type) {
