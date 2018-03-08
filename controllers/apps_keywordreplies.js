@@ -34,7 +34,7 @@ module.exports = (function() {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(data[appIds].keywordreplies);
                 });
             });
         }).then((data) => {
@@ -175,7 +175,7 @@ module.exports = (function() {
         }).then((oldKeywordrepliesData) => {
             // 4. 將 ID 從 message 欄位中的 keywordreply_ids 移除
             return new Promise((resolve, reject) => {
-                let oldMessageId = cipher.createHashKey(oldKeywordrepliesData[keywordreplyId].keyword);
+                let oldMessageId = cipher.createHashKey(oldKeywordrepliesData[appId].keywordreplies[keywordreplyId].keyword);
                 appsMessagesMdl.findKeywordreplyIds(appId, oldMessageId, (oldKeywordreplyIds) => {
                     if (!(oldKeywordreplyIds instanceof Array)) {
                         resolve();
@@ -246,7 +246,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
                 appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
-                    let messageId = cipher.createHashKey(keywordrepliesData[keywordreplyId].keyword);
+                    let messageId = cipher.createHashKey(keywordrepliesData[appId].keywordreplies[keywordreplyId].keyword);
                     appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
                         if (!(keywordreplyIds instanceof Array)) {
                             resolve();
