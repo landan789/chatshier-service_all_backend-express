@@ -250,12 +250,13 @@ function init(server) {
                     if (!apps) {
                         return reject(API_ERROR.APP_DID_NOT_EXIST);
                     }
-                    appId = Object.keys(apps).shift() || '';
-                    app = apps[appId];
-                    resolve(app);
+
+                    resolve(apps);
                 });
             });
-        }).then((app) => {
+        }).then((apps) => {
+            appId = Object.keys(apps).shift() || '';
+            app = apps[appId];
             return botSvc.parser(req, res, server, appId, app);
         }).then(() => {
             return botSvc.create(appId, app);
