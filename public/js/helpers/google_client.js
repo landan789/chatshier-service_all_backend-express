@@ -42,6 +42,7 @@ window.googleClientHelper = (function() {
             }).then(function(res) {
                 return res.json();
             }).then(function(config) {
+                // 此 google calendar 的 key 使用 9thflr.rd@gmail.com
                 return window.gapi.client.init({
                     apiKey: config.API_KEY,
                     clientId: config.CLIENT_ID,
