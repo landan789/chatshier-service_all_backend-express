@@ -299,6 +299,7 @@ function init(server) {
                                 let messageText = lineEvent.message.text || '';
                                 let messager;
                                 let replyMessages;
+                                let keywordreplies;
                                 return messageProcess(messageText, senderId, option).then((result) => {
                                     keywordreplies = result.keywordreplies;
                                     let messages = result.messages;
@@ -323,7 +324,10 @@ function init(server) {
                                     return botSvc.replyMessage(senderId, replyToken, replyMessages, appId, app);
                                 }).then(() => {
                                     // 處理與訊息匹配的關鍵字回覆的次數更新
-                                    return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
+                                    if (0 === keywordreplies.length) {
+                                        return;
+                                    }
+                                    return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreplies[0].id);
                                 }).then(() => {
                                     return botSvc.getProfile(senderId, appId, app);
                                 }).then((profile) => {

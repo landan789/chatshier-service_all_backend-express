@@ -52,7 +52,7 @@
         $keywordreplyEditModal.on('show.bs.modal', function(event) {
             // 編輯 modal 即將顯示事件發生時，將欄位資料更新
             var targetRow = $(event.relatedTarget).parent().parent();
-            var appId = targetRow.prop('data-title');
+            var appId = targetRow.attr('data-title');
             var keywordreplyId = targetRow.prop('id');
             var targetData = keywordrepliesData[keywordreplyId];
 
@@ -182,7 +182,7 @@
 
             $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
                 var targetRow = $(event.target).parent().parent();
-                var appId = targetRow.prop('data-title');
+                var appId = targetRow.attr('data-title');
                 var keywordreplyId = targetRow.prop('id');
 
                 return showDialog('確定要刪除嗎？').then(function(isOK) {
