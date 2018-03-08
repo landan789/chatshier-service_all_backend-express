@@ -11,8 +11,6 @@
 /public/config/url-config.js
 
 # react
-/public/static
-/views/react.ejs
 
 # npm
 npm-debug.log

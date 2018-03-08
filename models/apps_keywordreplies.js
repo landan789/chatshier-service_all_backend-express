@@ -1,3 +1,4 @@
+
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
     const cipher = require('../helpers/cipher');
@@ -56,91 +57,49 @@ module.exports = (function() {
     };
 
     /**
-     * 輸入 appId 的陣列清單，取得每個 app 的關鍵字回覆的資料
+     * 輸入 appId，取得每個 app 的關鍵字回覆的資料
      *
-     * @param {string[]} appIds
-     * @param {Function} callback
+     * @param {string|string[]} appIds
+     * @param {(appsKeywordreples: any) => any} callback
      */
     AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
-            if (!appIds || !(appIds instanceof Array)) {
-                return;
+            let appsKeywordreples = {};
+            if (undefined === appIds) {
+                return appsKeywordreples;
+            } else if ('string' === typeof appIds) {
+                appIds = [appIds];
             }
-            let appsKeywordreplesMap = {};
-            let findTasks = [];
 
             // 準備批次查詢的 promise 工作
-            for (let idx in appIds) {
-                let appId = appIds[idx];
-
-                // 根據查詢路徑建立回傳的資料結構
-                if (!appsKeywordreplesMap[appId]) {
-                    appsKeywordreplesMap[appId] = {
-                        keywordreplies: {}
-                    };
-                }
-
-                findTasks.push(new Promise((resolve, reject) => {
-                    admin.database().ref('apps/' + appId + '/keywordreplies').once('value', (snap) => {
-                        if (!snap) {
-                            resolve();
-                            return;
-                        }
-
-                        let replyMessage = snap.val() || {};
-                        appsKeywordreplesMap[appId].keywordreplies = replyMessage;
-                        resolve();
-                    });
-                }));
-            }
-
-            // 最後的資料結構型式:
-            // {
-            //   ($appId)
-            //   ($appId)
-            //     ⌞keywordreplies
-            //       ⌞($keywordreplyId)
-            //         ⌞($data)
-            //       ⌞($keywordreplyId)
-            //         ⌞($data)
-            // }
-            return Promise.all(findTasks).then(() => {
-                return appsKeywordreplesMap;
-            });
-        }).then((result) => {
-            callback(result || {});
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 取得該 App 所有關鍵字回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appId, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
-            if (!appId) {
-                return;
-            }
-
-            return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/keywordreplies/').once('value', (snap) => {
+            return Promise.all(appIds.map((appId) => {
+                return admin.database().ref('apps/' + appId + '/keywordreplies').once('value').then((snap) => {
                     if (!snap) {
-                        resolve();
                         return;
                     }
 
-                    let keywordrepliesData = snap.val() || {};
-                    resolve(keywordrepliesData);
+                    // 根據查詢路徑建立回傳的資料結構
+                    let keywordreplies = snap.val() || {};
+                    appsKeywordreples[appId] = {
+                        keywordreplies: keywordreplies
+                    };
                 });
+            })).then(() => {
+                // 最後的資料結構型式:
+                // {
+                //   ($appId)
+                //   ($appId)
+                //     ⌞keywordreplies
+                //       ⌞($keywordreplyId)
+                //         ⌞($data)
+                //       ⌞($keywordreplyId)
+                //         ⌞($data)
+                // }
+                return appsKeywordreples;
             });
         }).then((result) => {
-            callback(result || {});
+            callback(result);
         }).catch(() => {
             callback(null);
         });
@@ -156,7 +115,7 @@ module.exports = (function() {
     AppsKeywordrepliesModel.prototype.findOne = (appId, keywordreplyId, callback) => {
         let appsKeywordreplies = {};
 
-        return admin.database().ref('apps/' + appId + '/autoreplies' + keywordreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
             let keywordreplies = snap.val() || {};
             appsKeywordreplies[appId] = {
                 keywordreplies: keywordreplies

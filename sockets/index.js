@@ -2,7 +2,8 @@ let cipher = require('../helpers/cipher');
 let socketIO = require('socket.io');
 
 let line = require('@line/bot-sdk');
-let facebook = require('facebook-bot-messenger');
+let facebook = require('facebook-bot-messenger'); // facebook串接
+const fuseHlp = require('../helpers/fuse');
 
 let app = require('../app');
 
@@ -72,6 +73,7 @@ function init(server) {
             let keywordreplies;
             let templates;
             let autoreplies;
+            let keywordreplyIdMessage;
 
             return new Promise((resolve, reject) => {
                 // 到 models/apps_messages.js，找到 keywordreply_ids
@@ -79,7 +81,7 @@ function init(server) {
                     messageInDB = messageInDB || {};
 
                     let replyIds = {
-                        keywordreplyIds: messageInDB.keywordreply_ids || [],
+                        // keywordreplyIds: messageInDB.keywordreply_ids || [],
                         templateIds: messageInDB.template_ids || []
                     };
 
@@ -91,8 +93,9 @@ function init(server) {
                 // =========
 
                 // 找到要回應的關鍵字串
+
                 let keywordrepliesPromise = new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.findReplyMessages(appId, replyIds.keywordreplyIds, (keywordreplies) => {
+                    fuseHlp.searchKeywordreplies(appId, messageText, (keywordreplies) => {
                         resolve(keywordreplies);
                     });
                 });
