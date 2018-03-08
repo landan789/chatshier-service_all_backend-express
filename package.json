@@ -3,8 +3,8 @@
     "version": "1.0.1",
     "private": true,
     "scripts": {
-        "prestart": "npm run build-react",
         "start": "node ./bin/www",
+        "sub-pull": "git submodule foreach git pull origin develop",
         "build-react": "./bin/build-react.sh"
     },
     "engines": {

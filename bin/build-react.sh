@@ -1,6 +1,6 @@
-git submodule init
+git submodule sync
 
-git submodule update
+git submodule update --init
 
 # replace config file content and rename to react.chatshier
 content="$(sed -e "s/window.config/const firebaseConfig/g" public/config/firebaseConfig.js)"
@@ -18,7 +18,7 @@ echo $content >> react.chatshier/src/config/url.js
 # enter submodule
 cd react.chatshier
 
-git pull origin develop
+# git pull origin develop
 
 npm update
 
