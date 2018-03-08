@@ -8,7 +8,7 @@ window.googleCalendarHelper = (function() {
     };
 
     var googleCalendar = {
-        configJsonUrl: 'json/google_calendar.json',
+        configJsonUrl: 'config/google_calendar.json',
         findEvents: function(calendarId) {
             var gAuth = window.googleClientHelper.auth();
             if (!gAuth.isSignedIn.get()) {
