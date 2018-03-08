@@ -7,6 +7,7 @@ module.exports = (function() {
     let redisClientOpts = {
         host: chatshierCfg.REDIS.HOST,
         port: chatshierCfg.REDIS.PORT,
+        password: chatshierCfg.REDIS.PASSWORD, // "chatshier" MD5 hash
         connect_timeout: 3000,
         retry_strategy: (options) => {
             // // redis server 已經失去連線則不進行重新嘗試
@@ -62,12 +63,8 @@ module.exports = (function() {
                 publisherReadyResolve = void 0;
             });
 
-            this.publisher.on('error', (err) => {
-                console.log('publisher');
-                console.trace(JSON.stringify(err, null, 2));
-                if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
-                    this.noRedis = true;
-                }
+            this.publisher.on('error', () => {
+                this.noRedis = true;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
             });
@@ -91,12 +88,8 @@ module.exports = (function() {
                 subscriberReadyResolve = void 0;
             });
 
-            this.subscriber.on('error', (err) => {
-                console.log('subscriber');
-                console.trace(JSON.stringify(err, null, 2));
-                if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
-                    this.noRedis = true;
-                }
+            this.subscriber.on('error', () => {
+                this.noRedis = true;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
             });
