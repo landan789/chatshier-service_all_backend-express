@@ -239,6 +239,8 @@ apps.postOne = (req, res, next) => {
         if (READ === member.type) {
             return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
         };
+
+        return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.insert(req.params.userid, postApp, (_apps) => {
@@ -375,6 +377,8 @@ apps.putOne = (req, res, next) => {
         if (READ === member.type) {
             return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
         };
+
+        return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.update(req.params.appid, putApp, (apps) => {
@@ -476,6 +480,8 @@ apps.deleteOne = (req, res, next) => {
         if (READ === member.type) {
             return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
         };
+
+        return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.remove(req.params.appid, (result) => {
