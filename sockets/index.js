@@ -646,7 +646,7 @@ function init(server) {
                 });
             }).then((_app) => {
                 app = _app;
-                return botSvc.init(appId, app);
+                return botSvc.create(appId, app);
             }).then((_bot) => {
                 bot = _bot;
                 return new Promise((resolve, reject) => {

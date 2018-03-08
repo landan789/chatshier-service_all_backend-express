@@ -19,7 +19,7 @@ module.exports = (function() {
             this.bots = {};
         }
 
-        init(appId, app) {
+        create(appId, app) {
             return new Promise((resolve, reject) => {
                 switch (app.type) {
                     case LINE:
