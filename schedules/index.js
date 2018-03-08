@@ -5,11 +5,16 @@ const serviceAccount = require('../config/firebase-adminsdk');
 const databaseURL = require('../config/firebase_admin_database_url');
 const API_ERROR = require('../config/api_error');
 
+const SCHEMA = require('../config/schema');
+
 const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
+const appsMessagersMdl = require('../models/apps_messagers');
+const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -58,7 +63,20 @@ let jobProcess = () => {
                 return Promise.resolve(null);
             };
 
-            return botSvc.multicast(Object.keys(messagers), messages, appId, app);
+            return botSvc.multicast(Object.keys(messagers), messages, appId, app).then(() => {
+                return Promise.all(Object.keys(messagers).map((messagerId) => {
+                    return appsMessagersMdl.findMessagerChatroomId(appId, messagerId).then((chatroomId) => {
+                        if (!chatroomId) {
+                            return Promise.reject(new Error(messagerId + ' chatroomId not found'));
+                        };
+                        return Promise.all(messages.map((message) => {
+                            console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
+                            return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                        }));
+                    });
+                }));
+            });
+
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();

@@ -4,15 +4,12 @@ module.exports = (function() {
     const facebook = require('facebook-bot-messenger'); // facebook串接
 
     const SCHEMA = require('../config/schema');
-    const appsMessagersMdl = require('../models/apps_messagers');
-    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
     // app type defined
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
 
     // messager type defined
-    const SYSTEM = 'SYSTEM';
 
     class BotService {
         constructor() {
@@ -163,17 +160,10 @@ module.exports = (function() {
          * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
-         * @returns {Promise<any>}
          */
-        multicast(recipientIds, messages, appId, app) {
-            // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
-            let multicasts = [];
-            while (messages.length > 5) {
-                multicasts.push(messages.splice(0, 5));
-            }
-            multicasts.push(messages);
+        multicast(messagerIds, messages, appId, app) {
             let bot = this.bots[appId];
-
+            let _multicast;
             switch (app.type) {
                 case LINE:
                     if (!this.bots[appId]) {
@@ -184,44 +174,27 @@ module.exports = (function() {
                         bot = new line.Client(lineConfig);
                         this.bots[appId] = bot;
                     }
-
-                    let _multicast = (multicasts) => {
-                        return nextPromise(0);
+                    _multicast = (messagerIds, messages) => {
+                        let multicasts = [];
+                        // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
+                        while (messages.length > 5) {
+                            multicasts.push(messages.splice(0, 5));
+                        }
+                        multicasts.push(messages);
 
                         function nextPromise(i) {
                             if (i >= multicasts.length) {
                                 return Promise.resolve();
-                            }
-
+                            };
                             let messages = multicasts[i];
-                            return bot.multicast(recipientIds, messages).then(() => {
-                                return Promise.all(recipientIds.map((messagerId) => {
-                                    return appsMessagersMdl.findMessagerChatroomId(appId, messagerId).then((chatroomId) => {
-                                        if (!chatroomId) {
-                                            return Promise.reject(new Error(messagerId + ' chatroomId not found'));
-                                        }
-
-                                        return Promise.all(messages.map((message) => {
-                                            let _message = {
-                                                from: SYSTEM,
-                                                messager_id: '',
-                                                text: message.text,
-                                                time: Date.now(),
-                                                type: 'text'
-                                            };
-                                            message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
-                                            console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                                            return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
-                                        }));
-                                    });
-                                }));
-                            }).then(() => {
+                            return bot.multicast(messagerIds, messages).then(() => {
                                 return nextPromise(i + 1);
                             });
                         };
+                        return nextPromise(0);
                     };
 
-                    return _multicast(multicasts);
+                    return _multicast(messagerIds, messages);
                 case FACEBOOK:
                     if (!bot) {
                         let facebookConfig = {
@@ -233,42 +206,17 @@ module.exports = (function() {
                         };
                         bot = facebook.create(facebookConfig);
                         this.bots[appId] = bot;
-                    }
-
-                    let sendFbMessagesWithRecursive = (recipientId, chatroomId, messages) => {
-                        return (function nextPromise(i) {
-                            if (i >= messages.length) {
-                                return Promise.resolve();
-                            }
-
-                            let message = messages[i];
-                            return bot.sendTextMessage(recipientId, message.text).then(() => {
-                                let _message = {
-                                    from: SYSTEM,
-                                    messager_id: '',
-                                    text: message.text,
-                                    time: Date.now(),
-                                    type: 'text'
-                                };
-                                message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message, _message);
-                                console.log('[database] insert to db each message each messager[' + recipientId + '] ... ');
-                                return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
-                            }).then(() => {
-                                return nextPromise(i + 1);
-                            });
-                        })(0);
                     };
 
-                    return Promise.all(multicasts.map((messages) => {
-                        return Promise.all(recipientIds.map((messagerId) => {
-                            return appsMessagersMdl.findMessagerChatroomId(appId, messagerId).then((chatroomId) => {
-                                if (!chatroomId) {
-                                    return Promise.reject(new Error(messagerId + ' chatroomId not found'));
-                                }
-                                return sendFbMessagesWithRecursive(messagerId, chatroomId, messages);
-                            });
+                    _multicast = (messagerIds, messages) => {
+                        return Promise.all(messagerIds.map((messagerId) => {
+                            return Promise.all(messages.map((message) => {
+                                return bot.sendTextMessage(messagerId, message.text);
+                            }));
                         }));
-                    }));
+                    };
+
+                    return _multicast(messagerIds, messages);
                 default:
                     return Promise.resolve([]);
             }

@@ -98,18 +98,18 @@ module.exports = (function() {
      * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
+        let _message;
         return Promise.resolve().then(() => {
-            var _message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message);
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(_message).then((ref) => {
-                // var messageId = ref.key;
-                return _message;
-            });
-        }).then((newMessage) => {
-            ('function' === typeof callback) && callback(newMessage);
-            return newMessage;
+            _message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message);
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(_message);
+        }).then((ref) => {
+            return Promise.resolve(_message);
+        }).then((_message) => {
+            ('function' === typeof callback) && callback(_message);
+            return Promise.resolve(_message);
         }).catch(() => {
             ('function' === typeof callback) && callback(null);
-            return null;
+            return Promise.resolve(null);
         });
     };
 
