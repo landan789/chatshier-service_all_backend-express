@@ -20,10 +20,10 @@
     var userId = '';
     var chatroomList = []; // list of all users
     var userProfiles = []; // array which store all user's profile
-    var appsData = {}; // 此變數用來裝所有的 app 資料
-    var appsMessagersData = {};
-    var appsChatroomsData = {};
-    var appsTagsData = {};
+    var apps = {}; // 此變數用來裝所有的 app 資料
+    var appsMessagers = {};
+    var appsChatrooms = {};
+    var appsTags = {};
     var appsAgentsData = {};
 
     // selectors
@@ -46,7 +46,7 @@
         var api = window.restfulAPI;
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
         var instance = new TicketTableCtrl();
-        var ticketsData = null;
+        var tickets = null;
 
         var $addTicketModal = $('#add-ticket-modal');
         var $ticketInfoModal = $('#ticket_info_modal');
@@ -170,24 +170,24 @@
             var $ticketBody = $ticketTable.find('.ticket-body');
             $ticketBody.empty();
 
-            return api.ticket.getAll(appId, userId).then(function(resJson) {
+            return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
 
                 if (appData && appData[appId] && appData[appId].tickets) {
-                    ticketsData = appData[appId].tickets;
+                    tickets = appData[appId].tickets;
 
-                    for (var ticketId in ticketsData) {
-                        var ticketData = ticketsData[ticketId];
-                        if (ticketData.isDeleted) {
+                    for (var ticketId in tickets) {
+                        var ticket = tickets[ticketId];
+                        if (ticket.isDeleted) {
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(ticketData.dueTime - timezoneGap).toISOString().split('T').shift();
+                        var dueTimeDateStr = new Date(ticket.dueTime - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                                '<td class="status" style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + statusNumberToText(ticketData.status) + '</td>' +
+                                '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
                                 '<td>' + dueTimeDateStr + '</td>' +
-                                '<td>' + ((ticketData.description.length <= 10) ? ticketData.description : (ticketData.description.substring(0, 10) + '...')) + '</td>' +
+                                '<td>' + ((ticket.description.length <= 10) ? ticket.description : (ticket.description.substring(0, 10) + '...')) + '</td>' +
                                 '<td></td>' +
                             '</tr>'
                         );
@@ -200,7 +200,7 @@
                 });
 
                 $addTicketModal.off('show.bs.modal').on('show.bs.modal', function() {
-                    var messagersData = appsMessagersData[appId].messagers;
+                    var messagersData = appsMessagers[appId].messagers;
                     var $messagerNameSelect = $addTicketModal.find('select#add-form-name');
                     var $messagerIdElem = $addTicketModal.find('input#add-form-uid');
                     var $messagerEmailElem = $addTicketModal.find('input#add-form-email');
@@ -254,47 +254,47 @@
             var appId = $cardGroup.attr('app-id');
 
             var ticketId = $(this).attr('ticket-id');
-            var ticketData = ticketsData[ticketId];
+            var ticket = tickets[ticketId];
 
             var infoInputTable = $('.info-input-table').empty();
-            var messagerData = appsMessagersData[appId].messagers[msgerId];
+            var messager = appsMessagers[appId].messagers[msgerId];
 
-            $ticketInfoModal.find('#ID-num').text(ticketData.id).css('background-color', priorityColor(ticketData.priority));
-            $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
-            $ticketInfoModal.find('.modal-title').text(messagerData.name || '');
+            $ticketInfoModal.find('#ID-num').css('background-color', priorityColor(ticket.priority));
+            $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
+            $ticketInfoModal.find('.modal-title').text(messager.name || '');
 
             var moreInfoHtml =
                 '<tr>' +
                     '<th>客戶ID</th>' +
-                    '<td class="edit">' + ticketData.messager_id + '</td>' +
+                    '<td class="edit">' + ticket.messager_id + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="priority">優先</th>' +
-                    '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
+                    '<td class="form-group">' + showSelect('priority', ticket.priority) + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="status">狀態</th>' +
-                    '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
+                    '<td class="form-group">' + showSelect('status', ticket.status) + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="description">描述</th>' +
                     '<td class="edit form-group">' +
-                        '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
+                        '<textarea class="inner-text form-control">' + ticket.description + '</textarea>' +
                     '</td>' +
                 '</tr>' +
                 '<tr>' +
-                    '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
+                    '<th class="time-edit">到期時間' + dueDate(ticket.dueTime) + '</th>' +
                     '<td class="form-group">' +
-                        '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
+                        '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticket.dueTime) + '">' +
                     '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th>建立日期</th>' +
-                    '<td>' + displayDate(ticketData.createdTime) + '</td>' +
+                    '<td>' + displayDate(ticket.createdTime) + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th>最後更新</th>' +
-                    '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
+                    '<td>' + displayDate(ticket.updatedTime) + '</td>' +
                 '</tr>';
             infoInputTable.append(moreInfoHtml);
 
@@ -327,7 +327,7 @@
                     status: status
                 };
 
-                return api.ticket.insert(appId, userId, newTicket).then(function() {
+                return api.appsTickets.insert(appId, userId, newTicket).then(function() {
                     $.notify('待辦事項已新增', { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
@@ -357,7 +357,7 @@
             };
 
             // 發送修改請求 api 至後端進行 ticket 修改
-            return api.ticket.update(appId, ticketId, userId, modifiedTicket).then(function() {
+            return api.appsTickets.update(appId, ticketId, userId, modifiedTicket).then(function() {
                 $.notify('待辦事項已更新', { type: 'success' });
                 instance.loadTickets(appId, userId);
             }).catch(function() {
@@ -367,7 +367,7 @@
 
         TicketTableCtrl.prototype.deleteTicket = function(appId, ticketId) {
             if (confirm('確認刪除表單？')) {
-                return api.ticket.remove(appId, ticketId, userId).then(function() {
+                return api.appsTickets.remove(appId, ticketId, userId).then(function() {
                     $.notify('待辦事項已刪除', { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
@@ -432,79 +432,108 @@
         // ==========
         // #region 準備聊天室初始化資料區塊
         Promise.all([
-            api.app.getAll(userId),
-            api.chatroom.getAll(userId),
-            api.messager.getAll(userId),
-            api.tag.getAll(userId),
-            api.auth.getUsers(userId)
+            api.apps.findAll(userId),
+            api.appsChatroomsMessages.findAll(userId),
+            api.appsMessagers.findAll(userId),
+            api.appsTags.findAll(userId),
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(responses) {
-            appsData = responses.shift().data;
-            appsChatroomsData = responses.shift().data;
-            appsMessagersData = responses.shift().data;
-            appsTagsData = responses.shift().data;
+            apps = responses.shift().data;
+            appsChatrooms = responses.shift().data;
+            appsMessagers = responses.shift().data;
+            appsTags = responses.shift().data;
 
+            var groups = responses.shift().data;
             var groupAllUsers = responses.shift().data;
-            var regPromises = [];
+            var socketRegPromises = [];
 
             // 過濾 API 資料裡已經刪除的 app 資料
-            for (var appId in appsData) {
-                var appData = appsData[appId];
-                if (appData.isDeleted) {
-                    delete appsData[appId];
-                    delete appsChatroomsData[appId];
-                    delete appsMessagersData[appId];
-                    delete appsTagsData[appId];
+            for (var appId in apps) {
+                var app = apps[appId];
+                if (app.isDeleted) {
+                    delete apps[appId];
+                    delete appsChatrooms[appId];
+                    delete appsMessagers[appId];
+                    delete appsTags[appId];
                     continue;
                 }
-                // 一個 app 一個 socket
-                regPromises.push(new Promise(function(resolve) {
+
+                // 向 server 登記此 socket 有多少 appId
+                socketRegPromises.push(new Promise(function(resolve) {
                     chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, function() {
                         resolve();
                     });
                 }));
 
                 // 過濾已經刪除的 chatroom 資料
-                for (var chatroomId in appsChatroomsData[appId].chatrooms) {
-                    var chatroomData = appsChatroomsData[appId].chatrooms[chatroomId];
+                var chatrooms = appsChatrooms[appId].chatrooms;
+                for (var chatroomId in chatrooms) {
+                    var chatroomData = chatrooms[chatroomId];
                     if (chatroomData.isDeleted) {
-                        delete appsChatroomsData[appId].chatrooms[chatroomId];
+                        delete chatrooms[chatroomId];
+                        continue;
                     }
                 }
 
                 // 過濾已經刪除的 tag 資料
-                for (var tagId in appsTagsData[appId].tags) {
-                    var tagData = appsTagsData[appId].tags[tagId];
-                    if (tagData.isDeleted) {
-                        delete appsTagsData[appId].tags[tagId];
+                var tags = appsTags[appId].tags;
+                for (var tagId in tags) {
+                    var tag = tags[tagId];
+                    if (tag.isDeleted) {
+                        delete tags[tagId];
+                        continue;
                     }
                 }
 
                 // 過濾已經刪除的 messager 資料
-                for (var messagerId in appsMessagersData[appId].messagers) {
-                    var messager = appsMessagersData[appId].messagers[messagerId];
+                var messagers = appsMessagers[appId].messagers;
+                for (var messagerId in messagers) {
+                    var messager = messagers[messagerId];
                     if (messager.isDeleted) {
-                        delete appsMessagersData[appId].messagers[messagerId];
+                        delete messagers[messagerId];
+                        continue;
+                    }
+
+                    // 內部聊天室的成員即是群組成員
+                    // 因此 messagerId 直接對應的是 userId
+                    if (CHATSHIER === app.type) {
+                        messagers[messagerId].name = groupAllUsers[messagerId].displayName;
+                        messagers[messagerId].email = groupAllUsers[messagerId].email;
                     }
                 }
 
                 // 把群組內所有使用者的名字加入對話者資料
-                // 使 messagers 的資料具有群組成員的資料
-                for (var _userId in groupAllUsers) {
-                    if (appsMessagersData[appId].messagers[_userId]) {
-                        appsMessagersData[appId].messagers[_userId].name = groupAllUsers[_userId].displayName;
-                        appsMessagersData[appId].messagers[_userId].email = groupAllUsers[_userId].email;
-                        continue;
-                    }
+                // 使各平台 app 內 messagers 的資料具有群組成員的資料
+                if (CHATSHIER !== app.type) {
+                    var groupMembers = groups[app.group_id].members;
+                    for (var memberId in groupMembers) {
+                        var memberUserId = groupMembers[memberId].user_id;
 
-                    appsMessagersData[appId].messagers[_userId] = {
-                        name: groupAllUsers[_userId].displayName,
-                        email: groupAllUsers[_userId].email
-                    };
+                        if (messagers[memberUserId]) {
+                            messagers[memberUserId].name = groupAllUsers[memberUserId].displayName;
+                            messagers[memberUserId].email = groupAllUsers[memberUserId].email;
+                        } else {
+                            messagers[memberUserId] = {
+                                name: groupAllUsers[memberUserId].displayName,
+                                email: groupAllUsers[memberUserId].email
+                            };
+                        }
+                    }
                 }
             }
-            return Promise.all(regPromises);
+            return Promise.all(socketRegPromises);
         }).then(function() {
-            responseUserAppIds(appsData);
+            if (!apps) {
+                if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
+                    $('#notifyModal').modal('show');
+                    window.sessionStorage.notifyModal = 1;
+                }
+                return;
+            }
+
+            generateAppsIcons(apps);
+            responseChatData(apps);
         });
         // #endregion
         // ==========
@@ -529,7 +558,7 @@
                         });
                     });
                 }).then(function() {
-                    var appIds = Object.keys(appsData);
+                    var appIds = Object.keys(apps);
                     return Promise.all(appIds.map(function(appId) {
                         return new Promise(function(resolve) {
                             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, function() {
@@ -551,7 +580,7 @@
                 var chatroomId = socketBody.chatroomId;
                 var message = socketBody.message;
                 var senderId = message.messager_id;
-                var messagers = appsMessagersData[appId].messagers;
+                var messagers = appsMessagers[appId].messagers;
 
                 return Promise.resolve().then(function() {
                     var sender = senderId ? messagers[senderId] : {};
@@ -563,24 +592,24 @@
                     if (CHATSHIER === appType) {
                         // 內部聊天室的對話者 ID 是 user ID
                         // 所以需要使用 auth api 來獲得使用者資料
-                        return api.auth.getUsers(userId).then((resJson) => {
+                        return api.authentications.findUsers(userId).then((resJson) => {
                             var groupUsers = resJson.data;
                             var senderUser = groupUsers[senderId];
 
                             if (!sender.chatroom_id) {
-                                return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
-                                    var _appsMessagersData = resJson.data;
-                                    sender = _appsMessagersData[appId].messagers[senderId];
+                                return api.appsMessagers.findOne(appId, senderId, userId).then(function(resJson) {
+                                    var _appsMessagers = resJson.data;
+                                    sender = _appsMessagers[appId].messagers[senderId];
                                     sender.name = senderUser.displayName;
                                     sender.email = senderUser.email;
-                                    appsMessagersData[appId].messagers[senderId] = sender;
+                                    appsMessagers[appId].messagers[senderId] = sender;
                                     return sender;
                                 });
                             }
 
                             sender.name = senderUser.displayName;
                             sender.email = senderUser.email;
-                            appsMessagersData[appId].messagers[senderId] = sender;
+                            appsMessagers[appId].messagers[senderId] = sender;
                             return sender;
                         });
                     }
@@ -588,10 +617,10 @@
                     if (senderId) {
                         // 因此拿著此 ID 向 server 查詢此人資料
                         // 查詢完後儲存至本地端，下次就無需再查詢
-                        return api.messager.getOne(appId, senderId, userId).then(function(resJson) {
+                        return api.appsMessagers.findOne(appId, senderId, userId).then(function(resJson) {
                             var _appsMessagers = resJson.data;
                             sender = _appsMessagers[appId].messagers[senderId];
-                            appsMessagersData[appId].messagers[senderId] = sender;
+                            appsMessagers[appId].messagers[senderId] = sender;
                             return sender;
                         });
                     }
@@ -599,7 +628,7 @@
                 }).then(function(sender) {
                     // 如果這個聊天室內尚未被創建(代表無任何聊天記錄)
                     // 則將目前這個訊息當做第一筆資料，創建前端顯示用的暫時資料
-                    if (!appsChatroomsData[appId].chatrooms[chatroomId]) {
+                    if (!appsChatrooms[appId].chatrooms[chatroomId]) {
                         var _chatroom = {
                             messagers: {
                                 [userId]: {
@@ -610,17 +639,17 @@
                                 [Date.now]: message
                             }
                         };
-                        appsChatroomsData[appId].chatrooms[chatroomId] = _chatroom;
+                        appsChatrooms[appId].chatrooms[chatroomId] = _chatroom;
                     }
 
                     if (chatroomList.indexOf(chatroomId) < 0) {
                         var uiRequireData = {
                             appId: appId,
-                            name: appsData[appId].name,
-                            type: appsData[appId].type,
+                            name: apps[appId].name,
+                            type: apps[appId].type,
                             messagerId: senderId,
                             chatroomId: chatroomId,
-                            chatroom: appsChatroomsData[appId].chatrooms[chatroomId],
+                            chatroom: appsChatrooms[appId].chatrooms[chatroomId],
                             profile: sender
                         };
                         createChatroom(uiRequireData);
@@ -628,7 +657,7 @@
                         return;
                     }
 
-                    var chatroom = appsChatroomsData[appId].chatrooms[chatroomId];
+                    var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
                     var chatroomMsgers = chatroom.messagers || {};
                     if (!chatroomMsgers[userId]) {
                         chatroomMsgers[userId] = { unRead: 0 };
@@ -650,7 +679,7 @@
                 var appId = data.appId;
                 var msgerId = data.messageId;
                 var messager = data.messager;
-                appsMessagersData[appId].messagers[msgerId] = messager;
+                appsMessagers[appId].messagers[msgerId] = messager;
 
                 // 更新 UI 資料
                 var $profileCard = $('.card-group[app-id="' + appId + '"][messager-id="' + msgerId + '"]');
@@ -661,24 +690,11 @@
             });
         }
 
-        function responseUserAppIds(appsData) {
-            if (!appsData) {
-                if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
-                    $('#notifyModal').modal('show');
-                    window.sessionStorage.notifyModal = 1;
-                }
-                return;
-            }
-
-            appGroupSort(appsData);
-            responseChatData(appsData);
-        }
-
-        function appGroupSort(appsData) {
+        function generateAppsIcons(apps) {
             var $chatApp = $('#chat_App');
 
-            for (var appId in appsData) {
-                var appData = appsData[appId];
+            for (var appId in apps) {
+                var appData = apps[appId];
 
                 var buildHtml = function(type, imgSrc) {
                     var html =
@@ -710,10 +726,10 @@
              */
             var findMessagersInChatroom = function(appId, chatroomId) {
                 var output = {};
-                var messagers = appsMessagersData[appId].messagers;
+                var messagers = appsMessagers[appId].messagers;
                 for (var msgerId in messagers) {
                     var _messager = messagers[msgerId];
-                    if (_messager.chatroom_id === chatroomId) {
+                    if (_messager.chatroom_id && _messager.chatroom_id === chatroomId) {
                         output[msgerId] = _messager;
                     }
                 }
@@ -723,14 +739,14 @@
             for (var appId in apps) {
                 var appName = apps[appId].name;
                 var appType = apps[appId].type;
-                var appChatrooms = appsChatroomsData[appId].chatrooms;
+                var appChatrooms = appsChatrooms[appId].chatrooms;
 
                 for (var chatroomId in appChatrooms) {
                     var uiRequireData = {
                         appId: appId,
                         name: appName,
                         type: appType,
-                        chatroom: appsChatroomsData[appId].chatrooms[chatroomId] || {},
+                        chatroom: appsChatrooms[appId].chatrooms[chatroomId] || {},
                         chatroomId: chatroomId
                     };
                     var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
@@ -740,13 +756,13 @@
                         case LINE:
                         case FACEBOOK:
                             var _msgerId = Object.keys(chatroomMessagers).shift();
-                            var messager = appsMessagersData[appId].messagers[_msgerId];
+                            var messager = appsMessagers[appId].messagers[_msgerId];
                             uiRequireData.profile = messager;
                             uiRequireData.messagerId = _msgerId;
                             break;
                         // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                         default:
-                            uiRequireData.profile = Object.assign({}, appsMessagersData[appId].messagers[userId]);
+                            uiRequireData.profile = Object.assign({}, appsMessagers[appId].messagers[userId]);
                             uiRequireData.profile.photo = '/image/group.png';
                             uiRequireData.messagerId = userId;
                             break;
@@ -755,18 +771,33 @@
                     createProfilePanel(uiRequireData);
                 }
             }
+
+            // 根據訊息時間排序聊天室(訊息時間越晚越上面)
+            var sortByMessageTime = function(elA, elB) {
+                var tA = parseInt($(elA).find('.client-message').attr('message-time'));
+                var tB = parseInt($(elB).find('.client-message').attr('message-time'));
+                return tA < tB;
+            };
+
+            var $tablinksArea = $('#user .tablinks-area');
+            var $clients = $tablinksArea.find('#clients');
+            var $clientTabs = $clients.find('.tablinks');
+            $clientTabs.sort(sortByMessageTime);
+
+            $clients.empty();
+            $clients.append($clientTabs);
         }
 
         function responseHistoryMsg(data) {
             var appId = data.appId;
-            var appType = appsData[appId].type;
+            var appType = apps[appId].type;
             var chatroomId = data.chatroomId;
             var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
 
             var originHeight = $messagePanel.prop('scrollHeight');
             $messagePanel.find('.message:first').remove();
             $messagePanel.find('.message-day:lt(3)').remove();
-            $messagePanel.prepend(historyMsgToStr(data.messages, appsMessagersData[data.appId].messagers, appType));
+            $messagePanel.prepend(historyMsgToStr(data.messages, appsMessagers[data.appId].messagers, appType));
 
             var nowHeight = $messagePanel[0].scrollHeight;
             $messagePanel.animate({
@@ -879,18 +910,12 @@
             var tablinkHtml = generateClientHtml(clientUiOpts);
             $('#clients').append(tablinkHtml);
 
-            // if (typeof(profile.VIP等級) === "string" && profile.VIP等級 !== "未選擇") {
-            //     $('#vip_list').prepend(tablinkHtml);
-            // } else {
-            //     $('#clients').append(tablinkHtml);
-            // }
-
             // 中間聊天室
             var msgStr = '';
             if (msgKeys.length < 10) {
                 msgStr += NO_HISTORY_MSG;
             }
-            msgStr += historyMsgToStr(messages, appsMessagersData[appId].messagers, appType);
+            msgStr += historyMsgToStr(messages, appsMessagers[appId].messagers, appType);
             canvas.append(
                 '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
                     '<div class="message-panel">' + msgStr + '</div>' +
@@ -923,7 +948,7 @@
 
         function messageToClientHtml(message) {
             if (!message) {
-                return '<div class="client-message"></div>';
+                return '<div class="client-message" message-time="0"></div>';
             }
 
             // 判斷客戶傳送的是檔案，貼圖還是文字，回傳對應的 html
@@ -935,7 +960,7 @@
                 location: '地理位置'
             }[message.type] || loadMessageInDisplayClient(message.text);
 
-            return '<div class="client-message">' + toTimeStr(message.time) + lastMsgText + '</div>';
+            return '<div class="client-message" message-time="' + message.time + '">' + toTimeStr(message.time) + lastMsgText + '</div>';
         }
 
         function historyMsgToStr(messages, messagers, appType) {
@@ -969,11 +994,12 @@
         function createProfilePanel(requireData) {
             var appId = requireData.appId;
             var appType = requireData.type;
+            var chatroomId = requireData.chatroomId;
             var messagerId = requireData.messagerId;
             var messager = requireData.profile;
 
             var profilePanelHtml =
-                '<div class="card-group" app-id="' + appId + '" messager-id="' + messagerId + '">' +
+                '<div class="card-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" messager-id="' + messagerId + '">' +
                     '<div class="card-body table-responsive" id="profile">' +
                         '<div class="photo-container">' +
                             '<img src="' + messager.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
@@ -1025,11 +1051,11 @@
 
             var tdHtmlBuilder = function(tagId, tagData) {
                 var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-                var setsTypeEnums = api.tag.enums.setsType;
-                var readonly = tagData.type === api.tag.enums.type.SYSTEM;
+                var setsTypeEnums = api.appsTags.enums.setsType;
+                var readonly = tagData.type === api.appsTags.enums.type.SYSTEM;
                 var tagValue = '';
 
-                if (tagData.type === api.tag.enums.type.CUSTOM) {
+                if (tagData.type === api.appsTags.enums.type.CUSTOM) {
                     tagValue = customTags[tagId] ? customTags[tagId].value : '';
                 } else {
                     tagValue = messager[tagData.alias] || '';
@@ -1080,7 +1106,7 @@
                         '</td>';
                     case setsTypeEnums.DATE:
                         tagValue = tagValue || 0;
-                        var tagDateStr = new Date(tagValue - timezoneGap).toISOString().split('.').shift();
+                        var tagDateStr = new Date(tagValue - timezoneGap).toJSON().split('.').shift();
                         return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                             '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                         '</td>';
@@ -1140,16 +1166,16 @@
             var messagerProfileHtml =
                 '<table class="table table-hover panel-table">' +
                     (function() {
-                        // 呈現標籤資料之前先把標籤資料設定的順序排列
-                        var tagKeys = Object.keys(appsTagsData[appId].tags);
+                        // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
+                        var tagKeys = Object.keys(appsTags[appId].tags);
                         tagKeys.sort(function(a, b) {
-                            return appsTagsData[appId].tags[a].order - appsTagsData[appId].tags[b].order;
+                            return appsTags[appId].tags[a].order - appsTags[appId].tags[b].order;
                         });
                         var rowsHtml = '';
 
                         for (var i in tagKeys) {
                             var tagId = tagKeys[i];
-                            var tagData = appsTagsData[appId].tags[tagId];
+                            var tagData = appsTags[appId].tags[tagId];
                             rowsHtml +=
                                 '<tr id="' + tagId + '">' +
                                     '<th class="profile-label user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
@@ -1171,7 +1197,7 @@
         }
 
         function generateChatroomProfileHtml(appId, groupName) {
-            var members = appsMessagersData[appId].messagers;
+            var members = appsMessagers[appId].messagers;
 
             var html =
                 '<table class="table table-hover panel-table">' +
@@ -1260,7 +1286,7 @@
             var $messageInputPanel = $('#send-message');
 
             var appId = $userTablink.attr('app-id');
-            var appName = appsData[appId].name;
+            var appName = apps[appId].name;
             var chatroomId = $userTablink.attr('chatroom-id');
             var appType = $userTablink.attr('app-type');
 
@@ -1276,7 +1302,7 @@
                     chatroomId: chatroomId,
                     messagerId: userId
                 });
-                var chatroomMsgers = appsChatroomsData[appId].chatrooms[chatroomId].messagers || {};
+                var chatroomMsgers = appsChatrooms[appId].chatrooms[chatroomId].messagers || {};
                 var chatroomUserSelf = chatroomMsgers[userId] || {};
                 chatroomUserSelf.unRead = 0;
 
@@ -1289,7 +1315,7 @@
 
             // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
             var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-            var $profilePanel = $('.card-group[app-id="' + appId + '"]');
+            var $profilePanel = $('.card-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
             $messageInputPanel.show();
             $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
             $profilePanel.show().siblings().hide();
@@ -1344,7 +1370,7 @@
                     chatroomId: chatroomId,
                     messagerId: userId
                 });
-                var chatroomMsgers = appsChatroomsData[appId].chatrooms[chatroomId].messagers || {};
+                var chatroomMsgers = appsChatrooms[appId].chatrooms[chatroomId].messagers || {};
                 var chatroomUserSelf = chatroomMsgers[userId] || {};
                 chatroomUserSelf.unRead = 0;
 
@@ -1359,7 +1385,7 @@
             var $messageView = $contentPanel.siblings('#canvas').find('.tabcontent.shown');
 
             var appId = $messageView.attr('app-id');
-            var appType = appsData[appId].type;
+            var appType = apps[appId].type;
             var chatroomId = $messageView.attr('chatroom-id');
             var msgText = messageInput.val();
 
@@ -1397,7 +1423,7 @@
                     resolve();
                 });
             }).then(function() {
-                // var sender = appsMessagersData[appId].messagers[userId];
+                // var sender = appsMessagers[appId].messagers[userId];
                 // var srcHtml = messageToPanelHtml(messageToSend);
 
                 // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
@@ -1448,7 +1474,7 @@
             return fileRef.put(file).then(function(snapshot) {
                 var url = snapshot.downloadURL;
                 var msgType = $(_this).data('type');
-                var appType = appsData[appId].type;
+                var appType = apps[appId].type;
                 var messagerId = findChatroomMessagerId(appId, chatroomId);
 
                 /** @type {ChatshierMessageInterface} */
@@ -1478,7 +1504,7 @@
                         resolve();
                     });
                 }).then(function() {
-                    // var sender = appsMessagersData[appId].messagers[userId];
+                    // var sender = appsMessagers[appId].messagers[userId];
                     // var srcHtml = messageToPanelHtml(messageToSend);
 
                     // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
@@ -1498,14 +1524,14 @@
         }
 
         function findChatroomMessagerId(appId, chatroomId) {
-            var appType = appsData[appId].type;
+            var appType = apps[appId].type;
 
             switch (appType) {
                 case LINE:
                 case FACEBOOK:
                     // 從目前所有的 messager 中找尋平台中唯一的 messagerId
-                    for (var messagerId in appsMessagersData[appId].messagers) {
-                        var _messager = appsMessagersData[appId].messagers[messagerId];
+                    for (var messagerId in appsMessagers[appId].messagers) {
+                        var _messager = appsMessagers[appId].messagers[messagerId];
                         if (_messager.name && _messager.chatroom_id === chatroomId) {
                             return messagerId;
                         }
@@ -1526,7 +1552,7 @@
         function updateMessagePanel(messager, message, appId, chatroomId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
-            var appType = appsData[appId].type;
+            var appType = apps[appId].type;
             var srcHtml = messageToPanelHtml(_message);
             var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
 
@@ -1556,7 +1582,7 @@
         function updateClientTab(messager, message, appId, chatroomId) {
             /** @type {ChatshierMessageInterface} */
             var _message = message;
-            var chatroom = appsChatroomsData[appId].chatrooms[chatroomId];
+            var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var chatroomMsgers = chatroom.messagers;
             var chatroomUserSelf = chatroomMsgers[userId];
 
@@ -1627,7 +1653,7 @@
 
                 var alias = $td.attr('alias');
                 var setsType = $td.attr('type');
-                var setsTypeEnums = api.tag.enums.setsType;
+                var setsTypeEnums = api.appsTags.enums.setsType;
 
                 // 此欄位不允許編輯的話，不處理資料
                 if ('true' !== $td.attr('modify')) {
@@ -1666,7 +1692,7 @@
                     if (alias) {
                         messagerUiData[alias] = value;
                     } else {
-                        // 沒有別名的屬性代表是自定義的標籤資料
+                        // 沒有別名的屬性代表是自定義的客戶分類條件資料
                         messagerUiData.custom_tags[tagId] = {
                             value: value
                         };
@@ -1711,7 +1737,7 @@
                     });
                 }).then(() => {
                     // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-                    appsMessagersData[appId].messagers[msgerId] = Object.assign(appsMessagersData[appId].messagers[msgerId], messagerUiData);
+                    appsMessagers[appId].messagers[msgerId] = Object.assign(appsMessagers[appId].messagers[msgerId], messagerUiData);
                     $.notify('用戶資料更新成功', { type: 'success' });
                 });
             }
@@ -1997,8 +2023,8 @@
         }
 
         return Promise.all([
-            api.groups.getUserGroups(userId),
-            api.auth.getUsers(userId)
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(resJsons) {
             var groups = resJsons.shift().data;
             var allGroupUsers = resJsons.shift().data;

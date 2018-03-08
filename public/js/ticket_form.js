@@ -2,8 +2,8 @@
 
 (function() {
     var userId = '';
-    var appsData = {};
-    var appsMessagersData = {};
+    var apps = {};
+    var appsMessagers = {};
     var api = window.restfulAPI;
 
     var jqDoc = $(document);
@@ -39,21 +39,32 @@
         $appSelectElem.off('change');
 
         return Promise.all([
-            api.app.getAll(userId),
-            api.messager.getAll(userId)
+            api.apps.findAll(userId),
+            api.appsMessagers.findAll(userId)
         ]).then(function(respJsons) {
-            appsData = respJsons[0].data;
-            $appSelectElem.empty();
-            if (appsData && Object.keys(appsData).length > 0) {
-                // 確定取回來的資料有數據，重新配置選取器內的選項資料
-                appsMessagersData = respJsons[1].data;
+            apps = respJsons.shift().data;
+            appsMessagers = respJsons.shift().data;
 
-                for (var appId in appsData) {
-                    $appSelectElem.append('<option value=' + appId + '>' + appsData[appId].name + '</option>');
+            $appSelectElem.empty();
+            if (apps && Object.keys(apps).length > 0) {
+                // 確定取回來的資料有數據，重新配置選取器內的選項資料
+
+                for (var appId in apps) {
+                    var app = apps[appId];
+                    if (app.isDeleted || 'CHATSHIER' === app.type) {
+                        delete apps[appId];
+                        delete appsMessagers[appId];
+                        continue;
+                    }
+                    $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
                 }
 
-                var selectedId = $appSelectElem.find('option:selected').val();
-                updateMessagerInfoElems(appsMessagersData[selectedId].messagers);
+                if (0 === Object.keys(apps).length) {
+                    $appSelectElem.append('<option value="">無資料</option>');
+                } else {
+                    var selectedAppId = $appSelectElem.find('option:selected').val();
+                    updateMessagerInfoElems(appsMessagers[selectedAppId].messagers);
+                }
             } else {
                 $appSelectElem.append('<option value="">無資料</option>');
             }
@@ -61,7 +72,7 @@
             // 啟用選取器選取的事件
             $appSelectElem.on('change', function(ev) {
                 var appId = ev.target.value;
-                updateMessagerInfoElems(appsMessagersData[appId].messagers);
+                updateMessagerInfoElems(appsMessagers[appId].messagers);
             });
         });
     }
@@ -94,9 +105,11 @@
             }
 
             var messagerInfo = messagerData[selectedId];
-            $messagerIdElem.prop('value', selectedId);
-            $messagerEmailElem.prop('value', messagerInfo.email);
-            $messagerPhoneElem.prop('value', messagerInfo.phone);
+            if (messagerInfo) {
+                $messagerIdElem.prop('value', selectedId);
+                $messagerEmailElem.prop('value', messagerInfo.email);
+                $messagerPhoneElem.prop('value', messagerInfo.phone);
+            }
         };
         updateInfo($messagerSelectElem.val());
 
@@ -108,69 +121,73 @@
     }
 
     function submitAdd() {
+        var $submitBtn = $(this);
+
         var messagerId = $messagerIdElem.val();
         // var messagerName = $messagerSelectElem.find('option:selected').text();
         // var messagerEmail = $messagerEmailElem.val();
         // var messagerPhone = $messagerPhoneElem.val();
-        var errorElem = $('#error');
         var ticketAppId = $appSelectElem.find('option:selected').val();
+        var $errorElem = $('#error');
+        var $formUname = $('#add-form-name');
+        var $formDescription = $('#add-form-description');
+        var description = $formDescription.val();
 
         // 驗證用正規表達式
         // var emailReg = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
         // var phoneReg = /\b[0-9]+\b/;
 
-        errorElem.empty();
+        $errorElem.empty();
         if (!ticketAppId) {
-            errorElem.append('請選擇App');
+            $errorElem.append('請選擇App');
             window.setTimeout(function() {
-                errorElem.empty();
+                $errorElem.empty();
             }, 3000);
-            // } else if (!emailReg.test(messagerEmail)) {
-            //     errorElem.append('請輸入正確的email格式');
+        // } else if (!emailReg.test(messagerEmail)) {
+        //     $errorElem.append('請輸入正確的email格式');
 
-            //     var formEmail = $('#form-email');
-            //     formEmail.css('border', '1px solid red');
-            //     window.setTimeout(function() {
-            //         errorElem.empty();
-            //         formEmail.css('border', '1px solid #ccc');
-            //     }, 3000);
-            // } else if (!phoneReg.test(messagerPhone)) {
-            //     errorElem.append('請輸入正確的電話格式');
+        //     var formEmail = $('#form-email');
+        //     formEmail.css('border', '1px solid red');
+        //     window.setTimeout(function() {
+        //         $errorElem.empty();
+        //         formEmail.css('border', '1px solid #ccc');
+        //     }, 3000);
+        // } else if (!phoneReg.test(messagerPhone)) {
+        //     $errorElem.append('請輸入正確的電話格式');
 
-            //     var formPhone = $('#form-phone');
-            //     formPhone.css('border', '1px solid red');
-            //     window.setTimeout(function() {
-            //         errorElem.empty();
-            //         formPhone.css('border', '1px solid #ccc');
-            //     }, 3000);
-            // } else if (!messagerId) {
-            //     errorElem.append('請輸入clientId');
+        //     var formPhone = $('#form-phone');
+        //     formPhone.css('border', '1px solid red');
+        //     window.setTimeout(function() {
+        //         $errorElem.empty();
+        //         formPhone.css('border', '1px solid #ccc');
+        //     }, 3000);
+        // } else if (!messagerName) {
+        //     $errorElem.append('請輸入客戶姓名');
+        //     $('#add-form-name').css('border', '1px solid red');
+        //     window.setTimeout(function() {
+        //         $errorElem.empty();
+        //         $('#add-form-name').css('border', '1px solid #ccc');
+        //     }, 3000);
+        } else if (!messagerId) {
+            $errorElem.append('請選擇目標客戶');
 
-            //     var formSubject = $('#form-subject');
-            //     formSubject.css('border', '1px solid red');
-            //     window.setTimeout(function() {
-            //         errorElem.empty();
-            //         formSubject.css('border', '1px solid #ccc');
-            //     }, 3000);
-            // } else if (!messagerName) {
-            //     errorElem.append('請輸入客戶姓名');
-            //     $('#add-form-name').css('border', '1px solid red');
-            //     window.setTimeout(function() {
-            //         errorElem.empty();
-            //         $('#add-form-name').css('border', '1px solid #ccc');
-            //     }, 3000);
-        } else if (!$('#add-form-description').val()) {
-            errorElem.append('請輸入說明內容');
-            $('#add-form-description').css('border', '1px solid red');
+            $formUname.css('border', '1px solid red');
             window.setTimeout(function() {
-                errorElem.empty();
-                $('#add-form-description').css('border', '1px solid #ccc');
+                $errorElem.empty();
+                $formUname.css('border', '1px solid #ccc');
+            }, 3000);
+        } else if (!description) {
+            $errorElem.append('請輸入說明內容');
+
+            $formDescription.css('border', '1px solid red');
+            window.setTimeout(function() {
+                $errorElem.empty();
+                $formDescription.css('border', '1px solid #ccc');
             }, 3000);
         } else {
             var status = parseInt($('#add-form-status option:selected').val());
             var priority = parseInt($('#add-form-priority option:selected').val());
             // var ownerAgent = $('#add-form-agents option:selected').val();
-            var description = $('#add-form-description').val();
 
             var newTicket = {
                 description: description || '',
@@ -180,7 +197,9 @@
                 status: status
             };
 
-            return api.ticket.insert(ticketAppId, userId, newTicket).then(function() {
+            $submitBtn.attr('disabled', true);
+            return api.appsTickets.insert(ticketAppId, userId, newTicket).then(function() {
+                $submitBtn.removeAttr('disabled');
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });
         }

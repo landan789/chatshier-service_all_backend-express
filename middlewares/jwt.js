@@ -11,7 +11,7 @@ const jwt = {
             if (!idToken) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_AUTHORIZED);
             }
-            return admin.auth().verifyIdToken(idToken, true);
+            return admin.auth().verifyIdToken(idToken);
         }).then((decodedToken) => {
             return new Promise((resolve, reject) => {
                 req = Object.assign(req, decodedToken);

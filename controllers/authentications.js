@@ -4,7 +4,7 @@ module.exports = (function() {
     const authenticationsMdl = require('../models/authentications');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
-    const usersFuse = require('../helpers/users_fuse');
+    const fuseHlp = require('../helpers/fuse');
 
     function AuthenticationsController() {};
 
@@ -33,7 +33,7 @@ module.exports = (function() {
                     return [];
                 }
 
-                return usersFuse.search(pattern).then((result) => {
+                return fuseHlp.search(pattern).then((result) => {
                     // 如果搜尋結果超過5筆，只需回傳5筆
                     if (result.length > 5) {
                         result = result.slice(0, 5);

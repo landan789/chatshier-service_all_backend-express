@@ -40,24 +40,21 @@ module.exports = (function() {
      * 發送FACEBOOK訊息
      *
      * @param {Object} bot
-     * @param {string} receiverId
+     * @param {string} recipientId
      * @param {ChatshierMessageInterface} message
-     * @param {() => any} callback
      */
-    Facebook.prototype.sendMessage = function(bot, receiverId, message, callback) {
+    Facebook.prototype.sendMessage = function(bot, recipientId, message) {
         return Promise.resolve().then(() => {
             switch (message.type) {
                 case 'image':
-                    return bot.sendImageMessage(receiverId, message.src, true);
+                    return bot.sendImageMessage(recipientId, message.src, true);
                 case 'audio':
-                    return bot.sendAudioMessage(receiverId, message.src, true);
+                    return bot.sendAudioMessage(recipientId, message.src, true);
                 case 'video':
-                    return bot.sendVideoMessage(receiverId, message.src, true);
+                    return bot.sendVideoMessage(recipientId, message.src, true);
                 default:
-                    return bot.sendTextMessage(receiverId, message.text);
+                    return bot.sendTextMessage(recipientId, message.text);
             }
-        }).then(() => {
-            callback();
         });
     };
 

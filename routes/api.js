@@ -99,7 +99,7 @@ router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/u
 // ==========
 
 // ==========
-// 資料標籤
+// 資料客戶分類條件
 router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
 router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
 router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);
@@ -331,6 +331,7 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 // vendor 的個人資料
 router.get('/users/users/:userid', usersCtl.getOne);
 router.put('/users/users/:userid', usersCtl.putOne);
+router.post('/users/users/:userid', usersCtl.postOne);
 
 router.get('/calendars-events/users/:userid', calendarsEventsCtl.getAll);
 router.post('/calendars-events/users/:userid', calendarsEventsCtl.postOne);

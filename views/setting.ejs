@@ -28,7 +28,7 @@
             <ul class="nav nav-pills nav-stacked">
                 <li class="active"><a data-toggle="pill" href="#menu2">聊天應用程式</a></li>
                 <li><a data-toggle="pill" href="#menu0">基本設定</a></li>
-                <li><a data-toggle="pill" href="#menu3">標籤</a></li>
+                <li><a data-toggle="pill" href="#menu3">客戶分類條件</a></li>
                 <li><a data-toggle="pill" href="#create-internal-room">內部群組</a></li>
             </ul>
         </div>
@@ -36,8 +36,8 @@
         <div class="tab-content">
             <div id="menu0" class="tab-pane fade">
                 <h3>基本設定
-                    <button type="button" class="btn btn-default" id="profile" data-toggle="modal" data-target="#setting-modal">
-                    <span class="fa fa-pencil-square-o"></span>編輯
+                    <button type="button" class="btn btn-grey" id="profile" data-toggle="modal" data-target="#setting-modal">
+                    <span class="fa fa-pencil"></span>編輯
                     </button>
                 </h3>
                 <div class="col-md-10 col-lg-10 panel-info prof-wid">
@@ -62,8 +62,27 @@
                                             <td id="prof-phonenumber"></td>
                                         </tr>
                                         <tr>
+                                            <td>Email: </td>
+                                            <td class="long-token" id="prof-email"></td>
+
+                                        </tr>
+                                        <tr>
                                             <td>地址: </td>
                                             <td class="long-token" id="prof-address"></td>
+                                        </tr>
+                                        <tr class="hide" id="gcalendar_row">
+                                            <td>
+                                                <div class="feature-icon">
+                                                    <img src="image/google_calendar.png" alt="Google Calendar Logo" />
+                                                </div>
+                                                Google 行事曆:
+                                            </td>
+                                            <td>
+                                                <div class="form-check setting-cbx">
+                                                    <input class="form-check-input" type="checkbox" id="gcalendar_cbx">
+                                                    <label class="form-check-label" for="gcalendar_cbx">啟用</label>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -96,7 +115,7 @@
                 </div>
             </div>
             <div id="menu3" class="tab-pane fade">
-                <h3 class="margin-left-15">標籤</h3>
+                <h3 class="margin-left-15">客戶分類條件</h3>
                 <div class="col-md-10 col-lg-10 panel-info prof-wid">
                     <div class="float-down">
                         <div id="tag-tab" class="col-md-12 col-lg-12 panel-info prof-wid padding-zero">
@@ -133,6 +152,19 @@
                     </div>
                 </div>
             </div>
+            <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <h4 id="textContent"></h4>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary">確定</button>
+                            <button type="button" class="btn btn-secondary">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -146,6 +178,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     <script src="lib/js/bootstrap3-typeahead.min.js"></script>
+    <script src="js/helpers/google_client.js"></script>
+    <script src="js/helpers/google_calendar.js"></script>
     <script src="js/setting.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/partials/firebase-disable.js"></script>

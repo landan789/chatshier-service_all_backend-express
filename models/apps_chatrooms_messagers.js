@@ -44,6 +44,42 @@ module.exports = (function() {
     /**
      * @param {string} appId
      * @param {string} chatroomId
+     * @param {number} [unReadCount]
+     * @param {(appChatroomMessager: any) => any} [callback]
+     * @returns {Promise<any>}
+     */
+    AppsChatroomsMessagersModel.prototype.upddateUnRead = (appId, chatroomId, unReadCount, callback) => {
+        unReadCount = unReadCount || 1;
+        return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).once('value').then((snap) => {
+            let chatroom = snap.val() || {};
+            let messagers = chatroom.messagers || {};
+            return Promise.resolve(messagers);
+        }).then((messagers) => {
+
+            return Promise.all(Object.keys(messagers).map((messagerId) => {
+                let messager = messagers[messagerId];
+                messager.unRead += unReadCount;
+                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId).update(messager);
+            }));
+        }).then(() => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).once('value');
+        }).then((snap) => {
+            let chatroom = snap.val();
+            let appsChatroomsMessagers = {
+                [appId]: {
+                    chatrooms: {
+                        [chatroomId]: chatroom
+                    }
+                }
+            };
+            ('function' === typeof callback) && callback(null);
+            return Promise.resolve(appsChatroomsMessagers);
+        });
+    };
+
+    /**
+     * @param {string} appId
+     * @param {string} chatroomId
      * @param {string} messagerId
      * @param {(isSuccessful: boolean) => any} [callback]
      * @returns {Promise<boolean>}

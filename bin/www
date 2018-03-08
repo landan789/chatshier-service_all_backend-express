@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-var SECRET = require('../config/secret');
-
 var app = require('../app');
 var debug = require('debug')('project-shield:server');
 var http = require('http');

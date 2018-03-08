@@ -5,6 +5,7 @@ const FACEBOOK = 'FACEBOOK';
 const CHATSHIER = 'CHATSHIER';
 const ACTIVE = '啟用';
 const INACTIVE = '未啟用';
+const NO_PERMISSION_CODE = '3.16';
 var userId = '';
 var api = window.restfulAPI;
 var transJson = {};
@@ -43,7 +44,7 @@ window.auth.ready.then(function(currentUser) {
             case 'updateApp':
                 let appId = $(this).parent().parent().find('#webhook-id').text();
                 groupId = $(this).parent().parent().find('#groupId').text();
-                // console.log($('#facebook-name').val())
+
                 if ($('#facebook-name').val() === undefined) {
                     let name = $('#name').val();
                     let id1 = $('#channel-id').val();
@@ -81,8 +82,8 @@ window.auth.ready.then(function(currentUser) {
         }
     });
     $(document).on('click', '#del', function() {
-        let autoreplyId = $(this).attr('rel');
-        removeOneApp(autoreplyId);
+        let appId = $(this).attr('rel');
+        removeOneApp(appId);
     });
     $(document).on('click', '#add-new-btn', function() {
         let groupId = $(this).attr('rel');
@@ -165,7 +166,6 @@ window.auth.ready.then(function(currentUser) {
         $appModal.append(formStr);
     });
     $(document).on('change', '#app-group-select', function() { // 切換模式 LINE或是臉書
-        // console.log($(this).find('option:selected').val());
         let type = $(this).find('option:selected').val();
         switch (type) {
             case LINE:
@@ -200,7 +200,7 @@ window.auth.ready.then(function(currentUser) {
             '</div>' +
             '</div>' +
             '<div class="form-group">' +
-            '<label class="col-2 col-form-label">地區: </label>' +
+            '<label class="col-2 col-form-label">地址: </label>' +
             '<div class="col-4">' +
             '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
             '</div>' +
@@ -212,19 +212,50 @@ window.auth.ready.then(function(currentUser) {
 
     findAllGroups();
     findAllApps(); // 列出所有設定的APPs
+    findAuthUserProfile();
     findUserProfile();
 });
 
+// 動態載入 gapi
+window.googleClientHelper.loadAPI().then(function() {
+    var url = window.googleCalendarHelper.configJsonUrl;
+    return window.googleClientHelper.init(url);
+}).then(function(gAuth) {
+    var $gCalendarRow = $('#gcalendar_row');
+    $gCalendarRow.removeClass('hide');
+
+    var $gCalendarCbx = $gCalendarRow.find('#gcalendar_cbx');
+    $gCalendarCbx.prop('checked', gAuth.isSignedIn.get());
+    $gCalendarCbx.on('change', function(ev) {
+        var elem = ev.target;
+        if (elem.checked) {
+            elem.checked = !elem.checked;
+            return window.googleClientHelper.signIn().then(function() {
+                elem.checked = true;
+            }).catch(function() {
+                elem.checked = false;
+            });
+        } else {
+            elem.checked = !elem.checked;
+            return window.googleClientHelper.signOut().then(function() {
+                elem.checked = false;
+            }).catch(function() {
+                elem.checked = true;
+            });
+        }
+    });
+});
+
 // ===============
-// #region 標籤 Tab 代碼區塊
+// #region 客戶分類條件 Tab 代碼區塊
 (function() {
     var NEW_TAG_ID_PREFIX = 'temp_tag_id';
-    var tagEnums = api.tag.enums;
+    var tagEnums = api.appsTags.enums;
 
     var tagPanelCtrl = (function() {
         var instance = new TagPanelCtrl();
 
-        // 宣告用來處理整個標籤容器的控制類別
+        // 宣告用來處理整個客戶分類條件容器的控制類別
         function TagPanelCtrl() {
             this.saveListeners = [];
             this.deleteListeners = [];
@@ -284,14 +315,14 @@ window.auth.ready.then(function(currentUser) {
 
             $tagCollapse.find('.btn.add-tag').on('click', function() {
                 _this.addTagItem(appId, NEW_TAG_ID_PREFIX + Date.now(), {
-                    text: '新標籤',
+                    text: '新客戶分類條件',
                     type: tagEnums.type.CUSTOM
                 });
             });
 
             $tagCollapse.find('.btn.all-confirm').on('click', function(ev) {
                 var $tagRows = $tagTableBody.find('tr.tag-content');
-                var uiData = {};
+                var uiTags = {};
 
                 for (var i = 0; i < $tagRows.length; i++) {
                     var $row = $($tagRows[i]);
@@ -322,14 +353,14 @@ window.auth.ready.then(function(currentUser) {
                             break;
                     }
 
-                    // 每一行的 td 標籤的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
-                    uiData[$row.prop('id')] = data;
+                    // 每一行的 td 客戶分類條件的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
+                    uiTags[$row.attr('id')] = data;
                 }
 
                 for (var idx in _this.saveListeners) {
                     _this.saveListeners[idx](ev, {
                         appId: appId,
-                        uiData: uiData
+                        uiTags: uiTags
                     });
                 }
             });
@@ -447,18 +478,18 @@ window.auth.ready.then(function(currentUser) {
     })();
 
     // 設定頁面中 tab 切換時的事件監聽
-    // 切換到標籤頁面時，再抓取標籤資料
+    // 切換到客戶分類條件頁面時，再抓取客戶分類條件資料
     $('a[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
         if ('#menu3' !== ev.target.hash) {
-            // 非標籤頁面不處理
+            // 非客戶分類條件頁面不處理
             return;
         }
 
         var firstAppId = '';
         tagPanelCtrl.$tagPanel.empty();
         return Promise.all([
-            api.app.getAll(userId),
-            api.tag.getAll(userId)
+            api.apps.findAll(userId),
+            api.appsTags.findAll(userId)
         ]).then(function(resJsons) {
             var appsData = resJsons.shift().data;
             var appsTagsData = resJsons.shift().data;
@@ -468,104 +499,119 @@ window.auth.ready.then(function(currentUser) {
 
             for (var appId in appsData) {
                 var appData = appsData[appId] || {};
-                var tagsData = appsTagsData[appId].tags || {};
+                var tags = appsTagsData[appId].tags || {};
                 tagPanelCtrl.addAppItem(appId, appData);
                 firstAppId = firstAppId || appId;
 
-                // 將標籤資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                var tagIds = Object.keys(tagsData);
+                // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
+                var tagIds = Object.keys(tags);
                 tagIds.sort(function(a, b) {
-                    return tagsData[a].order - tagsData[b].order;
+                    return tags[a].order - tags[b].order;
                 });
 
                 for (var i in tagIds) {
                     var tagId = tagIds[i];
-                    var tagData = tagsData[tagId];
-                    if (tagData.isDeleted) {
+                    var tag = tags[tagId];
+                    if (tag.isDeleted) {
+                        delete tags[tagId];
                         continue;
                     }
-                    tagPanelCtrl.addTagItem(appId, tagId, tagData);
+                    tagPanelCtrl.addTagItem(appId, tagId, tag);
                 }
             }
 
-            // 監聽每行標籤的儲存事件，根據 UI 上資料的變更
+            // 監聽每行客戶分類條件的儲存事件，根據 UI 上資料的變更
             // 檢查哪些資料需要更新哪些資料需要新增
             tagPanelCtrl.onSave(function(ev, args) {
                 $(ev.target).attr('disabled', true);
-                var tagsData = appsTagsData[args.appId].tags;
-                var tagIds = Object.keys(tagsData);
+                var tagsOrg = appsTagsData[args.appId].tags;
+                var tagIds = Object.keys(tagsOrg);
 
                 /**
                  * 深層比對目標物件中的資料在來源物件中是否具有相同資料
                  */
-                var hasSameData = function(srcTag, destTag) {
+                var tagHasChanged = function(srcTag, destTag) {
                     for (var key in destTag) {
-                        if (destTag[key] === srcTag[key]) {
+                        // 因為有翻譯文字的關係
+                        // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
+                        if (('text' === key && tagEnums.type.CUSTOM !== srcTag.type) ||
+                            ('sets' === key && 'gender' === srcTag.alias)) {
                             continue;
-                        } else if (!(destTag[key] instanceof Array && srcTag[key] instanceof Array)) {
-                            return false;
-                        } else if (destTag[key].length !== srcTag[key].length) {
-                            return false;
+                        }
+
+                        if (srcTag[key] === destTag[key]) {
+                            continue;
+                        }
+
+                        if (!(srcTag[key] instanceof Array && destTag[key] instanceof Array)) {
+                            return true;
+                        } else if (srcTag[key].length !== destTag[key].length) {
+                            return true;
                         }
 
                         for (var i in destTag[key]) {
-                            if (destTag[key][i] !== srcTag[key][i]) {
-                                return false;
+                            if (srcTag[key][i] !== destTag[key][i]) {
+                                return true;
                             }
                         }
                     }
-                    return true;
+                    return false;
                 };
 
                 return Promise.all(tagIds.map(function(tagId) {
-                    var tagData = tagsData[tagId];
+                    var tagOrg = tagsOrg[tagId];
+                    var tagOnUI = Object.assign({}, args.uiTags[tagId]);
+                    delete args.uiTags[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
 
-                    // 需對照 UI 上目前每個標籤的順序，更新至對應的標籤
-                    if (args.uiData[tagId] && !hasSameData(tagData, args.uiData[tagId])) {
-                        // 只允許非系統預設的欄位可進行資料變更動作
-                        if (tagData.type !== tagEnums.type.DEFAULT) {
-                            tagData.text = args.uiData[tagId].text;
-                            tagData.setsType = args.uiData[tagId].setsType;
-                            tagData.sets = args.uiData[tagId].sets;
+                    // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
+                    if (!!tagOnUI && tagHasChanged(tagOrg, tagOnUI)) {
+                        // 只允許自定義的欄位可進行資料變更動作
+                        if (tagOrg.type === tagEnums.type.CUSTOM) {
+                            tagOrg.text = tagOnUI.text;
+                            tagOrg.setsType = tagOnUI.setsType;
+                            tagOrg.sets = tagOnUI.sets;
                         }
-                        tagData.order = args.uiData[tagId].order;
-                        tagData.updatedTime = Date.now();
-                        delete args.uiData[tagId];
-                        return api.tag.update(args.appId, tagId, userId, tagData);
-                    } else if (tagData.isDeleted) {
-                        return api.tag.remove(args.appId, tagId, userId);
+                        tagOrg.order = tagOnUI.order;
+                        return api.appsTags.update(args.appId, tagId, userId, tagOrg);
+                    } else if (tagOrg.isDeleted) {
+                        return api.appsTags.remove(args.appId, tagId, userId).then(function() {
+                            delete appsTagsData[args.appId].tags[tagId];
+                        });
                     }
-                    delete args.uiData[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
                     return Promise.resolve();
                 })).then(function() {
-                    // 將剩下的 id 檢查是否為新增的標籤
-                    var newTagIds = Object.keys(args.uiData);
-                    return Promise.all(newTagIds.map(function(tagId) {
-                        // 新增的標籤 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
-                        // 非新增的標籤資料不進行資料插入動作
-                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) !== 0) {
+                    return Promise.all(Object.keys(args.uiTags).map(function(tagId) {
+                        // 將剩下的 id 檢查是否為新增的客戶分類條件
+                        // 新增的客戶分類條件 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
+                        // 非新增的客戶分類條件資料不進行資料插入動作
+                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) < 0) {
                             return Promise.resolve();
                         }
 
-                        var tagData = {
-                            text: args.uiData[tagId].text,
+                        var tagOnUI = args.uiTags[tagId];
+                        var newTag = {
+                            text: tagOnUI.text,
                             type: tagEnums.type.CUSTOM,
-                            sets: args.uiData[tagId].sets,
-                            setsType: args.uiData[tagId].setsType,
-                            order: args.uiData[tagId].order,
-                            createdTime: Date.now(),
-                            updatedTime: Date.now()
+                            sets: tagOnUI.sets,
+                            setsType: tagOnUI.setsType,
+                            order: tagOnUI.order
                         };
-                        return api.tag.insert(args.appId, userId, tagData);
+                        return api.appsTags.insert(args.appId, userId, newTag).then(function(resJson) {
+                            // 完成資料庫儲存後，將暫時使用的 tagId 替換成真正資料庫的 tagId
+                            var insertTags = resJson.data;
+                            var newTagId = Object.keys(insertTags[args.appId].tags).shift();
+                            appsTagsData[args.appId].tags[newTagId] = insertTags[args.appId].tags[newTagId];
+                            $('#' + tagId + '.tag-content').attr('id', newTagId);
+                        });
                     }));
                 }).then(function() {
-                    // 標籤資料處理完成後顯示訊息在 UI 上
-                    $.notify('標籤更新成功', { type: 'success' });
+                    // 客戶分類條件資料處理完成後顯示訊息在 UI 上
+                    $.notify('客戶分類條件更新成功', { type: 'success' });
                     $(ev.target).removeAttr('disabled');
                 });
             });
 
-            // 監聽每行標籤的刪除事件，刪除時在原始資料上標記刪除
+            // 監聽每行客戶分類條件的刪除事件，刪除時在原始資料上標記刪除
             tagPanelCtrl.onDelete(function(ev) {
                 var tagsData = appsTagsData[ev.appId].tags[ev.tagId];
                 if (!tagsData) {
@@ -602,7 +648,7 @@ window.auth.ready.then(function(currentUser) {
         $addGroupModal.on('click', '#add_group_submit', function() {
             $addGroupModal.modal('hide');
 
-            var groupName = $addGroupModal.find('input#add_group_name').val();
+            var groupName = $addGroupModal.find('input').val();
             if (!groupName) {
                 return;
             }
@@ -616,6 +662,7 @@ window.auth.ready.then(function(currentUser) {
                 groups[groupId] = resJson.data[groupId];
                 instance.addGroup(groupId, groups[groupId]);
                 instance.showCollapse(groupId);
+                $addGroupModal.find('input').val('');
             });
         });
 
@@ -641,36 +688,24 @@ window.auth.ready.then(function(currentUser) {
             }
         };
 
-        GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
-            instance.hideCollapseAll(groupId);
-            var members = groupData.members;
-            var userIds = Object.values(members).map((member) => {
-                if (0 === member.isDeleted) {
-                    return member.user_id;
-                };
-            });
-            var index = userIds.indexOf(auth.currentUser.uid);
-            if (0 > index) {
-                //return;
-            };
-            var currentMember = Object.values(members)[index];
-            $groupBody.append(
+        GroupPanelCtrl.prototype.generateGroupHtml = function(groupId, groupName, member) {
+            var html =
                 '<div class="group-tab" role="tab">' +
-                '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
-                (groupData.name || '') +
-                '</a>' +
+                    '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
+                        (groupName || '') +
+                    '</a>' +
                 '</div>' +
                 '<div id="' + groupId + '" class="panel-collapse collapse" role="tabpanel">' +
-                    '<div class="form-group form-group-row ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                    '<div class="form-group form-group-row ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                         '<label for="group_name" class="col-2 col-form-label">群組名稱: </label>' +
                         '<div class="col-4">' +
                             '<div class="input-group group-name" id="group_name">' +
-                                '<input class="group-name-input form-control" type="text" value="' + groupData.name + '" placeholder="我的群組" />' +
+                                '<input class="group-name-input form-control" type="text" value="' + groupName + '" placeholder="我的群組" />' +
                                 '<span class="input-group-btn btn-update">' +
                                     '<button class="btn btn-primary">更新</button>' +
                                 '</span>' +
-                                // '<span class="input-group-btn btn-de刪除lete">' +
-                                //     '<button class="btn btn-danger">群組</button>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
                                 // '</span>' +
                             '</div>' +
                         '</div>' +
@@ -701,7 +736,7 @@ window.auth.ready.then(function(currentUser) {
                         '<thead>' +
                             '<tr>' +
                                 '<td class="user">' +
-                                    '<div class="email-input-container ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                    '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                         '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
                                     '</div>' +
                                 '</td>' +
@@ -712,7 +747,7 @@ window.auth.ready.then(function(currentUser) {
                                                 '<span class="permission-text">Permission</span>' + '&nbsp;' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<ul class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                            '<ul class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                                 '<li><a role="button">READ</a></li>' +
                                                 '<li><a role="button">WRITE</a></li>' +
                                                 '<li><a role="button">ADMIN</a></li>' +
@@ -726,7 +761,7 @@ window.auth.ready.then(function(currentUser) {
                                     '</div>' +
                                 '</td>' +
                                 '<td class="actions">' +
-                                    '<div class="text-right ' + (memberTypes.OWNER === currentMember.type || memberTypes.ADMIN === currentMember.type ? '' : 'hide') + '">' +
+                                    '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
                                         '<button class="btn btn-default btn-block outline add-button">' +
                                             '新增' +
                                             '<i class="fa fa-user-plus"></i>' +
@@ -737,15 +772,75 @@ window.auth.ready.then(function(currentUser) {
                         '</thead>' +
                         '<tbody></tbody>' +
                     '</table>' +
-                '</div>'
-            );
+                '</div>';
+            return html;
+        };
+
+        GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, user, member, memberSelf) {
+            var html =
+                '<tr class="group-member" member-id="' + memberId + '">' +
+                    '<td class="user">' +
+                        '<div class="chips">' +
+                            '<div class="avatar-container">' +
+                                '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
+                            '</div>' +
+                            '<span class="avatar-name">' + (user.name || user.displayName || '') + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="permission">' +
+                        '<div class="permission-group text-left">' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">READ</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">WRITE</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">ADMIN</span>' +
+                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="status">' +
+                        '<span class="active ' + (0 === member.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
+                        '<span class="inactive ' + (1 === member.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
+                    '</td>' +
+                    '<td class="actions">' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || 1 === member.status || member.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                        '<div class="action-container text-right">' +
+                            '<a role="button" class="btn-remove' + ((memberTypes.OWNER === member.type || memberTypes.WRITE === memberSelf.type || memberTypes.READ === memberSelf.type) ? ' hide' : '') + '">' +
+                                '<span class="chsr-icon">' +
+                                    '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
+                                '</span>' +
+                            '</a>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            return html;
+        };
+
+        GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
+            instance.hideCollapseAll(groupId);
+            var members = groupData.members;
+            var userIds = Object.values(members).map((member) => {
+                if (0 === member.isDeleted) {
+                    return member.user_id;
+                };
+            });
+            var index = userIds.indexOf(auth.currentUser.uid);
+            if (0 > index) {
+                // return;
+            };
+
+            var memberSelf = Object.values(members)[index];
+            $groupBody.append(instance.generateGroupHtml(groupId, groupData.name, memberSelf));
+
             // #region 每個群組相關事件宣告
             // 將群組中經常取用的 element 一次抓取出來，方便存取
             var $collapse = $groupBody.find('#' + groupId);
             $groupElems[groupId] = {
                 $collapse: $collapse,
                 $groupName: $groupBody.find('.group-name'),
-                $groupNameInput: $groupBody.find('.group-name-input'),
 
                 $fileGhost: $collapse.find('.file-container input.file-ghost'),
                 $fileName: $collapse.find('.file-container .file-text'),
@@ -755,6 +850,7 @@ window.auth.ready.then(function(currentUser) {
                 $memberList: $collapse.find('.chsr-group tbody'),
                 $permissionText: $collapse.find('.chsr-group .permission .permission-text')
             };
+
             // 群組展開時將其他群組收縮起來
             $collapse.on('show.bs.collapse', function(e) {
                 instance.hideCollapseAll(e.target.id);
@@ -763,7 +859,7 @@ window.auth.ready.then(function(currentUser) {
             // 使用者更新群組名稱的事件處理
             $collapse.on('click', '.group-name .btn-update', function() {
                 var groupData = {
-                    name: $groupElems[groupId].$groupNameInput.val()
+                    name: $(this).parent().find('input').val()
                 };
 
                 if (groups[groupId].name === groupData.name) {
@@ -775,7 +871,7 @@ window.auth.ready.then(function(currentUser) {
 
                 return api.groups.update(groupId, userId, groupData).then(function() {
                     groups[groupId].name = groupData.name;
-                    $collapse.parent().find('.group-tab .group-name').text(groupData.name);
+                    $collapse.parent().find('.group-tab .group-name[aria-controls="' + groupId + '"]').text(groupData.name);
                     $.notify('群組名稱更新成功！', { type: 'success' });
                 }).catch(function() {
                     $.notify('群組名稱更新失敗！', { type: 'danger' });
@@ -833,7 +929,7 @@ window.auth.ready.then(function(currentUser) {
                 var $addButton = $(this);
                 $addButton.attr('disabled', true);
 
-                return api.auth.getUsers(userId, memberEmail).then(function(resJson) {
+                return api.authentications.findUsers(userId, memberEmail).then(function(resJson) {
                     var memberUserId = Object.keys(resJson.data).shift();
                     var postMemberData = {
                         type: memberTypes[permission],
@@ -852,9 +948,9 @@ window.auth.ready.then(function(currentUser) {
                         };
                     });
                 }).then(function(insertData) {
-                    return api.auth.getUsers(userId).then(function(resJson) {
+                    return api.authentications.findUsers(userId).then(function(resJson) {
                         userGroupMembers = resJson.data || {};
-                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, currentMember);
+                        instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
                         $groupElems[groupId].$memberEmail.val('');
                         $groupElems[groupId].$permissionText.text('Permission');
@@ -927,7 +1023,7 @@ window.auth.ready.then(function(currentUser) {
                             return searchCache[emailPattern];
                         }
 
-                        return api.auth.searchUsers(userId, emailPattern).then(function(resJson) {
+                        return api.authentications.searchUsers(userId, emailPattern).then(function(resJson) {
                             return resJson.data || [];
                         });
                     }).then(function(searchResults) {
@@ -944,58 +1040,20 @@ window.auth.ready.then(function(currentUser) {
 
             // 將群組內的成員資料載入至畫面上
             for (var memberId in groupData.members) {
-                instance.addMemberToList(groupId, memberId, groupData.members[memberId], currentMember);
+                instance.addMemberToList(groupId, memberId, groupData.members[memberId], memberSelf);
             }
         };
 
-        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, memberData, currentMember) {
-            var userData = userGroupMembers[memberData.user_id];
-            if (!userData) {
+        GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
+            var user = userGroupMembers[member.user_id];
+            if (!user) {
                 return;
             };
 
-            var memberItemHtml =
-                '<tr class="group-member" id="' + memberId + '">' +
-                    '<td class="user">' +
-                        '<div class="chips">' +
-                            '<div class="chsr-avatar">' +
-                                '<i class="fa fa-2x fa-user-circle chsr-blue"></i>' +
-                            '</div>' +
-                            '<span class="avatar-name">' + (userData.name || userData.displayName || '') + '</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="permission">' +
-                        '<div class="permission-group text-left">' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.READ === memberData.type ? ' btn-primary' : '') + '">READ</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === memberData.type ? ' btn-primary' : '') + '">WRITE</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === memberData.type ? ' btn-primary' : '') + '">ADMIN</span>' +
-                            '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === memberData.type ? ' btn-primary' : '') + '">OWNER</span>' +
-                        '</div>' +
-                    '</td>' +
-                    '<td class="status">' +
-                        '<span class="active ' + (0 === memberData.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
-                        '<span class="inactive ' + (1 === memberData.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
-                    '</td>' +
-                    '<td class="actions">' +
-                        '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === memberData.type || 1 === memberData.status || memberData.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
-                                '<span class="chsr-icon">' +
-                                    '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
-                                '</span>' +
-                            '</a>' +
-                        '</div>' +
-                        '<div class="action-container text-right">' +
-                        '<a role="button" class="btn-remove' + ((memberTypes.OWNER === memberData.type || memberTypes.WRITE === currentMember.type || memberTypes.READ === currentMember.type) ? ' hide' : '') + '">' +
-                            '<span class="chsr-icon">' +
-                                '<i class="fa fa-2x fa-times-circle remove-icon"></i>' +
-                            '</span>' +
-                        '</a>' +
-                    '</div>' +
-                    '</td>' +
-                '</tr>';
+            var memberItemHtml = instance.generateMemberHtml(memberId, user, member, memberSelf);
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
-            var $memberRow = $groupElems[groupId].$memberList.find('#' + memberId);
+            var $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
             var $memberPermission = $memberRow.find('.permission');
             var $memberStatus = $memberRow.find('.status');
             var $memberActions = $memberRow.find('.actions');
@@ -1065,8 +1123,8 @@ window.auth.ready.then(function(currentUser) {
 
         groupCtrl.clearAll();
         Promise.all([
-            api.groups.getUserGroups(userId),
-            api.auth.getUsers(userId)
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
         ]).then(function(resJsons) {
             groups = resJsons[0].data || {};
             userGroupMembers = resJsons[1].data || {};
@@ -1089,7 +1147,7 @@ window.auth.ready.then(function(currentUser) {
 var $appModal = $('#setting-modal .modal-body');
 
 function findAllGroups() {
-    return api.groups.getUserGroups(userId).then(function(resJson) {
+    return api.groups.findAll(userId).then(function(resJson) {
         let groups = resJson.data;
         if (groups instanceof Object && 0 === Object.values(groups).length) {
             $('#add-group-name-app-btn').attr('disabled', false);
@@ -1119,7 +1177,7 @@ function insertOneGroup() {
 }
 
 function findAllApps() {
-    return api.app.getAll(userId).then(function(resJson) {
+    return api.apps.findAll(userId).then(function(resJson) {
         let apps = resJson.data;
 
         for (let appId in apps) {
@@ -1133,7 +1191,7 @@ function findAllApps() {
 }
 
 function findOneApp(appId) {
-    return api.app.getOne(appId, userId).then(function(resJson) {
+    return api.apps.findOne(appId, userId).then(function(resJson) {
         let apps = resJson.data;
         formModalBody(appId, apps[appId]);
     });
@@ -1179,7 +1237,7 @@ function insertType(type, groupId, callback) {
 }
 
 function insertOneApp(appData) {
-    return api.app.insert(userId, appData).then(function(resJson) {
+    return api.apps.insert(userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1191,11 +1249,22 @@ function insertOneApp(appData) {
         for (let appId in apps) {
             groupType(appId, apps[appId]);
         }
+    }).catch((resJson) => {
+        if (undefined === resJson.status) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('失敗', { type: 'danger' });
+        }
+        if (NO_PERMISSION_CODE === resJson.code) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('無此權限', { type: 'danger' });
+        }
     });
 }
 
 function updateOneApp(appId, appData) {
-    return api.app.update(appId, userId, appData).then(function(resJson) {
+    return api.apps.update(appId, userId, appData).then(function(resJson) {
         $('#setting-modal').modal('hide');
         clearAppModalBody();
 
@@ -1221,17 +1290,67 @@ function updateOneApp(appId, appData) {
                 $('.' + appId + ' #prof-fbPageToken').html(app.token2);
                 break;
         };
+    }).catch((resJson) => {
+        if (undefined === resJson.status) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('失敗', { type: 'danger' });
+        }
+        if (NO_PERMISSION_CODE === resJson.code) {
+            $('#setting-modal').modal('hide');
+            clearAppModalBody();
+            $.notify('無此權限', { type: 'danger' });
+        }
     });
 }
 
 function removeOneApp(appId) {
-    return api.app.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
-        let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
-        $('#app-group').html(str);
-        $.notify('成功刪除!', { type: 'success' });
-        $('tr.' + appId).remove();
+    return showDialog('確定要刪除嗎？').then(function(isOK) {
+        if (!isOK) {
+            return;
+        }
+
+        return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+            let str = '<tr hidden><td>ID: </td><td id="prof-id"></td></tr>';
+            $('#app-group').html(str);
+            $.notify('成功刪除!', { type: 'success' });
+            $('tr.' + appId).remove();
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $.notify('失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
+        });
     });
 }
+
+function showDialog(textContent) {
+    return new Promise(function(resolve) {
+        $('#textContent').text(textContent);
+
+        var isOK = false;
+        var $dialogModal = $('#dialog_modal');
+
+        $dialogModal.find('.btn-primary').on('click', function() {
+            isOK = true;
+            resolve(isOK);
+            $dialogModal.modal('hide');
+        });
+
+        $dialogModal.find('.btn-secondary').on('click', function() {
+            resolve(isOK);
+            $dialogModal.modal('hide');
+        });
+
+        $dialogModal.modal({
+            backdrop: false,
+            show: true
+        });
+    });
+}
+
 /**
  * 群組資料從ajax載入後把群組視覺化
  * @param {*} groupData
@@ -1268,8 +1387,8 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">LINE</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group1" class="line">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span>刪除</button>' +
-                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span> 刪除</button>' +
+                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
                 '</tr>' +
@@ -1303,8 +1422,8 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">Facebook</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group3" class="fb">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '">刪除</button>' +
-                            '<button type="button" class="btn btn-default pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil-square-o"></span> 編輯</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span> 刪除</button>' +
+                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
                 '</tr>' +
@@ -1349,88 +1468,88 @@ function formModalBody(id, app) {
         case LINE:
             appStr =
                 '<form>' +
-                '<div id="type" hidden>updateApp</div>' +
-                '<div class="form-group" hidden>' +
-                '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
-                '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupId">' + app.group_id + '</span>' +
-                '</div>' +
-                '<div id="prof-edit-line-1">' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Channel Name 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div id="type" hidden>updateApp</div>' +
+                    '<div class="form-group" hidden>' +
+                        '<label for="edit-id" class="col-2 col-form-label">ID</label>' +
+                        '<span id="webhook-id">' + id + '</span>' +
+                        '<span id="groupId">' + app.group_id + '</span>' +
+                    '</div>' +
+                    '<div id="prof-edit-line-1">' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Channel Name 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelId_1" class="col-2 col-form-label">Channel Id 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelSecret_1" class="col-2 col-form-label">Channel Secret 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="prof-edit-channelAccessToken_1" class="col-2 col-form-label">Channel Access Token 1: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
                 '</form>';
             $appModal.append(appStr);
             break;
         case FACEBOOK:
             appStr =
                 '<form>' +
-                '<div id="type" hidden>updateApp</div>' +
-                '<div class="form-group" hidden>' +
-                '<label class="col-2 col-form-label">ID</label>' +
-                '<span id="webhook-id">' + id + '</span>' +
-                '<span id="groupId">' + app.group_id + '</span>' +
-                '</div>' +
-                '<div id="prof-edit-fb">' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
-                ' <div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Page Id: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">App ID: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">App Secret: </label>' +
-                ' <div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Validation Token: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                '<label class="col-2 col-form-label">Page Token: </label>' +
-                '<div class="col-4">' +
-                '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
+                    '<div id="type" hidden>updateApp</div>' +
+                    '<div class="form-group" hidden>' +
+                        '<label class="col-2 col-form-label">ID</label>' +
+                        '<span id="webhook-id">' + id + '</span>' +
+                        '<span id="groupId">' + app.group_id + '</span>' +
+                    '</div>' +
+                    '<div id="prof-edit-fb">' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Facebook Page Name: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Page Id: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">App ID: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">App Secret: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Validation Token: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-2 col-form-label">Page Token: </label>' +
+                            '<div class="col-4">' +
+                                '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
                 '</form>';
             $appModal.append(appStr);
             break;
@@ -1440,13 +1559,23 @@ function formModalBody(id, app) {
 function clearAppModalBody() {
     $appModal.empty();
 }
+function findAuthUserProfile() {
+    return api.authentications.findUsers(userId).then(function(resJson) {
+        let users = resJson.data;
+        let user = users[userId];
+        if (userId) {
+            // User 已登入
+            $('h3.panel-title').text(user.displayName);
+            $('#prof-email').text(user.email);
+            $('#prof-id').text(userId);
+        };
+    });
+}
 
 function findUserProfile() {
-    return api.users.getUser(userId).then(function(resJson) {
+    return api.users.findOne(userId).then(function(resJson) {
         var profile = resJson.data;
         $('#prof-id').text(userId);
-        $('h3.panel-title').text(profile.name);
-        $('#prof-email').text(profile.email);
         $('#prof-IDnumber').text(userId);
         $('#prof-company').text(profile.company);
         $('#prof-phonenumber').text(profile.phone);
@@ -1454,11 +1583,11 @@ function findUserProfile() {
     });
 }
 
-function updateUserProfile(userData) {
-    return api.users.update(userId, userData).then(function() {
-        $('#prof-company').text(userData.company);
-        $('#prof-phonenumber').text(userData.phone);
-        $('#prof-address').text(userData.address);
+function updateUserProfile(user) {
+    return api.users.update(userId, user).then(function() {
+        $('#prof-company').text(user.company);
+        $('#prof-phonenumber').text(user.phone);
+        $('#prof-address').text(user.address);
     });
 }
 
@@ -1473,10 +1602,8 @@ function profSubmitBasic() {
     };
     var phoneRule = /^09\d{8}$/;
     if (!phone.match(phoneRule)) {
-        $('#prof-edit-phonenumber').tooltip('show');
-        setTimeout(function() {
-            $('#prof-edit-phonenumber').tooltip('destroy');
-        }, 3000);
+        $('#setting-modal').modal('hide');
+        $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
     } else {
         updateUserProfile(users);
         $('#setting-modal').modal('hide');

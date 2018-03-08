@@ -78,40 +78,55 @@ apps.findAppsByWebhookId = (webhookId, callback) => {
         callback(null);
     });
 };
-
+/**
+     * 多型判斷要回傳apps還是appid下資料
+     *
+     * @param {string|string[]} appIds || ''
+     * @param {Function} callback
+     * @returns {Promise<any>}
+     */
 apps.findAppsByAppIds = (appIds, callback) => {
     var apps = {};
 
-    Promise.all(appIds.map((appId) => {
-        return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-            let app = snap.val();
-
-            // DB 沒有取到資料
-            if (null === app || undefined === app || '' === app) {
-                return Promise.resolve(null);
-            }
-
-            // 已刪除資料，不呈現於 API
-            if (app.isDeleted) {
-                return Promise.resolve(null);
-            }
-
-            var _app = {
-                group_id: app.group_id,
-                id1: app.id1,
-                id2: app.id2,
-                isDeleted: app.isDeleted,
-                name: app.name,
-                secret: app.secret,
-                token1: app.token1,
-                token2: app.token2,
-                type: app.type,
-                webhook_id: app.webhook_id
-            };
-            apps[appId] = _app;
-            return Promise.resolve();
-        });
-    })).then(() => {
+    Promise.resolve().then(() => {
+        // 值為空回傳整包apps
+        if ('' === appIds || !appIds) {
+            return admin.database().ref('apps').once('value').then((snap) => {
+                apps = snap.val();
+                return Promise.resolve();
+            });
+        };
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        };
+        return Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+                let app = snap.val();
+                // DB 沒有取到資料
+                if (null === app || undefined === app || '' === app) {
+                    return Promise.resolve(null);
+                }
+                // 已刪除資料，不呈現於 API
+                if (app.isDeleted) {
+                    return Promise.resolve(null);
+                }
+                var _app = {
+                    group_id: app.group_id,
+                    id1: app.id1,
+                    id2: app.id2,
+                    isDeleted: app.isDeleted,
+                    name: app.name,
+                    secret: app.secret,
+                    token1: app.token1,
+                    token2: app.token2,
+                    type: app.type,
+                    webhook_id: app.webhook_id
+                };
+                apps[appId] = _app;
+                return Promise.resolve();
+            });
+        }));
+    }).then(() => {
         callback(apps);
     }).catch(() => {
         callback(null);

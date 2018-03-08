@@ -22,5 +22,13 @@ module.exports = {
         isDeleted: 0,
         updatedTime: Date.now(),
         createdTime: Date.now()
+    },
+    USER: {
+        company: '',
+        phone: '',
+        address:'',
+        group_ids: [],
+        createdTime: Date.now(),
+        updatedTime: Date.now()
     }
 };

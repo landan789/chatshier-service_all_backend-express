@@ -58,26 +58,26 @@ module.exports = (function() {
      * 發送FACEBOOK訊息
      *
      * @param {Object} bot
-     * @param {string} receiverId
+     * @param {string} recipientId
      * @param {Object} app
      * @param {Function} callback
      */
-    BotHelper.prototype.sendMessage = function(bot, receiverId, app, callback) {
+    BotHelper.prototype.sendMessage = function(bot, recipientId, app, callback) {
         switch (app.textType) {
             case 'image':
-                bot.sendImageMessage(receiverId, app.src, true);
+                bot.sendImageMessage(recipientId, app.src, true);
                 callback();
                 break;
             case 'audio':
-                bot.sendAudioMessage(receiverId, app.src, true);
+                bot.sendAudioMessage(recipientId, app.src, true);
                 callback();
                 break;
             case 'video':
-                bot.sendVideoMessage(receiverId, app.src, true);
+                bot.sendVideoMessage(recipientId, app.src, true);
                 callback();
                 break;
             default:
-                bot.sendTextMessage(receiverId, app.msg);
+                bot.sendTextMessage(recipientId, app.msg);
                 callback();
         }
     };
@@ -117,23 +117,22 @@ module.exports = (function() {
 
     /**
      * @param {any} bot
-     * @param {ChatshierMessageInterface} protoMessage
+     * @param {ChatshierMessageInterface} message
      * @param {string} appType
      * @param {any} option
-     * @param {(outMessage: ChatshierMessageInterface[]) => any} [callback]
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
-    BotHelper.prototype.convertMessage = function(bot, protoMessage, appType, option, callback) {
+    BotHelper.prototype.convertMessage = function(bot, message, option, app) {
         return Promise.resolve().then(() => {
-            switch (appType) {
+            switch (app.type) {
                 case LINE:
                     /** @type {ChatshierMessageInterface} */
                     let _message = {
-                        from: protoMessage.from,
-                        time: protoMessage.time,
+                        from: message.from,
+                        time: message.time,
                         text: '',
-                        type: protoMessage.type,
-                        messager_id: protoMessage.messager_id
+                        type: option.event.message.type,
+                        messager_id: message.messager_id
                     };
 
                     return Promise.resolve().then(() => {
@@ -164,22 +163,20 @@ module.exports = (function() {
                         }
                     });
                 case FACEBOOK:
-                    let message = option.message;
-
                     return Promise.resolve().then(() => {
-                        if (!message.attachments) {
-                            let outMessages = [protoMessage];
-                            return outMessages;
+                        if (!option.message.attachments) {
+                            let messages = [message];
+                            return Promise.resolve(messages);
                         }
 
-                        return message.attachments.map((attachment) => {
+                        return option.message.attachments.map((attachment) => {
                             /** @type {ChatshierMessageInterface} */
                             let _message = {
-                                from: protoMessage.from,
-                                time: protoMessage.time,
+                                from: message.from,
+                                time: message.time,
                                 text: '',
                                 type: attachment.type,
-                                messager_id: protoMessage.messager_id
+                                messager_id: message.messager_id
                             };
 
                             switch (attachment.type) {
@@ -206,11 +203,11 @@ module.exports = (function() {
                         });
                     });
                 default:
-                    return [protoMessage];
+                    let messages = [message];
+                    return Promise.resolve(messages);
             }
-        }).then((outMessages) => {
-            ('function' === typeof callback) && callback(outMessages);
-            return outMessages;
+        }).then((messages) => {
+            return Promise.resolve(messages);
         });
     };
 

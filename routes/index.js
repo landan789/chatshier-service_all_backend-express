@@ -1,5 +1,13 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+
+let reactReadyPaths = [
+    '/signin',
+    '/signup'
+];
+router.get(reactReadyPaths, function(req, res, next) {
+    res.render('react');
+});
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -33,17 +41,10 @@ router.get('/ticket_form', function(req, res, next) {
     res.render('ticket_form', { title: '新增待辦事項' });
 });
 // authentication
-router.get('/login', function(req, res, next) {
-    res.render('login', { title: '登入' });
-});
-
 router.get('/logout', function(req, res, next) {
     res.render('logout', { title: '登出' });
 });
 
-router.get('/signup', function(req, res, next) {
-    res.render('signup', { title: '註冊' });
-});
 router.get('/analyze', function(req, res, next) {
     res.render('analyze', { title: '分析' });
 });
