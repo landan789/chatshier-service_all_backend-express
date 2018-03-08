@@ -257,6 +257,8 @@ function init(server) {
             });
         }).then((app) => {
             return botSvc.parser(req, res, server, appId, app);
+        }).then(() => {
+            return botSvc.create(appId, app);
         }).then((_bot) => {
             bot = _bot;
             switch (app.type) {

@@ -21,6 +21,9 @@ module.exports = (function() {
 
         create(appId, app) {
             return new Promise((resolve, reject) => {
+                if (this.bots[appId]) {
+                    return Promise.resolve(this.bots[appId]);
+                }
                 switch (app.type) {
                     case LINE:
                         let lineConfig = {
@@ -56,10 +59,6 @@ module.exports = (function() {
          * @param {any} app
          */
         parser(req, res, server, appId, app) {
-            // if (this.bots[appId]) {
-            //     return Promise.resolve(this.bots[appId]);
-            // }
-
             return new Promise((resolve, reject) => {
                 switch (app.type) {
                     case LINE:
@@ -68,24 +67,12 @@ module.exports = (function() {
                             channelAccessToken: app.token1
                         };
                         line.middleware(lineConfig)(req, res, () => {
-                            let lineBot = new line.Client(lineConfig);
-                            this.bots[appId] = lineBot;
-                            resolve(lineBot);
+                            resolve({});
                         });
                         break;
                     case FACEBOOK:
                         bodyParser.json()(req, res, () => {
-                            let facebookConfig = {
-                                pageID: app.id1,
-                                appID: app.id2 || '',
-                                appSecret: app.secret,
-                                validationToken: app.token1,
-                                pageToken: app.token2 || ''
-                            };
-                            // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
-                            let facebookBot = facebook.create(facebookConfig, server);
-                            this.bots[appId] = facebookBot;
-                            resolve(facebookBot);
+                            resolve({});
                         });
                         break;
                     default:
