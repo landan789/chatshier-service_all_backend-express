@@ -290,6 +290,7 @@ function init(server) {
                             event: lineEvent
                         };
                         let sender;
+                        let keywordreplies;
                         let messages = [];
                         return Promise.resolve().then(() => {
                             if (LINE_WEBHOOK_EVENTS.MESSAGE === lineEventType &&
