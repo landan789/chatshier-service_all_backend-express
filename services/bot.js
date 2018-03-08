@@ -172,12 +172,18 @@ module.exports = (function() {
         }
         /**
          * @param {string[]} recipientIds
-         * @param {any[][]} multicasts
+         * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
          * @returns {Promise<any>}
          */
-        multicast(recipientIds, multicasts, appId, app) {
+        multicast(recipientIds, messages, appId, app) {
+            // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
+            let multicasts = [];
+            while (messages.length > 5) {
+                multicasts.push(messages.splice(0, 5));
+            }
+            multicasts.push(messages);
             let bot = this.bots[appId];
 
             switch (app.type) {

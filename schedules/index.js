@@ -1,11 +1,11 @@
-const schedule = require('node-schedule');
 const admin = require('firebase-admin');
+const schedule = require('node-schedule');
 
 const serviceAccount = require('../config/firebase-adminsdk');
 const databaseURL = require('../config/firebase_admin_database_url');
 const API_ERROR = require('../config/api_error');
 
-const timerHlp = require('../helpers/timerHlp');
+const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
 
@@ -58,13 +58,7 @@ let jobProcess = () => {
                 return Promise.resolve(null);
             };
 
-            // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
-            let multicasts = [];
-            while (messages.length > 5) {
-                multicasts.push(messages.splice(0, 5));
-            }
-            multicasts.push(messages);
-            return botSvc.multicast(Object.keys(messagers), multicasts, appId, app);
+            return botSvc.multicast(Object.keys(messagers), messages, appId, app);
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();
