@@ -1,0 +1,3 @@
+[submodule "react.chatshier"]
+	path = react.chatshier
+	url = git@bitbucket.org:9thflr/react.chatshier.git
