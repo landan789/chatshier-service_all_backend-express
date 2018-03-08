@@ -22,7 +22,8 @@ module.exports = (function() {
         create(appId, app) {
             return new Promise((resolve, reject) => {
                 if (this.bots[appId]) {
-                    return Promise.resolve(this.bots[appId]);
+                    resolve(this.bots[appId]);
+                    return;
                 }
                 switch (app.type) {
                     case LINE:
