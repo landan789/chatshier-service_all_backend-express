@@ -64,7 +64,7 @@ module.exports = (function() {
 
             this.publisher.on('error', (err) => {
                 console.log('publisher');
-                console.trace(err);
+                console.trace(JSON.stringify(err, null, 2));
                 if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
                     this.noRedis = true;
                 }
@@ -93,7 +93,7 @@ module.exports = (function() {
 
             this.subscriber.on('error', (err) => {
                 console.log('subscriber');
-                console.trace(err);
+                console.trace(JSON.stringify(err, null, 2));
                 if (err && ('ECONNREFUSED' === err.code || 'CONNECTION_BROKEN' === err.code)) {
                     this.noRedis = true;
                 }
