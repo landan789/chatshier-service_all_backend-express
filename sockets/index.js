@@ -295,7 +295,6 @@ function init(server) {
                                 let messageText = lineEvent.message.text || '';
                                 let messager;
                                 let replyMessages;
-                                let keywordreplies;
                                 return messageProcess(messageText, senderId, option).then((result) => {
                                     keywordreplies = result.keywordreplies;
                                     let messages = result.messages;
@@ -346,8 +345,8 @@ function init(server) {
                                     sender = messager;
 
                                     // 回復訊息與傳入訊息都整合，再寫入 DB
-                                    receiveMessages = replyMessages ? receiveMessages.concat(replyMessages) : receiveMessages;
-                                    return increaseMembersUnRead(appId, senderId, sender, replyMessages.length);
+                                    replyMessages = replyMessages ? receiveMessages.concat(replyMessages) : receiveMessages;
+                                    return increaseMembersUnRead(appId, senderId, sender, receiveMessages.length);
                                 }).then(() => {
                                     return sendMessagesToSockets(sender, senderId, replyMessages);
                                 });
