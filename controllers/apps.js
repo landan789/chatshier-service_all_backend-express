@@ -36,7 +36,6 @@ apps.getAll = (req, res, next) => {
         return new Promise((resolve, reject) => {
             groupsMdl.findAppIds(groupIds, req.params.userid, (appIds) => {
                 resolve(appIds);
-                return;
             });
         });
     }).then((appIds) => {
@@ -109,6 +108,7 @@ apps.getOne = (req, res, next) => {
         if (0 > appIds.indexOf(appId)) {
             return Promise.reject(API_ERROR.USER_OF_GROUP_DID_NOT_HAVE_THIS_APP);
         };
+        return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
             appsMdl.findByAppId(appId, (data) => {
