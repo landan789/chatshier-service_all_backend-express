@@ -176,7 +176,7 @@ module.exports = (function() {
 
             switch (app.type) {
                 case LINE:
-                    if (!bot) {
+                    if (!this.bots[appId]) {
                         let lineConfig = {
                             channelSecret: app.secret,
                             channelAccessToken: app.token1
@@ -185,19 +185,17 @@ module.exports = (function() {
                         this.bots[appId] = bot;
                     }
 
-                    let sendLineMulticastsWithRecursive = (multicasts) => {
-                        return (function nextPromise(i) {
+                    let _multicast = (multicasts) => {
+                        return nextPromise(0);
+
+                        function nextPromise(i) {
                             if (i >= multicasts.length) {
                                 return Promise.resolve();
                             }
 
                             let messages = multicasts[i];
                             return bot.multicast(recipientIds, messages).then(() => {
-                                // 每完成發送一次 1 ~ 5 筆的 multicast messages
-                                // 就進行資料庫寫入，流程為 發送 multicast -> 寫資料庫 -> 下一筆 multicast
                                 return Promise.all(recipientIds.map((messagerId) => {
-                                    // 從資料庫中抓取出接收人的 chatroomId
-                                    // 將已發送的所有訊息新增到此 chatroom 裡
                                     return appsMessagersMdl.findMessagerChatroomId(appId, messagerId).then((chatroomId) => {
                                         if (!chatroomId) {
                                             return Promise.reject(new Error(messagerId + ' chatroomId not found'));
@@ -220,10 +218,10 @@ module.exports = (function() {
                             }).then(() => {
                                 return nextPromise(i + 1);
                             });
-                        })(0);
+                        };
                     };
 
-                    return sendLineMulticastsWithRecursive(multicasts);
+                    return _multicast(multicasts);
                 case FACEBOOK:
                     if (!bot) {
                         let facebookConfig = {
