@@ -1,4 +1,4 @@
 [submodule "react.chatshier"]
 	path = react.chatshier
-	url = https://tzuhsinhsu@bitbucket.org/9thflr/react.chatshier.git
+	url = https://bitbucket.org/9thflr/react.chatshier.git
 	branch = develop
