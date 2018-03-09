@@ -29,7 +29,7 @@ module.exports = (function() {
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appIds, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.find(appIds, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
@@ -170,7 +170,7 @@ module.exports = (function() {
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => resolve(keywordrepliesData));
+                appsKeywordrepliesMdl.find(appId, (keywordrepliesData) => resolve(keywordrepliesData));
             });
         }).then((oldKeywordrepliesData) => {
             // 4. 將 ID 從 message 欄位中的 keywordreply_ids 移除
@@ -245,7 +245,7 @@ module.exports = (function() {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
-                appsKeywordrepliesMdl.findKeywordreplies(appId, (keywordrepliesData) => {
+                appsKeywordrepliesMdl.find(appId, (keywordrepliesData) => {
                     let messageId = cipher.createHashKey(keywordrepliesData[appId].keywordreplies[keywordreplyId].keyword);
                     appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
                         if (!(keywordreplyIds instanceof Array)) {

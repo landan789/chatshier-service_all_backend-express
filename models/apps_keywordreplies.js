@@ -62,9 +62,8 @@ module.exports = (function() {
      * @param {string|string[]} appIds
      * @param {(appsKeywordreples: any) => any} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appIds, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+    AppsKeywordrepliesModel.prototype.find = function(appIds, callback) {
+        Promise.resolve().then(() => {
             let appsKeywordreples = {};
             if (undefined === appIds) {
                 return appsKeywordreples;

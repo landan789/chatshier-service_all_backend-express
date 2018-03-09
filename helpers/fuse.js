@@ -123,7 +123,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appId, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
                     let keywordreplies = appsKeywordreplies[appId].keywordreplies;
                     let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
                     let list = keywordreplyIds.map((keywordreplyId) => {
@@ -161,7 +161,7 @@ module.exports = (function() {
             if (!(appId && inputText)) {
                 return Promise.resolve([]);
             }
-            appsKeywordrepliesMdl.findKeywordreplies(appId, (appsKeywordreplies) => {
+            appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
                 if (!appsKeywordreplies) {
                     return;
                 }
