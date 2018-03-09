@@ -298,8 +298,8 @@ function init(server) {
                                 messageCacheMap.set(lineEvent.message.id, true);
                                 let messageText = lineEvent.message.text || '';
                                 let messager;
-                                let replyMessages;
-                                let keywordreplies;
+                                let replyMessages = [];
+                                let keywordreplies = [];
                                 return messageProcess(messageText, senderId, option).then((result) => {
                                     keywordreplies = result.keywordreplies;
                                     let messages = result.messages;
@@ -398,10 +398,10 @@ function init(server) {
                             let option = {
                                 message: messaging[i].message
                             };
-                            let replyMessages;
                             let messager;
                             let sender;
-                            let keywordreplies;
+                            let replyMessages = [];
+                            let keywordreplies = [];
                             return messageProcess(messageText, senderId, option).then((result) => {
                                 keywordreplies = result.keywordreplies;
                                 let messages = result.messages;
