@@ -670,31 +670,31 @@ function init(server) {
             }).then((_bot) => {
                 bot = _bot;
                 return new Promise((resolve, reject) => {
-                    appsMessagersMdl.findAppMessagers(appId, (messagers) => {
-                        if (!messagers) {
+                    appsMessagersMdl.findAppsMessagers(appId, (appsMessagers) => {
+                        if (!appsMessagers) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
-                        }
-                        resolve(messagers);
+                        };
+                        messagers = appsMessagers[appId].messagers;
+                        resolve();
                     });
                 });
-            }).then((messagers) => {
+            }).then(() => {
                 return botSvc.multicast(Object.keys(messagers), messages, appId, app);
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
-                        appsComposes.insert(appId, message, (result) => {
+                        appsComposes.insert(appId, message, (appsComposes) => {
                             // 失敗需要 reject, catch
-                            if (!result) {
+                            if (!appsComposes) {
                                 reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
                             }
-                            resolve(messagers);
+                            resolve();
                         });
                     });
                 }));
             }).then(() => {
-                return Promise.all(Object.keys(messagers[appId].messagers).map((messagerIds) => {
-                    let messager = messagers[appId];
-                    let chatroomId = messager.messagers[messagerIds].chatroom_id;
+                return Promise.all(Object.keys(messagers).map((messagerId) => {
+                    let chatroomId = messagers[messagerId].chatroom_id;
 
                     return Promise.all(messages.map((message) => {
                         /** @type {ChatshierMessageInterface} */
@@ -707,7 +707,7 @@ function init(server) {
                         };
 
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerIds, _message, (message) => {
+                            appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {
                                 if (!message) {
                                     reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                                 };
