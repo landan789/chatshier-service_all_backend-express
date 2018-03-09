@@ -505,8 +505,11 @@ function init(server) {
             let appType = socketBody.appType;
             let chatroomId = socketBody.chatroomId;
             let message = socketBody.message;
-            let recipientId = socketBody.messagerId;
-            let senderId = message.messager_id;
+            // Uid LINE 或 FACEBOOK 用戶的 Uid
+            let Uid = socketBody.Uid;
+            // messagerId 訊息寄送者，這裡為 vendor 的 userid
+            let messagerId = message.messager_id;
+            let app;
 
             return Promise.resolve().then(() => {
                 // 2. 將資料寫入至資料庫
@@ -515,7 +518,7 @@ function init(server) {
                     time: message.time || Date.now(),
                     text: message.text,
                     from: CHATSHIER,
-                    messager_id: senderId,
+                    messager_id: messagerId,
                     src: !message.text ? (message.src || '') : ''
                 };
 
@@ -531,40 +534,15 @@ function init(server) {
             }).then(() => {
                 return new Promise((resolve) => {
                     appsMdl.findByAppId(appId, (apps) => {
-                        let app = apps[appId];
+                        app = apps[appId];
                         resolve(app);
                     });
                 });
-            }).then((app) => {
-                // 3. 利用 SDK 傳給各平台的 server
-                return Promise.resolve().then(() => {
-                    switch (app.type) {
-                        case FACEBOOK:
-                            let facebookConfig = {
-                                pageID: app.id1,
-                                appID: app.id2,
-                                appSecret: app.secret,
-                                validationToken: app.token1,
-                                pageToken: app.token2
-                            };
-
-                            let fbBot = facebook.create(facebookConfig);
-                            return helpersFacebook.sendMessage(fbBot, recipientId, message);
-                        case LINE:
-                            let lineClientConfig = {
-                                channelAccessToken: app.token1
-                            };
-
-                            let lineBot = new line.Client(lineClientConfig);
-                            let _message = chatshierHlp.toLineMessage(message);
-                            return lineBot.pushMessage(recipientId, _message);
-                        default:
-                            break;
-                    }
-                }).then(() => {
-                    return app;
-                });
-            }).then((app) => {
+            }).then(() => {
+                return botSvc.create(appId, app);
+            }).then(() => {
+                return botSvc.pushMessage(Uid, message, appId, app);
+            }).then(() => {
                 return new Promise((resolve) => {
                     // 根據 app 內的 group_id 找到群組內所有成員
                     let groupId = app.group_id;
@@ -576,7 +554,7 @@ function init(server) {
                 // 將聊天室內所有的群組成員的未讀數 +1
                 return Promise.all(memberUserIds.map((memberUserId) => {
                     // 不需更新發送者的未讀數
-                    if (senderId === memberUserId) {
+                    if (messagerId === memberUserId) {
                         return Promise.resolve();
                     }
 

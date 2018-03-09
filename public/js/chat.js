@@ -1407,7 +1407,7 @@
                 appId: appId,
                 appType: appType,
                 chatroomId: chatroomId,
-                messagerId: findChatroomMessagerId(appId, chatroomId),
+                Uid: findChatroomMessagerId(appId, chatroomId),
                 message: messageToSend
             };
 
@@ -1492,7 +1492,7 @@
                     appId: appId,
                     appType: appType,
                     chatroomId: chatroomId,
-                    messagerId: messagerId,
+                    Uid: messagerId,
                     message: messageToSend
                 };
 

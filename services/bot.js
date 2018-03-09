@@ -2,6 +2,7 @@ module.exports = (function() {
     const line = require('@line/bot-sdk');
     const bodyParser = require('body-parser');
     const facebook = require('facebook-bot-messenger'); // facebook串接
+    const chatshierCfg = require('../config/chatshier');
 
     const SCHEMA = require('../config/schema');
 
@@ -120,13 +121,13 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} senderId
+         * @param {string} messagerId
          * @param {string} replyToken
          * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
          */
-        replyMessage(senderId, replyToken, messages, appId, app) {
+        replyMessage(messagerId, replyToken, messages, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
                 return Promise.reject(new Error('bot undefined'));
@@ -138,25 +139,70 @@ module.exports = (function() {
                         return bot.replyMessage(replyToken, messages);
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
-                            switch (message.type) {
-                                case 'image':
-                                    return bot.sendImageMessage(senderId, message.src);
-                                case 'audio':
-                                    return bot.sendAudioMessage(senderId, message.src);
-                                case 'video':
-                                    return bot.sendVideoMessage(senderId, message.src);
-                                case 'text':
-                                default:
-                                    return bot.sendTextMessage(senderId, message.text);
-                            }
+                            if ('text' === message.type) {
+                                return bot.sendTextMessage(messagerId, message.text);
+                            };
+                            if ('image' === message.type) {
+                                return bot.sendImageMessage(messagerId, message.src, true);
+                            };
+                            if ('audio' === message.type) {
+                                return bot.sendAudioMessage(messagerId, message.src, true);
+                            };
+                            if ('video' === message.type) {
+                                return bot.sendVideoMessage(messagerId, message.src, true);
+                            };
+                            return bot.sendTextMessage(messagerId, message.text);
                         }));
                     default:
                         break;
                 }
             });
         }
+
+        pushMessage(messagerId, message, appId, app) {
+            let bot = this.bots[appId];
+            switch (app.type) {
+                case LINE:
+                    if ('text' === message.type) {
+                        // message.typ 為 'text' 不用調整，就可直接丟給 line service
+                    };
+                    if ('image' === message.type) {
+                        message.previewImageUrl = message.src;
+                        message.originalContentUrl = message.src;
+                    };
+                    if ('audio' === message.type) {
+                        message.duration = 240000;
+                        message.originalContentUrl = message.src;
+                    };
+                    if ('video' === message.type) {
+                        message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
+                        message.originalContentUrl = message.src;
+                    };
+                    if ('sticker' === message.type) {
+                        message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
+                        message.packageId = message.text.substr(message.text.indexOf(' '));
+                    };
+
+                    return bot.pushMessage(messagerId, message);
+                case FACEBOOK:
+                    if ('text' === message.type) {
+                        return bot.sendTextMessage(messagerId, message.text);
+                    };
+                    if ('image' === message.type) {
+                        return bot.sendImageMessage(messagerId, message.src, true);
+                    };
+                    if ('audio' === message.type) {
+                        return bot.sendAudioMessage(messagerId, message.src, true);
+                    };
+                    if ('video' === message.type) {
+                        return bot.sendVideoMessage(messagerId, message.src, true);
+                    };
+                    return bot.sendTextMessage(messagerId, message.text);
+            }
+        };
+
         /**
-         * @param {string[]} recipientIds
+         * @param {string[]} messagerIds
          * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
