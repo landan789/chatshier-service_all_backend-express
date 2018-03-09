@@ -13,8 +13,8 @@
     var SYSTEM = 'SYSTEM';
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
-    
-    var DROPBOX_ACCESS_TOKEN = 'x0Wf5BgKQZAAAAAAAAAAMxmKb4sRAYKQFYx2jZNCXkc27gAZedr6Y5DDIVTcxGnY';
+
+    var DROPBOX_ACCESS_TOKEN = 'x0Wf5BgKQZAAAAAAAAAAVVOyoBFra2-vSrdK2vbe3lNI3WaY9od7GpPWgPOiCuKu';
 
     var SOCKET_NAMESPACE = '/chatshier';
 
@@ -1497,7 +1497,7 @@
             scrollMessagePanelToBottom(appId, chatroomId);
 
             dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file}).then(function() {
-                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name});
+                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name, short_url: true});
             }).then(function(response) {
                 var url = response.url;
                 var msgType = $(_this).data('type');
