@@ -1,7 +1,6 @@
 
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
-    const cipher = require('../helpers/cipher');
 
     function AppsKeywordrepliesModel() {}
 
@@ -221,16 +220,29 @@ module.exports = (function() {
     AppsKeywordrepliesModel.prototype.remove = (appId, keywordreplyId, callback) => {
         Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
-                return;
+                return Promise.reject();
             }
 
             let deleteKeywordreply = {
-                isDeleted: 1
+                isDeleted: 1,
+                updatedTime: Date.now()
             };
 
             return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(deleteKeywordreply);
         }).then(() => {
-            callback(true);
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value');
+        }).then((snap) => {
+            let keywordreply = snap.val();
+            let appsKeywordreplies = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreplies);
+        }).then((appsKeywordreplies) => {
+            callback(appsKeywordreplies);
         }).catch(() => {
             callback(null);
         });

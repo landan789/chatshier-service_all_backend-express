@@ -239,48 +239,24 @@ module.exports = (function() {
 
     AppsKeywordrepliesController.prototype.deleteOne = function(req, res) {
         let keywordreplyId = req.params.keywordreplyid;
-        let appId = '';
-
-        return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            appId = checkedAppId;
-            return new Promise((resolve, reject) => {
-                // 3. 將原本的 keywordreply 資料撈出，將 ID 從 message 欄位中的 keywordreply_ids 移除
-                appsKeywordrepliesMdl.find(appId, (keywordrepliesData) => {
-                    let messageId = cipher.createHashKey(keywordrepliesData[appId].keywordreplies[keywordreplyId].keyword);
-                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
-                        if (!(keywordreplyIds instanceof Array)) {
-                            resolve();
-                            return;
-                        }
-
-                        let idx = keywordreplyIds.indexOf(keywordreplyId);
-                        if (idx >= 0) {
-                            keywordreplyIds.splice(idx, 1);
-                            appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, () => {
-                                resolve();
-                            });
-                            return;
-                        }
-                        resolve();
-                    });
-                });
-            });
-        }).then(() => {
+        let appId = req.params.appid;
+        
+        return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then(() => {
             return new Promise((resolve, reject) => {
                 // 4. 刪除指定的 appId 中的 keywordreply 資料
-                appsKeywordrepliesMdl.remove(appId, keywordreplyId, (data) => {
-                    if (!data) {
+                appsKeywordrepliesMdl.remove(appId, keywordreplyId, (appsKeywordreplies) => {
+                    if (!appsKeywordreplies) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
                         return;
                     }
-                    resolve(data);
+                    resolve(appsKeywordreplies);
                 });
             });
-        }).then((data) => {
+        }).then((appsKeywordreplies) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                data: data
+                data: appsKeywordreplies
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
