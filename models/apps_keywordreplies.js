@@ -66,39 +66,31 @@ module.exports = (function() {
         Promise.resolve().then(() => {
             let appsKeywordreples = {};
             if (undefined === appIds) {
-                return appsKeywordreples;
-            } else if ('string' === typeof appIds) {
+                return Promise.resolve({});
+            };
+
+            if ('string' === typeof appIds) {
                 appIds = [appIds];
             }
 
             // 準備批次查詢的 promise 工作
             return Promise.all(appIds.map((appId) => {
                 return admin.database().ref('apps/' + appId + '/keywordreplies').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                    if (!snap) {
-                        return;
+                    let keywordreplies = snap.val() || {};
+
+                    if (!keywordreplies) {
+                        return Promise.reject();
                     }
 
-                    // 根據查詢路徑建立回傳的資料結構
-                    let keywordreplies = snap.val() || {};
                     appsKeywordreples[appId] = {
                         keywordreplies: keywordreplies
                     };
                 });
             })).then(() => {
-                // 最後的資料結構型式:
-                // {
-                //   ($appId)
-                //   ($appId)
-                //     ⌞keywordreplies
-                //       ⌞($keywordreplyId)
-                //         ⌞($data)
-                //       ⌞($keywordreplyId)
-                //         ⌞($data)
-                // }
-                return appsKeywordreples;
+                return Promise.resolve(appsKeywordreples);
             });
-        }).then((result) => {
-            callback(result);
+        }).then((appsKeywordreples) => {
+            callback(appsKeywordreples);
         }).catch(() => {
             callback(null);
         });
