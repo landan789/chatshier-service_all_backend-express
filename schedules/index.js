@@ -23,10 +23,10 @@ admin.initializeApp({
 
 let jobProcess = () => {
     let startedUnixTime = Date.now();
-    let appIds = '';
 
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
+        let appIds = '';
         appsMdl.findAppsByAppIds(appIds, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
@@ -65,15 +65,11 @@ let jobProcess = () => {
 
             return botSvc.multicast(Object.keys(messagers), messages, appId, app).then(() => {
                 return Promise.all(Object.keys(messagers).map((messagerId) => {
-                    return appsMessagersMdl.findMessagerChatroomId(appId, messagerId).then((chatroomId) => {
-                        if (!chatroomId) {
-                            return Promise.reject(new Error(messagerId + ' chatroomId not found'));
-                        };
-                        return Promise.all(messages.map((message) => {
-                            console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                            return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
-                        }));
-                    });
+                    let chatroomId = messagers[messagerId].chatroom_id;
+                    return Promise.all(messages.map((message) => {
+                        console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
+                        return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                    }));
                 }));
             });
 
