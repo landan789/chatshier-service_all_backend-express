@@ -219,9 +219,7 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.remove = (appId, keywordreplyId, callback) => {
-        let procced = Promise.resolve();
-
-        procced.then(() => {
+        Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
                 return;
             }
