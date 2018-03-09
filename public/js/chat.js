@@ -13,6 +13,8 @@
     var SYSTEM = 'SYSTEM';
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
+    
+    var DROPBOX_ACCESS_TOKEN = 'x0Wf5BgKQZAAAAAAAAAAMxmKb4sRAYKQFYx2jZNCXkc27gAZedr6Y5DDIVTcxGnY';
 
     var SOCKET_NAMESPACE = '/chatshier';
 
@@ -37,6 +39,8 @@
     window.translate.ready.then(function(json) {
         transJson = Object.assign(transJson, json);
     });
+
+    var dbx = new Dropbox.Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN });
 
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -583,6 +587,14 @@
                 var messagers = appsMessagers[appId].messagers;
 
                 return Promise.resolve().then(function() {
+                    return new Promise(function(resolve, reject) {
+                        urltoFile(message.src, fileName(message.src)).then(function(file) {
+                            resolve(file);
+                        });
+                    });
+                }).then(function(file) {
+                    return dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file});
+                }).then(function() {
                     var sender = senderId ? messagers[senderId] : {};
                     if (sender && sender.name) {
                         return sender;
@@ -688,6 +700,19 @@
                 var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, messager));
                 $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
             });
+        }
+
+        function fileName(url) {
+            let dataType = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
+            return Date.now() + '.' + dataType;
+        }
+
+        function urltoFile(url, filename, mimeType) {
+            mimeType = mimeType || (url.match(/^data:([^;]+);/) || '')[1];
+            return (fetch(url)
+                .then(function(res) { return res.arrayBuffer(); })
+                .then(function(buf) { return new File([buf], filename, {type: mimeType}); })
+            );
         }
 
         function generateAppsIcons(apps) {
@@ -1471,8 +1496,10 @@
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
-            return fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.downloadURL;
+            dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file}).then(function() {
+                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name});
+            }).then(function(response) {
+                var url = response.url;
                 var msgType = $(_this).data('type');
                 var appType = apps[appId].type;
                 var messagerId = findChatroomMessagerId(appId, chatroomId);
@@ -1486,7 +1513,6 @@
                     time: Date.now(),
                     messager_id: userId
                 };
-
                 /** @type {ChatshierChatSocketInterface} */
                 var chatSocketData = {
                     appId: appId,
@@ -1495,27 +1521,25 @@
                     messagerId: messagerId,
                     message: messageToSend
                 };
-
-                return new Promise(function(resolve) {
-                    messageInput.val('');
-                    chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
-                        $loadingElem.remove();
-                        $loadingElem = void 0;
-                        resolve();
-                    });
-                }).then(function() {
-                    // var sender = appsMessagers[appId].messagers[userId];
-                    // var srcHtml = messageToPanelHtml(messageToSend);
-
-                    // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name, appType);
-                    // $messagePanel.append(messageHtml);
-                    // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
-
-                    // var $tablinkMsg = $('.tablinks[app-id="' + appId + '"] .client-message');
-                    // $tablinkMsg.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(srcHtml));
+                messageInput.val('');
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                    $loadingElem.remove();
+                    $loadingElem = void 0;
                 });
+            }).catch(function(error) {
+                console.error(error);
             });
+        }
+
+        function getBase64(file, callback) {
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                callback(reader.result);
+            };
+            reader.onerror = function (error) {
+                console.log('Error: ', error);
+            };
         }
 
         function triggerFileUpload(e) {
