@@ -4,9 +4,22 @@ module.exports = (function() {
     let appsAutorepliesMdl = require('../models/apps_autoreplies');
     let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 
+    const LINE = 'LINE';
+    const FACEBOOK = ''
     function ChatshierHelp() {};
 
-    ChatshierHelp.prototype.findReplyMessages = function(){
+    /**
+     * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
+     * @param {*} body 
+     * @param {*} app 
+     */
+    ChatshierHelp.prototype.findReplyMessages = function(body, app) {
+        switch (app.type) {
+            case LINE:
+                break;
+            case FACEBOOK:
+                break;
+        }
     };
     /**
      * 處理要傳給 line 的 message 格式

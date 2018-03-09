@@ -678,16 +678,7 @@ function init(server) {
                     });
                 });
             }).then((messagers) => {
-                switch (app.type) {
-                    case LINE:
-                        return bot.multicast(Object.keys(messagers[appId].messagers), messages);
-                    case FACEBOOK:
-                        return Promise.all(Object.keys(messagers[appId].messagers).map((messager) => {
-                            return Promise.all(messages.map((message) => {
-                                return bot.sendTextMessage(messager, message.text);
-                            }));
-                        }));
-                }
+                return botSvc.multicast(Object.keys(messagers), messages, appId, app);
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
