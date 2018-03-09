@@ -8,7 +8,8 @@ npm start指令的起始點(./bin/www)
 ### 2. config
 全域的設定檔
 
-* 錯誤/成功格式訊息  
+* 錯誤格式訊息
+* 成功格式訊息  
 * 資料庫設定檔  
 * 群組/聊天室的資料庫格式  
 * Socket設定
@@ -32,10 +33,8 @@ Linux 環境設定檔
 
 * cipher - 使用cipher套件把接收的訊息加密
 * timer - 操作時間的格式至unix time
-* utility - 判斷接收訊息的類型並轉換該類型的顯示方式 範例：圖檔要新增img標籤
 * bot - 接收訊息後的判斷，使否有需要回覆訊息
 * facebook - facebook bot的訊息判斷
-
 
 ### 7. middlewares
 中介函式
@@ -47,7 +46,7 @@ Linux 環境設定檔
 一個檔案代表一個資料庫集合(collection)
 
 ### 9. public
-處理client端的檔案
+browser client端的檔案
 
 * config - client端的firebase, socket, chatshier設定
 * css - stylesheet資料夾
@@ -65,22 +64,21 @@ Linux 環境設定檔
 ### 11. schedules
 排程功能
 
-### 11. services
+### 12. services
 處理外部server端的函式庫
 
 * bot.js - LINE跟Facebook bot的訊息接收
 
-### 12. sockets
+### 13. sockets
 處理socket
 
 * index.js - 處理socket的檔案
 
-### 13. typings
+### 14. typings
 typing 檔案
 
-### 14. view
-service.chat
-view engine: ejs
+### 15. view
+express view engine: ejs
 
 ## **二、檔案**
 
