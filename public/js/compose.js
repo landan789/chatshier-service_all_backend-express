@@ -8,21 +8,27 @@
     const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
+    var age = '';
+    var gender = '';
+    var tag_ids = {};
+    var appsTags = '';
     var deleteNum = 0;
-    var appId = '';
     var userId = '';
     var nowSelectAppId = '';
+    var modelSelectAppId = '';
     var sendtime;
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $composeEditModal = $('#editModal');
     var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
+    var $customTags = $('#custom-tags');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
-    const unpermittedCode = '3.16';
+    var tagEnums = api.appsTags.enums;
+    const NO_PERMISSION_CODE = '3.16';
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
@@ -36,7 +42,42 @@
         $(document).on('click', '.remove-btn', removeInput);
         $(document).on('click', '#modal-submit', insertSubmit);
         $(document).on('click', '#add-btn', cleanmodal);
+        $(document).on('click', '#send-all', function () {
+            let id = $(this).attr('rel');
+            $('#' + id).hide();
+        });
+        $(document).on('click', '#send-somebody', function () {
+            let id = $(this).attr('rel');
+            $('#' + id).show();
+        });
+        $(document).on('click', 'button#tag', appendInput);
         $(document).on('change paste keyup', '.search-bar', dataSearch);
+        $(document).on('click', '#condition-close-btn', function() {
+            let $conditionDiv = $(this).parent();
+            let $tagBtn = $(this).parent().parent().find('button#tag');
+
+            let btnName = $tagBtn.attr('name');
+
+            $tagBtn.removeClass();
+            $tagBtn.attr('class', 'btn btn-grey');
+            $tagBtn.text(btnName);
+            $tagBtn.show();
+            $conditionDiv.remove();
+        });
+        $(document).on('click', '#condition-check-btn', function() {
+            let $conditionDiv = $(this).parent();
+            let $conditionInput = $(this).parent().find('input');
+            let $tagBtn = $(this).parent().parent().find('button#tag');
+
+            let btnName = $tagBtn.attr('name');
+            let conditionValue = $conditionInput.val();
+
+            $conditionDiv.hide();
+            $conditionInput.attr('value', conditionValue);
+            $tagBtn.removeClass();
+            $tagBtn.attr('class', 'btn btn-info');
+            $tagBtn.text(btnName + ':' + conditionValue).show();
+        });
         $composesAddModal.find('#quickAdd').on('click', insertSubmit);
         $historyTableElem = $('#composes_history_table tbody');
         $reservationTableElem = $('#composes_reservation_table tbody');
@@ -51,8 +92,8 @@
         // FUNCTIONs
 
         function storeApp() {
-            appId = '';
-            appId = $(this).find(':selected').attr('id');
+            modelSelectAppId = $(this).find(':selected').val();
+            appCustomerTagChanged();
         } // end of loadFriendsReply
 
         function removeInput() {
@@ -94,26 +135,102 @@
         }
 
         $composeEditModal.on('shown.bs.modal', function(event) {
+            $('#edit-custom-tags').empty();
             var targetRow = $(event.relatedTarget).parent().parent();
             var appId = targetRow.attr('text');
             var composeId = targetRow.attr('id');
             var $editForm = $composeEditModal.find('.modal-body form');
             var targetData = composesData[composeId];
+            var customTagsElement = targetRow.find('#tags>#tag');
+            var customTags = {};
+            customTagsElement.each(function() {
+                let tagValue = $(this).text();
+                let tagId = $(this).attr('data-type');
+                customTags[tagId] = tagValue;
+            });
+
+            var appTags = appsTags[appId].tags;
+            for (let appTagId in appTags) {
+                let appTag = appTags[appTagId];
+                if (appTag.isDeleted || ('age' !== appTag.alias && 'gender' !== appTag.alias && '' !== appTag.alias)) {
+                    delete appTags[appTagId];
+                    continue;
+                }
+
+                switch (appTag.alias) {
+                    case 'age':
+                        if (!customTags[appTag.alias]) {
+                            TagBtn('age', '年齡', appTag.setsType, 'edit-custom-tags');
+                            break;
+                        }
+
+                        $('#edit-custom-tags').append(
+                            '<div class="form-group col-sm-6">' +
+                                '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="年齡" data-type="' + appTag.setsType + '" id="tag">年齡:' + customTags[appTag.alias] + '</button>' +
+                                '<div id="condition" style="display: none;">' +
+                                    '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="年齡" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                        break;
+                    case 'gender':
+                        if (!customTags[appTag.alias]) {
+                            TagBtn('gender', '性別', appTag.setsType, 'edit-custom-tags');
+                            break;
+                        }
+                        $('#edit-custom-tags').append(
+                            '<div class="form-group col-sm-6">' +
+                                '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="性別" data-type="' + appTag.setsType + '" id="tag">性別:' + customTags[appTag.alias] + '</button>' +
+                                '<div id="condition" style="display: none;">' +
+                                    '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="性別" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                        break;
+                    case '':
+                        if (!customTags[appTagId]) {
+                            TagBtn(appTagId, appTag.text, appTag.setsType, 'edit-custom-tags');
+                            break;
+                        }
+                        $('#edit-custom-tags').append(
+                            '<div class="form-group col-sm-6">' +
+                                '<button type="button" rel="' + appTagId + '" class="btn btn-info" name="' + appTag.text + '" data-type="' + appTag.setsType + '" id="tag">' + appTag.text + ':' + customTags[appTagId] + '</button>' +
+                                '<div id="condition" style="display: none;">' +
+                                    '<input type="text" class="form-gruop" rel="' + appTagId + '" data-type="' + appTag.setsType + '" placeholder="' + appTag.text + '" id="condition-input" value="' + customTags[appTagId] + '">' +
+                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                        break;
+                }
+            }
+
             $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
             $editForm.find('#edutinput').val(targetData.text);
             $composeEditModal.find('#edit-submit').off('click').on('click', function() {
                 $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
                 var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
+                var conditionInputElement = $composeEditModal.find('input#condition-input');
+                tagsObjCompose(conditionInputElement);
                 targetData.text = $editForm.find('#edutinput').val();
                 targetData.time = Date.parse($editForm.find('#edit-time').val());
+                targetData.age = age;
+                targetData.gender = gender;
+                targetData.tag_ids = Object.assign({}, tag_ids);
                 if (true === isDraft) {
                     targetData.status = 0;
-                    targetData.text = $editForm.find('#edutinput').val();
-                    targetData.time = Date.parse($editForm.find('#edit-time').val());
                 } else {
                     targetData.status = 1;
                 }
-                return api.appsComposes.update(appId, composeId, userId, targetData).then(function() {
+                return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
+                    age = '';
+                    gender = '';
+                    tag_ids = {};
                     $composeEditModal.modal('hide');
                     $.notify('修改成功！', { type: 'success' });
                     $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -125,7 +242,7 @@
                         $composeEditModal.find('#edit-submit').removeAttr('disabled');
                         return loadComposes(appId, userId);
                     }
-                    if (unpermittedCode === resJson.code) {
+                    if (NO_PERMISSION_CODE === resJson.code) {
                         $composeEditModal.modal('hide');
                         $.notify('無此權限', { type: 'danger' });
                         $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -143,6 +260,7 @@
         // 必須把訊息資料結構轉換為 chart 使用的陣列結構
         // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
+        modelSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
             if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
@@ -152,11 +270,12 @@
             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
             $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
-            if (!nowSelectAppId) {
+            if (!nowSelectAppId && !modelSelectAppId) {
                 nowSelectAppId = appId;
+                modelSelectAppId = appId;
             }
         }
 
@@ -164,6 +283,10 @@
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadComposes(nowSelectAppId, userId);
             $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        }
+
+        if (modelSelectAppId) {
+            appCustomerTagChanged();
         }
     });
 
@@ -173,12 +296,53 @@
         loadComposes(nowSelectAppId, userId);
     }
 
+    function appCustomerTagChanged() {
+        $customTags.empty();
+        if (!modelSelectAppId) {
+            modelSelectAppId = $(this).find(':selected').val();
+        }
+        return api.appsTags.findAll(userId).then((resJson) => {
+            appsTags = resJson.data;
+            let appTags = resJson.data[modelSelectAppId].tags;
+            for (let appTag in appTags) {
+                let tag = appTags[appTag];
+                if (tag.isDeleted) {
+                    delete appTags[appTag];
+                    continue;
+                }
+                switch (tag.alias) {
+                    case 'age':
+                        TagBtn('age', '年齡', tag.setsType, 'custom-tags');
+                        break;
+                    case 'gender':
+                        TagBtn('gender', '性別', tag.setsType, 'custom-tags');
+                        break;
+                    case '':
+                        TagBtn(appTag, tag.text, tag.setsType, 'custom-tags');
+                }
+            }
+        });
+    }
+
+    function TagBtn(id, text, type, elementId) {
+        let div = $('<div>').attr('class', 'form-group col-sm-6');
+        let btn = $('<button>').attr('type', 'button')
+            .attr('rel', id)
+            .attr('class', 'btn btn-grey')
+            .attr('name', text)
+            .attr('data-type', type)
+            .attr('id', 'tag')
+            .text(text);
+        div.append(btn);
+        $('#' + elementId).append(div);
+    }
+
     var TableObj = function() {
-        this.tr = $('<tr>').attr('id', 'text');
+        this.tr = $('<tr>');
         this.th = $('<th>').attr('id', 'text');
         this.td1 = $('<td>').attr('id', 'time');
-        this.td2 = $('<td>').attr('id', 'status');
-        this.td3 = $('<td>');
+        this.td2 = $('<td>').attr('id', 'tags');
+        this.td3 = $('<td>').attr('id', 'status');
         this.UpdateBtn = $('<button>').attr('type', 'button')
             .addClass('btn btn-grey fa fa-pencil')
             .attr('id', 'edit-btn')
@@ -199,13 +363,14 @@
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];
+
                 if (composeData.isDeleted) {
                     continue;
                 }
                 var list = new TableObj();
                 var text = list.th.attr('data-title', composeData.text).text(composeData.text);
                 var time = list.td1.text(ToLocalTimeString(composeData.time));
-
+                var tags = appendTags(composeData, list.td2);
                 list.DeleteBtn.off('click').on('click', function(event) {
                     var targetRow = $(event.target).parent().parent();
                     var appId = targetRow.attr('text');
@@ -223,15 +388,15 @@
                             if (undefined === resJson.status) {
                                 $.notify('失敗', { type: 'danger' });
                             }
-                            if (unpermittedCode === resJson.code) {
+                            if (NO_PERMISSION_CODE === resJson.code) {
                                 $.notify('無此權限', { type: 'danger' });
                             }
                         });
                     });
                 });
 
-                var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
-                var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
+                var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
+                var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, tags, btns);
                 if (0 === composeData.status) {
                     $draftTableElem.append(trGrop);
                 } else if (1 === composeData.status && composeData.time > timeInMs) {
@@ -241,6 +406,33 @@
                 }
             }
         });
+    }
+    function appendTags(composeData, tagsTd) {
+        let composeTags = {
+            'age': {
+                'value': ''
+            },
+            'gender': {
+                'value': ''
+            }
+        };
+        let composeAge = composeData.age || '';
+        let composeGender = composeData.gender || '';
+        if (!composeData.tag_ids && '' === composeAge && '' === composeGender) {
+            tagsTd.append('<snap id="sendAll">無');
+            return tagsTd;
+        }
+        composeTags = Object.assign(composeTags, composeData.tag_ids) || composeTags;
+        composeTags['age'].value = composeAge;
+        composeTags['gender'].value = composeGender;
+        for (var tagId in composeTags) {
+            let composeTag = composeTags[tagId];
+            if (!composeTag.value) {
+                continue;
+            }
+            tagsTd.append('<snap id="tag" data-type="' + tagId + '">' + composeTag.value);
+        }
+        return tagsTd;
     }
 
     function dataSearch() {
@@ -262,23 +454,8 @@
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
-            var dialogModalTemplate =
-                '<div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">' +
-                '<div class="modal-dialog" role="document">' +
-                '<div class="modal-content">' +
-                '<div class="modal-body">' +
-                '<h4>' + textContent + '</h4>' +
-                '</div>' +
-                '<div class="modal-footer">' +
-                '<button type="button" class="btn btn-primary">確定</button>' +
-                '<button type="button" class="btn btn-secondary">取消</button>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                '</div>';
-            $('body').append(dialogModalTemplate);
-            dialogModalTemplate = void 0;
             $('#textContent').text(textContent);
+
             var isOK = false;
             var $dialogModal = $('#dialog_modal');
 
@@ -304,19 +481,59 @@
         $('.error-msg').hide();
         $('.error-input').hide();
         $('.textinput').val('');
+        $('#send-all').prop('checked', true);
+        $('div#limit-user').hide();
+        $('div#condition').remove();
+        $('button[id="tag"]').show();
+        $('#send-now').prop('checked', true);
         $('#send-time').val('');
         $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
         inputObj = {};
         inputNum = 0;
         deleteNum = 0;
+        age = '';
+        gender = '';
+        tag_ids = {};
+    }
+
+    function appendInput() {
+        let text = $(this).text();
+        let rel = $(this).attr('rel');
+        let dataType = $(this).attr('data-type');
+        let div = $('<div>').attr('id', 'condition');
+        let checkBtn = $('<button>').attr('type', 'button')
+            .attr('class', 'btn btn-default fa fa-check')
+            .attr('id', 'condition-check-btn');
+        let closeBtn = $('<button>').attr('type', 'button')
+            .attr('class', 'btn btn-default fa fa-close')
+            .attr('id', 'condition-close-btn');
+        let input = $('<input>').attr('type', 'text')
+            .attr('class', 'form-gruop')
+            .attr('rel', rel)
+            .attr('data-type', dataType)
+            .attr('placeholder', text)
+            .attr('id', 'condition-input');
+        let $tagDiv = $(this).parent();
+        let $conditionDiv = $(this).parent().find('div');
+
+        let conditionId = $conditionDiv.attr('id');
+        $(this).hide();
+        if (!conditionId) {
+            div.append(input, checkBtn, closeBtn);
+            $tagDiv.append(div);
+        }
+        $conditionDiv.show();
     }
 
     function insertSubmit() {
         var $errorMsgElem = $composesAddModal.find('.error-input');
+        var appId = $appSelector.find('option:selected').val();
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         var sendTime = $composesAddModal.find('#send-time').val();
-        let messages = [];
+        var messages = [];
+        var conditionInputElement = $composesAddModal.find('input#condition-input');
+        tagsObjCompose(conditionInputElement);
         $errorMsgElem.empty().hide();
 
         var isTextVaild = true;
@@ -341,7 +558,10 @@
                         type: 'text',
                         text: $('#' + key).val(),
                         status: 1,
-                        time: (Date.now()) - 60000
+                        time: (Date.now()) - 60000,
+                        age: age,
+                        gender: gender,
+                        tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
                     };
                     composes.push(compose);
                 }
@@ -372,7 +592,7 @@
                                 $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
                                 return loadComposes(appId, userId);
                             }
-                            if (unpermittedCode === json.code) {
+                            if (NO_PERMISSION_CODE === json.code) {
                                 $composesAddModal.modal('hide');
                                 $.notify('無此權限', { type: 'danger' });
                                 $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
@@ -417,8 +637,9 @@
                     var list = new TableObj();
                     var text = list.th.attr('data-title', compose.text).text(compose.text);
                     var time = list.td1.text(ToLocalTimeString(compose.time));
-                    var btns = list.td2.append(list.UpdateBtn, list.DeleteBtn);
-                    var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, btns);
+                    var tags = appendTags(appsComposes, list.td2);
+                    var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
+                    var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, tags, btns);
                     if (0 === compose.status) {
                         $draftTableElem.append(trGrop);
                     } else if (1 === compose.status && compose.time > timeInMs) {
@@ -433,7 +654,44 @@
             });
         }
     }
+    function tagsObjCompose(conditionInputElement) {
+        conditionInputElement.each(function () {
+            var conditionVal = $(this).val();
+            var conditionRel = $(this).attr('rel');
+            var conditionDataType = $(this).attr('data-type');
+            if (!conditionVal) {
+                return;
+            }
 
+            switch (conditionDataType) {
+                case tagEnums.setsType.NUMBER:
+                    conditionVal = parseInt(conditionVal);
+                    break;
+            }
+
+            switch (conditionRel) {
+                case 'age':
+                    age = conditionVal;
+                    break;
+                case 'gender':
+                    switch (conditionVal) {
+                        case '男':
+                            gender = 'MALE';
+                            break;
+                        case '女':
+                            gender = 'FEMALE';
+                            break;
+                        default:
+                            gender = conditionVal;
+                    }
+                    break;
+                default:
+                    tag_ids[conditionRel] = {
+                        value: conditionVal
+                    };
+            }
+        });
+    }
     function insert(appId, userId, isDraft, messages) {
         let respJsons = [];
 
@@ -446,9 +704,15 @@
                     type: 'text',
                     text: messages[i].text,
                     status: isDraft ? 0 : 1,
-                    time: Date.parse(sendtime)
+                    time: Date.parse(sendtime),
+                    age: age,
+                    gender: gender,
+                    tag_ids: tag_ids
                 };
                 return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
+                    age = '';
+                    gender = '';
+                    tag_ids = {};
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
                 }).catch((resJson) => {
@@ -458,7 +722,7 @@
                         $.notify('失敗', { type: 'danger' });
                         return loadComposes(appId, userId);
                     }
-                    if (unpermittedCode === resJson.code) {
+                    if (NO_PERMISSION_CODE === resJson.code) {
                         $composesAddModal.modal('hide');
                         $composesAddModal.find('#modal-submit').removeAttr('disabled');
                         $.notify('無此權限', { type: 'danger' });
@@ -470,9 +734,15 @@
                     type: 'text',
                     text: messages[i].text,
                     status: isDraft ? 0 : 1,
-                    time: Date.now()
+                    time: Date.now(),
+                    age: age,
+                    gender: gender,
+                    tag_ids: tag_ids
                 };
                 return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
+                    age = '';
+                    gender = '';
+                    tag_ids = {};
                     respJsons.push(resJson);
                     return nextPromise(i + 1);
                 }).catch((resJson) => {
@@ -482,7 +752,7 @@
                         $.notify('失敗', { type: 'danger' });
                         return loadComposes(appId, userId);
                     }
-                    if (unpermittedCode === resJson.code) {
+                    if (NO_PERMISSION_CODE === resJson.code) {
                         $composesAddModal.modal('hide');
                         $composesAddModal.find('#modal-submit').removeAttr('disabled');
                         $.notify('無此權限', { type: 'danger' });
@@ -490,7 +760,6 @@
                     }
                 });
             }
-
         }
         return nextPromise(0);
     }

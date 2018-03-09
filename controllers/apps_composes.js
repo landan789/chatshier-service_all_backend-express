@@ -94,11 +94,17 @@ module.exports = (function() {
         let time = req.body.time;
         let type = req.body.type;
         let text = req.body.text;
+        let age = req.body.age;
+        let gender = req.body.gender;
+        let tag_ids = req.body.tag_ids;
         let postCompose = {
             type: type,
             text: text,
             time: time,
-            status: status
+            status: status,
+            age: age,
+            gender: gender,
+            tag_ids: tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -136,11 +142,17 @@ module.exports = (function() {
         let time = req.body.time;
         let type = req.body.type;
         let text = req.body.text;
+        let age = req.body.age;
+        let gender = req.body.gender;
+        let tag_ids = req.body.tag_ids;
         let putComposesData = {
             type: type,
             text: text,
             time: time,
-            status: status
+            status: status,
+            age: age,
+            gender: gender,
+            tag_ids: tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;

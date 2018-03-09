@@ -666,6 +666,7 @@ function init(server) {
                 });
             }).then((_app) => {
                 app = _app;
+                appType = app.type;
                 return botSvc.create(appId, app);
             }).then((_bot) => {
                 bot = _bot;
@@ -677,6 +678,41 @@ function init(server) {
                         messagers = appsMessagers[appId].messagers;
                         resolve();
                     });
+                });
+            }).then(() => {
+                let originMessagers = messagers;
+                return new Promise((resolve, reject) => {
+                    Object.keys(originMessagers).map((messagerId) => {
+                        messages.map((message) => {
+                            let originMessager = originMessagers[messagerId];
+                            let originMessagerAge = originMessager.age || '';
+                            let originMessagerGender = originMessager.gender || '';
+                            let originMessagerTags = originMessager.custom_tags || {};
+
+                            let messageAge = message.age || '';
+                            let messageGender = message.gender || '';
+                            let messageTags = 0 === Object.keys(message.tag_ids).length ? {} : message.tag_ids;
+
+                            if (originMessagerAge !== messageAge && '' !== messageAge) {
+                                delete messagers[messagerId];
+                            }
+                            if (originMessagerGender !== messageGender && '' !== messageGender) {
+                                delete messagers[messagerId];
+                            }
+                            Object.keys(messageTags).map((tagId) => {
+                                let originMessagerTagValue = originMessagerTags[tagId].value || '';
+                                let messageTagValue = messageTags[tagId].value || '';
+                                if (originMessagerTagValue !== messageTagValue && '' !== messageTagValue) {
+                                    delete messagers[messagerId];
+                                }
+                            });
+                        });
+                    });
+                    if (0 === Object.keys(messagers).length) {
+                        reject(API_ERROR.APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS);
+                        return;
+                    }
+                    resolve();
                 });
             }).then(() => {
                 return botSvc.multicast(Object.keys(messagers), messages, appId, app);

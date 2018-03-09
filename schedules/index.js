@@ -44,20 +44,44 @@ let jobProcess = () => {
 
             let messages = [];
             let composes = app.composes === undefined ? '' : app.composes;
-            for (let composeId in composes) {
-                if (composes[composeId].text &&
-                    1 === composes[composeId].status &&
-                    timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                    0 === composes[composeId].isDeleted
-                ) {
-                    let message = {
-                        type: composes[composeId].type,
-                        text: composes[composeId].text
-                    };
-                    messages.push(message);
-                }
-            };
             let messagers = app.messagers || {};
+            for (let messagerId in messagers) {
+                let originMessager = messagers[messagerId] || {};
+                let originMessagerAge = originMessager.age || '';
+                let originMessagerGender = originMessager.gender || '';
+                let originMessagerTags = originMessager.custom_tags || {};
+
+                for (let composeId in composes) {
+                    if (composes[composeId].text &&
+                        1 === composes[composeId].status &&
+                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
+                        0 === composes[composeId].isDeleted
+                    ) {
+                        let message = {
+                            type: composes[composeId].type,
+                            text: composes[composeId].text
+                        };
+                        messages.push(message);
+                        let composeAge = composes[composeId].age || '';
+                        let composeGender = composes[composeId].gander || '';
+                        let composeTags = composes[composeId].tag_ids || {};
+
+                        if (originMessagerAge !== composeAge && '' !== composeAge) {
+                            delete messagers[messagerId];
+                        }
+                        if (originMessagerGender !== composeGender && '' !== composeGender) {
+                            delete messagers[messagerId];
+                        }
+                        for (let tagId in composeTags) {
+                            let originMessagerTagValue = originMessagerTags[tagId].value || '';
+                            let composeTagValue = composeTags[tagId].value || '';
+                            if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
+                                delete messagers[messagerId];
+                            }
+                        }
+                    }
+                };
+            }
             // 沒有訊息對象 或 沒有群發訊息 就不做處理
             if (0 === Object.keys(messagers).length || 0 === messages.length) {
                 return Promise.resolve(null);

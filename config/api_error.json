@@ -102,6 +102,7 @@
     "APP_COMPOSE_FAILED_TO_UPDATE": { "MSG": "app compose failed to update", "CODE": "15.3" },
     "APP_COMPOSE_FAILED_TO_REMOVE": { "MSG": "app compose failed to remove", "CODE": "15.4" },
     "APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW": { "MSG": "app compose time must be later than now", "CODE": "15.5" },
+    "APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS": { "MSG": "app compose did not have these tags", "CODE": "15.6" },
 
     "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" }
 }
