@@ -1,4 +1,3 @@
-let cipher = require('../helpers/cipher');
 let socketIO = require('socket.io');
 
 let line = require('@line/bot-sdk');
@@ -14,7 +13,6 @@ let botSvc = require('../services/bot');
 
 let appsMdl = require('../models/apps');
 let appsMessagersMdl = require('../models/apps_messagers');
-let appsMessagesMdl = require('../models/apps_messages');
 let appsTemplatesMdl = require('../models/apps_templates');
 let appsGreetingsMdl = require('../models/apps_greetings');
 let appsComposes = require('../models/apps_composes');
@@ -65,7 +63,6 @@ function init(server) {
          * @returns {Promise<any>}
          */
         function messageProcess(messageText, senderId, option) {
-            let messageId = cipher.createHashKey(messageText);
             let totalMessages = [];
             let messager;
             let sender;
@@ -75,17 +72,7 @@ function init(server) {
             let keywordreplyIdMessage;
 
             return new Promise((resolve, reject) => {
-                // 到 models/apps_messages.js，找到 keywordreply_ids
-                appsMessagesMdl.findMessage(appId, messageId, (messageInDB) => {
-                    messageInDB = messageInDB || {};
-
-                    let replyIds = {
-                        // keywordreplyIds: messageInDB.keywordreply_ids || [],
-                        templateIds: messageInDB.template_ids || []
-                    };
-
-                    resolve(replyIds);
-                });
+                resolve({});
             }).then((replyIds) => {
                 // =========
                 // 此 Promise 區塊準備關鍵字回覆、樣板、自動回覆資料的區塊
