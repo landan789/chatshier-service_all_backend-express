@@ -66,6 +66,9 @@ let jobProcess = () => {
             return botSvc.multicast(Object.keys(messagers), messages, appId, app).then(() => {
                 return Promise.all(Object.keys(messagers).map((messagerId) => {
                     let chatroomId = messagers[messagerId].chatroom_id;
+                    if (!chatroomId) {
+                        return Promise.resolve(null);
+                    }
                     return Promise.all(messages.map((message) => {
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
                         return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
