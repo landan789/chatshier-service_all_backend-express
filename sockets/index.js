@@ -9,7 +9,6 @@ let app = require('../app');
 
 let chatshierHlp = require('../helpers/chatshier');
 let socketHlp = require('../helpers/socket');
-let helpersFacebook = require('../helpers/facebook');
 let helpersBot = require('../helpers/bot');
 let botSvc = require('../services/bot');
 
@@ -360,6 +359,7 @@ function init(server) {
                                         replyMessages = replyMessages ? receiveMessages.concat(replyMessages) : receiveMessages;
                                         return increaseMembersUnRead(appId, senderId, sender, receiveMessages.length);
                                     }).then(() => {
+                                        // TODO message event 寫入 DB 正確，傳入到 clinet 端錯誤，都是自動回復
                                         return sendMessagesToSockets(sender, senderId, replyMessages);
                                     });
                                 } else if (LINE_WEBHOOK_EVENTS.FOLLOW === lineEventType) {
@@ -379,6 +379,7 @@ function init(server) {
                                         sender = _sender;
                                         return increaseMembersUnRead(appId, senderId, sender, messages.length);
                                     }).then(() => {
+                                        // TODO folwow event 沒有寫入 DB 也沒有傳入到 clinet 端
                                         return sendMessagesToSockets(sender, senderId, messages);
                                     });
                                 }

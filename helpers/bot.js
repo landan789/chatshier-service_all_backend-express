@@ -8,80 +8,6 @@ module.exports = (function() {
 
     function BotHelper() {};
 
-    BotHelper.prototype.sendMessages = function(replyToken, Uid, messages, type) {
-        switch (type) {
-            case LINE:
-                return line.replyMessage(replyToken, messages);
-            case FACEBOOK:
-                return Promise.all(messages.map((message) => {
-                    return facebook.sendTextMessage(Uid, message);
-                }));
-        }
-    };
-
-    /**
-     * 回覆訊息
-     *
-     * @param {Object} fbBot
-     * @param {string} psid
-     * @param {string} msgStr
-     * @param {Function} callback
-     */
-    BotHelper.prototype.replyMessages = function(fbBot, psid, msgStr, callback) {
-        sendMessage(0, callback);
-
-        function sendMessage(index, cb) {
-            let proceed = Promise.resolve();
-
-            proceed.then(() => {
-                return new Promise((resolve, reject) => {
-                    if (index >= msgStr.length) {
-                        reject(new Error());
-                        return;
-                    }
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    fbBot.sendTextMessage(psid, msgStr[index].text);
-                    resolve();
-                });
-            }).then(() => {
-                sendMessage(index + 1, cb);
-            }).catch(() => {
-                cb();
-            });
-        }
-    };
-
-    /**
-     * 發送FACEBOOK訊息
-     *
-     * @param {Object} bot
-     * @param {string} recipientId
-     * @param {Object} app
-     * @param {Function} callback
-     */
-    BotHelper.prototype.sendMessage = function(bot, recipientId, app, callback) {
-        switch (app.textType) {
-            case 'image':
-                bot.sendImageMessage(recipientId, app.src, true);
-                callback();
-                break;
-            case 'audio':
-                bot.sendAudioMessage(recipientId, app.src, true);
-                callback();
-                break;
-            case 'video':
-                bot.sendVideoMessage(recipientId, app.src, true);
-                callback();
-                break;
-            default:
-                bot.sendTextMessage(recipientId, app.msg);
-                callback();
-        }
-    };
-
     BotHelper.prototype._lineFileBinaryConvert = function(linebot, event, callback) {
         return linebot.getMessageContent(event.message.id).then((stream) => {
             let bufs = [];
@@ -118,7 +44,7 @@ module.exports = (function() {
     /**
      * @param {any} bot
      * @param {ChatshierMessageInterface} message
-     * @param {string} appType
+     * @param {string} app
      * @param {any} option
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
@@ -210,37 +136,6 @@ module.exports = (function() {
             return Promise.resolve(messages);
         });
     };
-
-    /**
-     * 取得 Chatshier 平台需要回傳的訊息
-     */
-    BotHelper.prototype.findChatshierReplyMessages = function(type, text, senderId, option, apps) {
-        let appId = Object.keys(apps)[0];
-        let app = apps[appId];
-        return Promise.all([
-            new Promise((resolve, reject) => {
-                if (FOLLOW !== type) {
-                    resolve(null);
-                };
-                appsGreetingsMdl.findGreetings(appId, (greetings) => {
-                    if (null === greetings) {
-                        resolve(null);
-                    };
-                    resolve(greetings);
-                });
-            }),
-            new Promise((resolve, reject) => {
-
-            }),
-            new Promise((resolve, reject) => {
-
-            }),
-            new Promise((resolve, reject) => {
-
-            })
-        ]);
-
-    }
 
     let instance = new BotHelper();
     return instance;
