@@ -80,16 +80,13 @@ function init(server) {
 
                 // 關鍵字使用 [模糊搜尋] 不直接對資料庫查找
                 let keywordrepliesPromise = new Promise((resolve, reject) => {
-                    // fuseHlp.searchKeywordreplies(appId, messageText, (keywordreplies) => {
-                    //     resolve(keywordreplies);
-                    // });
                     fuseHlp.searchKeywordreplies2(appId, messageText, (keywordreplies) => {
                         resolve(keywordreplies);
                     });
                 });
 
                 let templatesPromise = new Promise((resolve, reject) => {
-                    appsTemplatesMdl.findTemplateMessages(appId, replyIds.templateIds, (templates) => {
+                    appsTemplatesMdl.findTemplates(appId, (templates) => {
                         resolve(templates);
                     });
                 });
@@ -116,27 +113,27 @@ function init(server) {
                     templatesPromise,
                     autorepliesPromise
                 ]);
-            }).then((promiseResults) => {
+            }).then((results) => {
                 // =========
                 // 此 Promise 區塊處理訊息發送
                 // =========
 
-                keywordreplies = promiseResults[0];
-                let keywordMessages = Object.values(keywordreplies);
+                keywordreplies = results[0];
+                let keywordreplyMessages = Object.values(keywordreplies);
 
-                templates = promiseResults[1];
+                templates = results[1];
                 let templateMessages = Object.values(templates);
 
-                autoreplies = promiseResults[2];
+                autoreplies = results[2];
                 let autoMessages = Object.values(autoreplies);
 
                 let replyMessages = [];
-                replyMessages = keywordMessages ? replyMessages.concat(keywordMessages) : replyMessages;
+                replyMessages = keywordreplyMessages ? replyMessages.concat(keywordreplyMessages) : replyMessages;
                 replyMessages = autoMessages ? replyMessages.concat(autoMessages) : replyMessages;
                 replyMessages = templateMessages ? replyMessages.concat(templateMessages) : replyMessages;
                 let data = {
                     messages: replyMessages,
-                    keywordreplies: keywordMessages
+                    keywordreplies: keywordreplyMessages
                 };
                 return Promise.resolve(data);
             });
