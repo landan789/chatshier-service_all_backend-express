@@ -29,19 +29,19 @@ module.exports = (function() {
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appIds, (data) => {
-                    if (!data) {
+                appsKeywordrepliesMdl.findKeywordreplies(appIds, (appsKeywordreplies) => {
+                    if (!appsKeywordreplies) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data[appIds].keywordreplies);
+                    resolve(appsKeywordreplies);
                 });
             });
-        }).then((data) => {
+        }).then((appsKeywordreplies) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: data
+                data: appsKeywordreplies
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
