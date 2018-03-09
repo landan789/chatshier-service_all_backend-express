@@ -5,9 +5,7 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    // const cipher = require('../helpers/cipher');
     const appsComposesMdl = require('../models/apps_composes');
-    // const appsMessagesMdl = require('../models/apps_messages');
     const appsMdl = require('../models/apps');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');

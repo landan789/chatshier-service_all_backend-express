@@ -4,7 +4,7 @@
     var userId = '';
     var nowSelectAppId = '';
     var appsData = {};
-    var keywordrepliesData = {};
+    var keywordreplies = {};
     var api = window.restfulAPI;
 
     var $jqDoc = $(document);
@@ -54,7 +54,7 @@
             var targetRow = $(event.relatedTarget).parent().parent();
             var appId = targetRow.attr('data-title');
             var keywordreplyId = targetRow.prop('id');
-            var targetData = keywordrepliesData[keywordreplyId];
+            var targetData = keywordreplies[keywordreplyId];
 
             var $editForm = $keywordreplyEditModal.find('.modal-body form');
             $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
@@ -140,27 +140,27 @@
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
-            keywordrepliesData = resJson.data;
+            let appsKeywordreplis = resJson.data;
+            keywordreplies = appsKeywordreplis[appId].keywordreplies;
             $openTableElem.empty();
             $draftTableElem.empty();
-
-            for (var keywordreplyId in keywordrepliesData) {
-                var keywordreplyData = keywordrepliesData[keywordreplyId];
-                if (keywordreplyData.isDeleted) {
+            for (var keywordreplyId in keywordreplies) {
+                var keywordreply = keywordreplies[keywordreplyId];
+                if (keywordreply.isDeleted) {
                     continue;
                 }
 
                 var trGrop =
                 '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
-                    '<th data-title="' + keywordreplyData.keyword + '">' + keywordreplyData.keyword + '</th>' +
-                    '<td>' + keywordreplyData.text + '</td>' +
-                    '<td>' + keywordreplyData.replyCount + '</td>' +
+                    '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
+                    '<td>' + keywordreply.text + '</td>' +
+                    '<td>' + keywordreply.replyCount + '</td>' +
                     '<td>' +
                         '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
                         '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                     '</td>' +
                 '</tr>';
-                if (!keywordreplyData.status) {
+                if (!keywordreply.status) {
                     $draftTableElem.append(trGrop);
                 } else {
                     $openTableElem.append(trGrop);
@@ -215,7 +215,7 @@
         }
         // ==========
 
-        var keywordreplyData = {
+        var keywordreply = {
             keyword: keyword,
             subKeywords: '',
             text: textContent,
@@ -225,7 +225,7 @@
             updatedTime: Date.now()
         };
 
-        return api.appsKeywordreplies.insert(appId, userId, keywordreplyData).then(function(resJson) {
+        return api.appsKeywordreplies.insert(appId, userId, keywordreply).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
             $appDropdown.find('#' + appId).click();
             $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
