@@ -44,7 +44,7 @@ module.exports = (function() {
     /**
      * @param {any} bot
      * @param {ChatshierMessageInterface} message
-     * @param {string} app
+     * @param {any} app
      * @param {any} option
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
