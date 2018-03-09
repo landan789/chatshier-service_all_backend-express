@@ -92,8 +92,7 @@ function init(server) {
                 // 此 Promise 區塊準備關鍵字回覆、樣板、自動回覆資料的區塊
                 // =========
 
-                // 找到要回應的關鍵字串
-
+                // 關鍵字使用 [模糊搜尋] 不直接對資料庫查找
                 let keywordrepliesPromise = new Promise((resolve, reject) => {
                     fuseHlp.searchKeywordreplies(appId, messageText, (keywordreplies) => {
                         resolve(keywordreplies);
