@@ -94,7 +94,10 @@ function init(server) {
 
                 // 關鍵字使用 [模糊搜尋] 不直接對資料庫查找
                 let keywordrepliesPromise = new Promise((resolve, reject) => {
-                    fuseHlp.searchKeywordreplies(appId, messageText, (keywordreplies) => {
+                    // fuseHlp.searchKeywordreplies(appId, messageText, (keywordreplies) => {
+                    //     resolve(keywordreplies);
+                    // });
+                    fuseHlp.searchKeywordreplies2(appId, messageText, (keywordreplies) => {
                         resolve(keywordreplies);
                     });
                 });
@@ -431,7 +434,10 @@ function init(server) {
                                     return botSvc.replyMessage(senderId, replyToken, replyMessages, appId, app);
                                 }).then(() => {
                                     // 處理與訊息匹配的關鍵字回覆的次數更新
-                                    return appsKeywordrepliesMdl.increaseReplyCount(appId, Object.keys(keywordreplies));
+                                    if (0 === keywordreplies.length) {
+                                        return;
+                                    }
+                                    return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreplies[0].id);
                                 }).then(() => {
                                     return botSvc.getProfile(senderId, appId, app);
                                 }).then((profile) => {

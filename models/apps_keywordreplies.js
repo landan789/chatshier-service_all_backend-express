@@ -74,7 +74,7 @@ module.exports = (function() {
 
             // 準備批次查詢的 promise 工作
             return Promise.all(appIds.map((appId) => {
-                return admin.database().ref('apps/' + appId + '/keywordreplies').once('value').then((snap) => {
+                return admin.database().ref('apps/' + appId + '/keywordreplies').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                     if (!snap) {
                         return;
                     }
