@@ -93,9 +93,9 @@ module.exports = (function() {
             replyCount: req.body.replyCount ? req.body.replyCount : 0,
             status: req.body.status ? req.body.status : 0
         };
-        var appIds = '';
+        var appId = '';
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            appIds = checkedAppIds;
+            appId = checkedAppIds.shift();
             return new Promise((resolve, reject) => {
                 appsKeywordrepliesMdl.insert(appId, postKeywordreply, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
@@ -125,73 +125,31 @@ module.exports = (function() {
     AppsKeywordrepliesController.prototype.putOne = function(req, res) {
         let keywordreplyId = req.params.keywordreplyid;
         let appId = '';
-        let putKeywordreplyData = {
+        let putKeywordreply = {
             keyword: req.body.keyword || '',
             subKeywords: req.body.subKeywords || '',
             text: req.body.text || '',
             replyCount: 0,
-            status: req.body.status ? req.body.status : 0,
-            updatedTime: req.body.updatedTime || Date.now()
+            status: req.body.status ? req.body.status : 0
         };
 
-        return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            appId = checkedAppId;
-            return new Promise((resolve) => {
-                appsKeywordrepliesMdl.find(appId, (keywordrepliesData) => resolve(keywordrepliesData));
-            });
-        }).then((oldKeywordrepliesData) => {
-            // 4. 將 ID 從 message 欄位中的 keywordreply_ids 移除
-            return new Promise((resolve, reject) => {
-                let oldMessageId = cipher.createHashKey(oldKeywordrepliesData[appId].keywordreplies[keywordreplyId].keyword);
-                appsMessagesMdl.findKeywordreplyIds(appId, oldMessageId, (oldKeywordreplyIds) => {
-                    if (!(oldKeywordreplyIds instanceof Array)) {
-                        resolve();
-                        return;
-                    }
-
-                    // 找到原本的 keywordreplyIds 清單中有無包含目標 keywordreplyId
-                    let idx = oldKeywordreplyIds.indexOf(keywordreplyId);
-                    if (idx >= 0) {
-                        oldKeywordreplyIds.splice(idx, 1);
-                        // 更新原本 message 中的 keywordreply_ids 欄位
-                        appsMessagesMdl.updateKeywordreplyIds(appId, oldMessageId, oldKeywordreplyIds, () => {
-                            resolve();
-                        });
-                    }
-                    resolve();
-                });
-            });
-        }).then(() => {
+        return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((appIds) => {
+            appId = appIds.shift();
             return new Promise((resolve, reject) => {
                 // 5. 更新指定的 appId 中的 keywordreply 資料
-                appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreplyData, (data) => {
-                    if (!data) {
+                appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply, (appsKeywordreplies) => {
+                    if (!appsKeywordreplies) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
                         return;
-                    }
-
-                    // 如果此筆資料屬於草稿階段，不需進行下面程序
-                    if (!putKeywordreplyData.status) {
-                        resolve(true);
-                        return;
-                    }
-
-                    // 6. 更新 messages 欄位的 keywordreply_ids
-                    let messageId = data.messageId;
-                    appsMessagesMdl.findKeywordreplyIds(appId, messageId, (keywordreplyIds) => {
-                        keywordreplyIds = keywordreplyIds || [];
-                        keywordreplyIds.push(data.keywordreplyId);
-                        appsMessagesMdl.updateKeywordreplyIds(appId, messageId, keywordreplyIds, (data) => {
-                            resolve(data);
-                        });
-                    });
+                    };
+                    resolve(appsKeywordreplies);
                 });
             });
-        }).then((data) => {
+        }).then((appsKeywordreplies) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                data: data
+                data: appsKeywordreplies
             };
             res.status(200).json(json);
         }).catch((ERROR) => {

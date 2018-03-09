@@ -78,7 +78,7 @@ module.exports = (function() {
                     let keywordreplies = snap.val() || {};
 
                     if (!keywordreplies) {
-                        return Promise.reject();
+                        return Promise.reject(new Error());
                     }
 
                     appsKeywordreples[appId] = {
@@ -167,22 +167,32 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.update = (appId, keywordreplyId, putKeywordreply, callback) => {
-        let procced = Promise.resolve();
-        procced.then(() => {
+        Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
                 return Promise.reject(new Error());
-            }
+            };
+
+            let _keywordreply = {
+                updatedTime: Date.now()
+            };
+            let keywordreply = Object.assign(putKeywordreply, _keywordreply);
 
             // 1. 更新關鍵字回覆的資料
-            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply).then(() => {
-                // 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
-                let messageId = putKeywordreply.keyword ? cipher.createHashKey(putKeywordreply.keyword) : '';
-
-                // 成功更新後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
-                return { keywordreplyId, messageId };
-            });
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(keywordreply);
         }).then((data) => {
-            callback(data);
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value');
+        }).then((snap) => {
+            let keywordreply = snap.val();
+            let appsKeywordreples = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreples);
+        }).then((appsKeywordreples) => {
+            callback(appsKeywordreples);
         }).catch(() => {
             callback(null);
         });
@@ -224,7 +234,7 @@ module.exports = (function() {
     AppsKeywordrepliesModel.prototype.remove = (appId, keywordreplyId, callback) => {
         Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
-                return Promise.reject();
+                return Promise.reject(new Error());
             }
 
             let deleteKeywordreply = {
