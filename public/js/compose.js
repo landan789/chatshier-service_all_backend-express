@@ -337,23 +337,6 @@
         $('#' + elementId).append(div);
     }
 
-    var TableObj = function() {
-        this.tr = $('<tr>');
-        this.th = $('<th>').attr('id', 'text');
-        this.td1 = $('<td>').attr('id', 'time');
-        this.td2 = $('<td>').attr('id', 'tags');
-        this.td3 = $('<td>').attr('id', 'status');
-        this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-grey fa fa-pencil')
-            .attr('id', 'edit-btn')
-            .attr('data-toggle', 'modal')
-            .attr('data-target', '#editModal')
-            .attr('aria-hidden', 'true');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
-            .attr('id', 'delete-btn');
-    };
-
     function loadComposes(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         $historyTableElem.empty();
@@ -367,11 +350,8 @@
                 if (composeData.isDeleted) {
                     continue;
                 }
-                var list = new TableObj();
-                var text = list.th.attr('data-title', composeData.text).text(composeData.text);
-                var time = list.td1.text(ToLocalTimeString(composeData.time));
-                var tags = appendTags(composeData, list.td2);
-                list.DeleteBtn.off('click').on('click', function(event) {
+
+                $('#delete-btn').off('click').on('click', function(event) {
                     var targetRow = $(event.target).parent().parent();
                     var appId = targetRow.attr('text');
                     var composeId = targetRow.attr('id');
@@ -395,8 +375,16 @@
                     });
                 });
 
-                var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
-                var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, tags, btns);
+                var trGrop =
+                    '<tr id="' + composeId + '" text="' + appId + '">' +
+                        '<th id="text" data-title="' + composeData.text + '">' + composeData.text + '</th>' +
+                        '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
+                        appendTags(composeData) +
+                        '<td>' +
+                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                        '</td>' +
+                    '</tr>';
                 if (0 === composeData.status) {
                     $draftTableElem.append(trGrop);
                 } else if (1 === composeData.status && composeData.time > timeInMs) {
@@ -407,7 +395,7 @@
             }
         });
     }
-    function appendTags(composeData, tagsTd) {
+    function appendTags(composeData) {
         let composeTags = {
             'age': {
                 'value': ''
@@ -416,10 +404,11 @@
                 'value': ''
             }
         };
+        let tagsTd = '<td id="tags">';
         let composeAge = composeData.age || '';
         let composeGender = composeData.gender || '';
         if (!composeData.tag_ids && '' === composeAge && '' === composeGender) {
-            tagsTd.append('<snap id="sendAll">無');
+            tagsTd += '<snap id="sendAll">無';
             return tagsTd;
         }
         composeTags = Object.assign(composeTags, composeData.tag_ids) || composeTags;
@@ -430,8 +419,9 @@
             if (!composeTag.value) {
                 continue;
             }
-            tagsTd.append('<snap id="tag" data-type="' + tagId + '">' + composeTag.value);
+            tagsTd += '<snap id="tag" data-type="' + tagId + '">' + composeTag.value;
         }
+        tagsTd += '</td>';
         return tagsTd;
     }
 
@@ -501,19 +491,10 @@
         let text = $(this).text();
         let rel = $(this).attr('rel');
         let dataType = $(this).attr('data-type');
-        let div = $('<div>').attr('id', 'condition');
-        let checkBtn = $('<button>').attr('type', 'button')
-            .attr('class', 'btn btn-default fa fa-check')
-            .attr('id', 'condition-check-btn');
-        let closeBtn = $('<button>').attr('type', 'button')
-            .attr('class', 'btn btn-default fa fa-close')
-            .attr('id', 'condition-close-btn');
-        let input = $('<input>').attr('type', 'text')
-            .attr('class', 'form-gruop')
-            .attr('rel', rel)
-            .attr('data-type', dataType)
-            .attr('placeholder', text)
-            .attr('id', 'condition-input');
+        let div = '<div id="condition"></div>';
+        let checkBtn = '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>';
+        let closeBtn = '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>';
+        let input = '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text +'" id="condition-input">';
         let $tagDiv = $(this).parent();
         let $conditionDiv = $(this).parent().find('div');
 
@@ -572,33 +553,28 @@
                     composes: composes
                 };
                 if (false === isDraft) {
-                    socket.emit('push composes to all', emitData);
-                    $composesAddModal.modal('hide');
-                    $('.form-control').val(appsData[appId].name);
-                    $('.textinput').val('');
-                    $('#send-time').val('');
-                    $('#inputText').empty();
-                    inputNum = 0;
-                    socket.on('verify', (json) => {
-                        if (!json) {
+                    socket.emit('push composes to all', emitData, (json) => {
+                        $composesAddModal.modal('hide');
+                        $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                        if (1 === json.status) {
+                            $('.form-control').val(appsData[appId].name);
+                            $('.textinput').val('');
+                            $('#send-time').val('');
+                            $('#inputText').empty();
+                            inputNum = 0;
+    
                             $.notify('發送成功', { type: 'success' });
                             $appDropdown.find('.dropdown-text').text(appsData[appId].name);
-                            $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                            return loadComposes(appId, userId);
                         } else {
-                            if (undefined === json.status) {
-                                $composesAddModal.modal('hide');
-                                $.notify('失敗', { type: 'danger' });
-                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
-                                return loadComposes(appId, userId);
-                            }
+                            let errText = '';
                             if (NO_PERMISSION_CODE === json.code) {
-                                $composesAddModal.modal('hide');
-                                $.notify('無此權限', { type: 'danger' });
-                                $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
-                                return loadComposes(appId, userId);
+                                errText = '無此權限';
+                            } else {
+                                errText = '失敗';
                             }
+                            $.notify(errText, { type: 'danger' });
                         }
+                        return loadComposes(appId, userId);
                     });
                 } else {
                     insert(appId, userId, isDraft, composes);
@@ -634,12 +610,17 @@
                     let composes = appsComposes[appId].composes;
                     let composeId = Object.keys(composes)[0];
                     let compose = composes[composeId];
-                    var list = new TableObj();
-                    var text = list.th.attr('data-title', compose.text).text(compose.text);
-                    var time = list.td1.text(ToLocalTimeString(compose.time));
-                    var tags = appendTags(appsComposes, list.td2);
-                    var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
-                    var trGrop = list.tr.attr('id', composeId).attr('text', appId).append(text, time, tags, btns);
+
+                    var trGrop =
+                        '<tr id="' + composeId + '" text="' + appId + '">' +
+                            '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
+                            '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
+                            appendTags(appsComposes) +
+                            '<td>' +
+                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '</td>' +
+                        '</tr>';
                     if (0 === compose.status) {
                         $draftTableElem.append(trGrop);
                     } else if (1 === compose.status && compose.time > timeInMs) {

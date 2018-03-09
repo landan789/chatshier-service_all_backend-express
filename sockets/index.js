@@ -618,13 +618,14 @@ function init(server) {
         });
 
         // 推播全部人
-        socket.on('push composes to all', (data) => {
+        socket.on('push composes to all', (data, callback) => {
             let userId = data.userId;
             let appId = data.appId;
             let composes = data.composes;
             let messages = composes;
             let messagers;
             let bot = {};
+            let appsInsertedComposes = '';
             let appType = '';
             let req = {
                 method: 'POST',
@@ -704,11 +705,12 @@ function init(server) {
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
-                        appsComposes.insert(appId, message, (appsComposes) => {
+                        appsComposes.insert(appId, message, (_appsComposes) => {
                             // 失敗需要 reject, catch
-                            if (!appsComposes) {
+                            if (!_appsComposes) {
                                 reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
                             }
+                            appsInsertedComposes = _appsComposes;
                             resolve();
                         });
                     });
@@ -747,6 +749,14 @@ function init(server) {
                         });
                     }));
                 }));
+            }).then(() => {
+                let result = appsInsertedComposes !== undefined ? appsInsertedComposes : {};
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    data: result
+                };
+                ('function' === typeof callback) && callback(json);
             }).catch((err) => {
                 console.log(err);
                 let json = {
@@ -754,7 +764,7 @@ function init(server) {
                     msg: err.MSG,
                     code: err.CODE
                 };
-                socket.emit('verify', json);
+                ('function' === typeof callback) && callback(json);
             });
         });
 
