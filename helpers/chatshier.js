@@ -3,6 +3,7 @@ module.exports = (function() {
     let appsGreetingsMdl = require('../models/apps_greetings');
     let appsAutorepliesMdl = require('../models/apps_autoreplies');
     let appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
+    let chatshierCfg = require('../config/chatshier');
 
     const LINE = 'LINE';
     const FACEBOOK = ''
@@ -44,7 +45,7 @@ module.exports = (function() {
                 _message.originalContentUrl = message.src;
                 break;
             case 'video':
-                _message.previewImageUrl = 'https://www.chatshier.com/image/chatshier_logo.png';
+                _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
                 _message.originalContentUrl = message.src;
                 break;
             case 'sticker':

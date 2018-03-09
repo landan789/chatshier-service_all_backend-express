@@ -538,7 +538,7 @@ function init(server) {
             }).then((app) => {
                 // 3. 利用 SDK 傳給各平台的 server
                 return Promise.resolve().then(() => {
-                    switch (appType) {
+                    switch (app.type) {
                         case FACEBOOK:
                             let facebookConfig = {
                                 pageID: app.id1,
