@@ -125,30 +125,34 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.insert = (appId, postKeywordreply, callback) => {
-        let procced = Promise.resolve();
-        procced.then(() => {
+        let keywordreply;
+        Promise.resolve().then(() => {
             if (!appId || !postKeywordreply) {
                 return Promise.reject(new Error());
             }
 
             // 1. 將傳入的資料與初始化資料合併，確保訂定的欄位一定有值
             let initKeywordreply = AppsKeywordrepliesModel._schema();
-            let newKeywordreply = Object.assign(initKeywordreply, postKeywordreply);
-            let keyword = newKeywordreply.keyword;
+            keywordreply = Object.assign(initKeywordreply, postKeywordreply);
+            let keyword = keywordreply.keyword;
             if (!keyword) {
                 return Promise.reject(new Error());
             }
 
             // 2. 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
-            let databaseRef = admin.database().ref('apps/' + appId + '/keywordreplies').push(newKeywordreply);
-            let keywordreplyId = databaseRef.key;
-            let messageId = cipher.createHashKey(keyword);
-            return databaseRef.then(() => {
-                // 成功新增一筆關鍵字回復資料後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
-                return { keywordreplyId, messageId };
-            });
-        }).then((data) => {
-            callback(data);
+            return admin.database().ref('apps/' + appId + '/keywordreplies').push(keywordreply);
+        }).then((ref) => {
+            let keywordreplyId = ref.key;
+            let appsKeywordreplies = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreplies);
+        }).then((appsKeywordreplies) => {
+            callback(appsKeywordreplies);
         }).catch(() => {
             callback(null);
         });
