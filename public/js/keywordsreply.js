@@ -137,23 +137,6 @@
         loadKeywordsReplies(nowSelectAppId, userId);
     }
 
-    var TableObj = function() {
-        this.tr = $('<tr>');
-        this.th = $('<th>');
-        this.td1 = $('<td>');
-        this.td2 = $('<td>');
-        this.td3 = $('<td>');
-        this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-grey fa fa-pencil')
-            .attr('id', 'edit-btn')
-            .attr('data-toggle', 'modal')
-            .attr('data-target', '#keywordreply_edit_modal')
-            .attr('aria-hidden', 'true');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
-            .attr('id', 'delete-btn');
-    };
-
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
@@ -167,12 +150,16 @@
                     continue;
                 }
 
-                var list = new TableObj();
-                var keyword = list.th.attr('data-title', keywordreplyData.keyword).text(keywordreplyData.keyword);
-                var text = list.td1.text(keywordreplyData.text);
-                var replyCount = list.td2.text(keywordreplyData.replyCount);
-                var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
-                var trGrop = list.tr.attr('id', keywordreplyId).attr('data-title', appId).append(keyword, text, replyCount, btns);
+                var trGrop =
+                '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
+                    '<th data-title="' + keywordreplyData.keyword + '">' + keywordreplyData.keyword + '</th>' +
+                    '<td>' + keywordreplyData.text + '</td>' +
+                    '<td>' + keywordreplyData.replyCount + '</td>' +
+                    '<td>' +
+                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '</td>' +
+                '</tr>';
                 if (!keywordreplyData.status) {
                     $draftTableElem.append(trGrop);
                 } else {
