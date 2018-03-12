@@ -31,7 +31,6 @@ Linux 環境設定檔
 ### 6. helpers
 處理內部server端的函式庫
 
-* cipher - 使用cipher套件把接收的訊息加密
 * timer - 操作時間的格式至unix time
 * bot - 接收訊息後的判斷，使否有需要回覆訊息
 * facebook - facebook bot的訊息判斷

@@ -66,24 +66,6 @@
         findOne(nowSelectAppId, userId);
     }
 
-    var TableObj = function() {
-        this.tr = $('<tr>');
-        this.th = $('<th>').attr('id', 'title');
-        this.td1 = $('<td>').attr('id', 'started-time');
-        this.td2 = $('<td>').attr('id', 'ended-time');
-        this.td3 = $('<td>').attr('id', 'text');
-        this.td4 = $('<td>');
-        this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-grey fa fa-pencil')
-            .attr('id', 'edit-btn')
-            .attr('data-toggle', 'modal')
-            .attr('data-target', '#editModal')
-            .attr('aria-hidden', 'true');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
-            .attr('id', 'delete-btn');
-    };
-
     function dataInsert() {
         $('#modal-submit').attr('disabled', 'disabled');
         let appId = $('#app-select option:selected').attr('id');
@@ -105,15 +87,18 @@
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
 
-            var list = new TableObj();
-            var title = list.th.text(autoreply.title);
-            var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
-            var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
-            var text = list.td3.text(autoreply.text);
-            var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
-            var trGrop = list.tr.attr('id', autoreplyId).attr('rel', appId).append(title, startedTime, endedTime, text, btns);
-
-            $('#autoreply-tables').append(trGrop);
+            $('#autoreply-tables').append(
+                '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
+                    '<th id="title">' + autoreply.title + '</th>' +
+                    '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
+                    '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                    '<td id="text">' + autoreply.text + '</td>' +
+                    '<td>' +
+                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '</td>' +
+                '</tr>'
+            );
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
@@ -151,14 +136,18 @@
             for (let autoreplyId in autoreplies) {
                 let autoreply = autoreplies[autoreplyId];
 
-                var list = new TableObj();
-                var title = list.th.attr('data-title', autoreply.title).text(autoreply.title);
-                var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
-                var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
-                var text = list.td3.text(autoreply.text);
-                var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
-                var trGrop = list.tr.attr('id', autoreplyId).attr('rel', appId).append(title, startedTime, endedTime, text, btns);
-                $('#autoreply-tables').append(trGrop);
+                $('#autoreply-tables').append(
+                    '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
+                        '<th id="title" data-title="data-title">' + autoreply.title + '</th>' +
+                        '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
+                        '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                        '<td id="text">' + autoreply.text + '</td>' +
+                        '<td>' +
+                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                        '</td>' +
+                    '</tr>'
+                );
             }
         });
     }
@@ -184,13 +173,16 @@
             let autoreply = autoreplies[autoreplyId[0]];
 
             $('#' + autoreplyId).empty();
-            var list = new TableObj();
-            var title = list.th.text(autoreply.title);
-            var startedTime = list.td1.attr('rel', autoreply.startedTime).text(ToLocalTimeString(autoreply.startedTime));
-            var endedTime = list.td2.attr('rel', autoreply.endedTime).text(ToLocalTimeString(autoreply.endedTime));
-            var text = list.td3.text(autoreply.text);
-            var btns = list.td4.append(list.UpdateBtn, list.DeleteBtn);
-            $('#' + autoreplyId).append(title, startedTime, endedTime, text, btns);
+            $('#' + autoreplyId).append(
+                '<th id="title">' + autoreply.title + '</th>' +
+                '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
+                '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                '<td id="text">' + autoreply.text + '</td>' +
+                '<td>' +
+                    '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                '</td>'
+            );
 
             // 塞入資料庫並初始化
             $('#editModal').modal('hide');

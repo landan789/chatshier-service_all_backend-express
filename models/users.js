@@ -6,11 +6,11 @@ module.exports = (function() {
 
     /**
      * 根據 使用者ID 取得該使用者
+     *
      * @param {string} userId
-     * @param {function} callback
-     * @returns {object} 
+     * @param {(data: any) => any} callback
+     * @returns {void}
      */
-
     UsersModel.prototype.findUser = function(userId, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
@@ -20,14 +20,13 @@ module.exports = (function() {
 
     UsersModel.prototype.insert = function(userId, user, callback) {
         let users = {};
+        user = Object.assign(SCHEMA.USER, user);
 
-        Promise.resolve().then(() => {
-            user = Object.assign(SCHEMA.USER, user);
-            return admin.database().ref('users/' + userId).once('value');
-        }).then((snap) => {
+        admin.database().ref('users/' + userId).once('value').then((snap) => {
             let _user = snap.val();
             if (_user) {
-                return Promise.reject();
+                // 使用者已經存在無法新增
+                return Promise.reject(new Error());
             };
             return admin.database().ref('users/' + userId).set(user);
         }).then(() => {
@@ -60,7 +59,7 @@ module.exports = (function() {
         });
     };
 
-    UsersModel.prototype.updateUserByUserId = function(userId, user, callback) {
+    UsersModel.prototype.update = function(userId, user, callback) {
         admin.database().ref('users/' + userId).update(user).then(() => {
             let users = {
                 [userId]: user

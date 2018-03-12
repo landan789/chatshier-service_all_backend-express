@@ -60,25 +60,6 @@
         findOne(nowSelectAppId, userId);
     }
 
-    var TableObj = function() {
-        this.tr = $('<tr>');
-        this.th = $('<th>');
-        this.td1 = $('<td>');
-        this.td2 = $('<td>');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
-            .attr('id', 'delete-btn');
-        this.AddBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-grey fa fa-plus')
-            .attr('id', 'add-btn');
-        this.CheckBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-check')
-            .attr('id', 'check-btn');
-        this.CloseBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-close')
-            .attr('id', 'close-btn');
-    };
-
     function findOne(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
@@ -86,12 +67,16 @@
             let greetings = resJson.data;
             let greeting = greetings[appId].greetings;
             for (let greetingId in greeting) {
-                var list = new TableObj();
-                var text = list.th.text(greeting[greetingId].text);
-                var updatedTime = list.td1.text(ToLocalTimeString(greeting[greetingId].updatedTime));
-                var btns = list.td2.append(list.DeleteBtn);
-                var trGrop = list.tr.attr('id', greetingId).attr('rel', appId).append(text, updatedTime, btns);
-                $('table #MsgCanvas').append(trGrop);
+                $('table #MsgCanvas').append(
+                    '<tr id="' + greetingId + '" rel="' + appId + '">' +
+                        '<th>' + greeting[greetingId].text + '</th>' +
+                        '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
+                        '<td>' +
+                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                        '</td>' +
+                    '</tr>'
+                );
+
                 rowCount++;
                 findedGreetingIds[greetingId] = greetingId;
             }
@@ -102,12 +87,15 @@
     }
 
     function appendNewTr(appId) {
-        var list = new TableObj();
-        var text = list.th.text('');
-        var updatedTime = list.td1.text('');
-        var btns = list.td2.append(list.AddBtn);
-        var trGrop = list.tr.attr('rel', appId).append(text, updatedTime, btns);
-        $('table #MsgCanvas').append(trGrop);
+        $('table #MsgCanvas').append(
+            '<tr rel="' + appId + '">' +
+                '<th></th>' +
+                '<td></td>' +
+                '<td>' +
+                    '<button type="button" class="btn btn-grey fa fa-plus" id="add-btn"></button>' +
+                '</td>' +
+            '</tr>'
+        );
     }
 
     function addMsgCanvas() {
@@ -115,12 +103,17 @@
         $(this).parent().parent().remove('tr');
         let nowTime = new Date().getTime();
         let appId = $(this).parent().parent().attr('rel');
-        var list = new TableObj();
-        var text = list.th.append('<textarea class="greeting-textarea">');
-        var updatedTime = list.td1.text(ToLocalTimeString(nowTime));
-        var btns = list.td2.append(list.CheckBtn, list.CloseBtn);
-        var trGrop = list.tr.attr('id', 'new' + rowCount).attr('rel', appId).append(text, updatedTime, btns);
-        $('table #MsgCanvas').append(trGrop);
+
+        $('table #MsgCanvas').append(
+            '<tr id="new' + rowCount + '" rel="' + appId + '">' +
+                '<th><textarea class="greeting-textarea"></textarea></th>' +
+                '<td>' + ToLocalTimeString(nowTime) + '</td>' +
+                '<td>' +
+                    '<button type="button" class="btn btn-default fa fa-check" id="check-btn"></button>' +
+                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                '</td>' +
+            '</tr>'
+        );
 
         if (rowCount < 5) {
             appendNewTr(appId);
@@ -181,11 +174,14 @@
             let greeting = resJson.data[appId].greetings;
             let greetingId = Object.keys(greeting)[0];
 
-            var list = new TableObj();
-            var text = list.th.text(greeting[greetingId].text);
-            var updatedTime = list.td1.text(ToLocalTimeString(greeting[greetingId].updatedTime));
-            var btns = list.td2.append(list.DeleteBtn);
-            var trGrop = list.tr.attr('id', greetingId).attr('rel', appId).append(text, updatedTime, btns);
+            var trGrop =
+            '<tr id="' + greetingId + '" rel="' + appId + '">' +
+                '<th>' + greeting[greetingId].text + '</th>' +
+                '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
+                '<td>' +
+                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                '</td>' +
+            '</tr>';
             if (0 === greetingIdsLength) {
                 $('table #MsgCanvas').prepend(trGrop);
                 findedGreetingIds[greetingId] = greetingId;
