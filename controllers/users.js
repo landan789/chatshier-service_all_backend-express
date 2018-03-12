@@ -2,6 +2,7 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
     const usersMdl = require('../models/users');
+    const fuseHlp = require('../helpers/fuse');
 
     function UsersController() {}
 
@@ -47,18 +48,18 @@ module.exports = (function() {
             phone: undefined === req.body.phone ? '' : req.body.phone,
             address: undefined === req.body.address ? '' : req.body.address
         };
-        return Promise.resolve().then(() => {
-            return new Promise((resolve, reject) => {
-                if (!userId) {
-                    return reject(API_ERROR.USERID_WAS_EMPTY);
-                };
-                usersMdl.insert(userId, postUser, (users) => {
-                    if (!users) {
-                        reject(API_ERROR.USER_FAILED_TO_INSERT);
-                        return;
-                    }
-                    resolve(users);
-                });
+        return new Promise((resolve, reject) => {
+            if (!userId) {
+                return reject(API_ERROR.USERID_WAS_EMPTY);
+            };
+            usersMdl.insert(userId, postUser, (users) => {
+                if (!users) {
+                    reject(API_ERROR.USER_FAILED_TO_INSERT);
+                    return;
+                }
+                // 更新 user fuzzy search 清單，使搜尋時可找到此 user
+                fuseHlp.updateUser(userId, users[userId]);
+                resolve(users);
             });
         }).then((users) => {
             let json = {
@@ -91,11 +92,13 @@ module.exports = (function() {
                 return;
             }
 
-            usersMdl.updateUserByUserId(userId, userData, (users) => {
+            usersMdl.update(userId, userData, (users) => {
                 if (!users) {
                     reject(API_SUCCESS.USER_FAILED_TO_UPDATE);
                     return;
                 }
+                // 更新 fuzzy search 清單中此 user 的資料
+                fuseHlp.updateUser(userId, users[userId]);
                 resolve(users);
             });
         }).then((users) => {

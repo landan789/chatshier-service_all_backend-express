@@ -441,7 +441,7 @@ module.exports = (function() {
                     let updateUser = {
                         group_ids: userGroupIds
                     };
-                    usersMdl.updateUserByUserId(msgerId, updateUser, () => {
+                    usersMdl.update(msgerId, updateUser, () => {
                         resolve();
                     });
                 }).then(() => {

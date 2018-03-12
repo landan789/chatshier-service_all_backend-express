@@ -79,6 +79,7 @@ module.exports = (function() {
             ]
         });
 
+        // 檢查此 userId 是否已經在清單中，若已存在只需更新資料
         for (let i = 0; i < usersList.length; i++) {
             if (userId === usersList[i].user_id) {
                 usersList[i].displayName = user.name;
@@ -95,14 +96,15 @@ module.exports = (function() {
             email: user.email
         };
 
+        // 將此 user 新增至 fuzzy search 清單中，並建議新的 fuse.js 執行實體
         usersList.push(fuseUser);
         fuseRunner = new _Fuse(usersList, fuseOptions);
         return true;
     };
 
     /**
-     * @param {string[]} keywordId
-     * @param {any} keyword
+     * @param {string} appId
+     * @param {string} keyword
      * @returns {Promise<any>}
      */
     Fuse.prototype.searchKeywordreplies = function(appId, keyword, callback) {
