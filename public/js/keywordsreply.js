@@ -78,6 +78,7 @@
 
                 return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
+                    $.notify('修改成功！', { type: 'success' });
                     $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
                 }).catch((resJson) => {
@@ -178,6 +179,7 @@
                     }
 
                     return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
+                        $.notify('刪除成功！', { type: 'success' });
                         return loadKeywordsReplies(appId, userId);
                     }).catch((resJson) => {
                         if (undefined === resJson.status) {
@@ -227,6 +229,7 @@
 
         return api.appsKeywordreplies.insert(appId, userId, keywordreply).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
+            $.notify('新增成功！', { type: 'success' });
             $appDropdown.find('#' + appId).click();
             $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
             return loadKeywordsReplies(appId, userId);
