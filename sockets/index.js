@@ -80,13 +80,13 @@ function init(server) {
                 return botSvc.getReceivedMessages(req.body, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
+                senderId = receivedMessages[0].messager_id;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
                     return Promise.resolve();
                 };
-                senderId = receivedMessages[0].messager_id;
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(senderId, replyToken, repliedMessages, appId, app);
             }).then(() => {
