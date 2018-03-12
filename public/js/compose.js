@@ -491,7 +491,6 @@
         let text = $(this).text();
         let rel = $(this).attr('rel');
         let dataType = $(this).attr('data-type');
-        let div = '<div id="condition"></div>';
         let checkBtn = '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>';
         let closeBtn = '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>';
         let input = '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text +'" id="condition-input">';
@@ -501,7 +500,9 @@
         let conditionId = $conditionDiv.attr('id');
         $(this).hide();
         if (!conditionId) {
-            div.append(input, checkBtn, closeBtn);
+            let div = '<div id="condition">';
+            div += input + checkBtn + closeBtn;
+            div += '</div>';
             $tagDiv.append(div);
         }
         $conditionDiv.show();
@@ -562,7 +563,7 @@
                             $('#send-time').val('');
                             $('#inputText').empty();
                             inputNum = 0;
-    
+
                             $.notify('發送成功', { type: 'success' });
                             $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                         } else {
@@ -584,7 +585,7 @@
                     $('#send-time').val('');
                     $('#inputText').empty();
                     inputNum = 0;
-                    $.notify('儲存成功', { type: 'success' });
+                    $.notify('新增成功', { type: 'success' });
                     $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
