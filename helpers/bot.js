@@ -21,13 +21,13 @@ module.exports = (function() {
                 let base64Url = '';
                 switch (event.message.type) {
                     case 'image':
-                        base64Url = 'data:image/png;base64,' + base64Data;
+                        base64Url = 'data:image/png;base64, ' + base64Data;
                         break;
                     case 'audio':
-                        base64Url = 'data:audio/m4a;base64,' + base64Data;
+                        base64Url = 'data:audio/m4a;base64, ' + base64Data;
                         break;
                     case 'video':
-                        base64Url = 'data:video/mp4;base64,' + base64Data;
+                        base64Url = 'data:video/mp4;base64, ' + base64Data;
                         break;
                 }
                 callback(base64Url);
@@ -49,6 +49,7 @@ module.exports = (function() {
      * @returns {Promise<ChatshierMessageInterface[]>}
      */
     BotHelper.prototype.convertMessage = function(bot, message, option, app) {
+        // option 是人為變數，應該改由 body 變數基準來處理
         return Promise.resolve().then(() => {
             switch (app.type) {
                 case LINE:

@@ -26,7 +26,7 @@ module.exports = {
     USER: {
         company: '',
         phone: '',
-        address:'',
+        address: '',
         group_ids: [],
         createdTime: Date.now(),
         updatedTime: Date.now()

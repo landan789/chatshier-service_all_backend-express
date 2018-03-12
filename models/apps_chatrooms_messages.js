@@ -64,6 +64,44 @@ module.exports = (function() {
         });
     };
 
+    
+    /**
+     * 存多筆訊息
+     *
+     * @param {string} appId
+     * @param {string} chatroomId
+     * @param {any} messages
+     * @param {(newMessage: any) => any} [callback]
+     * @returns {Promise<any>}
+     */
+    AppsChatroomsMessages.prototype.insertMessages = function(appId, chatroomId, messages, callback) {
+        let _messages = {};
+        return Promise.all(messages.map((message) => {
+            let _message = {
+                eventType: message.eventType || '',
+                from: message.from,
+                messager_id: message.messager_id,
+                text: message.text,
+                time: message.time,
+                type: message.type
+            };
+            let __message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, _message);
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(__message).then((ref) => {
+                let messageId = ref.key;
+                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).once('value');
+            }).then((snap) => {
+                let message = snap.val();
+                let messageId = snap.key;
+                _messages[messageId] = message;
+                return Promise.resolve();
+            });
+        })).then(() => {
+            ('function' === typeof callback) && callback(_messages);
+        }).catch(() => {
+            ('function' === typeof callback) && callback(null);
+        });
+    };
+
     /**
      * webhook 打入時候，儲存訊息
      * @param {string} appId
