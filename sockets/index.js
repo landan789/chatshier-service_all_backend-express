@@ -290,8 +290,7 @@ function init(server) {
         socket.on('push composes to all', (data, callback) => {
             let userId = data.userId;
             let appId = data.appId;
-            let composes = data.composes;
-            let messages = composes;
+            let messages = data.composes;
             let messagers;
             let bot = {};
             let appsInsertedComposes = '';
@@ -348,8 +347,18 @@ function init(server) {
                             let messageGender = message.gender || '';
                             let messageTags = 0 === Object.keys(message.tag_ids).length ? {} : message.tag_ids;
 
-                            if (originMessagerAge !== messageAge && '' !== messageAge) {
-                                delete messagers[messagerId];
+                            for (let i = 0; i < messageAge.length; i++) {
+                                if (i % 2) {
+                                    if (originMessagerAge > messageAge[i] && '' !== messageAge[i]) {
+                                        delete messagers[messagerId];
+                                        continue;
+                                    }
+                                } else {
+                                    if (originMessagerAge < messageAge[i] && '' !== messageAge[i]) {
+                                        delete messagers[messagerId];
+                                        continue;
+                                    }
+                                }
                             }
                             if (originMessagerGender !== messageGender && '' !== messageGender) {
                                 delete messagers[messagerId];
@@ -357,8 +366,16 @@ function init(server) {
                             Object.keys(messageTags).map((tagId) => {
                                 let originMessagerTagValue = originMessagerTags[tagId].value || '';
                                 let messageTagValue = messageTags[tagId].value || '';
-                                if (originMessagerTagValue !== messageTagValue && '' !== messageTagValue) {
-                                    delete messagers[messagerId];
+                                if (originMessagerTagValue instanceof Array) {
+                                    for (let i in originMessagerTagValue) {
+                                        if (originMessagerTagValue[i] !== messageTagValue && '' !== messageTagValue) {
+                                            delete messagers[messagerId];
+                                        }
+                                    }
+                                } else {
+                                    if (originMessagerTagValue !== messageTagValue && '' !== messageTagValue) {
+                                        delete messagers[messagerId];
+                                    }
                                 }
                             });
                         });
@@ -399,20 +416,20 @@ function init(server) {
                         };
 
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessageByAppIdByMessagerId(appId, messagerId, _message, (message) => {
-                                if (!message) {
+                            appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, _message, (messageInDB) => {
+                                if (!messageInDB) {
                                     reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                                 };
-                                resolve(message);
+                                resolve(messageInDB);
                             });
-                        }).then(() => {
+                        }).then((messageInDB) => {
                             /** @type {ChatshierChatSocketInterface} */
                             let messageToSocket = {
                                 appId: appId,
                                 appType: appType,
                                 chatroomId: chatroomId,
                                 messagerId: '',
-                                message: _message
+                                message: messageInDB
                             };
                             return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messageToSocket);
                         });

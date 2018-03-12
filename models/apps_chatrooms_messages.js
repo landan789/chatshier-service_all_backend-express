@@ -103,44 +103,6 @@ module.exports = (function() {
     };
 
     /**
-     * webhook 打入時候，儲存訊息
-     * @param {string} appId
-     * @param {string} messagerId
-     * @param {Object} message
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.insertMessageByAppIdByMessagerId = function(appId, messagerId, message, callback) {
-        admin.database().ref('apps/' + appId + '/messagers/' + messagerId).once('value').then((snap) => {
-            var messager = snap.val();
-            return Promise.resolve(messager);
-        }).then((messager) => {
-            var chatroomId = messager.chatroom_id;
-            if ('' === chatroomId || null === chatroomId || undefined === chatroomId) {
-                var chatroom = {
-                    messages: {}
-                };
-                return admin.database().ref('apps/' + appId + '/chatrooms/').push(chatroom).then((ref) => {
-                    chatroomId = ref.key;
-                    return Promise.resolve(chatroomId);
-                });
-            }
-            return Promise.resolve(chatroomId);
-        }).then((chatroomId) => {
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
-        }).then((ref) => {
-            var chatroomId = ref.parent.parent.key;
-            var messager = {
-                chatroom_id: chatroomId
-            };
-            return admin.database().ref('apps/' + appId + '/messagers/' + messagerId).update(messager);
-        }).then(() => {
-            callback(message);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
      * 根據 user ID 找到chatroom message資訊
      *
      * @param {string} userId

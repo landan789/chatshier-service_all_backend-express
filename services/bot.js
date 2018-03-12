@@ -380,9 +380,17 @@ module.exports = (function() {
 
                     _multicast = (messagerIds, messages) => {
                         return Promise.all(messagerIds.map((messagerId) => {
-                            return Promise.all(messages.map((message) => {
-                                return bot.sendTextMessage(messagerId, message.text);
-                            }));
+                            function nextPromise(i) {
+                                if (i >= messages.length) {
+                                    return Promise.resolve();
+                                };
+
+                                let message = messages[i];
+                                return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                    return nextPromise(i + 1);
+                                });
+                            };
+                            return nextPromise(0);
                         }));
                     };
 
