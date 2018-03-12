@@ -838,7 +838,7 @@
         }
 
         function generateMessageHtml(srcHtml, message, messagerName, appType) {
-            messagerName = SYSTEM === message.from ? 'Chatshier' : (messagerName || '');
+            messagerName = SYSTEM === message.from ? '由系統發送' : (messagerName || '');
             var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
             // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
