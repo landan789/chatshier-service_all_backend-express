@@ -1489,17 +1489,16 @@
                 return;
             }
 
-            var storageRef = firebase.storage().ref();
-            var fileRef = storageRef.child(new Date().getTime() + '_' + file.name);
-
             var $loadingElem = generateLoadingJqElem();
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
             dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file}).then(function() {
-                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name, short_url: true});
+                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name});
             }).then(function(response) {
-                var url = response.url;
+                console.log(response);
+                var wwwurl = response.url.replace('www.', 'dl.');
+                var url = wwwurl.replace('?dl=0', '');
                 var msgType = $(_this).data('type');
                 var appType = apps[appId].type;
                 var messagerId = findChatroomMessagerId(appId, chatroomId);
