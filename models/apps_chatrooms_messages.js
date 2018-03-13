@@ -83,7 +83,8 @@ module.exports = (function() {
                 messager_id: message.messager_id,
                 text: message.text,
                 time: message.time,
-                type: message.type
+                type: message.type,
+                src: message.src || ''
             };
             let __message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, _message);
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(__message).then((ref) => {
