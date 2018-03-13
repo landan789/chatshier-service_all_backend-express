@@ -147,6 +147,7 @@ module.exports = (function() {
                                         let base64Data = buf.toString('base64');
                                         // TODO 目前 LINE 是將 LINE 的圖片，以 base64 拷貝到 DB 中。這需要調整為使用 storage
                                         _message.src = 'data:' + event.message.type + '/' + media[event.message.type] + ';' + 'base64, ' + base64Data;
+                                        _message.text = '';
                                         messages.push(_message);
                                         resolve();
                                     });
