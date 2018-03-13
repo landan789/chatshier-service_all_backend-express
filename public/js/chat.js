@@ -585,12 +585,6 @@
                 var messages = socketBody.messages;
                 var messagers = appsMessagers[appId].messagers;
 
-                if ('' === messages.text) {
-                    urltoFile(messages.src, fileName(messages.src)).then(function(file) {
-                        dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file});
-                    });
-                }
-
                 var nextMessage = function(i) {
                     if (i >= messages.length) {
                         return Promise.resolve();
@@ -715,14 +709,6 @@
         function fileName(url) {
             let dataType = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
             return Date.now() + '.' + dataType;
-        }
-
-        function urltoFile(url, filename, mimeType) {
-            mimeType = mimeType || (url.match(/^data:([^;]+);/) || '')[1];
-            return (fetch(url)
-                .then(function(res) { return res.arrayBuffer(); })
-                .then(function(buf) { return new File([buf], filename, {type: mimeType}); })
-            );
         }
 
         function generateAppsIcons(apps) {
@@ -1504,6 +1490,7 @@
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
+            // 刪除這段然後寫在server端
             dbx.filesUpload({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`, contents: file}).then(function() {
                 return dbx.sharingCreateSharedLink({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`});
             }).then(function(response) {
