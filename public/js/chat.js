@@ -586,15 +586,13 @@
                 var senderId = message.messager_id;
                 var messagers = appsMessagers[appId].messagers;
 
-                return Promise.resolve().then(function() {
-                    return new Promise(function(resolve, reject) {
-                        urltoFile(message.src, fileName(message.src)).then(function(file) {
-                            resolve(file);
-                        });
+                if ('' === message.text) {
+                    urltoFile(message.src, fileName(message.src)).then(function(file) {
+                        dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file});
                     });
-                }).then(function(file) {
-                    return dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file});
-                }).then(function() {
+                }
+
+                return Promise.resolve().then(function() {
                     var sender = senderId ? messagers[senderId] : {};
                     if (sender && sender.name) {
                         return sender;
