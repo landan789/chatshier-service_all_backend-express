@@ -81,7 +81,7 @@ module.exports = (function() {
                 eventType: message.eventType || '',
                 from: message.from,
                 messager_id: message.messager_id,
-                text: message.text,
+                text: message.text || '',
                 time: message.time,
                 type: message.type,
                 src: message.src || ''

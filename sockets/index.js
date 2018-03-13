@@ -69,6 +69,9 @@ function init(server) {
                 return botSvc.getReceivedMessages(req.body, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
+                if (0 === receivedMessages.length) {
+                    return Promise.resolve([]);
+                }
                 senderId = receivedMessages[0].messager_id;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
