@@ -29,16 +29,6 @@ const API_SUCCESS = require('../config/api_success');
 
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
-const LINE = 'LINE';
-const FACEBOOK = 'FACEBOOK';
-
-const LINE_WEBHOOK_EVENTS = {
-    FOLLOW: 'FOLLOW',
-    MESSAGE: 'MESSAGE'
-};
-const REPLY_TOKEN_0 = '00000000000000000000000000000000';
-const REPLY_TOKEN_F = 'ffffffffffffffffffffffffffffffff';
-const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
 
 function init(server) {
     let socketIOServer = socketIO(server);
