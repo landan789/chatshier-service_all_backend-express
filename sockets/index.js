@@ -149,7 +149,7 @@ function init(server) {
                     appType: app.type,
                     chatroomId: sender.chatroom_id,
                     messagerId: senderId,
-                    message: _messages
+                    messages: _messages
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
             }).then(() => {
