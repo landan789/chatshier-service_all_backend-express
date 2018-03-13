@@ -8,7 +8,6 @@ let app = require('../app');
 
 let chatshierHlp = require('../helpers/chatshier');
 let socketHlp = require('../helpers/socket');
-let helpersBot = require('../helpers/bot');
 let botSvc = require('../services/bot');
 
 let appsMdl = require('../models/apps');
