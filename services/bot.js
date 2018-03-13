@@ -3,12 +3,11 @@ module.exports = (function() {
     const bodyParser = require('body-parser');
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
-    require('isomorphic-fetch'); // or another library of choice.
-    var Dropbox = require('dropbox').Dropbox;
-    const dropbox = require('../config/dropbox');
-    var dbx = new Dropbox({ accessToken: dropbox.DROPBOX_ACCESS_TOKEN });
 
     const SCHEMA = require('../config/schema');
+
+    // Helpers
+    const StorageHlp = require('../helpers/storage');
 
     // app type defined
     const LINE = 'LINE';
@@ -152,7 +151,7 @@ module.exports = (function() {
                                         _message.text = '';
                                         // TODO 目前 LINE 是將 LINE 的圖片，以 base64 拷貝到 DB 中。這需要調整為使用 storage
                                         _message.src = 'data:' + event.message.type + '/' + media[event.message.type] + ';' + 'base64, ' + base64Data;
-                                        dbx.filesUpload({path: `/apps/${appId}/photos/${Date.now()}.${media[event.message.type]}`, contents: buf}).then((response) => {
+                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/photos/${Date.now()}.${media[event.message.type]}`, buf, () => {
                                             messages.push(_message);
                                             resolve();
                                         });
@@ -220,6 +219,24 @@ module.exports = (function() {
                                 if ('file' === attachment.type) {
                                     src = attachment.payload.url;
                                 };
+
+                                if ('image' === attachment.type || 'video' === attachment.type || 'audio' === attachment.type) {
+                                    Promise.resolve().then(() => {
+                                        return new Promise((resolve, reject) => {
+                                            StorageHlp.downloadFileFromUrl(src, `${Date.now()}.${media[attachment.type]}`, (response) => {
+                                                if ('string' === typeof response) {
+                                                    return Promise.reject(response);
+                                                }
+                                                resolve(response);
+                                            });
+                                        });
+                                    }).then((file) => {
+                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/photos/${Date.now()}.${media[attachment.type]}`, file, () => {});
+                                    }).catch((ERR) => {
+                                        console.log(ERR);
+                                    });
+                                }
+
                                 let _message = {
                                     messager_id: _messaging.sender.id, // FACEBOOK 平台的 sender id
                                     from: FACEBOOK,
