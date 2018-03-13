@@ -77,13 +77,13 @@ module.exports = (function() {
         });
         return Promise.all([
             grettingsPromise,
-            // keywordrepliesPromise,
+            keywordrepliesPromise,
             autorepliesPromise,
             templatesPromise
         ]).then((results) => {
             let repliedMessages = [];
             let greetins = results.shift();
-            // let keywordreplies = results.shift();
+            let keywordreplies = results.shift();
             let autoreplies = results.shift();
             let templates = results.shift();
             let _message = {
@@ -95,11 +95,11 @@ module.exports = (function() {
                 repliedMessages.push(message);
             });
 
-            // Object.keys(keywordreplies).map((keywordreplyId) => {
-            //     let keywordreply = keywordreplies[keywordreplyId];
-            //     let message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, keywordreply, _message);
-            //     repliedMessages.push(message);
-            // });
+            Object.keys(keywordreplies).map((keywordreplyId) => {
+                let keywordreply = keywordreplies[keywordreplyId];
+                let message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, keywordreply, _message);
+                repliedMessages.push(message);
+            });
 
             Object.keys(autoreplies).map((autoreplyId) => {
                 let autoreply = autoreplies[autoreplyId];
