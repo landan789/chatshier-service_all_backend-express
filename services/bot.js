@@ -185,15 +185,44 @@ module.exports = (function() {
                                 return;
                             }
                             attachments.map((attachment) => {
+                                let src;
+                                if ('location' === attachment.type) {
+                                    let coordinates = attachment.payload.coordinates;
+                                    let latitude = coordinates.lat;
+                                    let longitude = coordinates.long;
+                                    src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                                };
+
+                                if ('fallback' === attachment.type) {
+                                    text = attachment.fallback.title;
+                                    src = attachment.fallback.url;
+                                };
+
+                                if ('image' === attachment.type) {
+                                    src = attachment.payload.url;
+                                };
+
+                                if ('video' === attachment.type) {
+                                    src = attachment.payload.url;
+                                };
+
+                                if ('audio' === attachment.type) {
+                                    src = attachment.payload.url;
+                                };
+
+                                if ('file' === attachment.type) {
+                                    src = attachment.payload.url;
+                                };
                                 let _message = {
                                     messager_id: _messaging.sender.id, // FACEBOOK 平台的 sender id
                                     from: FACEBOOK,
                                     text: text,
                                     type: attachment.type || 'text',
                                     time: Date.now(), // 將要回覆的訊息加上時戳
-                                    src: attachment.payload.url,
+                                    src: src,
                                     message_id: _messaging.message.mid // FACEBOOK 平台的 訊息 id
                                 };
+
                                 messages.push(_message);
                             });
                         });
