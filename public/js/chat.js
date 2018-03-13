@@ -1504,10 +1504,9 @@
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
-            dbx.filesUpload({path: '/apps/' + appId + '/photos/' + file.name, contents: file}).then(function() {
-                return dbx.sharingCreateSharedLink({path: '/apps/' + appId + '/photos/' + file.name});
+            dbx.filesUpload({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`, contents: file}).then(function() {
+                return dbx.sharingCreateSharedLink({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`});
             }).then(function(response) {
-                console.log(response);
                 var wwwurl = response.url.replace('www.', 'dl.');
                 var url = wwwurl.replace('?dl=0', '');
                 var msgType = $(_this).data('type');
@@ -1539,17 +1538,6 @@
             }).catch(function(error) {
                 console.error(error);
             });
-        }
-
-        function getBase64(file, callback) {
-            var reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                callback(reader.result);
-            };
-            reader.onerror = function (error) {
-                console.log('Error: ', error);
-            };
         }
 
         function triggerFileUpload(e) {

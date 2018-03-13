@@ -3,6 +3,10 @@ module.exports = (function() {
     const bodyParser = require('body-parser');
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
+    require('isomorphic-fetch'); // or another library of choice.
+    var Dropbox = require('dropbox').Dropbox;
+    const dropbox = require('../config/dropbox');
+    var dbx = new Dropbox({ accessToken: dropbox.DROPBOX_ACCESS_TOKEN });
 
     const SCHEMA = require('../config/schema');
 
@@ -141,17 +145,19 @@ module.exports = (function() {
                                     stream.on('data', (chunk) => {
                                         bufs.push(chunk);
                                     });
-                        
+
                                     stream.on('end', () => {
                                         let buf = Buffer.concat(bufs);
                                         let base64Data = buf.toString('base64');
+                                        _message.text = '';
                                         // TODO 目前 LINE 是將 LINE 的圖片，以 base64 拷貝到 DB 中。這需要調整為使用 storage
                                         _message.src = 'data:' + event.message.type + '/' + media[event.message.type] + ';' + 'base64, ' + base64Data;
-                                        _message.text = '';
-                                        messages.push(_message);
-                                        resolve();
+                                        dbx.filesUpload({path: `/apps/${appId}/photos/${Date.now()}.${media[event.message.type]}`, contents: buf}).then((response) => {
+                                            messages.push(_message);
+                                            resolve();
+                                        });
                                     });
-                        
+
                                     stream.on('error', (err) => {
                                         console.log(err);
                                     });
