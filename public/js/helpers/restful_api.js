@@ -63,9 +63,39 @@ window.restfulAPI = (function() {
 
     /**
      * @param {RequestInfo} reqInfo
-     * @param {RequestInit} reqInit
+     * @param {RequestInit|RequestInit[]} reqInit
      */
-    var sendRequest = function(reqInfo, reqInit) {
+    var sendRequest = function(reqInfo, reqInit, usingRecursive) {
+        usingRecursive = !!usingRecursive;
+
+        if (reqInit instanceof Array) {
+            if (usingRecursive) {
+                var reqInits = reqInit;
+                var resJsons = [];
+
+                var nextPromise = function(i) {
+                    if (i >= reqInits.length) {
+                        return Promise.resolve(resJsons);
+                    }
+                    var _reqInit = reqInits[i];
+
+                    return window.fetch(reqInfo, _reqInit).then(function(res) {
+                        return responseChecking(res);
+                    }).then(function(resJson) {
+                        resJsons.push(resJson);
+                        return nextPromise(i + 1);
+                    });
+                };
+                return nextPromise(0);
+            } else {
+                return Promise.all(reqInits.map((_reqInit) => {
+                    return window.fetch(reqInfo, _reqInit).then(function(res) {
+                        return responseChecking(res);
+                    });
+                }));
+            }
+        }
+
         return window.fetch(reqInfo, reqInit).then(function(res) {
             return responseChecking(res);
         });
@@ -477,9 +507,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders
             };
 
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -487,19 +515,28 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標群發的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} newComposeData - 欲新增的群發資料
+         * @param {any|any[]} composes - 欲新增的群發資料
          */
-        AppsComposesAPI.prototype.insert = function(appId, userId, newComposeData) {
+        AppsComposesAPI.prototype.insert = function(appId, userId, composes, usingRecursive) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
-                method: 'POST',
-                headers: reqHeaders,
-                body: JSON.stringify(newComposeData)
-            };
 
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            var reqInit;
+            if (composes instanceof Array) {
+                reqInit = composes.map(function(compose) {
+                    return {
+                        method: 'POST',
+                        headers: reqHeaders,
+                        body: JSON.stringify(compose)
+                    };
+                });
+            } else {
+                reqInit = {
+                    method: 'POST',
+                    headers: reqHeaders,
+                    body: JSON.stringify(composes)
+                };
+            }
+            return sendRequest(destUrl, reqInit, usingRecursive);
         };
 
         /**
@@ -508,19 +545,17 @@ window.restfulAPI = (function() {
          * @param {string} appId - 目標群發的 App ID
          * @param {string} composeId - 目標群發的 ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} modifiedComposeData - 已編輯後欲更新的群發資料
+         * @param {any} compose - 已編輯後欲更新的群發資料
          */
-        AppsComposesAPI.prototype.update = function(appId, composeId, userId, modifiedComposeData) {
+        AppsComposesAPI.prototype.update = function(appId, composeId, userId, compose) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/composes/' + composeId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
-                body: JSON.stringify(modifiedComposeData)
+                body: JSON.stringify(compose)
             };
 
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         /**
@@ -537,9 +572,7 @@ window.restfulAPI = (function() {
                 headers: reqHeaders
             };
 
-            return window.fetch(destUrl, reqInit).then(function(response) {
-                return responseChecking(response);
-            });
+            return sendRequest(destUrl, reqInit);
         };
 
         return AppsComposesAPI;

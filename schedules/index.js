@@ -66,8 +66,18 @@ let jobProcess = () => {
                         let composeGender = composes[composeId].gander || '';
                         let composeTags = composes[composeId].tag_ids || {};
 
-                        if (originMessagerAge !== composeAge && '' !== composeAge) {
-                            delete messagers[messagerId];
+                        for (let i = 0; i < composeAge.length; i++) {
+                            if (i % 2) {
+                                if (originMessagerAge > composeAge[i] && '' !== composeAge[i]) {
+                                    delete messagers[messagerId];
+                                    continue;
+                                }
+                            } else {
+                                if (originMessagerAge < composeAge[i] && '' !== composeAge[i]) {
+                                    delete messagers[messagerId];
+                                    continue;
+                                }
+                            }
                         }
                         if (originMessagerGender !== composeGender && '' !== composeGender) {
                             delete messagers[messagerId];

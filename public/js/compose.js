@@ -16,7 +16,6 @@
     var userId = '';
     var nowSelectAppId = '';
     var modelSelectAppId = '';
-    var sendtime;
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $composeEditModal = $('#editModal');
@@ -29,6 +28,7 @@
     var timeInMs = (Date.now() + 1000);
     var tagEnums = api.appsTags.enums;
     const NO_PERMISSION_CODE = '3.16';
+    const DID_NOT_HAVE_TAGS = '15.6';
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
@@ -406,13 +406,23 @@
         };
         let tagsTd = '<td id="tags">';
         let composeAge = composeData.age || '';
+        let composeAgeString = '';
+        for (let i = 0; i < composeAge.length; i++) {
+            if (i % 2) {
+                composeAgeString += '-' + composeAge[i];
+                continue;
+            } else {
+                composeAgeString += composeAge[i];
+                continue;
+            }
+        }
         let composeGender = composeData.gender || '';
-        if (!composeData.tag_ids && '' === composeAge && '' === composeGender) {
+        if (!composeData.tag_ids && '' === composeData.age && '' === composeGender) {
             tagsTd += '<snap id="sendAll">無';
             return tagsTd;
         }
         composeTags = Object.assign(composeTags, composeData.tag_ids) || composeTags;
-        composeTags['age'].value = composeAge;
+        composeTags['age'].value = composeAgeString;
         composeTags['gender'].value = composeGender;
         for (var tagId in composeTags) {
             let composeTag = composeTags[tagId];
@@ -491,19 +501,20 @@
         let text = $(this).text();
         let rel = $(this).attr('rel');
         let dataType = $(this).attr('data-type');
-        let checkBtn = '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>';
-        let closeBtn = '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>';
-        let input = '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text +'" id="condition-input">';
         let $tagDiv = $(this).parent();
         let $conditionDiv = $(this).parent().find('div');
 
         let conditionId = $conditionDiv.attr('id');
+
         $(this).hide();
         if (!conditionId) {
-            let div = '<div id="condition">';
-            div += input + checkBtn + closeBtn;
-            div += '</div>';
-            $tagDiv.append(div);
+            $tagDiv.append(
+                '<div id="condition">' +
+                    '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
+                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                '</div>'
+            );
         }
         $conditionDiv.show();
     }
@@ -513,7 +524,6 @@
         var appId = $appSelector.find('option:selected').val();
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         var sendTime = $composesAddModal.find('#send-time').val();
-        var messages = [];
         var conditionInputElement = $composesAddModal.find('input#condition-input');
         tagsObjCompose(conditionInputElement);
         $errorMsgElem.empty().hide();
@@ -530,55 +540,35 @@
         if (!isTextVaild) {
             $errorMsgElem.text('請輸入群發的內容').show();
             return;
-        } else {
-            sendtime = $('#send-time').val();
+        }
 
-            if ($('#send-now').prop('checked')) {
-                let composes = [];
-                for (let key in inputObj) {
-                    let compose = {
-                        type: 'text',
-                        text: $('#' + key).val(),
-                        status: 1,
-                        time: (Date.now()) - 60000,
-                        age: age,
-                        gender: gender,
-                        tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
-                    };
-                    composes.push(compose);
-                }
+        let options = {
+            sendTime: sendTime,
+            isDraft: isDraft,
+            age: age,
+            gender: gender,
+            tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
+        };
 
-                var emitData = {
-                    userId: userId,
-                    appId: appId,
-                    composes: composes
+        let messages = [];
+        if ($('#send-now').prop('checked')) {
+            for (let key in inputObj) {
+                let compose = {
+                    type: 'text',
+                    text: $('#' + key).val(),
+                    status: 1,
+                    time: Date.now() - 60000,
+                    age: age,
+                    gender: gender,
+                    tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
                 };
-                if (false === isDraft) {
-                    socket.emit('push composes to all', emitData, (json) => {
-                        $composesAddModal.modal('hide');
-                        $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
-                        if (1 === json.status) {
-                            $('.form-control').val(appsData[appId].name);
-                            $('.textinput').val('');
-                            $('#send-time').val('');
-                            $('#inputText').empty();
-                            inputNum = 0;
+                messages.push(compose);
+            }
 
-                            $.notify('發送成功', { type: 'success' });
-                            $appDropdown.find('.dropdown-text').text(appsData[appId].name);
-                        } else {
-                            let errText = '';
-                            if (NO_PERMISSION_CODE === json.code) {
-                                errText = '無此權限';
-                            } else {
-                                errText = '失敗';
-                            }
-                            $.notify(errText, { type: 'danger' });
-                        }
-                        return loadComposes(appId, userId);
-                    });
-                } else {
-                    insert(appId, userId, isDraft, composes);
+            // 如果是屬於草稿則不做立即發送動作
+            // 將群發訊息存入資料庫，等待使用者再行編輯
+            if (isDraft) {
+                return insert(appId, userId, messages, options).then(() => {
                     $composesAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
@@ -589,11 +579,48 @@
                     $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composesAddModal.find('#modal-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
-                }
+                });
             }
-        };
-        if ($('#send-sometime').prop('checked')) {
-            let messages = [];
+
+            // 立即群發動作將資料包裝為 socket 資料
+            // 使用 socket 發送至所有用戶端
+            return new Promise((resolve) => {
+                var emitData = {
+                    userId: userId,
+                    appId: appId,
+                    composes: messages
+                };
+
+                socket.emit('push composes to all', emitData, (json) => {
+                    $composesAddModal.modal('hide');
+                    $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                    if (1 === json.status) {
+                        $('.form-control').val(appsData[appId].name);
+                        $('.textinput').val('');
+                        $('#send-time').val('');
+                        $('#inputText').empty();
+                        inputNum = 0;
+
+                        $.notify('發送成功', { type: 'success' });
+                        $appDropdown.find('.dropdown-text').text(appsData[appId].name);
+                    } else {
+                        let errText = '';
+                        if (NO_PERMISSION_CODE === json.code) {
+                            errText = '無此權限';
+                        }
+                        if (DID_NOT_HAVE_TAGS === json.code) {
+                            errText = '無符合的客戶條件';
+                        } else {
+                            errText = '失敗';
+                        }
+                        $.notify(errText, { type: 'danger' });
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                return loadComposes(appId, userId);
+            });
+        } else if ($('#send-sometime').prop('checked')) {
             for (let key in inputObj) {
                 let message = {
                     type: 'text',
@@ -601,8 +628,9 @@
                 };
                 messages.push(message);
             };
-            insert(appId, userId, isDraft, messages).then((responses) => {
-                responses.map((response) => {
+
+            return insert(appId, userId, messages, options).then((responses) => {
+                responses.forEach((response) => {
                     if (0 === response.stats) {
                         return;
                     };
@@ -647,7 +675,11 @@
 
             switch (conditionDataType) {
                 case tagEnums.setsType.NUMBER:
-                    conditionVal = parseInt(conditionVal);
+                    let ageRange = conditionVal.split(/[-~]/);
+                    for (let i in ageRange) {
+                        ageRange[i] = parseInt(ageRange[i]);
+                    }
+                    conditionVal = ageRange;
                     break;
             }
 
@@ -674,76 +706,36 @@
             }
         });
     }
-    function insert(appId, userId, isDraft, messages) {
-        let respJsons = [];
+    function insert(appId, userId, messages, options) {
+        options = options || {};
 
-        function nextPromise(i) {
-            if (i >= messages.length) {
-                return Promise.resolve(respJsons);
+        let composes = messages.map(function(message) {
+            let compose = {
+                type: message.type,
+                text: messages.text,
+                status: options.isDraft ? 0 : 1,
+                time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
+                age: options.age,
+                gender: options.gender,
+                tag_ids: options.tag_ids
             };
-            if (false === isDraft) {
-                let compose = {
-                    type: 'text',
-                    text: messages[i].text,
-                    status: isDraft ? 0 : 1,
-                    time: Date.parse(sendtime),
-                    age: age,
-                    gender: gender,
-                    tag_ids: tag_ids
-                };
-                return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
-                    age = '';
-                    gender = '';
-                    tag_ids = {};
-                    respJsons.push(resJson);
-                    return nextPromise(i + 1);
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $composesAddModal.modal('hide');
-                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                        $.notify('失敗', { type: 'danger' });
-                        return loadComposes(appId, userId);
-                    }
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $composesAddModal.modal('hide');
-                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                        $.notify('無此權限', { type: 'danger' });
-                        return loadComposes(appId, userId);
-                    }
-                });
-            } else {
-                let compose = {
-                    type: 'text',
-                    text: messages[i].text,
-                    status: isDraft ? 0 : 1,
-                    time: Date.now(),
-                    age: age,
-                    gender: gender,
-                    tag_ids: tag_ids
-                };
-                return api.appsComposes.insert(appId, userId, compose).then((resJson) => {
-                    age = '';
-                    gender = '';
-                    tag_ids = {};
-                    respJsons.push(resJson);
-                    return nextPromise(i + 1);
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $composesAddModal.modal('hide');
-                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                        $.notify('失敗', { type: 'danger' });
-                        return loadComposes(appId, userId);
-                    }
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $composesAddModal.modal('hide');
-                        $composesAddModal.find('#modal-submit').removeAttr('disabled');
-                        $.notify('無此權限', { type: 'danger' });
-                        return loadComposes(appId, userId);
-                    }
-                });
+            return compose;
+        });
+
+        return api.appsComposes.insert(appId, userId, composes, true).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $composesAddModal.modal('hide');
+                $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                $.notify('失敗', { type: 'danger' });
+                return loadComposes(appId, userId);
             }
-        }
-        return nextPromise(0);
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $composesAddModal.modal('hide');
+                $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return loadComposes(appId, userId);
+            }
+        });
     }
 
     function ISODateTimeString(d) {
