@@ -14,8 +14,6 @@
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
 
-    var DROPBOX_ACCESS_TOKEN = 'x0Wf5BgKQZAAAAAAAAAAVVOyoBFra2-vSrdK2vbe3lNI3WaY9od7GpPWgPOiCuKu';
-
     var SOCKET_NAMESPACE = '/chatshier';
 
     var api = window.restfulAPI;
@@ -39,8 +37,6 @@
     window.translate.ready.then(function(json) {
         transJson = Object.assign(transJson, json);
     });
-
-    var dbx = new Dropbox.Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN });
 
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -1490,40 +1486,32 @@
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
-            // 刪除這段然後寫在server端
-            dbx.filesUpload({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`, contents: file}).then(function() {
-                return dbx.sharingCreateSharedLink({path: `/apps/${appId}/photos/${Date.now()}_${file.name}`});
-            }).then(function(response) {
-                var wwwurl = response.url.replace('www.', 'dl.');
-                var url = wwwurl.replace('?dl=0', '');
-                var msgType = $(_this).data('type');
-                var appType = apps[appId].type;
-                var recipientId = findChatroomMessagerId(appId, chatroomId);
-
-                /** @type {ChatshierMessageInterface} */
-                var messageToSend = {
-                    text: '',
-                    src: url,
-                    type: msgType,
-                    from: CHATSHIER,
-                    time: Date.now(),
-                    messager_id: userId
-                };
-                /** @type {ChatshierChatSocketInterface} */
-                var chatSocketData = {
-                    appId: appId,
-                    appType: appType,
-                    chatroomId: chatroomId,
-                    recipientId: recipientId,
-                    messages: [messageToSend]
-                };
-                messageInput.val('');
-                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
-                    $loadingElem.remove();
-                    $loadingElem = void 0;
-                });
-            }).catch(function(error) {
-                console.error(error);
+            var msgType = $(_this).data('type');
+            var appType = apps[appId].type;
+            var recipientId = findChatroomMessagerId(appId, chatroomId);
+            /** @type {ChatshierMessageInterface} */
+            var messageToSend = {
+                text: '',
+                src: '',
+                type: msgType,
+                from: CHATSHIER,
+                time: Date.now(),
+                messager_id: userId,
+                contents: file,
+                name: file.name
+            };
+            /** @type {ChatshierChatSocketInterface} */
+            var chatSocketData = {
+                appId: appId,
+                appType: appType,
+                chatroomId: chatroomId,
+                recipientId: recipientId,
+                messages: [messageToSend]
+            };
+            messageInput.val('');
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
         }
 

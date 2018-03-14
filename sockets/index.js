@@ -3,6 +3,7 @@ let socketIO = require('socket.io');
 let line = require('@line/bot-sdk');
 let facebook = require('facebook-bot-messenger'); // facebook串接
 const fuseHlp = require('../helpers/fuse');
+const StorageHlp = require('../helpers/storage');
 
 let app = require('../app');
 
@@ -200,16 +201,32 @@ function init(server) {
                     text: message.text,
                     from: CHATSHIER,
                     messager_id: senderId,
-                    src: !message.text ? (message.src || '') : ''
+                    src: ''
                 };
 
                 return new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
-                        if (!newChatroomId) {
-                            reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
-                            return;
-                        }
-                        resolve(newChatroomId);
+                    if ('text' === message.type) {
+                        resolve();
+                        return;
+                    }
+                    StorageHlp.uploadDropboxFile(`/apps/${appId}/files/${message.time}_${message.name}`, message.contents, () => {
+                        StorageHlp.shareFileLink(`/apps/${appId}/files/${message.time}_${message.name}`, (response) => {
+                            var wwwurl = response.url.replace('www.', 'dl.');
+                            var url = wwwurl.replace('?dl=0', '');
+                            messageToDB.src = url;
+                            message.src = url;
+                            resolve();
+                        });
+                    });
+                }).then(() => {
+                    return new Promise((resolve, reject) => {
+                        appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
+                            if (!newChatroomId) {
+                                reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                                return;
+                            }
+                            resolve(newChatroomId);
+                        });
                     });
                 }).then(() => {
                     return new Promise((resolve) => {

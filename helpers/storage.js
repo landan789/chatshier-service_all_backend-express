@@ -39,13 +39,23 @@ module.exports = (function() {
     };
 
     /**
-     * @param {*} path
-     * @param {*} contents
-     * @param {*} callback
+     * @param {string} path
+     * @param {string} contents
+     * @param {function} callback
      */
     StorageHelp.prototype.uploadDropboxFile = function(path, contents, callback) {
-        dbx.filesUpload({path: path, contents: contents}).then((response) => {
+        dbx.filesUpload({path: path, contents: contents}).then(function(response) {
             callback();
+        });
+    };
+
+    /**
+     * @param {string} path
+     * @param {function} callback
+     */
+    StorageHelp.prototype.shareFileLink = function(path, callback) {
+        dbx.sharingCreateSharedLink({path: path}).then(function(response) {
+            callback(response);
         });
     };
 

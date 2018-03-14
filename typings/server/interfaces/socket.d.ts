@@ -13,4 +13,6 @@ interface ChatshierMessageInterface {
     text: string;
     time: number;
     type: string;
+    contents?: any;
+    name: string;
 }

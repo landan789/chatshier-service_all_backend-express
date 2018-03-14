@@ -151,7 +151,7 @@ module.exports = (function() {
                                         _message.text = '';
                                         // TODO 目前 LINE 是將 LINE 的圖片，以 base64 拷貝到 DB 中。這需要調整為使用 storage
                                         _message.src = 'data:' + event.message.type + '/' + media[event.message.type] + ';' + 'base64, ' + base64Data;
-                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/photos/${Date.now()}.${media[event.message.type]}`, buf, () => {
+                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/files/${Date.now()}.${media[event.message.type]}`, buf, () => {
                                             messages.push(_message);
                                             resolve();
                                         });
@@ -231,7 +231,7 @@ module.exports = (function() {
                                             });
                                         });
                                     }).then((file) => {
-                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/photos/${Date.now()}.${media[attachment.type]}`, file, () => {});
+                                        StorageHlp.uploadDropboxFile(`/apps/${appId}/files/${Date.now()}.${media[attachment.type]}`, file, () => {});
                                     }).catch((ERR) => {
                                         console.log(ERR);
                                     });
@@ -340,27 +340,33 @@ module.exports = (function() {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
+                    let sendTemplate = {};
                     if ('text' === message.type) {
-                        // message.typ 為 'text' 不用調整，就可直接丟給 line service
+                        sendTemplate.type = message.type;
+                        sendTemplate.text = message.text;
                     };
                     if ('image' === message.type) {
-                        message.previewImageUrl = message.src;
-                        message.originalContentUrl = message.src;
+                        sendTemplate.type = message.type;
+                        sendTemplate.previewImageUrl = message.src;
+                        sendTemplate.originalContentUrl = message.src;
                     };
                     if ('audio' === message.type) {
-                        message.duration = 240000;
-                        message.originalContentUrl = message.src;
+                        sendTemplate.type = message.type;
+                        sendTemplate.duration = 240000;
+                        sendTemplate.originalContentUrl = message.src;
                     };
                     if ('video' === message.type) {
-                        message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
-                        message.originalContentUrl = message.src;
+                        sendTemplate.type = message.type;
+                        sendTemplate.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
+                        sendTemplate.originalContentUrl = message.src;
                     };
                     if ('sticker' === message.type) {
-                        message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
-                        message.packageId = message.text.substr(message.text.indexOf(' '));
+                        sendTemplate.type = message.type;
+                        sendTemplate.stickerId = message.text.substr(message.text.lastIndexOf(' '));
+                        sendTemplate.packageId = message.text.substr(message.text.indexOf(' '));
                     };
 
-                    return bot.pushMessage(messagerId, message);
+                    return bot.pushMessage(messagerId, sendTemplate);
                 case FACEBOOK:
                     if ('text' === message.type) {
                         return bot.sendTextMessage(messagerId, message.text);
