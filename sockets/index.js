@@ -30,6 +30,11 @@ const API_SUCCESS = require('../config/api_success');
 
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
+const media = {
+    image: 'png',
+    audio: 'mp3',
+    video: 'mp4'
+};
 
 function init(server) {
     let socketIOServer = socketIO(server);
@@ -44,6 +49,8 @@ function init(server) {
         let bot = {};
         let appId = '';
         let app = {};
+        let fileContent = {};
+        let fileBase64 = '';
 
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
             let receivedMessages = [];
@@ -73,6 +80,7 @@ function init(server) {
                 if (0 === receivedMessages.length) {
                     return Promise.resolve([]);
                 }
+                fileBase64 = receivedMessages[0].srcBase;
                 senderId = receivedMessages[0].messager_id;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
@@ -131,6 +139,13 @@ function init(server) {
                         resolve(messages);
                     });
                 });
+            }).then((messages) => {
+                let messageId = Object.keys(messages).shift() || '';
+                if ('text' === messages[messageId].type) {
+                    return Promise.resolve(messages);
+                }
+                let buf = Buffer.from(fileBase64, 'base64');
+                return StorageHlp.filesUpload(`/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src/${Date.now()}.${media[messages[messageId].type]}`, buf, messages);
             }).then((messages) => {
                 let _messages = Object.values(messages);
                 _messages.sort((a, b) => {
@@ -193,6 +208,7 @@ function init(server) {
                 let message = messages[i];
                 let senderId = message.messager_id;
                 let app;
+                let src = 'text' === message.type ? '' : 'data:' + message.type + '/' + media[message.type] + ';' + 'base64, ' + message.contents.toString('base64');
 
                 // 2. 將資料寫入至資料庫
                 let messageToDB = {
@@ -201,33 +217,35 @@ function init(server) {
                     text: message.text,
                     from: CHATSHIER,
                     messager_id: senderId,
-                    src: ''
+                    src: src
                 };
 
                 return new Promise((resolve, reject) => {
+                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
+                        if (!newChatroomId) {
+                            reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                            return;
+                        }
+                        resolve(newChatroomId);
+                    });
+                }).then((response) => {
                     if ('text' === message.type) {
-                        resolve();
-                        return;
+                        return Promise.resolve();
                     }
-                    StorageHlp.uploadDropboxFile(`/apps/${appId}/files/${message.time}_${message.name}`, message.contents, () => {
-                        StorageHlp.shareFileLink(`/apps/${appId}/files/${message.time}_${message.name}`, (response) => {
-                            var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                            var url = wwwurl.replace('?dl=0', '');
-                            messageToDB.src = url;
-                            message.src = url;
-                            resolve();
-                        });
-                    });
-                }).then(() => {
-                    return new Promise((resolve, reject) => {
-                        appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
-                            if (!newChatroomId) {
-                                reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
-                                return;
-                            }
-                            resolve(newChatroomId);
-                        });
-                    });
+                    return StorageHlp.filesUpload(`/apps/${appId}/chatrooms/${chatroomId}/messages/${response.messageId}/${message.time}_${message.name}`, message.contents, response);
+                }).then((response) => {
+                    if ('text' === message.type) {
+                        return Promise.resolve();
+                    }
+                    return StorageHlp.sharingCreateSharedLink(`/apps/${appId}/chatrooms/${chatroomId}/messages/${response.messageId}/${message.time}_${message.name}`);
+                }).then((response) => {
+                    if ('text' === message.type) {
+                        return Promise.resolve();
+                    }
+                    var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                    var url = wwwurl.replace('?dl=0', '');
+                    message.src = url;
+                    return Promise.resolve();
                 }).then(() => {
                     return new Promise((resolve) => {
                         appsMdl.findByAppId(appId, (apps) => {
@@ -258,6 +276,8 @@ function init(server) {
                     }));
                 }).then(() => {
                     return nextMessage(i + 1);
+                }).catch((ERR) => {
+                    console.log(ERR);
                 });
             };
 
@@ -437,7 +457,9 @@ function init(server) {
                             messager_id: '',
                             text: message.text,
                             time: Date.now(),
-                            type: 'text'
+                            type: 'text',
+                            contents: '',
+                            name: ''
                         };
 
                         return new Promise((resolve, reject) => {

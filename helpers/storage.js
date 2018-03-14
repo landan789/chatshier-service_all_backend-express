@@ -3,59 +3,59 @@ module.exports = (function() {
     const fs = require('fs');
     const request = require('request');
     const chatshierCfg = require('../config/chatshier');
-    const Dropbox = require('dropbox').Dropbox;
-    const dbx = new Dropbox({ accessToken: chatshierCfg.STORAGE.DROPBOX_ACCESS_TOKEN });
+    const dbx = new (require('dropbox').Dropbox)({ accessToken: chatshierCfg.STORAGE.DROPBOX_ACCESS_TOKEN });
 
     function StorageHelp() {};
 
     /**
      * @param {string} url
      * @param {string} dest
-     * @param {function} callback
      */
-    StorageHelp.prototype.downloadFileFromUrl = function(url, dest, callback) {
+    StorageHelp.prototype.downloadFileFromUrl = function(url, dest) {
         var file = fs.createWriteStream(dest);
         var sendReq = request.get(url);
         // verify response code
         sendReq.on('response', function(response) {
             if (response.statusCode !== 200) {
-                return callback('Response status was ' + response.statusCode);
+                return Promise.reject(response.statusCode);
             }
         });
         // check for request errors
         sendReq.on('error', function (err) {
             fs.unlink(dest);
-            returncallbackcb(err.message);
+            return Promise.reject(err.message);
         });
         sendReq.pipe(file);
         file.on('finish', function() {
             file.close();
-            return callback(file);
+            return Promise.resolve(file);
         });
         file.on('error', function(err) {
             fs.unlink(dest);
-            return callback(err.message);
+            return Promise.reject(err.message);
         });
     };
 
     /**
      * @param {string} path
-     * @param {string} contents
-     * @param {function} callback
+     * @param {Buffer} contents
+     * @param {any} messages
+     * @returns {any}
      */
-    StorageHelp.prototype.uploadDropboxFile = function(path, contents, callback) {
-        dbx.filesUpload({path: path, contents: contents}).then(function(response) {
-            callback();
+    StorageHelp.prototype.filesUpload = function(path, contents, messages) {
+        return dbx.filesUpload({path: path, contents: contents}).then(function(response) {
+            let _messages = messages;
+            return Promise.resolve(_messages);
         });
     };
 
     /**
      * @param {string} path
-     * @param {function} callback
+     * @returns {any}
      */
-    StorageHelp.prototype.shareFileLink = function(path, callback) {
-        dbx.sharingCreateSharedLink({path: path}).then(function(response) {
-            callback(response);
+    StorageHelp.prototype.sharingCreateSharedLink = function(path) {
+        return dbx.sharingCreateSharedLink({path: path}).then(function(response) {
+            return Promise.resolve(response);
         });
     };
 

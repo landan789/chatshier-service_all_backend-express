@@ -58,6 +58,7 @@ module.exports = (function() {
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).once('value');
         }).then((snap) => {
             let _message = snap.val();
+            _message.messageId = snap.key;
             ('function' === typeof callback) && callback(_message);
         }).catch(() => {
             ('function' === typeof callback) && callback(null);
