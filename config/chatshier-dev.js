@@ -9,6 +9,6 @@ module.exports = {
         PASSWORD: 'dba1748eac27602147dfb1b06557a4fd'
     },
     STORAGE: {
-        DROPBOX_ACCESS_TOKEN: 'x0Wf5BgKQZAAAAAAAAAAVVOyoBFra2-vSrdK2vbe3lNI3WaY9od7GpPWgPOiCuKu'
+        DROPBOX_ACCESS_TOKEN: 'DJzCRts8daAAAAAAAAAABnNeJJuJiYqx51BL3jrees0iA3Inz_Xu14eoRCQ8KD25'
     }
 };
