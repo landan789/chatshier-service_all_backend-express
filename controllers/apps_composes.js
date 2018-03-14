@@ -6,23 +6,9 @@ module.exports = (function() {
     let controllerCre = require('../cores/controller');
 
     const appsComposesMdl = require('../models/apps_composes');
-    const appsMdl = require('../models/apps');
-    const usersMdl = require('../models/users');
-    const groupsMdl = require('../models/groups');
-
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
 
     function AppsComposesController() {}
     util.inherits(AppsComposesController, controllerCre.constructor);
-
 
     AppsComposesController.prototype.getAll = function(req, res, next) {
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {

@@ -71,12 +71,12 @@ router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMe
 // ===============
 
 // 圖文選單
-router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getByUserId);
-router.get('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.getByAppIdByuserId);
-router.get('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.getOne);
+router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getAll);
+router.get('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.getAll);
+router.get('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', appsRichmenusCtl.getOne);
 router.post('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.postOne);
-router.put('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.putOne);
-router.delete('/apps-richmenus/richmenus/:richmenuid/apps/:appid/users/:userid', appsRichmenusCtl.deleteOne);
+router.put('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', appsRichmenusCtl.putOne);
+router.delete('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', appsRichmenusCtl.deleteOne);
 
 // ==========
 // 自動回覆

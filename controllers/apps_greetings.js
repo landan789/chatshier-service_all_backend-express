@@ -5,20 +5,7 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    let appsMdl = require('../models/apps');
-    let usersMdl = require('../models/users');
-    var groupsMdl = require('../models/groups');
     let appsGreetingsMdl = require('../models/apps_greetings');
-
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
 
     function AppsGreetingsController() {}
 

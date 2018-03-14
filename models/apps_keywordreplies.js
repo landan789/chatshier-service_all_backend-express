@@ -105,8 +105,11 @@ module.exports = (function() {
     AppsKeywordrepliesModel.prototype.findOne = (appId, keywordreplyId, callback) => {
         let appsKeywordreplies = {};
 
-        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value').then((snap) => {
             let keywordreplies = snap.val() || {};
+            if (1 === keywordreplies.isDeleted) {
+                Promise.reject(new Error());
+            }
             appsKeywordreplies[appId] = {
                 keywordreplies: keywordreplies
             };

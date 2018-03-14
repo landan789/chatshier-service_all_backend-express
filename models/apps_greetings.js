@@ -71,6 +71,9 @@ module.exports = (function() {
     AppsGreetingsModel.prototype.findOne = (appId, greetingId, callback) => {
         admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value').then((snap) => {
             let greeting = snap.val() || {};
+            if (1 === greeting.isDeleted) {
+                Promise.reject(new Error());
+            }
             let appsGreetings = {
                 [appId]: {
                     greetings: {

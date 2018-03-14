@@ -59,6 +59,9 @@ module.exports = (function() {
     AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
         return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
             let composes = snap.val() || {};
+            if (1 === composes.isDeleted) {
+                Promise.reject(new Error());
+            }
             let appsComposes = {
                 [appId]: {
                     composes: composes

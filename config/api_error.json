@@ -22,6 +22,7 @@
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "COMPOSEID_WAS_EMPTY": {"MSG": "composeid was empty", "CODE": "1.18"},
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
+    "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
@@ -34,6 +35,7 @@
     "USER_DID_NOT_HAVE_THIS_COMPOSE": { "MSG": "user did not have this compose", "CODE": "3.6" },
     "USER_DID_NOT_HAVE_THIS_CALENDAR": { "MSG": "user did not have this calendar", "CODE": "3.7" },
     "USER_DID_NOT_HAVE_THIS_AUTOREPLY": { "MSG": "user did not have this autoreply", "CODE": "3.71" },
+    "USER_DID_NOT_HAVE_THIS_RICHMENU":{ "MSG": "user did not have this richmenu", "CODE": "3.72"},
     "GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP": { "MSG": "group member was already in this group", "CODE": "3.8" },
     "GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP": { "MSG": "group member was deleted from this group", "CODE": "3.9" },
     "USER_WAS_DELETED_FROM_THIS_GROUP_MEMBER": { "MSG": "user was deleted from this group member", "CODE": "3.10" },

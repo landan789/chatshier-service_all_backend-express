@@ -5,20 +5,8 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const usersMdl = require('../models/users');
     const appsTagsMdl = require('../models/apps_tags');
-    const groupsMdl = require('../models/groups');
-    const appsMdl = require('../models/apps');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
     function AppsTagsController() {}
 
     util.inherits(AppsTagsController, controllerCre.constructor);
