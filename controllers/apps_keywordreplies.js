@@ -6,19 +6,7 @@ module.exports = (function() {
     let controllerCre = require('../cores/controller');
 
     const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
-    const appsMdl = require('../models/apps');
-    const groupsMdl = require('../models/groups');
-    const usersMdl = require('../models/users');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
     function AppsKeywordrepliesController() {};
 
     util.inherits(AppsKeywordrepliesController, controllerCre.constructor);

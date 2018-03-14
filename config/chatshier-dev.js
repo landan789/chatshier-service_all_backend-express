@@ -1,8 +1,4 @@
 module.exports = {
-    SECRET: {
-        APP_MESSAGE_KEY: 'THIS_IS_USED_TO_ENCRYPT_MESSAGE',
-        ALGORITHM: 'sha1'
-    },
     REDIS: {
         HOST: '127.0.0.1',
         PORT: 6379,
@@ -10,5 +6,14 @@ module.exports = {
     },
     STORAGE: {
         DROPBOX_ACCESS_TOKEN: 'DJzCRts8daAAAAAAAAAABnNeJJuJiYqx51BL3jrees0iA3Inz_Xu14eoRCQ8KD25'
+    },
+    MONGODB: {
+        HOST: '127.0.0.1',
+        PORT: 27017,
+        USERNAME: 'vagrant',
+        PASSWORD: 'password'
+    },
+    LINE: {
+        PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
     }
 };

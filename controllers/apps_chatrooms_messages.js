@@ -5,22 +5,9 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
-    const appsMdl = require('../models/apps');
-    const usersMdl = require('../models/users');
-    const groupsMdl = require('../models/groups');
+    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');;
 
     function AppsChatroomsMessagesController() {}
-
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
 
     util.inherits(AppsChatroomsMessagesController, controllerCre.constructor);
 

@@ -14,6 +14,7 @@ window.restfulAPI = (function() {
         appsGreetings: prefixUrl + 'apps-greetings/',
         appsMessagers: prefixUrl + 'apps-messagers/',
         appsKeywordreplies: prefixUrl + 'apps-keywordreplies/',
+        appsTemplates: prefixUrl + 'apps-templates/',
         appsTags: prefixUrl + 'apps-tags/',
         appsTickets: prefixUrl + 'apps-tickets/',
         authentications: prefixUrl + 'authentications/',
@@ -729,6 +730,7 @@ window.restfulAPI = (function() {
     /**
      * 宣告專門處理相關自動回覆的 API 類別
      */
+
     var AppsAutorepliesAPI = (function() {
         function AppsAutorepliesAPI() {
             this.urlPrefix = apiUrlTable.appsAutoreplies;
@@ -977,6 +979,82 @@ window.restfulAPI = (function() {
         return AppsGreetingsAPI;
     })();
 
+    /**
+     * 宣告專門處理相關Template的 API 類別
+     */
+    var AppsTemplatesAPI = (function() {
+        function AppsTemplatesAPI() {
+            this.urlPrefix = apiUrlTable.appsTemplates;
+        };
+        /**
+         * 取得使用者所有Template資料
+         *
+         * @param {string} appId - 目標Template的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AppsTemplatesAPI.prototype.findAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+        
+        /**
+         * 新增一筆Template資料
+         *
+         * @param {string} appId - 目標Template的 App ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} newTemplateData - 欲新增的Template資料
+         */
+        AppsTemplatesAPI.prototype.insert = function(appId, userId, newTemplateData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(newTemplateData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 修改一筆Template資料
+         *
+         * @param {string} appId - 目標Template的 App ID
+         * @param {string} templateId - 目標Template的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         * @param {*} modifiedTemplateData - 已編輯後欲更新的Template資料
+         */
+        AppsTemplatesAPI.prototype.update = function(appId, userId, templateId, modifiedTemplateData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(modifiedTemplateData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 刪除一筆Template資料
+         *
+         * @param {string} appId - 目標Template的 App ID
+         * @param {string} templateId - 目標Template的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AppsTemplatesAPI.prototype.remove = function(appId, userId, templateId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsTemplatesAPI;
+    })();
+
     if (window.auth && window.auth.ready) {
         // 當 firebase 更新時同時更新 API 需要的 JSON Web Token
         window.auth.onIdTokenChanged(function(currentUser) {
@@ -993,6 +1071,7 @@ window.restfulAPI = (function() {
         setJWT: setJWT,
         apps: new AppAPI(),
         appsAutoreplies: new AppsAutorepliesAPI(),
+        appsTemplates: new AppsTemplatesAPI(),
         appsChatroomsMessages: new AppsChatroomsMessagesAPI(),
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),

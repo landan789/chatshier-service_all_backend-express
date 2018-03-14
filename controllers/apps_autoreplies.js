@@ -5,20 +5,8 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    var usersMdl = require('../models/users');
-    var appsMdl = require('../models/apps');
-    var groupsMdl = require('../models/groups');
     var appsAutorepliesMdl = require('../models/apps_autoreplies');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
     function AppsAutorepliesController() {};
 
     util.inherits(AppsAutorepliesController, controllerCre.constructor);

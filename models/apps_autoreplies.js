@@ -181,8 +181,11 @@ module.exports = (function() {
     AppsAutorepliesModel.prototype.findOne = (appId, autoreplyId, callback) => {
         let appsAutoreplies = {};
 
-        return admin.database().ref('apps/' + appId + '/autoreplies' + autoreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        return admin.database().ref('apps/' + appId + '/autoreplies' + autoreplyId).once('value').then((snap) => {
             let autoreplies = snap.val() || {};
+            if (1 === autoreplies.isDeleted) {
+                Promise.reject(new Error());
+            }
             appsAutoreplies[appId] = {
                 autoreplies: autoreplies
             };

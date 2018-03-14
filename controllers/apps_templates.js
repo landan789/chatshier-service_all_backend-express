@@ -5,18 +5,31 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsComposesMdl = require('../models/apps_composes');
+    const appsTemplatesMdl = require('../models/apps_templates');
+    const appsMdl = require('../models/apps');
+    const usersMdl = require('../models/users');
+    const groupsMdl = require('../models/groups');
 
-    function AppsComposesController() {}
-    util.inherits(AppsComposesController, controllerCre.constructor);
+    const OWNER = 'OWNER';
+    const ADMIN = 'ADMIN';
+    const WRITE = 'WRITE';
+    const READ = 'READ';
 
-    AppsComposesController.prototype.getAll = function(req, res, next) {
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+    const GET = 'GET';
+    const POST = 'POST';
+    const PUT = 'PUT';
+    const DELETE = 'DELETE';
+
+    function AppsTemplatesController() {}
+    util.inherits(AppsTemplatesController, controllerCre.constructor);
+
+    AppsTemplatesController.prototype.getAll = function(req, res, next) {
+        return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsComposesMdl.findAll(appIds, (data) => {
+                appsTemplatesMdl.findAll(appIds, (data) => {
                     if (undefined === data || null === data || '' === data) {
-                        reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
@@ -39,22 +52,22 @@ module.exports = (function() {
         });
     };
 
-    AppsComposesController.prototype.getOne = (req, res) => {
-        let composeId = req.params.composeid;
+    AppsTemplatesController.prototype.getOne = (req, res) => {
+        let templateId = req.params.templateid;
         let appIds = '';
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+        return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsComposesMdl.findOne(appIds, composeId, (data) => {
+                appsTemplatesMdl.findOne(appIds, templateId, (data) => {
                     if (!data) {
-                        reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
                 });
             });
-        }).then((compose) => {
-            let result = compose !== undefined ? compose : {};
+        }).then((template) => {
+            let result = template !== undefined ? template : {};
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
@@ -71,38 +84,32 @@ module.exports = (function() {
         });
     };
 
-    AppsComposesController.prototype.postOne = (req, res) => {
+    AppsTemplatesController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
 
-        let status = req.body.status;
-        let time = req.body.time;
-        let type = req.body.type;
-        let text = req.body.text;
-        let age = req.body.age;
-        let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
-        let postCompose = {
+        let keyword = req.body.keyword || '';
+        let type = req.body.type || '';
+        let altText = req.body.altText || '';
+        let template = req.body.template || '';
+        let postTemplate = {
+            keyword: keyword,
             type: type,
-            text: text,
-            time: time,
-            status: status,
-            age: age,
-            gender: gender,
-            tag_ids: tag_ids
+            altText: altText,
+            template: template
         };
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+        return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsComposesMdl.insert(appId, postCompose, (result) => {
+                appsTemplatesMdl.insert(appId, postTemplate, (result) => {
                     if (!result) {
-                        reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
                         return;
                     }
                     resolve(result);
                 });
             });
-        }).then((compose) => {
-            let result = compose !== undefined ? compose : {};
+        }).then((template) => {
+            let result = template !== undefined ? template : {};
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
@@ -119,43 +126,37 @@ module.exports = (function() {
         });
     };
 
-    AppsComposesController.prototype.putOne = (req, res) => {
-        let composeId = req.params.composeid;
+    AppsTemplatesController.prototype.putOne = (req, res) => {
+        let templateId = req.params.templateid;
         let appId = '';
-        let status = req.body.status;
-        let time = req.body.time;
-        let type = req.body.type;
-        let text = req.body.text;
-        let age = req.body.age;
-        let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
-        let putComposesData = {
+        let type = req.body.type || '';
+        let keyword = req.body.keyword || '';
+        let altText = req.body.altText || '';
+        let template = req.body.template || '';
+        let putTemplateData = {
             type: type,
-            text: text,
-            time: time,
-            status: status,
-            age: age,
-            gender: gender,
-            tag_ids: tag_ids
+            keyword: keyword,
+            altText: altText,
+            template: template
         };
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
+        return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
-            if (!composeId) {
-                return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+            if (!templateId) {
+                return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => {
-                appsComposesMdl.update(appId, composeId, putComposesData, (AppsCompose) => {
-                    if (false === AppsCompose) {
-                        reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
+                appsTemplatesMdl.update(appId, templateId, putTemplateData, (AppsTemplate) => {
+                    if (false === AppsTemplate) {
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
                     }
-                    resolve(AppsCompose);
+                    resolve(AppsTemplate);
                 });
             });
-        }).then((AppsCompose) => {
-            let result = AppsCompose !== undefined ? AppsCompose : {};
+        }).then((AppsTemplate) => {
+            let result = AppsTemplate !== undefined ? AppsTemplate : {};
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
                 data: result
             };
             res.status(200).json(json);
@@ -169,26 +170,26 @@ module.exports = (function() {
         });
     };
 
-    AppsComposesController.prototype.deleteOne = (req, res) => {
+    AppsTemplatesController.prototype.deleteOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
-        let composeId = req.params.composeid;
+        let templateId = req.params.templateid;
         let appId = '';
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
+        return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
 
-            if (!composeId) {
-                return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
+            if (!templateId) {
+                return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => {
-                appsComposesMdl.remove(appId, composeId, (result) => {
+                appsTemplatesMdl.remove(appId, templateId, (result) => {
                     if (false === result) {
-                        reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                     }
                     resolve(result);
                 });
             });
-        }).then((AppsCompose) => {
-            let result = AppsCompose !== undefined ? AppsCompose : {};
+        }).then((AppsTemplate) => {
+            let result = AppsTemplate !== undefined ? AppsTemplate : {};
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
@@ -205,5 +206,5 @@ module.exports = (function() {
         });
     };
 
-    return new AppsComposesController();
+    return new AppsTemplatesController();
 })();
