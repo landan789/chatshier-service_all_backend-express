@@ -211,7 +211,7 @@ function init(server) {
                     }
                     StorageHlp.uploadDropboxFile(`/apps/${appId}/files/${message.time}_${message.name}`, message.contents, () => {
                         StorageHlp.shareFileLink(`/apps/${appId}/files/${message.time}_${message.name}`, (response) => {
-                            var wwwurl = response.url.replace('www.', 'dl.');
+                            var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                             var url = wwwurl.replace('?dl=0', '');
                             messageToDB.src = url;
                             message.src = url;
