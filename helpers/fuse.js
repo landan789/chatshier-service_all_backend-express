@@ -161,7 +161,7 @@ module.exports = (function() {
 
         return new Promise((resolve, reject) => {
             if (!(appId && inputText)) {
-                return Promise.resolve([]);
+                return resolve([]);
             }
             appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
                 if (!appsKeywordreplies) {
