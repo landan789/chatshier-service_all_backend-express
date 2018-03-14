@@ -21,6 +21,7 @@
     "AUTOREPLYID_WAS_EMPTY": {"MSG": "autoreplyid was empty", "CODE": "1.16"},
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "COMPOSEID_WAS_EMPTY": {"MSG": "composeid was empty", "CODE": "1.18"},
+    "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
@@ -104,5 +105,10 @@
     "APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW": { "MSG": "app compose time must be later than now", "CODE": "15.5" },
     "APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS": { "MSG": "app compose did not have these tags", "CODE": "15.6" },
 
-    "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" }
+    "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" },
+
+    "APP_TEMPLATE_FAILED_TO_FIND": { "MSG": "app template failed to find", "CODE": "17.1" },
+    "APP_TEMPLATE_FAILED_TO_INSERT": { "MSG": "app template failed to insert", "CODE": "17.2" },
+    "APP_TEMPLATE_FAILED_TO_UPDATE": { "MSG": "app template failed to update", "CODE": "17.3" },
+    "APP_TEMPLATE_FAILED_TO_REMOVE": { "MSG": "app template failed to remove", "CODE": "17.4" }
 }

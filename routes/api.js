@@ -5,10 +5,10 @@ var bodyParser = require('body-parser');
 var formData = require('express-form-data');
 
 var users = require('../models/users');
-var appsTemplatesMdl = require('../models/apps_templates');
 var authenticationsCtl = require('../controllers/authentications');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsComposesCtl = require('../controllers/apps_composes');
+var appsTemplateCtl = require('../controllers/apps_templates');
 var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
@@ -123,210 +123,15 @@ router.post('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.postOne)
 router.put('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.putOne);
 router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.deleteOne);
 // ==========
-router.get('/apps-templates/users/:userid', (req, res, next) => {
-    var userId = req.params.userid;
-    var proceed = Promise.resolve();
-    proceed.then(() => {
-        return new Promise((resolve, reject) => {
-            if ('' === userId || null === userId || undefined === userId) {
-                reject(API_ERROR.USERID_WAS_EMPTY);
-                return;
-            }
-            users.findAppIdsByUserId(userId, (data) => {
-                if (null === data) {
-                    reject(API_ERROR.APPID_WAS_EMPTY);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
-    }).then((data) => {
-        return new Promise((resolve, reject) => {
-            let appid = data[0];
-            appsTemplatesMdl.findByAppId(appid, (info) => {
-                if (null === info) {
-                    reject();
-                } else {
-                    resolve(info);
-                }
-            });
-        });
-    }).then((info) => {
-        let result = info !== undefined ? info : {};
-        var json = {
-            status: 1,
-            msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-            data: result
-        };
-        res.status(200).json(json);
-    }).catch((ERR) => {
-        var json = {
-            status: 0,
-            msg: ERR.MSG,
-            code: ERR.CODE
-        };
-        res.status(500).json(json);
-    });
-});
-// insert
-router.post('/apps-templates/apps/:appid/users/:userid', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    var userId = req.params.userid;
-    var dataObj = {
-        userId: userId,
-        keyword: req.body.keyword,
-        type: req.body.type,
-        content: req.body.content
-    };
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-    proceed.then(() => {
-            return new Promise((resolve, reject) => {
 
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.findAppIdsByUserId(userId, (data) => {
-                    if (data === null) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                    } else
-                        resolve(data);
-                });
-            });
-        }).then((data) => {
-            return new Promise((resolve, reject) => {
-                appsTemplatesMdl.insertByAppId(data[0], dataObj, () => {
-                    resolve();
-                });
-            });
-        })
-        .then(() => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG
-            };
-            res.status(200).json(json);
-        })
-        .catch((ERR) => {
-            var json = {
-                "status": 0,
-                "msg": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(500).json(json);
-        });
-
-
-});
-//update
-
-router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    var userId = req.params.userid;
-    var templateId = req.params.templateid;
-    var dataObj = {
-        userId: userId,
-        templateId: templateId,
-        keyword: req.body.keyword,
-        type: req.body.type,
-        content: req.body.content
-    }
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-    proceed
-        .then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.findAppIdsByUserId(userId, (Data) => {
-                    if (Data === null) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                    } else {
-                        resolve(Data);
-                    }
-                })
-            });
-        }).then((Data) => {
-            return new Promise((resolve, reject) => {
-                let appIds = Data;
-                appIds.map((appId) => {
-                    appsTemplatesMdl.updateByAppIdByTemplateId(appId, templateId, dataObj, () => {
-                        resolve();
-                    })
-                });
-
-
-
-            });
-
-        }).then(() => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
-            };
-            res.status(200).json(json);
-        })
-        .catch((ERR) => {
-            var json = {
-                "status": 0,
-                "msg": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(500).json(json);
-        });
-});
-//delete
-router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', (req, res, next) => {
-
-    var userId = req.params.userid;
-    var templateId = req.params.templateid;
-    var proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-    proceed.then(() => {
-            return new Promise((resolve, reject) => {
-                if ('' === userId || null === userId || undefined === userId) {
-                    reject(API_ERROR.USERID_WAS_EMPTY);
-                    return;
-                }
-                users.findAppIdsByUserId(userId, (data) => {
-                    if (data === null) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                    } else
-                        resolve(data);
-                })
-            });
-        }).then((data) => {
-            return new Promise((resolve, reject) => {
-                var appIds = data;
-                appIds.map((appId) => {
-                    appsTemplatesMdl.removeByAppIdByTemplateId(appId, templateId, () => {
-                        resolve();
-                    });
-                });
-            });
-        })
-        .then(() => {
-            var json = {
-                "status": 1,
-                "msg": API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
-
-            }
-            res.status(200).json(json);
-        }).catch((ERR) => {
-            var json = {
-                "status": 0,
-                "msg": ERR.MSG,
-                "code": ERR.CODE
-            };
-            res.status(500).json(json);
-        })
-})
+// Templates
+router.get('/apps-templates/users/:userid', appsTemplateCtl.getAll);
+router.get('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.getAll);
+router.get('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.getOne);
+router.post('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.postOne);
+router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.putOne);
+router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.deleteOne);
+// ==========
 
 // vendor 的個人資料
 router.get('/users/users/:userid', usersCtl.getOne);
