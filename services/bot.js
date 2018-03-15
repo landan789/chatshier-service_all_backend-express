@@ -111,7 +111,7 @@ module.exports = (function() {
                             time: Date.now(), // 將要回覆的訊息加上時戳
                             replyToken: event.replyToken,
                             message_id: undefined === event.message ? '' : event.message.id, // LINE 平台的 訊息 id
-                            originalStoragePath: `/${Date.now()}.${media[event.message.type]}`
+                            fromPath: `/${Date.now()}.${media[event.message.type]}`
                         };
                         if (undefined !== event.message && 'text' === event.message.type) {
                             _message.text = event.message.text;
@@ -147,10 +147,10 @@ module.exports = (function() {
                                     stream.on('end', () => {
                                         let buf = Buffer.concat(bufs);
                                         _message.text = '';
-                                        return StorageHlp.filesUpload(_message.originalStoragePath, buf).then(function() {
+                                        return StorageHlp.filesUpload(_message.fromPath, buf).then(function() {
                                             return Promise.resolve();
                                         }).then(function() {
-                                            return StorageHlp.sharingCreateSharedLink(_message.originalStoragePath);
+                                            return StorageHlp.sharingCreateSharedLink(_message.fromPath);
                                         }).then(function(response) {
                                             var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                                             var src = wwwurl.replace('?dl=0', '');
