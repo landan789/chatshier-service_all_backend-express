@@ -3,6 +3,7 @@ module.exports = (function() {
     const API_SUCCESS = require('../config/api_success');
     const usersMdl = require('../models/users');
     const fuseHlp = require('../helpers/fuse');
+    const redisHlp = require('../helpers/redis');
 
     function UsersController() {}
 
@@ -57,9 +58,19 @@ module.exports = (function() {
                     reject(API_ERROR.USER_FAILED_TO_INSERT);
                     return;
                 }
-                // 更新 user fuzzy search 清單，使搜尋時可找到此 user
-                fuseHlp.updateUser(userId, users[userId]);
                 resolve(users);
+            });
+        }).then((users) => {
+            // 更新 user fuzzy search 清單，使搜尋時可找到此 user
+            let userIds = Object.keys(users);
+            fuseHlp.updateUsers(userIds);
+
+            let redisReqBody = JSON.stringify({
+                userIds: userIds,
+                eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
+            });
+            return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {
+                return users;
             });
         }).then((users) => {
             let json = {
@@ -97,9 +108,19 @@ module.exports = (function() {
                     reject(API_SUCCESS.USER_FAILED_TO_UPDATE);
                     return;
                 }
-                // 更新 fuzzy search 清單中此 user 的資料
-                fuseHlp.updateUser(userId, users[userId]);
                 resolve(users);
+            });
+        }).then((users) => {
+            // 更新 fuzzy search 清單中此 user 的資料
+            let userIds = Object.keys(users);
+            fuseHlp.updateUsers(userIds);
+
+            let redisReqBody = JSON.stringify({
+                userIds: userIds,
+                eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
+            });
+            return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {
+                return users;
             });
         }).then((users) => {
             let json = {
