@@ -32,7 +32,7 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(userId, (data) => {
+                usersMdl.find(userId, (data) => {
                     var user = data;
                     if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -94,7 +94,7 @@ module.exports = (function() {
                     return reject(API_ERROR.GROUPID_WAS_EMPTY);
                 };
 
-                usersMdl.findUser(req.params.userid, (user) => {
+                usersMdl.find(req.params.userid, (user) => {
                     if (!user) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
@@ -103,7 +103,7 @@ module.exports = (function() {
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(postMember.user_id, (data) => {
+                usersMdl.find(postMember.user_id, (data) => {
                     var _user = data;
                     if (undefined === _user || null === _user || '' === _user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -261,7 +261,7 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(req.params.userid, (data) => {
+                usersMdl.find(req.params.userid, (data) => {
                     var user = data;
                     if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -370,7 +370,7 @@ module.exports = (function() {
                     return reject(API_ERROR.MEMBERID_WAS_EMPTY);
                 };
 
-                usersMdl.findUser(userId, (user) => {
+                usersMdl.find(userId, (user) => {
                     if (!user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;

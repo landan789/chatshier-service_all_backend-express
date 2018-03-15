@@ -15,7 +15,7 @@ module.exports = (function() {
 
         return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(userId, (user) => {
+                usersMdl.find(userId, (user) => {
                     if (!user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     };

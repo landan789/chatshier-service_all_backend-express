@@ -23,7 +23,7 @@ apps.getAll = (req, res, next) => {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             };
-            usersMdl.findUser(userId, (user) => {
+            usersMdl.find(userId, (user) => {
                 if (null === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
@@ -89,7 +89,7 @@ apps.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(userId, (user) => {
+            usersMdl.find(userId, (user) => {
                 if (false === user || undefined === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
@@ -191,7 +191,7 @@ apps.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
+            usersMdl.find(req.params.userid, (user) => {
                 if (false === user || undefined === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
@@ -322,7 +322,7 @@ apps.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
+            usersMdl.find(req.params.userid, (user) => {
                 if (false === user || undefined === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
@@ -425,7 +425,7 @@ apps.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
+            usersMdl.find(req.params.userid, (user) => {
                 if (false === user || undefined === user || '' === user) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;

@@ -17,7 +17,7 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.findUser(userId, (user) => {
+                usersMdl.find(userId, (user) => {
                     if (!user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;

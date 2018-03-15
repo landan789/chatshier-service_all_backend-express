@@ -11,7 +11,7 @@ module.exports = (function() {
      * @param {(data: any) => any} callback
      * @returns {void}
      */
-    UsersModel.prototype.findUser = function(userId, callback) {
+    UsersModel.prototype.find = function(userId, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);

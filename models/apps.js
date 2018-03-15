@@ -29,8 +29,9 @@ apps._schema = (callback) => {
 
 apps.findByAppId = (appId, callback) => {
     var ref = 'apps/' + appId;
-    admin.database().ref(ref).once('value', snap => {
+    admin.database().ref(ref).once('value', (snap) => {
         var app = snap.val();
+        var appId = snap.key;
         delete app.keywordreplies;
         delete app.autoreplies;
         delete app.templates;
@@ -49,7 +50,7 @@ apps.findByAppId = (appId, callback) => {
             webhook_id: app.webhook_id
         };
         var apps = {};
-        apps[snap.key] = _app;
+        apps[appId] = _app;
         callback(apps);
     });
 };
@@ -157,6 +158,7 @@ apps.insert = (userId, postApp, callback) => {
         if (0 > _groupIds.indexOf(groupId)) {
             return Promise.reject(new Error());
         };
+        return Promise.resolve();
     }).then(() => {
         // 如果新增的 app 為 CHATSHIER 內部聊天室，則不需進行新增 webhooks 的動作
         if (apps.typeEnum.CHATSHIER === postApp.type) {

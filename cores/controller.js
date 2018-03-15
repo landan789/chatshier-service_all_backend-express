@@ -29,7 +29,7 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                usersMdl.findUser(userId, (data) => {
+                usersMdl.find(userId, (data) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
                     if (!data) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
