@@ -126,7 +126,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdByUserId(userId, (data) => {
+            userMdl.findCalendarId(userId, (data) => {
                 let _calendarId = data;
                 if (null === _calendarId || undefined === _calendarId || '' === _calendarId || calendarId !== _calendarId) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
@@ -167,7 +167,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdByUserId(userId, (data) => {
+            userMdl.findCalendarId(userId, (data) => {
                 var calendarId = data;
                 if (false === calendarId || undefined === calendarId || '' === calendarId) {
                     reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);

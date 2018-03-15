@@ -14,7 +14,7 @@ calendarsEvents._schema = (callback) => {
     callback(json);
 };
 
-calendarsEvents.findCalendarIdByUserId = (userId, callback) => {
+calendarsEvents.findCalendarId = (userId, callback) => {
     admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
         let calendarId = snap.val();
         if (null === calendarId || undefined === calendarId || '' === calendarId) {
@@ -181,7 +181,7 @@ calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callbac
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEvents.findCalendarIdByUserId(userId, (data) => {
+            calendarsEvents.findCalendarId(userId, (data) => {
                 let calendarId = data;
                 if (null === calendarId || undefined === calendarId || '' === calendarId) {
                     reject();

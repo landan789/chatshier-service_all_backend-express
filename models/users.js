@@ -38,21 +38,7 @@ module.exports = (function() {
             callback(null);
         });
     };
-
-    /**
-     * 根據輸入的使用者 ID 取得使用者擁有的 appId 清單
-     *
-     * @param {string} userId
-     * @param {(appIds: string[]) => any} callback
-     */
-    UsersModel.prototype.findAppIdsByUserId = function(userId, callback) {
-        admin.database().ref('users/' + userId + '/app_ids').once('value', snap => {
-            let data = snap.val();
-            callback(data);
-        });
-    };
-
-    UsersModel.prototype.findCalendarIdByUserId = function(userId, callback) {
+    UsersModel.prototype.findCalendarId = function(userId, callback) {
         admin.database().ref('users/' + userId + '/calendar_id').once('value', snap => {
             let data = snap.val();
             callback(data);
