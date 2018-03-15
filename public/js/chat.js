@@ -1500,7 +1500,7 @@
                 messager_id: userId
             };
             /** @type {ChatshierChatSocketInterface} */
-            var App = {
+            var app = {
                 app_id: appId,
                 type: appType,
                 chatroom_id: chatroomId,
@@ -1508,7 +1508,7 @@
                 messages: [messageToSend]
             };
             messageInput.val('');
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, App, function() {
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, app, function() {
                 $loadingElem.remove();
                 $loadingElem = void 0;
             });
