@@ -247,11 +247,10 @@ function init(server) {
                         });
                     });
                 }).then((newChatroomId) => {
-                    console.log(newChatroomId);
                     if ('text' === message.type) {
                         return Promise.resolve();
                     }
-                    let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${newChatroomId.messageId}/${newChatroomId.time}.${media[newChatroomId.type]}`;
+                    let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${newChatroomId.message_id}/${newChatroomId.time}.${media[newChatroomId.type]}`;
                     return StorageHlp.filesMoveV2(originalFilePath, newFilePath);
                 }).then(() => {
                     return new Promise((resolve) => {
@@ -283,8 +282,6 @@ function init(server) {
                     }));
                 }).then(() => {
                     return nextMessage(i + 1);
-                }).catch((ERR) => {
-                    console.log(ERR);
                 });
             };
 
@@ -497,7 +494,6 @@ function init(server) {
                 };
                 ('function' === typeof callback) && callback(json);
             }).catch((err) => {
-                console.log(err);
                 let json = {
                     status: 0,
                     msg: err.MSG,

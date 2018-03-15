@@ -5,13 +5,13 @@ module.exports = (function() {
     const chatshierCfg = require('../config/chatshier');
     const dbx = new (require('dropbox').Dropbox)({ accessToken: chatshierCfg.STORAGE.DROPBOX_ACCESS_TOKEN });
 
-    function StorageHelp() {};
+    function StorageHelper() {};
 
     /**
      * @param {string} url
      * @param {string} dest
      */
-    StorageHelp.prototype.downloadFileFromUrl = function(url, dest) {
+    StorageHelper.prototype.downloadFileFromUrl = function(url, dest) {
         var file = fs.createWriteStream(dest);
         var sendReq = request.get(url);
         // verify response code
@@ -41,7 +41,7 @@ module.exports = (function() {
      * @param {Buffer} contents
      * @returns {any}
      */
-    StorageHelp.prototype.filesUpload = function(path, contents) {
+    StorageHelper.prototype.filesUpload = function(path, contents) {
         return dbx.filesUpload({path: path, contents: contents}).then(function(response) {
             return Promise.resolve();
         });
@@ -52,7 +52,7 @@ module.exports = (function() {
      * @param {string} toPath
      * @returns {any}
      */
-    StorageHelp.prototype.filesMoveV2 = function(fromPath, toPath) {
+    StorageHelper.prototype.filesMoveV2 = function(fromPath, toPath) {
         return dbx.filesMoveV2({from_path: fromPath, to_path: toPath}).then(function(response) {
             return Promise.resolve();
         });
@@ -62,11 +62,11 @@ module.exports = (function() {
      * @param {string} path
      * @returns {any}
      */
-    StorageHelp.prototype.sharingCreateSharedLink = function(path) {
+    StorageHelper.prototype.sharingCreateSharedLink = function(path) {
         return dbx.sharingCreateSharedLink({path: path}).then(function(response) {
             return Promise.resolve(response);
         });
     };
 
-    return new StorageHelp();
+    return new StorageHelper();
 })();
