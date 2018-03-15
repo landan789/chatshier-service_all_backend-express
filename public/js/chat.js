@@ -575,8 +575,8 @@
                 /** @type {ChatshierChatSocketInterface} */
                 var socketBody = data;
 
-                var appId = socketBody.appId;
-                var appType = socketBody.appType;
+                var appId = socketBody.app_id;
+                var appType = socketBody.type;
                 var chatroomId = socketBody.chatroomId;
                 var messages = socketBody.messages;
                 var messagers = appsMessagers[appId].messagers;
@@ -703,8 +703,8 @@
         }
 
         function fileName(url) {
-            let dataType = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
-            return Date.now() + '.' + dataType;
+            let ext = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
+            return Date.now() + '.' + ext;
         }
 
         function generateAppsIcons(apps) {
@@ -1423,7 +1423,7 @@
             /** @type {ChatshierChatSocketInterface} */
             var chatSocketData = {
                 appId: appId,
-                appType: appType,
+                type: appType,
                 chatroomId: chatroomId,
                 recipientId: recipientId,
                 messages: [messageToSend]
@@ -1489,25 +1489,26 @@
             var msgType = $(_this).data('type');
             var appType = apps[appId].type;
             var recipientId = findChatroomMessagerId(appId, chatroomId);
+            var src = file;
             /** @type {ChatshierMessageInterface} */
             var messageToSend = {
                 text: '',
-                src: file,
+                src: src,
                 type: msgType,
                 from: CHATSHIER,
                 time: Date.now(),
                 messager_id: userId
             };
             /** @type {ChatshierChatSocketInterface} */
-            var chatSocketData = {
-                appId: appId,
-                appType: appType,
-                chatroomId: chatroomId,
+            var App = {
+                app_id: appId,
+                type: appType,
+                chatroom_id: chatroomId,
                 recipientId: recipientId,
                 messages: [messageToSend]
             };
             messageInput.val('');
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, App, function() {
                 $loadingElem.remove();
                 $loadingElem = void 0;
             });

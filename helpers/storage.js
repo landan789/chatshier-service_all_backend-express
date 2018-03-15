@@ -8,24 +8,24 @@ module.exports = (function() {
     function StorageHelper() {};
 
     /**
-     * @param {string} url
+     * @param {string} url 下載檔案的 url
      * @param {string} dest
      */
-    StorageHelper.prototype.downloadFileFromUrl = function(url, dest) {
+    StorageHelper.prototype.downloadFile = function(url, dest) {
         var file = fs.createWriteStream(dest);
-        var sendReq = request.get(url);
+        var reqGet = request.get(url);
         // verify response code
-        sendReq.on('response', function(response) {
+        reqGet.on('response', function(response) {
             if (response.statusCode !== 200) {
                 return Promise.reject(response.statusCode);
             }
         });
         // check for request errors
-        sendReq.on('error', function (err) {
+        reqGet.on('error', function (err) {
             fs.unlink(dest);
             return Promise.reject(err.message);
         });
-        sendReq.pipe(file);
+        reqGet.pipe(file);
         file.on('finish', function() {
             file.close();
             return Promise.resolve(file);

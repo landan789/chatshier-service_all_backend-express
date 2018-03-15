@@ -1,8 +1,8 @@
 interface ChatshierChatSocketInterface {
-    appId: string;
-    chatroomId: string;
+    app_id: string;
+    chatroom_id: string;
     recipientId: string;
-    appType: string;
+    type: string;
     messages: ChatshierMessageInterface[]
 }
 

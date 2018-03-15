@@ -99,7 +99,6 @@ module.exports = (function() {
                 case LINE:
                     let events = body.events;
                     return Promise.all(events.map((event) => {
-
                         // LINE 系統 webhook 測試不理會
                         if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
                             return Promise.resolve();
@@ -154,8 +153,8 @@ module.exports = (function() {
                                             return StorageHlp.sharingCreateSharedLink(_message.originalStoragePath);
                                         }).then(function(response) {
                                             var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                            var url = wwwurl.replace('?dl=0', '');
-                                            _message.src = url;
+                                            var src = wwwurl.replace('?dl=0', '');
+                                            _message.src = src;
                                             messages.push(_message);
                                             resolve();
                                         });
@@ -327,33 +326,33 @@ module.exports = (function() {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
-                    let sendTemplate = {};
+                    let _message = {};
                     if ('text' === message.type) {
-                        sendTemplate.type = message.type;
-                        sendTemplate.text = message.text;
+                        _message.type = message.type;
+                        _message.text = message.text;
                     };
                     if ('image' === message.type) {
-                        sendTemplate.type = message.type;
-                        sendTemplate.previewImageUrl = message.src;
-                        sendTemplate.originalContentUrl = message.src;
+                        _message.type = message.type;
+                        _message.previewImageUrl = message.src;
+                        _message.originalContentUrl = message.src;
                     };
                     if ('audio' === message.type) {
-                        sendTemplate.type = message.type;
-                        sendTemplate.duration = 240000;
-                        sendTemplate.originalContentUrl = message.src;
+                        _message.type = message.type;
+                        _message.duration = 240000;
+                        _message.originalContentUrl = message.src;
                     };
                     if ('video' === message.type) {
-                        sendTemplate.type = message.type;
-                        sendTemplate.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
-                        sendTemplate.originalContentUrl = message.src;
+                        _message.type = message.type;
+                        _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
+                        _message.originalContentUrl = message.src;
                     };
                     if ('sticker' === message.type) {
-                        sendTemplate.type = message.type;
-                        sendTemplate.stickerId = message.text.substr(message.text.lastIndexOf(' '));
-                        sendTemplate.packageId = message.text.substr(message.text.indexOf(' '));
+                        _message.type = message.type;
+                        _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
+                        _message.packageId = message.text.substr(message.text.indexOf(' '));
                     };
 
-                    return bot.pushMessage(messagerId, sendTemplate);
+                    return bot.pushMessage(messagerId, _message);
                 case FACEBOOK:
                     if ('text' === message.type) {
                         return bot.sendTextMessage(messagerId, message.text);
