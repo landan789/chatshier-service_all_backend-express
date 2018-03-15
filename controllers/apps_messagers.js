@@ -6,19 +6,7 @@ module.exports = (function() {
     let controllerCre = require('../cores/controller');
 
     const appsMessagersMdl = require('../models/apps_messagers');
-    const usersMdl = require('../models/users');
-    const groupsMdl = require('../models/groups');
-    const appsMdl = require('../models/apps');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
     let instance = new AppsMessagersController();
 
     function AppsMessagersController() {}
@@ -35,12 +23,12 @@ module.exports = (function() {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.findAppMessagers(appId || appIds, (allAppMessagers) => {
-                    if (!allAppMessagers) {
+                appsMessagersMdl.findAppsMessagers(appId || appIds, (appsMessagers) => {
+                    if (!appsMessagers) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(allAppMessagers);
+                    resolve(appsMessagers);
                 });
             });
         }).then((data) => {

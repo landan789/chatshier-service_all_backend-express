@@ -103,7 +103,7 @@ module.exports = (function() {
                 user.group_ids = user.group_ids || [];
                 return new Promise((resolve) => {
                     user.group_ids.push(groupId);
-                    usersMdl.updateUserByUserId(userId, user, () => {
+                    usersMdl.update(userId, user, () => {
                         resolve();
                     });
                 }).then(() => {

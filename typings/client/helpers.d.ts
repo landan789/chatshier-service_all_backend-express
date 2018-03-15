@@ -8,6 +8,7 @@ interface Window {
         appsGreetings: AppsGreetingsAPI,
         appsMessagers: AppsMessagersAPI,
         appsKeywordreplies: AppsKeywordrepliesAPI,
+        appsTemplates: AppsTemplatesAPI,
         appsTags: AppsTagsAPI,
         appsTickets: AppsTicketsAPI,
         calendarsEvents: CalendarsEventsAPI,
@@ -85,6 +86,13 @@ interface AppsKeywordrepliesAPI {
     insert: (appId: string, userId: string, keywordreplyData: any) => Promise<any>;
     update: (appId: string, keywordreplyId: string, userId: string, keywordreplyData: any) => Promise<any>;
     remove: (appId: string, keywordreplyId: string, userId: string) => Promise<any>;
+}
+
+interface AppsTemplatesAPI {
+    findAll: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, templateData: any) => Promise<any>;
+    update: (appId: string, templateId: string, userId: string, templateData: any) => Promise<any>;
+    remove: (appId: string, templateId: string, userId: string) => Promise<any>;
 }
 
 interface AppsTagsAPI {

@@ -14,7 +14,10 @@ module.exports = (function() {
             status: '',
             type: 'text',
             text: '',
-            isDeleted: 0
+            isDeleted: 0,
+            age: '',
+            gender: '',
+            tag_ids: {}
         };
         callback(json);
     };
@@ -56,6 +59,9 @@ module.exports = (function() {
     AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
         return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
             let composes = snap.val() || {};
+            if (1 === composes.isDeleted) {
+                Promise.reject(new Error());
+            }
             let appsComposes = {
                 [appId]: {
                     composes: composes
@@ -144,10 +150,17 @@ module.exports = (function() {
             }
             // 1. 更新群發的資料
             return admin.database().ref('apps/' + appId + '/composes/' + composeId).update(putCompose).then(() => {
-                return { composeId };
+                let appsComposes = {
+                    [appId]: {
+                        composes: {
+                            [composeId]: putCompose
+                        }
+                    }
+                };
+                return appsComposes;
             });
-        }).then((data) => {
-            callback(data);
+        }).then((appsComposes) => {
+            callback(appsComposes);
         }).catch(() => {
             callback(null);
         });

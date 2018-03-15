@@ -38,7 +38,7 @@ module.exports = (function() {
      * @param {string|string[]} appIds
      * @param {Function} callback
      */
-    AppsMessagersModel.prototype.findAppMessagers = function(appIds, callback) {
+    AppsMessagersModel.prototype.findAppsMessagers = function(appIds, callback) {
         let proceed = Promise.resolve();
         proceed.then(() => {
             if (!appIds) {

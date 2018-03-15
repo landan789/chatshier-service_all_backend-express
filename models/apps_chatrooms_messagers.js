@@ -41,39 +41,49 @@ module.exports = (function() {
         });
     };
 
+    
     /**
      * @param {string} appId
      * @param {string} chatroomId
-     * @param {number} [unReadCount]
+     * @param {string|string[]} messagerIds
+     * @param {any} count
      * @param {(appChatroomMessager: any) => any} [callback]
      * @returns {Promise<any>}
      */
-    AppsChatroomsMessagersModel.prototype.upddateUnRead = (appId, chatroomId, unReadCount, callback) => {
-        unReadCount = unReadCount || 1;
-        return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).once('value').then((snap) => {
-            let chatroom = snap.val() || {};
-            let messagers = chatroom.messagers || {};
-            return Promise.resolve(messagers);
-        }).then((messagers) => {
+    AppsChatroomsMessagersModel.prototype.updateMessagerUnRead = (appId, chatroomId, messagerIds, messager, callback) => {
+        if ('string' === typeof messagerIds) {
+            messagerIds = [messagerIds];
+        };
 
-            return Promise.all(Object.keys(messagers).map((messagerId) => {
-                let messager = messagers[messagerId];
-                messager.unRead += unReadCount;
-                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId).update(messager);
-            }));
-        }).then(() => {
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).once('value');
-        }).then((snap) => {
-            let chatroom = snap.val();
-            let appsChatroomsMessagers = {
-                [appId]: {
-                    chatrooms: {
-                        [chatroomId]: chatroom
+        let appsChatroomsMessagers;
+        let _messagers;
+        return Promise.all(messagerIds.map((messagerId) => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId).once('value').then((snap) => {
+                let _messager = snap.val();
+                let __messager = {
+                    unRead: (_messager.unRead + messager.unRead)
+                };
+                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId).update(__messager);
+            }).then(() => {
+                return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messagers').once('value');
+            }).then((snap) => {
+                let messagers = snap.val();
+                _messagers[messagerId] = messagers[messagerId];
+                appsChatroomsMessagers = {
+                    [appId]: {
+                        chatrooms: {
+                            [chatroomId]: {
+                                messagers: _messagers
+                            }
+                        }
                     }
-                }
-            };
+                };
+            });
+        })).then(() => {
+            ('function' === typeof callback) && callback(appsChatroomsMessagers);
+        }).catch(() => {
             ('function' === typeof callback) && callback(null);
-            return Promise.resolve(appsChatroomsMessagers);
+            return null;
         });
     };
 

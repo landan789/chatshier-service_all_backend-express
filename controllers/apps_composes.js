@@ -5,26 +5,10 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    // const cipher = require('../helpers/cipher');
     const appsComposesMdl = require('../models/apps_composes');
-    // const appsMessagesMdl = require('../models/apps_messages');
-    const appsMdl = require('../models/apps');
-    const usersMdl = require('../models/users');
-    const groupsMdl = require('../models/groups');
-
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
 
     function AppsComposesController() {}
     util.inherits(AppsComposesController, controllerCre.constructor);
-
 
     AppsComposesController.prototype.getAll = function(req, res, next) {
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
@@ -94,11 +78,17 @@ module.exports = (function() {
         let time = req.body.time;
         let type = req.body.type;
         let text = req.body.text;
+        let age = req.body.age;
+        let gender = req.body.gender;
+        let tag_ids = req.body.tag_ids;
         let postCompose = {
             type: type,
             text: text,
             time: time,
-            status: status
+            status: status,
+            age: age,
+            gender: gender,
+            tag_ids: tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -136,11 +126,17 @@ module.exports = (function() {
         let time = req.body.time;
         let type = req.body.type;
         let text = req.body.text;
+        let age = req.body.age;
+        let gender = req.body.gender;
+        let tag_ids = req.body.tag_ids;
         let putComposesData = {
             type: type,
             text: text,
             time: time,
-            status: status
+            status: status,
+            age: age,
+            gender: gender,
+            tag_ids: tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;

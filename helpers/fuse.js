@@ -37,8 +37,11 @@ module.exports = (function() {
         let fuseOptions = {
             // 搜尋的關鍵字須遵守大小寫
             caseSensitive: false,
+            tokenize: !!options.tokenize,
+            matchAllTokens: !!options.matchAllTokens,
+            includeMatches: !!options.includeMatches,
             // // 回傳的陣列物件中會包含模糊指數數據 score
-            includeScore: options.includeScore || false,
+            includeScore: !!options.includeScore,
             // 搜尋結果須進行排序 (稍微增加處理時間)
             shouldSort: true,
             // 比對結果的模糊指數須小於此值
@@ -48,7 +51,7 @@ module.exports = (function() {
             location: 0,
             distance: 100,
             // 輸入搜尋的文字最大長度
-            maxPatternLength: 32,
+            maxPatternLength: 1024,
             // 輸入的搜尋樣本字串長度須大於此值
             minMatchCharLength: 2,
             keys: options.keys || []
@@ -76,6 +79,7 @@ module.exports = (function() {
             ]
         });
 
+        // 檢查此 userId 是否已經在清單中，若已存在只需更新資料
         for (let i = 0; i < usersList.length; i++) {
             if (userId === usersList[i].user_id) {
                 usersList[i].displayName = user.name;
@@ -92,18 +96,21 @@ module.exports = (function() {
             email: user.email
         };
 
+        // 將此 user 新增至 fuzzy search 清單中，並建議新的 fuse.js 執行實體
         usersList.push(fuseUser);
         fuseRunner = new _Fuse(usersList, fuseOptions);
         return true;
     };
 
     /**
-     * @param {string[]} keywordId
-     * @param {any} keyword
+     * @param {string} appId
+     * @param {string} keyword
      * @returns {Promise<any>}
      */
     Fuse.prototype.searchKeywordreplies = function(appId, keyword, callback) {
         let fuseOptions = fuseOptionBuilder({
+            tokenize: true,
+            matchAllTokens: true,
             includeScore: true,
             distance: 100,
             threshold: 0.2,
@@ -118,7 +125,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findKeywordreplies(appId, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
                     let keywordreplies = appsKeywordreplies[appId].keywordreplies;
                     let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
                     let list = keywordreplyIds.map((keywordreplyId) => {
@@ -128,7 +135,6 @@ module.exports = (function() {
                     fuseRunner = new _Fuse(list, fuseOptions);
 
                     let results = fuseRunner.search(keyword);
-                    console.log(results);
                     let _keywordreplies = {};
 
                     if (results.length > 0) {
@@ -143,6 +149,47 @@ module.exports = (function() {
         });
     };
 
+    Fuse.prototype.searchKeywordreplies2 = function(appId, inputText, callback) {
+        let fuseOptions = fuseOptionBuilder({
+            includeScore: true,
+            distance: 100,
+            threshold: 1,
+            keys: [
+                'text'
+            ]
+        });
+
+        return new Promise((resolve, reject) => {
+            if (!(appId && inputText)) {
+                return resolve([]);
+            }
+            appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
+                if (!appsKeywordreplies) {
+                    return;
+                }
+                let keywordreplies = appsKeywordreplies[appId].keywordreplies;
+                let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
+                let list = [{
+                    text: inputText
+                }];
+                fuseRunner = new _Fuse(list, fuseOptions);
+                let _keywordreplies = {};
+                keywordreplyIds.forEach((keywordreplyId) => {
+                    let results = fuseRunner.search(keywordreplies[keywordreplyId].keyword);
+
+                    if (results.length > 0 && 0.1 > results[0].score) {
+                        console.log(results[0]);
+                        console.log(keywordreplies[keywordreplyId]);
+                        _keywordreplies[keywordreplyId] = keywordreplies[keywordreplyId];
+                    }
+                });
+                resolve(_keywordreplies);
+            });
+        }).then((keywordreplies) => {
+            callback(keywordreplies);
+            return Promise.resolve(keywordreplies);
+        });
+    };
     /**
      * @param {string} searchPattern
      * @returns {Promise<FuzzySearchUser[]>}

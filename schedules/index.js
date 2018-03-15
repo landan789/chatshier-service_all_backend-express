@@ -5,11 +5,16 @@ const serviceAccount = require('../config/firebase-adminsdk');
 const databaseURL = require('../config/firebase_admin_database_url');
 const API_ERROR = require('../config/api_error');
 
+const SCHEMA = require('../config/schema');
+
 const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
+const appsMessagersMdl = require('../models/apps_messagers');
+const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 const CHATSHIER = 'CHATSHIER';
+const SYSTEM = 'SYSTEM';
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -18,10 +23,10 @@ admin.initializeApp({
 
 let jobProcess = () => {
     let startedUnixTime = Date.now();
-    let appIds = '';
 
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
+        let appIds = '';
         appsMdl.findAppsByAppIds(appIds, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
@@ -39,26 +44,72 @@ let jobProcess = () => {
 
             let messages = [];
             let composes = app.composes === undefined ? '' : app.composes;
-            for (let composeId in composes) {
-                if (composes[composeId].text &&
-                    1 === composes[composeId].status &&
-                    timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                    0 === composes[composeId].isDeleted
-                ) {
-                    let message = {
-                        type: composes[composeId].type,
-                        text: composes[composeId].text
-                    };
-                    messages.push(message);
-                }
-            };
             let messagers = app.messagers || {};
+            for (let messagerId in messagers) {
+                let originMessager = messagers[messagerId] || {};
+                let originMessagerAge = originMessager.age || '';
+                let originMessagerGender = originMessager.gender || '';
+                let originMessagerTags = originMessager.custom_tags || {};
+
+                for (let composeId in composes) {
+                    if (composes[composeId].text &&
+                        1 === composes[composeId].status &&
+                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
+                        0 === composes[composeId].isDeleted
+                    ) {
+                        let message = {
+                            type: composes[composeId].type,
+                            text: composes[composeId].text
+                        };
+                        messages.push(message);
+                        let composeAge = composes[composeId].age || '';
+                        let composeGender = composes[composeId].gander || '';
+                        let composeTags = composes[composeId].tag_ids || {};
+
+                        for (let i = 0; i < composeAge.length; i++) {
+                            if (i % 2) {
+                                if (originMessagerAge > composeAge[i] && '' !== composeAge[i]) {
+                                    delete messagers[messagerId];
+                                    continue;
+                                }
+                            } else {
+                                if (originMessagerAge < composeAge[i] && '' !== composeAge[i]) {
+                                    delete messagers[messagerId];
+                                    continue;
+                                }
+                            }
+                        }
+                        if (originMessagerGender !== composeGender && '' !== composeGender) {
+                            delete messagers[messagerId];
+                        }
+                        for (let tagId in composeTags) {
+                            let originMessagerTagValue = originMessagerTags[tagId].value || '';
+                            let composeTagValue = composeTags[tagId].value || '';
+                            if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
+                                delete messagers[messagerId];
+                            }
+                        }
+                    }
+                };
+            }
             // 沒有訊息對象 或 沒有群發訊息 就不做處理
             if (0 === Object.keys(messagers).length || 0 === messages.length) {
                 return Promise.resolve(null);
             };
 
-            return botSvc.multicast(Object.keys(messagers), messages, appId, app);
+            return botSvc.multicast(Object.keys(messagers), messages, appId, app).then(() => {
+                return Promise.all(Object.keys(messagers).map((messagerId) => {
+                    let chatroomId = messagers[messagerId].chatroom_id;
+                    if (!chatroomId) {
+                        return Promise.resolve(null);
+                    }
+                    return Promise.all(messages.map((message) => {
+                        console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
+                        return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                    }));
+                }));
+            });
+
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();

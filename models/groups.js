@@ -21,6 +21,7 @@ module.exports = (function() {
     /**
      * 根據 groupid|groupid[] 回傳 Groups 的資料
      * @param {string|string[]} groupIds
+     * @param {string|null} userId
      * @param {function} callback
      */
     GroupsModel.prototype.findGroups = function(groupIds, userId, callback) {
@@ -43,7 +44,7 @@ module.exports = (function() {
                     };
                 });
 
-                if (0 > userIds.indexOf(userId)) {
+                if (0 > userIds.indexOf(userId) && null !== userId) {
                     return Promise.resolve(null);
                 };
                 groups[groupId] = group;

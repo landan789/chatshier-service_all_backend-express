@@ -1,7 +1,6 @@
 
 module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
-    const cipher = require('../helpers/cipher');
 
     function AppsKeywordrepliesModel() {}
 
@@ -62,44 +61,35 @@ module.exports = (function() {
      * @param {string|string[]} appIds
      * @param {(appsKeywordreples: any) => any} callback
      */
-    AppsKeywordrepliesModel.prototype.findKeywordreplies = function(appIds, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+    AppsKeywordrepliesModel.prototype.find = function(appIds, callback) {
+        Promise.resolve().then(() => {
             let appsKeywordreples = {};
             if (undefined === appIds) {
-                return appsKeywordreples;
-            } else if ('string' === typeof appIds) {
+                return Promise.resolve({});
+            };
+
+            if ('string' === typeof appIds) {
                 appIds = [appIds];
             }
 
             // 準備批次查詢的 promise 工作
             return Promise.all(appIds.map((appId) => {
-                return admin.database().ref('apps/' + appId + '/keywordreplies').once('value').then((snap) => {
-                    if (!snap) {
-                        return;
+                return admin.database().ref('apps/' + appId + '/keywordreplies').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+                    let keywordreplies = snap.val() || {};
+
+                    if (!keywordreplies) {
+                        return Promise.reject(new Error());
                     }
 
-                    // 根據查詢路徑建立回傳的資料結構
-                    let keywordreplies = snap.val() || {};
                     appsKeywordreples[appId] = {
                         keywordreplies: keywordreplies
                     };
                 });
             })).then(() => {
-                // 最後的資料結構型式:
-                // {
-                //   ($appId)
-                //   ($appId)
-                //     ⌞keywordreplies
-                //       ⌞($keywordreplyId)
-                //         ⌞($data)
-                //       ⌞($keywordreplyId)
-                //         ⌞($data)
-                // }
-                return appsKeywordreples;
+                return Promise.resolve(appsKeywordreples);
             });
-        }).then((result) => {
-            callback(result);
+        }).then((appsKeywordreples) => {
+            callback(appsKeywordreples);
         }).catch(() => {
             callback(null);
         });
@@ -115,8 +105,11 @@ module.exports = (function() {
     AppsKeywordrepliesModel.prototype.findOne = (appId, keywordreplyId, callback) => {
         let appsKeywordreplies = {};
 
-        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value').then((snap) => {
             let keywordreplies = snap.val() || {};
+            if (1 === keywordreplies.isDeleted) {
+                Promise.reject(new Error());
+            }
             appsKeywordreplies[appId] = {
                 keywordreplies: keywordreplies
             };
@@ -135,30 +128,34 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.insert = (appId, postKeywordreply, callback) => {
-        let procced = Promise.resolve();
-        procced.then(() => {
+        let keywordreply;
+        Promise.resolve().then(() => {
             if (!appId || !postKeywordreply) {
                 return Promise.reject(new Error());
             }
 
             // 1. 將傳入的資料與初始化資料合併，確保訂定的欄位一定有值
             let initKeywordreply = AppsKeywordrepliesModel._schema();
-            let newKeywordreply = Object.assign(initKeywordreply, postKeywordreply);
-            let keyword = newKeywordreply.keyword;
+            keywordreply = Object.assign(initKeywordreply, postKeywordreply);
+            let keyword = keywordreply.keyword;
             if (!keyword) {
                 return Promise.reject(new Error());
             }
 
             // 2. 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
-            let databaseRef = admin.database().ref('apps/' + appId + '/keywordreplies').push(newKeywordreply);
-            let keywordreplyId = databaseRef.key;
-            let messageId = cipher.createHashKey(keyword);
-            return databaseRef.then(() => {
-                // 成功新增一筆關鍵字回復資料後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
-                return { keywordreplyId, messageId };
-            });
-        }).then((data) => {
-            callback(data);
+            return admin.database().ref('apps/' + appId + '/keywordreplies').push(keywordreply);
+        }).then((ref) => {
+            let keywordreplyId = ref.key;
+            let appsKeywordreplies = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreplies);
+        }).then((appsKeywordreplies) => {
+            callback(appsKeywordreplies);
         }).catch(() => {
             callback(null);
         });
@@ -173,22 +170,32 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.update = (appId, keywordreplyId, putKeywordreply, callback) => {
-        let procced = Promise.resolve();
-        procced.then(() => {
+        Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
                 return Promise.reject(new Error());
-            }
+            };
+
+            let _keywordreply = {
+                updatedTime: Date.now()
+            };
+            let keywordreply = Object.assign(putKeywordreply, _keywordreply);
 
             // 1. 更新關鍵字回覆的資料
-            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(putKeywordreply).then(() => {
-                // 將關鍵字的文字編碼成一個唯一的 hash 值當作 messages 欄位的鍵值
-                let messageId = putKeywordreply.keyword ? cipher.createHashKey(putKeywordreply.keyword) : '';
-
-                // 成功更新後，將關鍵字回覆的鍵值與關鍵字的 Hash 鍵值回傳 Promise
-                return { keywordreplyId, messageId };
-            });
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(keywordreply);
         }).then((data) => {
-            callback(data);
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value');
+        }).then((snap) => {
+            let keywordreply = snap.val();
+            let appsKeywordreples = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreples);
+        }).then((appsKeywordreples) => {
+            callback(appsKeywordreples);
         }).catch(() => {
             callback(null);
         });
@@ -228,20 +235,31 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsKeywordrepliesModel.prototype.remove = (appId, keywordreplyId, callback) => {
-        let procced = Promise.resolve();
-
-        procced.then(() => {
+        Promise.resolve().then(() => {
             if (!appId || !keywordreplyId) {
-                return;
+                return Promise.reject(new Error());
             }
 
             let deleteKeywordreply = {
-                isDeleted: 1
+                isDeleted: 1,
+                updatedTime: Date.now()
             };
 
             return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).update(deleteKeywordreply);
         }).then(() => {
-            callback(true);
+            return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value');
+        }).then((snap) => {
+            let keywordreply = snap.val();
+            let appsKeywordreplies = {
+                [appId]: {
+                    keywordreplies: {
+                        [keywordreplyId]: keywordreply
+                    }
+                }
+            };
+            return Promise.resolve(appsKeywordreplies);
+        }).then((appsKeywordreplies) => {
+            callback(appsKeywordreplies);
         }).catch(() => {
             callback(null);
         });

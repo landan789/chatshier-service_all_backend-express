@@ -5,22 +5,9 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
-    const appsMdl = require('../models/apps');
-    const usersMdl = require('../models/users');
-    const groupsMdl = require('../models/groups');
+    const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');;
 
     function AppsChatroomsMessagesController() {}
-
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
 
     util.inherits(AppsChatroomsMessagesController, controllerCre.constructor);
 
@@ -32,19 +19,19 @@ module.exports = (function() {
             let appIds = checkedAppIds;
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.findChatroomMessagesByAppIds(appIds, (chatroomMessages) => {
-                    if (!chatroomMessages) {
+                appsChatroomsMessagesMdl.find(appIds, (appschatroomsMessages) => {
+                    if (!appschatroomsMessages) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(chatroomMessages);
+                    resolve(appschatroomsMessages);
                 });
             });
-        }).then((data) => {
+        }).then((appschatroomsMessages) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: data
+                data: appschatroomsMessages
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
@@ -64,7 +51,7 @@ module.exports = (function() {
         return AppsChatroomsMessagesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.findChatroomMessagesByAppId(appId, (chatroomMessages) => {
+                appsChatroomsMessagesMdl.find(appId, (chatroomMessages) => {
                     if (!chatroomMessages) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;

@@ -21,6 +21,8 @@
     "AUTOREPLYID_WAS_EMPTY": {"MSG": "autoreplyid was empty", "CODE": "1.16"},
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "COMPOSEID_WAS_EMPTY": {"MSG": "composeid was empty", "CODE": "1.18"},
+    "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
+    "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
 
     "USER_FAILED_TO_FIND": { "MSG": "user failed to find", "CODE": "3.1" },
@@ -33,6 +35,7 @@
     "USER_DID_NOT_HAVE_THIS_COMPOSE": { "MSG": "user did not have this compose", "CODE": "3.6" },
     "USER_DID_NOT_HAVE_THIS_CALENDAR": { "MSG": "user did not have this calendar", "CODE": "3.7" },
     "USER_DID_NOT_HAVE_THIS_AUTOREPLY": { "MSG": "user did not have this autoreply", "CODE": "3.71" },
+    "USER_DID_NOT_HAVE_THIS_RICHMENU":{ "MSG": "user did not have this richmenu", "CODE": "3.72"},
     "GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP": { "MSG": "group member was already in this group", "CODE": "3.8" },
     "GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP": { "MSG": "group member was deleted from this group", "CODE": "3.9" },
     "USER_WAS_DELETED_FROM_THIS_GROUP_MEMBER": { "MSG": "user was deleted from this group member", "CODE": "3.10" },
@@ -102,6 +105,12 @@
     "APP_COMPOSE_FAILED_TO_UPDATE": { "MSG": "app compose failed to update", "CODE": "15.3" },
     "APP_COMPOSE_FAILED_TO_REMOVE": { "MSG": "app compose failed to remove", "CODE": "15.4" },
     "APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW": { "MSG": "app compose time must be later than now", "CODE": "15.5" },
+    "APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS": { "MSG": "app compose did not have these tags", "CODE": "15.6" },
 
-    "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" }
+    "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" },
+
+    "APP_TEMPLATE_FAILED_TO_FIND": { "MSG": "app template failed to find", "CODE": "17.1" },
+    "APP_TEMPLATE_FAILED_TO_INSERT": { "MSG": "app template failed to insert", "CODE": "17.2" },
+    "APP_TEMPLATE_FAILED_TO_UPDATE": { "MSG": "app template failed to update", "CODE": "17.3" },
+    "APP_TEMPLATE_FAILED_TO_REMOVE": { "MSG": "app template failed to remove", "CODE": "17.4" }
 }

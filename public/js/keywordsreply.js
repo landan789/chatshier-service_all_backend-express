@@ -4,7 +4,7 @@
     var userId = '';
     var nowSelectAppId = '';
     var appsData = {};
-    var keywordrepliesData = {};
+    var keywordreplies = {};
     var api = window.restfulAPI;
 
     var $jqDoc = $(document);
@@ -52,9 +52,9 @@
         $keywordreplyEditModal.on('show.bs.modal', function(event) {
             // 編輯 modal 即將顯示事件發生時，將欄位資料更新
             var targetRow = $(event.relatedTarget).parent().parent();
-            var appId = targetRow.prop('data-title');
+            var appId = targetRow.attr('data-title');
             var keywordreplyId = targetRow.prop('id');
-            var targetData = keywordrepliesData[keywordreplyId];
+            var targetData = keywordreplies[keywordreplyId];
 
             var $editForm = $keywordreplyEditModal.find('.modal-body form');
             $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
@@ -78,6 +78,7 @@
 
                 return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
                     $keywordreplyEditModal.modal('hide');
+                    $.notify('修改成功！', { type: 'success' });
                     $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
                 }).catch((resJson) => {
@@ -137,43 +138,30 @@
         loadKeywordsReplies(nowSelectAppId, userId);
     }
 
-    var TableObj = function() {
-        this.tr = $('<tr>');
-        this.th = $('<th>');
-        this.td1 = $('<td>');
-        this.td2 = $('<td>');
-        this.td3 = $('<td>');
-        this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-grey fa fa-pencil')
-            .attr('id', 'edit-btn')
-            .attr('data-toggle', 'modal')
-            .attr('data-target', '#keywordreply_edit_modal')
-            .attr('aria-hidden', 'true');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
-            .attr('id', 'delete-btn');
-    };
-
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
-            keywordrepliesData = resJson.data;
+            let appsKeywordreplis = resJson.data;
+            keywordreplies = appsKeywordreplis[appId].keywordreplies;
             $openTableElem.empty();
             $draftTableElem.empty();
-
-            for (var keywordreplyId in keywordrepliesData) {
-                var keywordreplyData = keywordrepliesData[keywordreplyId];
-                if (keywordreplyData.isDeleted) {
+            for (var keywordreplyId in keywordreplies) {
+                var keywordreply = keywordreplies[keywordreplyId];
+                if (keywordreply.isDeleted) {
                     continue;
                 }
 
-                var list = new TableObj();
-                var keyword = list.th.attr('data-title', keywordreplyData.keyword).text(keywordreplyData.keyword);
-                var text = list.td1.text(keywordreplyData.text);
-                var replyCount = list.td2.text(keywordreplyData.replyCount);
-                var btns = list.td3.append(list.UpdateBtn, list.DeleteBtn);
-                var trGrop = list.tr.attr('id', keywordreplyId).attr('data-title', appId).append(keyword, text, replyCount, btns);
-                if (!keywordreplyData.status) {
+                var trGrop =
+                '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
+                    '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
+                    '<td>' + keywordreply.text + '</td>' +
+                    '<td>' + keywordreply.replyCount + '</td>' +
+                    '<td>' +
+                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '</td>' +
+                '</tr>';
+                if (!keywordreply.status) {
                     $draftTableElem.append(trGrop);
                 } else {
                     $openTableElem.append(trGrop);
@@ -182,7 +170,7 @@
 
             $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
                 var targetRow = $(event.target).parent().parent();
-                var appId = targetRow.prop('data-title');
+                var appId = targetRow.attr('data-title');
                 var keywordreplyId = targetRow.prop('id');
 
                 return showDialog('確定要刪除嗎？').then(function(isOK) {
@@ -191,6 +179,7 @@
                     }
 
                     return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
+                        $.notify('刪除成功！', { type: 'success' });
                         return loadKeywordsReplies(appId, userId);
                     }).catch((resJson) => {
                         if (undefined === resJson.status) {
@@ -228,7 +217,7 @@
         }
         // ==========
 
-        var keywordreplyData = {
+        var keywordreply = {
             keyword: keyword,
             subKeywords: '',
             text: textContent,
@@ -238,8 +227,9 @@
             updatedTime: Date.now()
         };
 
-        return api.appsKeywordreplies.insert(appId, userId, keywordreplyData).then(function(resJson) {
+        return api.appsKeywordreplies.insert(appId, userId, keywordreply).then(function(resJson) {
             $keywordreplyAddModal.modal('hide');
+            $.notify('新增成功！', { type: 'success' });
             $appDropdown.find('#' + appId).click();
             $keywordreplyAddModal.find('button.btn-insert-submit').removeAttr('disabled');
             return loadKeywordsReplies(appId, userId);
