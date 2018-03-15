@@ -3,6 +3,7 @@ let socketIO = require('socket.io');
 let line = require('@line/bot-sdk');
 let facebook = require('facebook-bot-messenger'); // facebook串接
 const fuseHlp = require('../helpers/fuse');
+const StorageHlp = require('../helpers/storage');
 
 let app = require('../app');
 
@@ -29,6 +30,11 @@ const API_SUCCESS = require('../config/api_success');
 
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
+const media = {
+    image: 'png',
+    audio: 'mp3',
+    video: 'mp4'
+};
 
 function init(server) {
     let socketIOServer = socketIO(server);
@@ -51,6 +57,9 @@ function init(server) {
             let sender;
             let senderId;
             let groupId;
+            let fromPath;
+            let toPath;
+            let _messages;
             return new Promise((resolve, reject) => {
                 appsMdl.findAppsByWebhookId(webhookid, (apps) => {
                     if (!apps) {
@@ -73,6 +82,7 @@ function init(server) {
                     return Promise.resolve([]);
                 }
                 senderId = receivedMessages[0].messager_id;
+                fromPath = receivedMessages[0].fromPath;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
                 repliedMessages = messages;
@@ -131,8 +141,16 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
-                let _messages = Object.values(messages);
-                _messages.sort((a, b) => {
+                _messages = messages;
+                let messageId = Object.keys(messages).shift() || '';
+                if ('text' === messages[messageId].type) {
+                    return Promise.resolve(messages);
+                }
+                toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
+                return StorageHlp.filesMoveV2(fromPath, toPath);
+            }).then(() => {
+                let messages = Object.values(_messages);
+                messages.sort((a, b) => {
                     // 根據發送的時間從早到晚排序
                     return a.time - b.time;
                 });
@@ -142,7 +160,7 @@ function init(server) {
                     appType: app.type,
                     chatroomId: sender.chatroom_id,
                     messagerId: senderId,
-                    messages: _messages
+                    messages: messages
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
             }).then(() => {
@@ -174,8 +192,8 @@ function init(server) {
             /** @type {ChatshierChatSocketInterface} */
             let socketBody = data;
 
-            let appId = socketBody.appId;
-            let chatroomId = socketBody.chatroomId;
+            let appId = socketBody.app_id;
+            let chatroomId = socketBody.chatroom_id;
             let messages = socketBody.messages;
             // Uid LINE 或 FACEBOOK 用戶的 Uid
             let recipientId = socketBody.recipientId;
@@ -192,25 +210,48 @@ function init(server) {
                 let message = messages[i];
                 let senderId = message.messager_id;
                 let app;
+                let originalFilePath = `/${message.time}.${media[message.type]}`;
 
                 // 2. 將資料寫入至資料庫
-                let messageToDB = {
+                let msg = {
                     type: message.type.toLowerCase(),
                     time: message.time || Date.now(),
                     text: message.text,
                     from: CHATSHIER,
                     messager_id: senderId,
-                    src: !message.text ? (message.src || '') : ''
+                    src: ''
                 };
 
-                return new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, messageToDB, (newChatroomId) => {
-                        if (!newChatroomId) {
-                            reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
-                            return;
-                        }
-                        resolve(newChatroomId);
+                return StorageHlp.filesUpload(originalFilePath, message.src).then((response) => {
+                    if ('text' === message.type) {
+                        return Promise.resolve();
+                    }
+                    return StorageHlp.sharingCreateSharedLink(originalFilePath);
+                }).then((response) => {
+                    if ('text' === message.type) {
+                        return Promise.resolve();
+                    }
+                    var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                    var url = wwwurl.replace('?dl=0', '');
+                    msg.src = url;
+                    messages[0].src = url;
+                    return Promise.resolve();
+                }).then(() => {
+                    return new Promise((resolve, reject) => {
+                        appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, msg, (newChatroomId) => {
+                            if (!newChatroomId) {
+                                reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                                return;
+                            }
+                            resolve(newChatroomId);
+                        });
                     });
+                }).then((chatroom) => {
+                    if ('text' === message.type) {
+                        return Promise.resolve();
+                    }
+                    let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${chatroom.message_id}/${chatroom.time}.${media[chatroom.type]}`;
+                    return StorageHlp.filesMoveV2(originalFilePath, newFilePath);
                 }).then(() => {
                     return new Promise((resolve) => {
                         appsMdl.findByAppId(appId, (apps) => {
@@ -434,9 +475,9 @@ function init(server) {
                     })).then((messagesInDB) => {
                         /** @type {ChatshierChatSocketInterface} */
                         let messagesToSocket = {
-                            appId: appId,
-                            appType: appType,
-                            chatroomId: chatroomId,
+                            app_id: appId,
+                            type: appType,
+                            chatroom_id: chatroomId,
                             recipientId: messagerId,
                             messages: messagesInDB
                         };
@@ -453,7 +494,6 @@ function init(server) {
                 };
                 ('function' === typeof callback) && callback(json);
             }).catch((err) => {
-                console.log(err);
                 let json = {
                     status: 0,
                     msg: err.MSG,

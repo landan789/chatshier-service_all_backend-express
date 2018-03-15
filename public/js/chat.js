@@ -575,8 +575,8 @@
                 /** @type {ChatshierChatSocketInterface} */
                 var socketBody = data;
 
-                var appId = socketBody.appId;
-                var appType = socketBody.appType;
+                var appId = socketBody.app_id;
+                var appType = socketBody.type;
                 var chatroomId = socketBody.chatroomId;
                 var messages = socketBody.messages;
                 var messagers = appsMessagers[appId].messagers;
@@ -700,6 +700,11 @@
                 var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, messager));
                 $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
             });
+        }
+
+        function fileName(url) {
+            let ext = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
+            return Date.now() + '.' + ext;
         }
 
         function generateAppsIcons(apps) {
@@ -1418,7 +1423,7 @@
             /** @type {ChatshierChatSocketInterface} */
             var chatSocketData = {
                 appId: appId,
-                appType: appType,
+                type: appType,
                 chatroomId: chatroomId,
                 recipientId: recipientId,
                 messages: [messageToSend]
@@ -1477,57 +1482,35 @@
                 return;
             }
 
-            var storageRef = firebase.storage().ref();
-            var fileRef = storageRef.child(new Date().getTime() + '_' + file.name);
-
             var $loadingElem = generateLoadingJqElem();
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
-            return fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.downloadURL;
-                var msgType = $(_this).data('type');
-                var appType = apps[appId].type;
-                var recipientId = findChatroomMessagerId(appId, chatroomId);
-
-                /** @type {ChatshierMessageInterface} */
-                var messageToSend = {
-                    text: '',
-                    src: url,
-                    type: msgType,
-                    from: CHATSHIER,
-                    time: Date.now(),
-                    messager_id: userId
-                };
-
-                /** @type {ChatshierChatSocketInterface} */
-                var chatSocketData = {
-                    appId: appId,
-                    appType: appType,
-                    chatroomId: chatroomId,
-                    recipientId: recipientId,
-                    messages: [messageToSend]
-                };
-
-                return new Promise(function(resolve) {
-                    messageInput.val('');
-                    chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
-                        $loadingElem.remove();
-                        $loadingElem = void 0;
-                        resolve();
-                    });
-                }).then(function() {
-                    // var sender = appsMessagers[appId].messagers[userId];
-                    // var srcHtml = messageToPanelHtml(messageToSend);
-
-                    // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name, appType);
-                    // $messagePanel.append(messageHtml);
-                    // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
-
-                    // var $tablinkMsg = $('.tablinks[app-id="' + appId + '"] .client-message');
-                    // $tablinkMsg.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(srcHtml));
-                });
+            var msgType = $(_this).data('type');
+            var appType = apps[appId].type;
+            var recipientId = findChatroomMessagerId(appId, chatroomId);
+            var src = file;
+            /** @type {ChatshierMessageInterface} */
+            var messageToSend = {
+                text: '',
+                src: src,
+                type: msgType,
+                from: CHATSHIER,
+                time: Date.now(),
+                messager_id: userId
+            };
+            /** @type {ChatshierChatSocketInterface} */
+            var app = {
+                app_id: appId,
+                type: appType,
+                chatroom_id: chatroomId,
+                recipientId: recipientId,
+                messages: [messageToSend]
+            };
+            messageInput.val('');
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, app, function() {
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
         }
 
