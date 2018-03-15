@@ -47,18 +47,18 @@ module.exports = (function() {
      * @param {string} chatroomId
      * @param {any} message
      * @param {(newMessage: any) => any} [callback]
-     * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
         Promise.resolve().then(() => {
-            message = Object.assign(SCHEMA.APP_CHATROOM_MESSAGE, message);
+            message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, message);
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
         }).then((ref) => {
             let messageId = ref.key;
             return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).once('value');
         }).then((snap) => {
-            let _message = snap.val();
-            _message.message_id = snap.key;
+            let _message = {
+                [snap.key]: snap.val() || {}
+            };
             ('function' === typeof callback) && callback(_message);
         }).catch(() => {
             ('function' === typeof callback) && callback(null);

@@ -572,13 +572,17 @@
             })();
 
             socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, function(data) {
-                /** @type {ChatshierChatSocketInterface} */
+                /** @type {ChatshierChatSocketBody} */
                 var socketBody = data;
 
                 var appId = socketBody.app_id;
                 var appType = socketBody.type;
-                var chatroomId = socketBody.chatroomId;
+                var chatroomId = socketBody.chatroom_id;
                 var messages = socketBody.messages;
+                messages.sort((a, b) => {
+                    // 根據發送的時間從早到晚排序
+                    return a.time - b.time;
+                });
                 var messagers = appsMessagers[appId].messagers;
 
                 var nextMessage = function(i) {
@@ -643,7 +647,7 @@
                                     }
                                 },
                                 messages: {
-                                    [Date.now]: message
+                                    [Date.now()]: message
                                 }
                             };
                             appsChatrooms[appId].chatrooms[chatroomId] = _chatroom;
@@ -679,7 +683,6 @@
                         return nextMessage(i + 1);
                     });
                 };
-
                 return nextMessage(0);
             });
 
@@ -1411,20 +1414,21 @@
                 return;
             }
 
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var messageToSend = {
                 from: CHATSHIER,
                 time: Date.now(),
                 text: msgText,
+                src: '',
                 type: 'text',
                 messager_id: userId
             };
 
-            /** @type {ChatshierChatSocketInterface} */
-            var chatSocketData = {
-                appId: appId,
+            /** @type {ChatshierChatSocketBody} */
+            var socketBody = {
+                app_id: appId,
                 type: appType,
-                chatroomId: chatroomId,
+                chatroom_id: chatroomId,
                 recipientId: recipientId,
                 messages: [messageToSend]
             };
@@ -1435,7 +1439,7 @@
 
             return new Promise(function(resolve) {
                 messageInput.val('');
-                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
                     $loadingElem.remove();
                     $loadingElem = void 0;
                     resolve();
@@ -1490,7 +1494,7 @@
             var appType = apps[appId].type;
             var recipientId = findChatroomMessagerId(appId, chatroomId);
             var src = file;
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var messageToSend = {
                 text: '',
                 src: src,
@@ -1499,8 +1503,8 @@
                 time: Date.now(),
                 messager_id: userId
             };
-            /** @type {ChatshierChatSocketInterface} */
-            var app = {
+            /** @type {ChatshierChatSocketBody} */
+            var socketBody = {
                 app_id: appId,
                 type: appType,
                 chatroom_id: chatroomId,
@@ -1508,7 +1512,7 @@
                 messages: [messageToSend]
             };
             messageInput.val('');
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, app, function() {
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
                 $loadingElem.remove();
                 $loadingElem = void 0;
             });
@@ -1546,7 +1550,7 @@
         }
 
         function updateMessagePanel(messager, message, appId, chatroomId) {
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var _message = message;
             var appType = apps[appId].type;
             var srcHtml = messageToPanelHtml(_message);
@@ -1576,7 +1580,7 @@
         }
 
         function updateClientTab(messager, message, appId, chatroomId) {
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var _message = message;
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var chatroomMsgers = chatroom.messagers;

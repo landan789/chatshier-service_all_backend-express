@@ -49,6 +49,9 @@ module.exports = (function() {
                         this.bots[appId] = facebookBot;
                         resolve(facebookBot);
                         break;
+                    default:
+                        resolve();
+                        break;
                 }
             });
         };
