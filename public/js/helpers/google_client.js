@@ -15,20 +15,21 @@ window.googleClientHelper = (function() {
                 return Promise.resolve();
             }
 
-            apiScript = document.createElement('script');
-            apiScript.id = 'google_api';
-            apiScript.async = apiScript.defer = true;
-
-            var readyPromise = new Promise(function(resolve) {
-                apiScript.onload = function() {
-                    apiScript.onload = null;
-                    resolve();
+            return new Promise(function(resolve, reject) {
+                apiScript = document.createElement('script');
+                apiScript.id = 'google_api';
+                apiScript.async = apiScript.defer = true;
+                apiScript.onload = function(ev) {
+                    apiScript.onload = apiScript.onerror = void 0;
+                    resolve(ev);
+                };
+                apiScript.onerror = function(ev) {
+                    apiScript.onload = apiScript.onerror = void 0;
+                    reject(ev);
                 };
                 apiScript.src = 'https://apis.google.com/js/api.js';
                 document.head.appendChild(apiScript);
             });
-
-            return readyPromise;
         },
         init: function(configUrl) {
             if (initPromise) {
