@@ -14,8 +14,8 @@ module.exports = (function() {
 
     /**
      * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
-     * @param {*} messages 
-     * @param {*} app 
+     * @param {*} messages
+     * @param {*} app
      */
     ChatshierHelp.prototype.getRepliedMessages = function(messages, appId, app) {
         let greetings = {};
@@ -72,6 +72,7 @@ module.exports = (function() {
 
         let templatesPromise = new Promise((resolve, reject) => {
             appsTemplatesMdl.findTemplates(appId, (templates) => {
+                templates = templates || {};
                 resolve(templates);
             });
         });

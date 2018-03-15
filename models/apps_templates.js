@@ -25,6 +25,21 @@ module.exports = (function() {
      * @param {Function} callback
      */
 
+    AppsTemplatesModel.prototype.findTemplates = (appId, callback) => {
+        return admin.database().ref('apps/' + appId + '/templates').once('value').then((snap) => {
+            let templates = snap.val();
+            if (!templates) {
+                return Promise.resolve({});
+            };
+
+            return Promise.resolve(templates);
+        }).then((templates) => {
+            callback(templates);
+        }).catch(() => {
+            callback(null);
+        });
+    };
+
     AppsTemplatesModel.prototype.findAll = (appIds, callback) => {
         let appsTemplates = {};
 
