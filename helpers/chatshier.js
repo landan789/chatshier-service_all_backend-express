@@ -71,7 +71,7 @@ module.exports = (function() {
         });
 
         let templatesPromise = new Promise((resolve, reject) => {
-            appsTemplatesMdl.findTemplates([appId], (templates) => {
+            appsTemplatesMdl.findTemplates(appId, (templates) => {
                 templates = templates || {};
                 resolve(templates);
             });
