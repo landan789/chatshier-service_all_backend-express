@@ -16,7 +16,7 @@ module.exports = (function() {
 
     // region DB Schema
     let RootSchema = new mongoose.Schema();
-    
+
     let AutoreplySchema = new mongoose.Schema({
         'createdTime': {type: Date, defualt: Date.now()},
         'endedTime': {type: Date, defualt: Date.now()},

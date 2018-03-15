@@ -1,46 +1,17 @@
+let users_mdl = require('../models/users_.js');
 
-// var users = mongoose.Schema({
-//     name: String,
-//     email: String
-// })
-
-// var Users = mongoose.model('users', users);
-// let user = new Users();
-// user.name = 'TOM';
-// user.email = 'tom@gmail.com';
-// user.save(() => {
-//     console.log('user saved...');
+// users_mdl.insert('5aa8d75977e1b034f7f8508f', user, (user) => {
+//   console.log(user);
 // });
 
-// var childSchema = mongoose.Schema({
-//     name: String,
-//     age: Number,
-//     phone: String
+// users_mdl.find('5aaa2ad5c27c600586125a62', (users) => {
+//     console.log(users);
 // });
+let userId = '5aaa2c5a84297108d14b731c';
+let user = {
+    address: '地址拉ss!!!'
+};
 
-// var parentSchema = mongoose.Schema({
-//     // Array of subdocuments
-//     // Single nested subdocuments. Caveat: single nested subdocs only work
-//     // in mongoose >= 4.2.0
-//     test: String,
-//     date: String
-// });
-
-// var Parent = mongoose.model('Parent', parentSchema);
-
-// // parent.save(() => {
-// //     console.log('parent saved...');
-// // });
-// var cursor = Parent.find({}).cursor();
-
-
-// cursor.on('data', function(doc) {
-//   console.log(doc);
-// });
-
-let apps_mdl = require('../models/apps_.js');
-let cursor = apps_mdl.find({}).cursor();
-
-cursor.on('data', function(doc) {
-  console.log(doc);
+users_mdl.update(userId, user, (users) => {
+    console.log('sss');
 });
