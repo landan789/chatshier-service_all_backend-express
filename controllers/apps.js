@@ -206,7 +206,7 @@ apps.postOne = (req, res, next) => {
         };
 
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(req.body.groupid, req.params.userid, (groups) => {
+            groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups || 0 === Object.keys(groups).length) {
                     reject(API_ERROR.GROUP_DID_NOT_EXIST);
                 }
@@ -344,7 +344,7 @@ apps.putOne = (req, res, next) => {
         var app = Object.values(apps)[0];
         var groupId = app.group_id;
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
+            groupsMdl.find(groupId, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {
                     reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     return;
@@ -447,7 +447,7 @@ apps.deleteOne = (req, res, next) => {
         var app = Object.values(apps)[0];
         var groupId = app.group_id;
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
+            groupsMdl.find(groupId, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {
                     reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     return;

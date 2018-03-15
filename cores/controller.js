@@ -73,7 +73,7 @@ module.exports = (function() {
                 var app = Object.values(apps)[0];
                 var groupId = app.group_id;
                 return new Promise((resolve, reject) => {
-                    groupsMdl.findGroups(groupId, userId, (groups) => {
+                    groupsMdl.find(groupId, userId, (groups) => {
                         if (null === groups || undefined === groups || '' === groups) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;

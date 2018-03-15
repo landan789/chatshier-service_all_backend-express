@@ -100,7 +100,6 @@ module.exports = (function() {
             }).catch(() => {
                 callback(null);
             });
-
         }
     }
     return new UsersModel();

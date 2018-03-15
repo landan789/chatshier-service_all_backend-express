@@ -109,7 +109,7 @@ function init(server) {
                 sender = messager;
                 groupId = app.group_id;
                 return new Promise((resolve, reject) => {
-                    groupsMdl.findGroups(groupId, null, (groups) => {
+                    groupsMdl.find(groupId, null, (groups) => {
                         resolve(groups);
                     });
                 });
