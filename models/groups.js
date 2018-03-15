@@ -24,7 +24,7 @@ module.exports = (function() {
      * @param {string|null} userId
      * @param {function} callback
      */
-    GroupsModel.prototype.findGroups = function(groupIds, userId, callback) {
+    GroupsModel.prototype.find = function(groupIds, userId, callback) {
         // 多行處理
         if ('string' === typeof groupIds) {
             groupIds = [groupIds];
