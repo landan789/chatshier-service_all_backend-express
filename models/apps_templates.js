@@ -44,7 +44,7 @@ module.exports = (function() {
         let appsTemplates = {};
 
         Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId + '/templates/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+            return admin.database().ref('apps/' + appId + '/templates').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                 let template = snap.val() || {};
                 if (!template) {
                     return Promise.reject(new Error());
