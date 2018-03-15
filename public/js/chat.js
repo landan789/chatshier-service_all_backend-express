@@ -1492,13 +1492,11 @@
             /** @type {ChatshierMessageInterface} */
             var messageToSend = {
                 text: '',
-                src: '',
+                src: file,
                 type: msgType,
                 from: CHATSHIER,
                 time: Date.now(),
-                messager_id: userId,
-                contents: file,
-                name: file.name
+                messager_id: userId
             };
             /** @type {ChatshierChatSocketInterface} */
             var chatSocketData = {

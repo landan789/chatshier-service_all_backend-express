@@ -39,13 +39,22 @@ module.exports = (function() {
     /**
      * @param {string} path
      * @param {Buffer} contents
-     * @param {any} messages
      * @returns {any}
      */
-    StorageHelp.prototype.filesUpload = function(path, contents, messages) {
+    StorageHelp.prototype.filesUpload = function(path, contents) {
         return dbx.filesUpload({path: path, contents: contents}).then(function(response) {
-            let _messages = messages;
-            return Promise.resolve(_messages);
+            return Promise.resolve();
+        });
+    };
+
+    /**
+     * @param {string} fromPath
+     * @param {string} toPath
+     * @returns {any}
+     */
+    StorageHelp.prototype.filesMoveV2 = function(fromPath, toPath) {
+        return dbx.filesMoveV2({from_path: fromPath, to_path: toPath}).then(function(response) {
+            return Promise.resolve();
         });
     };
 

@@ -6,6 +6,8 @@ module.exports = (function() {
 
     const SCHEMA = require('../config/schema');
 
+    const StorageHlp = require('../helpers/storage');
+
     // app type defined
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
@@ -83,7 +85,7 @@ module.exports = (function() {
         }
         /**
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
-         * @return {any} 
+         * @return {any}
          */
 
         getReceivedMessages(body, appId, app) {
@@ -109,7 +111,8 @@ module.exports = (function() {
                             eventType: event.type, // LINE POST 事件型別
                             time: Date.now(), // 將要回覆的訊息加上時戳
                             replyToken: event.replyToken,
-                            message_id: undefined === event.message ? '' : event.message.id // LINE 平台的 訊息 id
+                            message_id: undefined === event.message ? '' : event.message.id, // LINE 平台的 訊息 id
+                            originalStoragePath: `/${Date.now()}.${media[event.message.type]}`
                         };
                         if (undefined !== event.message && 'text' === event.message.type) {
                             _message.text = event.message.text;
@@ -144,13 +147,18 @@ module.exports = (function() {
 
                                     stream.on('end', () => {
                                         let buf = Buffer.concat(bufs);
-                                        let base64Data = buf.toString('base64');
                                         _message.text = '';
-                                        // TODO 目前 LINE 是將 LINE 的圖片，以 base64 拷貝到 DB 中。這需要調整為使用 storage
-                                        _message.src = 'data:' + event.message.type + '/' + media[event.message.type] + ';' + 'base64, ' + base64Data;
-                                        _message.srcBase = '' + base64Data;
-                                        messages.push(_message);
-                                        resolve();
+                                        return StorageHlp.filesUpload(_message.originalStoragePath, buf).then(function() {
+                                            return Promise.resolve();
+                                        }).then(function() {
+                                            return StorageHlp.sharingCreateSharedLink(_message.originalStoragePath);
+                                        }).then(function(response) {
+                                            var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                                            var url = wwwurl.replace('?dl=0', '');
+                                            _message.src = url;
+                                            messages.push(_message);
+                                            resolve();
+                                        });
                                     });
 
                                     stream.on('error', (err) => {
