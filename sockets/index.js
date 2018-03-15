@@ -82,7 +82,7 @@ function init(server) {
                     return Promise.resolve([]);
                 }
                 senderId = receivedMessages[0].messager_id;
-                fromPath = receivedMessages[0].originalStoragePath;
+                fromPath = receivedMessages[0].fromPath;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
                 repliedMessages = messages;
