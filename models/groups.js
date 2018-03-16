@@ -115,8 +115,7 @@ module.exports = (function() {
             };
             return Promise.resolve();
         }).then(() => {
-            callback(groups);
-        }).catch(() => {
+('function' === typeof callback) && callback(appsComposes);        }).catch(() => {
             callback(null);
         });
     };

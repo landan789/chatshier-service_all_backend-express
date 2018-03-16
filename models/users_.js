@@ -12,22 +12,19 @@ module.exports = (function() {
          *
          * @param {string} userId
          * @param {(data: any) => any} callback
-         * @returns {void}
          */
         find(userId, callback) {
             let query = {
                 '_id': userId
             };
             let users = {};
-            Promise.resolve().then(() => {
-                return this.Model.findOne(query);
-            }).then((user) => {
+            return this.Model.findOne(query).then((user) => {
                 users = {
                     [user._id]: user
                 };
-                callback(users);
+                ('function' === typeof callback) && callback(users);
             }).catch(() => {
-                callback(null);
+                ('function' === typeof callback) && callback(null);
             });
         }
 
@@ -37,11 +34,13 @@ module.exports = (function() {
             };
             let _user = new this.Model();
             _user.address = user.address;
+            _user.company = user.company;
+            _user.email = user.email;
+            _user.name = user.name;
+            _user.phone = user.phone;
 
             let users = {};
-            Promise.resolve().then(() => {
-                return this.Model.findOne(query);
-            }).then((__user) => {
+            return this.Model.findOne(query).then((__user) => {
                 if (__user) {
                     return Promise.reject(new Error());
                 };
@@ -50,9 +49,9 @@ module.exports = (function() {
                 users = {
                     [_user._id]: _user
                 };
-                callback(users);
+                ('function' === typeof callback) && callback(users);
             }).catch(() => {
-                callback(null);
+                ('function' === typeof callback) && callback(null);
             });
         }
 
@@ -60,18 +59,16 @@ module.exports = (function() {
             let query = {
                 '_id': userId
             };
-            Promise.resolve().then(() => {
-                return this.Model.findOne(query);
-            }).then((user) => {
+            return this.Model.findOne(query).then((user) => {
                 if (!user) {
                     return Promise.reject(new Error());
                 };
                 return Promise.resolve(user);
             }).then((user) => {
                 let calendarId = user.calendar_id;
-                callback(calendarId);
+                ('function' === typeof callback) && callback(calendarId);
             }).catch(() => {
-                callback(null);
+                ('function' === typeof callback) && callback(null);
             });
         }
 
@@ -80,10 +77,8 @@ module.exports = (function() {
                 '_id': userId
             };
             let users;
-            Promise.resolve().then(() => {
-                return this.Model.update(query, {
-                    $set: user
-                });
+            return this.Model.update(query, {
+                $set: user
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
@@ -96,9 +91,9 @@ module.exports = (function() {
                 users = {
                     [user._id]: user
                 };
-                callback(users);
+                ('function' === typeof callback) && callback(users);
             }).catch(() => {
-                callback(null);
+                ('function' === typeof callback) && callback(null);
             });
         }
     }
