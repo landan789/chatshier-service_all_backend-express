@@ -163,7 +163,9 @@ module.exports = (function() {
      */
     AppsAutorepliesModel.prototype.find = (appIds, callback) => {
         let appsAutoreplies = {};
-
+        if ('string' === appIds) {
+            appIds = [appIds];
+        };
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/autoreplies').once('value').then((snap) => {
                 let autoreplies = snap.val() || {};
