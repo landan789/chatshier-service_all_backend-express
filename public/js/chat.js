@@ -15,7 +15,7 @@
     var FACEBOOK = 'FACEBOOK';
     var WECHAT = 'WECHAT';
 
-    var LINE_LOGO = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
+    var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
     var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
     var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
 

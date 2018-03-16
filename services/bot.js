@@ -6,6 +6,7 @@ module.exports = (function() {
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
+    const API_ERROR = require('../config/api_error');
     const appsMdl = require('../models/apps');
     const StorageHlp = require('../helpers/storage');
 
@@ -54,15 +55,39 @@ module.exports = (function() {
                         resolve(facebookBot);
                         break;
                     case WECHAT:
-                        this.bots[appId] = new WechatAPI(app.id1, app.secret, (callback) => {
+                        let getToken = (callback) => {
+                            // 此 callback 在 instance 被建立會要發 API 時會執行
+                            // 從資料庫抓取出目前 app 的 accessToken 回傳給 instance
                             if (app.token1) {
-                                callback(null, JSON.parse(app.token1));
+                                let accessToken = {
+                                    accessToken: app.token1,
+                                    expireTime: app.token1ExpireTime
+                                };
+                                callback(null, accessToken);
                                 return;
                             }
-                            callback(null, '');
-                        }, (tokenJson, callback) => {
-                            appsMdl.update(appId, { token1: JSON.stringify(tokenJson) }, callback);
-                        });
+                            callback();
+                        };
+
+                        let setToken = (tokenJson, callback) => {
+                            // 當 wechat sdk 發送 API 時，沒有 accessToken 或是 accessToken 過期
+                            // 會自動抓取新的 accessToken 並呼叫此函式
+                            // 此時將新的 wechat app accessToken 更新至資料庫中
+                            app.token1 = tokenJson.accessToken;
+                            app.token1ExpireTime = tokenJson.expireTime;
+                            let _app = {
+                                token1: app.token1,
+                                token1ExpireTime: app.token1ExpireTime
+                            };
+                            appsMdl.update(appId, _app, (apps) => {
+                                if (!apps) {
+                                    callback(API_ERROR.APP_FAILED_TO_UPDATE);
+                                    return;
+                                }
+                                callback();
+                            });
+                        };
+                        this.bots[appId] = new WechatAPI(app.id1, app.secret, getToken, setToken);
                         resolve();
                         break;
                     default:
@@ -391,7 +416,7 @@ module.exports = (function() {
                     case LINE:
                         return bot.replyMessage(replyToken, messages).then(() => {
                             // 一同將 webhook 打過來的 http request 回覆 200 狀態
-                            return res.sendStatus(200);
+                            return res.status(200).send('');
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
@@ -410,7 +435,7 @@ module.exports = (function() {
                             return bot.sendTextMessage(messagerId, message.text);
                         })).then(() => {
                             // 一同將 webhook 打過來的 http request 回覆 200 狀態
-                            return res.sendStatus(200);
+                            return res.status(200).send('');
                         });
                     case WECHAT:
                         // wechat bot sdk 的 middleware 會將 reply 方法包裝在 res 內
@@ -468,6 +493,34 @@ module.exports = (function() {
                         return bot.sendVideoMessage(messagerId, message.src, true);
                     };
                     return bot.sendTextMessage(messagerId, message.text);
+                case WECHAT:
+                    return new Promise((resolve, reject) => {
+                        if ('text' === message.type) {
+                            return bot.sendText(messagerId, message.text, (err, result) => {
+                                if (err) {
+                                    reject(err);
+                                    return;
+                                }
+                                resolve(result);
+                            });
+                        };
+                        if ('image' === message.type) {
+
+                        };
+                        if ('audio' === message.type) {
+
+                        };
+                        if ('video' === message.type) {
+
+                        };
+                        bot.sendText(messagerId, message.text, (err, result) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve(result);
+                        });
+                    });
                 default:
                     return Promise.resolve();
             }

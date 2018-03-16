@@ -112,8 +112,14 @@ function init(server) {
             }).then((messages) => {
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
-                    return Promise.resolve();
+                    // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
+                    // 因此在此直接將 webhook 的 http request 做 response
+                    res.status(200).send('');
+                    return;
                 };
+                // 因各平台處理方式不同
+                // 所以將 http request 做 response 傳入
+                // 待訊息回覆後直接做 http response
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, senderId, replyToken, repliedMessages, appId, app);
             }).then(() => {
