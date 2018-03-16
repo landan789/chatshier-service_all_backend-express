@@ -12,23 +12,23 @@ let _group = {
 };
 
 groups_mdl.insert(userId, group, (data) => {
-    console.log(data);
+    console.log(JSON.stringify(data, null, 2));
 });
 
 // groups_mdl.find(groupId, userId, (data) => {
-//     console.log(data);
+//     console.log(JSON.stringify(data, null, 2));
 // });
 
 // groups_mdl.update(groupId, _group, (data) => {
-//     console.log(data);
+// console.log(JSON.stringify(data, null, 2));
 // });
 
 // groups_mdl.findAppIds(groupId, userId, (data) => {
-//     console.log(data);
+// console.log(JSON.stringify(data, null, 2));
 // });
 
 // groups_mdl.findUserIds(groupId, (data) => {
-//     console.log(data);
+// console.log(JSON.stringify(data, null, 2));
 // });
 
 /**
@@ -39,4 +39,5 @@ groups_mdl.insert(userId, group, (data) => {
  * 5. GroupsModel.model 接上了 mongoose.model(name, schema);
  * 6. 所有 *_ids 的屬性都改為 *_id (如 app_ids -> app_id ), 並且"統一"都為陣列結構. (因為 MongoDB 不能使用 _ids 命名)
  * 7. MongoDB 裡面 sub collection 的結構為陣列, 或許這是好的結構。 但考慮重購原則(一次只改一點，每一次改動都是可用) , 我們應該改由 model 打包跟原本相同的結構
+ * 8. 使用 MongoDG 裡面的 schema type 取代 firebase typeless 格式
  */
