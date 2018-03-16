@@ -3,6 +3,7 @@ module.exports = (function() {
     const admin = require('firebase-admin');
     const FuseJS = require('fuse.js');
     const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
+    const appsTemplatesMdl = require('../models/apps_templates');
     const redisHlp = require('./redis');
     const REDIS_API_CHANNEL = redisHlp.CHANNELS.REDIS_API_CHANNEL;
 
@@ -227,6 +228,47 @@ module.exports = (function() {
             }).then((keywordreplies) => {
                 callback(keywordreplies);
                 return Promise.resolve(keywordreplies);
+            });
+        };
+
+        searchTemplates(appId, inputText, callback) {
+            let fuseOptions = this.fuseOptionBuilder({
+                includeScore: true,
+                distance: 100,
+                threshold: 1,
+                keys: [
+                    'text'
+                ]
+            });
+
+            return new Promise((resolve, reject) => {
+                if (!(appId && inputText)) {
+                    return resolve([]);
+                }
+                appsTemplatesMdl.findAll(appId, (appsTemplates) => {
+                    if (!appsTemplates) {
+                        return;
+                    }
+                    let templates = appsTemplates[appId].templates;
+                    let templatesIds = Object.keys(appsTemplates[appId].templates);
+                    let list = [{
+                        text: inputText
+                    }];
+                    let templateFuse = new FuseJS(list, fuseOptions);
+                    let _templates = {};
+                    templatesIds.forEach((templatesId) => {
+                        let results = templateFuse.search(templates[templatesId].keyword);
+
+                        if (results.length > 0 && 0.1 > results[0].score) {
+                            _templates[templatesId] = templates[templatesId];
+                        }
+                    });
+                    console.log(_templates);
+                    resolve(_templates);
+                });
+            }).then((templates) => {
+                callback(templates);
+                return Promise.resolve(templates);
             });
         };
     }

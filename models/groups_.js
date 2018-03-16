@@ -22,7 +22,6 @@ module.exports = (function() {
                     'members.user_id': userId
                 };
                 return this.Model.findOne(query).then((group) => {
-                    console.log(group);
                     let members = {};
                     let _members = group.members;
                     while (0 < _members.length) {
@@ -71,13 +70,16 @@ module.exports = (function() {
                 let _members = group.members;
                 while (0 < _members.length) {
                     let member = _members.pop();
-                    let __members = {
-                        [member._id]: member
-                    };
-                    Object.assign(members, __members);
+                    members[member._id] = member;
                 };
-                group.members = members;
-                groups[group._id] = group;
+                let _group = {
+                    createdTime: group.createdTime,
+                    updatedTime: group.updatedTime,
+                    isDeleted: group.isDeleted,
+                    members: members,
+                    name: group.name
+                };
+                groups[group._id] = _group;
             }).then(() => {
                 ('function' === typeof callback) && callback(groups);
             }).catch(() => {
