@@ -54,27 +54,6 @@ module.exports = (function() {
             return null;
         });
     };
-
-    /**
-     * 輸入 指定 appId 的陣列清單，取得該 App 所有自動回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.find = (appId, callback) => {
-        admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let autoreplies = snap.val() || {};
-            let appsAutoreplies = {
-                [appId]: {
-                    autoreplies: autoreplies
-                }
-            };
-            callback(appsAutoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
     /**
      * 輸入 指定 appId 的陣列清單，修改一筆自動回覆的資料
      *
@@ -159,46 +138,39 @@ module.exports = (function() {
      * 輸入 appId 的陣列清單，取得每個 app 的關鍵字回覆的資料
      *
      * @param {string[]|string} appIds
+     * @param {string|null} autoreplyId
      * @param {Function} callback
      */
-    AppsAutorepliesModel.prototype.find = (appIds, callback) => {
+    AppsAutorepliesModel.prototype.find = (appIds, autoreplyId, callback) => {
         let appsAutoreplies = {};
         if ('string' === appIds) {
             appIds = [appIds];
         };
+        let autoreplies = {};
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/autoreplies').once('value').then((snap) => {
                 let autoreplies = snap.val() || {};
-                appsAutoreplies[appId] = {
-                    autoreplies: autoreplies
+                if (!autoreplies) {
+                    return Promise.resolve();
                 };
+
+                // polymorphsim to autoreplyId. null autoreplyId returns all autoreplies of each app.
+                if (!autoreplyId) {
+                    appsAutoreplies[appId] = {
+                        autoreplies: autoreplies
+                    };
+                    return Promise.resolve();
+                };
+                if (autoreplies[autoreplyId]) {
+                    appsAutoreplies[appId] = {
+                        autoreplies: autoreplies
+                    };
+                    return Promise.resolve();
+                };
+
+                return Promise.resolve();
             });
         })).then(() => {
-            callback(appsAutoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 取得一筆關鍵字回覆的資料
-     *
-     * @param {string} appId
-     * @param {*} autoreplyId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.findOne = (appId, autoreplyId, callback) => {
-        let appsAutoreplies = {};
-
-        return admin.database().ref('apps/' + appId + '/autoreplies' + autoreplyId).once('value').then((snap) => {
-            let autoreplies = snap.val() || {};
-            if (1 === autoreplies.isDeleted) {
-                Promise.reject(new Error());
-            }
-            appsAutoreplies[appId] = {
-                autoreplies: autoreplies
-            };
-        }).then(() => {
             callback(appsAutoreplies);
         }).catch(() => {
             callback(null);

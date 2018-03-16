@@ -15,7 +15,7 @@ module.exports = (function() {
         return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.find(appIds, (data) => {
+                appsAutorepliesMdl.find(appIds, null, (data) => {
                     if (undefined === data || null === data || '' === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -47,12 +47,12 @@ module.exports = (function() {
         return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.findOne(appId, autoreplyId, (data) => {
-                    if (false === data || undefined === data || '' === data) {
+                appsAutorepliesMdl.find(appId, autoreplyId, (appsAutoreplies) => {
+                    if (false === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(appsAutoreplies);
                 });
             });
         }).then((appsAutoreplies) => {
