@@ -52,6 +52,7 @@
         "comma-style": ["error", "last"],
         "constructor-super": "error",
         "curly": ["error", "multi-line"],
+        "default-case": "error",
         "dot-location": ["error", "property"],
         "eol-last": ["error", "always"],
         "eqeqeq": ["error", "always", { "null": "ignore" }],
