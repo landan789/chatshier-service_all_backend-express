@@ -138,7 +138,7 @@ module.exports = (function() {
          */
 
         getReceivedMessages(req, appId, app) {
-            let body = req;
+            let body = req.body;
             let media = {
                 image: 'png',
                 audio: 'mp3',
