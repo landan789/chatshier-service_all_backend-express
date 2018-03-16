@@ -1002,6 +1002,22 @@ window.restfulAPI = (function() {
             };
             return sendRequest(destUrl, reqInit);
         };
+
+        /**
+         * 取得一筆Template資料
+         *
+         * @param {string} appId - 目標Template的 App ID
+         * @param {string} templateId - 目標Template的 ID
+         * @param {string} userId - 使用者的 firebase ID
+         */
+        AppsTemplatesAPI.prototype.findOne = function(appId, templateId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
         
         /**
          * 新增一筆Template資料
@@ -1028,7 +1044,7 @@ window.restfulAPI = (function() {
          * @param {string} userId - 使用者的 firebase ID
          * @param {*} modifiedTemplateData - 已編輯後欲更新的Template資料
          */
-        AppsTemplatesAPI.prototype.update = function(appId, userId, templateId, modifiedTemplateData) {
+        AppsTemplatesAPI.prototype.update = function(appId, templateId, userId, modifiedTemplateData) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
@@ -1045,7 +1061,7 @@ window.restfulAPI = (function() {
          * @param {string} templateId - 目標Template的 ID
          * @param {string} userId - 使用者的 firebase ID
          */
-        AppsTemplatesAPI.prototype.remove = function(appId, userId, templateId) {
+        AppsTemplatesAPI.prototype.remove = function(appId, templateId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',

@@ -92,6 +92,7 @@ interface AppsKeywordrepliesAPI {
 
 interface AppsTemplatesAPI {
     findAll: (appId: string, userId: string) => Promise<any>;
+    findOne: (appId: string, templateId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, templateData: any) => Promise<any>;
     update: (appId: string, templateId: string, userId: string, templateData: any) => Promise<any>;
     remove: (appId: string, templateId: string, userId: string) => Promise<any>;
