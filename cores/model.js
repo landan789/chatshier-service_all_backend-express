@@ -18,65 +18,65 @@ module.exports = (function() {
     let RootSchema = new mongoose.Schema();
 
     let AutoreplySchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
-        'endedTime': {type: Date, defualt: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'endedTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
-        'startedTime': {type: Date, defualt: Date.now()},
+        'startedTime': {type: Date, default: Date.now()},
         'text': String,
         'title': String,
-        'type': {type: String, defualt: 'text'},
-        'updatedTime': {type: Date, defualt: Date.now()}
+        'type': {type: String, default: 'text'},
+        'updatedTime': {type: Date, default: Date.now()}
     });
 
     let ChatroomSchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
         'messagers': [{
-            'unRead': {type: Number, defualt: 0}
+            'unRead': {type: Number, default: 0}
         }],
         'messages': [{
             'from': String,
             'isDeleted': Boolean,
-            'messager_id': String,
+            'messager_id': {type: Array, default: []},
             'src': String,
             'text': String,
-            'time': {type: Date, defualt: Date.now()},
+            'time': {type: Date, default: Date.now()},
             'type': String
         }]
     });
 
     let KeywordreplySchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
         'messagers': [{
-            'unRead': {type: Number, defualt: 0}
+            'unRead': {type: Number, default: 0}
         }],
         'messages': [{
             'from': String,
             'isDeleted': Boolean,
-            'messager_id': String,
+            'messager_id': {type: Array, default: []},
             'src': String,
             'text': String,
-            'time': {type: Date, defualt: Date.now()},
+            'time': {type: Date, default: Date.now()},
             'type': String
         }]
     });
 
     let ComposeSchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
-        'endedTime': {type: Date, defualt: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'endedTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
-        'startedTime': {type: Date, defualt: Date.now()},
+        'startedTime': {type: Date, default: Date.now()},
         'text': String,
         'title': String,
-        'type': {type: String, defualt: 'text'},
-        'updatedTime': {type: Date, defualt: Date.now()}
+        'type': {type: String, default: 'text'},
+        'updatedTime': {type: Date, default: Date.now()}
     });
 
     let GreetingSchema = new mongoose.Schema({
         'isDeleted': Boolean,
         'text': String,
         'type': String,
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'createdTime': {type: Date, defualt: Date.now()}
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()}
     });
 
     let MessagerSchema = new mongoose.Schema({
@@ -87,8 +87,8 @@ module.exports = (function() {
         'chatroom_id': String,
         'custom_tags': Object,
         'email': String,
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'createdTime': {type: Date, defualt: Date.now()}, // firstChat -> createdTime
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()}, // firstChat -> createdTime
         'gener': String,
         'isDeleted': Boolean,
         'name': String,
@@ -99,9 +99,9 @@ module.exports = (function() {
     });
 
     let TicketSchema = new mongoose.Schema({
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'createdTime': {type: Date, defualt: Date.now()},
-        'dueTime': {type: Date, defualt: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'dueTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
         'messager_id': String,
         'priority': Number, // TODO 三個 型態建議用字串大寫
@@ -109,9 +109,9 @@ module.exports = (function() {
     });
 
     let AppSchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'group_id': String,
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'group_id': {type: Array, default: []},
         'id1': String,
         'id2': String,
         'isDeleted': Boolean,
@@ -128,7 +128,7 @@ module.exports = (function() {
         'greetings': [GreetingSchema],
         'messagers': [MessagerSchema],
         'tickets': [TicketSchema],
-        'webhook_id': String
+        'webhook_id': {type: Array, default: []}
     });
 
     let EventSchema = new mongoose.Schema({
@@ -145,26 +145,26 @@ module.exports = (function() {
     });
 
     let MemberSchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'isDeleted': Boolean,
-        'status': Boolean,
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
+        'status': {type: Boolean, default: false},
         'type': String,
-        'user_id': String
+        'user_id': {type: Array, default: []}
     });
 
     let GroupSchema = new mongoose.Schema({
-        'app_ids': [String],
-        'createdTime': {type: Date, defualt: Date.now()},
-        'updatedTime': {type: Date, defualt: Date.now()},
-        'isDeleted': Boolean,
+        'app_id': {type: [String], default: []},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'isDeleted': {type: Boolean, default: false},
         'members': [MemberSchema],
-        'name': String
+        'name': {type: String, default: ''}
     });
 
     let UserSchema = new mongoose.Schema({
-        'createdTime': {type: Date, defualt: Date.now()},
-        'updatedTime': {type: Date, defualt: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'address': String,
         'calendar_id': String,
         'company': String,
@@ -172,11 +172,11 @@ module.exports = (function() {
         'phone': String,
         'isDeleted': Boolean,
         'name': String,
-        'group_ids': [String]
+        'group_id': {type: Array, default: []}
     });
 
     let WebhookSchema = new mongoose.Schema({
-        'app_id': String
+        'app_id': {type: Array, default: []}
     });
     // endregion
 

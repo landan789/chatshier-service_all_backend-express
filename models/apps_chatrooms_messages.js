@@ -41,49 +41,26 @@ module.exports = (function() {
     };
 
     /**
-     * 存單一訊息
-     *
-     * @param {string} appId
-     * @param {string} chatroomId
-     * @param {any} message
-     * @param {(newMessage: any) => any} [callback]
-     */
-    AppsChatroomsMessages.prototype.insertMessage = function(appId, chatroomId, message, callback) {
-        Promise.resolve().then(() => {
-            message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, message);
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').push(message);
-        }).then((ref) => {
-            let messageId = ref.key;
-            return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages/' + messageId).once('value');
-        }).then((snap) => {
-            let _message = {
-                [snap.key]: snap.val() || {}
-            };
-            ('function' === typeof callback) && callback(_message);
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-        });
-    };
-
-    
-    /**
      * 存多筆訊息
      *
      * @param {string} appId
      * @param {string} chatroomId
-     * @param {any} messages
+     * @param {Object[]|Object} messages
      * @param {(newMessage: any) => any} [callback]
      * @returns {Promise<any>}
      */
     AppsChatroomsMessages.prototype.insertMessages = function(appId, chatroomId, messages, callback) {
+        if (!(messages instanceof Array)) {
+            messages = [messages];
+        };
         let _messages = {};
         return Promise.all(messages.map((message) => {
             let _message = {
                 eventType: message.eventType || '',
                 from: message.from,
                 messager_id: message.messager_id,
-                text: message.text || '',
-                time: message.time,
+                text: message.text || '' || message.altText + '<br>' + '請至智慧手機上確認訊息內容。',
+                time: Date.now(),
                 type: message.type,
                 src: message.src || ''
             };

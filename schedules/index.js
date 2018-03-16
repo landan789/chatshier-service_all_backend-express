@@ -105,7 +105,7 @@ let jobProcess = () => {
                     }
                     return Promise.all(messages.map((message) => {
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                        return appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message);
                     }));
                 }));
             });

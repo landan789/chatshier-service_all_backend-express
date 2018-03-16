@@ -10,6 +10,7 @@ module.exports = {
     MONGODB: {
         HOST: '127.0.0.1',
         PORT: 27017,
+        DATABASE: 'chatshier',
         USERNAME: 'vagrant',
         PASSWORD: 'password'
     },

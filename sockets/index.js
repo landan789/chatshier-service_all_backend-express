@@ -268,7 +268,7 @@ function init(server) {
                         return botSvc.pushMessage(recipientId, message, appId, app);
                     }).then(() => {
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message, (messagesInDB) => {
+                            appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message, (messagesInDB) => {
                                 if (!messagesInDB) {
                                     reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                                     return;
@@ -485,7 +485,7 @@ function init(server) {
                         };
 
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, _message, (messagesInDB) => {
+                            appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, _message, (messagesInDB) => {
                                 if (!messagesInDB) {
                                     reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                                 };

@@ -599,7 +599,82 @@ module.exports = (function() {
                 default:
                     return Promise.resolve([]);
             }
+        };
+
+        /**
+         * @param {string} appId
+         */
+        getRichMenuList(appId) {
+            let bot = this.bots[appId];
+            return bot.getRichMenuList();
+        };
+
+        /**
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        getRichMenu(richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.getRichMenu(richmenuId);
+        };
+
+        /**
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        getRichMenuImage(richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.getRichMenuImage(richmenuId);
+        };
+
+        /**
+         * @param {any} richmenu
+         * @param {string} appId
+         */
+        createRichMenu(richmenu, appId) {
+            let bot = this.bots[appId];
+            return bot.createRichMenu(richmenu);
+        };
+
+        /**
+         * @param {string} richmenuId
+         * @param {string} richmenuImg
+         * @param {string} appId
+         */
+        setRichMenuImage(richmenuId, richmenuImg, appId) {
+            let bot = this.bots[appId];
+            let contentType = '';
+            return bot.setRichMenuImage(richmenuId, richmenuImg, contentType);
+        };
+
+        /**
+         * @param {string} userId
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        linkRichMenuToUser(userId, richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.linkRichMenuToUser(userId, richmenuId);
         }
+
+        /**
+         * @param {string} userId
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        unlinkRichMenuFromUser(userId, richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.unlinkRichMenuFromUser(userId, richmenuId);
+        }
+
+        /**
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        deleteRichMenu(richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.deleteRichMenu(richmenuId);
+        };
     }
 
     return new BotService();

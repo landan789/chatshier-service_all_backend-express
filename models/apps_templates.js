@@ -21,13 +21,13 @@ module.exports = (function() {
     /**
      * 查詢指定 appId 內的所有的Templates資料 (回傳的資料型態為陣列)
      *
-     *  @param {string[]} appIds
+     *  @param {string[]} appId
      * @param {Function} callback
      */
 
     AppsTemplatesModel.prototype.findTemplates = (appId, callback) => {
         return admin.database().ref('apps/' + appId + '/templates').once('value').then((snap) => {
-            let templates = snap.val();
+            let templates = snap.val() || {};
             if (!templates) {
                 return Promise.resolve({});
             };
@@ -40,20 +40,40 @@ module.exports = (function() {
         });
     };
 
-    AppsTemplatesModel.prototype.findAll = (appIds, callback) => {
-        let appsTemplates = {};
+    /**
+     * 輸入 appId，取得每個 app 的Templates資料
+     *
+     * @param {string|string[]} appIds
+     * @param {(appsKeywordreples: any) => any} callback
+     */
+    AppsTemplatesModel.prototype.findAll = function(appIds, callback) {
+        Promise.resolve().then(() => {
+            let appsTemplates = {};
+            if (undefined === appIds) {
+                return Promise.resolve({});
+            };
 
-        Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId + '/templates').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let template = snap.val() || {};
-                if (!template) {
-                    return Promise.reject(new Error());
-                }
-                appsTemplates[appId] = {
-                    templates: template
-                };
+            if ('string' === typeof appIds) {
+                appIds = [appIds];
+            }
+
+            // 準備批次查詢的 promise 工作
+            return Promise.all(appIds.map((appId) => {
+                return admin.database().ref('apps/' + appId + '/templates').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+                    let template = snap.val() || {};
+
+                    if (!template) {
+                        return Promise.reject(new Error());
+                    }
+
+                    appsTemplates[appId] = {
+                        templates: template
+                    };
+                });
+            })).then(() => {
+                return Promise.resolve(appsTemplates);
             });
-        })).then(() => {
+        }).then((appsTemplates) => {
             callback(appsTemplates);
         }).catch(() => {
             callback(null);
