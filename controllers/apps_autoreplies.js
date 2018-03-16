@@ -15,7 +15,7 @@ module.exports = (function() {
         return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.findByAppIds(appIds, (data) => {
+                appsAutorepliesMdl.find(appIds, (data) => {
                     if (undefined === data || null === data || '' === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -135,7 +135,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
-                appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                appsAutorepliesMdl.findAutoreplies(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -191,7 +191,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
-                appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                appsAutorepliesMdl.findAutoreplies(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;

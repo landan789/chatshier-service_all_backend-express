@@ -111,7 +111,7 @@ module.exports = (function() {
      * @param {string} appId
      * @param {Function} callback
      */
-    AppsAutorepliesModel.prototype.removeByAppIdByAutoreplyId = (appId, autoreplyId, callback) => {
+    AppsAutorepliesModel.prototype.remove = (appId, autoreplyId, callback) => {
         let autoreply = {
             isDeleted: 1
         };
@@ -134,14 +134,21 @@ module.exports = (function() {
     /**
      * 找到 自動回復未刪除的資料包，不含 apps 結構
      */
-    AppsAutorepliesModel.prototype.findAutorepliesByAppId = (appId, callback) => {
-        admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let autoreplies = snap.val();
-            if (null === autoreplies || undefined === autoreplies || '' === autoreplies) {
-                return Promise.reject(new Error());
-            }
-            return Promise.resolve(autoreplies);
-        }).then((autoreplies) => {
+    AppsAutorepliesModel.prototype.findAutoreplies = (appIds, callback) => {
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        };
+        let autoreplies = {};
+        return Promise.all((appIds).map((appId) => {
+            return admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
+                let _autoreplies = snap.val();
+                if (null === _autoreplies || undefined === _autoreplies || '' === _autoreplies) {
+                    return Promise.resolve(null);
+                };
+                Object.assign(autoreplies, _autoreplies);
+                return Promise.resolve(null);
+            });
+        })).then(() => {
             callback(autoreplies);
         }).catch(() => {
             callback(null);
@@ -151,10 +158,10 @@ module.exports = (function() {
     /**
      * 輸入 appId 的陣列清單，取得每個 app 的關鍵字回覆的資料
      *
-     * @param {string[]} appIds
+     * @param {string[]|string} appIds
      * @param {Function} callback
      */
-    AppsAutorepliesModel.prototype.findByAppIds = (appIds, callback) => {
+    AppsAutorepliesModel.prototype.find = (appIds, callback) => {
         let appsAutoreplies = {};
 
         Promise.all(appIds.map((appId) => {

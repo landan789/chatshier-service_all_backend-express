@@ -54,7 +54,7 @@ module.exports = (function() {
         });
 
         let autorepliesPromise = new Promise((resolve, reject) => {
-            appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
+            appsAutorepliesMdl.findAutoreplies(appId, (autoreplies) => {
                 autoreplies = autoreplies || {};
                 let timeNow = Date.now();
 
