@@ -83,9 +83,6 @@ module.exports = (function() {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                users = {
-                    [user._id]: user
-                };
                 return this.Model.findOne(query);
             }).then((user) => {
                 users = {
