@@ -187,11 +187,11 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsRichmenusModel.prototype.remove = (appId, richmenuId, callback) => {
-        let richmenu = {
-            isDelete: 1
+        let deletedRichmenu = {
+            isDeleted: 1
         };
 
-        admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(richmenu).then(() => {
+        admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).update(deletedRichmenu).then(() => {
             return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).once('value');
         }).then((snap) => {
             let richmenu = snap.val();
@@ -201,6 +201,8 @@ module.exports = (function() {
             appsRichmenus[appId] = {
                 richmenus: _richmenus
             };
+            return appsRichmenus;
+        }).then((appsRichmenus) => {
             callback(appsRichmenus);
         }).catch(() => {
             callback(null);

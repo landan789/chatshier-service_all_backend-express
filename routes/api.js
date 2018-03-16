@@ -20,6 +20,8 @@ var usersCtl = require('../controllers/users');
 var groupsCtl = require('../controllers/groups');
 var groupsMembersCtl = require('../controllers/groups_members');
 
+var botCtl = require('../controllers/bot');
+
 // ===============
 // 訊息相關 Ctrl
 var appsMessagersCtl = require('../controllers/apps_messagers');
@@ -70,6 +72,7 @@ router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.ge
 router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
 // ===============
 
+// ==========
 // 圖文選單
 router.get('/apps-richmenus/users/:userid', appsRichmenusCtl.getAll);
 router.get('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.getAll);
@@ -77,6 +80,7 @@ router.get('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', ap
 router.post('/apps-richmenus/apps/:appid/users/:userid', appsRichmenusCtl.postOne);
 router.put('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', appsRichmenusCtl.putOne);
 router.delete('/apps-richmenus/apps/:appid/richmenus/:richmenuid/users/:userid', appsRichmenusCtl.deleteOne);
+// ==========
 
 // ==========
 // 自動回覆
@@ -115,6 +119,7 @@ router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOn
 router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
+// ==========
 // 群發
 router.get('/apps-composes/users/:userid', appsComposesCtl.getAll);
 router.get('/apps-composes/apps/:appid/users/:userid', appsComposesCtl.getAll);
@@ -124,6 +129,7 @@ router.put('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsC
 router.delete('/apps-composes/apps/:appid/composes/:composeid/users/:userid', appsComposesCtl.deleteOne);
 // ==========
 
+// ==========
 // Templates
 router.get('/apps-templates/users/:userid', appsTemplateCtl.getAll);
 router.get('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.getAll);
@@ -151,5 +157,17 @@ router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.get
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
 router.put('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.putOne);
 router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.deleteOne);
+
+// ==========
+// bot
+router.get('/bot/apps/:appid', botCtl.getRichMenuList);
+router.get('/bot/apps/:appid/richmenus/:richmenuid', botCtl.getRichmenu);
+router.get('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.getRichMenuImage);
+router.post('/bot/apps/:appid', botCtl.createRichMenu);
+router.post('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.setRichMenuImage);
+router.post('/bot/apps/:appid/richmenus/:richmenuid/senders/:senderid', botCtl.linkRichMenuToUser);
+router.delete('/bot/apps/:appid/richmenus/:richmenuid', botCtl.deleteRichMenu);
+router.delete('/bot/apps/:appid/richmenus/:richmenuid/senders/:senderid', botCtl.unlinkRichMenuFromUser);
+// ==========
 
 module.exports = router;

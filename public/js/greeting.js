@@ -49,7 +49,7 @@
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-            findOne(nowSelectAppId, userId);
+            loadGreetings(nowSelectAppId, userId);
             $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
@@ -57,10 +57,10 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        findOne(nowSelectAppId, userId);
+        loadGreetings(nowSelectAppId, userId);
     }
 
-    function findOne(appId, userId) {
+    function loadGreetings(appId, userId) {
         $('#MsgCanvas').empty();
         rowCount = 0;
         return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
@@ -125,20 +125,25 @@
         var appId = $(this).parent().parent().attr('rel');
         let greetingId = $(this).parent().parent().attr('id');
         if ('-' === greetingId.charAt(0)) {
-            return api.appsGreetings.remove(appId, userId, greetingId).then(function(resJson) {
-                $('#' + greetingId).remove();
-                delete findedGreetingIds[greetingId];
-                rowCount--;
-                if (4 === rowCount) {
-                    appendNewTr(appId);
+            return showDialog('確定要刪除嗎？').then(function(isOK) {
+                if (!isOK) {
+                    return;
                 }
-            }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                }
+                return api.appsGreetings.remove(appId, greetingId, userId).then(function(resJson) {
+                    $('#' + greetingId).remove();
+                    delete findedGreetingIds[greetingId];
+                    rowCount--;
+                    if (4 === rowCount) {
+                        appendNewTr(appId);
+                    }
+                }).catch((resJson) => {
+                    if (undefined === resJson.status) {
+                        $.notify('失敗', { type: 'danger' });
+                    }
+                    if (NO_PERMISSION_CODE === resJson.code) {
+                        $.notify('無此權限', { type: 'danger' });
+                    }
+                });
             });
         }
     } // end of delMsgCanvas
@@ -205,5 +210,30 @@
         var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         var localTimeString = localDate + localTime;
         return localTimeString;
+    }
+
+    function showDialog(textContent) {
+        return new Promise(function(resolve) {
+            $('#textContent').text(textContent);
+
+            var isOK = false;
+            var $dialogModal = $('#dialog_modal');
+
+            $dialogModal.find('.btn-primary').on('click', function() {
+                isOK = true;
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.find('.btn-secondary').on('click', function() {
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.modal({
+                backdrop: false,
+                show: true
+            });
+        });
     }
 })();
