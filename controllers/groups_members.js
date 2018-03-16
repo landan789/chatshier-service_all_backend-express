@@ -49,7 +49,7 @@ module.exports = (function() {
             }
 
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findGroupsMembers(groupIds, null, (groupsMembers) => {
+                groupsMembersMdl.find(groupIds, null, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                         return;

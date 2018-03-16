@@ -124,7 +124,7 @@ module.exports = (function() {
      * @param {string} memberId 
      * @param {function} callback 
      */
-    GroupsMembersModel.prototype.findGroupsMembers = function(groupIds, memberId, callback) {
+    GroupsMembersModel.prototype.find = function(groupIds, memberId, callback) {
 
         var groupsMembers = {};
         Promise.resolve().then(() => {
