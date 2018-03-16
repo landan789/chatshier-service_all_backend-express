@@ -13,6 +13,11 @@
     var SYSTEM = 'SYSTEM';
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
+    var WECHAT = 'WECHAT';
+
+    var LINE_LOGO = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
+    var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
+    var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
 
     var SOCKET_NAMESPACE = '/chatshier';
 
@@ -728,10 +733,13 @@
                 var appItem = '';
                 switch (appData.type) {
                     case LINE:
-                        appItem = buildHtml(appData.type, 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png');
+                        appItem = buildHtml(appData.type, LINE_LOGO);
                         break;
                     case FACEBOOK:
-                        appItem = buildHtml(appData.type, 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png');
+                        appItem = buildHtml(appData.type, FACEBOOK_LOGO);
+                        break;
+                    case WECHAT:
+                        appItem = buildHtml(appData.type, WECHAT_LOGO);
                         break;
                 }
                 $chatApp.prepend(appItem);
@@ -775,6 +783,7 @@
                         // 由於屬於特定平台 app 的 messager 只會有一位
                         case LINE:
                         case FACEBOOK:
+                        case WECHAT:
                             var _msgerId = Object.keys(chatroomMessagers).shift();
                             var messager = appsMessagers[appId].messagers[_msgerId];
                             uiRequireData.profile = messager;
@@ -917,10 +926,13 @@
 
             switch (appType) {
                 case LINE:
-                    clientUiOpts.iconSrc = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
+                    clientUiOpts.iconSrc = LINE_LOGO;
                     break;
                 case FACEBOOK:
-                    clientUiOpts.iconSrc = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
+                    clientUiOpts.iconSrc = FACEBOOK_LOGO;
+                    break;
+                case WECHAT:
+                    clientUiOpts.iconSrc = WECHAT_LOGO;
                     break;
                 case CHATSHIER:
                 default:
@@ -1529,6 +1541,7 @@
             switch (appType) {
                 case LINE:
                 case FACEBOOK:
+                case WECHAT:
                     // 從目前所有的 messager 中找尋平台中唯一的 messagerId
                     for (var messagerId in appsMessagers[appId].messagers) {
                         var _messager = appsMessagers[appId].messagers[messagerId];

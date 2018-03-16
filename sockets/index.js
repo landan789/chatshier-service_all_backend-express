@@ -1,6 +1,7 @@
 let socketIO = require('socket.io');
 
 let line = require('@line/bot-sdk');
+let wechat = require('wechat');
 let facebook = require('facebook-bot-messenger'); // facebook串接
 const fuseHlp = require('../helpers/fuse');
 const StorageHlp = require('../helpers/storage');
@@ -28,6 +29,8 @@ const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
 const API_SUCCESS = require('../config/api_success');
 
+const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
+const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const media = {
@@ -44,9 +47,32 @@ function init(server) {
     let messageCacheMap = new Map();
     let webhookProcQueue = [];
 
+    app.get('/webhook/:webhookId', function(req, res) {
+        // Facebook
+        if (req.query['hub.verify_token']) {
+            if (FACEBOOK_WEBHOOK_VERIFY_TOKEN === req.query['hub.verify_token']) {
+                console.log('Facebook validating webhook');
+                res.status(200).send(req.query['hub.challenge']);
+            } else {
+                console.error('Facebook failed validation. Make sure the validation tokens match.');
+                res.sendStatus(500);
+            }
+        }
+
+        // Wechat 驗證簽名
+        if (req.query.signature && req.query.timestamp && req.query.nonce) {
+            if (wechat.checkSignature(req.query, WECHAT_WEBHOOK_VERIFY_TOKEN)) {
+                console.log('Wechat validating webhook');
+                res.status(200).send(req.query.echostr);
+            } else {
+                console.error('Wechat failed validation.');
+                res.sendStatus(500);
+            }
+        }
+    });
+
     app.post('/webhook/:webhookid', (req, res, next) => {
         let webhookid = req.params.webhookid;
-        let bot = {};
         let appId = '';
         let app = {};
 
@@ -73,9 +99,8 @@ function init(server) {
                 return botSvc.parser(req, res, server, appId, app);
             }).then(() => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                bot = _bot;
-                return botSvc.getReceivedMessages(req.body, appId, app);
+            }).then(() => {
+                return botSvc.getReceivedMessages(req, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
                 if (0 === receivedMessages.length) {
@@ -90,7 +115,7 @@ function init(server) {
                     return Promise.resolve();
                 };
                 let replyToken = receivedMessages[0].replyToken || '';
-                return botSvc.replyMessage(senderId, replyToken, repliedMessages, appId, app);
+                return botSvc.replyMessage(res, senderId, replyToken, repliedMessages, appId, app);
             }).then(() => {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
@@ -146,12 +171,16 @@ function init(server) {
             }).then((messages) => {
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
-                if ('text' === messages[messageId].type) {
+                if (!messageId || 'text' === messages[messageId].type) {
                     return Promise.resolve(messages);
                 }
                 toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
                 return StorageHlp.filesMoveV2(fromPath, toPath);
             }).then(() => {
+                if (0 === _messages.length) {
+                    return;
+                }
+
                 /** @type {ChatshierChatSocketBody} */
                 let messagesToSend = {
                     app_id: appId,
@@ -163,9 +192,6 @@ function init(server) {
                     messages: Object.values(_messages)
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
-            }).then(() => {
-                res.sendStatus(200);
-                return Promise.resolve();
             });
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);

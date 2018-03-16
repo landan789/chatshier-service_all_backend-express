@@ -173,10 +173,11 @@ apps.postOne = (req, res, next) => {
                 return;
             }
 
-            if ('' === req.body.token1 || null === req.body.token1 || undefined === req.body.token1) {
-                reject(API_ERROR.TOKEN1_WAS_EMPTY);
-                return;
-            }
+            // wechat 新增 app 不需要輸入 token
+            // if ('' === req.body.token1 || null === req.body.token1 || undefined === req.body.token1) {
+            //     reject(API_ERROR.TOKEN1_WAS_EMPTY);
+            //     return;
+            // }
 
             if ('' === req.body.type || null === req.body.type || undefined === req.body.type) {
                 reject(API_ERROR.TYPE_WAS_EMPTY);

@@ -1,17 +1,21 @@
 module.exports = (function() {
     const line = require('@line/bot-sdk');
+    const Wechat = require('wechat');
+    const WechatAPI = require('wechat-api');
     const bodyParser = require('body-parser');
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
-    const SCHEMA = require('../config/schema');
-
+    const appsMdl = require('../models/apps');
     const StorageHlp = require('../helpers/storage');
 
     // app type defined
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
+    const WECHAT = 'WECHAT';
+
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
+    const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 
     // messager type defined
 
@@ -49,6 +53,18 @@ module.exports = (function() {
                         this.bots[appId] = facebookBot;
                         resolve(facebookBot);
                         break;
+                    case WECHAT:
+                        this.bots[appId] = new WechatAPI(app.id1, app.secret, (callback) => {
+                            if (app.token1) {
+                                callback(null, JSON.parse(app.token1));
+                                return;
+                            }
+                            callback(null, '');
+                        }, (tokenJson, callback) => {
+                            appsMdl.update(appId, { token1: JSON.stringify(tokenJson) }, callback);
+                        });
+                        resolve();
+                        break;
                     default:
                         resolve();
                         break;
@@ -80,6 +96,11 @@ module.exports = (function() {
                             resolve({});
                         });
                         break;
+                    case WECHAT:
+                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => {
+                            resolve({});
+                        })(req, res);
+                        break;
                     default:
                         resolve({});
                         break;
@@ -91,11 +112,14 @@ module.exports = (function() {
          * @return {any}
          */
 
-        getReceivedMessages(body, appId, app) {
+        getReceivedMessages(req, appId, app) {
+            let body = req;
             let media = {
                 image: 'png',
                 audio: 'mp3',
-                video: 'mp4'
+                voice: 'mp3', // wechat only
+                video: 'mp4',
+                shortvideo: 'mp4' // wechat only
             };
             let messages = [];
             switch (app.type) {
@@ -172,7 +196,7 @@ module.exports = (function() {
                         messages.push(_message);
                         return Promise.resolve();
                     })).then(() => {
-                        return Promise.resolve(messages);
+                        return messages;
                     });
                 case FACEBOOK:
                     let entry = body.entry;
@@ -241,7 +265,54 @@ module.exports = (function() {
                         });
                     });
                     return messages;
-            };
+                case WECHAT:
+                    let weixin = req.weixin;
+                    let message = {
+                        messager_id: weixin.FromUserName, // WECHAT 平台的 sender id
+                        type: weixin.MsgType,
+                        time: parseInt(weixin.CreateTime) * 1000,
+                        from: WECHAT,
+                        text: '',
+                        src: '',
+                        message_id: weixin.MsgId // WECHAT 平台的 訊息 id
+                    };
+
+                    return new Promise((resolve, reject) => {
+                        let bot = this.bots[appId];
+                        if (!bot) {
+                            reject(new Error('bot undefined'));
+                            return;
+                        }
+
+                        if ('text' === message.type) {
+                            message.text = weixin.Content;
+                            messages.push(message);
+                        } else if (weixin.MediaId) {
+                            message.fromPath = `/${weixin.CreateTime}.${media[weixin.MsgType]}`;
+                            bot.getMedia(weixin.MediaId, (err, buffer, res) => {
+                                if (err) {
+                                    reject(new Error(err));
+                                    return;
+                                }
+
+                                return StorageHlp.filesUpload(message.fromPath, buffer).then(function() {
+                                    return StorageHlp.sharingCreateSharedLink(message.fromPath);
+                                }).then(function(response) {
+                                    var wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                                    var src = wwwurl.replace('?dl=0', '');
+                                    message.src = src;
+                                    messages.push(message);
+                                    resolve();
+                                });
+                            });
+                        }
+                        resolve();
+                    }).then(() => {
+                        return messages;
+                    });
+                default:
+                    return messages;
+            }
         }
 
         /**
@@ -277,6 +348,22 @@ module.exports = (function() {
                             senderProfile.photo = fbUserProfile.profile_pic;
                             return senderProfile;
                         });
+                    case WECHAT:
+                        return new Promise((resolve, reject) => {
+                            // http://doxmate.cool/node-webot/wechat-api/api.html#api_api_user
+                            bot.getUser({ openid: senderId, lang: 'zh_TW' }, (err, wxUser) => {
+                                if (err) {
+                                    console.log(err);
+                                    reject(new Error(err));
+                                    return;
+                                }
+                                wxUser = wxUser || {};
+                                senderProfile.gender = !wxUser.sex ? '' : (1 === wxUser.sex ? 'MALE' : (2 === wxUser.sex ? 'FEMALE' : ''));
+                                senderProfile.name = wxUser.nickname;
+                                senderProfile.photo = wxUser.headimgurl;
+                                resolve(senderProfile);
+                            });
+                        });
                     default:
                         return senderProfile;
                 }
@@ -290,7 +377,7 @@ module.exports = (function() {
          * @param {string} appId
          * @param {any} app
          */
-        replyMessage(messagerId, replyToken, messages, appId, app) {
+        replyMessage(res, messagerId, replyToken, messages, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
                 return Promise.reject(new Error('bot undefined'));
@@ -302,7 +389,10 @@ module.exports = (function() {
             return Promise.resolve().then(() => {
                 switch (app.type) {
                     case LINE:
-                        return bot.replyMessage(replyToken, messages);
+                        return bot.replyMessage(replyToken, messages).then(() => {
+                            // 一同將 webhook 打過來的 http request 回覆 200 狀態
+                            return res.sendStatus(200);
+                        });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
                             if ('text' === message.type) {
@@ -318,7 +408,15 @@ module.exports = (function() {
                                 return bot.sendVideoMessage(messagerId, message.src, true);
                             };
                             return bot.sendTextMessage(messagerId, message.text);
-                        }));
+                        })).then(() => {
+                            // 一同將 webhook 打過來的 http request 回覆 200 狀態
+                            return res.sendStatus(200);
+                        });
+                    case WECHAT:
+                        // wechat bot sdk 的 middleware 會將 reply 方法包裝在 res 內
+                        // 因此直接呼叫 res.reply 回應訊息
+                        let message = messages[0] || {};
+                        return res.reply(message.text || '');
                     default:
                         break;
                 }
@@ -370,6 +468,8 @@ module.exports = (function() {
                         return bot.sendVideoMessage(messagerId, message.src, true);
                     };
                     return bot.sendTextMessage(messagerId, message.text);
+                default:
+                    return Promise.resolve();
             }
         };
 
