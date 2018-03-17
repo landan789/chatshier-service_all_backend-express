@@ -26,9 +26,10 @@ module.exports = (function() {
      * 輸入指定的 appId 取得該 App 所有群發的資料
      *
      * @param {string[]} appIds
+     * @param {string[]|null} composeId
      * @param {Function} callback
      */
-    AppsComposesModel.prototype.findAll = (appIds, callback) => {
+    AppsComposesModel.prototype.findAll = (appIds, composeId, callback) => {
         let appsComposes = {};
 
         Promise.all(appIds.map((appId) => {
@@ -56,7 +57,7 @@ module.exports = (function() {
      * @param {function({ type: string, text: string}[])} callback
      * @returns {Promise<any>}
      */
-    AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
+    AppsComposesModel.prototype.findOne = (appId, compsoeId, callback) => {
         return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
             let composes = snap.val() || {};
             if (1 === composes.isDeleted) {
