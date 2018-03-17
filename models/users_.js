@@ -26,6 +26,7 @@ module.exports = (function() {
                 return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -54,6 +55,7 @@ module.exports = (function() {
                 return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -72,6 +74,7 @@ module.exports = (function() {
                 return Promise.resolve(calendarId);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -95,6 +98,7 @@ module.exports = (function() {
                 return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
     }
