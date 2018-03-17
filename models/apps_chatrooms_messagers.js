@@ -46,7 +46,7 @@ module.exports = (function() {
      * @param {string} appId
      * @param {string} chatroomId
      * @param {string|string[]} messagerIds
-     * @param {any} count
+     * @param {any} messager
      * @param {(appChatroomMessager: any) => any} [callback]
      * @returns {Promise<any>}
      */
