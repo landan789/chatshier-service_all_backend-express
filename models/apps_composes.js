@@ -25,23 +25,40 @@ module.exports = (function() {
     /**
      * 輸入指定的 appId 取得該 App 所有群發的資料
      *
-     * @param {string[]} appIds
-     * @param {string[]|null} composeId
+     * @param {string[]|string} appIds
+     * @param {string|null} composeId
      * @param {Function} callback
      */
     AppsComposesModel.prototype.findAll = (appIds, composeId, callback) => {
         let appsComposes = {};
+
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
 
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                 let composes = snap.val();
                 if (!composes) {
                     return Promise.resolve(null);
-                }
-                appsComposes[appId] = {
-                    composes: composes
                 };
-                return Promise.resolve(null);
+                if (!composeId) {
+                    appsComposes[appId] = {
+                        composes: composes
+                    };
+                    return Promise.resolve(null);
+                };
+
+                if (composeId && composes[composeId]) {
+                    let compose = composes[composeId];
+                    appsComposes[appId] = {
+                        composes: {
+                            [composeId]: compose
+                        }
+                    };
+                    return Promise.resolve(null);
+                }
+
             });
         })).then(() => {
             callback(appsComposes);
@@ -55,7 +72,7 @@ module.exports = (function() {
      *
      * @param {string} appId
      * @param {string} composeId
-     * @param {function({ type: string, text: string}[])} callback
+     * @param {function(object)} callback
      * @returns {Promise<any>}
      */
     AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
