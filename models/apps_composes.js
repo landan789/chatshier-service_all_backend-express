@@ -25,48 +25,42 @@ module.exports = (function() {
     /**
      * 輸入指定的 appId 取得該 App 所有群發的資料
      *
-     * @param {string[]} appIds
+     * @param {string[]|string} appIds
+     * @param {string|null} composeId
      * @param {Function} callback
      */
-    AppsComposesModel.prototype.findAll = (appIds, callback) => {
+    AppsComposesModel.prototype.find = (appIds, composeId, callback) => {
         let appsComposes = {};
+
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
 
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let compose = snap.val();
-                if (!compose) {
-                    return Promise.reject(new Error());
-                }
-                appsComposes[appId] = {
-                    composes: compose
+                let composes = snap.val();
+                if (!composes) {
+                    return Promise.resolve(null);
                 };
+                if (!composeId) {
+                    appsComposes[appId] = {
+                        composes: composes
+                    };
+                    return Promise.resolve(null);
+                };
+
+                if (composeId && composes[composeId]) {
+                    let compose = composes[composeId];
+                    appsComposes[appId] = {
+                        composes: {
+                            [composeId]: compose
+                        }
+                    };
+                    return Promise.resolve(null);
+                }
+
             });
         })).then(() => {
-            callback(appsComposes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 查詢指定 appId 內指定的群發
-     *
-     * @param {string} appId
-     * @param {string[]} composeId
-     * @param {function({ type: string, text: string}[])} callback
-     * @returns {Promise<any>}
-     */
-    AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
-        return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
-            let composes = snap.val() || {};
-            if (1 === composes.isDeleted) {
-                Promise.reject(new Error());
-            }
-            let appsComposes = {
-                [appId]: {
-                    composes: composes
-                }
-            };
             callback(appsComposes);
         }).catch(() => {
             callback(null);
