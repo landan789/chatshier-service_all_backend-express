@@ -29,7 +29,7 @@ module.exports = (function() {
      * @param {string|null} composeId
      * @param {Function} callback
      */
-    AppsComposesModel.prototype.findAll = (appIds, composeId, callback) => {
+    AppsComposesModel.prototype.find = (appIds, composeId, callback) => {
         let appsComposes = {};
 
         if ('string' === typeof appIds) {
