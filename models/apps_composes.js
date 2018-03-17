@@ -36,7 +36,7 @@ module.exports = (function() {
             return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                 let compose = snap.val();
                 if (!compose) {
-                    return Promise.reject(new Error());
+                    return Promise.resolve(null);
                 }
                 appsComposes[appId] = {
                     composes: compose
