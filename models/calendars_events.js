@@ -200,9 +200,7 @@ calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callbac
     }).then((result) => {
         var calendarId = result[1];
         var eventId = result[2];
-        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId);
-    }).then((ref) => {
-        return ref.once('value');
+        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
     }).then((snap) => {
         var event = snap.val();
         var calendarId = snap.ref.parent.parent.key;
