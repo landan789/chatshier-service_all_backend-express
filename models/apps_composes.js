@@ -34,12 +34,12 @@ module.exports = (function() {
 
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let compose = snap.val();
-                if (!compose) {
+                let composes = snap.val();
+                if (!composes) {
                     return Promise.resolve(null);
                 }
                 appsComposes[appId] = {
-                    composes: compose
+                    composes: composes
                 };
                 return Promise.resolve(null);
             });
@@ -54,19 +54,21 @@ module.exports = (function() {
      * 查詢指定 appId 內指定的群發
      *
      * @param {string} appId
-     * @param {string[]} composeId
+     * @param {string} composeId
      * @param {function({ type: string, text: string}[])} callback
      * @returns {Promise<any>}
      */
-    AppsComposesModel.prototype.findOne = (appId, compsoeId, callback) => {
+    AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
         return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
-            let composes = snap.val() || {};
-            if (1 === composes.isDeleted) {
+            let compose = snap.val() || {};
+            if (1 === compose.isDeleted) {
                 Promise.reject(new Error());
             }
             let appsComposes = {
                 [appId]: {
-                    composes: composes
+                    composes: {
+                        [composeId]: compose
+                    }
                 }
             };
             callback(appsComposes);
