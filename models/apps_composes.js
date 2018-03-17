@@ -68,33 +68,6 @@ module.exports = (function() {
     };
 
     /**
-     * 查詢指定 appId 內指定的群發
-     *
-     * @param {string} appId
-     * @param {string} composeId
-     * @param {function(object)} callback
-     * @returns {Promise<any>}
-     */
-    AppsComposesModel.prototype.findOne = (appId, composeId, callback) => {
-        return admin.database().ref('apps/' + appId + '/composes/' + composeId).once('value').then((snap) => {
-            let compose = snap.val() || {};
-            if (1 === compose.isDeleted) {
-                Promise.reject(new Error());
-            }
-            let appsComposes = {
-                [appId]: {
-                    composes: {
-                        [composeId]: compose
-                    }
-                }
-            };
-            callback(appsComposes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
      * 找到 群發未刪除的資料包，不含 apps 結構
      *
      * @param {string} appId
