@@ -41,6 +41,7 @@ module.exports = (function() {
                 appsComposes[appId] = {
                     composes: compose
                 };
+                return Promise.resolve(null);
             });
         })).then(() => {
             callback(appsComposes);
