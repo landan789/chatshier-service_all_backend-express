@@ -58,7 +58,7 @@ calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eve
             admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
                 let calendarId = snap.val();
                 if (null === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject();
+                    reject(new Error());
                     return;
                 }
                 resolve(calendarId);
@@ -70,7 +70,7 @@ calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eve
             admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value', (snap) => {
                 let event = snap.val();
                 if (null === event || undefined === event || '' === event) {
-                    reject(null);
+                    reject(new Error());
                     return;
                 }
                 resolve(event);
@@ -140,7 +140,7 @@ calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId,
     }).then((snap) => {
         var event = snap.val();
         if (1 === event.isDeleted) {
-            return Promise.reject();
+            return Promise.reject(new Error());
         }
         return Promise.resolve();
     }).then(() => {
@@ -172,7 +172,7 @@ calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callbac
             calendarsEvents.findCalendarId(userId, (data) => {
                 let calendarId = data;
                 if (null === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject();
+                    reject(new Error());
                     return;
                 }
                 resolve(calendarId);
