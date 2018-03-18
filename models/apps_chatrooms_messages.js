@@ -5,42 +5,6 @@ module.exports = (function() {
     function AppsChatroomsMessages() {}
 
     /**
-     * 根據 App ID 清單，取得對應的所有 appsChatroomsMessags
-     *
-     * @param {string|string[]} appIds
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.find = function(appIds, callback) {
-        let appsChatroomsMessages = {};
-
-        Promise.resolve().then(() => {
-            if ('string' === typeof appIds) {
-                appIds = [appIds];
-            };
-
-            // 準備批次查詢的 promise 工作，將結果依照 appId 的鍵值塞到對應的欄位
-            return Promise.all(appIds.map((appId) => {
-                return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
-                    let chatrooms = snap.val() || {};
-                    if (!chatrooms) {
-                        return Promise.resolve(null);
-                    }
-
-                    // 根據查詢路徑建立回傳的資料結構
-                    appsChatroomsMessages[appId] = {
-                        chatrooms: chatrooms
-                    };
-                    return Promise.resolve(null);
-                });
-            }));
-        }).then(() => {
-            callback(appsChatroomsMessages || {});
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
      * 存多筆訊息
      *
      * @param {string} appId
@@ -82,45 +46,13 @@ module.exports = (function() {
     };
 
     /**
-     * 根據 user ID 找到chatroom message資訊
-     *
-     * @param {string} userId
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.findByUserId = function(userId, callback) {
-        var procced = new Promise((resolve, reject) => {
-            resolve();
-        });
-        procced.then(() => {
-            return new Promise((resolve, reject) => {
-                admin.database().ref('users/' + userId).once('value', snap => {
-                    var user = snap.val();
-                    if (null === user || undefined === user || '' === user) {
-                        reject(new Error());
-                        return;
-                    }
-                    resolve(user);
-                });
-            });
-        }).then((user) => {
-            var appIds = user.app_ids;
-            instance.findByAppIds(appIds, (data) => {
-                var appsMessagers = data;
-                callback(appsMessagers);
-            });
-        }).catch((ERROR) => {
-            callback(false);
-        });
-    };
-
-    /**
      * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
      *
      * @param {string[]|string} appIds
      * @param {string} chatroomId
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.findAppsChatroomsMessages = function(appIds, chatroomId, callback) {
+    AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, callback) {
 
         if ('string' === typeof appIds) {
             appIds = [appIds];
@@ -176,29 +108,6 @@ module.exports = (function() {
             callback(null);
         });
     };
-
-    /**
-     * 根據 App ID 找到message物件
-     *
-     * @param {string[]} appIds
-     * @param {(appsMessengers: any) => any} callback
-     */
-    AppsChatroomsMessages.prototype.findByAppIds = function(appIds, callback) {
-        var appsMessengers = {};
-        Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-                var app = snap.val() || {};
-                var messagers = app.messagers || {};
-                var chatrooms = app.chatrooms || {};
-                appsMessengers[appId] = { messagers, chatrooms };
-            });
-        })).then(() => {
-            callback(appsMessengers);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
     let instance = new AppsChatroomsMessages();
     return instance;
 })();
