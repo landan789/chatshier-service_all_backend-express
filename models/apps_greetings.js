@@ -22,7 +22,7 @@ module.exports = (function() {
      * @param {Function} callback
      * @return {object} appsGreetings
      */
-    AppsGreetingsModel.prototype.findAll = (appIds, callback) => {
+    AppsGreetingsModel.prototype.find = (appIds, callback) => {
         let appsGreetings = {};
 
         Promise.all(appIds.map((appId) => {
@@ -33,27 +33,6 @@ module.exports = (function() {
                 };
             });
         })).then(() => {
-            callback(appsGreetings);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 取得該 App 所有加好友回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     * @return {object} appsGreetings
-     */
-    AppsGreetingsModel.prototype.find = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let greeting = snap.val() || {};
-            let appsGreetings = {
-                [appId]: {
-                    greetings: greeting
-                }
-            };
             callback(appsGreetings);
         }).catch(() => {
             callback(null);
