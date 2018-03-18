@@ -25,9 +25,10 @@ module.exports = (function() {
      * 輸入 appId，取得每個 app 的關鍵字回覆的資料
      *
      * @param {string|string[]} appIds
+     * @param {string|null} keywordreplyId
      * @param {(appsKeywordreples: any) => any} callback
      */
-    AppsKeywordrepliesModel.prototype.find = function(appIds, callback) {
+    AppsKeywordrepliesModel.prototype.find = function(appIds, keywordreplyId, callback) {
         Promise.resolve().then(() => {
             let appsKeywordreples = {};
             if (undefined === appIds) {
@@ -47,40 +48,28 @@ module.exports = (function() {
                         return Promise.reject(new Error());
                     }
 
-                    appsKeywordreples[appId] = {
-                        keywordreplies: keywordreplies
-                    };
+                    if (!keywordreplyId) {
+                        appsKeywordreples[appId] = {
+                            keywordreplies: keywordreplies
+                        };
+                        return Promise.resolve(null);
+                    }
+
+                    if (keywordreplyId && keywordreplies[keywordreplyId]) {
+                        let keywordreply = keywordreplies[keywordreplyId];
+                        appsKeywordreples[appId] = {
+                            keywordreplies: {
+                                [keywordreplyId]: keywordreply
+                            }
+                        };
+                        return Promise.resolve(null);
+                    }
                 });
             })).then(() => {
                 return Promise.resolve(appsKeywordreples);
             });
         }).then((appsKeywordreples) => {
             callback(appsKeywordreples);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 取得一筆關鍵字回覆的資料
-     *
-     * @param {string} appId
-     * @param {*} keywordreplyId
-     * @param {Function} callback
-     */
-    AppsKeywordrepliesModel.prototype.findOne = (appId, keywordreplyId, callback) => {
-        let appsKeywordreplies = {};
-
-        return admin.database().ref('apps/' + appId + '/keywordreplies/' + keywordreplyId).once('value').then((snap) => {
-            let keywordreplies = snap.val() || {};
-            if (1 === keywordreplies.isDeleted) {
-                Promise.reject(new Error());
-            }
-            appsKeywordreplies[appId] = {
-                keywordreplies: keywordreplies
-            };
-        }).then(() => {
-            callback(appsKeywordreplies);
         }).catch(() => {
             callback(null);
         });

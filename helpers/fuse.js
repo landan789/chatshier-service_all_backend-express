@@ -167,7 +167,7 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
+                    appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
                         let keywordreplies = appsKeywordreplies[appId].keywordreplies;
                         let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
                         let list = keywordreplyIds.map((keywordreplyId) => {
@@ -205,7 +205,7 @@ module.exports = (function() {
                 if (!(appId && inputText)) {
                     return resolve([]);
                 }
-                appsKeywordrepliesMdl.find(appId, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
                         return;
                     }
