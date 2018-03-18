@@ -18,19 +18,44 @@ module.exports = (function() {
     /**
      * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
      *
-     * @param {string[]} appIds
+     * @param {string[]|string} appIds
+     * @param {string|null} greetingId
      * @param {Function} callback
      * @return {object} appsGreetings
      */
-    AppsGreetingsModel.prototype.findAll = (appIds, callback) => {
+    AppsGreetingsModel.prototype.find = (appIds, greetingId, callback) => {
         let appsGreetings = {};
+
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
 
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let greeting = snap.val() || {};
-                appsGreetings[appId] = {
-                    greetings: greeting
-                };
+                let greetings = snap.val() || {};
+                if (!greetings) {
+                    return Promise.resolve(null);
+                }
+
+                if (!greetingId) {
+                    appsGreetings[appId] = {
+                        greetings: greetings
+                    };
+                    return Promise.resolve(null);
+                }
+
+                if (greetingId && greetings[greetingId]) {
+                    let greeting = greetings[greetingId];
+                    appsGreetings[appId] = {
+                        greetings: {
+                            [greetingId]: {
+                                greeting
+                            }
+                        }
+                    };
+                    return Promise.resolve(null);
+                }
+
             });
         })).then(() => {
             callback(appsGreetings);
@@ -38,55 +63,6 @@ module.exports = (function() {
             callback(null);
         });
     };
-
-    /**
-     * 輸入指定的 appId 取得該 App 所有加好友回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     * @return {object} appsGreetings
-     */
-    AppsGreetingsModel.prototype.find = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let greeting = snap.val() || {};
-            let appsGreetings = {
-                [appId]: {
-                    greetings: greeting
-                }
-            };
-            callback(appsGreetings);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 查詢指定 appId 內指定的加好友回覆訊息
-     *
-     * @param {string} appId
-     * @param {string[]} greetingId
-     * @param {function({ type: string, text: string}[])} callback
-     * @return {object} appsGreetings
-     */
-    AppsGreetingsModel.prototype.findOne = (appId, greetingId, callback) => {
-        admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value').then((snap) => {
-            let greeting = snap.val() || {};
-            if (1 === greeting.isDeleted) {
-                Promise.reject(new Error());
-            }
-            let appsGreetings = {
-                [appId]: {
-                    greetings: {
-                        [greetingId]: greeting
-                    }
-                }
-            };
-            callback(appsGreetings);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
     /**
      * 找到 加好友回覆未刪除的資料包，不含 apps 結構
      *

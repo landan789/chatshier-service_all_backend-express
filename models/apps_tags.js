@@ -41,7 +41,7 @@ module.exports = (function() {
      * @param {string[]} appIds
      * @param {(appsTags: any) => any} callback
      */
-    AppsTagsModel.prototype.findTags = function(appIds, callback) {
+    AppsTagsModel.prototype.find = function(appIds, callback) {
         Promise.resolve().then(() => {
             let appsTagsMap = {};
             if (!appIds || !(appIds instanceof Array)) {
