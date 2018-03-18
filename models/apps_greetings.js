@@ -27,9 +27,9 @@ module.exports = (function() {
 
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let greeting = snap.val() || {};
+                let greetings = snap.val() || {};
                 appsGreetings[appId] = {
-                    greetings: greeting
+                    greetings: greetings
                 };
             });
         })).then(() => {
