@@ -163,7 +163,7 @@ module.exports = (function() {
      * 輸入指定的 appId 與 composeId 刪除該群發的資料
      *
      * @param {string} appId
-     * @param {string} composesId
+     * @param {string} composeId
      * @param {Function} callback
      * @returns {Promise<any>}
      */
