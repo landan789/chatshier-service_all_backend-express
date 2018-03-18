@@ -27,7 +27,7 @@ module.exports = (function() {
         return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTemplatesMdl.findAll(appIds, (data) => {
+                appsTemplatesMdl.find(appIds, null, (data) => {
                     if (undefined === data || null === data || '' === data) {
                         reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                         return;
@@ -58,7 +58,7 @@ module.exports = (function() {
         return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTemplatesMdl.findOne(appIds, templateId, (data) => {
+                appsTemplatesMdl.find(appIds, templateId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
                         return;

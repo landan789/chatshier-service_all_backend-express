@@ -11,7 +11,7 @@ module.exports = (function() {
     BotController.prototype._findApp = function(appId) {
         return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                appsMdl.find(appId, (apps) => {
+                appsMdl.find(appId, null, (apps) => {
                     if (!apps) {
                         return reject(API_ERROR.APPS_FAILED_TO_FIND);
                     }
