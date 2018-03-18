@@ -116,11 +116,42 @@ module.exports = (function() {
     /**
      * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
      *
-     * @param {string} appId
+     * @param {string[]|string} appIds
      * @param {string} chatroomId
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.findAppsChatroomsMessages = function(appId, chatroomId, callback) {
+    AppsChatroomsMessages.prototype.findAppsChatroomsMessages = function(appIds, chatroomId, callback) {
+
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
+        let appsChatroomsMessages = {};
+        Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
+                let chatrooms = snap.val();
+                if (!chatrooms) {
+                    return Promise.reject(new Error());
+                }
+                if (!chatroomId) {
+                    appsChatroomsMessages[appId] = {
+                        chatrooms: chatrooms
+                    };
+                    return Promise.resolve(null);
+                }
+
+                if (chatroomId && chatrooms[chatroomId]) {
+                    let chatroom = chatrooms[chatroomId];
+                    appsChatroomsMessages[appId] = {
+                        chatrooms: {
+                            [chatroomId]: chatroom
+                        }
+                    };
+                    return Promise.resolve(null);
+                }
+
+            });
+        }));
+
         admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
             let messages = snap.val();
             if (null === messages || undefined === messages || '' === messages) {
