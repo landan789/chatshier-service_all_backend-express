@@ -39,11 +39,13 @@ module.exports = (function() {
      * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
      *
      * @param {string|string[]} appIds
+     * @param {string|null} richmenuId
      * @param {Function} callback
      */
-    AppsRichmenusModel.prototype.find = (appIds, callback) => {
+    AppsRichmenusModel.prototype.find = (appIds, richmenuId, callback) => {
+        let appsRichmenus = {};
+
         Promise.resolve().then(() => {
-            let appsRichmenus = {};
             if (undefined === appIds) {
                 return Promise.resolve({});
             };
@@ -54,44 +56,32 @@ module.exports = (function() {
             return Promise.all(appIds.map((appId) => {
                 return admin.database().ref('apps/' + appId + '/richmenus').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                     let richmenus = snap.val() || {};
-                    appsRichmenus[appId] = {
-                        richmenus: richmenus
-                    };
+                    if (!richmenuId) {
+                        appsRichmenus[appId] = {
+                            richmenus: richmenus
+                        };
+    
+                        return Promise.resolve();
+                    }
+
+                    if (richmenuId && richmenus[richmenuId]) {
+                        let richmenu = richmenus[richmenuId];
+                        appsRichmenus[appId] = {
+                            richmenus: {
+                                [richmenuId]: richmenu
+                            }
+                        };
+    
+                        return Promise.resolve();
+                    }
                 });
-            })).then(() => {
-                return Promise.resolve(appsRichmenus);
-            });
+            }));
         }).then((appsRichmenus) => {
             callback(appsRichmenus);
         }).catch(() => {
             callback(null);
         });
     };
-
-    /**
-     * 輸入 指定 appId 的陣列清單，取得該 App 一筆圖文選單的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsRichmenusModel.prototype.findOne = (appId, richmenuId, callback) => {
-        // let appsRichmenus = {};
-        return admin.database().ref('apps/' + appId + '/richmenus/' + richmenuId).once('value').then((snap) => {
-            let richmenu = snap.val() || {};
-            if (1 === richmenu.isDeleted) {
-                Promise.reject(new Error());
-            }
-            let appsRichmenus = {
-                [appId]: {
-                    richmenus: richmenu
-                }
-            };
-            callback(appsRichmenus);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
     /**
      * 找到 圖文選單未刪除的資料包，不含 apps 結構
      *
