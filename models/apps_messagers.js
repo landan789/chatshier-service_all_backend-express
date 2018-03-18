@@ -210,7 +210,7 @@ module.exports = (function() {
      * @param {(messager: any) => any} [callback]
      * @returns {Promise<any>}
      */
-    AppsMessagersModel.prototype.deleteMessager = function(appId, msgerId, callback) {
+    AppsMessagersModel.prototype.remove = function(appId, msgerId, callback) {
         return admin.database().ref('apps/' + appId).once('value').then((snap) => {
             let app = snap.val() || {};
             let messagers = app.messagers || {};

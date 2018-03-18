@@ -449,7 +449,7 @@ module.exports = (function() {
                     // 將此 group member 從所有 app 裡的 messagers 刪除
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                         return Promise.all(appIds.map((appId) => {
-                            return appsMessagersMdl.deleteMessager(appId, msgerId);
+                            return appsMessagersMdl.remove(appId, msgerId);
                         }));
                     });
                 }).then(() => {
