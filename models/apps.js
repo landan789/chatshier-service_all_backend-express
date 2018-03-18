@@ -1,13 +1,9 @@
 var admin = require('firebase-admin'); // firebase admin SDK
 var apps = {};
 
-const typeEnum = Object.freeze({
-    LINE: 'LINE',
-    FACEBOOK: 'FACEBOOK',
-    CHATSHIER: 'CHATSHIER'
-});
-
-apps.typeEnum = typeEnum;
+const LINE = 'LINE';
+const FACEBOOK = 'FACEBOOK';
+const CHATSHIER = 'CHATSHIER';
 
 apps._schema = (callback) => {
     var json = {
@@ -43,6 +39,9 @@ apps.find = (appIds, webhookId, callback) => {
             return admin.database().ref('webhooks/' + webhookId).once('value').then((snap) => {
                 let webhook = snap.val();
                 let appIds = webhook.app_id;
+                if ('string' === typeof appIds) {
+                    appIds = [appIds];
+                }
                 return Promise.all(appIds.map((appId) => {
                     return admin.database().ref('apps/' + appId).once('value').then((snap) => {
                         let app = snap.val();
@@ -123,7 +122,7 @@ apps.insert = (userId, postApp, callback) => {
         return Promise.resolve();
     }).then(() => {
         // 如果新增的 app 為 CHATSHIER 內部聊天室，則不需進行新增 webhooks 的動作
-        if (apps.typeEnum.CHATSHIER === postApp.type) {
+        if (CHATSHIER === postApp.type) {
             return;
         }
 
