@@ -63,34 +63,6 @@ module.exports = (function() {
             callback(null);
         });
     };
-
-    /**
-     * 查詢指定 appId 內指定的加好友回覆訊息
-     *
-     * @param {string} appId
-     * @param {string[]} greetingId
-     * @param {function({ type: string, text: string}[])} callback
-     * @return {object} appsGreetings
-     */
-    AppsGreetingsModel.prototype.findOne = (appId, greetingId, callback) => {
-        admin.database().ref('apps/' + appId + '/greetings/' + greetingId).once('value').then((snap) => {
-            let greeting = snap.val() || {};
-            if (1 === greeting.isDeleted) {
-                Promise.reject(new Error());
-            }
-            let appsGreetings = {
-                [appId]: {
-                    greetings: {
-                        [greetingId]: greeting
-                    }
-                }
-            };
-            callback(appsGreetings);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
     /**
      * 找到 加好友回覆未刪除的資料包，不含 apps 結構
      *

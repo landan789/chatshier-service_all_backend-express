@@ -53,7 +53,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => {
-                appsGreetingsMdl.findOne(appId, greetingId, (appGreeting) => {
+                appsGreetingsMdl.find(appId, greetingId, (appGreeting) => {
                     if (!appGreeting) {
                         reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
                         return;
