@@ -84,7 +84,7 @@ calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eve
     });
 };
 
-calendarsEvents.insertCalendarEventByUserId = (userId, event, callback) => {
+calendarsEvents.insert = (userId, event, callback) => {
     Promise.resolve().then(() => {
         return admin.database().ref('users/' + userId).once('value').then((snap) => {
             let user = snap.val();

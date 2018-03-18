@@ -60,7 +60,7 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.insertCalendarEventByUserId(userId, event, (data) => {
+            calendarsEventsMdl.insert(userId, event, (data) => {
                 let calendarsEvents = data;
                 if (null === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
