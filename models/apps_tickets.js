@@ -29,7 +29,7 @@ var appsTickets = {
      * @param {string[]} appIds
      * @param {(appTickets: any) => any} callback
      */
-    findAppTickets: (appIds, callback) => {
+    find: (appIds, callback) => {
         if ('string' === typeof appIds) {
             appIds = [appIds];
         }
