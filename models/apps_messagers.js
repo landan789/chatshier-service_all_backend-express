@@ -39,8 +39,7 @@ module.exports = (function() {
      * @param {Function} callback
      */
     AppsMessagersModel.prototype.find = function(appIds, messagerId, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+        return Promise.resolve().then(() => {
             if (!appIds) {
                 return;
             }
@@ -71,6 +70,11 @@ module.exports = (function() {
                         return;
                     }
                     let messagers = snap.val() || {};
+                    if (messagerId && messagers[messagerId]) {
+                        messagers = {
+                            [messagerId]: messagers[messagerId]
+                        };
+                    }
                     appsMessagers[appId] = {
                         messagers: messagers
                     };
@@ -85,36 +89,6 @@ module.exports = (function() {
             callback(appsMessagers);
         }).catch(() => {
             callback(null);
-        });
-    };
-
-    /**
-     * 根據app ID跟message ID找到messager
-     *
-     * @param {string} appId
-     * @param {string} msgerId
-     * @param {(appMessager: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsMessagersModel.prototype.findMessager = function(appId, msgerId, callback) {
-        return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value').then((snap) => {
-            if (!snap) {
-                return Promise.reject(new Error());
-            }
-
-            let messager = snap.val() || {};
-            let appsMessagers = {
-                [appId]: {
-                    messagers: {
-                        [msgerId]: messager
-                    }
-                }
-            };
-            ('function' === typeof callback) && callback(appsMessagers);
-            return appsMessagers;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
         });
     };
 

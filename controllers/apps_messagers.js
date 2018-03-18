@@ -57,7 +57,7 @@ module.exports = (function() {
                     reject(API_ERROR.MESSAGERID_WAS_EMPTY);
                     return;
                 }
-                appsMessagersMdl.findMessager(appId, msgerId, (messager) => {
+                appsMessagersMdl.find(appId, msgerId, (messager) => {
                     if (!messager) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         return;
