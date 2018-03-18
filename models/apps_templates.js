@@ -44,9 +44,10 @@ module.exports = (function() {
      * 輸入 appId，取得每個 app 的Templates資料
      *
      * @param {string|string[]} appIds
+     * @param {string|null} templateId
      * @param {(appsKeywordreples: any) => any} callback
      */
-    AppsTemplatesModel.prototype.findAll = function(appIds, callback) {
+    AppsTemplatesModel.prototype.find = function(appIds, templateId, callback) {
         Promise.resolve().then(() => {
             let appsTemplates = {};
             if (undefined === appIds) {
@@ -60,15 +61,28 @@ module.exports = (function() {
             // 準備批次查詢的 promise 工作
             return Promise.all(appIds.map((appId) => {
                 return admin.database().ref('apps/' + appId + '/templates').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                    let template = snap.val() || {};
+                    let templates = snap.val() || {};
 
-                    if (!template) {
-                        return Promise.reject(new Error());
+                    if (!templates) {
+                        return Promise.resolve(null);
+                    };
+
+                    if (!templateId) {
+                        appsTemplates[appId] = {
+                            templates: templates
+                        };
+                        return Promise.resolve(null);
                     }
 
-                    appsTemplates[appId] = {
-                        templates: template
-                    };
+                    if (templateId && templates[templateId]) {
+                        let template = templates[templateId];
+                        appsTemplates[appId] = {
+                            templates: {
+                                [templateId]: template
+                            }
+                        };
+                        return Promise.resolve(null);
+                    }
                 });
             })).then(() => {
                 return Promise.resolve(appsTemplates);
@@ -81,32 +95,9 @@ module.exports = (function() {
     };
 
     /**
-     * 查詢指定 appId 內指定的template
+     * 輸入指定的 appId 新增多筆群發的資料
      *
-     * @param {string} appId
-     * @param {string} templateId
-     * @param {function({ type: string, text: string}[])} callback
-     * @returns {Promise<any>}
-     */
-
-    AppsTemplatesModel.prototype.findOne = (appId, templateId, callback) => {
-        return admin.database().ref('apps/' + appId + '/templates/' + templateId).once('value').then((snap) => {
-            let templates = snap.val() || {};
-            let appsTemplates = {
-                [appId]: {
-                    template: templates
-                }
-            };
-            callback(appsTemplates);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 新增一筆群發的資料
-     *
-     * @param {string} appIds 
+     * @param {string} appIds
      * @param {*} postTemplate
      * @param {(appsComposes: any) => any} [callback]
      * @returns {Promise<any>}

@@ -245,7 +245,7 @@ module.exports = (function() {
                 if (!(appId && inputText)) {
                     return resolve([]);
                 }
-                appsTemplatesMdl.findAll(appId, (appsTemplates) => {
+                appsTemplatesMdl.find(appId, null, (appsTemplates) => {
                     if (!appsTemplates) {
                         return;
                     }
