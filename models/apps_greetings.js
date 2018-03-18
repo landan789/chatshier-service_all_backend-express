@@ -22,7 +22,7 @@ module.exports = (function() {
      * @param {Function} callback
      * @return {object} appsGreetings
      */
-    AppsGreetingsModel.prototype.find = (appIds, callback) => {
+    AppsGreetingsModel.prototype.find = (appIds, greetingId, callback) => {
         let appsGreetings = {};
 
         Promise.all(appIds.map((appId) => {
