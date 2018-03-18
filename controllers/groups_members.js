@@ -180,7 +180,7 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
-                            appsMdl.find(appId, (apps) => {
+                            appsMdl.find(appId, null, (apps) => {
                                 resolve(apps);
                             });
                         }).then((apps) => {

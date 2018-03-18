@@ -40,7 +40,7 @@ apps.getAll = (req, res, next) => {
         });
     }).then((appIds) => {
         return new Promise((resolve, reject) => {
-            appsMdl.find(appIds, (apps) => {
+            appsMdl.find(appIds, null, (apps) => {
                 if (null === apps || '' === apps || undefined === apps) {
                     apps = {};
                 }
@@ -111,7 +111,7 @@ apps.getOne = (req, res, next) => {
         return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.find(appId, (data) => {
+            appsMdl.find(appId, null, (data) => {
                 var app = data;
                 if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -332,7 +332,7 @@ apps.putOne = (req, res, next) => {
         });
     }).then((user) => {
         return new Promise((resolve, reject) => {
-            appsMdl.find(req.params.appid, (apps) => {
+            appsMdl.find(req.params.appid, null, (apps) => {
                 if (null === apps || undefined === apps || '' === apps) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
@@ -435,7 +435,7 @@ apps.deleteOne = (req, res, next) => {
         });
     }).then((user) => {
         return new Promise((resolve, reject) => {
-            appsMdl.find(req.params.appid, (apps) => {
+            appsMdl.find(req.params.appid, null, (apps) => {
                 if (null === apps || undefined === apps || '' === apps) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;

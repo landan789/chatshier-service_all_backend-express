@@ -26,42 +26,32 @@ apps._schema = (callback) => {
     };
     callback(json);
 };
-
-/**
- * 處理取得某個 webhook 對應到的 apps
- */
-apps.findAppsByWebhookId = (webhookId, callback) => {
-    var procced = Promise.resolve();
-
-    procced.then(() => {
-        return admin.database().ref('webhooks/' + webhookId).once('value');
-    }).then((snap) => {
-        var webhook = snap.val();
-        var appId = webhook.app_id;
-        return Promise.all([admin.database().ref('apps/' + appId).once('value'), appId]);
-    }).then((result) => {
-        var snap = result[0];
-        var appId = result[1];
-
-        var app = snap.val();
-        var apps = {};
-        apps[appId] = app;
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
 /**
      * 多型判斷要回傳apps還是appid下資料
      *
-     * @param {string|string[]} appIds || ''
+     * @param {string|string[]|null} appIds
+     * @param {string|null} webhookId
      * @param {Function} callback
      * @returns {Promise<any>}
      */
-apps.find = (appIds, callback) => {
+apps.find = (appIds, webhookId, callback) => {
     var apps = {};
 
     Promise.resolve().then(() => {
+
+        if (webhookId) {
+            return admin.database().ref('webhooks/' + webhookId).once('value').then((snap) => {
+                let webhook = snap.val();
+                let appIds = webhook.app_id;
+                return Promise.all(appIds.map((appId) => {
+                    return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+                        let app = snap.val();
+                        apps[appId] = app;
+                    });
+                }));
+            });
+        }
+
         // 值為空回傳整包apps
         if ('' === appIds || !appIds) {
             return admin.database().ref('apps').once('value').then((snap) => {
