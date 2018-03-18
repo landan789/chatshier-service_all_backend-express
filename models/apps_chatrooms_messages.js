@@ -148,25 +148,9 @@ module.exports = (function() {
                     };
                     return Promise.resolve(null);
                 }
-
+                
             });
-        }));
-
-        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
-            let messages = snap.val();
-            if (null === messages || undefined === messages || '' === messages) {
-                return Promise.reject(new Error());
-            }
-            var appsChatroomsMessages = {};
-            var chatroomsMessages = {};
-            chatroomsMessages[chatroomId] = {
-                messages: messages
-            };
-            appsChatroomsMessages[appId] = {
-                chatrooms: chatroomsMessages
-            };
-            return Promise.resolve(appsChatroomsMessages);
-        }).then((appsChatroomsMessages) => {
+        })).then((appsChatroomsMessages) => {
             callback(appsChatroomsMessages);
         }).catch(() => {
             callback(null);
