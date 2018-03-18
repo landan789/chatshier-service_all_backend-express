@@ -65,33 +65,6 @@ var appsTickets = {
             callback(null);
         });
     },
-    findAppTicket: (appId, ticketId, callback) => {
-        var procced = new Promise((resolve, reject) => {
-            resolve();
-        });
-
-        procced.then(() => {
-            return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/tickets/' + ticketId).once('value', snap => {
-                    var ticket = snap.val();
-                    if (null === ticket || undefined === ticket || '' === ticket) {
-                        reject();
-                        return;
-                    }
-                    var apps = {};
-                    var tickets = {};
-                    tickets[ticketId] = ticket;
-                    apps[appId] = tickets;
-                    resolve(apps);
-                });
-            });
-        }).then((data) => {
-            var apps = data;
-            callback(apps);
-        }).catch(() => {
-            callback(null);
-        });
-    },
     insert: (appId, postTicket, callback) => {
         var procced = Promise.resolve();
 

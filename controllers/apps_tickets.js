@@ -48,7 +48,7 @@ module.exports = (function() {
             let appId = checkedAppIds;
             let ticketId = req.params.ticketid;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicket(appId, ticketId, (data) => {
+                appsTicketsMdl.find(appId, ticketId, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
