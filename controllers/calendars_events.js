@@ -178,7 +178,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, (result) => {
+            calendarsEventsMdl.remove(userId, eventId, (result) => {
                 if (undefined === result || '' === result || null === result) {
 
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);

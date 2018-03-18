@@ -166,7 +166,7 @@ calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId,
     });
 };
 
-calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callback) => {
+calendarsEvents.remove = (userId, eventId, callback) => {
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             calendarsEvents.findCalendarId(userId, (data) => {
