@@ -52,11 +52,8 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
 };
 
 calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eventId, callback) => {
-    let proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
 
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
                 let calendarId = snap.val();
@@ -138,11 +135,7 @@ calendarsEvents.insertCalendarEventByUserId = (userId, event, callback) => {
 };
 
 calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId, event, callback) => {
-    let proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
     }).then((snap) => {
         var event = snap.val();
@@ -150,7 +143,6 @@ calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId,
             return Promise.reject();
         }
         return Promise.resolve();
-
     }).then(() => {
         event.isDeleted = 0;
         return Promise.all([admin.database().ref('calendars/' + calendarId + '/events/' + eventId).set(event), calendarId, eventId]);
@@ -175,11 +167,7 @@ calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId,
 };
 
 calendarsEvents.removeCalendarEventByUserIdByEventId = (userId, eventId, callback) => {
-    let proceed = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    proceed.then(() => {
+    Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             calendarsEvents.findCalendarId(userId, (data) => {
                 let calendarId = data;
