@@ -12,7 +12,7 @@ admin.initializeApp({
 });
 
 let appsPromise = new Promise((resolve, reject) => {
-    appsMdl.findAppsByAppIds('', (apps) => {
+    appsMdl.find('', (apps) => {
         if (!apps) {
             reject(new Error());
         }

@@ -27,34 +27,6 @@ apps._schema = (callback) => {
     callback(json);
 };
 
-apps.findByAppId = (appId, callback) => {
-    var ref = 'apps/' + appId;
-    admin.database().ref(ref).once('value', (snap) => {
-        var app = snap.val();
-        var appId = snap.key;
-        delete app.keywordreplies;
-        delete app.autoreplies;
-        delete app.templates;
-        delete app.greetings;
-        delete app.composes;
-        var _app = {
-            group_id: app.group_id,
-            id1: app.id1,
-            id2: app.id2,
-            isDeleted: app.isDeleted,
-            name: app.name,
-            secret: app.secret,
-            token1: app.token1,
-            token2: app.token2,
-            type: app.type,
-            webhook_id: app.webhook_id
-        };
-        var apps = {};
-        apps[appId] = _app;
-        callback(apps);
-    });
-};
-
 /**
  * 處理取得某個 webhook 對應到的 apps
  */
@@ -86,7 +58,7 @@ apps.findAppsByWebhookId = (webhookId, callback) => {
      * @param {Function} callback
      * @returns {Promise<any>}
      */
-apps.findAppsByAppIds = (appIds, callback) => {
+apps.find = (appIds, callback) => {
     var apps = {};
 
     Promise.resolve().then(() => {

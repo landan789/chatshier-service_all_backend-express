@@ -200,7 +200,7 @@ function init(server) {
             let app;
 
             return new Promise((resolve) => {
-                appsMdl.findByAppId(appId, (apps) => {
+                appsMdl.find(appId, (apps) => {
                     resolve(apps);
                 });
             }).then((apps) => {
@@ -347,7 +347,7 @@ function init(server) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };
                 return new Promise((resolve, reject) => {
-                    appsMdl.findByAppId(appId, (apps) => {
+                    appsMdl.find(appId, (apps) => {
                         if (!apps) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                         }

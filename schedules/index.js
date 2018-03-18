@@ -27,7 +27,7 @@ let jobProcess = () => {
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
         let appIds = '';
-        appsMdl.findAppsByAppIds(appIds, (apps) => {
+        appsMdl.find(appIds, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
             }
