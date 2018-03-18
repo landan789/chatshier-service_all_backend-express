@@ -18,19 +18,44 @@ module.exports = (function() {
     /**
      * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
      *
-     * @param {string[]} appIds
+     * @param {string[]|string} appIds
+     * @param {string|null} greetingId
      * @param {Function} callback
      * @return {object} appsGreetings
      */
     AppsGreetingsModel.prototype.find = (appIds, greetingId, callback) => {
         let appsGreetings = {};
 
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
+
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/greetings').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
                 let greetings = snap.val() || {};
-                appsGreetings[appId] = {
-                    greetings: greetings
-                };
+                if (!greetings) {
+                    return Promise.resolve(null);
+                }
+
+                if (!greetingId) {
+                    appsGreetings[appId] = {
+                        greetings: greetings
+                    };
+                    return Promise.resolve(null);
+                }
+
+                if (greetingId && greetings[greetingId]) {
+                    let greeting = greetings[greetingId];
+                    appsGreetings[appId] = {
+                        greetings: {
+                            [greetingId]: {
+                                greeting
+                            }
+                        }
+                    };
+                    return Promise.resolve(null);
+                }
+
             });
         })).then(() => {
             callback(appsGreetings);
