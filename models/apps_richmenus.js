@@ -53,9 +53,9 @@ module.exports = (function() {
             }
             return Promise.all(appIds.map((appId) => {
                 return admin.database().ref('apps/' + appId + '/richmenus').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                    let richmenu = snap.val() || {};
+                    let richmenus = snap.val() || {};
                     appsRichmenus[appId] = {
-                        richmenus: richmenu
+                        richmenus: richmenus
                     };
                 });
             })).then(() => {
