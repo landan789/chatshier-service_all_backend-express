@@ -134,7 +134,7 @@ calendarsEvents.insertCalendarEventByUserId = (userId, event, callback) => {
     });
 };
 
-calendarsEvents.updateCalendarEventByCalendarIdByEventId = (calendarId, eventId, event, callback) => {
+calendarsEvents.update = (calendarId, eventId, event, callback) => {
     Promise.resolve().then(() => {
         return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
     }).then((snap) => {

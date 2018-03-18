@@ -137,7 +137,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.updateCalendarEventByCalendarIdByEventId(calendarId, eventId, event, (data) => {
+            calendarsEventsMdl.update(calendarId, eventId, event, (data) => {
                 let calendarsEvents = data;
                 resolve(calendarsEvents);
             });
