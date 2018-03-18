@@ -361,7 +361,7 @@ function init(server) {
                 return botSvc.create(appId, app);
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    appsMessagersMdl.find(appId, (appsMessagers) => {
+                    appsMessagersMdl.find(appId, null, (appsMessagers) => {
                         if (!appsMessagers) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         };
