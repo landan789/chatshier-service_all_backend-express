@@ -10,7 +10,7 @@ calendarsEvents.getAll = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.findCalendarEventsByUserId(userId, (data) => {
+            calendarsEventsMdl.find(userId, (data) => {
                 var calendarsEvents = data;
                 if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);

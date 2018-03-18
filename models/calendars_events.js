@@ -25,7 +25,7 @@ calendarsEvents.findCalendarId = (userId, callback) => {
     });
 };
 
-calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
+calendarsEvents.find = (userId, callback) => {
     Promise.resolve().then(() => {
         return admin.database().ref('users/' + userId + '/calendar_id').once('value').then((snap) => {
             let calendarId = snap.val() || '';
@@ -46,39 +46,6 @@ calendarsEvents.findCalendarEventsByUserId = (userId, callback) => {
         });
     }).then((data) => {
         callback(data);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-calendarsEvents.findCalendarEventByCalendarIByEventId = (userId, calendarId, eventId, callback) => {
-
-    Promise.resolve().then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
-                let calendarId = snap.val();
-                if (null === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject(new Error());
-                    return;
-                }
-                resolve(calendarId);
-            });
-        });
-    }).then((data) => {
-        let calendarId = data;
-        return new Promise((resolve, reject) => {
-            admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value', (snap) => {
-                let event = snap.val();
-                if (null === event || undefined === event || '' === event) {
-                    reject(new Error());
-                    return;
-                }
-                resolve(event);
-            });
-        });
-
-    }).then((event) => {
-        callback(event);
     }).catch(() => {
         callback(null);
     });
