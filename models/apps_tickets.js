@@ -29,7 +29,7 @@ var appsTickets = {
      * @param {string[]} appIds
      * @param {(appTickets: any) => any} callback
      */
-    find: (appIds, callback) => {
+    find: (appIds, ticketId, callback) => {
         if ('string' === typeof appIds) {
             appIds = [appIds];
         }
@@ -39,12 +39,25 @@ var appsTickets = {
             return admin.database().ref('apps/' + appId + '/tickets').once('value').then((snap) => {
                 let tickets = snap.val();
                 if (!tickets) {
-                    return;
+                    return Promise.resolve();
                 }
 
-                appTickets[appId] = {
-                    tickets: tickets
-                };
+                if (!ticketId) {
+                    appTickets[appId] = {
+                        tickets: tickets
+                    };
+                    return Promise.resolve();
+                }
+
+                if (ticketId && tickets[ticketId]) {
+                    let ticket = tickets[ticketId];
+                    appTickets[appId] = {
+                        tickets: {
+                            [ticketId]: ticket
+                        }
+                    };
+                    return Promise.resolve();
+                }
             });
         })).then(() => {
             callback(appTickets);

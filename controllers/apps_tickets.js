@@ -16,7 +16,7 @@ module.exports = (function() {
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTickets(appId || appIds, (data) => {
+                appsTicketsMdl.find(appId || appIds, null, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
