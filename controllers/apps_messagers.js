@@ -23,7 +23,7 @@ module.exports = (function() {
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.findAppsMessagers(appId || appIds, (appsMessagers) => {
+                appsMessagersMdl.find(appId || appIds, (appsMessagers) => {
                     if (!appsMessagers) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
