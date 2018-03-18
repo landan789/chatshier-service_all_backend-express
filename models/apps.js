@@ -186,7 +186,7 @@ apps.update = (appId, putApp, callback) => {
                 }
 
                 // 已刪除資料不能更新
-                if (1 === app.delete) {
+                if (1 === app.isDeleted) {
                     reject(new Error());
                     return;
                 }
