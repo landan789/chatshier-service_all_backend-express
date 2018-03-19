@@ -56,6 +56,7 @@ module.exports = (function() {
                     iat: Date.now(),
                     uid: userId
                 };
+
                 token = jwt.sign(payload, CHATSHIER.JWT.SECRET);
                 return Promise.resolve(token);
             }).then(() => {
@@ -65,6 +66,13 @@ module.exports = (function() {
                     jwt: token,
                     data: users
                 };
+                let options = {
+                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    maxAge: CHATSHIER.JWT.EXPIRES,
+                    httpOnly: true,
+                    expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
+                };
+                res.cookie('jwt', token, options);
                 res.status(200).json(json);
             }).catch((ERROR) => {
                 let json = {

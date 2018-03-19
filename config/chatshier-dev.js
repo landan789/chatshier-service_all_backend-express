@@ -16,5 +16,19 @@ module.exports = {
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
+    },
+    JWT: {
+        EXPIRES: (60 * 60 * 1000),
+        SUBJECT: '9thflr.service@gmail.com',
+        ISSUER: '9thflr.service@gmail.com',
+        AUDIENCE: 'chatshier.com',
+        SECRET: 'ilovechatshier'
+    },
+    CRYPTO: {
+        ALGORITHM: 'sha1',
+        SECRET: 'ilovechatshier'
+    },
+    COOKIE: {
+        DOMAIN: '.fea.chatshier.com'
     }
 };

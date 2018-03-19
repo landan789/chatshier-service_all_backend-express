@@ -52,7 +52,7 @@ module.exports = (function() {
                     sub: CHATSHIER.JWT.SUBJECT,
                     iss: CHATSHIER.JWT.ISSUER,
                     adu: CHATSHIER.JWT.AUDIENCE,
-                    exp: Date.now() + CHATSHIER.JWT.EXPIRE_TIME, // jwt expires after 1 hour
+                    exp: Date.now() + CHATSHIER.JWT.EXPIRES, // jwt expires after 1 hour
                     iat: Date.now(),
                     uid: userId
                 };
@@ -65,6 +65,13 @@ module.exports = (function() {
                     jwt: token,
                     data: users
                 };
+                let options = {
+                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    maxAge: CHATSHIER.JWT.EXPIRES,
+                    httpOnly: true,
+                    expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
+                };
+                res.cookie('jwt', token, options);
                 res.status(200).json(json);
             }).catch((ERROR) => {
                 let json = {
