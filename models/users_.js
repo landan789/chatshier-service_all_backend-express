@@ -31,26 +31,32 @@ module.exports = (function() {
         }
 
         insert(userId, user, callback) {
-            let query = {
-                '_id': userId
-            };
+            let users;
             let _user = new this.Model();
-            _user.address = user.address;
-            _user.company = user.company;
-            _user.email = user.email;
-            _user.name = user.name;
-            _user.phone = user.phone;
+            _user.email = user.email || '';
+            _user.name = user.name || '';
+            _user.company = user.company || '';
 
-            let users = {};
-            return this.Model.findOne(query).then((__user) => {
-                if (__user) {
-                    return Promise.reject(new Error());
+
+            return _user.save().then((__user) => {
+                let query = {
+                    '_id': __user._id
                 };
-                return _user.save();
-            }).then((_user) => {
+                return this.Model.findOne(query);
+            }).then((user) => {
+                let _user = {
+                    createdTime: user.createdTime,
+                    updatedTime: user.updatedTime,
+                    isDeleted: user.isDeleted,
+                    email: user.email,
+                    company: user.company,
+                    name: user.name
+                };
                 users = {
-                    [_user._id]: _user
+                    [user._id]: _user
                 };
+                return Promise.resolve(users);
+            }).then((users) => {
                 ('function' === typeof callback) && callback(users);
                 return Promise.resolve(users);
             }).catch(() => {

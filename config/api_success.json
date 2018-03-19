@@ -4,5 +4,7 @@
     "DATA_SUCCEEDED_TO_UPDATE": { "MSG": "data succeeded to update!" },
     "DATA_SUCCEEDED_TO_INSERT": { "MSG": "data succeeded to insert!" },
     "DATA_SUCCEEDED_TO_FIND": { "MSG": "data succeeded to find!" },
-    "DATA_SUCCEEDED_TO_REMOVE": { "MSG": "data succeeded to remove!" }
+    "DATA_SUCCEEDED_TO_REMOVE": { "MSG": "data succeeded to remove!" },
+    "USER_SUCCEEDED_TO_SIGNUP": { "MSG": "user succeeded to signup!"},
+    "USER_SUCCEEDED_TO_SIGNIN": { "MSG": "user succeeded to signin!"}
 }
