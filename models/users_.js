@@ -10,13 +10,19 @@ module.exports = (function() {
         /**
          * 根據 使用者ID 取得該使用者
          *
-         * @param {string} userId
+         * @param {string|null} userId
+         * @param {string|null} email
          * @param {(data: any) => any} callback
          */
-        find(userId, callback) {
-            let query = {
-                '_id': userId
+        find(userId, email, callback) {
+            let query = {};
+            if (userId) {
+                query['_id'] = userId;
             };
+            if (email) {
+                query['email'] = email;
+            };
+
             let users = {};
             return this.Model.findOne(query).then((user) => {
                 users = {
@@ -30,18 +36,29 @@ module.exports = (function() {
             });
         }
 
-        insert(userId, user, callback) {
+        insert(user, callback) {
             let users;
+            let query = {};
+            let _query = {};
             let _user = new this.Model();
             _user.email = user.email || '';
             _user.name = user.name || '';
             _user.company = user.company || '';
-
-
-            return _user.save().then((__user) => {
-                let query = {
-                    '_id': __user._id
+            if (user.email) {
+                query['email'] = user.email;
+            }
+            return this.Model.findOne(query).then((__user) => {
+                if (__user) {
+                    return Promise.reject(new Error());
                 };
+                return Promise.resolve(null);
+            }).then(() => {
+                return _user.save().then((__user) => {
+                    _query = {
+                        '_id': __user._id
+                    }; 
+                });
+            }).then(() => {
                 return this.Model.findOne(query);
             }).then((user) => {
                 let _user = {

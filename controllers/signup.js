@@ -31,7 +31,17 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.insert(null, user, (_users) => {
+                    usersMdl.find(null, req.body.email, (users) => {
+                        // If the user exists then REST API can not insert any user
+                        if (users) {
+                            reject(API_ERROR.USER_EMAIL_WAS_BEEN_SIGNED_UP);
+                        };
+                        resolve();
+                    });
+                });
+            }).then(() => {
+                return new Promise((resolve, reject) => {
+                    usersMdl.insert(user, (_users) => {
                         users = _users;
                         resolve(users);
                     });
