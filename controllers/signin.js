@@ -52,7 +52,7 @@ module.exports = (function() {
                     sub: CHATSHIER.JWT.SUBJECT,
                     iss: CHATSHIER.JWT.ISSUER,
                     adu: CHATSHIER.JWT.AUDIENCE,
-                    exp: Date.now() + CHATSHIER.JWT.EXPIRE_TIME, // jwt expires after 1 hour
+                    exp: Date.now() + CHATSHIER.JWT.EXPIRES, // jwt expires after 1 hour
                     iat: Date.now(),
                     uid: userId
                 };

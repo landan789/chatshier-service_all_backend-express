@@ -15,6 +15,7 @@ var cookieParser = require('cookie-parser');
 var cors = require('cors');
 
 var jwt2 = require('./middlewares/jwt');
+var jwt = require('./middlewares/jwt_');
 var index = require('./routes/index');
 var api = require('./routes/api');
 var apiSign = require('./routes/api_sign');
@@ -32,32 +33,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-// pp.use('/api/sign', apiSign);
+app.use('/api/sign', apiSign);
 
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwt2.verify);
-let jwt = require('jsonwebtoken');
-const passport = require('passport');
-let JwtStrategy = require('passport-jwt').Strategy;
-let ExtractJwt = require('passport-jwt').ExtractJwt;
-var opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = 'secret';
-opts.issuer = 'accounts.examplesoft.com';
-opts.audience = 'yoursite.net';
-console.log(opts);
-passport.use(new JwtStrategy(opts, function(jwtPayload, done) {
-    console.log(jwtPayload);
-    return done(null, jwtPayload);
-}));
 
 // API
 app.use('/api', api);
 
-app.use('/other', passport.authenticate('jwt', { session: false }),
-    function(req, res) {
-    }
-);
+// app.use('/other', jwt.authenticate());
+app.get('/other', (req, res, next) => {
+
+    res.send(202);
+});
 
 // facebook connection
 app.get('/webhook/:webhookId', function(req, res) {
