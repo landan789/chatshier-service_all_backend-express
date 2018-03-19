@@ -14,7 +14,7 @@ module.exports = (function() {
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsComposesMdl.findAll(appIds, (data) => {
+                appsComposesMdl.find(appIds, null, (data) => {
                     if (undefined === data || null === data || '' === data) {
                         reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
                         return;
@@ -45,7 +45,7 @@ module.exports = (function() {
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsComposesMdl.findOne(appIds, composeId, (data) => {
+                appsComposesMdl.find(appIds, composeId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
                         return;

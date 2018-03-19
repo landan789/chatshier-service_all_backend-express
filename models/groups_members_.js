@@ -39,10 +39,8 @@ module.exports = (function() {
                 });
             })).then(() => {
                 ('function' === typeof callback) && callback(groups);
-                return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
             });
         }
 
@@ -84,10 +82,8 @@ module.exports = (function() {
                 groups[group._id] = _group;
             }).then(() => {
                 ('function' === typeof callback) && callback(groups);
-                return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
             });
         }
 
@@ -108,10 +104,8 @@ module.exports = (function() {
                     [group._id]: group
                 };
                 ('function' === typeof callback) && callback(groups);
-                return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
             });
         }
 
@@ -138,11 +132,10 @@ module.exports = (function() {
                 });
             })).then(() => {
                 appIds = Object.keys(appIds);
+
                 ('function' === typeof callback) && callback(appIds);
-                return Promise.resolve(appIds);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
             });
         }
 
@@ -171,10 +164,8 @@ module.exports = (function() {
             })).then(() => {
                 userIds = Object.keys(userIds);
                 ('function' === typeof callback) && callback(userIds);
-                return Promise.resolve(userIds);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
             });
         }
     }

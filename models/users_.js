@@ -23,8 +23,10 @@ module.exports = (function() {
                     [user._id]: user
                 };
                 ('function' === typeof callback) && callback(users);
+                return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -50,8 +52,10 @@ module.exports = (function() {
                     [_user._id]: _user
                 };
                 ('function' === typeof callback) && callback(users);
+                return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -67,8 +71,10 @@ module.exports = (function() {
             }).then((user) => {
                 let calendarId = user.calendar_id;
                 ('function' === typeof callback) && callback(calendarId);
+                return Promise.resolve(calendarId);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -89,8 +95,10 @@ module.exports = (function() {
                     [user._id]: user
                 };
                 ('function' === typeof callback) && callback(users);
+                return Promise.resolve(users);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
     }

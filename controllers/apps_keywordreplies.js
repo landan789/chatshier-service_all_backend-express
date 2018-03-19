@@ -15,7 +15,7 @@ module.exports = (function() {
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.find(appIds, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.find(appIds, null, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
                         reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
@@ -46,7 +46,7 @@ module.exports = (function() {
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsKeywordrepliesMdl.findOne(appId, keywordreplyId, (data) => {
+                appsKeywordrepliesMdl.find(appId, keywordreplyId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         return;

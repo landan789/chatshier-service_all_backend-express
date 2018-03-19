@@ -29,7 +29,7 @@ var appsTickets = {
      * @param {string[]} appIds
      * @param {(appTickets: any) => any} callback
      */
-    findAppTickets: (appIds, callback) => {
+    find: (appIds, ticketId, callback) => {
         if ('string' === typeof appIds) {
             appIds = [appIds];
         }
@@ -39,42 +39,28 @@ var appsTickets = {
             return admin.database().ref('apps/' + appId + '/tickets').once('value').then((snap) => {
                 let tickets = snap.val();
                 if (!tickets) {
-                    return;
+                    return Promise.resolve();
                 }
 
-                appTickets[appId] = {
-                    tickets: tickets
-                };
+                if (!ticketId) {
+                    appTickets[appId] = {
+                        tickets: tickets
+                    };
+                    return Promise.resolve();
+                }
+
+                if (ticketId && tickets[ticketId]) {
+                    let ticket = tickets[ticketId];
+                    appTickets[appId] = {
+                        tickets: {
+                            [ticketId]: ticket
+                        }
+                    };
+                    return Promise.resolve();
+                }
             });
         })).then(() => {
             callback(appTickets);
-        }).catch(() => {
-            callback(null);
-        });
-    },
-    findAppTicket: (appId, ticketId, callback) => {
-        var procced = new Promise((resolve, reject) => {
-            resolve();
-        });
-
-        procced.then(() => {
-            return new Promise((resolve, reject) => {
-                admin.database().ref('apps/' + appId + '/tickets/' + ticketId).once('value', snap => {
-                    var ticket = snap.val();
-                    if (null === ticket || undefined === ticket || '' === ticket) {
-                        reject();
-                        return;
-                    }
-                    var apps = {};
-                    var tickets = {};
-                    tickets[ticketId] = ticket;
-                    apps[appId] = tickets;
-                    resolve(apps);
-                });
-            });
-        }).then((data) => {
-            var apps = data;
-            callback(apps);
         }).catch(() => {
             callback(null);
         });

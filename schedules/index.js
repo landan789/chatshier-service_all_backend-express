@@ -27,7 +27,7 @@ let jobProcess = () => {
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
         let appIds = '';
-        appsMdl.findAppsByAppIds(appIds, (apps) => {
+        appsMdl.find(appIds, null, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
             }
@@ -105,7 +105,7 @@ let jobProcess = () => {
                     }
                     return Promise.all(messages.map((message) => {
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                        return appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message);
                     }));
                 }));
             });
