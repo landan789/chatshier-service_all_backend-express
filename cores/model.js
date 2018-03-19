@@ -46,18 +46,13 @@ module.exports = (function() {
 
     let KeywordreplySchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'messagers': [{
-            'unRead': {type: Number, default: 0}
-        }],
-        'messages': [{
-            'from': String,
-            'isDeleted': Boolean,
-            'messager_id': {type: Array, default: []},
-            'src': String,
-            'text': String,
-            'time': {type: Date, default: Date.now()},
-            'type': String
-        }]
+        'isDeleted': Boolean,
+        'keyword': String,
+        'replyCount': Number,
+        'status': Number,
+        'text': String,
+        'type': {type: String, default: 'text'},
+        'updatedTime': {type: Date, default: Date.now()}
     });
 
     let ComposeSchema = new mongoose.Schema({
@@ -132,6 +127,8 @@ module.exports = (function() {
     });
 
     let EventSchema = new mongoose.Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'description': String,
         'endedTime': Date,
         'isAllDay': {type: Boolean, default: false},
