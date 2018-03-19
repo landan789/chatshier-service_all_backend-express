@@ -37,13 +37,14 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
-                let userId = Object.keys(users).shift();
+                let userId = Object.keys(users).shift() || '';
                 let user = users[userId];
+                // The encoded user password from front end must match to the user password in database
                 if (ciperHlp.encode(req.body.password) !== user.password) {
                     return Promise.reject(API_ERROR.PASSWORD_WAS_WRONG);
                 };
                 // user password must never reponse to client
-                users[userId].password = ''; 
+                users[userId].password = '';
                 return Promise.resolve();
             }).then(() => {
                 let userId = Object.keys(users).shift();
