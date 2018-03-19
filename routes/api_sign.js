@@ -2,7 +2,6 @@ let express = require('express');
 let router = express.Router();
 var bodyParser = require('body-parser');
 var formData = require('express-form-data');
-let jwt = require('jsonwebtoken');
 let signupCtl = require('../controllers/signup');
 let signinCtl = require('../controllers/signin');
 
