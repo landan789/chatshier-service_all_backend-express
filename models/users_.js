@@ -28,6 +28,7 @@ module.exports = (function() {
                 users = {
                     [user._id]: user
                 };
+                
                 ('function' === typeof callback) && callback(users);
                 return Promise.resolve(users);
             }).catch(() => {
@@ -44,6 +45,7 @@ module.exports = (function() {
             _user.email = user.email || '';
             _user.name = user.name || '';
             _user.company = user.company || '';
+            _user.password = user.password;
             if (user.email) {
                 query['email'] = user.email;
             }

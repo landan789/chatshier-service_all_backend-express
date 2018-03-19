@@ -171,7 +171,7 @@ module.exports = (function() {
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
-        'password': {type: String, default: '123456'},
+        'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
         'name': {type: String, default: ''},
         'group_id': {type: Array, default: []}
     });

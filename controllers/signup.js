@@ -2,6 +2,7 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
     const CHATSHIER = require('../config/chatshier');
+    let ciperHlp = require('../helpers/cipher');
     let usersMdl = require('../models/users_');
     let jwt = require('jsonwebtoken');
 
@@ -9,12 +10,6 @@ module.exports = (function() {
         postOne(req, res, next) {
             let token;
             let users;
-            let user = {
-                name: req.body.name || '',
-                email: req.body.email || '',
-                password: req.body.password || ''
-            };
-
             return Promise.resolve().then(() => {
                 if (!req.body.name) {
                     return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
@@ -40,6 +35,11 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
+                let user = {
+                    name: req.body.name,
+                    email: req.body.email,
+                    password: ciperHlp.encode(req.body.password)
+                };
                 return new Promise((resolve, reject) => {
                     usersMdl.insert(user, (_users) => {
                         users = _users;
