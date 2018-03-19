@@ -41,8 +41,8 @@ app.use('/api/*/users/:userid', jwt2.verify);
 // API
 app.use('/api', api);
 
-// app.use('/other', jwt.authenticate());
-app.get('/other', (req, res, next) => {
+app.use('/other', jwt.authenticate('HEADER'));
+app.use('/other', (req, res, next) => {
 
     res.send(202);
 });

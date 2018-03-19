@@ -1,9 +1,12 @@
 let express = require('express');
 let router = express.Router();
-var bodyParser = require('body-parser');
-var formData = require('express-form-data');
+let bodyParser = require('body-parser');
+let formData = require('express-form-data');
+let jwt = require('../middlewares/jwt_');
+
 let signupCtl = require('../controllers/signup');
 let signinCtl = require('../controllers/signin');
+let signoutCtl = require('../controllers/signout');
 
 // HTTP body x-www-form-urlencoded parser
 // HTTP body 允許 json 格式
@@ -19,5 +22,6 @@ router.use(
 
 router.post('/signup/', signupCtl.postOne);
 router.post('/signin/', signinCtl.postOne);
+router.post('/signout/', jwt.authenticate('HEADER'), signoutCtl.postOne);
 
 module.exports = router;
