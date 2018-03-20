@@ -1,15 +1,15 @@
 
 module.exports = (function() {
     let ModelCore = require('../cores/model');
-    let APPSCOLLECTION = 'apps';
-    let USERSCOLLECTION = 'users';
-    let WEBHOOKCOLLECTION = 'webhooks';
+    const APPS = 'apps';
+    const USERS = 'users';
+    const WEBHOOKS = 'webhooks';
     class AppsModel extends ModelCore {
         constructor() {
             super();
-            this.AppModel = this.model(APPSCOLLECTION, this.AppSchema);
-            this.UserModel = this.model(USERSCOLLECTION, this.UserSchema);
-            this.WebhookModel = this.model(WEBHOOKCOLLECTION, this.WebhookSchema);
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+            this.UsersModel = this.model(USERS, this.UsersSchema);
+            this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
         }
         find(appIds, webhookId, callback) {
             var apps = {};
@@ -18,7 +18,7 @@ module.exports = (function() {
             };
             Promise.resolve().then(() => {
                 if (0 === appIds.length) {
-                    return this.AppModel.find().then((__apps) => {
+                    return this.AppsModel.find().then((__apps) => {
                         apps = __apps;
                     });
                 }
@@ -27,7 +27,7 @@ module.exports = (function() {
                         '_id': appId,
                         'isDeleted': false
                     };
-                    return this.AppModel.findOne(query).then((__apps) => {
+                    return this.AppsModel.findOne(query).then((__apps) => {
                         let _apps = {
                             createdTime: __apps.createdTime,
                             updatedTime: __apps.updatedTime,
@@ -58,7 +58,7 @@ module.exports = (function() {
 
         insert(userId, postApp, callback) {
             let apps = {};
-            let _apps = new this.AppModel();
+            let _apps = new this.AppsModel();
             _apps.id1 = postApp.id1 || '';
             _apps.id2 = postApp.id2 || '';
             _apps.name = postApp.name || '';
@@ -76,7 +76,7 @@ module.exports = (function() {
                 let query = {
                     '_id': __apps._id
                 };
-                return this.AppModel.findOne(query);
+                return this.AppsModel.findOne(query);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return Promise.resolve(apps);
@@ -91,13 +91,13 @@ module.exports = (function() {
                 '_id': appId
             };
             let apps = {};
-            return this.AppModel.update(query, {
+            return this.AppsModel.update(query, {
                 $set: putApp
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppModel.findOne(query);
+                return this.AppsModel.findOne(query);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return Promise.resolve(apps);
@@ -111,13 +111,13 @@ module.exports = (function() {
             let query = {
                 '_id': appId
             };
-            return this.AppModel.update(query, {
+            return this.AppsModel.update(query, {
                 $set: {isDeleted: 'true'}
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppModel.findOne(query);
+                return this.AppsModel.findOne(query);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return Promise.resolve(apps);
