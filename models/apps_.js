@@ -2,8 +2,8 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
-    let USERS = 'users';
-    let WEBHOOKS = 'webhooks';
+    const USERS = 'users';
+    const WEBHOOKS = 'webhooks';
     class AppsModel extends ModelCore {
         constructor() {
             super();
