@@ -1,10 +1,10 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
-    let COLLECTION = 'users';
+    const USERS = 'users';
     class UsersModel extends ModelCore {
         constructor() {
             super();
-            this.Model = this.model(COLLECTION, this.UserSchema);
+            this.Model = this.model(USERS, this.UsersSchema);
         }
 
         /**
@@ -58,7 +58,7 @@ module.exports = (function() {
                 return _user.save().then((__user) => {
                     _query = {
                         '_id': __user._id
-                    }; 
+                    };
                 });
             }).then(() => {
                 return this.Model.findOne(query);
