@@ -116,13 +116,13 @@ module.exports = (function() {
         'token2': String,
         'type': String,
 
-        'autoreplies': [AutoreplySchema],
-        'chatrooms': [ChatroomSchema],
-        'keywordreplies': [KeywordreplySchema],
-        'composes': [ComposeSchema],
-        'greetings': [GreetingSchema],
-        'messagers': [MessagerSchema],
-        'tickets': [TicketSchema],
+        'autoreplies': [AutoreplySchema] || [],
+        'chatrooms': [ChatroomSchema] || [],
+        'keywordreplies': [KeywordreplySchema] || [],
+        'composes': [ComposeSchema] || [],
+        'greetings': [GreetingSchema] || [],
+        'messagers': [MessagerSchema] || [],
+        'tickets': [TicketSchema] || [],
         'webhook_id': {type: Array, default: []}
     });
 
