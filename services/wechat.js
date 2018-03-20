@@ -68,34 +68,62 @@ module.exports = (function() {
          * @returns {Promise<Buffer>}
          */
         amrToMp3(amrBuffer, inputFile, outputFile) {
-            inputFile = path.join(this.cwd, inputFile);
-            fs.writeFileSync(inputFile, amrBuffer);
-            outputFile = path.join(this.cwd, outputFile);
-            let inputStream = fs.createReadStream(inputFile);
-            let outputStream = fs.createWriteStream(outputFile);
-
-            let dispose = () => {
-                inputStream.close();
-                outputStream.close();
-                fs.unlinkSync(inputFile);
-                fs.unlinkSync(outputFile);
-            };
+            inputFile = path.join(this.cwd, '.tmp', inputFile);
 
             return new Promise((resolve, reject) => {
-                ffmpeg(inputStream)
-                    .setFfmpegPath(ffmpegInstaller.path)
-                    .inputFormat('amr')
-                    .toFormat('mp3')
-                    .on('error', (err) => {
-                        dispose();
-                        reject(new Error(err.message));
-                    })
-                    .on('end', () => {
-                        let outputBuffer = fs.readFileSync(outputFile);
-                        dispose();
-                        resolve(outputBuffer);
-                    })
-                    .pipe(outputStream);
+                fs.writeFile(inputFile, amrBuffer, (err) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                outputFile = path.join(this.cwd, '.tmp', outputFile);
+                let inputStream = fs.createReadStream(inputFile);
+                let outputStream = fs.createWriteStream(outputFile);
+
+                let dispose = () => {
+                    inputStream.close();
+                    outputStream.close();
+
+                    let deleteFile = (filePath) => {
+                        return new Promise((resolve, reject) => {
+                            fs.unlink(inputFile, (err) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+                                resolve();
+                            });
+                        });
+                    };
+                    return Promise.all([
+                        deleteFile(inputFile),
+                        deleteFile(outputFile)
+                    ]);
+                };
+
+                return new Promise((resolve, reject) => {
+                    ffmpeg(inputStream)
+                        .setFfmpegPath(ffmpegInstaller.path)
+                        .inputFormat('amr')
+                        .toFormat('mp3')
+                        .on('error', (err) => {
+                            return dispose().then(() => reject(new Error(err.message)));
+                        })
+                        .on('end', () => {
+                            return new Promise((resolve, reject) => {
+                                fs.readFile(outputFile, (err, buffer) => {
+                                    if (err) {
+                                        return reject(err);
+                                    }
+                                    resolve(buffer);
+                                });
+                            }).then((outputBuffer) => {
+                                return dispose().then(() => outputBuffer);
+                            });
+                        })
+                        .pipe(outputStream);
+                });
             });
         }
     }
