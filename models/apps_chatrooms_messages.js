@@ -59,7 +59,7 @@ module.exports = (function() {
                 eventType: message.eventType || '',
                 from: message.from,
                 messager_id: message.messager_id,
-                text: message.text || '' || message.altText + '<br>' + '請至智慧手機上確認訊息內容。',
+                text: message.text || (message.altText ? message.altText + '\n' : '') + '請至智慧手機上確認訊息內容。',
                 time: Date.now(),
                 type: message.type,
                 src: message.src || ''

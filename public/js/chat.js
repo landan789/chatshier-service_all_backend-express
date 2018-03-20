@@ -43,6 +43,29 @@
         transJson = Object.assign(transJson, json);
     });
 
+    var wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
+    var wechatEmojiTable = Object.freeze({
+        '/::)': '😃',
+        '/::~': '😖',
+        '/::B': '😍',
+        '/::|': '😳'
+    });
+
+    /**
+     * @param {string} text
+     */
+    var filterWechatEmoji = function(text) {
+        if (wechatEmojiRegex.test(text)) {
+            let emojis = text.match(wechatEmojiRegex) || [];
+            let newText = text;
+            for (let i = 0; i < emojis.length; i++) {
+                newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
+            }
+            return newText;
+        }
+        return text;
+    };
+
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
      * 所有有關待辦事項的處理皆寫於此閉包內。
@@ -741,8 +764,10 @@
                     case WECHAT:
                         appItem = buildHtml(appData.type, WECHAT_LOGO);
                         break;
+                    default:
+                        break;
                 }
-                $chatApp.prepend(appItem);
+                appItem && $chatApp.prepend(appItem);
             }
         }
 
@@ -966,7 +991,7 @@
                 case 'image':
                     return '<img src="' + message.src + '" style="width: 100%; max-width: 500px;" />';
                 case 'audio':
-                    return '<audio controls><source src="' + message.src + '" type="audio/mp4"></audio>';
+                    return '<audio controls><source src="' + message.src + '" type="audio/mpeg"></audio>';
                 case 'video':
                     return '<video controls><source src="' + message.src + '" type="video/mp4"></video>';
                 case 'sticker':
@@ -974,7 +999,7 @@
                 case 'location':
                     return '<i class="fa fa-location-arrow location-icon"></i><span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>';
                 default:
-                    return message.text || '';
+                    return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
             }
         }
 

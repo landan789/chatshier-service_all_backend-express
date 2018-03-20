@@ -12,6 +12,7 @@
         "npm": "5.5.1"
     },
     "dependencies": {
+        "@ffmpeg-installer/ffmpeg": "1.0.13",
         "@line/bot-sdk": "^5.2.0",
         "apiai": "^4.0.3",
         "body-parser": "~1.16.0",
@@ -27,8 +28,10 @@
         "express-partials": "^0.3.0",
         "facebook-bot-messenger": "^1.0.7",
         "firebase-admin": "^5.8.1",
+        "fluent-ffmpeg": "2.1.2",
         "fuse.js": "^3.2.0",
         "isomorphic-fetch": "^2.2.1",
+        "mime-types": "2.1.18",
         "mongodb": "^3.0.4",
         "mongoose": "^5.0.10",
         "morgan": "^1.9.0",

@@ -42,9 +42,6 @@ const media = {
 function init(server) {
     let socketIOServer = socketIO(server);
     let chatshierNsp = socketIOServer.of('/chatshier');
-
-    /** @type {Map<string, boolean>} */
-    let messageCacheMap = new Map();
     let webhookProcQueue = [];
 
     app.get('/webhook/:webhookId', function(req, res) {
@@ -100,11 +97,11 @@ function init(server) {
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
-                return botSvc.getReceivedMessages(req, appId, app);
+                return botSvc.getReceivedMessages(req, res, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
                 if (0 === receivedMessages.length) {
-                    return Promise.resolve([]);
+                    return [];
                 }
                 senderId = receivedMessages[0].messager_id;
                 fromPath = receivedMessages[0].fromPath;
@@ -114,7 +111,7 @@ function init(server) {
                 if (0 === repliedMessages.length) {
                     // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
                     // 因此在此直接將 webhook 的 http request 做 response
-                    res.status(200).send('');
+                    !res.headersSent && res.status(200).send('');
                     return;
                 };
                 // 因各平台處理方式不同
@@ -177,11 +174,11 @@ function init(server) {
             }).then((messages) => {
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
-                if (!messageId || 'text' === messages[messageId].type) {
-                    return Promise.resolve(messages);
+                if (messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
+                    toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
+                    return StorageHlp.filesMoveV2(fromPath, toPath);
                 }
-                toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
-                return StorageHlp.filesMoveV2(fromPath, toPath);
+                return messages;
             }).then(() => {
                 if (0 === _messages.length) {
                     return;
@@ -204,7 +201,7 @@ function init(server) {
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
             console.trace(error);
-            res.sendStatus(500);
+            !res.headersSent && res.sendStatus(500);
         });
 
         webhookProcQueue.push(webhookPromise);
@@ -252,12 +249,13 @@ function init(server) {
                     // messagerId 訊息寄送者，這裡為 vendor 的 userid
                     let senderId = message.messager_id;
                     let originalFilePath = `/${message.time}.${media[message.type]}`;
+                    let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
                         if ('text' === message.type) {
                             return;
                         }
-                        return StorageHlp.filesUpload(originalFilePath, message.src).then((response) => {
+                        return StorageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
                             return StorageHlp.sharingCreateSharedLink(originalFilePath);
                         }).then((response) => {
                             let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
@@ -265,7 +263,7 @@ function init(server) {
                             message.src = url;
                         });
                     }).then(() => {
-                        return botSvc.pushMessage(recipientId, message, appId, app);
+                        return botSvc.pushMessage(recipientId, message, srcBuffer, appId, app);
                     }).then(() => {
                         return new Promise((resolve, reject) => {
                             appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message, (messagesInDB) => {
