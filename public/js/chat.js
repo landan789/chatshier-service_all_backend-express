@@ -517,11 +517,11 @@
                 // 過濾已經刪除的 messager 資料
                 var messagers = appsMessagers[appId].messagers;
                 for (var messagerId in messagers) {
-                    var messager = messagers[messagerId];
-                    if (messager.isDeleted) {
-                        delete messagers[messagerId];
-                        continue;
-                    }
+                    // var messager = messagers[messagerId];
+                    // if (messager.isDeleted) {
+                    //     delete messagers[messagerId];
+                    //     continue;
+                    // }
 
                     // 內部聊天室的成員即是群組成員
                     // 因此 messagerId 直接對應的是 userId

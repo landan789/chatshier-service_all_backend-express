@@ -343,6 +343,10 @@
         $draftTableElem.empty();
         $reservationTableElem.empty();
         return api.appsComposes.findAll(appId, userId).then(function(resJson) {
+            if (!resJson.data[appId]) {
+                return;
+            }
+
             composesData = resJson.data[appId].composes;
             for (var composeId in composesData) {
                 var composeData = composesData[composeId];

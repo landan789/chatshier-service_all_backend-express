@@ -89,8 +89,9 @@ module.exports = (function() {
                                 callback();
                             });
                         };
-                        this.bots[appId] = new WechatAPI(app.id1, app.secret, getToken, setToken);
-                        resolve();
+                        let wechatBot = new WechatAPI(app.id1, app.secret, getToken, setToken);
+                        this.bots[appId] = wechatBot;
+                        resolve(wechatBot);
                         break;
                     default:
                         resolve();
@@ -158,27 +159,28 @@ module.exports = (function() {
                         let _message = {
                             messager_id: event.source.userId, // LINE 平台的 sender id
                             from: LINE,
-                            type: undefined === event.message ? '' : event.message.type, // LINE POST 訊息型別
+                            type: event.message ? event.message.type : '', // LINE POST 訊息型別
                             eventType: event.type, // LINE POST 事件型別
                             time: Date.now(), // 將要回覆的訊息加上時戳
                             replyToken: event.replyToken,
-                            message_id: undefined === event.message ? '' : event.message.id, // LINE 平台的 訊息 id
-                            fromPath: `/${Date.now()}.${media[event.message.type]}`
+                            message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
+                            fromPath: event.message ? `/${Date.now()}.${media[event.message.type]}` : ''
                         };
-                        if (undefined !== event.message && 'text' === event.message.type) {
+
+                        if (event.message && 'text' === event.message.type) {
                             _message.text = event.message.text;
                             messages.push(_message);
                             return Promise.resolve();
                         };
 
-                        if (undefined !== event.message && 'sticker' === event.message.type) {
+                        if (event.message && 'sticker' === event.message.type) {
                             let stickerId = event.message.stickerId;
                             _message.src = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                             messages.push(_message);
                             return Promise.resolve();
                         };
 
-                        if (undefined !== event.message && 'location' === event.message.type) {
+                        if (event.message && 'location' === event.message.type) {
                             let latitude = event.message.latitude;
                             let longitude = event.message.longitude;
                             _message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
@@ -187,8 +189,7 @@ module.exports = (function() {
                         };
 
                         let bot = this.bots[appId];
-
-                        if (undefined !== event.message && ['image', 'audio', 'video'].includes(event.message.type)) {
+                        if (event.message && ['image', 'audio', 'video'].includes(event.message.type)) {
                             return new Promise((resolve, reject) => {
                                 bot.getMessageContent(event.message.id).then((stream) => {
                                     let bufs = [];
@@ -292,22 +293,33 @@ module.exports = (function() {
                     return messages;
                 case WECHAT:
                     let weixin = req.weixin;
+                    let message = {
+                        messager_id: weixin.FromUserName, // WECHAT 平台的 sender id
+                        type: weixin.MsgType,
+                        time: parseInt(weixin.CreateTime) * 1000,
+                        from: WECHAT,
+                        text: '',
+                        src: '',
+                        message_id: weixin.MsgId || '' // WECHAT 平台的 訊息 id
+                    };
 
                     return new Promise((resolve, reject) => {
+                        // 目前暫不處理 wechat 的事件訊息
+                        if ('event' === weixin.MsgType) {
+                            if ('subscribe' === weixin.Event) {
+                                message.eventType = 'follow';
+                                messages.push(message);
+                            }
+                            resolve();
+                            return;
+                        }
+
                         if (messageCacheMap.get(weixin.MsgId)) {
                             reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
                             return;
                         }
                         messageCacheMap.set(weixin.MsgId, true);
-                        let message = {
-                            messager_id: weixin.FromUserName, // WECHAT 平台的 sender id
-                            type: weixin.MsgType,
-                            time: parseInt(weixin.CreateTime) * 1000,
-                            from: WECHAT,
-                            text: '',
-                            src: '',
-                            message_id: weixin.MsgId // WECHAT 平台的 訊息 id
-                        };
+
                         // 將 wechat 的 type 格式統一處理
                         // 使音檔型別就是 audio, 影音檔就是 video
                         if ('voice' === message.type) {
@@ -328,19 +340,20 @@ module.exports = (function() {
                             let ext = media[message.type];
                             message.fromPath = `/${message.time}.${ext}`;
 
+                            // 抓取 wechat 資料 -> 轉檔(amr) -> 儲存至 storage (整個流程可能超過 5s)
+                            // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
+                            // 由於 wechat 的 webhook 在 5s 內沒有進行 http response 的話
+                            // 會再打一次 webhook 過來持續三次
+                            // 而接收到多媒體訊息的話不需要回覆訊息
+                            // 因此在此階段即可回應 wechat 200 狀態
+                            !res.headersSent && res.reply('');
+
                             return new Promise((resolve, reject) => {
                                 bot.getMedia(weixin.MediaId, (err, buffer) => {
                                     if (err) {
                                         reject(new Error(err));
                                         return;
                                     }
-                                    // 抓取 wechat 資料 -> 轉檔(amr) -> 儲存至 storage (整個流程可能超過 5s)
-                                    // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
-                                    // 由於 wechat 的 webhook 在 5s 內沒有進行 http response 的話
-                                    // 會再打一次 webhook 過來持續三次
-                                    // 而接收到多媒體訊息的話不需要回覆訊息
-                                    // 因此在此階段即可回應 wechat 200 狀態
-                                    !res.headersSent && res.reply('');
 
                                     if ('amr' === weixin.Format) {
                                         // 由於 wechat 的錄音檔的格式為 amr, HTML5 的 audio 不支援
@@ -613,70 +626,93 @@ module.exports = (function() {
         multicast(messagerIds, messages, appId, app) {
             let bot = this.bots[appId];
             let _multicast;
-            switch (app.type) {
-                case LINE:
-                    if (!bot) {
-                        let lineConfig = {
-                            channelSecret: app.secret,
-                            channelAccessToken: app.token1
-                        };
-                        bot = new line.Client(lineConfig);
-                        this.bots[appId] = bot;
-                    }
-                    _multicast = (messagerIds, messages) => {
-                        let multicasts = [];
-                        // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
-                        while (messages.length > 5) {
-                            multicasts.push(messages.splice(0, 5));
-                        }
-                        multicasts.push(messages);
 
-                        function nextPromise(i) {
-                            if (i >= multicasts.length) {
-                                return Promise.resolve();
+            return Promise.resolve().then(() => {
+                if (!bot) {
+                    return this.create(appId, app).then((_bot) => {
+                        this.bots[appId] = bot = _bot;
+                    });
+                };
+            }).then(() => {
+                switch (app.type) {
+                    case LINE:
+                        _multicast = (messagerIds, messages) => {
+                            let multicasts = [];
+                            // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
+                            while (messages.length > 5) {
+                                multicasts.push(messages.splice(0, 5));
+                            }
+                            multicasts.push(messages);
+
+                            let nextPromise = (i) => {
+                                if (i >= multicasts.length) {
+                                    return Promise.resolve();
+                                };
+                                let messages = multicasts[i];
+                                return bot.multicast(messagerIds, messages).then(() => {
+                                    return nextPromise(i + 1);
+                                });
                             };
-                            let messages = multicasts[i];
-                            return bot.multicast(messagerIds, messages).then(() => {
-                                return nextPromise(i + 1);
-                            });
+                            return nextPromise(0);
                         };
-                        return nextPromise(0);
-                    };
+                        return _multicast(messagerIds, messages);
+                    case FACEBOOK:
+                        _multicast = (messagerIds, messages) => {
+                            return Promise.all(messagerIds.map((messagerId) => {
+                                let nextPromise = (i) => {
+                                    if (i >= messages.length) {
+                                        return Promise.resolve();
+                                    };
 
-                    return _multicast(messagerIds, messages);
-                case FACEBOOK:
-                    if (!bot) {
-                        let facebookConfig = {
-                            pageID: app.id1,
-                            appID: app.id2 || '',
-                            appSecret: app.secret,
-                            validationToken: app.token1,
-                            pageToken: app.token2 || ''
+                                    let message = messages[i];
+                                    return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                        return nextPromise(i + 1);
+                                    });
+                                };
+                                return nextPromise(0);
+                            }));
                         };
-                        bot = facebook.create(facebookConfig);
-                        this.bots[appId] = bot;
-                    };
-
-                    _multicast = (messagerIds, messages) => {
-                        return Promise.all(messagerIds.map((messagerId) => {
-                            function nextPromise(i) {
+                        return _multicast(messagerIds, messages);
+                    case WECHAT:
+                        _multicast = (messagerIds, messages) => {
+                            let nextPromise = (i) => {
                                 if (i >= messages.length) {
                                     return Promise.resolve();
                                 };
 
                                 let message = messages[i];
-                                return bot.sendTextMessage(messagerId, message.text).then(() => {
+                                return new Promise((resolve, reject) => {
+                                    // 使用 wechat 群發功能時，發送的對象必須要 2 個以上，否則會報錯
+                                    // 因此如果對象只有 1 人時，直接使用單一對象發送
+                                    if (1 === messagerIds.length) {
+                                        bot.sendText(messagerIds[0], message.text, (err, result) => {
+                                            if (err) {
+                                                reject(err);
+                                                return;
+                                            }
+                                            resolve(result);
+                                        });
+                                        return;
+                                    }
+
+                                    bot.massSendText(message.text, messagerIds, (err, result) => {
+                                        if (err) {
+                                            reject(err);
+                                            return;
+                                        }
+                                        resolve(result);
+                                    });
+                                }).then(() => {
                                     return nextPromise(i + 1);
                                 });
                             };
                             return nextPromise(0);
-                        }));
-                    };
-
-                    return _multicast(messagerIds, messages);
-                default:
-                    return Promise.resolve([]);
-            }
+                        };
+                        return _multicast(messagerIds, messages);
+                    default:
+                        return Promise.resolve([]);
+                }
+            });
         };
 
         /**

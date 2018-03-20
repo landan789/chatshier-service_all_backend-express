@@ -100,11 +100,10 @@ function init(server) {
                 return botSvc.getReceivedMessages(req, res, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
-                if (0 === receivedMessages.length) {
-                    return [];
+                if (receivedMessages.length > 0) {
+                    senderId = receivedMessages[0].messager_id;
+                    fromPath = receivedMessages[0].fromPath;
                 }
-                senderId = receivedMessages[0].messager_id;
-                fromPath = receivedMessages[0].fromPath;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
                 repliedMessages = messages;
@@ -126,9 +125,9 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply.id);
                 }));
             }).then(() => {
-                return botSvc.getProfile(senderId, appId, app);
+                return senderId && botSvc.getProfile(senderId, appId, app);
             }).then((profile) => {
-                return new Promise((resolve) => {
+                return senderId && new Promise((resolve) => {
                     appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
                         resolve(messager);
                     });
@@ -154,7 +153,7 @@ function init(server) {
                 return Promise.resolve(messagerIds);
             }).then((messagerIds) => {
                 totalMessages = receivedMessages.concat(repliedMessages);
-                return new Promise((resolve, reject) => {
+                return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     let messager = {
                         unRead: totalMessages.length
                     };
@@ -163,7 +162,7 @@ function init(server) {
                     });
                 });
             }).then(() => {
-                return new Promise((resolve, reject) => {
+                return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insertMessages(appId, sender.chatroom_id, totalMessages, (messages) => {
                         if (!messages) {
                             reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
@@ -180,7 +179,7 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-                if (0 === _messages.length) {
+                if (!(_messages && _messages.length > 0)) {
                     return;
                 }
 
@@ -403,7 +402,12 @@ function init(server) {
                 let originMessagers = messagers;
                 return new Promise((resolve, reject) => {
                     Object.keys(originMessagers).map((messagerId) => {
-                        messages.map((message) => {
+                        if (messagers[messagerId].isDeleted) {
+                            delete messagers[messagerId];
+                            return;
+                        }
+
+                        messages.forEach((message) => {
                             let originMessager = originMessagers[messagerId];
                             let originMessagerAge = originMessager.age || '';
                             let originMessagerGender = originMessager.gender || '';
