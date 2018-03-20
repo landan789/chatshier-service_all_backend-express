@@ -100,7 +100,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'messager_id': String,
         'priority': Number, // TODO 三個 型態建議用字串大寫
-        'status': Number    // TODO 三個 型態建議用字串大寫
+        'status': Number // TODO 三個 型態建議用字串大寫
     });
 
     let AppsSchema = new mongoose.Schema({
@@ -155,7 +155,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
-        'members': [MemberSchema],
+        'members': [MembersSchema],
         'name': {type: String, default: ''}
     });
 
