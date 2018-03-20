@@ -10,6 +10,20 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
             this.UsersModel = this.model(USERS, this.UsersSchema);
             this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
+            this.project = {
+                name: true,
+                id1: true,
+                id2: true,
+                group_id: true,
+                isDeleted: true,
+                webhook_id: true,
+                secret: true,
+                token1: true,
+                token2: true,
+                type: true,
+                createdTime: true,
+                updatedTime: true
+            };
         }
         find(appIds, webhookId, callback) {
             var apps = {};
@@ -57,6 +71,7 @@ module.exports = (function() {
         }
 
         insert(userId, postApp, callback) {
+
             let apps = {};
             let _apps = new this.AppsModel();
             _apps.id1 = postApp.id1 || '';
@@ -76,8 +91,9 @@ module.exports = (function() {
                 let query = {
                     '_id': __apps._id
                 };
-                return this.AppsModel.findOne(query);
-            }).then((apps) => {
+                return this.AppsModel.findOne(query).select(this.project);
+            }).then((app) => {
+                apps[app._id] = app;
                 ('function' === typeof callback) && callback(apps);
                 return Promise.resolve(apps);
             }).catch(() => {
@@ -112,7 +128,7 @@ module.exports = (function() {
                 '_id': appId
             };
             return this.AppsModel.update(query, {
-                $set: {isDeleted: 'true'}
+                $set: {isDeleted: true}
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
