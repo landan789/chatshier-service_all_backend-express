@@ -314,11 +314,13 @@ module.exports = (function() {
                             return;
                         }
 
-                        if (messageCacheMap.get(weixin.MsgId)) {
-                            reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
-                            return;
+                        if (weixin.MsgId) {
+                            if (messageCacheMap.get(weixin.MsgId)) {
+                                reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
+                                return;
+                            }
+                            messageCacheMap.set(weixin.MsgId, true);
                         }
-                        messageCacheMap.set(weixin.MsgId, true);
 
                         // 將 wechat 的 type 格式統一處理
                         // 使音檔型別就是 audio, 影音檔就是 video
