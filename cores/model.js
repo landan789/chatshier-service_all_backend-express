@@ -15,9 +15,9 @@ module.exports = (function() {
     // endregion
 
     // region DB Schema
-    let RootSchema = new mongoose.Schema();
+    let RootsSchema = new mongoose.Schema();
 
-    let AutoreplySchema = new mongoose.Schema({
+    let AutorepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
@@ -28,7 +28,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    let ChatroomSchema = new mongoose.Schema({
+    let ChatroomsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'messagers': [{
             'unRead': {type: Number, default: 0}
@@ -44,7 +44,7 @@ module.exports = (function() {
         }]
     });
 
-    let KeywordreplySchema = new mongoose.Schema({
+    let KeywordrepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
         'keyword': String,
@@ -55,7 +55,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    let ComposeSchema = new mongoose.Schema({
+    let ComposesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': Boolean,
@@ -66,7 +66,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    let GreetingSchema = new mongoose.Schema({
+    let GreetingsSchema = new mongoose.Schema({
         'isDeleted': Boolean,
         'text': String,
         'type': String,
@@ -74,7 +74,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    let MessagerSchema = new mongoose.Schema({
+    let MessagersSchema = new mongoose.Schema({
         'Uid': String,
         'age': Number,
         'assigned': String,
@@ -93,7 +93,7 @@ module.exports = (function() {
         'totalCount': Number
     });
 
-    let TicketSchema = new mongoose.Schema({
+    let TicketsSchema = new mongoose.Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
         'dueTime': {type: Date, default: Date.now()},
@@ -103,7 +103,7 @@ module.exports = (function() {
         'status': Number    // TODO 三個 型態建議用字串大寫
     });
 
-    let AppSchema = new mongoose.Schema({
+    let AppsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'group_id': {type: Array, default: []},
@@ -116,17 +116,17 @@ module.exports = (function() {
         'token2': String,
         'type': String,
 
-        'autoreplies': [AutoreplySchema],
-        'chatrooms': [ChatroomSchema],
-        'keywordreplies': [KeywordreplySchema],
-        'composes': [ComposeSchema],
-        'greetings': [GreetingSchema],
-        'messagers': [MessagerSchema],
-        'tickets': [TicketSchema],
+        'autoreplies': [AutorepliesSchema] || [],
+        'chatrooms': [ChatroomsSchema] || [],
+        'keywordreplies': [KeywordrepliesSchema] || [],
+        'composes': [ComposesSchema] || [],
+        'greetings': [GreetingsSchema] || [],
+        'messagers': [MessagersSchema] || [],
+        'tickets': [TicketsSchema] || [],
         'webhook_id': {type: Array, default: []}
     });
 
-    let EventSchema = new mongoose.Schema({
+    let EventsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'description': String,
@@ -137,11 +137,11 @@ module.exports = (function() {
         'title': String
     });
 
-    let CalendarSchema = new mongoose.Schema({
-        'events': [EventSchema]
+    let CalendarsSchema = new mongoose.Schema({
+        'events': [EventsSchema]
     });
 
-    let MemberSchema = new mongoose.Schema({
+    let MembersSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -150,7 +150,7 @@ module.exports = (function() {
         'user_id': {type: Array, default: []}
     });
 
-    let GroupSchema = new mongoose.Schema({
+    let GroupsSchema = new mongoose.Schema({
         'app_id': {type: Array, default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -159,7 +159,7 @@ module.exports = (function() {
         'name': {type: String, default: ''}
     });
 
-    let UserSchema = new mongoose.Schema({
+    let UsersSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
@@ -173,19 +173,19 @@ module.exports = (function() {
         'group_id': {type: Array, default: []}
     });
 
-    let WebhookSchema = new mongoose.Schema({
+    let WebhooksSchema = new mongoose.Schema({
         'app_id': {type: Array, default: []}
     });
     // endregion
 
     class ModelCore {
         constructor () {
-            this.RootSchema = RootSchema;
-            this.AppSchema = AppSchema;
-            this.CalendarSchema = CalendarSchema;
-            this.GroupSchema = GroupSchema;
-            this.UserSchema = UserSchema;
-            this.WebhookSchema = WebhookSchema;
+            this.RootsSchema = RootsSchema;
+            this.AppsSchema = AppsSchema;
+            this.CalendarsSchema = CalendarsSchema;
+            this.GroupsSchema = GroupsSchema;
+            this.UsersSchema = UsersSchema;
+            this.WebhooksSchema = WebhooksSchema;
         }
 
         model (name, schema) {
