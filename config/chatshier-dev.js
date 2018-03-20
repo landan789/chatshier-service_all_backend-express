@@ -1,3 +1,5 @@
+const EXPIRES = (60 * 60 * 1000);
+
 module.exports = {
     REDIS: {
         HOST: '127.0.0.1',
@@ -18,7 +20,7 @@ module.exports = {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
     },
     JWT: {
-        EXPIRES: (60 * 60 * 1000),
+        EXPIRES: EXPIRES,
         SUBJECT: '9thflr.service@gmail.com',
         ISSUER: '9thflr.service@gmail.com',
         AUDIENCE: 'chatshier.com',
@@ -29,6 +31,7 @@ module.exports = {
         SECRET: 'ilovechatshier'
     },
     COOKIE: {
-        DOMAIN: '.fea.chatshier.com'
+        DOMAIN: '.fea.chatshier.com',
+        EXPIRES: EXPIRES
     }
 };
