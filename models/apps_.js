@@ -7,9 +7,9 @@ module.exports = (function() {
     class AppsModel extends ModelCore {
         constructor() {
             super();
-            this.AppsModel = this.model(APPS, this.AppSchema);
-            this.UsersModel = this.model(USERS, this.UserSchema);
-            this.WebhooksModel = this.model(WEBHOOKS, this.WebhookSchema);
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+            this.UsersModel = this.model(USERS, this.UsersSchema);
+            this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
         }
         find(appIds, webhookId, callback) {
             var apps = {};

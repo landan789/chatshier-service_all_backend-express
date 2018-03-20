@@ -1,11 +1,11 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
-    let COLLECTION = 'groups';
+    const GROUPS = 'groups';
     const OWNER = 'OWNER';
     class GroupsModel extends ModelCore {
         constructor() {
             super();
-            this.Model = this.model(COLLECTION, this.GroupSchema);
+            this.Model = this.model(GROUPS, this.GroupsSchema);
         }
         find(groupIds, userId, callback) {
             let groups = {};
