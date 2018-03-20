@@ -38,83 +38,57 @@ module.exports = (function() {
      * @param {string|string[]} appIds
      * @param {Function} callback
      */
-    AppsMessagersModel.prototype.findAppsMessagers = function(appIds, callback) {
-        let proceed = Promise.resolve();
-        proceed.then(() => {
+    AppsMessagersModel.prototype.find = function(appIds, messagerId, callback) {
+        return Promise.resolve().then(() => {
             if (!appIds) {
                 return;
             }
 
-            let messagersData = {};
+            let appsMessagers = {};
             if (appIds instanceof Array) {
                 // 每個 messager 的清單取得後，依照 appId 的鍵值塞到對應的欄位
                 return Promise.all(appIds.map((appId) => {
                     return admin.database().ref('apps/' + appId + '/messagers').once('value').then((snap) => {
                         if (!snap) {
-                            messagersData[appId] = {};
+                            appsMessagers[appId] = {};
                             return;
                         }
                         let messagers = snap.val() || {};
-                        messagersData[appId] = {
+                        appsMessagers[appId] = {
                             messagers: messagers
                         };
                     });
                 })).then(() => {
                     // 同時發送所有查找請求，所有請求處理完畢後再將對應表往下傳
-                    return messagersData;
+                    return appsMessagers;
                 });
             } else if ('string' === typeof appIds) {
                 let appId = appIds;
                 return admin.database().ref('apps/' + appId + '/messagers').once('value').then((snap) => {
                     if (!snap) {
-                        messagersData[appId] = {};
+                        appsMessagers[appId] = {};
                         return;
                     }
                     let messagers = snap.val() || {};
-                    messagersData[appId] = {
+                    if (messagerId && messagers[messagerId]) {
+                        messagers = {
+                            [messagerId]: messagers[messagerId]
+                        };
+                    }
+                    appsMessagers[appId] = {
                         messagers: messagers
                     };
-                    return messagersData;
+                    return appsMessagers;
                 });
             }
-        }).then((result) => {
-            if (!result) {
+        }).then((appsMessagers) => {
+            if (!appsMessagers) {
                 callback(null);
                 return;
             }
-            callback(result);
+            callback(appsMessagers);
         }).catch(() => {
             callback(null);
-        });
-    };
-
-    /**
-     * 根據app ID跟message ID找到messager
-     *
-     * @param {string} appId
-     * @param {string} msgerId
-     * @param {(appMessager: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsMessagersModel.prototype.findMessager = function(appId, msgerId, callback) {
-        return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value').then((snap) => {
-            if (!snap) {
-                return Promise.reject(new Error());
-            }
-
-            let messager = snap.val() || {};
-            let appMessager = {
-                [appId]: {
-                    messagers: {
-                        [msgerId]: messager
-                    }
-                }
-            };
-            ('function' === typeof callback) && callback(appMessager);
-            return appMessager;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
         });
     };
 
@@ -210,7 +184,7 @@ module.exports = (function() {
      * @param {(messager: any) => any} [callback]
      * @returns {Promise<any>}
      */
-    AppsMessagersModel.prototype.deleteMessager = function(appId, msgerId, callback) {
+    AppsMessagersModel.prototype.remove = function(appId, msgerId, callback) {
         return admin.database().ref('apps/' + appId).once('value').then((snap) => {
             let app = snap.val() || {};
             let messagers = app.messagers || {};

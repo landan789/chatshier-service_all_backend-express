@@ -180,7 +180,7 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
-                            appsMdl.findByAppId(appId, (apps) => {
+                            appsMdl.find(appId, null, (apps) => {
                                 resolve(apps);
                             });
                         }).then((apps) => {
@@ -192,7 +192,7 @@ module.exports = (function() {
                                 return;
                             }
 
-                            return appsMessagersMdl.findMessager(appId, userId).then((appMessagers) => {
+                            return appsMessagersMdl.find(appId, userId).then((appMessagers) => {
                                 // 目前內部聊天室的 chatroom 只會有一個
                                 // 因此所有群組成員的 chatroom_id 都會是一樣
                                 // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
@@ -449,7 +449,7 @@ module.exports = (function() {
                     // 將此 group member 從所有 app 裡的 messagers 刪除
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                         return Promise.all(appIds.map((appId) => {
-                            return appsMessagersMdl.deleteMessager(appId, msgerId);
+                            return appsMessagersMdl.remove(appId, msgerId);
                         }));
                     });
                 }).then(() => {

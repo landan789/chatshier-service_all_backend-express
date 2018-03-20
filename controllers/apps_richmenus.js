@@ -16,7 +16,7 @@ module.exports = (function() {
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsRichmenusMdl.find(appIds, (richmenus) => {
+                appsRichmenusMdl.find(appIds, null, (richmenus) => {
                     if (!richmenus) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                         return;
@@ -72,7 +72,7 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsRichmenusMdl.findOne(appId, richmenuId, (richmenu) => {
+                appsRichmenusMdl.find(appId, richmenuId, (richmenu) => {
                     if (!richmenu) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                         return;

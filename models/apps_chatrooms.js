@@ -2,52 +2,6 @@ module.exports = (function() {
     const admin = require('firebase-admin'); // firebase admin SDK
 
     function AppsChatroomsModel() {}
-
-    /**
-     * @param {string} appId
-     * @param {(appsChatrooms: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsChatroomsModel.prototype.findAll = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/chatrooms').once('value').then((snap) => {
-            let chatrooms = snap.val() || {};
-            let appsChatrooms = {
-                [appId]: {
-                    chatrooms: chatrooms
-                }
-            };
-            ('function' === typeof callback) && callback(appsChatrooms);
-            return appsChatrooms;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
-
-    /**
-     * @param {string} appId
-     * @param {string} chatroomId
-     * @param {(appsChatrooms: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsChatroomsModel.prototype.findOne = (appId, chatroomId, callback) => {
-        return admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId).once('value').then((snap) => {
-            let chatroom = snap.val() || {};
-            let appsChatrooms = {
-                [appId]: {
-                    chatrooms: {
-                        [chatroomId]: chatroom
-                    }
-                }
-            };
-            ('function' === typeof callback) && callback(appsChatrooms);
-            return appsChatrooms;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
-
     /**
      * @param {string} appId
      * @param {(newChatroomId: string) => any} [callback]

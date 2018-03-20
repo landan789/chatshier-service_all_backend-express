@@ -84,7 +84,7 @@ function init(server) {
             let toPath;
             let _messages;
             return new Promise((resolve, reject) => {
-                appsMdl.findAppsByWebhookId(webhookid, (apps) => {
+                appsMdl.find(null, webhookid, (apps) => {
                     if (!apps) {
                         return reject(API_ERROR.APP_DID_NOT_EXIST);
                     }
@@ -229,7 +229,7 @@ function init(server) {
             let app;
 
             return new Promise((resolve) => {
-                appsMdl.findByAppId(appId, (apps) => {
+                appsMdl.find(appId, null, (apps) => {
                     resolve(apps);
                 });
             }).then((apps) => {
@@ -377,7 +377,7 @@ function init(server) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };
                 return new Promise((resolve, reject) => {
-                    appsMdl.findByAppId(appId, (apps) => {
+                    appsMdl.find(appId, null, (apps) => {
                         if (!apps) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
                         }
@@ -391,7 +391,7 @@ function init(server) {
                 return botSvc.create(appId, app);
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    appsMessagersMdl.findAppsMessagers(appId, (appsMessagers) => {
+                    appsMessagersMdl.find(appId, null, (appsMessagers) => {
                         if (!appsMessagers) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
                         };

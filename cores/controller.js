@@ -61,7 +61,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
-                    appsMdl.findByAppId(appId, (apps) => {
+                    appsMdl.find(appId, null, (apps) => {
                         if (null === apps || undefined === apps || '' === apps) {
                             reject(API_ERROR.APP_FAILED_TO_FIND);
                             return;

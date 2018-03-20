@@ -41,7 +41,7 @@ module.exports = (function() {
      * @param {string[]} appIds
      * @param {(appsTags: any) => any} callback
      */
-    AppsTagsModel.prototype.findTags = function(appIds, callback) {
+    AppsTagsModel.prototype.find = function(appIds, callback) {
         Promise.resolve().then(() => {
             let appsTagsMap = {};
             if (!appIds || !(appIds instanceof Array)) {
@@ -170,7 +170,7 @@ module.exports = (function() {
      * @param {any} postTagData
      * @param {(appsTags: any|null) => any} callback
      */
-    AppsTagsModel.prototype.insertTag = function(appId, postTagData, callback) {
+    AppsTagsModel.prototype.insert = function(appId, postTagData, callback) {
         postTagData = postTagData || {};
         postTagData.createdTime = Date.now();
         postTagData.updatedTime = Date.now();
@@ -209,7 +209,7 @@ module.exports = (function() {
      * @param {any} putTagData
      * @param {(data: any|null) => any} callback
      */
-    AppsTagsModel.prototype.updateTag = function(appId, tagId, putTagData, callback) {
+    AppsTagsModel.prototype.update = function(appId, tagId, putTagData, callback) {
         putTagData = putTagData || {};
         putTagData.updatedTime = Date.now();
 
@@ -244,7 +244,7 @@ module.exports = (function() {
      * @param {string} tagId
      * @param {(data: any|null) => any} callback
      */
-    AppsTagsModel.prototype.removeTag = function(appId, tagId, callback) {
+    AppsTagsModel.prototype.remove = function(appId, tagId, callback) {
         Promise.resolve().then(() => {
             if (!appId || !tagId) {
                 return Promise.reject(new Error());

@@ -10,7 +10,7 @@ calendarsEvents.getAll = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.findCalendarEventsByUserId(userId, (data) => {
+            calendarsEventsMdl.find(userId, (data) => {
                 var calendarsEvents = data;
                 if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
@@ -60,7 +60,7 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.insertCalendarEventByUserId(userId, event, (data) => {
+            calendarsEventsMdl.insert(userId, event, (data) => {
                 let calendarsEvents = data;
                 if (null === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
@@ -137,7 +137,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.updateCalendarEventByCalendarIdByEventId(calendarId, eventId, event, (data) => {
+            calendarsEventsMdl.update(calendarId, eventId, event, (data) => {
                 let calendarsEvents = data;
                 resolve(calendarsEvents);
             });
@@ -178,7 +178,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, (result) => {
+            calendarsEventsMdl.remove(userId, eventId, (result) => {
                 if (undefined === result || '' === result || null === result) {
 
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);

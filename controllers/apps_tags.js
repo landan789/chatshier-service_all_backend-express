@@ -16,7 +16,7 @@ module.exports = (function() {
             let appIds = checkedAppIds;
             // 1. 根據 appId 清單去 tags model 抓取清單
             return new Promise((resolve, reject) => {
-                appsTagsMdl.findTags(appIds, (appsTags) => {
+                appsTagsMdl.find(appIds, (appsTags) => {
                     if (!appsTags) {
                         reject(API_ERROR.APP_TAG_FAILED_TO_FIND);
                         return;
@@ -56,7 +56,7 @@ module.exports = (function() {
         return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
             // 1. 將 tag 資料插入至指定 appId 中
             return new Promise((resolve, reject) => {
-                appsTagsMdl.insertTag(appId, postTagData, (data) => {
+                appsTagsMdl.insert(appId, postTagData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_TAG_FAILED_TO_INSERT);
                         return;
@@ -101,7 +101,7 @@ module.exports = (function() {
         return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
             // 1. 將 tag 資料更新至指定 appId 中
             return new Promise((resolve, reject) => {
-                appsTagsMdl.updateTag(appId, tagId, putTagData, (data) => {
+                appsTagsMdl.update(appId, tagId, putTagData, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_TAG_FAILED_TO_UPDATE);
                         return;
@@ -133,7 +133,7 @@ module.exports = (function() {
         return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
             // 1. 藉由 tags model 將指定的 tag 資料刪除
             return new Promise((resolve, reject) => {
-                appsTagsMdl.removeTag(appId, tagId, (data) => {
+                appsTagsMdl.remove(appId, tagId, (data) => {
                     if (!data) {
                         reject(API_ERROR.APP_TAG_FAILED_TO_REMOVE);
                         return;

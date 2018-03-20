@@ -42,6 +42,7 @@ module.exports = (function() {
                 return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -86,6 +87,7 @@ module.exports = (function() {
                 return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -109,6 +111,7 @@ module.exports = (function() {
                 return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -139,6 +142,7 @@ module.exports = (function() {
                 return Promise.resolve(appIds);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
@@ -170,6 +174,7 @@ module.exports = (function() {
                 return Promise.resolve(userIds);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
     }

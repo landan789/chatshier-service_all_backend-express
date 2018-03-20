@@ -46,18 +46,13 @@ module.exports = (function() {
 
     let KeywordreplySchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'messagers': [{
-            'unRead': {type: Number, default: 0}
-        }],
-        'messages': [{
-            'from': String,
-            'isDeleted': Boolean,
-            'messager_id': {type: Array, default: []},
-            'src': String,
-            'text': String,
-            'time': {type: Date, default: Date.now()},
-            'type': String
-        }]
+        'isDeleted': Boolean,
+        'keyword': String,
+        'replyCount': Number,
+        'status': Number,
+        'text': String,
+        'type': {type: String, default: 'text'},
+        'updatedTime': {type: Date, default: Date.now()}
     });
 
     let ComposeSchema = new mongoose.Schema({
@@ -102,7 +97,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
         'dueTime': {type: Date, default: Date.now()},
-        'isDeleted': Boolean,
+        'isDeleted': {type: Boolean, default: false},
         'messager_id': String,
         'priority': Number, // TODO 三個 型態建議用字串大寫
         'status': Number    // TODO 三個 型態建議用字串大寫
@@ -114,7 +109,7 @@ module.exports = (function() {
         'group_id': {type: Array, default: []},
         'id1': String,
         'id2': String,
-        'isDeleted': Boolean,
+        'isDeleted': {type: Boolean, default: false},
         'name': String,
         'secret': String,
         'token1': String,
@@ -132,12 +127,14 @@ module.exports = (function() {
     });
 
     let EventSchema = new mongoose.Schema({
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
         'description': String,
         'endedTime': Date,
-        'isAllDay': Boolean,
-        'isDeleted': Boolean,
+        'isAllDay': {type: Boolean, default: false},
+        'isDeleted': {type: Boolean, default: false},
         'startedTime': Date,
-        'title': Date
+        'title': String
     });
 
     let CalendarSchema = new mongoose.Schema({
@@ -154,7 +151,7 @@ module.exports = (function() {
     });
 
     let GroupSchema = new mongoose.Schema({
-        'app_id': {type: [String], default: []},
+        'app_id': {type: Array, default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -165,13 +162,14 @@ module.exports = (function() {
     let UserSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'address': String,
-        'calendar_id': String,
-        'company': String,
-        'email': String,
-        'phone': String,
-        'isDeleted': Boolean,
-        'name': String,
+        'address': {type: String, default: ''},
+        'calendar_id': {type: Array, default: []},
+        'company': {type: String, default: ''},
+        'email': {type: String, default: ''},
+        'phone': {type: String, default: ''},
+        'isDeleted': {type: Boolean, default: false},
+        'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
+        'name': {type: String, default: ''},
         'group_id': {type: Array, default: []}
     });
 
