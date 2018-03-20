@@ -23,7 +23,7 @@ module.exports = (function() {
                 eventType: message.eventType || '',
                 from: message.from,
                 messager_id: message.messager_id,
-                text: message.text || '' || message.altText + '<br>' + '請至智慧手機上確認訊息內容。',
+                text: message.text || (message.altText ? message.altText + '\n' : '') + '請至智慧手機上確認訊息內容。',
                 time: Date.now(),
                 type: message.type,
                 src: message.src || ''
@@ -49,7 +49,7 @@ module.exports = (function() {
      * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
      *
      * @param {string[]|string} appIds
-     * @param {string} chatroomId
+     * @param {string|null} chatroomId
      * @param {Function} callback
      */
     AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, callback) {
@@ -60,29 +60,24 @@ module.exports = (function() {
         let appsChatroomsMessages = {};
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
-                let chatrooms = snap.val();
-                if (!chatrooms) {
-                    return Promise.reject(new Error());
-                }
+                let chatrooms = snap.val() || {};
                 if (!chatroomId) {
                     appsChatroomsMessages[appId] = {
                         chatrooms: chatrooms
                     };
-                    return Promise.resolve(null);
+                    return;
                 }
 
-                if (chatroomId && chatrooms[chatroomId]) {
-                    let chatroom = chatrooms[chatroomId];
+                let chatroom = chatrooms[chatroomId];
+                if (chatroom) {
                     appsChatroomsMessages[appId] = {
                         chatrooms: {
                             [chatroomId]: chatroom
                         }
                     };
-                    return Promise.resolve(null);
                 }
-                
             });
-        })).then((appsChatroomsMessages) => {
+        })).then(() => {
             callback(appsChatroomsMessages);
         }).catch(() => {
             callback(null);

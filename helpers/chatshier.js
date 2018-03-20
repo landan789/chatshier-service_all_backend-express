@@ -37,9 +37,8 @@ module.exports = (function() {
 
         let keywordreplies = {};
         let keywordrepliesPromise = Promise.all(messages.map((message) => {
-            let eventType = message.eventType;
             let text = message.text;
-            if ('message' !== eventType) {
+            if (!text) {
                 return Promise.resolve();
             }
             return new Promise((resolve, reject) => {

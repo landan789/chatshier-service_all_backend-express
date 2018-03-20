@@ -39,7 +39,7 @@ let jobProcess = () => {
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
             if (CHATSHIER === app.type || 1 === app.isDeleted) {
-                return Promise.resolve();
+                return Promise.resolve([]);
             }
 
             let messages = [];
@@ -47,6 +47,10 @@ let jobProcess = () => {
             let messagers = app.messagers || {};
             for (let messagerId in messagers) {
                 let originMessager = messagers[messagerId] || {};
+                if (originMessager.isDeleted) {
+                    delete messagers[messagerId];
+                    continue;
+                }
                 let originMessagerAge = originMessager.age || '';
                 let originMessagerGender = originMessager.gender || '';
                 let originMessagerTags = originMessager.custom_tags || {};

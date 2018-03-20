@@ -67,6 +67,7 @@ browser client端的檔案
 處理外部server端的函式庫
 
 * bot.js - LINE跟Facebook bot的訊息接收
+* wechat.js - 額外的 wechat 相關函式
 
 ### 13. sockets
 處理socket

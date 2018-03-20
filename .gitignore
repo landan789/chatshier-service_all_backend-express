@@ -4,6 +4,7 @@
 /node_modules
 
 # production
+/.tmp
 /config/firebase-adminsdk.json
 /config/firebase_admin_database_url.js
 /config/chatshier.js
