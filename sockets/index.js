@@ -1,6 +1,7 @@
 let socketIO = require('socket.io');
 
 let line = require('@line/bot-sdk');
+let wechat = require('wechat');
 let facebook = require('facebook-bot-messenger'); // facebook串接
 const fuseHlp = require('../helpers/fuse');
 const StorageHlp = require('../helpers/storage');
@@ -28,6 +29,8 @@ const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
 const API_SUCCESS = require('../config/api_success');
 
+const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
+const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const media = {
@@ -39,14 +42,34 @@ const media = {
 function init(server) {
     let socketIOServer = socketIO(server);
     let chatshierNsp = socketIOServer.of('/chatshier');
-
-    /** @type {Map<string, boolean>} */
-    let messageCacheMap = new Map();
     let webhookProcQueue = [];
+
+    app.get('/webhook/:webhookId', function(req, res) {
+        // Facebook
+        if (req.query['hub.verify_token']) {
+            if (FACEBOOK_WEBHOOK_VERIFY_TOKEN === req.query['hub.verify_token']) {
+                console.log('Facebook validating webhook');
+                res.status(200).send(req.query['hub.challenge']);
+            } else {
+                console.error('Facebook failed validation. Make sure the validation tokens match.');
+                res.sendStatus(500);
+            }
+        }
+
+        // Wechat 驗證簽名
+        if (req.query.signature && req.query.timestamp && req.query.nonce) {
+            if (wechat.checkSignature(req.query, WECHAT_WEBHOOK_VERIFY_TOKEN)) {
+                console.log('Wechat validating webhook');
+                res.status(200).send(req.query.echostr);
+            } else {
+                console.error('Wechat failed validation.');
+                res.sendStatus(500);
+            }
+        }
+    });
 
     app.post('/webhook/:webhookid', (req, res, next) => {
         let webhookid = req.params.webhookid;
-        let bot = {};
         let appId = '';
         let app = {};
 
@@ -73,24 +96,28 @@ function init(server) {
                 return botSvc.parser(req, res, server, appId, app);
             }).then(() => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                bot = _bot;
-                return botSvc.getReceivedMessages(req.body, appId, app);
+            }).then(() => {
+                return botSvc.getReceivedMessages(req, res, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
-                if (0 === receivedMessages.length) {
-                    return Promise.resolve([]);
+                if (receivedMessages.length > 0) {
+                    senderId = receivedMessages[0].messager_id;
+                    fromPath = receivedMessages[0].fromPath;
                 }
-                senderId = receivedMessages[0].messager_id;
-                fromPath = receivedMessages[0].fromPath;
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
-                    return Promise.resolve();
+                    // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
+                    // 因此在此直接將 webhook 的 http request 做 response
+                    !res.headersSent && res.status(200).send('');
+                    return;
                 };
+                // 因各平台處理方式不同
+                // 所以將 http request 做 response 傳入
+                // 待訊息回覆後直接做 http response
                 let replyToken = receivedMessages[0].replyToken || '';
-                return botSvc.replyMessage(senderId, replyToken, repliedMessages, appId, app);
+                return botSvc.replyMessage(res, senderId, replyToken, repliedMessages, appId, app);
             }).then(() => {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
@@ -98,9 +125,9 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply.id);
                 }));
             }).then(() => {
-                return botSvc.getProfile(senderId, appId, app);
+                return senderId && botSvc.getProfile(senderId, appId, app);
             }).then((profile) => {
-                return new Promise((resolve) => {
+                return senderId && new Promise((resolve) => {
                     appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
                         resolve(messager);
                     });
@@ -126,7 +153,7 @@ function init(server) {
                 return Promise.resolve(messagerIds);
             }).then((messagerIds) => {
                 totalMessages = receivedMessages.concat(repliedMessages);
-                return new Promise((resolve, reject) => {
+                return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     let messager = {
                         unRead: totalMessages.length
                     };
@@ -135,7 +162,7 @@ function init(server) {
                     });
                 });
             }).then(() => {
-                return new Promise((resolve, reject) => {
+                return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insertMessages(appId, sender.chatroom_id, totalMessages, (messages) => {
                         if (!messages) {
                             reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
@@ -146,12 +173,16 @@ function init(server) {
             }).then((messages) => {
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
-                if ('text' === messages[messageId].type) {
-                    return Promise.resolve(messages);
+                if (messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
+                    toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
+                    return StorageHlp.filesMoveV2(fromPath, toPath);
                 }
-                toPath = `/apps/${appId}/chatrooms/${sender.chatroom_id}/messages/${messageId}/src${fromPath}`;
-                return StorageHlp.filesMoveV2(fromPath, toPath);
+                return messages;
             }).then(() => {
+                if (!(_messages && _messages.length > 0)) {
+                    return;
+                }
+
                 /** @type {ChatshierChatSocketBody} */
                 let messagesToSend = {
                     app_id: appId,
@@ -163,16 +194,13 @@ function init(server) {
                     messages: Object.values(_messages)
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
-            }).then(() => {
-                res.sendStatus(200);
-                return Promise.resolve();
             });
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
             console.trace(error);
-            res.sendStatus(500);
+            !res.headersSent && res.sendStatus(500);
         });
 
         webhookProcQueue.push(webhookPromise);
@@ -220,12 +248,13 @@ function init(server) {
                     // messagerId 訊息寄送者，這裡為 vendor 的 userid
                     let senderId = message.messager_id;
                     let originalFilePath = `/${message.time}.${media[message.type]}`;
+                    let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
                         if ('text' === message.type) {
                             return;
                         }
-                        return StorageHlp.filesUpload(originalFilePath, message.src).then((response) => {
+                        return StorageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
                             return StorageHlp.sharingCreateSharedLink(originalFilePath);
                         }).then((response) => {
                             let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
@@ -233,7 +262,7 @@ function init(server) {
                             message.src = url;
                         });
                     }).then(() => {
-                        return botSvc.pushMessage(recipientId, message, appId, app);
+                        return botSvc.pushMessage(recipientId, message, srcBuffer, appId, app);
                     }).then(() => {
                         return new Promise((resolve, reject) => {
                             appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message, (messagesInDB) => {
@@ -373,7 +402,12 @@ function init(server) {
                 let originMessagers = messagers;
                 return new Promise((resolve, reject) => {
                     Object.keys(originMessagers).map((messagerId) => {
-                        messages.map((message) => {
+                        if (messagers[messagerId].isDeleted) {
+                            delete messagers[messagerId];
+                            return;
+                        }
+
+                        messages.forEach((message) => {
                             let originMessager = originMessagers[messagerId];
                             let originMessagerAge = originMessager.age || '';
                             let originMessagerGender = originMessager.gender || '';

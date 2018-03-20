@@ -43,20 +43,7 @@ app.use('/api', api);
 
 app.use('/other', jwt.authenticate('HEADER'));
 app.use('/other', (req, res, next) => {
-
     res.send(202);
 });
-
-// facebook connection
-app.get('/webhook/:webhookId', function(req, res) {
-    if ('verify_token' === req.query['hub.verify_token']) {
-        console.log('Validating webhook');
-        res.status(200).send(req.query['hub.challenge']);
-    } else {
-        console.error('Failed validation. Make sure the validation tokens match.');
-        res.sendStatus(500);
-    }
-}); // app.get-->facebook webhook
-
 
 module.exports = app;
