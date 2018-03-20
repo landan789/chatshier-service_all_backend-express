@@ -103,6 +103,9 @@ module.exports = (function() {
 
             return this._makeDirectory(tmpPath).then(() => {
                 return new Promise((resolve, reject) => {
+                    // 將輸入的 buffer 先暫存到檔案系統中再使用 stream 做轉檔動作
+                    // 如果直接使用內存 buffer 直接轉檔的話
+                    // 若 buffer 容量太大，容易造成記憶體崩潰問題
                     let writeStream = fs.createWriteStream(inputFile);
                     writeStream.on('error', (err) => {
                         writeStream.close();
@@ -119,6 +122,7 @@ module.exports = (function() {
                 let outputStream = fs.createWriteStream(outputFile);
 
                 let dispose = () => {
+                    // 檔案轉換完畢後，釋放所有檔案系統資源
                     inputStream.close();
                     outputStream.close();
                     return Promise.all([

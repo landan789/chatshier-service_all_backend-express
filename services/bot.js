@@ -192,29 +192,33 @@ module.exports = (function() {
                         if (event.message && ['image', 'audio', 'video'].includes(event.message.type)) {
                             return new Promise((resolve, reject) => {
                                 bot.getMessageContent(event.message.id).then((stream) => {
-                                    let bufs = [];
-                                    stream.on('data', (chunk) => {
-                                        bufs.push(chunk);
-                                    });
+                                    return new Promise((resolve, reject) => {
+                                        let buffs = [];
+                                        stream.on('data', (chunk) => {
+                                            buffs.push(chunk);
+                                        });
 
-                                    stream.on('end', () => {
-                                        let buf = Buffer.concat(bufs);
-                                        _message.text = '';
-                                        return StorageHlp.filesUpload(_message.fromPath, buf).then(() => {
-                                            return Promise.resolve();
-                                        }).then(() => {
-                                            return StorageHlp.sharingCreateSharedLink(_message.fromPath);
-                                        }).then((response) => {
-                                            let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                            let src = wwwurl.replace('?dl=0', '');
-                                            _message.src = src;
-                                            messages.push(_message);
-                                            resolve();
+                                        stream.on('end', () => {
+                                            let buff = Buffer.concat(buffs);
+                                            resolve(buff);
+                                        });
+
+                                        stream.on('error', (err) => {
+                                            reject(err);
                                         });
                                     });
-
-                                    stream.on('error', (err) => {
-                                        console.log(err);
+                                }).then((buff) => {
+                                    _message.text = '';
+                                    return StorageHlp.filesUpload(_message.fromPath, buff).then(() => {
+                                        return Promise.resolve();
+                                    }).then(() => {
+                                        return StorageHlp.sharingCreateSharedLink(_message.fromPath);
+                                    }).then((response) => {
+                                        let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                                        let src = wwwurl.replace('?dl=0', '');
+                                        _message.src = src;
+                                        messages.push(_message);
+                                        resolve();
                                     });
                                 });
                             });
@@ -307,6 +311,8 @@ module.exports = (function() {
                         // 目前暫不處理 wechat 的事件訊息
                         if ('event' === weixin.MsgType) {
                             if ('subscribe' === weixin.Event) {
+                                // 當關注公眾號時，將此訊息標註為關注
+                                // 改為使用 "follow" 與 LINE 的事件統一
                                 message.eventType = 'follow';
                                 messages.push(message);
                             }
@@ -314,6 +320,9 @@ module.exports = (function() {
                             return;
                         }
 
+                        // 由於 wechat 在 5s 內沒有收到 http response 時會在打 webhook 過來
+                        // 有可能因網路傳輸或資料庫處理等原因，造成處理時間超過 5s
+                        // 標註 MsgId 來防止相同訊息被處理 2 次以上
                         if (weixin.MsgId) {
                             if (messageCacheMap.get(weixin.MsgId)) {
                                 reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
@@ -323,7 +332,7 @@ module.exports = (function() {
                         }
 
                         // 將 wechat 的 type 格式統一處理
-                        // 使音檔型別就是 audio, 影音檔就是 video
+                        // 音檔型別就是 audio, 影音檔就是 video
                         if ('voice' === message.type) {
                             message.type = 'audio';
                         } else if ('shortvideo' === message.type) {
@@ -332,7 +341,7 @@ module.exports = (function() {
 
                         let bot = this.bots[appId];
                         if (!bot) {
-                            reject(new Error('bot undefined'));
+                            reject(new Error('BOT_NOT_FOUND'));
                             return;
                         }
 
@@ -382,7 +391,8 @@ module.exports = (function() {
                             let longitude = weixin.Location_Y;
                             message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                         } else if ('file' === message.type) {
-                            // TODO: 目前無法得知如何從後台下載 wechat 的檔案
+                            // TODO:
+                            // 目前無法得知如何從後台下載 wechat 的檔案
                             // 期望結果應是從 wechat 下載到該檔案後上傳至 dropbox
                             // 將 message.src 指向 dropbox 連結
                             message.text = weixin.Title + ' - ' + weixin.Description;
@@ -406,7 +416,7 @@ module.exports = (function() {
         getProfile(senderId, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
-                return Promise.reject(new Error('bot undefined'));
+                return Promise.reject(new Error('BOT_NOT_FOUND'));
             }
 
             return Promise.resolve().then(() => {
@@ -462,7 +472,7 @@ module.exports = (function() {
         replyMessage(res, messagerId, replyToken, messages, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
-                return Promise.reject(new Error('bot undefined'));
+                return Promise.reject(new Error('BOT_NOT_FOUND'));
             };
             if (!(messages instanceof Array)) {
                 messages = [messages];
@@ -553,12 +563,9 @@ module.exports = (function() {
                 case WECHAT:
                     return Promise.resolve().then(() => {
                         if (message.src && srcBuffer) {
-                            let filename = message.src.split('/').pop();
-                            let mediaType = message.type;
-                            if ('audio' === mediaType) {
-                                mediaType = 'voice';
-                            }
-
+                            // wechat 在傳送多媒體資源時，必須先將資源上傳至 wechat 伺服器
+                            // 成功上傳後會取得 media_id, 使用此 ID 來發送多媒體訊息
+                            // 暫時性的多媒體檔案只會在 wechat 伺服器裡存在 3 天後就會被 wechat 刪除
                             return new Promise((resolve, reject) => {
                                 bot.getToken((err, token) => {
                                     if (err) {
@@ -568,6 +575,11 @@ module.exports = (function() {
                                     resolve(token);
                                 });
                             }).then((token) => {
+                                let filename = message.src.split('/').pop();
+                                let mediaType = message.type;
+                                if ('audio' === mediaType) {
+                                    mediaType = 'voice';
+                                }
                                 return wechatSvc.uploadMedia(mediaType, srcBuffer, filename, token.accessToken);
                             });
                         }
@@ -699,6 +711,9 @@ module.exports = (function() {
 
                                     bot.massSendText(message.text, messagerIds, (err, result) => {
                                         if (err) {
+                                            // wechat 的群發功能如果在 15s 內發送太多相同訊息時
+                                            // 會被 block 住，會一直收到錯誤訊息 "clientmsgid exist"
+                                            // 此時必須等候 15s 後才能再正常發送
                                             reject(err);
                                             return;
                                         }
