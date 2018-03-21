@@ -76,7 +76,8 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
                 };
                 res.status(500).json(json);
             });
