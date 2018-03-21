@@ -153,14 +153,7 @@ function init(server) {
                 return Promise.resolve(messagerIds);
             }).then((messagerIds) => {
                 totalMessages = receivedMessages.concat(repliedMessages);
-                return totalMessages.length > 0 && new Promise((resolve, reject) => {
-                    let messager = {
-                        unRead: totalMessages.length
-                    };
-                    appsChatroomsMessagersMdl.updateMessagerUnRead(appId, sender.chatroom_id, messagerIds, messager, (appsChatroomsMessages) => {
-                        resolve();
-                    });
-                });
+                return totalMessages.length > 0 && appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, sender.chatroom_id, messagerIds, totalMessages.length);
             }).then(() => {
                 return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insertMessages(appId, sender.chatroom_id, totalMessages, (messages) => {
@@ -296,7 +289,7 @@ function init(server) {
                             if (senderId === memberUserId) {
                                 return Promise.resolve();
                             }
-                            return appsChatroomsMessagersMdl.increaseMessagerUnRead(appId, chatroomId, memberUserId);
+                            return appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, chatroomId, memberUserId);
                         }));
                     }).then(() => {
                         return nextMessage(i + 1);

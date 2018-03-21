@@ -11,7 +11,7 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {any|string[]} chatroomIds
-         * @param {(newChatroomId: string|null) => any} [callback]
+         * @param {(appsChatrooms: any) => any} [callback]
          * @returns {Promise<any>}
          */
         find(appId, chatroomIds, callback) {
@@ -45,18 +45,16 @@ module.exports = (function() {
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOM_IDS_NOT_FOUNT'));
+                    return Promise.reject(new Error('CHATROOMS_NOT_FOUND'));
                 }
 
-                let appsChatroomsInit = {
-                    [appId]: {
-                        chatrooms: {}
-                    }
-                };
                 let appsChatrooms = results.reduce((output, curr) => {
-                    return Object.assign(output, this.toObject(curr.chatrooms));
-                }, appsChatroomsInit[appId].chatrooms);
-
+                    output[curr._id] = output[curr._id] || { chatrooms: {} };
+                    Object.assign(output[curr._id].chatrooms, this.toObject(curr.chatrooms));
+                    return output;
+                }, {});
+                return appsChatrooms;
+            }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;
             }).catch(() => {
@@ -67,20 +65,23 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {(newChatroomId: string|null) => any} [callback]
+         * @param {(appsChatrooms: any) => any} [callback]
          * @returns {Promise<any>}
          */
         insert(appId, callback) {
             let chatroomId = this.Types.ObjectId();
-            let newChatroom = {
+            let chatroom = {
                 _id: chatroomId,
                 createdTime: Date.now()
             };
 
-            return this.AppsModel.findById(appId).then((app) => {
-                app.chatrooms.push(newChatroom);
-                return app.save();
-            }).then(() => {
+            let updateOper = {
+                $push: {
+                    chatrooms: chatroom
+                }
+            };
+
+            return this.AppsModel.findByIdAndUpdate(appId, updateOper).then(() => {
                 return this.find(appId, chatroomId);
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);

@@ -5,6 +5,45 @@ module.exports = (function() {
     function AppsChatroomsMessages() {}
 
     /**
+     * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
+     *
+     * @param {string[]|string} appIds
+     * @param {string|null} chatroomId
+     * @param {Function} callback
+     */
+    AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, callback) {
+
+        if ('string' === typeof appIds) {
+            appIds = [appIds];
+        }
+        let appsChatroomsMessages = {};
+        Promise.all(appIds.map((appId) => {
+            return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
+                let chatrooms = snap.val() || {};
+                if (!chatroomId) {
+                    appsChatroomsMessages[appId] = {
+                        chatrooms: chatrooms
+                    };
+                    return;
+                }
+
+                let chatroom = chatrooms[chatroomId];
+                if (chatroom) {
+                    appsChatroomsMessages[appId] = {
+                        chatrooms: {
+                            [chatroomId]: chatroom
+                        }
+                    };
+                }
+            });
+        })).then(() => {
+            callback(appsChatroomsMessages);
+        }).catch(() => {
+            callback(null);
+        });
+    };
+
+    /**
      * 存多筆訊息
      *
      * @param {string} appId
@@ -45,64 +84,6 @@ module.exports = (function() {
         });
     };
 
-    /**
-     * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
-     *
-     * @param {string[]|string} appIds
-     * @param {string|null} chatroomId
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, callback) {
-
-        if ('string' === typeof appIds) {
-            appIds = [appIds];
-        }
-        let appsChatroomsMessages = {};
-        Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
-                let chatrooms = snap.val() || {};
-                if (!chatroomId) {
-                    appsChatroomsMessages[appId] = {
-                        chatrooms: chatrooms
-                    };
-                    return;
-                }
-
-                let chatroom = chatrooms[chatroomId];
-                if (chatroom) {
-                    appsChatroomsMessages[appId] = {
-                        chatrooms: {
-                            [chatroomId]: chatroom
-                        }
-                    };
-                }
-            });
-        })).then(() => {
-            callback(appsChatroomsMessages);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-    /**
-     * 根據App ID, Chatroom ID, Message ID找到 Message 資訊
-     *
-     * @param {string} appId
-     * @param {string} chatroomId
-     * @param {Function} callback
-     */
-    AppsChatroomsMessages.prototype.findMessages = function(appId, chatroomId, callback) {
-        admin.database().ref('apps/' + appId + '/chatrooms/' + chatroomId + '/messages').once('value').then((snap) => {
-            let messages = snap.val();
-            if (null === messages || undefined === messages || '' === messages) {
-                return Promise.reject(new Error());
-            }
-            return Promise.resolve(messages);
-        }).then((messages) => {
-            callback(messages);
-        }).catch(() => {
-            callback(null);
-        });
-    };
     let instance = new AppsChatroomsMessages();
     return instance;
 })();
