@@ -41,17 +41,24 @@ module.exports = (function() {
      * @param {string[]} appIds
      * @param {(appsTags: any) => any} callback
      */
-    AppsTagsModel.prototype.find = function(appIds, callback) {
+    AppsTagsModel.prototype.find = function(appIds, tagId, callback) {
         Promise.resolve().then(() => {
-            let appsTagsMap = {};
-            if (!appIds || !(appIds instanceof Array)) {
-                return appsTagsMap;
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
             }
 
+            let appsTags = {};
             return Promise.all(appIds.map((appId) => {
-                appsTagsMap[appId] = {};
+                appsTags[appId] = {};
                 return admin.database().ref('apps/' + appId + '/tags').once('value').then((snap) => {
-                    appsTagsMap[appId].tags = (snap && snap.val()) || {};
+                    let tags = snap.val() || {};
+                    if (tagId && tags[tagId]) {
+                        appsTags[appId].tags = {
+                            [tagId]: tags[tagId]
+                        };
+                    } else {
+                        appsTags[appId].tags = tags;
+                    }
                 });
             })).then(() => {
                 // 最後的資料結構型式:
@@ -64,7 +71,7 @@ module.exports = (function() {
                 //       ⌞($tagId)
                 //         ⌞($data)
                 // }
-                return appsTagsMap;
+                return appsTags;
             });
         }).then((result) => {
             callback(result);
@@ -77,7 +84,7 @@ module.exports = (function() {
      * 將預設的 tag 資料批次新增到指定的 app 裡，完成插入後回傳所有 tag ID
      *
      * @param {string} appId
-     * @param {(tagIds: any[]|null) => any} callback
+     * @param {(appsTags: any|null) => any} callback
      */
     AppsTagsModel.prototype.insertDefaultTags = function(appId, callback) {
         let defaultTags = [{
@@ -141,7 +148,11 @@ module.exports = (function() {
             sets: [''],
             setsType: setsTypeEnum.TEXT
         }];
-
+        let appsTags = {
+            [appId]: {
+                tags: {}
+            }
+        };
         Promise.all(defaultTags.map((tag, idx) => {
             tag.order = idx;
             tag.createdTime = tag.updatedTime = Date.now();
@@ -149,17 +160,10 @@ module.exports = (function() {
             let postTagData = Object.assign(AppsTagsModel._schema(), tag);
             return admin.database().ref('apps/' + appId + '/tags').push(postTagData).then((ref) => {
                 let tagId = ref.key;
-                let appsTags = {
-                    [appId]: {
-                        tags: {
-                            [tagId]: postTagData
-                        }
-                    }
-                };
-                return appsTags;
+                appsTags[appId].tags[tagId] = postTagData;
             });
-        })).then((data) => {
-            callback(data || []);
+        })).then(() => {
+            callback(appsTags);
         }).catch(() => {
             callback(null);
         });

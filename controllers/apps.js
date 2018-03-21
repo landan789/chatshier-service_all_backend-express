@@ -254,7 +254,7 @@ apps.postOne = (req, res, next) => {
             });
         });
     }).then((apps) => {
-        var appId = Object.keys(apps).shift();
+        var appId = Object.keys(apps).shift() || '';
         return new Promise((resolve, reject) => {
             appsTagsMdl.insertDefaultTags(appId, (tags) => {
                 if (!tags) {
