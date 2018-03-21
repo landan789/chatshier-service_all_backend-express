@@ -42,6 +42,8 @@ module.exports = (function() {
         admin.database().ref('users/' + userId + '/calendar_id').once('value', snap => {
             let data = snap.val();
             callback(data);
+        }).catch(() => {
+            callback(null);
         });
     };
 
