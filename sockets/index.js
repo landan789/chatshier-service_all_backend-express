@@ -179,7 +179,7 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-                if (!(_messages && _messages.length > 0)) {
+                if (!(_messages && Object.keys(_messages).length > 0)) {
                     return;
                 }
 
