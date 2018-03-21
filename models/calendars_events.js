@@ -122,17 +122,8 @@ calendarsEvents.update = (calendarId, eventId, event, callback) => {
     });
 };
 
-calendarsEvents.remove = (userId, eventId, callback) => {
+calendarsEvents.remove = (calendarId, eventId, callback) => {
     Promise.resolve().then(() => {
-        return admin.database().ref('users/' + userId + '/calendar_id').once('value', (snap) => {
-            let calendarId = snap.val();
-            if (null === calendarId || undefined === calendarId || '' === calendarId) {
-                callback();
-                return;
-            }
-            callback(calendarId);
-        });
-    }).then((calendarId) => {
         var event = {
             isDeleted: 1
         };
