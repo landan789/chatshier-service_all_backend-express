@@ -125,6 +125,7 @@ module.exports = (function() {
             }).then((_messager) => {
                 !isExist && (_messager.createdTime = Date.now());
                 _messager.updatedTime = Date.now();
+                _messager._id = this.Types.ObjectId(messagerId);
 
                 let findQuery = {
                     '_id': appId
@@ -133,20 +134,15 @@ module.exports = (function() {
                 let updateOper = {};
                 if (isExist) {
                     findQuery['messagers._id'] = messagerId;
-
                     updateOper.$set = {
-                        'messagers.$._id': messagerId
+                        'messagers.$': _messager
                     };
-                    for (let prop in _messager) {
-                        updateOper.$set['messagers.$.' + prop] = _messager[prop];
-                    }
                 } else {
-                    _messager._id = this.Types.ObjectId(messagerId);
                     updateOper.$push = {
-                        messagers: _messager
+                        'messagers': _messager
                     };
                 }
-                return this.AppsModel.findOneAndUpdate(findQuery, updateOper);
+                return this.AppsModel.update(findQuery, updateOper);
             }).then(() => {
                 return this.find(appId, messagerId);
             }).then((appsMessagers) => {
@@ -167,6 +163,12 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         remove(appId, messagerId, callback) {
+            let messager = {
+                _id: this.Types.ObjectId(messagerId),
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
             let findQuery = {
                 '_id': appId,
                 'messagers._id': messagerId
@@ -174,12 +176,11 @@ module.exports = (function() {
 
             let updateOper = {
                 $set: {
-                    'messagers.$._id': messagerId,
-                    'messagers.$.isDeleted': true
+                    'messagers.$': messager
                 }
             };
 
-            return this.AppsModel.findOneAndUpdate(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(findQuery, updateOper).then(() => {
                 return this.find(appId, messagerId);
             }).then((appsMessagers) => {
                 ('function' === typeof callback) && callback(appsMessagers);
