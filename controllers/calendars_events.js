@@ -162,14 +162,15 @@ calendarsEvents.putOne = (req, res, next) => {
 calendarsEvents.deleteOne = (req, res, next) => {
     let userId = req.params.userid;
     let eventId = req.params.eventid;
+    let calendarId = req.params.calendarid;
 
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             userMdl.findCalendarId(userId, (data) => {
-                var calendarId = data;
-                if (false === calendarId || undefined === calendarId || '' === calendarId) {
+                var calendarIds = [data];
+                if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
                     return;
                 }
@@ -178,7 +179,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.remove(userId, eventId, (result) => {
+            calendarsEventsMdl.remove(calendarId, eventId, (result) => {
                 if (undefined === result || '' === result || null === result) {
 
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
