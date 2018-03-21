@@ -128,21 +128,22 @@ module.exports = (function() {
                 _messager._id = this.Types.ObjectId(messagerId);
 
                 let findQuery = {
-                    '_id': appId
+                    '_id': appId,
+                    'messagers._id': messagerId
+                };
+                !isExist && delete findQuery['messagers._id'];
+
+                let updateOper = {
+                    $set: {
+                        'messagers': _messager
+                    }
                 };
 
-                let updateOper = {};
-                if (isExist) {
-                    findQuery['messagers._id'] = messagerId;
-                    updateOper.$set = {
-                        'messagers.$': _messager
-                    };
-                } else {
-                    updateOper.$push = {
-                        'messagers': _messager
-                    };
-                }
-                return this.AppsModel.update(findQuery, updateOper);
+                let options = {
+                    upsert: true
+                };
+
+                return this.AppsModel.update(findQuery, updateOper, options);
             }).then(() => {
                 return this.find(appId, messagerId);
             }).then((appsMessagers) => {

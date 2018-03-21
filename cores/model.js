@@ -36,11 +36,11 @@ module.exports = (function() {
         'messages': [{
             'from': String,
             'isDeleted': Boolean,
-            'messager_id': {type: Array, default: []},
+            'messager_id': {type: String, default: ''},
             'src': String,
             'text': String,
             'time': {type: Date, default: Date.now()},
-            'type': String
+            'type': {type: String, default: 'text'}
         }]
     });
 

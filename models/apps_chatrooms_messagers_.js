@@ -12,8 +12,9 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string|string[]} messagerIds
+         * @param {(appChatroomMessager: any) => any} [callback]
          */
-        find(appId, chatroomId, messagerIds) {
+        find(appId, chatroomId, messagerIds, callback) {
             if (!(messagerIds instanceof Array)) {
                 messagerIds = [messagerIds];
             }
@@ -59,6 +60,12 @@ module.exports = (function() {
                     return output;
                 }, {});
                 return appsChatroomsMessagers;
+            }).then((appChatroomMessagers) => {
+                ('function' === typeof callback) && callback(appChatroomMessagers);
+                return appChatroomMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
         }
 
@@ -78,7 +85,9 @@ module.exports = (function() {
 
             return Promise.all(messagerIds.map((messagerId) => {
                 return this.find(appId, chatroomId, messagerId).then((appsChatroomsMessagers) => {
-                    let messager = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+                    let isExist = !!appsChatroomsMessagers[appId];
+                    let messager = appsChatroomsMessagers[appId] ? appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId] : { unRead: 0 };
+
                     messager.unRead += unReadCount;
                     messager.updatedTime = Date.now();
                     messager._id = this.Types.ObjectId(messagerId);
@@ -88,44 +97,42 @@ module.exports = (function() {
                         'chatrooms._id': chatroomId,
                         'chatrooms.messagers._id': messagerId
                     };
+                    !isExist && delete findQuery['chatrooms.messagers._id'];
 
                     let updateOper = {
                         $set: {
-                            'chatrooms.$[chatroom].messagers.$[messager]': messager
+                            'chatrooms.$[chatroom].messagers.$': messager
                         }
                     };
 
                     let options = {
+                        upsert: true,
                         arrayFilters: [{
                             'chatroom._id': this.Types.ObjectId(chatroomId)
-                        }, {
-                            'messager._id': this.Types.ObjectId(messagerId)
                         }]
                     };
 
-                    return this.AppsModel.update(findQuery, updateOper, options).then(() => {
-                        return this.find(appId, chatroomId, messagerId);
-                    }).then((appsChatroomsMessagers) => {
-                        ('function' === typeof callback) && callback(appsChatroomsMessagers);
-                        return appsChatroomsMessagers;
-                    }).catch((err) => {
-                        console.log(err);
-                        ('function' === typeof callback) && callback(null);
-                        return null;
-                    });
+                    return this.AppsModel.update(findQuery, updateOper, options);
                 });
-            }));
+            })).then(() => {
+                return this.find(appId, chatroomId, messagerIds);
+            }).then((appsChatroomsMessagers) => {
+                ('function' === typeof callback) && callback(appsChatroomsMessagers);
+                return appsChatroomsMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
         };
 
         /**
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string} messagerId
-         * @param {(isSuccessful: boolean) => any} [callback]
-         * @returns {Promise<boolean>}
+         * @param {(appsChatroomsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
          */
         resetMessagerUnRead(appId, chatroomId, messagerId, callback) {
-            let isSuccess = false;
             let messager = {
                 _id: this.Types.ObjectId(messagerId),
                 unRead: 0,
@@ -145,6 +152,7 @@ module.exports = (function() {
             };
 
             let options = {
+                upsert: true,
                 arrayFilters: [{
                     'chatroom._id': this.Types.ObjectId(chatroomId)
                 }, {
@@ -153,12 +161,13 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(findQuery, updateOper, options).then(() => {
-                isSuccess = true;
-                ('function' === typeof callback) && callback(isSuccess);
-                return isSuccess;
+                return this.find(appId, chatroomId, messagerId);
+            }).then((appsChatroomsMessagers) => {
+                ('function' === typeof callback) && callback(appsChatroomsMessagers);
+                return appsChatroomsMessagers;
             }).catch(() => {
-                ('function' === typeof callback) && callback(isSuccess);
-                return isSuccess;
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
         };
     }
