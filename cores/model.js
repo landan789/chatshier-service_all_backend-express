@@ -181,7 +181,7 @@ module.exports = (function() {
     class ModelCore {
         constructor () {
             this.Types = mongoose.Types;
-
+            this.AutorepliesSchema = AutorepliesSchema;
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;
