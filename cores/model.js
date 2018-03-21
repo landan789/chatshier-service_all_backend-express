@@ -180,6 +180,8 @@ module.exports = (function() {
 
     class ModelCore {
         constructor () {
+            this.Types = mongoose.Types;
+
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;
@@ -188,8 +190,30 @@ module.exports = (function() {
             this.WebhooksSchema = WebhooksSchema;
         }
 
-        model (name, schema) {
-            return mongoose.model(name, schema);
+        model(collection, schema) {
+            return mongoose.model(collection, schema);
+        }
+
+        toObject(array) {
+            if (array && array._id) {
+                let output = {
+                    [array._id]: Object.assign({}, array)
+                };
+                delete output[array._id]._id;
+                return output;
+            } else if (!(array instanceof Array)) {
+                return array || {};
+            }
+
+            return array.reduce((output, curr) => {
+                if (!curr._id) {
+                    return output;
+                }
+
+                output[curr._id] = curr;
+                delete curr._id;
+                return output;
+            }, {});
         }
     };
 
