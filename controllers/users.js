@@ -105,7 +105,7 @@ module.exports = (function() {
 
             usersMdl.update(userId, userData, (users) => {
                 if (!users) {
-                    reject(API_SUCCESS.USER_FAILED_TO_UPDATE);
+                    reject(API_ERROR.USER_FAILED_TO_UPDATE);
                     return;
                 }
                 resolve(users);

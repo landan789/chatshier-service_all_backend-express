@@ -135,7 +135,8 @@ module.exports = (function() {
                         });
                     }).then(() => {
                         // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
-                        return appsChatroomsMdl.insert(appId).then((chatroomId) => {
+                        return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                            let chatroomId = Object.keys(appsChatrooms[appId].chatrooms).shift();
                             let members = Object.values(groups[groupId].members);
                             return Promise.all(members.map((member) => {
                                 let messager = {

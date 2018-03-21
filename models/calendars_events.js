@@ -14,13 +14,8 @@ calendarsEvents._schema = (callback) => {
     callback(json);
 };
 
-calendarsEvents.find = (userId, callback) => {
+calendarsEvents.find = (calendarId, callback) => {
     Promise.resolve().then(() => {
-        return admin.database().ref('users/' + userId + '/calendar_id').once('value').then((snap) => {
-            let calendarId = snap.val() || '';
-            return calendarId;
-        });
-    }).then((calendarId) => {
         if (!calendarId) {
             return {};
         }
@@ -40,35 +35,14 @@ calendarsEvents.find = (userId, callback) => {
     });
 };
 
-calendarsEvents.insert = (userId, event, callback) => {
+calendarsEvents.insert = (calendarId, event, callback) => {
     Promise.resolve().then(() => {
-        return admin.database().ref('users/' + userId).once('value').then((snap) => {
-            let user = snap.val();
-            if (!user) {
-                return Promise.reject(new Error());
-            }
-            return user;
-        });
-    }).then((user) => {
-        let calendarId = user.calendar_id;
         if (!calendarId) {
             // 首次插入資料時不會有 calendarId
             // 因此須自行新增一個 calendarId
-            let calendarsRef = admin.database().ref('calendars').push();
-            calendarId = calendarsRef.key;
-
-            return calendarsRef.then(() => {
-                let userCalendarId = {
-                    calendar_id: calendarId
-                };
-
-                // 插入事件至指定的行事曆並同時更新使用者的 calendar_id 欄位
-                return Promise.all([
-                    admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value'),
-                    admin.database().ref('users/' + userId).update(userCalendarId)
-                ]);
-            }).then((result) => {
-                return result[0];
+            return admin.database().ref('calendars').push().then((calendarsRef) => {
+                calendarId = calendarsRef.key;
+                return admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value');
             });
         }
 
