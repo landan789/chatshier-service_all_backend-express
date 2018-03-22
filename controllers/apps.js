@@ -221,7 +221,7 @@ apps.postOne = (req, res, next) => {
 
         // userIds 此群組底下所有成員 userIDs
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -360,7 +360,7 @@ apps.putOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -464,7 +464,7 @@ apps.deleteOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             };
         });

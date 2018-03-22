@@ -86,7 +86,7 @@ module.exports = (function() {
                 var members = group.members;
 
                 var userIds = Object.values(members).map((member) => {
-                    if (0 === member.isDeleted) {
+                    if (!member.isDeleted) {
                         return member.user_id;
                     }
                 });

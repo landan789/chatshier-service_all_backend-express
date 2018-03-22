@@ -140,16 +140,15 @@ module.exports = (function() {
             var bodyMemberId = Object.keys(members)[bodyIndex];
             var bodyMember = members[bodyMemberId];
 
-            if (0 <= bodyIndex && 0 === bodyMember.isDeleted) {
+            if (0 <= bodyIndex && !bodyMember.isDeleted) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
             }
             if (WRITE === paramsMember.type || READ === paramsMember.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
             };
 
-            if (0 <= bodyIndex && 1 === bodyMember.isDeleted) {
+            if (0 <= bodyIndex && bodyMember.isDeleted) {
                 var _member = {
-                    isDeleted: 0,
                     status: 0
                 };
                 return new Promise((resolve, reject) => {
@@ -195,8 +194,7 @@ module.exports = (function() {
                                 // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
                                 let messager = appMessagers[appId].messagers[userId];
                                 let newMessager = {
-                                    chatroom_id: messager.chatroom_id,
-                                    isDeleted: 0
+                                    chatroom_id: messager.chatroom_id
                                 };
                                 return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
                             });
