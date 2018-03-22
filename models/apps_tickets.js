@@ -14,19 +14,9 @@ var appsTickets = {
         callback(json);
     },
 
-    findTickets: (appId, callback) => {
-        admin.database().ref('apps/' + appId + '/tickets').once('value', snap => {
-            var tickets = snap.val();
-            if ('' === tickets || undefined === tickets || null === tickets) {
-                callback(null);
-                return;
-            }
-
-            callback(tickets);
-        });
-    },
     /**
-     * @param {string[]} appIds
+     * @param {string|string[]} appIds
+     * @param {string|null} ticketId
      * @param {(appTickets: any) => any} callback
      */
     find: (appIds, ticketId, callback) => {

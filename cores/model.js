@@ -96,6 +96,7 @@ module.exports = (function() {
     let TicketsSchema = new mongoose.Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
+        'description': {type: String, default: ''},
         'dueTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'messager_id': String,
