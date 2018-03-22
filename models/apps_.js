@@ -27,13 +27,17 @@ module.exports = (function() {
         }
         find(appIds, webhookId, callback) {
             var apps = {};
-            if ('string' === typeof appIds) {
+            if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             };
             Promise.resolve().then(() => {
-                if (0 === appIds.length) {
-                    return this.AppsModel.find().then((__apps) => {
-                        apps = __apps;
+                if (!appIds) {
+                    return this.AppsModel.find({}).then((__apps) => {
+                        apps = __apps.reduce((output, curr) => {
+                            Object.assign(output, this.toObject(curr._doc));
+                            return output;
+                        }, {});
+                        return apps;
                     });
                 }
                 return Promise.all(appIds.map((appId) => {
@@ -71,7 +75,6 @@ module.exports = (function() {
         }
 
         insert(userId, postApp, callback) {
-
             let apps = {};
             let _apps = new this.AppsModel();
             _apps.id1 = postApp.id1 || '';
@@ -83,7 +86,7 @@ module.exports = (function() {
             _apps.type = postApp.type || '';
             _apps.group_id = postApp.group_id;
             _apps.webhook_id = postApp.webhook_id;
-            _apps.isDeleted = 0;
+            _apps.isDeleted = false;
             _apps.updatedTime = Date.now();
             _apps.createdTime = Date.now();
             _apps.webhook_id = postApp.webhook_id;
