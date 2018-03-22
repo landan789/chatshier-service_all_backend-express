@@ -26,7 +26,7 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(userId, (data) => {
+                usersMdl.find(userId, null, (data) => {
                     let user = data;
                     if (undefined === user || null === user || '' === user) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
@@ -77,7 +77,7 @@ module.exports = (function() {
                     return reject(API_ERROR.NAME_WAS_EMPTY);
                 };
 
-                usersMdl.find(userId, (user) => {
+                usersMdl.find(userId, null, (user) => {
                     if (!user) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
