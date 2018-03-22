@@ -133,11 +133,10 @@ module.exports = (function() {
                 };
                 !isExist && delete findQuery['messagers._id'];
 
-                let updateOper = {
-                    $set: {
-                        'messagers': _messager
-                    }
-                };
+                let updateOper = { $set: {} };
+                for (let prop in _messager) {
+                    updateOper.$set['messagers.$.' + prop] = _messager[prop];
+                }
 
                 let options = {
                     upsert: true
@@ -175,11 +174,10 @@ module.exports = (function() {
                 'messagers._id': messagerId
             };
 
-            let updateOper = {
-                $set: {
-                    'messagers.$': messager
-                }
-            };
+            let updateOper = { $set: {} };
+            for (let prop in messager) {
+                updateOper.$set['messagers.$.' + prop] = messager[prop];
+            }
 
             return this.AppsModel.update(findQuery, updateOper).then(() => {
                 return this.find(appId, messagerId);

@@ -103,11 +103,10 @@ module.exports = (function() {
                     'chatrooms._id': chatroomId
                 };
 
-                let updateOper = {
-                    $set: {
-                        'chatrooms.$[chatroom].messages.$': _message
-                    }
-                };
+                let updateOper = { $set: {} };
+                for (let prop in _message) {
+                    updateOper.$set['chatrooms.$[chatroom].messages.$.' + prop] = _message[prop];
+                }
 
                 let options = {
                     upsert: true,

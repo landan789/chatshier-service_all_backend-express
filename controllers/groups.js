@@ -124,7 +124,7 @@ module.exports = (function() {
                         });
                     });
                 }).then((apps) => {
-                    let appId = Object.keys(apps).shift();
+                    let appId = Object.keys(apps).shift() || '';
                     // 將預設的客戶分類條件資料新增至 App 中
                     return new Promise((resolve, reject) => {
                         appsTagsMdl.insertDefaultTags(appId, (tags) => {
