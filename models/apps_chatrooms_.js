@@ -49,7 +49,11 @@ module.exports = (function() {
                 }
 
                 let appsChatrooms = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { chatrooms: {} };
+                    if (!output[curr._id]) {
+                        output[curr._id] = {
+                            chatrooms: {}
+                        };
+                    }
                     Object.assign(output[curr._id].chatrooms, this.toObject(curr.chatrooms));
                     return output;
                 }, {});
@@ -75,13 +79,17 @@ module.exports = (function() {
                 createdTime: Date.now()
             };
 
+            let findQuery = {
+                '_id': appId
+            };
+
             let updateOper = {
                 $push: {
                     chatrooms: chatroom
                 }
             };
 
-            return this.AppsModel.findByIdAndUpdate(appId, updateOper).then(() => {
+            return this.AppsModel.update(findQuery, updateOper).then(() => {
                 return this.find(appId, chatroomId);
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
