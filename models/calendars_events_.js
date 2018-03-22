@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const CALENDARS = 'calendars';
-    const CALENDAR_NOT_FOUND = 'CALENDAR_NOT_FOUND';
+    const CALENDAR_WAS_NOT_FOUND = 'CALENDAR_WAS_NOT_FOUND';
 
     class CalendarsEvents extends ModelCore {
         constructor() {
@@ -54,13 +54,13 @@ module.exports = (function() {
                     return this.CalendarsModel.aggregate(aggregations);
                 }).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error(CALENDAR_NOT_FOUND));
+                        return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
                     }
 
-                    let calendarEvents = results.reduce((calendar, curr) => {
-                        calendar[curr._id] = calendar[curr._id] || {events: {}};
-                        Object.assign(calendar[curr._id].events, this.toObject(curr.events));
-                        return calendar;
+                    let calendarEvents = results.reduce((output, calendar) => {
+                        output[calendar._id] = output[calendar._id] || {events: {}};
+                        Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                        return output;
                     }, {});
                     return calendarEvents;
                 });
@@ -185,13 +185,13 @@ module.exports = (function() {
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(CALENDAR_NOT_FOUND));
+                    return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
                 }
 
-                let calendarEvents = results.reduce((calendar, curr) => {
-                    calendar[curr._id] = calendar[curr._id] || {events: {}};
-                    Object.assign(calendar[curr._id].events, this.toObject(curr.events));
-                    return calendar;
+                let calendarEvents = results.reduce((output, calendar) => {
+                    output[calendar._id] = output[calendar._id] || {events: {}};
+                    Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                    return output;
                 }, {});
                 return calendarEvents;
             }).then((calendarEvents) => {

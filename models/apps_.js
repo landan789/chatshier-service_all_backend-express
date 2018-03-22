@@ -32,9 +32,12 @@ module.exports = (function() {
             };
             Promise.resolve().then(() => {
                 if (!appIds) {
-                    return this.AppsModel.find({'isDeleted': false}).then((__apps) => {
-                        apps = __apps.reduce((output, curr) => {
-                            Object.assign(output, this.toObject(curr._doc));
+                    let query = {
+                        'isDeleted': false
+                    };
+                    return this.AppsModel.find(query).then((__apps) => {
+                        apps = __apps.reduce((output, app) => {
+                            Object.assign(output, this.toObject(app._doc));
                             return output;
                         }, {});
                         return apps;
@@ -127,7 +130,6 @@ module.exports = (function() {
         }
 
         remove(appId, callback) {
-            var app = {};
             let query = {
                 '_id': appId
             };
@@ -137,8 +139,8 @@ module.exports = (function() {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppsModel.findOne(query).then((__apps) => {
-                    return this.toObject(__apps._doc);
+                return this.AppsModel.findOne(query).then((app) => {
+                    return this.toObject(app._doc);
                 });
             }).then((app) => {
                 ('function' === typeof callback) && callback(app);

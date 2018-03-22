@@ -29,13 +29,13 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                usersMdl.find(userId, (data) => {
+                usersMdl.find(userId, null, (users) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                    if (!data) {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -86,7 +86,7 @@ module.exports = (function() {
                 var members = group.members;
 
                 var userIds = Object.values(members).map((member) => {
-                    if (0 === member.isDeleted) {
+                    if (!member.isDeleted) {
                         return member.user_id;
                     }
                 });

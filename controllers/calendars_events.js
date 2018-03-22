@@ -55,8 +55,7 @@ calendarsEvents.postOne = (req, res, next) => {
         startedTime: undefined === req.body.startedTime ? null : req.body.startedTime,
         endedTime: undefined === req.body.endedTime ? null : req.body.endedTime,
         description: undefined === req.body.description ? null : req.body.description,
-        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay,
-        isDeleted: 0
+        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay
     };
     let proceed = Promise.resolve();
 

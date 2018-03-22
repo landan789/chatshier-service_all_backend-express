@@ -19,16 +19,16 @@ apps.getAll = (req, res, next) => {
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;
-            if ('' === userId || null === userId || undefined === userId) {
+            if (!userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             };
-            usersMdl.find(userId, (user) => {
-                if (null === user) {
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -89,12 +89,12 @@ apps.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.find(userId, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -192,12 +192,13 @@ apps.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.find(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -220,7 +221,7 @@ apps.postOne = (req, res, next) => {
 
         // userIds 此群組底下所有成員 userIDs
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -323,12 +324,13 @@ apps.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.find(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -358,7 +360,7 @@ apps.putOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -426,12 +428,13 @@ apps.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.find(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -461,7 +464,7 @@ apps.deleteOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             };
         });

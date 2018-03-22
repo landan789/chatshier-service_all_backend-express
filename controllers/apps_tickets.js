@@ -85,8 +85,7 @@ module.exports = (function() {
             dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
             priority: req.body.priority === undefined ? '' : req.body.priority,
             messager_id: req.body.messager_id === undefined ? '' : req.body.messager_id,
-            status: req.body.status === undefined ? '' : req.body.status,
-            isDeleted: 0
+            status: req.body.status === undefined ? '' : req.body.status
         };
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;

@@ -658,7 +658,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 if (!tagsData) {
                     return;
                 }
-                tagsData.isDeleted = 1;
+                tagsData.isDeleted = true;
             });
 
             // 所有資料載入完後展開第一個 collapse
@@ -864,7 +864,7 @@ window.googleClientHelper.loadAPI().then(function() {
             instance.hideCollapseAll(groupId);
             var members = groupData.members;
             var userIds = Object.values(members).map((member) => {
-                if (0 === member.isDeleted) {
+                if (!member.isDeleted) {
                     return member.user_id;
                 };
             });

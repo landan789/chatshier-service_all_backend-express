@@ -38,7 +38,7 @@ let jobProcess = () => {
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
-            if (CHATSHIER === app.type || 1 === app.isDeleted) {
+            if (CHATSHIER === app.type || app.isDeleted) {
                 return Promise.resolve([]);
             }
 
@@ -59,7 +59,7 @@ let jobProcess = () => {
                     if (composes[composeId].text &&
                         1 === composes[composeId].status &&
                         timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                        0 === composes[composeId].isDeleted
+                        !composes[composeId].isDeleted
                     ) {
                         let message = {
                             type: composes[composeId].type,
