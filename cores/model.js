@@ -108,18 +108,6 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false}
     });
 
-    let FieldsSchema = new mongoose.Schema({
-        'text': String,
-        'alias': String,
-        'type': {type: String, default: 'CUSTOM'},
-        'sets': {type: Array, default: ['']},
-        'setsType': {type: String, default: 'TEXT'},
-        'order': {type: Number, default: 0},
-        'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()},
-        'isDeleted': {type: Boolean, default: false}
-    });
-
     let TicketsSchema = new mongoose.Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
