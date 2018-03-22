@@ -288,7 +288,7 @@
             let data = resJson.data;
             let richmenus = data[appId].richmenus;
             for (let richmenuId in richmenus) {
-                if (richmenus[richmenuId].isDeleted !== 1) {
+                if (!richmenus[richmenuId].isDeleted) {
                     groupType(richmenuId, richmenus[richmenuId], appId);
                 }
             }

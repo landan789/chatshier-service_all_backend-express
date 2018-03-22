@@ -17,12 +17,12 @@ module.exports = (function() {
                     return;
                 }
 
-                usersMdl.find(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((data) => {
