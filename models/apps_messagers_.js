@@ -4,6 +4,17 @@ module.exports = (function() {
     const CHAT_COUNT_INTERVAL_TIME = 900000;
     const MESSAGERS_NOT_FOUND = 'MESSAGERS_NOT_FOUND';
 
+    const docUnwind = {
+        $unwind: '$messagers' // 只針對 document 處理
+    };
+
+    const docOutput = {
+        $project: {
+            // 篩選需要的項目
+            messagers: 1
+        }
+    };
+
     class AppsMessagersModel extends ModelCore {
         constructor() {
             super();
@@ -21,24 +32,24 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
+            // 尋找符合的欄位
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false
+            };
+            if (messagerId) {
+                query['messagers._id'] = this.Types.ObjectId(messagerId);
+                query['messagers.isDeleted'] = false;
+            }
+
             let aggregations = [
+                docUnwind,
                 {
-                    // 只針對特定 document 處理
-                    $unwind: '$messagers'
-                }, {
-                    $match: {
-                        // 尋找符合 ID 的欄位
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'messagers._id': this.Types.ObjectId(messagerId)
-                    }
-                }, {
-                    // 篩選項目
-                    $project: {
-                        messagers: 1
-                    }
-                }
+                    $match: query
+                },
+                docOutput
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
@@ -127,11 +138,11 @@ module.exports = (function() {
                 _messager.updatedTime = Date.now();
                 _messager._id = this.Types.ObjectId(messagerId);
 
-                let findQuery = {
+                let query = {
                     '_id': appId,
                     'messagers._id': messagerId
                 };
-                !isExist && delete findQuery['messagers._id'];
+                !isExist && delete query['messagers._id'];
 
                 let updateOper = { $set: {} };
                 for (let prop in _messager) {
@@ -142,7 +153,7 @@ module.exports = (function() {
                     upsert: true
                 };
 
-                return this.AppsModel.update(findQuery, updateOper, options);
+                return this.AppsModel.update(query, updateOper, options);
             }).then(() => {
                 return this.find(appId, messagerId);
             }).then((appsMessagers) => {
@@ -169,7 +180,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let findQuery = {
+            let query = {
                 '_id': appId,
                 'messagers._id': messagerId
             };
@@ -179,7 +190,7 @@ module.exports = (function() {
                 updateOper.$set['messagers.$.' + prop] = messager[prop];
             }
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, messagerId);
             }).then((appsMessagers) => {
                 ('function' === typeof callback) && callback(appsMessagers);

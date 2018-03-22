@@ -2,6 +2,17 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
+    const docUnwind = {
+        $unwind: '$tickets' // 只針對 document 處理
+    };
+
+    const docOutput = {
+        $project: {
+            // 篩選需要的項目
+            tickets: 1
+        }
+    };
+
     class AppsTicketsModel extends ModelCore {
         constructor() {
             super();
@@ -19,24 +30,23 @@ module.exports = (function() {
             }
 
             // 尋找符合的欄位
-            let findQuery = {
+            let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false
             };
-            ticketId && (findQuery['tickets._id'] = this.Types.ObjectId(ticketId));
+            if (ticketId) {
+                query['tickets._id'] = this.Types.ObjectId(ticketId);
+                query['tickets.isDeleted'] = false;
+            }
 
             let aggregations = [
+                docUnwind,
                 {
-                    $unwind: '$tickets' // 只針對 document 處理
-                }, {
-                    $match: findQuery
-                }, {
-                    $project: {
-                        // 篩選項目
-                        tickets: 1
-                    }
-                }
+                    $match: query
+                },
+                docOutput
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
@@ -69,7 +79,7 @@ module.exports = (function() {
             ticket._id = ticketId;
             ticket.createdTime = ticket.updatedTime = Date.now();
 
-            let findQuery = {
+            let query = {
                 '_id': appId
             };
 
@@ -79,7 +89,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, ticketId);
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
@@ -100,7 +110,7 @@ module.exports = (function() {
             ticket._id = ticketId;
             ticket.updatedTime = Date.now();
 
-            let findQuery = {
+            let query = {
                 '_id': appId,
                 'tickets._id': ticketId
             };
@@ -110,7 +120,7 @@ module.exports = (function() {
                 updateOper.$set['tickets.$.' + prop] = ticket[prop];
             }
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, ticketId);
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
@@ -128,9 +138,49 @@ module.exports = (function() {
          */
         remove(appId, ticketId, callback) {
             let ticket = {
-                isDeleted: true
+                _id: ticketId,
+                isDeleted: true,
+                updatedTime: Date.now()
             };
-            return this.update(appId, ticketId, ticket, callback);
+
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'tickets._id': this.Types.ObjectId(ticketId)
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in ticket) {
+                updateOper.$set['tickets.$.' + prop] = ticket[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                let aggregations = [
+                    docUnwind,
+                    {
+                        $match: query
+                    },
+                    docOutput
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                    }
+
+                    let appsTickets = results.reduce((output, curr) => {
+                        output[curr._id] = output[curr._id] || { tickets: {} };
+                        Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
+                        return output;
+                    }, {});
+                    return appsTickets;
+                });
+            }).then((appsTickets) => {
+                ('function' === typeof callback) && callback(appsTickets);
+                return appsTickets;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
         }
     }
 

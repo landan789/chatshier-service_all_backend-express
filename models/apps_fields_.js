@@ -83,6 +83,17 @@ module.exports = (function() {
         }
     ];
 
+    const docUnwind = {
+        $unwind: '$fields' // 只針對 document 處理
+    };
+
+    const docOutput = {
+        // 篩選輸出項目
+        $project: {
+            fields: 1
+        }
+    };
+
     class AppsFieldsModel extends ModelCore {
         constructor() {
             super();
@@ -98,6 +109,10 @@ module.exports = (function() {
          * @param {any} appsFields
          */
         replaceToTags(appsFields) {
+            if (!(appsFields && Object.keys(appsFields).length > 0)) {
+                return appsFields;
+            }
+
             let appsTags = {};
             for (let appId in appsFields) {
                 appsTags[appId] = {};
@@ -118,27 +133,30 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            let findQuery = {
+            let query = {
                 // 尋找符合的欄位
                 '_id': {
                     $in: appIds.map((fieldId) => this.Types.ObjectId(fieldId))
-                }
+                },
+                'isDeleted': false
             };
-            fieldId && (findQuery['fields._id'] = this.Types.ObjectId(fieldId));
+            if (fieldId) {
+                query['fields._id'] = this.Types.ObjectId(fieldId);
+                query['fields.isDeleted'] = false;
+            }
 
             let aggregations = [
+                docUnwind,
                 {
-                    $unwind: '$fields' // 只針對 document 處理
-                }, {
-                    $match: findQuery
-                }, {
-                    // 篩選輸出項目
-                    $project: {
-                        fields: 1
-                    }
-                }
+                    $match: query
+                },
+                docOutput
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                }
+
                 let appsFields = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
@@ -170,7 +188,7 @@ module.exports = (function() {
             field._id = fieldId;
             field.createdTime = field.updatedTime = Date.now();
 
-            let findQuery = {
+            let query = {
                 '_id': appId
             };
 
@@ -180,7 +198,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, fieldId);
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
@@ -230,7 +248,7 @@ module.exports = (function() {
             field._id = fieldId;
             field.updatedTime = Date.now();
 
-            let findQuery = {
+            let query = {
                 '_id': appId,
                 'fields._id': fieldId
             };
@@ -240,7 +258,7 @@ module.exports = (function() {
                 updateOper.$set['fields.$.' + prop] = field[prop];
             }
 
-            return this.AppsModel.update(findQuery, updateOper, { new: false }).then(() => {
+            return this.AppsModel.update(query, updateOper, { new: false }).then(() => {
                 return this.find(appId, fieldId);
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
@@ -263,9 +281,9 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let findQuery = {
-                '_id': appId,
-                'fields._id': fieldId
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'fields._id': this.Types.ObjectId(fieldId)
             };
 
             let updateOper = { $set: {} };
@@ -273,8 +291,31 @@ module.exports = (function() {
                 updateOper.$set['fields.$.' + prop] = field[prop];
             }
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
-                return this.find(appId, fieldId);
+            return this.AppsModel.update(query, updateOper).then(() => {
+                let aggregations = [
+                    docUnwind,
+                    {
+                        $match: query
+                    },
+                    docOutput
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                    }
+
+                    let appsFields = results.reduce((output, curr) => {
+                        if (!output[curr._id]) {
+                            output[curr._id] = {
+                                fields: {}
+                            };
+                        }
+                        Object.assign(output[curr._id].fields, this.toObject(curr.fields));
+                        return output;
+                    }, {});
+                    return this.replaceToTags(appsFields);
+                });
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
