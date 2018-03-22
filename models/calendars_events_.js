@@ -1,7 +1,7 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const CALENDARS = 'calendars';
-    const CALENDAR_NOT_FOUND = 'CALENDAR_NOT_FOUND';
+    const CALENDAR_DID_NOT_FOUND = 'CALENDAR_DID_NOT_FOUND';
 
     class CalendarsEvents extends ModelCore {
         constructor() {
@@ -54,7 +54,7 @@ module.exports = (function() {
                     return this.CalendarsModel.aggregate(aggregations);
                 }).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error(CALENDAR_NOT_FOUND));
+                        return Promise.reject(new Error(CALENDAR_DID_NOT_FOUND));
                     }
 
                     let calendarEvents = results.reduce((calendar, curr) => {
@@ -185,7 +185,7 @@ module.exports = (function() {
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(CALENDAR_NOT_FOUND));
+                    return Promise.reject(new Error(CALENDAR_DID_NOT_FOUND));
                 }
 
                 let calendarEvents = results.reduce((calendar, curr) => {
