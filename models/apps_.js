@@ -92,7 +92,7 @@ module.exports = (function() {
             _apps.isDeleted = false;
             _apps.updatedTime = Date.now();
             _apps.createdTime = Date.now();
-            _apps.webhook_id = postApp.webhook_id;
+
             return _apps.save().then((__apps) => {
                 let query = {
                     '_id': __apps._id
@@ -112,14 +112,16 @@ module.exports = (function() {
             let query = {
                 '_id': appId
             };
-            let apps = {};
+
             return this.AppsModel.update(query, {
                 $set: putApp
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppsModel.findOne(query);
+                return this.AppsModel.findOne(query).select(this.project);
+            }).then((app) => {
+                return this.toObject(app._doc);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return Promise.resolve(apps);
@@ -133,18 +135,19 @@ module.exports = (function() {
             let query = {
                 '_id': appId
             };
+
             return this.AppsModel.update(query, {
                 $set: {isDeleted: true}
             }).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
-                return this.AppsModel.findOne(query).then((app) => {
-                    return this.toObject(app._doc);
-                });
+                return this.AppsModel.findOne(query).select(this.project);
             }).then((app) => {
-                ('function' === typeof callback) && callback(app);
-                return Promise.resolve(app);
+                return this.toObject(app._doc);
+            }).then((apps) => {
+                ('function' === typeof callback) && callback(apps);
+                return Promise.resolve(apps);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return Promise.reject(null);
