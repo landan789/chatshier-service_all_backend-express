@@ -298,7 +298,7 @@ module.exports = (function() {
             var index = userIds.indexOf(req.params.userid);
 
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
@@ -409,7 +409,7 @@ module.exports = (function() {
 
             var index = groupUserIds.indexOf(userId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
 
             var _memberId = Object.keys(members)[index];
