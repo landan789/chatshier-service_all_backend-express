@@ -22,7 +22,7 @@ module.exports = (function() {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
-            Promise.resolve().then(() => {
+            return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
                     let findQuery = {
                         '_id': this.Types.ObjectId(appId),
@@ -113,25 +113,16 @@ module.exports = (function() {
 
         insert(appId, postautoreply, callback) {
             let autoreplyId = this.Types.ObjectId();
-            let newAutoreply = {
-                _id: autoreplyId,
-                createdTime: postautoreply.createdTime,
-                endedTime: postautoreply.endedTime || '',
-                isDeleted: false,
-                startedTime: postautoreply.startedTime || '',
-                text: postautoreply.text || '',
-                title: postautoreply.title || '',
-                type: postautoreply.type || '',
-                updatedTime: postautoreply.updatedTime || ''
-            };
+            postautoreply._id = autoreplyId;
             return this.AppsModel.findById(appId).then((app) => {
-                app.autoreplies.push(newAutoreply);
+                app.autoreplies.push(postautoreply);
                 return app.save();
             }).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
+                console.log(appsAutoreplies);
                 ('function' === typeof callback) && callback(appsAutoreplies);
-                return appsAutoreplies;
+                return Promise.resolve(appsAutoreplies);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
