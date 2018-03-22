@@ -68,8 +68,8 @@ module.exports = (function() {
 
     let GreetingsSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
-        'text': String,
-        'type': String,
+        'text': {type: String, default: ''},
+        'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()}
     });
