@@ -156,7 +156,7 @@ function init(server) {
                 return totalMessages.length > 0 && appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, sender.chatroom_id, messagerIds, totalMessages.length);
             }).then(() => {
                 return totalMessages.length > 0 && new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.insertMessages(appId, sender.chatroom_id, totalMessages, (messages) => {
+                    appsChatroomsMessagesMdl.insert(appId, sender.chatroom_id, totalMessages, (messages) => {
                         if (!messages) {
                             reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         };
@@ -258,7 +258,7 @@ function init(server) {
                         return botSvc.pushMessage(recipientId, message, srcBuffer, appId, app);
                     }).then(() => {
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, message, (messagesInDB) => {
+                            appsChatroomsMessagesMdl.insert(appId, chatroomId, message, (messagesInDB) => {
                                 if (!messagesInDB) {
                                     reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
                                     return;
@@ -480,7 +480,7 @@ function init(server) {
                         };
 
                         return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insertMessages(appId, chatroomId, _message, (messagesInDB) => {
+                            appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (messagesInDB) => {
                                 if (!messagesInDB) {
                                     reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                                 };

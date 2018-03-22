@@ -1,4 +1,10 @@
 let groups_mdl = require('../models/groups_.js');
+let appsChatroomsMdl = require('../models/apps_chatrooms_.js');
+let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers_.js');
+let appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages_.js');
+let appsComposesMdl = require('../models/apps_composes_.js');
+let appsFieldsMdl = require('../models/apps_fields_.js');
+let appsTicketsMdl = require('../models/apps_tickets_.js');
 
 let userId = '5aaa2c5a84297108d14b731c';
 let groupId = '5aab75f3691cde41d84b0778';
@@ -11,9 +17,9 @@ let _group = {
     name: '_群組名稱'
 };
 
-groups_mdl.insert(userId, group, (data) => {
-    console.log(JSON.stringify(data, null, 2));
-});
+// groups_mdl.insert(userId, group, (data) => {
+//     console.log(JSON.stringify(data, null, 2));
+// });
 
 // groups_mdl.find(groupId, userId, (data) => {
 //     console.log(JSON.stringify(data, null, 2));
@@ -30,6 +36,155 @@ groups_mdl.insert(userId, group, (data) => {
 // groups_mdl.findUserIds(groupId, (data) => {
 // console.log(JSON.stringify(data, null, 2));
 // });
+
+function testAppsChatrooms(appId) {
+    console.log('--- Test AppsChatrooms Start ---');
+
+    return appsChatroomsMdl.insert(appId).then((inserted) => {
+        console.log('--- inserted ---');
+        console.log(JSON.stringify(inserted, void 0, 2));
+    }).then(() => {
+        console.log('--- Test AppsChatrooms End ---');
+    });
+}
+
+function testAppsChatroomsMessagers(appId, chatroomId) {
+    console.log('--- Test AppsChatroomsMessagers Start ---');
+
+    let messagerId1 = appsChatroomsMessagersMdl.Types.ObjectId();
+    let messagerId2 = appsChatroomsMessagersMdl.Types.ObjectId();
+    return appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, chatroomId, [messagerId1, messagerId2]).then((updated) => {
+        console.log('--- unRead updated ---');
+        console.log(JSON.stringify(updated, void 0, 2));
+    }).then(() => {
+        return appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, chatroomId, messagerId1, 2).then((updated) => {
+            console.log('--- unRead updated 2 ---');
+            console.log(JSON.stringify(updated, void 0, 2));
+        });
+    }).then(() => {
+        return appsChatroomsMessagersMdl.resetMessagerUnRead(appId, chatroomId, messagerId1).then((reseted) => {
+            console.log('--- unRead reseted ---');
+            console.log(JSON.stringify(reseted, void 0, 2));
+        });
+    }).then(() => {
+        console.log('--- Test AppsChatrooms End ---');
+    });
+}
+
+function testAppsChatroomsMessages(appId, chatroomId) {
+    console.log('--- Test AppsChatroomsMessages Start ---');
+
+    let message = {
+        type: 'text',
+        text: 'test message'
+    };
+
+    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((inserted) => {
+        console.log('--- inserted ---');
+        console.log(JSON.stringify(inserted, void 0, 2));
+    }).then(() => {
+        console.log('--- Test AppsChatroomsMessages End ---');
+    });
+}
+
+function testAppsComposes(appId) {
+    console.log('--- Test AppsComposes Start ---');
+
+    let compose = {
+        text: 'insert'
+    };
+
+    return appsComposesMdl.insert(appId, compose).then((inserted) => {
+        console.log('--- inserted ---');
+        console.log(JSON.stringify(inserted, void 0, 2));
+
+        let composeId = Object.keys(inserted[appId].composes).shift();
+        compose.description = 'update';
+        return appsComposesMdl.update(appId, composeId, compose).then((updated) => {
+            console.log('--- updated ---');
+            console.log(JSON.stringify(updated, void 0, 2));
+        }).then(() => {
+            return appsComposesMdl.remove(appId, composeId, compose).then((removed) => {
+                console.log('--- removed ---');
+                console.log(JSON.stringify(removed, void 0, 2));
+            });
+        }).then(() => {
+            return appsComposesMdl.find(appId, composeId).then((found) => {
+                console.log('--- found ---');
+                console.log(JSON.stringify(found, void 0, 2));
+                console.log('--- should be: null ---');
+            });
+        }).then(() => {
+            console.log('--- Test AppsComposes End ---');
+        });
+    });
+}
+
+function testAppsFields(appId) {
+    console.log('--- Test AppsFields Start ---');
+
+    let field = {
+        description: 'insert'
+    };
+
+    return appsFieldsMdl.insert(appId, field).then((inserted) => {
+        console.log('--- inserted ---');
+        console.log(JSON.stringify(inserted, void 0, 2));
+
+        let fieldId = Object.keys(inserted[appId].tags).shift();
+        field.description = 'update';
+        return appsFieldsMdl.update(appId, fieldId, field).then((updated) => {
+            console.log('--- updated ---');
+            console.log(JSON.stringify(updated, void 0, 2));
+        }).then(() => {
+            return appsFieldsMdl.remove(appId, fieldId, field).then((removed) => {
+                console.log('--- removed ---');
+                console.log(JSON.stringify(removed, void 0, 2));
+            });
+        }).then(() => {
+            return appsFieldsMdl.find(appId, fieldId).then((found) => {
+                console.log('--- found ---');
+                console.log(JSON.stringify(found, void 0, 2));
+                console.log('--- should be: null ---');
+            });
+        }).then(() => {
+            console.log('--- Test AppsFields End ---');
+        });
+    });
+}
+
+function testAppsTickets(appId) {
+    console.log('--- Test AppsTickets Start ---');
+
+    let ticket = {
+        description: 'insert'
+    };
+
+    return appsTicketsMdl.insert(appId, ticket).then((inserted) => {
+        console.log('--- inserted ---');
+        console.log(JSON.stringify(inserted, void 0, 2));
+
+        let ticketId = Object.keys(inserted[appId].tickets).shift();
+        ticket.description = 'update';
+        return appsTicketsMdl.update(appId, ticketId, ticket).then((updated) => {
+            console.log('--- updated ---');
+            console.log(JSON.stringify(updated, void 0, 2));
+        }).then(() => {
+            return appsTicketsMdl.remove(appId, ticketId, ticket).then((removed) => {
+                console.log('--- removed ---');
+                console.log(JSON.stringify(removed, void 0, 2));
+            });
+        }).then(() => {
+            return appsTicketsMdl.find(appId, ticketId).then((found) => {
+                console.log('--- found ---');
+                console.log(JSON.stringify(found, void 0, 2));
+                console.log('--- should be: null ---');
+            });
+        }).then(() => {
+            console.log('--- Test AppsTickets End ---');
+        });
+    });
+}
 
 /**
  * 1. 把 Firebase DB 無縫接軌到 MongoDB

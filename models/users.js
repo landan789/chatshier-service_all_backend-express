@@ -8,10 +8,11 @@ module.exports = (function() {
      * 根據 使用者ID 取得該使用者
      *
      * @param {string} userId
+     * @param {string|null} email
      * @param {(data: any) => any} callback
      * @returns {void}
      */
-    UsersModel.prototype.find = function(userId, callback) {
+    UsersModel.prototype.find = function(userId, email, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
             let data = snap.val();
             callback(data);
