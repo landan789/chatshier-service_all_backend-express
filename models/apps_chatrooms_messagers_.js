@@ -2,6 +2,22 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
+    const docUnwind = {
+        $unwind: '$chatrooms' // 只針對 document 處理
+    };
+
+    const docOutput = {
+        $project: {
+            // 篩選不需要的項目
+            chatrooms: {
+                // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
+                _id: '$chatrooms._id',
+                isDeleted: '$chatrooms.isDeleted',
+                messagers: '$chatrooms.messagers'
+            }
+        }
+    };
+
     class AppsChatroomsMessagersModel extends ModelCore {
         constructor() {
             super();
@@ -20,30 +36,28 @@ module.exports = (function() {
             }
 
             let aggregations = [
+                docUnwind,
                 {
-                    $unwind: '$chatrooms' // 只針對 document 處理
-                }, {
                     $match: {
                         // 尋找符合的欄位
                         '_id': this.Types.ObjectId(appId),
+                        'isDeleted': false,
                         'chatrooms._id': this.Types.ObjectId(chatroomId),
+                        'chatrooms.isDeleted': false,
                         'chatrooms.messagers._id': {
                             $in: messagerIds.map((messagerId) => this.Types.ObjectId(messagerId))
-                        }
+                        },
+                        'chatrooms.messagers.isDeleted': false
                     }
-                }, {
-                    $project: {
-                        // 篩選不需要的項目
-                        chatrooms: {
-                            // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
-                            _id: '$chatrooms._id',
-                            messagers: '$chatrooms.messagers'
-                        }
-                    }
-                }
+                },
+                docOutput
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('CHATROOMS_MESSAGERS_NOT_FOUND'));
+                }
+
                 let appsChatroomsMessagers = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
@@ -83,35 +97,50 @@ module.exports = (function() {
             };
             unReadCount = unReadCount || 1;
 
+            let query = {
+                '_id': appId,
+                'chatrooms._id': chatroomId
+            };
+
             return Promise.all(messagerIds.map((messagerId) => {
+                query['chatrooms.messagers._id'] = messagerId;
+
                 return this.find(appId, chatroomId, messagerId).then((appsChatroomsMessagers) => {
-                    let isExist = !!appsChatroomsMessagers[appId];
-                    let messager = appsChatroomsMessagers[appId] ? appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId] : { unRead: 0 };
-
-                    messager.unRead += unReadCount;
-                    messager.updatedTime = Date.now();
-                    messager._id = this.Types.ObjectId(messagerId);
-
-                    let findQuery = {
-                        '_id': appId,
-                        'chatrooms._id': chatroomId,
-                        'chatrooms.messagers._id': messagerId
+                    let messager = {
+                        '_id': messagerId,
+                        'unRead': unReadCount,
+                        'updatedTime': Date.now()
                     };
-                    !isExist && delete findQuery['chatrooms.messagers._id'];
 
-                    let updateOper = { $set: {} };
-                    for (let prop in messager) {
-                        updateOper.$set['chatrooms.$[chatroom].messagers.$.' + prop] = messager[prop];
+                    let updateOper = {};
+                    let options = {};
+
+                    if (!appsChatroomsMessagers) {
+                        delete query['chatrooms.messagers._id'];
+
+                        updateOper.$push = {
+                            'chatrooms.$[chatroom].messagers': messager
+                        };
+
+                        options.arrayFilters = [
+                            {
+                                'chatroom._id': this.Types.ObjectId(chatroomId)
+                            }
+                        ];
+                        return this.AppsModel.update(query, updateOper, options);
                     }
 
-                    let options = {
-                        upsert: true,
-                        arrayFilters: [{
-                            'chatroom._id': this.Types.ObjectId(chatroomId)
-                        }]
+                    updateOper.$inc = {
+                        'chatrooms.$[chatroom].messagers.$[messager].unRead': messager.unRead
                     };
-
-                    return this.AppsModel.update(findQuery, updateOper, options);
+                    options.arrayFilters = [
+                        {
+                            'chatroom._id': this.Types.ObjectId(chatroomId)
+                        }, {
+                            'messager._id': this.Types.ObjectId(messagerId)
+                        }
+                    ];
+                    return this.AppsModel.update(query, updateOper, options);
                 });
             })).then(() => {
                 return this.find(appId, chatroomId, messagerIds);
@@ -138,7 +167,7 @@ module.exports = (function() {
                 updatedTime: Date.now()
             };
 
-            let findQuery = {
+            let query = {
                 '_id': appId,
                 'chatrooms._id': chatroomId,
                 'chatrooms.messagers._id': messagerId
@@ -158,7 +187,7 @@ module.exports = (function() {
                 }]
             };
 
-            return this.AppsModel.update(findQuery, updateOper, options).then(() => {
+            return this.AppsModel.update(query, updateOper, options).then(() => {
                 return this.find(appId, chatroomId, messagerId);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
