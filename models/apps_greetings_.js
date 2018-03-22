@@ -2,7 +2,7 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
 
     const APPS = 'apps';
-    const GREETINGS_NOT_FOUND = 'GREETINGS_NOT_FOUND';
+    const GREETINGS_DID_NOT_FOUND = 'GREETINGS_DID_NOT_FOUND';
 
     class AppsGreetingsModel extends ModelCore {
         constructor() {
@@ -59,7 +59,7 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_NOT_FOUND));
+                    return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
                 let appsGreetings = results.reduce((output, curr) => {
@@ -104,7 +104,7 @@ module.exports = (function() {
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_NOT_FOUND));
+                    return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
                 let greetings = results.reduce((output, curr) => {
@@ -188,7 +188,7 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_NOT_FOUND));
+                    return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
                 let appGreetings = results.reduce((appGreeting, curr) => {
