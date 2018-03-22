@@ -6,17 +6,6 @@ module.exports = (function() {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
-            this.AutorepliesModel = this.model(AUTOREPLIES, this.AutorepliesSchema);
-            this.project = {
-                createdTime: true,
-                endedTime: true,
-                isDeleted: true,
-                startedTime: true,
-                text: true,
-                title: true,
-                type: true,
-                updatedTime: true
-            };
         }
         find(appId, autoreplyIds, callback) {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
@@ -24,7 +13,7 @@ module.exports = (function() {
             }
             return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
-                    let findQuery = {
+                    let query = {
                         '_id': this.Types.ObjectId(appId),
                         'autoreplies.isDeleted': false
                     };
@@ -32,21 +21,11 @@ module.exports = (function() {
                         {
                             $unwind: '$autoreplies' // 只針對 document 處理
                         }, {
-                            $match: findQuery
+                            $match: query
                         }, {
                             $project: {
                                 // 篩選項目
-                                autoreplies: {
-                                    _id: '$autoreplies._id',
-                                    createdTime: '$autoreplies.createdTime',
-                                    endedTime: '$autoreplies.endedTime',
-                                    isDeleted: '$autoreplies.isDeleted',
-                                    startedTime: '$autoreplies.startedTime',
-                                    text: '$autoreplies.text',
-                                    title: '$autoreplies.title',
-                                    type: '$autoreplies.type',
-                                    updatedTime: '$autoreplies.updatedTime'
-                                }
+                                autoreplies: 1
                             }
                         }
                     ];
@@ -54,9 +33,9 @@ module.exports = (function() {
                         if (0 === results.length) {
                             return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
                         }
-                        let appsAutoreplies = results.reduce((output, curr) => {
-                            output[curr._id] = output[curr._id] || { autoreplies: {} };
-                            Object.assign(output[curr._id].autoreplies, this.toObject(curr.autoreplies));
+                        let appsAutoreplies = results.reduce((output, app) => {
+                            output[app._id] = output[app._id] || { autoreplies: {} };
+                            Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
                             return output;
                         }, {});
                         return appsAutoreplies;
@@ -77,17 +56,7 @@ module.exports = (function() {
                     }, {
                         $project: {
                             // 篩選項目
-                            autoreplies: {
-                                _id: '$autoreplies._id',
-                                createdTime: '$autoreplies.createdTime',
-                                endedTime: '$autoreplies.endedTime',
-                                isDeleted: '$autoreplies.isDeleted',
-                                startedTime: '$autoreplies.startedTime',
-                                text: '$autoreplies.text',
-                                title: '$autoreplies.title',
-                                type: '$autoreplies.type',
-                                updatedTime: '$autoreplies.updatedTime'
-                            }
+                            autoreplies: 1
                         }
                     }
                 ];
@@ -95,9 +64,9 @@ module.exports = (function() {
                     if (0 === results.length) {
                         return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
                     }
-                    let appsAutoreplies = results.reduce((output, curr) => {
-                        output[curr._id] = output[curr._id] || { autoreplies: {} };
-                        Object.assign(output[curr._id].autoreplies, this.toObject(curr.autoreplies));
+                    let appsAutoreplies = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { autoreplies: {} };
+                        Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
                         return output;
                     }, {});
                     return appsAutoreplies;
@@ -111,11 +80,11 @@ module.exports = (function() {
             });
         }
 
-        insert(appId, postautoreply, callback) {
+        insert(appId, postAutoreply, callback) {
             let autoreplyId = this.Types.ObjectId();
-            postautoreply._id = autoreplyId;
+            postAutoreply._id = autoreplyId;
             return this.AppsModel.findById(appId).then((app) => {
-                app.autoreplies.push(postautoreply);
+                app.autoreplies.push(postAutoreply);
                 return app.save();
             }).then(() => {
                 return this.find(appId, autoreplyId);
@@ -128,18 +97,18 @@ module.exports = (function() {
                 return null;
             });
         };
-        update(appId, autoreplyId, putautoreply, callback) {
-            let findQuery = {
+        update(appId, autoreplyId, putAutoreply, callback) {
+            let query = {
                 '_id': appId,
                 'autoreplies._id': autoreplyId
             };
-            putautoreply._id = autoreplyId;
-            let updateOper = {
+            putAutoreply._id = autoreplyId;
+            let operate = {
                 $set: {
-                    'autoreplies.$': putautoreply
+                    'autoreplies.$': putAutoreply
                 }
             };
-            return this.AppsModel.findOneAndUpdate(findQuery, updateOper).then(() => {
+            return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
@@ -151,26 +120,26 @@ module.exports = (function() {
         };
 
         /**
-+         * 刪除指定的 messager 資料 (只限內部聊天室 App)
-+         *
-+         * @param {string} appId
-+         * @param {string} autoreplyId
-+         * @param {(appsMessagers: any) => any} [callback]
-+         * @returns {Promise<any>}
-+         */
+         * 刪除指定的 messager 資料 (只限內部聊天室 App)
+         *
+         * @param {string} appId
+         * @param {string} autoreplyId
+         * @param {(appsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
         remove(appId, autoreplyId, callback) {
-            let findQuery = {
+            let query = {
                 '_id': appId,
                 'autoreplies._id': autoreplyId
             };
 
-            let updateOper = {
+            let operate = {
                 $set: {
                     'autoreplies.$._id': autoreplyId,
                     'autoreplies.$.isDeleted': true
                 }
             };
-            return this.AppsModel.update(findQuery, updateOper).then((updateResult) => {
+            return this.AppsModel.update(query, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }
@@ -184,17 +153,7 @@ module.exports = (function() {
                         }
                     }, {
                         $project: {
-                            autoreplies: {
-                                _id: '$autoreplies._id',
-                                createdTime: '$autoreplies.createdTime',
-                                endedTime: '$autoreplies.endedTime',
-                                isDeleted: '$autoreplies.isDeleted',
-                                startedTime: '$autoreplies.startedTime',
-                                text: '$autoreplies.text',
-                                title: '$autoreplies.title',
-                                type: '$autoreplies.type',
-                                updatedTime: '$autoreplies.updatedTime'
-                            }
+                            autoreplies: 1
                         }
                     }
                 ];
@@ -202,9 +161,9 @@ module.exports = (function() {
                     if (0 === results.length) {
                         return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
                     }
-                    let appsAutoreplies = results.reduce((output, curr) => {
-                        output[curr._id] = output[curr._id] || { autoreplies: {} };
-                        Object.assign(output[curr._id].autoreplies, this.toObject(curr.autoreplies));
+                    let appsAutoreplies = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { autoreplies: {} };
+                        Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
                         return output;
                     }, {});
                     return appsAutoreplies;
@@ -221,7 +180,7 @@ module.exports = (function() {
             if ('string' === typeof appIds) {
                 appIds = [appIds];
             }
-            let findQuery = {
+            let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 }
@@ -230,21 +189,11 @@ module.exports = (function() {
                 {
                     $unwind: '$autoreplies' // 只針對 document 處理
                 }, {
-                    $match: findQuery
+                    $match: query
                 }, {
                     $project: {
                         // 篩選項目
-                        autoreplies: {
-                            _id: '$autoreplies._id',
-                            createdTime: '$autoreplies.createdTime',
-                            endedTime: '$autoreplies.endedTime',
-                            isDeleted: '$autoreplies.isDeleted',
-                            startedTime: '$autoreplies.startedTime',
-                            text: '$autoreplies.text',
-                            title: '$autoreplies.title',
-                            type: '$autoreplies.type',
-                            updatedTime: '$autoreplies.updatedTime'
-                        }
+                        autoreplies: 1
                     }
                 }
             ];
@@ -252,8 +201,8 @@ module.exports = (function() {
                 if (0 === results.length) {
                     return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
                 }
-                let appsAutoreplies = results.reduce((output, curr) => {
-                    Object.assign(output, this.toObject(curr.autoreplies));
+                let appsAutoreplies = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.autoreplies));
                     return output;
                 }, {});
                 return appsAutoreplies;
