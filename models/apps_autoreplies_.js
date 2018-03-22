@@ -19,39 +19,12 @@ module.exports = (function() {
             };
         }
         find(appId, autoreplyIds, callback) {
-            if (!(autoreplyIds instanceof Array)) {
+            if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
             Promise.resolve().then(() => {
-                let aggregations = [
-                    {
-                        $unwind: '$autoreplies' // 只針對 autoreplies document 處理
-                    }, {
-                        $match: {
-                            // 尋找符合 appId 及 autoreplyIds 的欄位
-                            '_id': this.Types.ObjectId(appId),
-                            'autoreplies._id': {
-                                $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
-                            }
-                        }
-                    }, {
-                        $project: {
-                            // 篩選項目
-                            autoreplies: {
-                                _id: '$autoreplies._id',
-                                createdTime: '$autoreplies.createdTime',
-                                endedTime: '$autoreplies.endedTime',
-                                isDeleted: '$autoreplies.isDeleted',
-                                startedTime: '$autoreplies.startedTime',
-                                text: '$autoreplies.text',
-                                title: '$autoreplies.title',
-                                type: '$autoreplies.type',
-                                updatedTime: '$autoreplies.updatedTime'
-                            }
-                        }
-                    }
-                ];
-                if (0 === autoreplyIds.length) {
+                if (!autoreplyIds) {
+                    console.log(autoreplyIds);
                     let findQuery = {
                         '_id': this.Types.ObjectId(appId)
                     };
@@ -89,6 +62,34 @@ module.exports = (function() {
                         return appsAutoreplies;
                     });
                 };
+                let aggregations = [
+                    {
+                        $unwind: '$autoreplies' // 只針對 autoreplies document 處理
+                    }, {
+                        $match: {
+                            // 尋找符合 appId 及 autoreplyIds 的欄位
+                            '_id': this.Types.ObjectId(appId),
+                            'autoreplies._id': {
+                                $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
+                            }
+                        }
+                    }, {
+                        $project: {
+                            // 篩選項目
+                            autoreplies: {
+                                _id: '$autoreplies._id',
+                                createdTime: '$autoreplies.createdTime',
+                                endedTime: '$autoreplies.endedTime',
+                                isDeleted: '$autoreplies.isDeleted',
+                                startedTime: '$autoreplies.startedTime',
+                                text: '$autoreplies.text',
+                                title: '$autoreplies.title',
+                                type: '$autoreplies.type',
+                                updatedTime: '$autoreplies.updatedTime'
+                            }
+                        }
+                    }
+                ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
                         return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
