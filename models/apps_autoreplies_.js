@@ -24,9 +24,9 @@ module.exports = (function() {
             }
             Promise.resolve().then(() => {
                 if (!autoreplyIds) {
-                    console.log(autoreplyIds);
                     let findQuery = {
-                        '_id': this.Types.ObjectId(appId)
+                        '_id': this.Types.ObjectId(appId),
+                        'autoreplies.isDeleted': false
                     };
                     let aggregations = [
                         {
@@ -69,6 +69,7 @@ module.exports = (function() {
                         $match: {
                             // 尋找符合 appId 及 autoreplyIds 的欄位
                             '_id': this.Types.ObjectId(appId),
+                            'autoreplies.isDeleted': false,
                             'autoreplies._id': {
                                 $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
                             }
@@ -178,8 +179,45 @@ module.exports = (function() {
                     'autoreplies.$.isDeleted': true
                 }
             };
-            return this.AppsModel.findOneAndUpdate(findQuery, updateOper).then(() => {
-                return this.find(appId, autoreplyId);
+            return this.AppsModel.update(findQuery, updateOper).then((updateResult) => {
+                if (!updateResult.ok) {
+                    return Promise.reject(new Error());
+                }
+                let aggregations = [
+                    {
+                        $unwind: '$autoreplies'
+                    }, {
+                        $match: {
+                            '_id': this.Types.ObjectId(appId),
+                            'autoreplies._id': this.Types.ObjectId(autoreplyId)
+                        }
+                    }, {
+                        $project: {
+                            autoreplies: {
+                                _id: '$autoreplies._id',
+                                createdTime: '$autoreplies.createdTime',
+                                endedTime: '$autoreplies.endedTime',
+                                isDeleted: '$autoreplies.isDeleted',
+                                startedTime: '$autoreplies.startedTime',
+                                text: '$autoreplies.text',
+                                title: '$autoreplies.title',
+                                type: '$autoreplies.type',
+                                updatedTime: '$autoreplies.updatedTime'
+                            }
+                        }
+                    }
+                ];
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                    }
+                    let appsAutoreplies = results.reduce((output, curr) => {
+                        output[curr._id] = output[curr._id] || { autoreplies: {} };
+                        Object.assign(output[curr._id].autoreplies, this.toObject(curr.autoreplies));
+                        return output;
+                    }, {});
+                    return appsAutoreplies;
+                });
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
