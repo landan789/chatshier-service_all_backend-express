@@ -24,7 +24,7 @@ module.exports = (function() {
                     $unwind: '$chatrooms' // 只針對 document 處理
                 }, {
                     $match: {
-                        // // 尋找符合的欄位
+                        // 尋找符合的欄位
                         '_id': this.Types.ObjectId(appId),
                         'chatrooms._id': this.Types.ObjectId(chatroomId),
                         'chatrooms.messagers._id': {
@@ -99,11 +99,10 @@ module.exports = (function() {
                     };
                     !isExist && delete findQuery['chatrooms.messagers._id'];
 
-                    let updateOper = {
-                        $set: {
-                            'chatrooms.$[chatroom].messagers.$': messager
-                        }
-                    };
+                    let updateOper = { $set: {} };
+                    for (let prop in messager) {
+                        updateOper.$set['chatrooms.$[chatroom].messagers.$.' + prop] = messager[prop];
+                    }
 
                     let options = {
                         upsert: true,
@@ -145,11 +144,10 @@ module.exports = (function() {
                 'chatrooms.messagers._id': messagerId
             };
 
-            let updateOper = {
-                $set: {
-                    'chatrooms.$[chatroom].messagers.$[messager]': messager
-                }
-            };
+            let updateOper = { $set: {} };
+            for (let prop in messager) {
+                updateOper.$set['chatrooms.$[chatroom].messagers.$[messager].' + prop] = messager[prop];
+            }
 
             let options = {
                 upsert: true,

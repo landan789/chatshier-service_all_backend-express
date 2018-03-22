@@ -16,7 +16,7 @@ module.exports = (function() {
             let appIds = checkedAppIds;
             // 1. 根據 appId 清單去 tags model 抓取清單
             return new Promise((resolve, reject) => {
-                appsTagsMdl.find(appIds, (appsTags) => {
+                appsTagsMdl.find(appIds, null, (appsTags) => {
                     if (!appsTags) {
                         reject(API_ERROR.APP_TAG_FAILED_TO_FIND);
                         return;
