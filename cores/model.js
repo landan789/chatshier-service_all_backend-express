@@ -20,7 +20,7 @@ module.exports = (function() {
     let AutorepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
-        'isDeleted': Boolean,
+        'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'text': String,
         'title': String,
@@ -67,7 +67,7 @@ module.exports = (function() {
     });
 
     let GreetingsSchema = new mongoose.Schema({
-        'isDeleted': Boolean,
+        'isDeleted': {type: Boolean, default: false},
         'text': String,
         'type': String,
         'updatedTime': {type: Date, default: Date.now()},
