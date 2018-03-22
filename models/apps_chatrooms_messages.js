@@ -9,13 +9,18 @@ module.exports = (function() {
      *
      * @param {string[]|string} appIds
      * @param {string|null} chatroomId
+     * @param {string|string[]|null} messageIds
      * @param {Function} callback
      */
-    AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, callback) {
-
+    AppsChatroomsMessages.prototype.find = function(appIds, chatroomId, messageIds, callback) {
         if ('string' === typeof appIds) {
             appIds = [appIds];
         }
+
+        if (messageIds && !(messageIds instanceof Array)) {
+            messageIds = [messageIds];
+        }
+
         let appsChatroomsMessages = {};
         Promise.all(appIds.map((appId) => {
             return admin.database().ref('apps/' + appId + '/chatrooms/').once('value').then((snap) => {
@@ -29,6 +34,13 @@ module.exports = (function() {
 
                 let chatroom = chatrooms[chatroomId];
                 if (chatroom) {
+                    if (messageIds instanceof Array) {
+                        let _messages = {};
+                        messageIds.forEach((messageId) => {
+                            _messages[messageId] = chatroom.messages[messageId];
+                        });
+                        chatroom.messages = _messages;
+                    }
                     appsChatroomsMessages[appId] = {
                         chatrooms: {
                             [chatroomId]: chatroom
@@ -52,7 +64,7 @@ module.exports = (function() {
      * @param {(newMessage: any) => any} [callback]
      * @returns {Promise<any>}
      */
-    AppsChatroomsMessages.prototype.insertMessages = function(appId, chatroomId, messages, callback) {
+    AppsChatroomsMessages.prototype.insert = function(appId, chatroomId, messages, callback) {
         if (!(messages instanceof Array)) {
             messages = [messages];
         };

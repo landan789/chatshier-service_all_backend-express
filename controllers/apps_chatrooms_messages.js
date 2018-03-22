@@ -19,7 +19,7 @@ module.exports = (function() {
             let appIds = checkedAppIds;
             // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Messager
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.find(appIds, null, (appschatroomsMessages) => {
+                appsChatroomsMessagesMdl.find(appIds, null, null, (appschatroomsMessages) => {
                     if (!appschatroomsMessages) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
@@ -51,7 +51,7 @@ module.exports = (function() {
         return AppsChatroomsMessagesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsChatroomsMessagesMdl.find(appId, null, (chatroomMessages) => {
+                appsChatroomsMessagesMdl.find(appId, null, null, (chatroomMessages) => {
                     if (!chatroomMessages) {
                         reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         return;
