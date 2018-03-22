@@ -2,6 +2,23 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
+    const docUnwind = {
+        $unwind: '$chatrooms' // 只針對 chatrooms document 處理
+    };
+
+    const docOutput = {
+        $project: {
+            // 篩選不需要的項目
+            chatrooms: {
+                // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
+                _id: '$chatrooms._id',
+                isDeleted: '$chatrooms.isDeleted',
+                createdTime: '$chatrooms.createdTime',
+                messagers: '$chatrooms.messagers'
+            }
+        }
+    };
+
     class AppsChatroomsModel extends ModelCore {
         constructor() {
             super();
@@ -20,27 +37,19 @@ module.exports = (function() {
             }
 
             let aggregations = [
+                docUnwind,
                 {
-                    $unwind: '$chatrooms' // 只針對 chatrooms document 處理
-                }, {
                     $match: {
                         // 尋找符合 appId 及 chatroomIds 的欄位
                         '_id': this.Types.ObjectId(appId),
+                        'isDeleted': false,
                         'chatrooms._id': {
                             $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
-                        }
+                        },
+                        'chatrooms.isDeleted': false
                     }
-                }, {
-                    $project: {
-                        // 篩選不需要的項目
-                        chatrooms: {
-                            // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
-                            _id: '$chatrooms._id',
-                            createdTime: '$chatrooms.createdTime',
-                            messagers: '$chatrooms.messagers'
-                        }
-                    }
-                }
+                },
+                docOutput
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
@@ -76,10 +85,11 @@ module.exports = (function() {
             let chatroomId = this.Types.ObjectId();
             let chatroom = {
                 _id: chatroomId,
-                createdTime: Date.now()
+                createdTime: Date.now(),
+                updatedTime: Date.now()
             };
 
-            let findQuery = {
+            let query = {
                 '_id': appId
             };
 
@@ -89,7 +99,7 @@ module.exports = (function() {
                 }
             };
 
-            return this.AppsModel.update(findQuery, updateOper).then(() => {
+            return this.AppsModel.update(query, updateOper).then(() => {
                 return this.find(appId, chatroomId);
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);

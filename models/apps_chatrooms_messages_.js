@@ -2,6 +2,10 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
+    const docUnwind = {
+        $unwind: '$chatrooms' // 只針對 document 處理
+    };
+
     class AppsChatroomsMessagesModel extends ModelCore {
         constructor() {
             super();
@@ -9,43 +13,72 @@ module.exports = (function() {
         }
 
         /**
-         * 根據App ID, Chatroom ID, Message ID找到 AppsChatroomsMessages 資訊
+         * 根據 App ID, Chatroom ID, Message ID 找到 AppsChatroomsMessages 資訊
          *
          * @param {string[]|string} appIds
-         * @param {string|null} chatroomId
+         * @param {any|null} chatroomId
+         * @param {any|null} messageIds
          * @param {(appsChatroomsMessages: any) => any} [callback]
          */
-        find(appIds, chatroomId, callback) {
+        find(appIds, chatroomId, messageIds, callback) {
             if ('string' === typeof appIds) {
                 appIds = [appIds];
             }
 
             // 尋找符合的欄位
-            let findQuery = {
+            let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'chatrooms.isDeleted': false,
+                'chatrooms.messages.isDeleted': false
             };
-            chatroomId && (findQuery['chatrooms._id'] = this.Types.ObjectId(chatroomId));
+
+            if (chatroomId) {
+                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+            }
+
+            if (messageIds) {
+                if (!(messageIds instanceof Array)) {
+                    messageIds = [messageIds];
+                }
+                query['chatrooms.messages._id'] = {
+                    $in: messageIds.map((messageId) => this.Types.ObjectId(messageId))
+                };
+            }
 
             let aggregations = [
+                docUnwind,
                 {
-                    $unwind: '$chatrooms' // 只針對 document 處理
-                }, {
-                    $match: findQuery
+                    $match: query
                 }, {
                     $project: {
-                        // 篩選不需要的項目
+                        // 篩選需要的項目
                         chatrooms: {
-                            // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
                             _id: '$chatrooms._id',
-                            messages: '$chatrooms.messages'
+                            isDeleted: '$chatrooms.isDeleted',
+                            messages: !messageIds ? '$chatrooms.messages' : {
+                                $filter: {
+                                    input: '$chatrooms.messages',
+                                    as: 'message',
+                                    cond: {
+                                        $or: messageIds.map((messageId) => ({
+                                            $eq: [ '$$message._id', this.Types.ObjectId(messageId) ]
+                                        }))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('CHATROOMS_MESSAGES_NOT_FOUND'));
+                }
+
                 let appsChatroomsMessages = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
@@ -80,15 +113,15 @@ module.exports = (function() {
          * @param {(newMessage: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insertMessages(appId, chatroomId, messages, callback) {
+        insert(appId, chatroomId, messages, callback) {
             if (!(messages instanceof Array)) {
                 messages = [messages];
             };
-            let _messages = {};
 
             return Promise.all(messages.map((message) => {
+                let messageId = this.Types.ObjectId();
                 let _message = {
-                    _id: this.Types.ObjectId(),
+                    _id: messageId,
                     isDeleted: false,
                     from: message.from,
                     messager_id: message.messager_id,
@@ -98,15 +131,16 @@ module.exports = (function() {
                     src: message.src || ''
                 };
 
-                let findQuery = {
+                let query = {
                     '_id': appId,
                     'chatrooms._id': chatroomId
                 };
 
-                let updateOper = { $set: {} };
-                for (let prop in _message) {
-                    updateOper.$set['chatrooms.$[chatroom].messages.$.' + prop] = _message[prop];
-                }
+                let updateOper = {
+                    $push: {
+                        'chatrooms.$[chatroom].messages': _message
+                    }
+                };
 
                 let options = {
                     upsert: true,
@@ -115,18 +149,17 @@ module.exports = (function() {
                     }]
                 };
 
-                return this.AppsModel.update(findQuery, updateOper, options).then(() => {
-                    return this.find(appId, chatroomId);
-                }).then((appsChatroomsMessages) => {
-                    Object.assign(_messages, appsChatroomsMessages);
-                    ('function' === typeof callback) && callback(appsChatroomsMessages);
-                    return appsChatroomsMessages;
-                }).catch(() => {
-                    ('function' === typeof callback) && callback(null);
-                    return null;
+                return this.AppsModel.update(query, updateOper, options).then(() => {
+                    return messageId;
                 });
-            })).then(() => {
-                return _messages;
+            })).then((messageIds) => {
+                return this.find(appId, chatroomId, messageIds);
+            }).then((appsChatroomsMessages) => {
+                ('function' === typeof callback) && callback(appsChatroomsMessages);
+                return appsChatroomsMessages;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
         }
     }
