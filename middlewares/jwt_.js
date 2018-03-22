@@ -42,6 +42,7 @@ module.exports = (function() {
                         usersMdl.find(userId, null, (users) => {
                             if (!users) {
                                 reject(new Error());
+                                return;
                             };
                             resolve(users);
                         });
