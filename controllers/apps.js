@@ -488,18 +488,19 @@ apps.deleteOne = (req, res, next) => {
         return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.remove(req.params.appid, (result) => {
-                if (false === result) {
+            appsMdl.remove(req.params.appid, (apps) => {
+                if (!apps) {
                     reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     return;
                 }
-                resolve();
+                resolve(apps);
             });
         });
-    }).then(() => {
+    }).then((data) => {
         var json = {
             status: 1,
-            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+            data: data
         };
         res.status(200).json(json);
     }).catch((ERROR) => {

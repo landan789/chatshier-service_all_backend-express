@@ -140,7 +140,7 @@ module.exports = (function() {
         'messagers': [MessagersSchema],
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
-        'webhook_id': {type: Array, default: []}
+        'webhook_id': {type: String, default: ''}
     });
 
     let EventsSchema = new mongoose.Schema({
