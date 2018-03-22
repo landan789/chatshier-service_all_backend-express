@@ -9,7 +9,6 @@ module.exports = (function() {
 
     class Jwt {
         authenticate(type) {
-
             let jwtFromRequest;
             if ('HEADER' === (type).toUpperCase()) {
                 jwtFromRequest = ExtractJwt.fromHeader('authorization');
@@ -30,7 +29,7 @@ module.exports = (function() {
                 jwtFromRequest: jwtFromRequest, // must be lower
                 secretOrKey: CHATSHIER.JWT.SECRET
             };
-        
+
             passport.use(new JwtStrategy(options, function(payload, next) {
                 Promise.resolve().then(() => {
                     return new Promise((resolve, reject) => {
@@ -39,22 +38,18 @@ module.exports = (function() {
                         if (payload.exp < Date.now()) {
                             reject(new Error());
                         };
-        
+
                         usersMdl.find(userId, null, (users) => {
                             if (!users) {
                                 reject(new Error());
                             };
-                            if (users) {
-                                resolve(users);
-                            };
+                            resolve(users);
                         });
                     });
                 }).then((users) => {
                     next(null, users);
-                    return;
                 }).catch(() => {
                     next(null, false);
-                    return;
                 });
             }));
             return passport.authenticate('jwt', { session: false });

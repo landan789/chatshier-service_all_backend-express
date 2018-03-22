@@ -32,13 +32,12 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(userId, (data) => {
-                    var user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -94,29 +93,27 @@ module.exports = (function() {
                     return reject(API_ERROR.GROUPID_WAS_EMPTY);
                 };
 
-                usersMdl.find(req.params.userid, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(postMember.user_id, (data) => {
-                    var _user = data;
-                    if (undefined === _user || null === _user || '' === _user) {
+                usersMdl.find(postMember.user_id, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         // 不存在的 user 無法加入 群組
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
-            if (0 > index) {
+            let groupIds = user.group_ids;
+            if (0 > groupIds.indexOf(groupId)) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
@@ -261,13 +258,13 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(req.params.userid, (data) => {
-                    var user = data;
-                    if (undefined === user || null === user || '' === user) {
+                let userId = req.params.userid;
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -370,12 +367,12 @@ module.exports = (function() {
                     return reject(API_ERROR.MEMBERID_WAS_EMPTY);
                 };
 
-                usersMdl.find(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {

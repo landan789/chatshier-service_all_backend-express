@@ -14,8 +14,11 @@ module.exports = (function() {
      */
     UsersModel.prototype.find = function(userId, email, callback) {
         admin.database().ref('users/' + userId).once('value', snap => {
-            let data = snap.val();
-            callback(data);
+            let user = snap.val();
+            let users = {
+                [userId]: user
+            };
+            callback(users);
         });
     };
 

@@ -15,11 +15,11 @@ module.exports = (function() {
 
         return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     };
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {

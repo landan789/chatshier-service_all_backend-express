@@ -122,7 +122,7 @@ module.exports = (function() {
     let AppsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'group_id': {type: Array, default: []},
+        'group_id': {type: String, default: ''},
         'id1': {type: String, default: ''},
         'id2': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
@@ -165,11 +165,11 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'status': {type: Boolean, default: false},
         'type': {type: String, default: ''},
-        'user_id': {type: Array, default: []}
+        'user_id': {type: String, default: ''}
     });
 
     let GroupsSchema = new mongoose.Schema({
-        'app_id': {type: Array, default: []},
+        'app_ids': {type: Array, default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -188,11 +188,11 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
         'name': {type: String, default: ''},
-        'group_id': {type: Array, default: []}
+        'group_ids': {type: Array, default: []}
     });
 
     let WebhooksSchema = new mongoose.Schema({
-        'app_id': {type: Array, default: []}
+        'app_id': {type: String, default: ''}
     });
     // endregion
 

@@ -26,13 +26,12 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(userId, null, (data) => {
-                    let user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -77,11 +76,11 @@ module.exports = (function() {
                     return reject(API_ERROR.NAME_WAS_EMPTY);
                 };
 
-                usersMdl.find(userId, null, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -195,13 +194,12 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(req.params.userid, (data) => {
-                    let user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
