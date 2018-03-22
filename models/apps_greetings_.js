@@ -62,9 +62,9 @@ module.exports = (function() {
                     return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
-                let appsGreetings = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { greetings: {} };
-                    Object.assign(output[curr._id].greetings, this.toObject(curr.greetings));
+                let appsGreetings = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { greetings: {} };
+                    Object.assign(output[app._id].greetings, this.toObject(app.greetings));
                     return output;
                 }, {});
 
@@ -107,8 +107,8 @@ module.exports = (function() {
                     return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
-                let greetings = results.reduce((output, curr) => {
-                    Object.assign(output, this.toObject(curr.greetings));
+                let greetings = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.greetings));
                     return output;
                 }, {});
 
@@ -191,10 +191,10 @@ module.exports = (function() {
                     return Promise.reject(new Error(GREETINGS_DID_NOT_FOUND));
                 }
 
-                let appGreetings = results.reduce((appGreeting, curr) => {
-                    appGreeting[curr._id] = appGreeting[curr._id] || {greetings: {}};
-                    Object.assign(appGreeting[curr._id].greetings, this.toObject(curr.greetings));
-                    return appGreeting;
+                let appGreetings = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || {greetings: {}};
+                    Object.assign(output[app._id].greetings, this.toObject(app.greetings));
+                    return output;
                 }, {});
                 return appGreetings;
             }).then((appGreetings) => {
