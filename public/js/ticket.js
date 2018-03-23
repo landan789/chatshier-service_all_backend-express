@@ -176,7 +176,7 @@
         $(this).parent().html("<textarea class='inner-text form-control'>" + change + '</textarea>');
     }
 
-    function showSelect(prop, n) {
+    function showSelect(prop, n, val) {
         var i = 0;
         var html = "<select class='selected form-control'>";
         if ('priority' === prop) {
@@ -196,7 +196,7 @@
                 html += '<option value="">無資料</option>';
             } else {
                 for (var agentId in n) {
-                    html += '<option value=' + agentId + '>' + n[agentId].name + '</option>';
+                    html += '<option value="' + agentId + '"' + (agentId === val ? ' selected="true"' : '') + '>' + n[agentId].name + '</option>';
                 }
             }
         }
@@ -239,7 +239,7 @@
             '</tr>' +
             '<tr class="assigned">' +
             '<th>指派人</th>' +
-            '<td class="form-group">' + showSelect('assigned', appsAgents[appId]) + '</td>' +
+            '<td class="form-group">' + showSelect('assigned', appsAgents[appId], ticketData.assigned_id) + '</td>' +
             '</tr>' +
             '<tr>' +
             '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
@@ -325,8 +325,7 @@
             dueTime: new Date(ticketDueTime).getTime(),
             priority: ticketPriority,
             status: ticketStatus,
-            assigned_id: assignedId,
-            updatedTime: Date.now()
+            assigned_id: assignedId
         };
 
         // 發送修改請求 api 至後端進行 ticket 修改
