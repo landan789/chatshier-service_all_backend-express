@@ -27,7 +27,7 @@ window.googleClientHelper = (function() {
                     apiScript.onload = apiScript.onerror = void 0;
                     reject(ev);
                 };
-                apiScript.src = 'https://apis.google.com/js/api.js';
+                apiScript.src = 'https://apis.google.com/js/client:platform.js';
                 document.head.appendChild(apiScript);
             });
         },
@@ -37,7 +37,9 @@ window.googleClientHelper = (function() {
             }
 
             initPromise = new Promise(function(resolve) {
-                window.gapi.load('client:auth2', resolve);
+                window.gapi.load('client:auth2', function() {
+                    resolve();
+                });
             }).then(function() {
                 return window.fetch(configUrl);
             }).then(function(res) {
@@ -51,10 +53,15 @@ window.googleClientHelper = (function() {
                     scope: config.SCOPES
                 });
             }).then(function() {
+                // google client 初始化完成後，iframe 會保留在 document body 裡
+                // 會造成 page 被 block 住，導致網路傳輸可能出現問題
+                // 因此當 api 初始化完成時，就將此 iframe 移除
+                var gOauthIframe = document.querySelector('[id^="oauth2relay"][name^="oauth2relay"]');
+                gOauthIframe && document.body.removeChild(gOauthIframe);
                 return window.gapi.auth2.getAuthInstance();
             }).then(function(auth) {
                 googleAuth = auth;
-                return googleAuth;
+                return googleAuth.isSignedIn.get();
             });
 
             return initPromise;
@@ -82,6 +89,7 @@ window.googleClientHelper = (function() {
             if (!googleAuth) {
                 return Promise.reject(new Error('no_google_auth_instance'));
             }
+
             return googleAuth.signOut();
         }
     };
