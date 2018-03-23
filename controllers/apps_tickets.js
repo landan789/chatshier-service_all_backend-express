@@ -86,6 +86,7 @@ module.exports = (function() {
             priority: req.body.priority === undefined ? '' : req.body.priority,
             messager_id: req.body.messager_id === undefined ? '' : req.body.messager_id,
             status: req.body.status === undefined ? '' : req.body.status,
+            assigned: req.body.assigned === undefined ? '' : req.body.assigned,
             isDeleted: 0
         };
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
@@ -125,7 +126,8 @@ module.exports = (function() {
             description: req.body.description || '',
             dueTime: req.body.dueTime ? req.body.dueTime : 0,
             priority: req.body.priority ? req.body.priority : 0,
-            status: req.body.status ? req.body.status : 0
+            status: req.body.status ? req.body.status : 0,
+            assigned: req.body.assigned || ''
         };
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             appId = checkedAppIds;
