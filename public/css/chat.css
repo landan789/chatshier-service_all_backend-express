@@ -568,6 +568,12 @@ div.loading-img {
     .ticket-search-bar {
         border-radius: 5px;
     }
+    .ticket .ticket-description { 
+        max-width: 50px; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+    } 
     .ticket {
         display: flex;
         justify-content: center;
@@ -584,6 +590,7 @@ div.loading-img {
         text-align: left;
         padding: .25rem;
         margin: 2px 0;
+        max-height: 24px;
     }
     .ticket tr:nth-child(even) {
         background-color: #33CCFF;

@@ -200,13 +200,14 @@
 
             return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
+                var clientMessagerId = $('.card-group[style="display: block;"]').attr('messager-id');
 
                 if (appData && appData[appId] && appData[appId].tickets) {
                     tickets = appData[appId].tickets;
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
-                        if (ticket.isDeleted) {
+                        if (ticket.isDeleted || clientMessagerId !== ticket.messager_id) {
                             continue;
                         }
 
@@ -215,7 +216,7 @@
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
                                 '<td>' + dueTimeDateStr + '</td>' +
-                                '<td>' + ((ticket.description.length <= 10) ? ticket.description : (ticket.description.substring(0, 10) + '...')) + '</td>' +
+                                '<td class="ticket-description">' + ticket.description + '</td>' + 
                                 '<td></td>' +
                             '</tr>'
                         );
@@ -287,11 +288,13 @@
             var infoInputTable = $('.info-input-table').empty();
             var messager = appsMessagers[appId].messagers[msgerId];
 
-            $ticketInfoModal.find('#ID-num').css('background-color', priorityColor(ticket.priority));
             $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
-            $ticketInfoModal.find('.modal-title').text(messager.name || '');
 
             var moreInfoHtml =
+                '<tr>' +
+                    '<th>客戶姓名</th>' +
+                    '<td class="edit">' + messager.name + '</td>' +
+                '</tr>' +
                 '<tr>' +
                     '<th>客戶ID</th>' +
                     '<td class="edit">' + ticket.messager_id + '</td>' +
