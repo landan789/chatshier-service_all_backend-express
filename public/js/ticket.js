@@ -124,7 +124,7 @@
                     $ticketBody.append(
                         '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                         '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                        '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                        '<td id="description">' + ticketData.description + '</td>' +
                         '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
                         '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
                         '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +

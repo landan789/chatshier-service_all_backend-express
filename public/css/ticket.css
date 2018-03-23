@@ -262,3 +262,10 @@ input[type="range"]:active::-webkit-slider-thumb{
 input[type="range"]:active::-webkit-slider-thumb:after {
   left: 16px;
 }
+
+#description { 
+  max-width: 50px; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+}
