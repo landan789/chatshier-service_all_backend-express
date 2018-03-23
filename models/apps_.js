@@ -4,6 +4,9 @@ module.exports = (function() {
     const APPS = 'apps';
     const USERS = 'users';
     const WEBHOOKS = 'webhooks';
+    const LINE = 'LINE';
+    const FACEBOOK = 'FACEBOOK';
+    const CHATSHIER = 'CHATSHIER';
     class AppsModel extends ModelCore {
         constructor() {
             super();
@@ -79,7 +82,9 @@ module.exports = (function() {
 
         insert(userId, postApp, callback) {
             let apps = {};
+            let _appId = this.Types.ObjectId();
             let _apps = new this.AppsModel();
+            _apps._id = _appId;
             _apps.id1 = postApp.id1 || '';
             _apps.id2 = postApp.id2 || '';
             _apps.name = postApp.name || '';
@@ -88,7 +93,7 @@ module.exports = (function() {
             _apps.token2 = postApp.token2 || '';
             _apps.type = postApp.type || '';
             _apps.group_id = postApp.group_id;
-            _apps.webhook_id = postApp.webhook_id;
+            _apps.webhook_id = CHATSHIER === postApp.type ? _appId : postApp.webhook_id;
             _apps.isDeleted = false;
             _apps.updatedTime = Date.now();
             _apps.createdTime = Date.now();

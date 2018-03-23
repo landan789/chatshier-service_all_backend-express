@@ -206,6 +206,7 @@ module.exports = (function() {
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
             this.WebhooksSchema = WebhooksSchema;
+            this.KeywordrepliesSchema = KeywordrepliesSchema;
         }
 
         model(collection, schema) {
