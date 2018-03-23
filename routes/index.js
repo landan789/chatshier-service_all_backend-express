@@ -55,7 +55,8 @@ router.get('/richmenu', function(req, res, next) {
     res.render('richmenu', { title: '圖文選單' });
 });
 
-router.get('/loading', function(req, res) {
-    res.send(303);
+router.get('/*', function(req, res, next) {
+    res.redirect('./signin');
 });
+
 module.exports = router;
