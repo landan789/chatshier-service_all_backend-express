@@ -1,13 +1,9 @@
 var admin = require('firebase-admin'); // firebase admin SDK
 var apps = {};
 
-const typeEnum = Object.freeze({
-    LINE: 'LINE',
-    FACEBOOK: 'FACEBOOK',
-    CHATSHIER: 'CHATSHIER'
-});
-
-apps.typeEnum = typeEnum;
+const LINE = 'LINE';
+const FACEBOOK = 'FACEBOOK';
+const CHATSHIER = 'CHATSHIER';
 
 apps._schema = (callback) => {
     var json = {
@@ -26,69 +22,35 @@ apps._schema = (callback) => {
     };
     callback(json);
 };
-
-apps.findByAppId = (appId, callback) => {
-    var ref = 'apps/' + appId;
-    admin.database().ref(ref).once('value', snap => {
-        var app = snap.val();
-        delete app.keywordreplies;
-        delete app.autoreplies;
-        delete app.templates;
-        delete app.greetings;
-        delete app.composes;
-        var _app = {
-            group_id: app.group_id,
-            id1: app.id1,
-            id2: app.id2,
-            isDeleted: app.isDeleted,
-            name: app.name,
-            secret: app.secret,
-            token1: app.token1,
-            token2: app.token2,
-            type: app.type,
-            webhook_id: app.webhook_id
-        };
-        var apps = {};
-        apps[snap.key] = _app;
-        callback(apps);
-    });
-};
-
-/**
- * 處理取得某個 webhook 對應到的 apps
- */
-apps.findAppsByWebhookId = (webhookId, callback) => {
-    var procced = Promise.resolve();
-
-    procced.then(() => {
-        return admin.database().ref('webhooks/' + webhookId).once('value');
-    }).then((snap) => {
-        var webhook = snap.val();
-        var appId = webhook.app_id;
-        return Promise.all([admin.database().ref('apps/' + appId).once('value'), appId]);
-    }).then((result) => {
-        var snap = result[0];
-        var appId = result[1];
-
-        var app = snap.val();
-        var apps = {};
-        apps[appId] = app;
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
 /**
      * 多型判斷要回傳apps還是appid下資料
      *
-     * @param {string|string[]} appIds || ''
+     * @param {string|string[]|null} appIds
+     * @param {string|null} webhookId
      * @param {Function} callback
      * @returns {Promise<any>}
      */
-apps.findAppsByAppIds = (appIds, callback) => {
+apps.find = (appIds, webhookId, callback) => {
     var apps = {};
 
     Promise.resolve().then(() => {
+
+        if (webhookId) {
+            return admin.database().ref('webhooks/' + webhookId).once('value').then((snap) => {
+                let webhook = snap.val();
+                let appIds = webhook.app_id;
+                if ('string' === typeof appIds) {
+                    appIds = [appIds];
+                }
+                return Promise.all(appIds.map((appId) => {
+                    return admin.database().ref('apps/' + appId).once('value').then((snap) => {
+                        let app = snap.val();
+                        apps[appId] = app;
+                    });
+                }));
+            });
+        }
+
         // 值為空回傳整包apps
         if ('' === appIds || !appIds) {
             return admin.database().ref('apps').once('value').then((snap) => {
@@ -157,9 +119,10 @@ apps.insert = (userId, postApp, callback) => {
         if (0 > _groupIds.indexOf(groupId)) {
             return Promise.reject(new Error());
         };
+        return Promise.resolve();
     }).then(() => {
         // 如果新增的 app 為 CHATSHIER 內部聊天室，則不需進行新增 webhooks 的動作
-        if (apps.typeEnum.CHATSHIER === postApp.type) {
+        if (CHATSHIER === postApp.type) {
             return;
         }
 
@@ -212,7 +175,7 @@ apps.update = (appId, putApp, callback) => {
                 }
 
                 // 已刪除資料不能更新
-                if (1 === app.delete) {
+                if (1 === app.isDeleted) {
                     reject(new Error());
                     return;
                 }

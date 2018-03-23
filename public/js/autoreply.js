@@ -55,7 +55,7 @@
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-            findOne(nowSelectAppId, userId);
+            loadAutoreplies(nowSelectAppId, userId);
             $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
@@ -63,7 +63,7 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        findOne(nowSelectAppId, userId);
+        loadAutoreplies(nowSelectAppId, userId);
     }
 
     function dataInsert() {
@@ -129,7 +129,7 @@
         });
     }
 
-    function findOne(appId, userId) {
+    function loadAutoreplies(appId, userId) {
         $('#autoreply-tables').empty();
         return api.appsAutoreplies.findAll(appId, userId).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
@@ -167,7 +167,7 @@
             endedTime: endtime,
             text: textInput
         };
-        return api.appsAutoreplies.update(appId, userId, autoreplyId, data).then(function(resJson) {
+        return api.appsAutoreplies.update(appId, autoreplyId, userId, data).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
@@ -216,7 +216,7 @@
             if (!isOK) {
                 return;
             }
-            return api.appsAutoreplies.remove(appId, userId, autoreplyId).then(function(resJson) {
+            return api.appsAutoreplies.remove(appId, autoreplyId, userId).then(function(resJson) {
                 $('#' + autoreplyId).remove();
                 $.notify('刪除成功！', { type: 'success' });
             }).catch((resJson) => {

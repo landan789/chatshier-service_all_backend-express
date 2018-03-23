@@ -15,11 +15,11 @@ module.exports = (function() {
 
         return Promise.resolve().then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                     };
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -33,10 +33,10 @@ module.exports = (function() {
                     return [];
                 }
 
-                return fuseHlp.search(pattern).then((result) => {
+                return fuseHlp.searchUser(pattern).then((result) => {
                     // 如果搜尋結果超過5筆，只需回傳5筆
                     if (result.length > 5) {
-                        result = result.slice(0, 5);
+                        return result.slice(0, 5);
                     }
                     return result;
                 });
@@ -66,11 +66,11 @@ module.exports = (function() {
                     });
                 });
             });
-        }).then((resJson) => {
+        }).then((data) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: resJson
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {

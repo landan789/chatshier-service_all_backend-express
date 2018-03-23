@@ -16,7 +16,7 @@ module.exports = (function() {
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsRichmenusMdl.find(appIds, (richmenus) => {
+                appsRichmenusMdl.find(appIds, null, (richmenus) => {
                     if (!richmenus) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                         return;
@@ -72,7 +72,7 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsRichmenusMdl.findOne(appId, richmenuId, (richmenu) => {
+                appsRichmenusMdl.find(appId, richmenuId, (richmenu) => {
                     if (!richmenu) {
                         reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                         return;
@@ -230,7 +230,7 @@ module.exports = (function() {
         }).then(() => { // 刪除目前richmenu
             return new Promise((resolve, reject) => {
                 appsRichmenusMdl.remove(appIds, richmenuId, (richmenu) => {
-                    if (false === richmenu) {
+                    if (!richmenu) {
                         reject(API_ERROR.RICHMENU_DELETE_FAIL);
                     }
                     resolve(richmenu);
@@ -239,7 +239,7 @@ module.exports = (function() {
         }).then((richmenu) => {
             var json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_DELETED_SUCCESS.MSG,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                 data: richmenu
             };
             res.status(200).json(json);

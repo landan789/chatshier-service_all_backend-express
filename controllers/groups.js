@@ -26,19 +26,18 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(userId, (data) => {
-                    let user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
             let groupIds = user.group_ids || [];
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupIds, req.params.userid, (groups) => {
+                groupsMdl.find(groupIds, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(groups);
                         return;
@@ -77,11 +76,11 @@ module.exports = (function() {
                     return reject(API_ERROR.NAME_WAS_EMPTY);
                 };
 
-                usersMdl.findUser(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -124,7 +123,7 @@ module.exports = (function() {
                         });
                     });
                 }).then((apps) => {
-                    let appId = Object.keys(apps).shift();
+                    let appId = Object.keys(apps).shift() || '';
                     // 將預設的客戶分類條件資料新增至 App 中
                     return new Promise((resolve, reject) => {
                         appsTagsMdl.insertDefaultTags(appId, (tags) => {
@@ -135,12 +134,12 @@ module.exports = (function() {
                         });
                     }).then(() => {
                         // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
-                        return appsChatroomsMdl.insert(appId).then((chatroomId) => {
+                        return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                            let chatroomId = Object.keys(appsChatrooms[appId].chatrooms).shift();
                             let members = Object.values(groups[groupId].members);
                             return Promise.all(members.map((member) => {
                                 let messager = {
-                                    chatroom_id: chatroomId,
-                                    isDeleted: 0
+                                    chatroom_id: chatroomId
                                 };
                                 return appsMessagersMdl.replaceMessager(appId, member.user_id, messager);
                             }));
@@ -194,13 +193,12 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(req.params.userid, (data) => {
-                    let user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -211,7 +209,7 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
+                groupsMdl.find(groupId, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
                         reject(groups);
                         return;

@@ -37,9 +37,8 @@ module.exports = (function() {
 
         let keywordreplies = {};
         let keywordrepliesPromise = Promise.all(messages.map((message) => {
-            let eventType = message.eventType;
             let text = message.text;
-            if ('message' !== eventType) {
+            if (!text) {
                 return Promise.resolve();
             }
             return new Promise((resolve, reject) => {
@@ -54,7 +53,7 @@ module.exports = (function() {
         });
 
         let autorepliesPromise = new Promise((resolve, reject) => {
-            appsAutorepliesMdl.findAutorepliesByAppId(appId, (autoreplies) => {
+            appsAutorepliesMdl.findAutoreplies(appId, (autoreplies) => {
                 autoreplies = autoreplies || {};
                 let timeNow = Date.now();
 
@@ -70,11 +69,22 @@ module.exports = (function() {
             });
         });
 
-        let templatesPromise = new Promise((resolve, reject) => {
-            appsTemplatesMdl.findTemplates(appId, (templates) => {
-                templates = templates || {};
-                resolve(templates);
+        let templates = {};
+        let templatesPromise = Promise.all(messages.map((message) => {
+            let eventType = message.eventType;
+            let text = message.text;
+            if ('message' !== eventType) {
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                // templates使用模糊比對，不直接對 DB 查找
+                fuseHlp.searchTemplates(appId, text, (_templates) => {
+                    templates = Object.assign(templates, _templates);
+                    resolve(_templates);
+                });
             });
+        })).then(() => {
+            return Promise.resolve(templates);
         });
         return Promise.all([
             grettingsPromise,

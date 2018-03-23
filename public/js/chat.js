@@ -13,6 +13,11 @@
     var SYSTEM = 'SYSTEM';
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
+    var WECHAT = 'WECHAT';
+
+    var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
+    var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
+    var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
 
     var SOCKET_NAMESPACE = '/chatshier';
 
@@ -37,6 +42,29 @@
     window.translate.ready.then(function(json) {
         transJson = Object.assign(transJson, json);
     });
+
+    var wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
+    var wechatEmojiTable = Object.freeze({
+        '/::)': '😃',
+        '/::~': '😖',
+        '/::B': '😍',
+        '/::|': '😳'
+    });
+
+    /**
+     * @param {string} text
+     */
+    var filterWechatEmoji = function(text) {
+        if (wechatEmojiRegex.test(text)) {
+            let emojis = text.match(wechatEmojiRegex) || [];
+            let newText = text;
+            for (let i = 0; i < emojis.length; i++) {
+                newText = newText.replace(emojis[i], wechatEmojiTable[emojis[i]] || emojis[i]);
+            }
+            return newText;
+        }
+        return text;
+    };
 
     /**
      * 處理聊天室中視窗右側待辦事項資料的控制集合，
@@ -522,11 +550,11 @@
                 // 過濾已經刪除的 messager 資料
                 var messagers = appsMessagers[appId].messagers;
                 for (var messagerId in messagers) {
-                    var messager = messagers[messagerId];
-                    if (messager.isDeleted) {
-                        delete messagers[messagerId];
-                        continue;
-                    }
+                    // var messager = messagers[messagerId];
+                    // if (messager.isDeleted) {
+                    //     delete messagers[messagerId];
+                    //     continue;
+                    // }
 
                     // 內部聊天室的成員即是群組成員
                     // 因此 messagerId 直接對應的是 userId
@@ -605,13 +633,17 @@
             })();
 
             socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, function(data) {
-                /** @type {ChatshierChatSocketInterface} */
+                /** @type {ChatshierChatSocketBody} */
                 var socketBody = data;
 
-                var appId = socketBody.appId;
-                var appType = socketBody.appType;
-                var chatroomId = socketBody.chatroomId;
+                var appId = socketBody.app_id;
+                var appType = socketBody.type;
+                var chatroomId = socketBody.chatroom_id;
                 var messages = socketBody.messages;
+                messages.sort((a, b) => {
+                    // 根據發送的時間從早到晚排序
+                    return a.time - b.time;
+                });
                 var messagers = appsMessagers[appId].messagers;
 
                 var nextMessage = function(i) {
@@ -676,7 +708,7 @@
                                     }
                                 },
                                 messages: {
-                                    [Date.now]: message
+                                    [Date.now()]: message
                                 }
                             };
                             appsChatrooms[appId].chatrooms[chatroomId] = _chatroom;
@@ -712,7 +744,6 @@
                         return nextMessage(i + 1);
                     });
                 };
-
                 return nextMessage(0);
             });
 
@@ -735,6 +766,11 @@
             });
         }
 
+        function fileName(url) {
+            let ext = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
+            return Date.now() + '.' + ext;
+        }
+
         function generateAppsIcons(apps) {
             var $chatApp = $('#chat_App');
 
@@ -753,13 +789,18 @@
                 var appItem = '';
                 switch (appData.type) {
                     case LINE:
-                        appItem = buildHtml(appData.type, 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png');
+                        appItem = buildHtml(appData.type, LINE_LOGO);
                         break;
                     case FACEBOOK:
-                        appItem = buildHtml(appData.type, 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png');
+                        appItem = buildHtml(appData.type, FACEBOOK_LOGO);
+                        break;
+                    case WECHAT:
+                        appItem = buildHtml(appData.type, WECHAT_LOGO);
+                        break;
+                    default:
                         break;
                 }
-                $chatApp.prepend(appItem);
+                appItem && $chatApp.prepend(appItem);
             }
         }
 
@@ -800,6 +841,7 @@
                         // 由於屬於特定平台 app 的 messager 只會有一位
                         case LINE:
                         case FACEBOOK:
+                        case WECHAT:
                             var _msgerId = Object.keys(chatroomMessagers).shift();
                             var messager = appsMessagers[appId].messagers[_msgerId];
                             uiRequireData.profile = messager;
@@ -942,10 +984,13 @@
 
             switch (appType) {
                 case LINE:
-                    clientUiOpts.iconSrc = 'http://informatiekunde.dilia.be/sites/default/files/uploads/logo-line.png';
+                    clientUiOpts.iconSrc = LINE_LOGO;
                     break;
                 case FACEBOOK:
-                    clientUiOpts.iconSrc = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
+                    clientUiOpts.iconSrc = FACEBOOK_LOGO;
+                    break;
+                case WECHAT:
+                    clientUiOpts.iconSrc = WECHAT_LOGO;
                     break;
                 case CHATSHIER:
                 default:
@@ -979,7 +1024,7 @@
                 case 'image':
                     return '<img src="' + message.src + '" style="width: 100%; max-width: 500px;" />';
                 case 'audio':
-                    return '<audio controls><source src="' + message.src + '" type="audio/mp4"></audio>';
+                    return '<audio controls><source src="' + message.src + '" type="audio/mpeg"></audio>';
                 case 'video':
                     return '<video controls><source src="' + message.src + '" type="video/mp4"></video>';
                 case 'sticker':
@@ -987,7 +1032,7 @@
                 case 'location':
                     return '<i class="fa fa-location-arrow location-icon"></i><span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>';
                 default:
-                    return message.text || '';
+                    return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
             }
         }
 
@@ -1439,20 +1484,21 @@
                 return;
             }
 
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var messageToSend = {
                 from: CHATSHIER,
                 time: Date.now(),
                 text: msgText,
+                src: '',
                 type: 'text',
                 messager_id: userId
             };
 
-            /** @type {ChatshierChatSocketInterface} */
-            var chatSocketData = {
-                appId: appId,
-                appType: appType,
-                chatroomId: chatroomId,
+            /** @type {ChatshierChatSocketBody} */
+            var socketBody = {
+                app_id: appId,
+                type: appType,
+                chatroom_id: chatroomId,
                 recipientId: recipientId,
                 messages: [messageToSend]
             };
@@ -1463,7 +1509,7 @@
 
             return new Promise(function(resolve) {
                 messageInput.val('');
-                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
                     $loadingElem.remove();
                     $loadingElem = void 0;
                     resolve();
@@ -1510,57 +1556,35 @@
                 return;
             }
 
-            var storageRef = firebase.storage().ref();
-            var fileRef = storageRef.child(new Date().getTime() + '_' + file.name);
-
             var $loadingElem = generateLoadingJqElem();
             $messageView.find('.message-panel').append($loadingElem);
             scrollMessagePanelToBottom(appId, chatroomId);
 
-            return fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.downloadURL;
-                var msgType = $(_this).data('type');
-                var appType = apps[appId].type;
-                var recipientId = findChatroomMessagerId(appId, chatroomId);
-
-                /** @type {ChatshierMessageInterface} */
-                var messageToSend = {
-                    text: '',
-                    src: url,
-                    type: msgType,
-                    from: CHATSHIER,
-                    time: Date.now(),
-                    messager_id: userId
-                };
-
-                /** @type {ChatshierChatSocketInterface} */
-                var chatSocketData = {
-                    appId: appId,
-                    appType: appType,
-                    chatroomId: chatroomId,
-                    recipientId: recipientId,
-                    messages: [messageToSend]
-                };
-
-                return new Promise(function(resolve) {
-                    messageInput.val('');
-                    chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, chatSocketData, function() {
-                        $loadingElem.remove();
-                        $loadingElem = void 0;
-                        resolve();
-                    });
-                }).then(function() {
-                    // var sender = appsMessagers[appId].messagers[userId];
-                    // var srcHtml = messageToPanelHtml(messageToSend);
-
-                    // var $messagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]' + ' .message-panel');
-                    // var messageHtml = generateMessageHtml(srcHtml, messageToSend, sender.name, appType);
-                    // $messagePanel.append(messageHtml);
-                    // $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
-
-                    // var $tablinkMsg = $('.tablinks[app-id="' + appId + '"] .client-message');
-                    // $tablinkMsg.html(toTimeStr(Date.now()) + loadMessageInDisplayClient(srcHtml));
-                });
+            var msgType = $(_this).data('type');
+            var appType = apps[appId].type;
+            var recipientId = findChatroomMessagerId(appId, chatroomId);
+            var src = file;
+            /** @type {ChatshierMessage} */
+            var messageToSend = {
+                text: '',
+                src: src,
+                type: msgType,
+                from: CHATSHIER,
+                time: Date.now(),
+                messager_id: userId
+            };
+            /** @type {ChatshierChatSocketBody} */
+            var socketBody = {
+                app_id: appId,
+                type: appType,
+                chatroom_id: chatroomId,
+                recipientId: recipientId,
+                messages: [messageToSend]
+            };
+            messageInput.val('');
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
+                $loadingElem.remove();
+                $loadingElem = void 0;
             });
         }
 
@@ -1575,6 +1599,7 @@
             switch (appType) {
                 case LINE:
                 case FACEBOOK:
+                case WECHAT:
                     // 從目前所有的 messager 中找尋平台中唯一的 messagerId
                     for (var messagerId in appsMessagers[appId].messagers) {
                         var _messager = appsMessagers[appId].messagers[messagerId];
@@ -1596,7 +1621,7 @@
         }
 
         function updateMessagePanel(messager, message, appId, chatroomId) {
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var _message = message;
             var appType = apps[appId].type;
             var srcHtml = messageToPanelHtml(_message);
@@ -1626,7 +1651,7 @@
         }
 
         function updateClientTab(messager, message, appId, chatroomId) {
-            /** @type {ChatshierMessageInterface} */
+            /** @type {ChatshierMessage} */
             var _message = message;
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var chatroomMsgers = chatroom.messagers;

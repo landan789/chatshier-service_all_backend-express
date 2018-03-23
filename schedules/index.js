@@ -27,7 +27,7 @@ let jobProcess = () => {
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
     return new Promise((resolve, reject) => {
         let appIds = '';
-        appsMdl.findAppsByAppIds(appIds, (apps) => {
+        appsMdl.find(appIds, null, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
             }
@@ -38,8 +38,8 @@ let jobProcess = () => {
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
-            if (CHATSHIER === app.type || 1 === app.isDeleted) {
-                return Promise.resolve();
+            if (CHATSHIER === app.type || app.isDeleted) {
+                return Promise.resolve([]);
             }
 
             let messages = [];
@@ -47,6 +47,10 @@ let jobProcess = () => {
             let messagers = app.messagers || {};
             for (let messagerId in messagers) {
                 let originMessager = messagers[messagerId] || {};
+                if (originMessager.isDeleted) {
+                    delete messagers[messagerId];
+                    continue;
+                }
                 let originMessagerAge = originMessager.age || '';
                 let originMessagerGender = originMessager.gender || '';
                 let originMessagerTags = originMessager.custom_tags || {};
@@ -55,7 +59,7 @@ let jobProcess = () => {
                     if (composes[composeId].text &&
                         1 === composes[composeId].status &&
                         timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                        0 === composes[composeId].isDeleted
+                        !composes[composeId].isDeleted
                     ) {
                         let message = {
                             type: composes[composeId].type,
@@ -105,7 +109,7 @@ let jobProcess = () => {
                     }
                     return Promise.all(messages.map((message) => {
                         console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        return appsChatroomsMessagesMdl.insertMessage(appId, chatroomId, message);
+                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
                     }));
                 }));
             });

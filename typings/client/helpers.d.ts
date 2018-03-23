@@ -9,13 +9,15 @@ interface Window {
         appsMessagers: AppsMessagersAPI,
         appsKeywordreplies: AppsKeywordrepliesAPI,
         appsTemplates: AppsTemplatesAPI,
+        appsRichmenus: AppsRichmenusAPI,
         appsTags: AppsTagsAPI,
         appsTickets: AppsTicketsAPI,
         calendarsEvents: CalendarsEventsAPI,
         authentications: AuthenticationsAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
-        users: UsersAPI
+        users: UsersAPI,
+        bot: BotAPI
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -90,9 +92,18 @@ interface AppsKeywordrepliesAPI {
 
 interface AppsTemplatesAPI {
     findAll: (appId: string, userId: string) => Promise<any>;
+    findOne: (appId: string, templateId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, templateData: any) => Promise<any>;
     update: (appId: string, templateId: string, userId: string, templateData: any) => Promise<any>;
     remove: (appId: string, templateId: string, userId: string) => Promise<any>;
+}
+
+interface AppsRichmenusAPI {
+    findAll: (appId: string, userId: string) => Promise<any>;
+    findOne: (appId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, richmenuData: any) => Promise<any>;
+    update: (appId: string, richmenuId: string, userId: string, richmenuData: any) => Promise<any>;
+    remove: (appId: string, richmenuId: string, userId: string) => Promise<any>;
 }
 
 interface AppsTagsAPI {
@@ -160,4 +171,15 @@ interface GroupsAPI {
 interface UsersAPI {
     findOne: (userId: string) => Promise<any>;
     update: (userId: string, userData: any) => Promise<any>;
+}
+
+interface BotAPI {
+    getRichMenuList: (appId: string) => Promise<any>;
+    getRichMenu: (appId: string, richmenuId: string) => Promise<any>;
+    getRichMenuImage: (appId: string, richmenuId: string) => Promise<any>;
+    createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
+    setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
+    linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
+    deleteRichMenu: (appId: string, richmenuId: string) => Promise<any>;
+    unlinkRichMenuFromUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
 }

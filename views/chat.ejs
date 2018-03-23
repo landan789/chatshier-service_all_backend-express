@@ -70,8 +70,8 @@
                             <button data-id="file-video" data-type="video" id="attVid" class="on-click-show"><i class="fa fa-file-video-o fa" aria-hidden="true"></i></button>
                             <button data-id="file-audio" data-type="audio" id="attAud" class="on-click-show"><i class="fa fa-file-audio-o fa" aria-hidden="true"></i></button>
                             <input class="send-file hide" type="file" id="file-image" data-type="image" accept="image/*" />
-                            <input class="send-file hide" type="file" id="file-video" data-type="video" accept="video/*" />
-                            <input class="send-file hide" type="file" id="file-audio" data-type="audio" accept="audio/*" />
+                            <input class="send-file hide" type="file" id="file-video" data-type="video" accept="video/mp4,video/mpeg4" />
+                            <input class="send-file hide" type="file" id="file-audio" data-type="audio" accept="audio/mp3,video/mpeg3" />
                         </div>
                     </div>
                     <div class="message-input form-lower">
@@ -101,6 +101,12 @@
     <% include ../views/partials/firebase_disable.ejs %>
 
     <% include ../views/partials/require_js.ejs %>
+    <!-- dropbox -->
+    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.js"></script>
+    <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+    <script src="https://unpkg.com/dropbox/dist/DropboxTeam-sdk.min.js"></script>
+    <!-- dropbox end -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="js/sb-admin-2.js"></script>
     <script src="js/chat.js"></script>

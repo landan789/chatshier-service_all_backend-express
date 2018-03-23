@@ -10,7 +10,18 @@ calendarsEvents.getAll = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.findCalendarEventsByUserId(userId, (data) => {
+            userMdl.findCalendarId(userId, (data) => {
+                var calendarId = data || '';
+                if (!calendarId) {
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
+                    return;
+                }
+                resolve(calendarId);
+            });
+        });
+    }).then((calendarId) => {
+        return new Promise((resolve, reject) => {
+            calendarsEventsMdl.find(calendarId, (data) => {
                 var calendarsEvents = data;
                 if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
@@ -34,7 +45,7 @@ calendarsEvents.getAll = function(req, res, next) {
         };
         res.status(500).json(json);
     });
-}
+};
 
 calendarsEvents.postOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
@@ -44,8 +55,7 @@ calendarsEvents.postOne = (req, res, next) => {
         startedTime: undefined === req.body.startedTime ? null : req.body.startedTime,
         endedTime: undefined === req.body.endedTime ? null : req.body.endedTime,
         description: undefined === req.body.description ? null : req.body.description,
-        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay,
-        isDeleted: 0
+        isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay
     };
     let proceed = Promise.resolve();
 
@@ -60,13 +70,33 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.insertCalendarEventByUserId(userId, event, (data) => {
-                let calendarsEvents = data;
+            userMdl.findCalendarId(userId, (data) => {
+                var calendarId = data || '';
+                // 首次插入資料時不會有 calendarId
+                resolve(calendarId);
+            });
+        });
+    }).then((calendarId) => {
+        return new Promise((resolve, reject) => {
+            calendarsEventsMdl.insert(calendarId, event, (calendarsEvents) => {
                 if (null === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
                     return;
                 }
-                resolve(data);
+                if (!calendarId) {
+                    // 插入事件至指定的行事曆並同時更新使用者的 calendar_id 欄位
+                    let userCalendarId = {
+                        calendar_id: Object.keys(calendarsEvents)[0]
+                    };
+                    userMdl.update(userId, userCalendarId, (user) => {
+                        if (!user) {
+                            reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                            return;
+                        }
+                        resolve();
+                    });
+                }
+                resolve(calendarsEvents);
             });
         });
     }).then((data) => {
@@ -85,7 +115,7 @@ calendarsEvents.postOne = (req, res, next) => {
         };
         res.status(500).json(json);
     });
-}
+};
 
 calendarsEvents.putOne = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
@@ -99,7 +129,7 @@ calendarsEvents.putOne = (req, res, next) => {
         endedTime: undefined === req.body.endedTime ? null : req.body.endedTime,
         description: undefined === req.body.description ? null : req.body.description,
         isAllDay: undefined === req.body.isAllDay ? 0 : req.body.isAllDay
-    }
+    };
 
     let proceed = new Promise((resolve, reject) => {
         resolve();
@@ -126,9 +156,9 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdByUserId(userId, (data) => {
-                let _calendarId = data;
-                if (null === _calendarId || undefined === _calendarId || '' === _calendarId || calendarId !== _calendarId) {
+            userMdl.findCalendarId(userId, (data) => {
+                let calendarIds = [data];
+                if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
                 }
@@ -137,7 +167,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.updateCalendarEventByCalendarIdByEventId(calendarId, eventId, event, (data) => {
+            calendarsEventsMdl.update(calendarId, eventId, event, (data) => {
                 let calendarsEvents = data;
                 resolve(calendarsEvents);
             });
@@ -157,20 +187,21 @@ calendarsEvents.putOne = (req, res, next) => {
         };
         res.status(500).json(json);
     });
-}
+};
 
 calendarsEvents.deleteOne = (req, res, next) => {
     let userId = req.params.userid;
     let eventId = req.params.eventid;
+    let calendarId = req.params.calendarid;
 
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarIdByUserId(userId, (data) => {
-                var calendarId = data;
-                if (false === calendarId || undefined === calendarId || '' === calendarId) {
-                    reject(API_ERROR.USER_DOES_NOT_HAVE_THIS_APP);
+            userMdl.findCalendarId(userId, (data) => {
+                var calendarIds = [data];
+                if (!calendarIds.includes(calendarId)) {
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
                 }
                 resolve();
@@ -178,7 +209,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.removeCalendarEventByUserIdByEventId(userId, eventId, (result) => {
+            calendarsEventsMdl.remove(calendarId, eventId, (result) => {
                 if (undefined === result || '' === result || null === result) {
 
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);

@@ -16,7 +16,7 @@ module.exports = (function() {
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTickets(appId || appIds, (data) => {
+                appsTicketsMdl.find(appId || appIds, null, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -48,7 +48,7 @@ module.exports = (function() {
             let appId = checkedAppIds;
             let ticketId = req.params.ticketid;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.findAppTicket(appId, ticketId, (data) => {
+                appsTicketsMdl.find(appId, ticketId, (data) => {
                     var apps = data;
                     if (null === apps || '' === apps || undefined === apps) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -86,8 +86,7 @@ module.exports = (function() {
             priority: req.body.priority === undefined ? '' : req.body.priority,
             messager_id: req.body.messager_id === undefined ? '' : req.body.messager_id,
             status: req.body.status === undefined ? '' : req.body.status,
-            assigned_id: req.body.assigned_id === undefined ? '' : req.body.assigned_id,
-            isDeleted: 0
+            assigned_id: req.body.assigned_id === undefined ? '' : req.body.assigned_id
         };
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -133,22 +132,22 @@ module.exports = (function() {
             appId = checkedAppIds;
 
             if (!ticketId) {
-                return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                appsTicketsMdl.findTickets(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
-                        reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                appsTicketsMdl.find(appId, null, (appTickets) => {
+                    if (!appTickets) {
+                        reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
                         return;
                     }
-                    let ticketIds = Object.keys(data);
-                    resolve(ticketIds);
+                    resolve(appTickets);
                 });
             });
-        }).then((ticketIds) => { // 判斷appId中是否有目前ticket
+        }).then((appTickets) => { // 判斷appId中是否有目前ticket
+            let ticketIds = Object.keys(appTickets[appId].tickets);
             return new Promise((resolve, reject) => {
                 if (false === ticketIds.includes(ticketId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
                     return;
                 }
                 resolve();
@@ -189,22 +188,22 @@ module.exports = (function() {
             appId = checkedAppIds;
 
             if (!ticketId) {
-                return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                appsTicketsMdl.findTickets(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
-                        reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
+                appsTicketsMdl.find(appId, null, (appTickets) => {
+                    if (!appTickets) {
+                        reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
                         return;
                     }
-                    let ticketIds = Object.keys(data);
-                    resolve(ticketIds);
+                    resolve(appTickets);
                 });
             });
-        }).then((ticketIds) => { // 判斷appId中是否有目前ticket
+        }).then((appTickets) => { // 判斷appId中是否有目前ticket
+            let ticketIds = Object.keys(appTickets[appId].tickets);
             return new Promise((resolve, reject) => {
                 if (false === ticketIds.includes(ticketId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
                     return;
                 }
                 resolve();

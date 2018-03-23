@@ -19,16 +19,16 @@ apps.getAll = (req, res, next) => {
     Promise.resolve().then(() => {
         return new Promise((resolve, reject) => {
             var userId = req.params.userid;
-            if ('' === userId || null === userId || undefined === userId) {
+            if (!userId) {
                 reject(API_ERROR.USERID_WAS_EMPTY);
                 return;
             };
-            usersMdl.findUser(userId, (user) => {
-                if (null === user) {
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -40,7 +40,7 @@ apps.getAll = (req, res, next) => {
         });
     }).then((appIds) => {
         return new Promise((resolve, reject) => {
-            appsMdl.findAppsByAppIds(appIds, (apps) => {
+            appsMdl.find(appIds, null, (apps) => {
                 if (null === apps || '' === apps || undefined === apps) {
                     apps = {};
                 }
@@ -89,12 +89,12 @@ apps.getOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(userId, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -111,7 +111,7 @@ apps.getOne = (req, res, next) => {
         return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.findByAppId(appId, (data) => {
+            appsMdl.find(appId, null, (data) => {
                 var app = data;
                 if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -173,10 +173,11 @@ apps.postOne = (req, res, next) => {
                 return;
             }
 
-            if ('' === req.body.token1 || null === req.body.token1 || undefined === req.body.token1) {
-                reject(API_ERROR.TOKEN1_WAS_EMPTY);
-                return;
-            }
+            // wechat 新增 app 不需要輸入 token
+            // if ('' === req.body.token1 || null === req.body.token1 || undefined === req.body.token1) {
+            //     reject(API_ERROR.TOKEN1_WAS_EMPTY);
+            //     return;
+            // }
 
             if ('' === req.body.type || null === req.body.type || undefined === req.body.type) {
                 reject(API_ERROR.TYPE_WAS_EMPTY);
@@ -191,12 +192,13 @@ apps.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
@@ -206,7 +208,7 @@ apps.postOne = (req, res, next) => {
         };
 
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(req.body.groupid, req.params.userid, (groups) => {
+            groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups || 0 === Object.keys(groups).length) {
                     reject(API_ERROR.GROUP_DID_NOT_EXIST);
                 }
@@ -219,7 +221,7 @@ apps.postOne = (req, res, next) => {
 
         // userIds 此群組底下所有成員 userIDs
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -253,7 +255,7 @@ apps.postOne = (req, res, next) => {
             });
         });
     }).then((apps) => {
-        var appId = Object.keys(apps).shift();
+        var appId = Object.keys(apps).shift() || '';
         return new Promise((resolve, reject) => {
             appsTagsMdl.insertDefaultTags(appId, (tags) => {
                 if (!tags) {
@@ -322,17 +324,18 @@ apps.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
         return new Promise((resolve, reject) => {
-            appsMdl.findByAppId(req.params.appid, (apps) => {
+            appsMdl.find(req.params.appid, null, (apps) => {
                 if (null === apps || undefined === apps || '' === apps) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
@@ -344,7 +347,7 @@ apps.putOne = (req, res, next) => {
         var app = Object.values(apps)[0];
         var groupId = app.group_id;
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
+            groupsMdl.find(groupId, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {
                     reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     return;
@@ -357,7 +360,7 @@ apps.putOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             }
         });
@@ -425,17 +428,18 @@ apps.deleteOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            usersMdl.findUser(req.params.userid, (user) => {
-                if (false === user || undefined === user || '' === user) {
+            let userId = req.params.userid;
+            usersMdl.find(userId, null, (users) => {
+                if (!users) {
                     reject(API_ERROR.USER_FAILED_TO_FIND);
                     return;
                 }
-                resolve(user);
+                resolve(users[userId]);
             });
         });
     }).then((user) => {
         return new Promise((resolve, reject) => {
-            appsMdl.findByAppId(req.params.appid, (apps) => {
+            appsMdl.find(req.params.appid, null, (apps) => {
                 if (null === apps || undefined === apps || '' === apps) {
                     reject(API_ERROR.APP_FAILED_TO_FIND);
                     return;
@@ -447,7 +451,7 @@ apps.deleteOne = (req, res, next) => {
         var app = Object.values(apps)[0];
         var groupId = app.group_id;
         return new Promise((resolve, reject) => {
-            groupsMdl.findGroups(groupId, req.params.userid, (groups) => {
+            groupsMdl.find(groupId, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups) {
                     reject(API_ERROR.GROUP_FAILED_TO_FIND);
                     return;
@@ -460,7 +464,7 @@ apps.deleteOne = (req, res, next) => {
         var members = group.members;
 
         var userIds = Object.values(members).map((member) => {
-            if (0 === member.isDeleted) {
+            if (!member.isDeleted) {
                 return member.user_id;
             };
         });
@@ -484,18 +488,19 @@ apps.deleteOne = (req, res, next) => {
         return Promise.resolve();
     }).then(() => {
         return new Promise((resolve, reject) => {
-            appsMdl.remove(req.params.appid, (result) => {
-                if (false === result) {
+            appsMdl.remove(req.params.appid, (apps) => {
+                if (!apps) {
                     reject(API_ERROR.APP_FAILED_TO_REMOVE);
                     return;
                 }
-                resolve();
+                resolve(apps);
             });
         });
-    }).then(() => {
+    }).then((data) => {
         var json = {
             status: 1,
-            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
+            msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+            data: data
         };
         res.status(200).json(json);
     }).catch((ERROR) => {

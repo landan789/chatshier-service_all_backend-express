@@ -32,13 +32,12 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(userId, (data) => {
-                    var user = data;
-                    if (undefined === user || null === user || '' === user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -49,7 +48,7 @@ module.exports = (function() {
             }
 
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findGroupsMembers(groupIds, null, (groupsMembers) => {
+                groupsMembersMdl.find(groupIds, null, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                         return;
@@ -94,29 +93,27 @@ module.exports = (function() {
                     return reject(API_ERROR.GROUPID_WAS_EMPTY);
                 };
 
-                usersMdl.findUser(req.params.userid, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(postMember.user_id, (data) => {
-                    var _user = data;
-                    if (undefined === _user || null === _user || '' === _user) {
+                usersMdl.find(postMember.user_id, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         // 不存在的 user 無法加入 群組
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
-            if (0 > index) {
+            let groupIds = user.group_ids;
+            if (0 > groupIds.indexOf(groupId)) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
         }).then(() => {
@@ -143,16 +140,15 @@ module.exports = (function() {
             var bodyMemberId = Object.keys(members)[bodyIndex];
             var bodyMember = members[bodyMemberId];
 
-            if (0 <= bodyIndex && 0 === bodyMember.isDeleted) {
+            if (0 <= bodyIndex && !bodyMember.isDeleted) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
             }
             if (WRITE === paramsMember.type || READ === paramsMember.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
             };
 
-            if (0 <= bodyIndex && 1 === bodyMember.isDeleted) {
+            if (0 <= bodyIndex && bodyMember.isDeleted) {
                 var _member = {
-                    isDeleted: 0,
                     status: 0
                 };
                 return new Promise((resolve, reject) => {
@@ -180,7 +176,7 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
-                            appsMdl.findByAppId(appId, (apps) => {
+                            appsMdl.find(appId, null, (apps) => {
                                 resolve(apps);
                             });
                         }).then((apps) => {
@@ -192,14 +188,13 @@ module.exports = (function() {
                                 return;
                             }
 
-                            return appsMessagersMdl.findMessager(appId, userId).then((appMessagers) => {
+                            return appsMessagersMdl.find(appId, userId).then((appMessagers) => {
                                 // 目前內部聊天室的 chatroom 只會有一個
                                 // 因此所有群組成員的 chatroom_id 都會是一樣
                                 // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
                                 let messager = appMessagers[appId].messagers[userId];
                                 let newMessager = {
-                                    chatroom_id: messager.chatroom_id,
-                                    isDeleted: 0
+                                    chatroom_id: messager.chatroom_id
                                 };
                                 return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
                             });
@@ -261,13 +256,13 @@ module.exports = (function() {
             };
         }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.findUser(req.params.userid, (data) => {
-                    var user = data;
-                    if (undefined === user || null === user || '' === user) {
+                let userId = req.params.userid;
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -298,7 +293,7 @@ module.exports = (function() {
             var index = userIds.indexOf(req.params.userid);
 
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
@@ -370,12 +365,12 @@ module.exports = (function() {
                     return reject(API_ERROR.MEMBERID_WAS_EMPTY);
                 };
 
-                usersMdl.findUser(userId, (user) => {
-                    if (!user) {
+                usersMdl.find(userId, null, (users) => {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(user);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -409,7 +404,7 @@ module.exports = (function() {
 
             var index = groupUserIds.indexOf(userId);
             if (0 > index) {
-                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_DELETED_FROM_THIS_GROUP);
+                return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
 
             var _memberId = Object.keys(members)[index];
@@ -449,7 +444,7 @@ module.exports = (function() {
                     // 將此 group member 從所有 app 裡的 messagers 刪除
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                         return Promise.all(appIds.map((appId) => {
-                            return appsMessagersMdl.deleteMessager(appId, msgerId);
+                            return appsMessagersMdl.remove(appId, msgerId);
                         }));
                     });
                 }).then(() => {

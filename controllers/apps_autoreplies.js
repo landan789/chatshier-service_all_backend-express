@@ -15,7 +15,7 @@ module.exports = (function() {
         return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.findByAppIds(appIds, (data) => {
+                appsAutorepliesMdl.find(appIds, null, (data) => {
                     if (undefined === data || null === data || '' === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -47,12 +47,12 @@ module.exports = (function() {
         return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.findOne(appId, autoreplyId, (data) => {
-                    if (false === data || undefined === data || '' === data) {
+                appsAutorepliesMdl.find(appId, autoreplyId, (appsAutoreplies) => {
+                    if (false === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(appsAutoreplies);
                 });
             });
         }).then((appsAutoreplies) => {
@@ -117,8 +117,7 @@ module.exports = (function() {
             title: undefined === req.body.title ? '' : req.body.title,
             startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
             endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-            text: undefined === req.body.text ? '' : req.body.text,
-            isDeleted: 0
+            text: undefined === req.body.text ? '' : req.body.text
         };
 
         // 前端未填入的訊息，不覆蓋
@@ -135,7 +134,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
-                appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                appsAutorepliesMdl.findAutoreplies(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -191,7 +190,7 @@ module.exports = (function() {
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
-                appsAutorepliesMdl.findAutorepliesByAppId(appId, (data) => {
+                appsAutorepliesMdl.findAutoreplies(appId, (data) => {
                     if (null === data || '' === data || undefined === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                         return;
@@ -210,7 +209,7 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsAutorepliesMdl.removeByAppIdByAutoreplyId(appId, autoreplyId, (data) => {
+                appsAutorepliesMdl.remove(appId, autoreplyId, (data) => {
                     if (false === data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
                         return;

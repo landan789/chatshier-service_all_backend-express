@@ -51,11 +51,13 @@ router.get('/analyze', function(req, res, next) {
 router.get('/template', function(req, res, next) {
     res.render('template', { title: '自訂Line Template' });
 });
-router.get('/richmenus', function(req, res, next) {
-    res.render('richmenus', { title: '圖文選單' });
+router.get('/richmenu', function(req, res, next) {
+    res.render('richmenu', { title: '圖文選單' });
 });
 
-router.get('/loading', function(req, res) {
-    res.send(303);
+// 此檢查放至最後，代表如果靜態資源 404, api 路徑也是 404 則直接轉址到 /signin
+router.get('/*', function(req, res, next) {
+    res.redirect('/signin');
 });
+
 module.exports = router;

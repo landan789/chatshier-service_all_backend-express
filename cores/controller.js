@@ -29,13 +29,13 @@ module.exports = (function() {
                     reject(API_ERROR.USERID_WAS_EMPTY);
                     return;
                 }
-                usersMdl.findUser(userId, (data) => {
+                usersMdl.find(userId, null, (users) => {
                     // 2. 判斷指定的 appId 是否有在 user 的 appId 清單中
-                    if (!data) {
+                    if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(data);
+                    resolve(users[userId]);
                 });
             });
         }).then((user) => {
@@ -61,7 +61,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 return new Promise((resolve, reject) => {
-                    appsMdl.findByAppId(appId, (apps) => {
+                    appsMdl.find(appId, null, (apps) => {
                         if (null === apps || undefined === apps || '' === apps) {
                             reject(API_ERROR.APP_FAILED_TO_FIND);
                             return;
@@ -73,7 +73,7 @@ module.exports = (function() {
                 var app = Object.values(apps)[0];
                 var groupId = app.group_id;
                 return new Promise((resolve, reject) => {
-                    groupsMdl.findGroups(groupId, userId, (groups) => {
+                    groupsMdl.find(groupId, userId, (groups) => {
                         if (null === groups || undefined === groups || '' === groups) {
                             reject(API_ERROR.GROUP_FAILED_TO_FIND);
                             return;
@@ -86,7 +86,7 @@ module.exports = (function() {
                 var members = group.members;
 
                 var userIds = Object.values(members).map((member) => {
-                    if (0 === member.isDeleted) {
+                    if (!member.isDeleted) {
                         return member.user_id;
                     }
                 });
