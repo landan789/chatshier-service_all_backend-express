@@ -175,13 +175,16 @@
 
             return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
+                var clientMessagerId = $('.card-group[app-id="' + appId + '"][style="display: block;"]').attr('messager-id');
 
                 if (appData && appData[appId] && appData[appId].tickets) {
                     tickets = appData[appId].tickets;
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
-                        if (ticket.isDeleted) {
+                        if (ticket.isDeleted ||
+                            clientMessagerId !== ticket.messager_id ||
+                            (ticket.assigned_id && ticket.assigned_id !== userId)) {
                             continue;
                         }
 
@@ -190,7 +193,7 @@
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
                                 '<td>' + dueTimeDateStr + '</td>' +
-                                '<td>' + ((ticket.description.length <= 10) ? ticket.description : (ticket.description.substring(0, 10) + '...')) + '</td>' +
+                                '<td class="ticket-description">' + ticket.description + '</td>' +
                                 '<td></td>' +
                             '</tr>'
                         );
@@ -276,7 +279,6 @@
             var infoInputTable = $('.info-input-table').empty();
             var messager = appsMessagers[appId].messagers[msgerId];
 
-            $ticketInfoModal.find('#ID-num').css('background-color', priorityColor(ticket.priority));
             $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
 
             var moreInfoHtml =
@@ -328,7 +330,7 @@
         };
 
         TicketTableCtrl.prototype.addTicket = function(appId) {
-            var msgerId = $addTicketModal.find('select#add-form-uid option:selected').val();
+            var msgerId = $addTicketModal.find('select#add-form-name option:selected').val();
             var assignedId = $addTicketModal.find('select#assigned-name option:selected').val();
             var description = $addTicketModal.find('textarea#add_form_description').val();
             var $errorElem = $addTicketModal.find('#error');
@@ -343,6 +345,7 @@
             } else {
                 var status = parseInt($addTicketModal.find('#add-form-status option:selected').val(), 10);
                 var priority = parseInt($addTicketModal.find('#add-form-priority option:selected').val(), 10);
+                var assignedName = $addTicketModal.find('select#assigned-name option:selected').text();
 
                 var newTicket = {
                     description: description || '',
@@ -354,7 +357,7 @@
                 };
 
                 return api.appsTickets.insert(appId, userId, newTicket).then(function() {
-                    $.notify('待辦事項已新增', { type: 'success' });
+                    $.notify('待辦事項已新增，指派人: ' + assignedName, { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
                     $.notify('待辦事項新增失敗，請重試', { type: 'danger' });
@@ -365,14 +368,17 @@
         };
 
         TicketTableCtrl.prototype.updateTicket = function(appId, ticketId) {
-            var modifyTable = $('#ticket_info_modal .info-input-table');
-            modifyTable.find('input').blur();
+            var $modifyTable = $('#ticket_info_modal .info-input-table');
+            $modifyTable.find('input').blur();
 
-            var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val(), 10);
-            var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val(), 10);
-            var ticketDescription = modifyTable.find('th.description').parent().find('td.edit textarea').val();
-            var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
-            var assignedId = modifyTable.find('tr.assigned select option:selected').val();
+            var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val(), 10);
+            var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val(), 10);
+            var ticketDescription = $modifyTable.find('th.description').parent().find('td.edit textarea').val();
+            var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
+
+            var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
+            var assignedId = $assignedElem.val();
+            var assignedName = $assignedElem.text();
 
             // 準備要修改的 ticket json 資料
             var modifiedTicket = {
@@ -385,7 +391,7 @@
 
             // 發送修改請求 api 至後端進行 ticket 修改
             return api.appsTickets.update(appId, ticketId, userId, modifiedTicket).then(function() {
-                $.notify('待辦事項已更新', { type: 'success' });
+                $.notify('待辦事項已更新，指派人: ' + assignedName, { type: 'success' });
                 instance.loadTickets(appId, userId);
             }).catch(function() {
                 $.notify('待辦事項更新失敗，請重試', { type: 'danger' });

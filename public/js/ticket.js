@@ -113,7 +113,6 @@
                 }
                 return appsAgents;
             }).then(function(appsAgents) {
-                console.log(appsAgents);
                 for (var ticketAppId in appsTicketsData) {
                     var tickets = appsTicketsData[ticketAppId].tickets;
 
@@ -134,7 +133,7 @@
                         $ticketBody.append(
                             '<tr app-id=' + ticketAppId + ' id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                             '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                            '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                            '<td id="description">' + ticketData.description + '</td>' +
                             '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
                             '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
                             '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
@@ -310,14 +309,17 @@
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
     function modifyTicket() {
-        var modifyTable = $('#ticket_info_modal .info-input-table');
-        modifyTable.find('input').blur();
+        var $modifyTable = $('#ticket_info_modal .info-input-table');
+        $modifyTable.find('input').blur();
 
-        var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val());
-        var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
-        var ticketDescription = modifyTable.find('th.description').parent().find('td.edit textarea').val();
-        var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
-        var assignedId = modifyTable.find('tr.assigned select option:selected').val();
+        var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val());
+        var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val());
+        var ticketDescription = $modifyTable.find('th.description').parent().find('td.edit textarea').val();
+        var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
+
+        var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
+        var assignedId = $assignedElem.val();
+        var assignedName = $assignedElem.text();
 
         // 準備要修改的 ticket json 資料
         var modifiedTicket = {
@@ -333,13 +335,12 @@
             loadTable();
 
             var alertSuccess = $('#alert-success');
-            alertSuccess.children('span').text('表單已更新');
+            alertSuccess.children('span').text('表單已更新，指派人: ' + assignedName);
             window.setTimeout(function() {
                 alertSuccess.show();
                 window.setTimeout(function() { alertSuccess.hide(); }, 3000);
             }, 1000);
-        }).catch(function(error) {
-            console.error(error);
+        }).catch(function() {
             var alertDanger = $('#alert-danger');
             alertDanger.children('span').text('表單更新失敗，請重試').show();
             window.setTimeout(function() { alertDanger.hide(); }, 4000);
