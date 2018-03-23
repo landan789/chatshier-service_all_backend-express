@@ -131,6 +131,7 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         update(calendarId, eventId, putEvent, callback) {
+            putEvent.updatedTime = undefined === putEvent.updatedTime ? Date.now() : putEvent.updatedTime;
             let calendarQuery = {
                 '_id': calendarId,
                 'events._id': eventId
