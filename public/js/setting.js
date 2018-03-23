@@ -261,12 +261,12 @@ window.auth.ready.then(function(currentUser) {
 window.googleClientHelper.loadAPI().then(function() {
     var url = window.googleCalendarHelper.configJsonUrl;
     return window.googleClientHelper.init(url);
-}).then(function(gAuth) {
+}).then(function(isSignedIn) {
     var $gCalendarRow = $('#gcalendar_row');
     $gCalendarRow.removeClass('hide');
 
     var $gCalendarCbx = $gCalendarRow.find('#gcalendar_cbx');
-    $gCalendarCbx.prop('checked', gAuth.isSignedIn.get());
+    $gCalendarCbx.prop('checked', isSignedIn);
     $gCalendarCbx.on('change', function(ev) {
         var elem = ev.target;
         if (elem.checked) {

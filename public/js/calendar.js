@@ -102,8 +102,8 @@
     var gCalendarPromise = window.googleClientHelper.loadAPI().then(function() {
         var url = window.googleCalendarHelper.configJsonUrl;
         return window.googleClientHelper.init(url);
-    }).then(function(gAuth) {
-        if (!gAuth.isSignedIn.get()) {
+    }).then(function(isSignedIn) {
+        if (!isSignedIn) {
             return { items: [] };
         }
         return window.googleCalendarHelper.findEvents();
