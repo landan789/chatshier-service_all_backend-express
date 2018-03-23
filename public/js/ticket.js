@@ -3,6 +3,7 @@
 (function() {
     var ticketInfo = {};
     var messagersData = {};
+    var appsAgents = {};
 
     var api = window.restfulAPI;
     var userId = '';
@@ -105,33 +106,44 @@
             }
 
             var appsTicketsData = respJsons[0].data || {};
-            for (var ticketAppId in appsTicketsData) {
-                var tickets = appsTicketsData[ticketAppId].tickets;
-
-                // 批此處理每個 tickets 的 app 資料
-                for (var ticketId in tickets) {
-                    var ticketData = tickets[ticketId];
-                    if (ticketData.isDeleted) {
-                        // 如果此 ticket 已被標注刪除，則忽略不顯示
-                        continue;
-                    }
-                    ticketData.ticketId = ticketId;
-                    ticketData.ticketAppId = ticketAppId;
-                    ticketInfo[ticketId] = ticketData;
-                    var messagerInfo = messagersData[ticketData.messager_id] || {};
-
-                    // 將每筆 ticket 資料反映於 html DOM 上
-                    $ticketBody.append(
-                        '<tr id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                        '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                        '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
-                        '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                        '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                        '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
-                        '<td>' + dueDate(ticketData.dueTime) + '</td>' +
-                        '</tr>');
+            return Promise.resolve().then(function() {
+                if (0 === Object.keys(appsAgents).length) {
+                    let appIds = Object.keys(appsTicketsData);
+                    return getAppsAgents(appIds);
                 }
-            }
+                return appsAgents;
+            }).then(function(appsAgents) {
+                console.log(appsAgents);
+                for (var ticketAppId in appsTicketsData) {
+                    var tickets = appsTicketsData[ticketAppId].tickets;
+
+                    // 批此處理每個 tickets 的 app 資料
+                    for (var ticketId in tickets) {
+                        var ticketData = tickets[ticketId];
+                        if (ticketData.isDeleted) {
+                            // 如果此 ticket 已被標注刪除，則忽略不顯示
+                            continue;
+                        }
+                        ticketData.ticketId = ticketId;
+                        ticketData.ticketAppId = ticketAppId;
+                        ticketInfo[ticketId] = ticketData;
+                        var messagerInfo = messagersData[ticketData.messager_id] || {};
+                        var agent = appsAgents[ticketAppId][ticketData.assigned_id];
+
+                        // 將每筆 ticket 資料反映於 html DOM 上
+                        $ticketBody.append(
+                            '<tr app-id=' + ticketAppId + ' id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
+                            '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
+                            '<td id="description">' + ticketData.description.substring(0, 10) + '</td>' +
+                            '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
+                            '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
+                            '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
+                            '<td id="assigened">' + (agent ? agent.name : '無') + '</td>' +
+                            '<td>' + dueDate(ticketData.dueTime) + '</td>' +
+                            '</tr>');
+                    }
+                }
+            });
         }).catch(function(error) {
             if ('401 Unauthorized' === error.message) {
                 // 只有在 promise reject 會收到 401，代表 firebase 登入失敗，等待 100ms 後重新執行
@@ -179,11 +191,14 @@
                 if (i === n) continue;
                 html += '<option value=' + i + '>' + statusNumberToText(i) + '</option>';
             }
-        } else if ('responder' === prop) {
-            html += "<option value='未指派'>請選擇</option>";
-            n.map(function(agent) {
-                html += '<option value=' + agent.id + '>' + agent.name + '</option>';
-            });
+        } else if ('assigned' === prop) {
+            if (0 === Object.keys(n).length) {
+                html += '<option value="">無資料</option>';
+            } else {
+                for (var agentId in n) {
+                    html += '<option value=' + agentId + '>' + n[agentId].name + '</option>';
+                }
+            }
         }
         html += '</select>';
         return html;
@@ -193,6 +208,7 @@
      * 顯示 ticket 更多資訊
      */
     function showTicketDetail() {
+        var appId = $(this).attr('app-id');
         var ticketId = $(this).attr('id');
         var ticketData = ticketInfo[ticketId];
         lastSelectedTicket = ticketData;
@@ -201,12 +217,11 @@
         var messagerInfo = messagersData[ticketData.messager_id] || {};
         $('#ID-num').css('background-color', priorityColor(ticketData.priority));
         $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
-        $('.modal-title').text(messagerInfo.name || '');
 
         var moreInfoHtml =
             '<tr>' +
-            '<th>客戶ID</th>' +
-            '<td class="edit">' + ticketData.messager_id + '</td>' +
+            '<th>客戶姓名</th>' +
+            '<td class="edit">' + (messagerInfo.name || '') + '</td>' +
             '</tr>' +
             '<tr>' +
             '<th class="priority">優先</th>' +
@@ -221,6 +236,10 @@
             '<td class="edit form-group">' +
             '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
             '</td>' +
+            '</tr>' +
+            '<tr class="assigned">' +
+            '<th>指派人</th>' +
+            '<td class="form-group">' + showSelect('assigned', appsAgents[appId]) + '</td>' +
             '</tr>' +
             '<tr>' +
             '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
@@ -271,7 +290,7 @@
     function displayDateInput(d) {
         d = new Date(d);
 
-        function pad(n) { return n < 10 ? '0' + n : n }
+        function pad(n) { return n < 10 ? '0' + n : n; }
         return d.getFullYear() + '-' +
             pad(d.getMonth() + 1) + '-' +
             pad(d.getDate()) + 'T' +
@@ -298,6 +317,7 @@
         var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val());
         var ticketDescription = modifyTable.find('th.description').parent().find('td.edit textarea').val();
         var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
+        var assignedId = modifyTable.find('tr.assigned select option:selected').val();
 
         // 準備要修改的 ticket json 資料
         var modifiedTicket = {
@@ -305,6 +325,7 @@
             dueTime: new Date(ticketDueTime).getTime(),
             priority: ticketPriority,
             status: ticketStatus,
+            assigned_id: assignedId,
             updatedTime: Date.now()
         };
 
@@ -416,4 +437,45 @@
             }
         }
     };
+
+    function getAppsAgents(appIds) {
+        if ('string' === typeof appIds && appsAgents[appIds]) {
+            return Promise.resolve(appsAgents[appIds]);
+        }
+
+        if (!(appIds instanceof Array)) {
+            appIds = [appIds];
+        }
+
+        return Promise.all([
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
+        ]).then(function(resJsons) {
+            var groups = resJsons.shift().data;
+            var groupUsers = resJsons.shift().data;
+            var agents = {};
+
+            for (var i in appIds) {
+                var appId = appIds[i];
+                for (var groupId in groups) {
+                    var group = groups[groupId];
+
+                    if (group.app_ids.indexOf(appId)) {
+                        for (var memberId in group.members) {
+                            var memberUserId = group.members[memberId].user_id;
+                            if (!agents[memberUserId]) {
+                                agents[memberUserId] = {
+                                    name: groupUsers[memberUserId].displayName,
+                                    email: groupUsers[memberUserId].email
+                                };
+                            }
+                        }
+                    }
+                }
+
+                appsAgents[appId] = agents;
+            }
+            return appsAgents;
+        });
+    }
 })();
