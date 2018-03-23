@@ -6,6 +6,7 @@ var calendarsEvents = {};
 
 calendarsEvents.getAll = function(req, res, next) {
     let userId = req.params.userid;
+    let eventId = undefined === req.params.eventid ? null : req.params.eventid;
     let proceed = Promise.resolve();
 
     proceed.then(() => {
@@ -21,9 +22,9 @@ calendarsEvents.getAll = function(req, res, next) {
         });
     }).then((calendarId) => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.find(calendarId, (data) => {
+            calendarsEventsMdl.find(calendarId, eventId, (data) => {
                 var calendarsEvents = data;
-                if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
+                if (!calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                     return;
                 }
@@ -71,7 +72,10 @@ calendarsEvents.postOne = (req, res, next) => {
     }).then(() => {
         return new Promise((resolve, reject) => {
             userMdl.findCalendarId(userId, (data) => {
-                var calendarId = data || '';
+                if (!(data instanceof Array)) {
+                    data = [data];
+                };
+                var calendarId = 0 === data.length ? '' : data;
                 // 首次插入資料時不會有 calendarId
                 resolve(calendarId);
             });
@@ -157,7 +161,10 @@ calendarsEvents.putOne = (req, res, next) => {
     }).then(() => {
         return new Promise((resolve, reject) => {
             userMdl.findCalendarId(userId, (data) => {
-                let calendarIds = [data];
+                if (!(data instanceof Array)) {
+                    data = [data];
+                };
+                let calendarIds = data;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
@@ -199,7 +206,10 @@ calendarsEvents.deleteOne = (req, res, next) => {
     proceed.then(() => {
         return new Promise((resolve, reject) => {
             userMdl.findCalendarId(userId, (data) => {
-                var calendarIds = [data];
+                if (!(data instanceof Array)) {
+                    data = [data];
+                };
+                var calendarIds = data;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
