@@ -1,7 +1,6 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const CALENDARS = 'calendars';
-    const CALENDAR_WAS_NOT_FOUND = 'CALENDAR_WAS_NOT_FOUND';
 
     class CalendarsEvents extends ModelCore {
         constructor() {
@@ -54,7 +53,7 @@ module.exports = (function() {
                     return this.CalendarsModel.aggregate(aggregations);
                 }).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
+                        return Promise.reject(new Error());
                     }
 
                     let calendarEvents = results.reduce((output, calendar) => {
@@ -89,18 +88,28 @@ module.exports = (function() {
             return Promise.resolve().then(() => {
                 if (!calendarId) {
                     // 首次插入資料時不會有 calendarId
-                    // 因此須自行新增一個 calendar
-                    let newCalendar = new this.CalendarsModel();
-                    newCalendar.events.push(postEvent);
-                    return newCalendar.save().then((insertedCalendar) => {
-                        let insertedCalendarId = insertedCalendar._id;
-                        return this.find(insertedCalendarId, eventId);
+                    // 因此須自行新增一個 calendarId
+                    let calendar = new this.CalendarsModel();
+                    calendar.events.push(postEvent);
+                    return calendar.save().then((insertedCalendar) => {
+                        let calendarId = insertedCalendar._id;
+                        return this.find(calendarId, eventId);
                     });
                 }
-                return this.CalendarsModel.findById(calendarId).then((calendar) => {
-                    calendar.events.push(postEvent);
-                    return calendar.save();
-                }).then(() => {
+
+                let query = {
+                    '_id': calendarId
+                };
+                let calendar = {
+                    '_id': calendarId,
+                    $push: {
+                        events: postEvent
+                    }
+                };
+                return this.CalendarsModel.update(query, calendar).then((result) => {
+                    if (!result.ok) {
+                        return Promise.reject(new Error());
+                    }
                     return this.find(calendarId, eventId);
                 });
             }).then((calendars) => {
@@ -119,6 +128,7 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         update(calendarId, eventId, putEvent, callback) {
+            putEvent.updatedTime = undefined === putEvent.updatedTime ? Date.now() : putEvent.updatedTime;
             let calendarQuery = {
                 '_id': calendarId,
                 'events._id': eventId
@@ -129,6 +139,9 @@ module.exports = (function() {
                 }
             };
             for (let prop in putEvent) {
+                if (null === putEvent[prop]) {
+                    continue;
+                }
                 setEvent.$set['events.$.' + prop] = putEvent[prop];
             }
 
@@ -185,7 +198,7 @@ module.exports = (function() {
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
+                    return Promise.reject(new Error());
                 }
 
                 let calendarEvents = results.reduce((output, calendar) => {

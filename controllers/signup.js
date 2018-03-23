@@ -29,7 +29,7 @@ module.exports = (function() {
                     usersMdl.find(null, req.body.email, (users) => {
                         // If the user exists then REST API can not insert any user
                         if (users) {
-                            reject(API_ERROR.USER_EMAIL_WAS_BEEN_SIGNED_UP);
+                            reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
                         };
                         resolve();
                     });
