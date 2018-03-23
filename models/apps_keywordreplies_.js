@@ -7,14 +7,19 @@ module.exports = (function() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         };
-        find(appId, keywordreplyIds, callback) {
+        find(appIds, keywordreplyIds, callback) {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
+            }
+            if (appIds && !(appIds instanceof Array)) {
+                appIds = [appIds];
             }
             return Promise.resolve().then(() => {
                 if (!keywordreplyIds) {
                     let query = {
-                        '_id': this.Types.ObjectId(appId),
+                        '_id': {
+                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                        },
                         'keywordreplies.isDeleted': false
                     };
                     let aggregations = [
@@ -40,14 +45,16 @@ module.exports = (function() {
                         }, {});
                         return appsKeywordreplies;
                     });
-                };
+                }
                 let aggregations = [
                     {
                         $unwind: '$keywordreplies' // 只針對 autoreplies document 處理
                     }, {
                         $match: {
                             // 尋找符合 appId 及 autoreplyIds 的欄位
-                            '_id': this.Types.ObjectId(appId),
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
                             'keywordreplies._id': {
                                 $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                             },
