@@ -29,12 +29,6 @@ app.use(logger('dev'));
 app.use(cors());
 app.use(cookieParser());
 
-// Express 靜態 server
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', index);
-app.use('/api/sign', apiSign);
-
 // API JWT 權限驗證
 app.use('/api/*/users/:userid', jwt2.verify);
 
