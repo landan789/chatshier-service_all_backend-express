@@ -4,8 +4,10 @@
     "private": true,
     "scripts": {
         "start": "node ./bin/www",
-        "sub-pull": "git submodule foreach git pull origin develop",
-        "build-react": "./bin/build-react.sh"
+        "presub-sync": "git submodule sync",
+        "sub-sync": "git submodule foreach 'git clean -f -d && git pull origin develop'",
+        "prebuild-react": "npm run sub-sync",
+        "build-react": "./bin/build-react"
     },
     "engines": {
         "node": "8.9.3",
