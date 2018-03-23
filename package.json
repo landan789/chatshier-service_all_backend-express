@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "start": "node ./bin/www",
-        "presub-sync": "git submodule sync",
+        "presub-sync": "git submodule sync && git submodule update --init",
         "sub-sync": "git submodule foreach 'git clean -f -d && git pull origin develop'",
         "prebuild-react": "npm run sub-sync",
         "build-react": "./bin/build-react"
