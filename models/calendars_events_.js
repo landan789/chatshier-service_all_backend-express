@@ -1,9 +1,6 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const CALENDARS = 'calendars';
-    const CALENDAR_WAS_NOT_FOUND = 'CALENDAR_WAS_NOT_FOUND';
-    const CALENDAR_INSERT_FAIL = 'CALENDAR_INSERT_FAIL';
-    const CALENDAR_UPDATE_FAIL = 'CALENDAR_UPDATE_FAIL';
 
     class CalendarsEvents extends ModelCore {
         constructor() {
@@ -56,7 +53,7 @@ module.exports = (function() {
                     return this.CalendarsModel.aggregate(aggregations);
                 }).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
+                        return Promise.reject(new Error());
                     }
 
                     let calendarEvents = results.reduce((output, calendar) => {
@@ -111,7 +108,7 @@ module.exports = (function() {
                 };
                 return this.CalendarsModel.update(query, calendar).then((result) => {
                     if (!result.ok) {
-                        return Promise.reject(new Error(CALENDAR_INSERT_FAIL));
+                        return Promise.reject(new Error());
                     }
                     return this.find(calendarId, eventId);
                 });
@@ -150,7 +147,7 @@ module.exports = (function() {
 
             return this.CalendarsModel.update(calendarQuery, setEvent).then((result) => {
                 if (!result.ok) {
-                    return Promise.reject(new Error(CALENDAR_UPDATE_FAIL));
+                    return Promise.reject(new Error());
                 }
                 return this.find(calendarId, eventId);
             }).then((calendar) => {
@@ -201,7 +198,7 @@ module.exports = (function() {
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(CALENDAR_WAS_NOT_FOUND));
+                    return Promise.reject(new Error());
                 }
 
                 let calendarEvents = results.reduce((output, calendar) => {

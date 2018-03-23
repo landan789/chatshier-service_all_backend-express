@@ -1,7 +1,7 @@
 var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
-var calendarsEventsMdl = require('../models/calendars_events');
-var userMdl = require('../models/users');
+var calendarsEventsMdl = require('../models/calendars_events_');
+var userMdl = require('../models/users_');
 var calendarsEvents = {};
 
 calendarsEvents.getAll = function(req, res, next) {
@@ -11,8 +11,8 @@ calendarsEvents.getAll = function(req, res, next) {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                var calendarId = data || '';
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                var calendarId = userCalendarId || '';
                 if (!calendarId) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
@@ -22,8 +22,7 @@ calendarsEvents.getAll = function(req, res, next) {
         });
     }).then((calendarId) => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.find(calendarId, eventId, (data) => {
-                var calendarsEvents = data;
+            calendarsEventsMdl.find(calendarId, eventId, (calendarsEvents) => {
                 if (!calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                     return;
@@ -71,11 +70,11 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                if (!(data instanceof Array)) {
-                    data = [data];
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
                 };
-                var calendarId = 0 === data.length ? '' : data;
+                var calendarId = 0 === userCalendarId.length ? '' : userCalendarId;
                 // 首次插入資料時不會有 calendarId
                 resolve(calendarId);
             });
@@ -160,11 +159,11 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                if (!(data instanceof Array)) {
-                    data = [data];
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
                 };
-                let calendarIds = data;
+                let calendarIds = userCalendarId;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
@@ -174,8 +173,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.update(calendarId, eventId, event, (data) => {
-                let calendarsEvents = data;
+            calendarsEventsMdl.update(calendarId, eventId, event, (calendarsEvents) => {
                 resolve(calendarsEvents);
             });
         });
@@ -205,11 +203,11 @@ calendarsEvents.deleteOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                if (!(data instanceof Array)) {
-                    data = [data];
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
                 };
-                var calendarIds = data;
+                var calendarIds = userCalendarId;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
