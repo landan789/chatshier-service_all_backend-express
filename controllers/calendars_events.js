@@ -1,7 +1,7 @@
 var API_ERROR = require('../config/api_error');
 var API_SUCCESS = require('../config/api_success');
-var calendarsEventsMdl = require('../models/calendars_events_');
-var userMdl = require('../models/users_');
+var calendarsEventsMdl = require('../models/calendars_events');
+var userMdl = require('../models/users');
 var calendarsEvents = {};
 
 calendarsEvents.getAll = function(req, res, next) {
