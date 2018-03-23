@@ -128,7 +128,7 @@
                         ticketData.ticketAppId = ticketAppId;
                         ticketInfo[ticketId] = ticketData;
                         var messagerInfo = messagersData[ticketData.messager_id] || {};
-                        var agent = appsAgents[ticketAppId][ticketData.assigned];
+                        var agent = appsAgents[ticketAppId][ticketData.assigned_id];
 
                         // 將每筆 ticket 資料反映於 html DOM 上
                         $ticketBody.append(
@@ -325,7 +325,7 @@
             dueTime: new Date(ticketDueTime).getTime(),
             priority: ticketPriority,
             status: ticketStatus,
-            assigned: assignedId,
+            assigned_id: assignedId,
             updatedTime: Date.now()
         };
 

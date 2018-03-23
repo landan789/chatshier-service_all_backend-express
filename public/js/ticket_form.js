@@ -46,7 +46,7 @@
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
             appsMessagers = respJsons.shift().data;
-            return getAppAgents(Object.keys(apps));
+            return getAppsAgents(Object.keys(apps));
         }).then(function(appAgents) {
             $appSelectElem.empty();
             let appIds = Object.keys(apps);
@@ -217,7 +217,7 @@
                 priority: priority,
                 messager_id: messagerId,
                 status: status,
-                assigned: assignedId
+                assigned_id: assignedId
             };
 
             $submitBtn.attr('disabled', true);
@@ -228,7 +228,7 @@
         }
     }
 
-    function getAppAgents(appIds) {
+    function getAppsAgents(appIds) {
         if ('string' === typeof appIds && appsAgents[appIds]) {
             return Promise.resolve(appsAgents[appIds]);
         }
