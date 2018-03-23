@@ -33,7 +33,7 @@
     "USER_DID_NOT_HAVE_THIS_APP": { "MSG": "user did not have this app", "CODE": "3.2" },
     "USER_WAS_NOT_IN_THIS_GROUP": { "MSG": "user was not in this group", "CODE": "3.3" },
     "USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER": { "MSG": "user did not have permissin to insert numer", "CODE": "3.4" },
-    "USER_EMAIL_WAS_BEEN_SIGNED_UP": { "MSG": "user email was been signed up", "CODE": "3.5" },
+    "USER_EMAIL_HAD_BEEN_SIGNED_UP": { "MSG": "user email was been signed up", "CODE": "3.5" },
     "USER_DID_NOT_HAVE_THIS_GREETING": { "MSG": "user did not have this greeting", "CODE": "3.5" },
     "USER_DID_NOT_HAVE_THIS_COMPOSE": { "MSG": "user did not have this compose", "CODE": "3.6" },
     "USER_DID_NOT_HAVE_THIS_CALENDAR": { "MSG": "user did not have this calendar", "CODE": "3.7" },
