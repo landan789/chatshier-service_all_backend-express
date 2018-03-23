@@ -51,7 +51,7 @@ module.exports = (function() {
             let groupId;
 
             let _group = new this.Model();
-            _group.app_id = group.app_id;
+            _group.app_ids = group.app_ids;
             _group.name = group.name;
 
             // The creator of groups must be the owner of group
@@ -129,7 +129,7 @@ module.exports = (function() {
                     'members.status': 1
                 };
                 return this.Model.findOne(query).then((group) => {
-                    let _appIds = group.app_id;
+                    let _appIds = group.app_ids;
                     while (0 < _appIds.length) {
                         let appId = _appIds.pop();
                         appIds[appId] = appId;

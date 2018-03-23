@@ -37,6 +37,7 @@ module.exports = (function() {
                         // jwt is expired !
                         if (payload.exp < Date.now()) {
                             reject(new Error());
+                            return;
                         };
 
                         usersMdl.find(userId, null, (users) => {
