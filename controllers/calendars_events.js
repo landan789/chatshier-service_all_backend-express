@@ -6,12 +6,13 @@ var calendarsEvents = {};
 
 calendarsEvents.getAll = function(req, res, next) {
     let userId = req.params.userid;
+    let eventId = undefined === req.params.eventid ? null : req.params.eventid;
     let proceed = Promise.resolve();
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                var calendarId = data || '';
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                var calendarId = userCalendarId || '';
                 if (!calendarId) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
@@ -21,9 +22,8 @@ calendarsEvents.getAll = function(req, res, next) {
         });
     }).then((calendarId) => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.find(calendarId, (data) => {
-                var calendarsEvents = data;
-                if (false === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
+            calendarsEventsMdl.find(calendarId, eventId, (calendarsEvents) => {
+                if (!calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_FIND);
                     return;
                 }
@@ -70,8 +70,11 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                var calendarId = data || '';
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
+                };
+                var calendarId = 0 === userCalendarId.length ? '' : userCalendarId;
                 // 首次插入資料時不會有 calendarId
                 resolve(calendarId);
             });
@@ -156,8 +159,11 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                let calendarIds = [data];
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
+                };
+                let calendarIds = userCalendarId;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
@@ -167,8 +173,7 @@ calendarsEvents.putOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.update(calendarId, eventId, event, (data) => {
-                let calendarsEvents = data;
+            calendarsEventsMdl.update(calendarId, eventId, event, (calendarsEvents) => {
                 resolve(calendarsEvents);
             });
         });
@@ -198,8 +203,11 @@ calendarsEvents.deleteOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (data) => {
-                var calendarIds = [data];
+            userMdl.findCalendarId(userId, (userCalendarId) => {
+                if (!(userCalendarId instanceof Array)) {
+                    userCalendarId = [userCalendarId];
+                };
+                var calendarIds = userCalendarId;
                 if (!calendarIds.includes(calendarId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
                     return;
