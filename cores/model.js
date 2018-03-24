@@ -181,7 +181,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
-        'calendar_id': {type: Array, default: []},
+        'calendar_id': {type: String, default: ''},
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
@@ -216,9 +216,8 @@ module.exports = (function() {
         toObject(array) {
             if (array && array._id) {
                 let output = {
-                    [array._id]: Object.assign({}, array)
+                    [array._id]: array
                 };
-                delete output[array._id]._id;
                 return output;
             } else if (!(array instanceof Array)) {
                 return array || {};
@@ -230,7 +229,6 @@ module.exports = (function() {
                 }
 
                 output[curr._id] = curr;
-                delete curr._id;
                 return output;
             }, {});
         }
