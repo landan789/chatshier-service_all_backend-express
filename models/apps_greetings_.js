@@ -80,12 +80,12 @@ module.exports = (function() {
         /**
          * 找到 加好友回覆未刪除的資料包，不含 apps 結構
          *
-         * @param {string} appId
+         * @param {string} appIds
          * @param {(appsGreetings: any) => any} [callback]
          * @return {Promise<any>}
          */
 
-        findGreetings(appId, callback) {
+        findGreetings(appIds, callback) {
             let aggregations = [
                 {
                     // 只針對特定 document 處理
@@ -93,7 +93,9 @@ module.exports = (function() {
                 }, {
                     $match: {
                         // 尋找符合 ID 的欄位
-                        '_id': this.Types.ObjectId(appId)
+                        '_id': {
+                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                        }
                     }
                 }, {
                     // 篩選項目
@@ -150,18 +152,21 @@ module.exports = (function() {
         /**
          * 輸入指定的 appId 與 greetingId 刪除該加好友回覆的資料
          *
-         * @param {string} appId
-         * @param {string} greetingId
+         * @param {string} appIds
+         * @param {string|string[]} greetingId
          * @param {(appsGreetings: any) => any} [callback]
          * @return {Promise<any>}
          */
-        remove(appId, greetingId, callback) {
+        remove(appIds, greetingId, callback) {
             let greetingQuery = {
-                '_id': appId,
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
                 'greetings._id': greetingId
             };
             let setGreeting = {
                 $set: {
+                    'greetings.$._id': greetingId,
                     'greetings.$.isDeleted': true
                 }
             };
@@ -175,7 +180,9 @@ module.exports = (function() {
                         $unwind: '$greetings'
                     }, {
                         $match: {
-                            '_id': this.Types.ObjectId(appId),
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
                             'greetings._id': this.Types.ObjectId(greetingId)
                         }
                     }, {
