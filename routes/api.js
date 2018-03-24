@@ -4,7 +4,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var formData = require('express-form-data');
 
-var users = require('../models/users');
 var authenticationsCtl = require('../controllers/authentications');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsComposesCtl = require('../controllers/apps_composes');

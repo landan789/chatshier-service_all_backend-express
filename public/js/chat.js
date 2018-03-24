@@ -29,7 +29,7 @@
     var appsMessagers = {};
     var appsChatrooms = {};
     var appsTags = {};
-    var appsAgentsData = {};
+    var appsAgents = {};
 
     // selectors
     var $infoPanel = $('#infoPanel');
@@ -112,9 +112,9 @@
             return statusText[status] ? statusText[status] : '未知';
         };
 
-        var showSelect = function(prop, n) {
+        var showSelect = function(prop, n, val) {
             var i = 0;
-            var html = "<select class='selected form-control'>";
+            var html = '<select class="selected form-control">';
             if ('priority' === prop) {
                 html += '<option value=' + n + '>' + priorityNumberToText(n) + '</option>';
                 for (i = 1; i < 5; i++) {
@@ -127,11 +127,14 @@
                     if (i === n) continue;
                     html += '<option value=' + i + '>' + statusNumberToText(i) + '</option>';
                 }
-            } else if ('responder' === prop) {
-                html += "<option value='未指派'>請選擇</option>";
-                n.map(function(agent) {
-                    html += '<option value=' + agent.id + '>' + agent.name + '</option>';
-                });
+            } else if ('assigned' === prop) {
+                if (0 === Object.keys(n).length) {
+                    html += '<option value="">無資料</option>';
+                } else {
+                    for (var agentId in n) {
+                        html += '<option value="' + agentId + '"' + (agentId === val ? ' selected="true"' : '') + '>' + n[agentId].name + '</option>';
+                    }
+                }
             }
             html += '</select>';
             return html;
@@ -200,13 +203,16 @@
 
             return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
+                var clientMessagerId = $('.card-group[app-id="' + appId + '"][style="display: block;"]').attr('messager-id');
 
                 if (appData && appData[appId] && appData[appId].tickets) {
                     tickets = appData[appId].tickets;
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
-                        if (ticket.isDeleted) {
+                        if (ticket.isDeleted ||
+                            clientMessagerId !== ticket.messager_id ||
+                            (ticket.assigned_id && ticket.assigned_id !== userId)) {
                             continue;
                         }
 
@@ -215,7 +221,7 @@
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
                                 '<td>' + dueTimeDateStr + '</td>' +
-                                '<td>' + ((ticket.description.length <= 10) ? ticket.description : (ticket.description.substring(0, 10) + '...')) + '</td>' +
+                                '<td class="ticket-description">' + ticket.description + '</td>' +
                                 '<td></td>' +
                             '</tr>'
                         );
@@ -228,21 +234,35 @@
                 });
 
                 $addTicketModal.off('show.bs.modal').on('show.bs.modal', function() {
+                    var agents = appsAgents[appId];
                     var messagersData = appsMessagers[appId].messagers;
                     var $messagerNameSelect = $addTicketModal.find('select#add-form-name');
                     var $messagerIdElem = $addTicketModal.find('input#add-form-uid');
                     var $messagerEmailElem = $addTicketModal.find('input#add-form-email');
                     var $messagerPhoneElem = $addTicketModal.find('input#add-form-phone');
+                    var $assignedSelectElem = $addTicketModal.find('select#assigned-name');
                     var selectedId = '';
 
                     $messagerNameSelect.empty();
                     if (messagersData && Object.keys(messagersData).length > 0) {
                         for (var msgerId in messagersData) {
                             selectedId = selectedId || msgerId;
-                            $messagerNameSelect.append('<option value=' + msgerId + '>' + messagersData[msgerId].name + '</option>');
+                            var messager = messagersData[msgerId];
+                            if (messager.chatroom_id) {
+                                $messagerNameSelect.append('<option value=' + msgerId + '>' + messager.name + '</option>');
+                            }
                         }
                     } else {
-                        $messagerNameSelect.append('<option value="null">無資料</option>');
+                        $messagerNameSelect.append('<option value="">無資料</option>');
+                    }
+
+                    $assignedSelectElem.empty();
+                    if (agents && Object.keys(agents).length > 0) {
+                        for (var agentId in agents) {
+                            $assignedSelectElem.append('<option value=' + agentId + '>' + agents[agentId].name + '</option>');
+                        }
+                    } else {
+                        $assignedSelectElem.append('<option value="">無資料</option>');
                     }
 
                     var updateInfo = function(selectedId) {
@@ -287,14 +307,12 @@
             var infoInputTable = $('.info-input-table').empty();
             var messager = appsMessagers[appId].messagers[msgerId];
 
-            $ticketInfoModal.find('#ID-num').css('background-color', priorityColor(ticket.priority));
             $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
-            $ticketInfoModal.find('.modal-title').text(messager.name || '');
 
             var moreInfoHtml =
                 '<tr>' +
-                    '<th>客戶ID</th>' +
-                    '<td class="edit">' + ticket.messager_id + '</td>' +
+                    '<th>客戶姓名</th>' +
+                    '<td class="edit">' + (messager.name || '') + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="priority">優先</th>' +
@@ -309,6 +327,10 @@
                     '<td class="edit form-group">' +
                         '<textarea class="inner-text form-control">' + ticket.description + '</textarea>' +
                     '</td>' +
+                '</tr>' +
+                '<tr class="assigned">' +
+                    '<th>指派人</th>' +
+                    '<td class="form-group">' + showSelect('assigned', appsAgents[appId], ticket.assigned_id) + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="time-edit">到期時間' + dueDate(ticket.dueTime) + '</th>' +
@@ -337,26 +359,33 @@
 
         TicketTableCtrl.prototype.addTicket = function(appId) {
             var msgerId = $addTicketModal.find('select#add-form-name option:selected').val();
+            var assignedId = $addTicketModal.find('select#assigned-name option:selected').val();
             var description = $addTicketModal.find('textarea#add_form_description').val();
             var $errorElem = $addTicketModal.find('#error');
 
             $errorElem.empty();
             if (!description) {
                 $.notify('請輸入說明內容', { type: 'danger' });
+            } else if (!msgerId) {
+                $.notify('請選擇目標客戶', { type: 'danger' });
+            } else if (!assignedId) {
+                $.notify('請選擇指派人', { type: 'danger' });
             } else {
                 var status = parseInt($addTicketModal.find('#add-form-status option:selected').val(), 10);
                 var priority = parseInt($addTicketModal.find('#add-form-priority option:selected').val(), 10);
+                var assignedName = $addTicketModal.find('select#assigned-name option:selected').text();
 
                 var newTicket = {
                     description: description || '',
                     dueTime: Date.now() + (86400000 * 3), // 過期時間預設為3天後
                     priority: priority,
                     messager_id: msgerId,
-                    status: status
+                    status: status,
+                    assigned_id: assignedId
                 };
 
                 return api.appsTickets.insert(appId, userId, newTicket).then(function() {
-                    $.notify('待辦事項已新增', { type: 'success' });
+                    $.notify('待辦事項已新增，指派人: ' + assignedName, { type: 'success' });
                     instance.loadTickets(appId, userId);
                 }).catch(function() {
                     $.notify('待辦事項新增失敗，請重試', { type: 'danger' });
@@ -367,13 +396,17 @@
         };
 
         TicketTableCtrl.prototype.updateTicket = function(appId, ticketId) {
-            var modifyTable = $('#ticket_info_modal .info-input-table');
-            modifyTable.find('input').blur();
+            var $modifyTable = $('#ticket_info_modal .info-input-table');
+            $modifyTable.find('input').blur();
 
-            var ticketPriority = parseInt(modifyTable.find('th.priority').parent().find('td select').val(), 10);
-            var ticketStatus = parseInt(modifyTable.find('th.status').parent().find('td select').val(), 10);
-            var ticketDescription = modifyTable.find('th.description').parent().find('td.edit textarea').val();
-            var ticketDueTime = modifyTable.find('th.time-edit').parent().find('td input').val();
+            var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val(), 10);
+            var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val(), 10);
+            var ticketDescription = $modifyTable.find('th.description').parent().find('td.edit textarea').val();
+            var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
+
+            var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
+            var assignedId = $assignedElem.val();
+            var assignedName = $assignedElem.text();
 
             // 準備要修改的 ticket json 資料
             var modifiedTicket = {
@@ -381,12 +414,12 @@
                 dueTime: new Date(ticketDueTime).getTime(),
                 priority: ticketPriority,
                 status: ticketStatus,
-                updatedTime: Date.now()
+                assigned_id: assignedId
             };
 
             // 發送修改請求 api 至後端進行 ticket 修改
             return api.appsTickets.update(appId, ticketId, userId, modifiedTicket).then(function() {
-                $.notify('待辦事項已更新', { type: 'success' });
+                $.notify('待辦事項已更新，指派人: ' + assignedName, { type: 'success' });
                 instance.loadTickets(appId, userId);
             }).catch(function() {
                 $.notify('待辦事項更新失敗，請重試', { type: 'danger' });
@@ -2056,8 +2089,8 @@
     });
 
     function getAppAgants(appId) {
-        if (appsAgentsData[appId]) {
-            return Promise.resolve(appsAgentsData[appId]);
+        if (appsAgents[appId]) {
+            return Promise.resolve(appsAgents[appId]);
         }
 
         return Promise.all([
@@ -2089,8 +2122,8 @@
                 }
             }
 
-            appsAgentsData[appId] = agents;
-            return appsAgentsData[appId];
+            appsAgents[appId] = agents;
+            return appsAgents[appId];
         });
     }
 })();

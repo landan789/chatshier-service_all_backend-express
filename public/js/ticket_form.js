@@ -4,6 +4,7 @@
     var userId = '';
     var apps = {};
     var appsMessagers = {};
+    var appsAgents = {};
     var api = window.restfulAPI;
 
     var jqDoc = $(document);
@@ -12,6 +13,7 @@
     var $messagerIdElem = $('input#add-form-uid');
     var $messagerEmailElem = $('input#add-form-email');
     var $messagerPhoneElem = $('input#add-form-phone');
+    var $assignedSelectElem = $('select#assigned-name');
 
     // ======================
     // urlConfig undefined error handle
@@ -44,9 +46,12 @@
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
             appsMessagers = respJsons.shift().data;
-
+            return getAppsAgents(Object.keys(apps));
+        }).then(function(appAgents) {
             $appSelectElem.empty();
-            if (apps && Object.keys(apps).length > 0) {
+            let appIds = Object.keys(apps);
+
+            if (apps && appIds.length > 0) {
                 // 確定取回來的資料有數據，重新配置選取器內的選項資料
 
                 for (var appId in apps) {
@@ -63,7 +68,7 @@
                     $appSelectElem.append('<option value="">無資料</option>');
                 } else {
                     var selectedAppId = $appSelectElem.find('option:selected').val();
-                    updateMessagerInfoElems(appsMessagers[selectedAppId].messagers);
+                    updateMessagerInfoElems(appsMessagers[selectedAppId].messagers, appAgents[selectedAppId]);
                 }
             } else {
                 $appSelectElem.append('<option value="">無資料</option>');
@@ -72,7 +77,7 @@
             // 啟用選取器選取的事件
             $appSelectElem.on('change', function(ev) {
                 var appId = ev.target.value;
-                updateMessagerInfoElems(appsMessagers[appId].messagers);
+                updateMessagerInfoElems(appsMessagers[appId].messagers, appsAgents[appId]);
             });
         });
     }
@@ -82,7 +87,7 @@
      *
      * @param {any} messagerData
      */
-    function updateMessagerInfoElems(messagerData) {
+    function updateMessagerInfoElems(messagerData, agents) {
         if (!$messagerSelectElem) {
             return;
         }
@@ -93,7 +98,16 @@
                 $messagerSelectElem.append('<option value=' + messagerId + '>' + messagerData[messagerId].name + '</option>');
             }
         } else {
-            $messagerSelectElem.append('<option value="null">無資料</option>');
+            $messagerSelectElem.append('<option value="">無資料</option>');
+        }
+
+        $assignedSelectElem.empty();
+        if (agents && Object.keys(agents).length > 0) {
+            for (var agentId in agents) {
+                $assignedSelectElem.append('<option value=' + agentId + '>' + agents[agentId].name + '</option>');
+            }
+        } else {
+            $assignedSelectElem.append('<option value="">無資料</option>');
         }
 
         var updateInfo = function(selectedId) {
@@ -132,6 +146,7 @@
         var $formUname = $('#add-form-name');
         var $formDescription = $('#add-form-description');
         var description = $formDescription.val();
+        var assignedId = $assignedSelectElem.find('option:selected').val();
 
         // 驗證用正規表達式
         // var emailReg = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
@@ -176,6 +191,14 @@
                 $errorElem.empty();
                 $formUname.css('border', '1px solid #ccc');
             }, 3000);
+        } else if (!assignedId) {
+            $errorElem.append('請選擇指派人');
+
+            $formUname.css('border', '1px solid red');
+            window.setTimeout(function() {
+                $errorElem.empty();
+                $formUname.css('border', '1px solid #ccc');
+            }, 3000);
         } else if (!description) {
             $errorElem.append('請輸入說明內容');
 
@@ -187,14 +210,14 @@
         } else {
             var status = parseInt($('#add-form-status option:selected').val());
             var priority = parseInt($('#add-form-priority option:selected').val());
-            // var ownerAgent = $('#add-form-agents option:selected').val();
 
             var newTicket = {
                 description: description || '',
                 dueTime: Date.now() + (86400000 * 3), // 過期時間預設為3天後
                 priority: priority,
                 messager_id: messagerId,
-                status: status
+                status: status,
+                assigned_id: assignedId
             };
 
             $submitBtn.attr('disabled', true);
@@ -203,5 +226,46 @@
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });
         }
+    }
+
+    function getAppsAgents(appIds) {
+        if ('string' === typeof appIds && appsAgents[appIds]) {
+            return Promise.resolve(appsAgents[appIds]);
+        }
+
+        if (!(appIds instanceof Array)) {
+            appIds = [appIds];
+        }
+
+        return Promise.all([
+            api.groups.findAll(userId),
+            api.authentications.findUsers(userId)
+        ]).then(function(resJsons) {
+            var groups = resJsons.shift().data;
+            var groupUsers = resJsons.shift().data;
+            var agents = {};
+
+            for (var i in appIds) {
+                var appId = appIds[i];
+                for (var groupId in groups) {
+                    var group = groups[groupId];
+
+                    if (group.app_ids.indexOf(appId)) {
+                        for (var memberId in group.members) {
+                            var memberUserId = group.members[memberId].user_id;
+                            if (!agents[memberUserId]) {
+                                agents[memberUserId] = {
+                                    name: groupUsers[memberUserId].displayName,
+                                    email: groupUsers[memberUserId].email
+                                };
+                            }
+                        }
+                    }
+                }
+
+                appsAgents[appId] = agents;
+            }
+            return appsAgents;
+        });
     }
 })();

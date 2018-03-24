@@ -9,7 +9,8 @@
         cookieManager.deleteCookie(CHSR_COOKIE.USER_EMAIL);
         window.localStorage.removeItem('jwt');
 
-        return window.auth.signOut();
+        window.firebase.initializeApp(window.config);
+        return window.firebase.auth().signOut();
     };
 
     return logout().then(() => {
@@ -17,16 +18,16 @@
             var url = window.googleCalendarHelper.configJsonUrl;
             return window.googleClientHelper.init(url);
         });
-    }).then(function(gAuth) {
-        if (!(gAuth && gAuth.isSignedIn.get())) {
+    }).then(function(isSignedIn) {
+        if (!isSignedIn) {
             return;
         }
-        return gAuth.signOut();
+        return window.googleClientHelper.signOut();
     }).catch(function(err) {
         console.error(err);
         // catch google auth 登出
         // 有無問題都繼續往下執行
     }).then(function() {
-        // window.location.replace('/signin');
+        window.location.replace('/signin');
     });
 })();

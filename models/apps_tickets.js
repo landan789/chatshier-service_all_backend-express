@@ -8,6 +8,7 @@ var appsTickets = {
             priority: 1,
             messager_id: '',
             status: 2,
+            assigned_id: '',
             updatedTime: Date.now(),
             isDeleted: 0
         };
