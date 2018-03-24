@@ -7,14 +7,16 @@ module.exports = (function() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
-        find(appId, autoreplyIds, callback) {
+        find(appIds, autoreplyIds, callback) {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
             return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
                     let query = {
-                        '_id': this.Types.ObjectId(appId),
+                        '_id': {
+                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                        },
                         'autoreplies.isDeleted': false
                     };
                     let aggregations = [
@@ -47,7 +49,9 @@ module.exports = (function() {
                     }, {
                         $match: {
                             // 尋找符合 appId 及 autoreplyIds 的欄位
-                            '_id': this.Types.ObjectId(appId),
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
                             'autoreplies.isDeleted': false,
                             'autoreplies._id': {
                                 $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
@@ -122,14 +126,16 @@ module.exports = (function() {
         /**
          * 刪除指定的 messager 資料 (只限內部聊天室 App)
          *
-         * @param {string} appId
+         * @param {string|string[]} appIds
          * @param {string} autoreplyId
          * @param {(appsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        remove(appId, autoreplyId, callback) {
+        remove(appIds, autoreplyId, callback) {
             let query = {
-                '_id': appId,
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
                 'autoreplies._id': autoreplyId
             };
 
@@ -148,7 +154,9 @@ module.exports = (function() {
                         $unwind: '$autoreplies'
                     }, {
                         $match: {
-                            '_id': this.Types.ObjectId(appId),
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
                             'autoreplies._id': this.Types.ObjectId(autoreplyId)
                         }
                     }, {
