@@ -1,212 +1,206 @@
 module.exports = (function() {
-    const admin = require('firebase-admin'); // firebase admin SDK
+    const ModelCore = require('../cores/model');
+    const APPS = 'apps';
     const CHAT_COUNT_INTERVAL_TIME = 900000;
-    const CHATSHIER = 'CHATSHIER';
+    const MESSAGERS_NOT_FOUND = 'MESSAGERS_NOT_FOUND';
 
-    function AppsMessagersModel() {}
-
-    /**
-     * 初始化Messager的資訊
-     *
-     * @param {Function} callback
-     */
-    AppsMessagersModel._schema = function(callback) {
-        var json = {
-            name: '',
-            photo: '',
-            age: '',
-            gender: '',
-            phone: '',
-            assigned: '',
-            email: '',
-            remark: '',
-            firstChat: Date.now(),
-            recentChat: Date.now(),
-            avgChat: 0,
-            totalChat: 0,
-            chatTimeCount: 0,
-            chatroom_id: '',
-            custom_tags: '',
-            isDeleted: 0
-        };
-        callback(json);
+    const docUnwind = {
+        $unwind: '$messagers' // 只針對 document 處理
     };
 
-    /**
-     * 取得所有 App 及其所有 Messager
-     *
-     * @param {string|string[]} appIds
-     * @param {Function} callback
-     */
-    AppsMessagersModel.prototype.find = function(appIds, messagerId, callback) {
-        return Promise.resolve().then(() => {
-            if (!appIds) {
-                return;
-            }
-
-            let appsMessagers = {};
-            if (appIds instanceof Array) {
-                // 每個 messager 的清單取得後，依照 appId 的鍵值塞到對應的欄位
-                return Promise.all(appIds.map((appId) => {
-                    return admin.database().ref('apps/' + appId + '/messagers').once('value').then((snap) => {
-                        if (!snap) {
-                            appsMessagers[appId] = {};
-                            return;
-                        }
-                        let messagers = snap.val() || {};
-                        appsMessagers[appId] = {
-                            messagers: messagers
-                        };
-                    });
-                })).then(() => {
-                    // 同時發送所有查找請求，所有請求處理完畢後再將對應表往下傳
-                    return appsMessagers;
-                });
-            } else if ('string' === typeof appIds) {
-                let appId = appIds;
-                return admin.database().ref('apps/' + appId + '/messagers').once('value').then((snap) => {
-                    if (!snap) {
-                        appsMessagers[appId] = {};
-                        return;
-                    }
-                    let messagers = snap.val() || {};
-                    if (messagerId && messagers[messagerId]) {
-                        messagers = {
-                            [messagerId]: messagers[messagerId]
-                        };
-                    }
-                    appsMessagers[appId] = {
-                        messagers: messagers
-                    };
-                    return appsMessagers;
-                });
-            }
-        }).then((appsMessagers) => {
-            if (!appsMessagers) {
-                callback(null);
-                return;
-            }
-            callback(appsMessagers);
-        }).catch(() => {
-            callback(null);
-        });
+    const docOutput = {
+        $project: {
+            // 篩選需要的項目
+            messagers: 1
+        }
     };
 
-    /**
-     * 更新Messager的資料
-     *
-     * @param {string} appId
-     * @param {string} msgerId
-     * @param {any} messager
-     * @param {(updatedMessager: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsMessagersModel.prototype.replaceMessager = function(appId, msgerId, messager, callback) {
-        let proceed = Promise.resolve();
-        return proceed.then(() => {
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).once('value');
-        }).then((snap) => {
-            let messagerInDB = snap.val() || {};
+    class AppsMessagersModel extends ModelCore {
+        constructor() {
+            super();
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+        }
 
-            // messagerInDB 裡沒有 chatroom_id 代表之前無資料，視同為新增資料
-            if (!messagerInDB.chatroom_id) {
-                return Promise.resolve().then(() => {
-                    if (messager.chatroom_id) {
-                        return messager.chatroom_id;
-                    }
+        /**
+         * @param {string|string[]} appIds
+         * @param {string} messagerId
+         * @param {(appsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        find(appIds, messagerId, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
 
-                    let newChatroom = {
+            // 尋找符合的欄位
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false
+            };
+            if (messagerId) {
+                query['messagers._id'] = this.Types.ObjectId(messagerId);
+                query['messagers.isDeleted'] = false;
+            }
+
+            let aggregations = [
+                docUnwind,
+                {
+                    $match: query
+                },
+                docOutput
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error(MESSAGERS_NOT_FOUND));
+                }
+
+                let appsMessagers = results.reduce((output, curr) => {
+                    output[curr._id] = output[curr._id] || { messagers: {} };
+                    Object.assign(output[curr._id].messagers, this.toObject(curr.messagers));
+                    return output;
+                }, {});
+
+                return appsMessagers;
+            }).then((appsMessagers) => {
+                ('function' === typeof callback) && callback(appsMessagers);
+                return appsMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * 根據 messagerId 找到 chatroom_id
+         *
+         * @param {string} appId
+         * @param {string} messagerId
+         * @param {(chatroomId: string|null) => any} [callback]
+         * @returns {Promise<string>}
+         */
+        findMessagerChatroomId(appId, messagerId, callback) {
+            return this.find(appId, messagerId).then((appsMessagers) => {
+                let messager = appsMessagers[appId].messagers[messagerId];
+                return messager.chatroom_id;
+            }).then((chatroomId) => {
+                ('function' === typeof callback) && callback(chatroomId);
+                return chatroomId;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} messagerId
+         * @param {any} messager
+         * @param {(appsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        replaceMessager(appId, messagerId, messager, callback) {
+            let isExist = false;
+
+            return this.find(appId, messagerId).then((appsMessagers) => {
+                if (!appsMessagers) {
+                    let chatroomId = this.Types.ObjectId();
+                    let chatroom = {
+                        _id: chatroomId,
                         createdTime: Date.now()
                     };
-                    return admin.database().ref('apps/' + appId + '/chatrooms').push(newChatroom).then((ref) => {
-                        let chatroomId = ref.key;
-                        return chatroomId;
+                    let updateOper = {
+                        $push: {
+                            chatrooms: chatroom
+                        }
+                    };
+                    return this.AppsModel.findByIdAndUpdate(appId, updateOper).then(() => {
+                        messager.chatroom_id = chatroomId;
+                        return messager;
                     });
-                }).then((chatroomId) => {
-                    return new Promise((resolve) => {
-                        // 將欲更新的的 messager 的資料與初始化的 schema 合併，作為新增的資料
-                        AppsMessagersModel._schema((initMessager) => {
-                            messagerInDB.chatroom_id = chatroomId;
-                            messagerInDB = Object.assign(initMessager, messagerInDB, messager);
-                            resolve(messagerInDB);
-                        });
-                    });
-                });
+                }
+
+                isExist = true;
+                let _messager = appsMessagers[appId].messagers[messagerId];
+                let currentTime = Date.now();
+                if (_messager.recentChat) {
+                    let lastChatedTimeGap = currentTime - parseInt(_messager.recentChat);
+                    if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                        _messager.chatTimeCount++;
+                    }
+                }
+                _messager.recentChat = currentTime;
+                return Object.assign(_messager, messager);
+            }).then((_messager) => {
+                !isExist && (_messager.createdTime = Date.now());
+                _messager.updatedTime = Date.now();
+                _messager._id = this.Types.ObjectId(messagerId);
+
+                let query = {
+                    '_id': appId,
+                    'messagers._id': messagerId
+                };
+                !isExist && delete query['messagers._id'];
+
+                let updateOper = { $set: {} };
+                for (let prop in _messager) {
+                    updateOper.$set['messagers.$.' + prop] = _messager[prop];
+                }
+
+                let options = {
+                    upsert: true
+                };
+
+                return this.AppsModel.update(query, updateOper, options);
+            }).then(() => {
+                return this.find(appId, messagerId);
+            }).then((appsMessagers) => {
+                ('function' === typeof callback) && callback(appsMessagers);
+                return appsMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        };
+
+        /**
+         * 刪除指定的 messager 資料 (只限內部聊天室 App)
+         *
+         * @param {string} appId
+         * @param {string} messagerId
+         * @param {(appsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        remove(appId, messagerId, callback) {
+            let messager = {
+                _id: this.Types.ObjectId(messagerId),
+                isDeleted: true,
+                updatedTime: Date.now()
             };
 
-            let currentTime = Date.now();
-            if (messagerInDB.recentChat) {
-                let lastChatedTimeGap = currentTime - parseInt(messagerInDB.recentChat);
-                if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
-                    messagerInDB.chatTimeCount++;
-                }
-            }
-            messager.recentChat = currentTime;
-            return Object.assign(messagerInDB, messager); // 將欲更新的資料與資料庫內的資料合併
-        }).then((messager) => {
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager).then(() => {
-                return messager;
-            });
-        }).then((result) => {
-            ('function' === typeof callback) && callback(result);
-            return result;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
+            let query = {
+                '_id': appId,
+                'messagers._id': messagerId
+            };
 
-    /**
-     * 根據 messagerId 找到 chatroom_id
-     *
-     * @param {string} appId
-     * @param {string} messagerId
-     * @param {(chatroomId: string) => any} [callback]
-     */
-    AppsMessagersModel.prototype.findMessagerChatroomId = function(appId, messagerId, callback) {
-        let chatroomId = '';
-
-        return admin.database().ref('apps/' + appId + '/messagers/' + messagerId + '/chatroom_id').once('value').then((snap) => {
-            chatroomId = snap.val() || '';
-            ('function' === typeof callback) && callback(chatroomId);
-            return chatroomId;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(chatroomId);
-            return chatroomId;
-        });
-    };
-
-    /**
-     * 刪除指定的 messager 資料 (只限內部聊天室 App)
-     *
-     * @param {string} appId
-     * @param {string} msgerId
-     * @param {(messager: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsMessagersModel.prototype.remove = function(appId, msgerId, callback) {
-        return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-            let app = snap.val() || {};
-            let messagers = app.messagers || {};
-
-            // messager 存在以及 app 是 CHATSHIER 內部聊天室才處理
-            if (!(CHATSHIER === app.type && messagers[msgerId])) {
-                return Promise.reject(new Error());
+            let updateOper = { $set: {} };
+            for (let prop in messager) {
+                updateOper.$set['messagers.$.' + prop] = messager[prop];
             }
 
-            let messager = messagers[msgerId];
-            messager.isDeleted = 1;
-            return admin.database().ref('apps/' + appId + '/messagers/' + msgerId).update(messager).then(() => {
-                return messager;
+            return this.AppsModel.update(query, updateOper).then(() => {
+                return this.find(appId, messagerId);
+            }).then((appsMessagers) => {
+                ('function' === typeof callback) && callback(appsMessagers);
+                return appsMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
-        }).then((messager) => {
-            ('function' === typeof callback) && callback(messager);
-            return messager;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
+        }
+    }
 
     return new AppsMessagersModel();
 })();

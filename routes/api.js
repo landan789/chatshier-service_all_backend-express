@@ -4,7 +4,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var formData = require('express-form-data');
 
-var authenticationsCtl = require('../controllers/authentications');
 var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 var appsComposesCtl = require('../controllers/apps_composes');
 var appsTemplateCtl = require('../controllers/apps_templates');
@@ -42,8 +41,6 @@ router.use(
     formData.stream(),
     formData.union()
 );
-
-router.get('/authentications/users/:userid', authenticationsCtl.getAll);
 
 router.get('/apps/users/:userid', appsCtl.getAll);
 router.get('/apps/apps/:appid/users/:userid', appsCtl.getOne);

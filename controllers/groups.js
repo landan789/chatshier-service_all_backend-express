@@ -9,7 +9,7 @@ module.exports = (function() {
 
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
-    const appsTagsMdl = require('../models/apps_tags');
+    const appsTagsMdl = require('../models/apps_fields');
     const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');

@@ -1,125 +1,220 @@
-var admin = require('firebase-admin'); // firebase admin SDK
-var calendarsEvents = {};
-calendarsEvents._schema = (callback) => {
-    var json = {
-        isAllDay: 0,
-        isDeleted: 0,
-        description: '',
-        createdTime: Date.now(),
-        updatedTime: Date.now(),
-        endedTime: 0,
-        startedTime: 0,
-        title: ''
-    };
-    callback(json);
-};
+module.exports = (function() {
+    const ModelCore = require('../cores/model');
+    const CALENDARS = 'calendars';
 
-calendarsEvents.find = (calendarId, callback) => {
-    Promise.resolve().then(() => {
-        if (!calendarId) {
-            return {};
+    class CalendarsEvents extends ModelCore {
+        constructor() {
+            super();
+            this.CalendarsModel = this.model(CALENDARS, this.CalendarsSchema);
         }
 
-        let calendarsEvents = {};
-        return admin.database().ref('calendars/' + calendarId + '/events').once('value').then((snap) => {
-            let events = snap.val() || {};
-            calendarsEvents[calendarId] = {
-                events: events
-            };
-            return calendarsEvents;
-        });
-    }).then((data) => {
-        callback(data);
-    }).catch(() => {
-        callback(null);
-    });
-};
+        /**
+         * @param {any|string[]} calendarIds
+         * @param {any|string[]} eventIds
+         * @param {(calendar: string|string[]|null) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        find(calendarIds, eventIds, callback) {
+            if (!(calendarIds instanceof Array)) {
+                calendarIds = [calendarIds];
+            }
+            return Promise.all(calendarIds.map((calendarId) => {
+                return Promise.resolve().then(() => {
+                    let aggregations = [
+                        {
+                            $unwind: '$events'
+                        }, {
+                            $project: {
+                                events: 1
+                            }
+                        }
+                    ];
+                    if (!eventIds) {
+                        aggregations.push({
+                            $match: {
+                                '_id': this.Types.ObjectId(calendarId),
+                                'events.isDeleted': false
+                            }
+                        });
+                        return this.CalendarsModel.aggregate(aggregations);
+                    }
+                    if (!(eventIds instanceof Array)) {
+                        eventIds = [eventIds];
+                    }
+                    aggregations.push({
+                        $match: {
+                            '_id': this.Types.ObjectId(calendarId),
+                            'events.isDeleted': false,
+                            'events._id': {
+                                $in: eventIds.map((eventId) => this.Types.ObjectId(eventId))
+                            }
+                        }
+                    });
+                    return this.CalendarsModel.aggregate(aggregations);
+                }).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-calendarsEvents.insert = (calendarId, event, callback) => {
-    Promise.resolve().then(() => {
-        if (!calendarId) {
-            // 首次插入資料時不會有 calendarId
-            // 因此須自行新增一個 calendarId
-            return admin.database().ref('calendars').push().then((calendarsRef) => {
-                calendarId = calendarsRef.key;
-                return admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value');
+                    let calendarEvents = results.reduce((output, calendar) => {
+                        output[calendar._id] = output[calendar._id] || {events: {}};
+                        Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                        return output;
+                    }, {});
+                    return calendarEvents;
+                });
+            })).then((calendarEvents) => {
+                let calendarsEvents = calendarEvents.reduce((output, curr) => {
+                    Object.assign(output, this.toObject(curr));
+                    return output;
+                }, {});
+                ('function' === typeof callback) && callback(calendarsEvents);
+                return Promise.resolve(calendarsEvents);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
-        return admin.database().ref('calendars/' + calendarId + '/events').push(event).once('value');
-    }).then((snap) => {
-        var event = snap.val();
-        var calendarId = snap.ref.parent.parent.key;
-        var eventId = snap.key;
-        var calendarsEvents = {
-            [calendarId]: {
-                events: {
-                    [eventId]: event
+        /**
+         * @param {string} calendarId
+         * @param {any} postEvent
+         * @param {(calendar: string) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        insert(calendarId, postEvent, callback) {
+            let eventId = this.Types.ObjectId();
+            postEvent._id = eventId;
+            return Promise.resolve().then(() => {
+                if (!calendarId) {
+                    // 首次插入資料時不會有 calendarId
+                    // 因此須自行新增一個 calendarId
+                    let calendar = new this.CalendarsModel();
+                    calendar.events.push(postEvent);
+                    return calendar.save().then((insertedCalendar) => {
+                        let calendarId = insertedCalendar._id;
+                        return this.find(calendarId, eventId);
+                    });
                 }
+
+                let query = {
+                    '_id': calendarId
+                };
+                let calendar = {
+                    '_id': calendarId,
+                    $push: {
+                        events: postEvent
+                    }
+                };
+                return this.CalendarsModel.update(query, calendar).then((result) => {
+                    if (!result.ok) {
+                        return Promise.reject(new Error());
+                    }
+                    return this.find(calendarId, eventId);
+                });
+            }).then((calendars) => {
+                ('function' === typeof callback) && callback(calendars);
+                return Promise.resolve(calendars);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
+        };
+
+        /**
+         * @param {string} calendarId
+         * @param {any} putEvent
+         * @param {(calendar: string) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        update(calendarId, eventId, putEvent, callback) {
+            putEvent.updatedTime = undefined === putEvent.updatedTime ? Date.now() : putEvent.updatedTime;
+            let calendarQuery = {
+                '_id': calendarId,
+                'events._id': eventId
+            };
+            let setEvent = {
+                $set: {
+                    'events.$._id': eventId
+                }
+            };
+            for (let prop in putEvent) {
+                if (null === putEvent[prop]) {
+                    continue;
+                }
+                setEvent.$set['events.$.' + prop] = putEvent[prop];
             }
-        };
-        callback(calendarsEvents);
-    }).catch(() => {
-        callback(null);
-    });
-};
 
-calendarsEvents.update = (calendarId, eventId, event, callback) => {
-    Promise.resolve().then(() => {
-        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
-    }).then((snap) => {
-        var event = snap.val();
-        if (1 === event.isDeleted) {
-            return Promise.reject(new Error());
-        }
-        return Promise.resolve();
-    }).then(() => {
-        event.isDeleted = 0;
-        return Promise.all([admin.database().ref('calendars/' + calendarId + '/events/' + eventId).set(event), calendarId, eventId]);
-    }).then((result) => {
-        calendarId = result[1];
-        var eventId = result[2];
-        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
-    }).then((snap) => {
-        var event = snap.val();
-        calendarId = snap.ref.parent.parent.key;
-        var eventId = snap.key;
-        var calendarsEvents = {};
-        var _events = {};
-        _events[eventId] = event;
-        calendarsEvents[calendarId] = {
-            events: _events
+            return this.CalendarsModel.update(calendarQuery, setEvent).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                }
+                return this.find(calendarId, eventId);
+            }).then((calendar) => {
+                ('function' === typeof callback) && callback(calendar);
+                return Promise.resolve(calendar);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
         };
-        callback(calendarsEvents);
-    }).catch(() => {
-        callback(null);
-    });
-};
 
-calendarsEvents.remove = (calendarId, eventId, callback) => {
-    Promise.resolve().then(() => {
-        var event = {
-            isDeleted: 1
-        };
-        return Promise.all([admin.database().ref('calendars/' + calendarId + '/events/' + eventId).update(event), calendarId, eventId]);
-    }).then((result) => {
-        var calendarId = result[1];
-        var eventId = result[2];
-        return admin.database().ref('calendars/' + calendarId + '/events/' + eventId).once('value');
-    }).then((snap) => {
-        var event = snap.val();
-        var calendarId = snap.ref.parent.parent.key;
-        var eventId = snap.key;
-        var calendarsEvents = {};
-        var _events = {};
-        _events[eventId] = event;
-        calendarsEvents[calendarId] = {
-            events: _events
-        };
-        callback(calendarsEvents);
-    }).catch(() => {
-        callback(null);
-    });
-};
+        /**
+         * @param {string} calendarId
+         * @param {string} eventId
+         * @param {(calendar: string) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        remove(calendarId, eventId, callback) {
+            let calendarQuery = {
+                '_id': calendarId,
+                'events._id': eventId
+            };
+            let setEvent = {
+                $set: {
+                    'events.$.isDeleted': true
+                }
+            };
+            return this.CalendarsModel.update(calendarQuery, setEvent).then((updateResult) => {
+                if (!updateResult.ok) {
+                    return Promise.reject(new Error());
+                }
 
-module.exports = calendarsEvents;
+                let aggregations = [
+                    {
+                        $unwind: '$events'
+                    }, {
+                        $match: {
+                            '_id': this.Types.ObjectId(calendarId),
+                            'events._id': this.Types.ObjectId(eventId)
+                        }
+                    }, {
+                        $project: {
+                            events: 1
+                        }
+                    }
+                ];
+
+                return this.CalendarsModel.aggregate(aggregations);
+            }).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error());
+                }
+
+                let calendarEvents = results.reduce((output, calendar) => {
+                    output[calendar._id] = output[calendar._id] || {events: {}};
+                    Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                    return output;
+                }, {});
+                return calendarEvents;
+            }).then((calendarEvents) => {
+                ('function' === typeof callback) && callback(calendarEvents);
+                return calendarEvents;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        };
+    }
+    return new CalendarsEvents();
+})();

@@ -1,35 +1,115 @@
 module.exports = (function() {
-    const admin = require('firebase-admin'); // firebase admin SDK
+    const ModelCore = require('../cores/model');
+    const APPS = 'apps';
 
-    function AppsChatroomsModel() {}
-    /**
-     * @param {string} appId
-     * @param {(appsChatrooms: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsChatroomsModel.prototype.insert = (appId, callback) => {
-        let chatroom = {
-            createdTime: Date.now()
-        };
+    const docUnwind = {
+        $unwind: '$chatrooms' // 只針對 chatrooms document 處理
+    };
 
-        return admin.database().ref('apps/' + appId + '/chatrooms').push(chatroom).then((ref) => {
-            let chatroomId = ref.key;
-            let appsChatrooms = {
-                [appId]: {
-                    chatrooms: {
-                        [chatroomId]: chatroom
+    const docOutput = {
+        $project: {
+            // 篩選不需要的項目
+            chatrooms: {
+                // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
+                _id: '$chatrooms._id',
+                isDeleted: '$chatrooms.isDeleted',
+                createdTime: '$chatrooms.createdTime',
+                messagers: '$chatrooms.messagers'
+            }
+        }
+    };
+
+    class AppsChatroomsModel extends ModelCore {
+        constructor() {
+            super();
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+        }
+
+        /**
+         * @param {string} appId
+         * @param {any|string[]} chatroomIds
+         * @param {(appsChatrooms: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        find(appId, chatroomIds, callback) {
+            if (!(chatroomIds instanceof Array)) {
+                chatroomIds = [chatroomIds];
+            }
+
+            let aggregations = [
+                docUnwind,
+                {
+                    $match: {
+                        // 尋找符合 appId 及 chatroomIds 的欄位
+                        '_id': this.Types.ObjectId(appId),
+                        'isDeleted': false,
+                        'chatrooms._id': {
+                            $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
+                        },
+                        'chatrooms.isDeleted': false
                     }
+                },
+                docOutput
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('CHATROOMS_NOT_FOUND'));
+                }
+
+                let appsChatrooms = results.reduce((output, curr) => {
+                    if (!output[curr._id]) {
+                        output[curr._id] = {
+                            chatrooms: {}
+                        };
+                    }
+                    Object.assign(output[curr._id].chatrooms, this.toObject(curr.chatrooms));
+                    return output;
+                }, {});
+                return appsChatrooms;
+            }).then((appsChatrooms) => {
+                ('function' === typeof callback) && callback(appsChatrooms);
+                return appsChatrooms;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {(appsChatrooms: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        insert(appId, callback) {
+            let chatroomId = this.Types.ObjectId();
+            let chatroom = {
+                _id: chatroomId,
+                createdTime: Date.now(),
+                updatedTime: Date.now()
+            };
+
+            let query = {
+                '_id': appId
+            };
+
+            let updateOper = {
+                $push: {
+                    chatrooms: chatroom
                 }
             };
 
-            ('function' === typeof callback) && callback(appsChatrooms);
-            return appsChatrooms;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
+            return this.AppsModel.update(query, updateOper).then(() => {
+                return this.find(appId, chatroomId);
+            }).then((appsChatrooms) => {
+                ('function' === typeof callback) && callback(appsChatrooms);
+                return appsChatrooms;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        };
+    }
 
-    let instance = new AppsChatroomsModel();
-    return instance;
+    return new AppsChatroomsModel();
 })();

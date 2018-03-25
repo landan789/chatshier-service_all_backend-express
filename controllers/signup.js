@@ -3,7 +3,7 @@ module.exports = (function() {
     const API_SUCCESS = require('../config/api_success');
     const CHATSHIER = require('../config/chatshier');
     let ciperHlp = require('../helpers/cipher');
-    let usersMdl = require('../models/users_');
+    let usersMdl = require('../models/users');
     let jwt = require('jsonwebtoken');
 
     class SignupController {
