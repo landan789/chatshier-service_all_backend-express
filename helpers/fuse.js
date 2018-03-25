@@ -9,25 +9,25 @@ module.exports = (function() {
     class Fuse {
         constructor() {
             // this._ready = admin.auth().listUsers().then((usersRecord) => {
-            //     /** @type {{ [userId: string]: FuzzySearchUser }} */
-            //     this.usersMap = {};
-            //     usersRecord.users.forEach((user) => {
-            //         this.usersMap[user.uid] = {
-            //             user_id: user.uid,
-            //             displayName: user.displayName,
-            //             email: user.email
-            //         };
-            //     });
+            //     // /** @type {{ [userId: string]: FuzzySearchUser }} */
+            //     // this.usersMap = {};
+            //     // usersRecord.users.forEach((user) => {
+            //     //     this.usersMap[user.uid] = {
+            //     //         user_id: user.uid,
+            //     //         displayName: user.displayName,
+            //     //         email: user.email
+            //     //     };
+            //     // });
 
-            //     let fuseOptions = this.fuseOptionBuilder({
-            //         includeScore: false,
-            //         keys: [
-            //             'displayName',
-            //             'email'
-            //         ]
-            //     });
-            //     let userList = Object.keys(this.usersMap).map((userId) => this.usersMap[userId]);
-            //     this.userFuse = new FuseJS(userList, fuseOptions);
+            //     // let fuseOptions = this.fuseOptionBuilder({
+            //     //     includeScore: false,
+            //     //     keys: [
+            //     //         'displayName',
+            //     //         'email'
+            //     //     ]
+            //     // });
+            //     // let userList = Object.keys(this.usersMap).map((userId) => this.usersMap[userId]);
+            //     // this.userFuse = new FuseJS(userList, fuseOptions);
 
             //     this._subscriberOnAPI = this._subscriberOnAPI.bind(this);
             //     return redisHlp.ready.then(() => {
@@ -38,7 +38,7 @@ module.exports = (function() {
         }
 
         get ready() {
-            // return this._ready;
+            return this._ready;
         }
 
         /**
@@ -149,85 +149,85 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         searchKeywordreplies(appId, keyword, callback) {
-            // let fuseOptions = this.fuseOptionBuilder({
-            //     tokenize: true,
-            //     matchAllTokens: true,
-            //     includeScore: true,
-            //     distance: 100,
-            //     threshold: 0.2,
-            //     keys: [
-            //         'keyword'
-            //     ]
-            // });
+            let fuseOptions = this.fuseOptionBuilder({
+                tokenize: true,
+                matchAllTokens: true,
+                includeScore: true,
+                distance: 100,
+                threshold: 0.2,
+                keys: [
+                    'keyword'
+                ]
+            });
 
-            // return Promise.resolve().then(() => {
-            //     if (!(appId && keyword)) {
-            //         return Promise.resolve([]);
-            //     };
+            return Promise.resolve().then(() => {
+                if (!(appId && keyword)) {
+                    return Promise.resolve([]);
+                };
 
-            //     return new Promise((resolve, reject) => {
-            //         appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
-            //             let keywordreplies = appsKeywordreplies[appId].keywordreplies;
-            //             let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
-            //             let list = keywordreplyIds.map((keywordreplyId) => {
-            //                 keywordreplies[keywordreplyId].id = keywordreplyId;
-            //                 return keywordreplies[keywordreplyId];
-            //             });
-            //             let keywordRepliyFuse = new FuseJS(list, fuseOptions);
+                return new Promise((resolve, reject) => {
+                    appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
+                        let keywordreplies = appsKeywordreplies[appId].keywordreplies;
+                        let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
+                        let list = keywordreplyIds.map((keywordreplyId) => {
+                            keywordreplies[keywordreplyId].id = keywordreplyId;
+                            return keywordreplies[keywordreplyId];
+                        });
+                        let keywordRepliyFuse = new FuseJS(list, fuseOptions);
 
-            //             let results = keywordRepliyFuse.search(keyword);
-            //             let _keywordreplies = {};
+                        let results = keywordRepliyFuse.search(keyword);
+                        let _keywordreplies = {};
 
-            //             if (results.length > 0) {
-            //                 _keywordreplies[results[0].item.id] = results[0].item;
-            //             }
-            //             resolve(_keywordreplies);
-            //         });
-            //     });
-            // }).then((keywordreplies) => {
-            //     callback(keywordreplies);
-            //     return Promise.resolve(keywordreplies);
-            // });
+                        if (results.length > 0) {
+                            _keywordreplies[results[0].item.id] = results[0].item;
+                        }
+                        resolve(_keywordreplies);
+                    });
+                });
+            }).then((keywordreplies) => {
+                callback(keywordreplies);
+                return Promise.resolve(keywordreplies);
+            });
         };
 
         searchKeywordreplies2(appId, inputText, callback) {
-            // let fuseOptions = this.fuseOptionBuilder({
-            //     includeScore: true,
-            //     distance: 100,
-            //     threshold: 1,
-            //     keys: [
-            //         'text'
-            //     ]
-            // });
+            let fuseOptions = this.fuseOptionBuilder({
+                includeScore: true,
+                distance: 100,
+                threshold: 1,
+                keys: [
+                    'text'
+                ]
+            });
 
-            // return new Promise((resolve, reject) => {
-            //     if (!(appId && inputText)) {
-            //         return resolve([]);
-            //     }
-            //     appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
-            //         if (!appsKeywordreplies) {
-            //             return;
-            //         }
-            //         let keywordreplies = appsKeywordreplies[appId].keywordreplies;
-            //         let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
-            //         let list = [{
-            //             text: inputText
-            //         }];
-            //         let keywordRepliyFuse = new FuseJS(list, fuseOptions);
-            //         let _keywordreplies = {};
-            //         keywordreplyIds.forEach((keywordreplyId) => {
-            //             let results = keywordRepliyFuse.search(keywordreplies[keywordreplyId].keyword);
+            return new Promise((resolve, reject) => {
+                if (!(appId && inputText)) {
+                    return resolve([]);
+                }
+                appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
+                    if (!appsKeywordreplies) {
+                        return;
+                    }
+                    let keywordreplies = appsKeywordreplies[appId].keywordreplies;
+                    let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
+                    let list = [{
+                        text: inputText
+                    }];
+                    let keywordRepliyFuse = new FuseJS(list, fuseOptions);
+                    let _keywordreplies = {};
+                    keywordreplyIds.forEach((keywordreplyId) => {
+                        let results = keywordRepliyFuse.search(keywordreplies[keywordreplyId].keyword);
 
-            //             if (results.length > 0 && 0.1 > results[0].score) {
-            //                 _keywordreplies[keywordreplyId] = keywordreplies[keywordreplyId];
-            //             }
-            //         });
-            //         resolve(_keywordreplies);
-            //     });
-            // }).then((keywordreplies) => {
-            //     callback(keywordreplies);
-            //     return Promise.resolve(keywordreplies);
-            // });
+                        if (results.length > 0 && 0.1 > results[0].score) {
+                            _keywordreplies[keywordreplyId] = keywordreplies[keywordreplyId];
+                        }
+                    });
+                    resolve(_keywordreplies);
+                });
+            }).then((keywordreplies) => {
+                callback(keywordreplies);
+                return Promise.resolve(keywordreplies);
+            });
         };
 
         searchTemplates(appId, inputText, callback) {
