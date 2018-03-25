@@ -1,1 +1,0 @@
-exports.url = "https://dev-chatshier.firebaseio.com";
