@@ -1,43 +1,61 @@
-const API_ERROR = require('../config/api_error');
+module.exports = (function() {
+    let passport = require('passport');
+    let JwtStrategy = require('passport-jwt').Strategy;
+    let ExtractJwt = require('passport-jwt').ExtractJwt;
+    let usersMdl = require('../models/users_');
+    const CHATSHIER = require('../config/chatshier');
+    const COOKIE = 'COOKIE';
+    const HEADER = 'HEADER';
 
-const admin = require('firebase-admin');
-
-const jwt = {
-    verify: (req, res, next) => {
-        let idToken = req.headers.authorization || req.headers.Authorization;
-
-        let procced = Promise.resolve();
-        procced.then(() => {
-            if (!idToken) {
-                return Promise.reject(API_ERROR.USER_WAS_NOT_AUTHORIZED);
-            }
-            return admin.auth().verifyIdToken(idToken);
-        }).then((decodedToken) => {
-            return new Promise((resolve, reject) => {
-                req = Object.assign(req, decodedToken);
-
-                let uid = req.uid;
-                let userId = req.params.userid;
-                if (uid !== userId) {
-                    reject(API_ERROR.USER_WAS_NOT_PERMITTED);
-                    return;
-                }
-                resolve();
-            });
-        }).then(() => {
-            next();
-        }).catch((ERROR) => {
-            ERROR.CODE = ERROR.code ? ERROR.code : ERROR.CODE;
-            ERROR.MSG = ERROR.message ? ERROR.message : ERROR.MSG;
-
-            let json = {
-                status: 0,
-                msg: ERROR.MSG,
-                code: ERROR.CODE
+    class Jwt {
+        authenticate(type) {
+            let jwtFromRequest;
+            if ('HEADER' === (type).toUpperCase()) {
+                jwtFromRequest = ExtractJwt.fromHeader('authorization');
             };
-            res.status(401).json(json);
-        });
-    }
-};
 
-module.exports = jwt;
+            if ('COOKIE' === (type).toUpperCase()) {
+                jwtFromRequest = (req) => {
+                    let token = null;
+                    if (req && req.cookies) {
+                        token = req.cookies['jwt'];
+                    };
+                    return token;
+                };
+            };
+            jwtFromRequest = ExtractJwt.fromHeader('authorization');
+
+            let options = {
+                jwtFromRequest: jwtFromRequest, // must be lower
+                secretOrKey: CHATSHIER.JWT.SECRET
+            };
+
+            passport.use(new JwtStrategy(options, function(payload, next) {
+                Promise.resolve().then(() => {
+                    return new Promise((resolve, reject) => {
+                        let userId = payload.uid;
+                        // jwt is expired !
+                        if (payload.exp < Date.now()) {
+                            reject(new Error());
+                            return;
+                        };
+
+                        usersMdl.find(userId, null, (users) => {
+                            if (!users) {
+                                reject(new Error());
+                                return;
+                            };
+                            resolve(users);
+                        });
+                    });
+                }).then((users) => {
+                    next(null, users);
+                }).catch(() => {
+                    next(null, false);
+                });
+            }));
+            return passport.authenticate('jwt', { session: false });
+        }
+    };
+    return new Jwt();
+})();
