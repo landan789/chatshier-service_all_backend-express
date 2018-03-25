@@ -1,4 +1,4 @@
-const EXPIRES = (60 * 60 * 1000);
+const EXPIRES = (60 * 60 * 1000); // 1 hour -> 60 minutes * 60 seconds * 1000 milliseconds
 
 module.exports = {
     REDIS: {
