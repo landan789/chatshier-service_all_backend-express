@@ -1,181 +1,227 @@
 module.exports = (function() {
-    const admin = require('firebase-admin'); // firebase admin SDK
-
-    let instance = new AppsAutorepliesModel();
-
-    function AppsAutorepliesModel() {};
-
-    /**
-     * 回傳預設的 Autoreply 資料結構
-     */
-    AppsAutorepliesModel.prototype._schema = (callback) => {
-        let json = {
-            isDeleted: 0,
-            createdTime: Date.now(),
-            startedTime: 0,
-            endedTime: 0,
-            title: '',
-            text: '',
-            type: 'text',
-            updatedTime: Date.now()
-        };
-        callback(json);
-    };
-
-    /**
-     * 輸入 指定 appId 的陣列清單，新增一筆自動回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.insert = (appId, autoreply, callback) => {
-        return new Promise((resolve, reject) => {
-            instance._schema((initAutoreply) => {
-                var _autoreply = Object.assign(initAutoreply, autoreply);
-                resolve(_autoreply);
-            });
-        }).then((_autoreply) => {
-            return admin.database().ref('apps/' + appId + '/autoreplies').push(_autoreply).then((ref) => {
-                let autoreplyId = ref.key;
-                let appsAutoreplies = {
-                    [appId]: {
-                        autoreplies: {
-                            [autoreplyId]: _autoreply
+    let ModelCore = require('../cores/model');
+    const APPS = 'apps';
+    const AUTOREPLIES = 'autoreplies';
+    class AutorepliesModel extends ModelCore {
+        constructor() {
+            super();
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+        }
+        find(appIds, autoreplyIds, callback) {
+            if (autoreplyIds && !(autoreplyIds instanceof Array)) {
+                autoreplyIds = [autoreplyIds];
+            }
+            return Promise.resolve().then(() => {
+                if (!autoreplyIds) {
+                    let query = {
+                        '_id': {
+                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                        },
+                        'autoreplies.isDeleted': false
+                    };
+                    let aggregations = [
+                        {
+                            $unwind: '$autoreplies' // 只針對 document 處理
+                        }, {
+                            $match: query
+                        }, {
+                            $project: {
+                                // 篩選項目
+                                autoreplies: 1
+                            }
+                        }
+                    ];
+                    return this.AppsModel.aggregate(aggregations).then((results) => {
+                        if (0 === results.length) {
+                            return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                        }
+                        let appsAutoreplies = results.reduce((output, app) => {
+                            output[app._id] = output[app._id] || { autoreplies: {} };
+                            Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
+                            return output;
+                        }, {});
+                        return appsAutoreplies;
+                    });
+                };
+                let aggregations = [
+                    {
+                        $unwind: '$autoreplies' // 只針對 autoreplies document 處理
+                    }, {
+                        $match: {
+                            // 尋找符合 appId 及 autoreplyIds 的欄位
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
+                            'autoreplies.isDeleted': false,
+                            'autoreplies._id': {
+                                $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
+                            }
+                        }
+                    }, {
+                        $project: {
+                            // 篩選項目
+                            autoreplies: 1
                         }
                     }
-                };
+                ];
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                    }
+                    let appsAutoreplies = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { autoreplies: {} };
+                        Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
+                        return output;
+                    }, {});
+                    return appsAutoreplies;
+                });
+            }).then((appsAutoreplies) => {
+                ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
-        }).then((appsAutoreplies) => {
-            ('function' === typeof callback) && callback(appsAutoreplies);
-            return appsAutoreplies;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
-    /**
-     * 輸入 指定 appId 的陣列清單，修改一筆自動回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.update = (appId, autoreplyId, autoreply, callback) => {
-        admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value').then((snap) => {
-            let autoreplyCheck = snap.val();
-            if (1 === autoreplyCheck.isDeleted || '1' === autoreplyCheck.isDeleted) {
-                return Promise.reject(new Error());
+        }
+
+        insert(appId, postAutoreply, callback) {
+            let autoreplyId = this.Types.ObjectId();
+            postAutoreply._id = autoreplyId;
+            return this.AppsModel.findById(appId).then((app) => {
+                app.autoreplies.push(postAutoreply);
+                return app.save();
+            }).then(() => {
+                return this.find(appId, autoreplyId);
+            }).then((appsAutoreplies) => {
+                console.log(appsAutoreplies);
+                ('function' === typeof callback) && callback(appsAutoreplies);
+                return Promise.resolve(appsAutoreplies);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        };
+        update(appId, autoreplyId, putAutoreply, callback) {
+            let query = {
+                '_id': appId,
+                'autoreplies._id': autoreplyId
+            };
+            putAutoreply._id = autoreplyId;
+            let operate = {
+                $set: {
+                    'autoreplies.$': putAutoreply
+                }
+            };
+            return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
+                return this.find(appId, autoreplyId);
+            }).then((appsAutoreplies) => {
+                ('function' === typeof callback) && callback(appsAutoreplies);
+                return appsAutoreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        };
+
+        /**
+         * 刪除指定的 messager 資料 (只限內部聊天室 App)
+         *
+         * @param {string|string[]} appIds
+         * @param {string} autoreplyId
+         * @param {(appsMessagers: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        remove(appIds, autoreplyId, callback) {
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'autoreplies._id': autoreplyId
+            };
+
+            let operate = {
+                $set: {
+                    'autoreplies.$._id': autoreplyId,
+                    'autoreplies.$.isDeleted': true
+                }
+            };
+            return this.AppsModel.update(query, operate).then((updateResult) => {
+                if (!updateResult.ok) {
+                    return Promise.reject(new Error());
+                }
+                let aggregations = [
+                    {
+                        $unwind: '$autoreplies'
+                    }, {
+                        $match: {
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
+                            'autoreplies._id': this.Types.ObjectId(autoreplyId)
+                        }
+                    }, {
+                        $project: {
+                            autoreplies: 1
+                        }
+                    }
+                ];
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                    }
+                    let appsAutoreplies = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { autoreplies: {} };
+                        Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
+                        return output;
+                    }, {});
+                    return appsAutoreplies;
+                });
+            }).then((appsAutoreplies) => {
+                ('function' === typeof callback) && callback(appsAutoreplies);
+                return appsAutoreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+        findAutoreplies(appIds, callback) {
+            if ('string' === typeof appIds) {
+                appIds = [appIds];
             }
-            autoreply.updatedTime = Date.now();
-            return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(autoreply);
-        }).then(() => {
-            return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
-        }).then((snap) => {
-            let autoreply = snap.val();
-            let appsAutoreplies = {};
-            let _autoreplies = {};
-            _autoreplies[autoreplyId] = autoreply;
-            appsAutoreplies[appId] = {
-                autoreplies: _autoreplies
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                }
             };
-            callback(appsAutoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入 指定 appId 的陣列清單，刪除一筆自動回覆的資料
-     *
-     * @param {string} appId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.remove = (appId, autoreplyId, callback) => {
-        let autoreply = {
-            isDeleted: 1
-        };
-        admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).update(autoreply).then(() => {
-            return admin.database().ref('apps/' + appId + '/autoreplies/' + autoreplyId).once('value');
-        }).then((snap) => {
-            let autoreply = snap.val();
-            let appsAutoreplies = {};
-            let _autoreplies = {};
-            _autoreplies[autoreplyId] = autoreply;
-            appsAutoreplies[appId] = {
-                autoreplies: _autoreplies
-            };
-            callback(appsAutoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 找到 自動回復未刪除的資料包，不含 apps 結構
-     */
-    AppsAutorepliesModel.prototype.findAutoreplies = (appIds, callback) => {
-        if ('string' === typeof appIds) {
-            appIds = [appIds];
-        };
-        let autoreplies = {};
-        return Promise.all((appIds).map((appId) => {
-            return admin.database().ref('apps/' + appId + '/autoreplies/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let _autoreplies = snap.val();
-                if (null === _autoreplies || undefined === _autoreplies || '' === _autoreplies) {
-                    return Promise.resolve(null);
-                };
-                Object.assign(autoreplies, _autoreplies);
-                return Promise.resolve(null);
+            let aggregations = [
+                {
+                    $unwind: '$autoreplies' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        autoreplies: 1
+                    }
+                }
+            ];
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                }
+                let appsAutoreplies = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.autoreplies));
+                    return output;
+                }, {});
+                return appsAutoreplies;
+            }).then((appsAutoreplies) => {
+                ('function' === typeof callback) && callback(appsAutoreplies);
+                return Promise.resolve(appsAutoreplies);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
-        })).then(() => {
-            callback(autoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入 appId 的陣列清單，取得每個 app 的關鍵字回覆的資料
-     *
-     * @param {string[]|string} appIds
-     * @param {string|null} autoreplyId
-     * @param {Function} callback
-     */
-    AppsAutorepliesModel.prototype.find = (appIds, autoreplyId, callback) => {
-        let appsAutoreplies = {};
-        if ('string' === appIds) {
-            appIds = [appIds];
         };
-        let autoreplies = {};
-        Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId + '/autoreplies').once('value').then((snap) => {
-                let autoreplies = snap.val() || {};
-                if (!autoreplies) {
-                    return Promise.resolve();
-                };
-
-                // polymorphsim to autoreplyId. null autoreplyId returns all autoreplies of each app.
-                if (!autoreplyId) {
-                    appsAutoreplies[appId] = {
-                        autoreplies: autoreplies
-                    };
-                    return Promise.resolve();
-                };
-                if (autoreplies[autoreplyId]) {
-                    appsAutoreplies[appId] = {
-                        autoreplies: autoreplies
-                    };
-                    return Promise.resolve();
-                };
-
-                return Promise.resolve();
-            });
-        })).then(() => {
-            callback(appsAutoreplies);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    return instance;
+    }
+    return new AutorepliesModel();
 })();

@@ -1,56 +1,52 @@
 module.exports = (function() {
-    function AuthenticationsModel() {};
-    const admin = require('firebase-admin');
-    /**
-     * 藉由 firebase.admin.auth 與 email 取得該 Authentication 帳號資訊
-     * @param {string|string[]} userIds
-     * @param {string|string[]} emails
-     * @param {Function} callback
-     */
-    AuthenticationsModel.prototype.findUser = function(userIds, emails, callback) {
-        if ('string' === typeof userIds || !userIds) {
-            userIds = [userIds];
-        };
+    let ModelCore = require('../cores/model');
+    const USERS = 'users';
 
-        if ('string' === typeof emails || !emails) {
-            emails = [emails];
-        };
+    class AuthenticationsModel extends ModelCore {
+        constructor() {
+            super();
+            this.Model = this.model(USERS, this.UsersSchema);
 
-        let authentications = {};
-        let findUsersPromise = Promise.all(userIds.map((userId) => {
-            if (!userId || '0' === userId) {
-                return Promise.resolve(null);
+            this.project = {
+                email: true,
+                name: true
             };
-            return admin.auth().getUser(userId).then((userRecord) => {
-                if (!userRecord) {
-                    return null;
-                };
+        }
 
-                authentications[userRecord.uid] = userRecord;
-                return userRecord;
-            });
-        }));
+        /**
+         * @param {string|string[]|null} userIds
+         * @param {string|string[]|null} emails
+         * @param {Function} [callback]
+         */
+        findUser(userIds, emails, callback) {
+            if (userIds && !(userIds instanceof Array)) {
+                userIds = [userIds];
+            }
 
-        let findEmailsPromise = Promise.all(emails.map((email) => {
-            if (!email || '0' === email) {
-                return Promise.resolve(null);
+            if (emails && !(emails instanceof Array)) {
+                emails = [emails];
+            }
+
+            let query = {
+                'isDeleted': false
             };
-            return admin.auth().getUserByEmail(email).then((userRecord) => {
-                if (!userRecord) {
-                    return null;
+
+            if (userIds instanceof Array) {
+                query['_id'] = {
+                    $in: userIds.map((userId) => this.Types.ObjectId(userId))
                 };
+            };
+            if (emails instanceof Array) {
+                query['email'] = {
+                    $in: emails
+                };
+            };
 
-                authentications[userRecord.uid] = userRecord;
-                return userRecord;
+            return this.Model.find(query, this.project).then((results) => {
+                return this.toObject(results);
             });
-        }));
-
-        Promise.all([findUsersPromise, findEmailsPromise]).then(() => {
-            callback(authentications);
-        }).catch((ERROR) => {
-            callback(null);
-        });
-    };
+        }
+    }
 
     return new AuthenticationsModel();
 })();

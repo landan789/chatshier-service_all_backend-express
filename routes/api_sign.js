@@ -2,7 +2,7 @@ let express = require('express');
 let router = express.Router();
 let bodyParser = require('body-parser');
 let formData = require('express-form-data');
-let jwt = require('../middlewares/jwt_');
+let jwt = require('../middlewares/jwt');
 
 let signupCtl = require('../controllers/signup');
 let signinCtl = require('../controllers/signin');

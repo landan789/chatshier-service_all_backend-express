@@ -1,229 +1,164 @@
-var admin = require('firebase-admin'); // firebase admin SDK
-var apps = {};
 
-const LINE = 'LINE';
-const FACEBOOK = 'FACEBOOK';
-const CHATSHIER = 'CHATSHIER';
-
-apps._schema = (callback) => {
-    var json = {
-        id1: '',
-        id2: '',
-        name: '',
-        secret: '',
-        token1: '',
-        token2: '',
-        type: '',
-        group_id: '',
-        webhook_id: '',
-        isDeleted: 0,
-        updatedTime: Date.now(),
-        createdTime: Date.now()
-    };
-    callback(json);
-};
-/**
-     * 多型判斷要回傳apps還是appid下資料
-     *
-     * @param {string|string[]|null} appIds
-     * @param {string|null} webhookId
-     * @param {Function} callback
-     * @returns {Promise<any>}
-     */
-apps.find = (appIds, webhookId, callback) => {
-    var apps = {};
-
-    Promise.resolve().then(() => {
-
-        if (webhookId) {
-            return admin.database().ref('webhooks/' + webhookId).once('value').then((snap) => {
-                let webhook = snap.val();
-                let appIds = webhook.app_id;
-                if ('string' === typeof appIds) {
-                    appIds = [appIds];
+module.exports = (function() {
+    let ModelCore = require('../cores/model');
+    const APPS = 'apps';
+    const USERS = 'users';
+    const WEBHOOKS = 'webhooks';
+    const LINE = 'LINE';
+    const FACEBOOK = 'FACEBOOK';
+    const CHATSHIER = 'CHATSHIER';
+    class AppsModel extends ModelCore {
+        constructor() {
+            super();
+            this.AppsModel = this.model(APPS, this.AppsSchema);
+            this.UsersModel = this.model(USERS, this.UsersSchema);
+            this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
+            this.project = {
+                name: true,
+                id1: true,
+                id2: true,
+                group_id: true,
+                isDeleted: true,
+                webhook_id: true,
+                secret: true,
+                token1: true,
+                token2: true,
+                type: true,
+                createdTime: true,
+                updatedTime: true
+            };
+        }
+        find(appIds, webhookId, callback) {
+            var apps = {};
+            if (appIds && !(appIds instanceof Array)) {
+                appIds = [appIds];
+            };
+            Promise.resolve().then(() => {
+                if (!appIds) {
+                    let query = {
+                        'isDeleted': false
+                    };
+                    return this.AppsModel.find(query).then((__apps) => {
+                        apps = __apps.reduce((output, app) => {
+                            Object.assign(output, this.toObject(app._doc));
+                            return output;
+                        }, {});
+                        return apps;
+                    });
                 }
                 return Promise.all(appIds.map((appId) => {
-                    return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-                        let app = snap.val();
-                        apps[appId] = app;
+                    let query = {
+                        '_id': appId,
+                        'isDeleted': false
+                    };
+                    return this.AppsModel.findOne(query).then((__apps) => {
+                        let _apps = {
+                            createdTime: __apps.createdTime,
+                            updatedTime: __apps.updatedTime,
+                            group_id: __apps.group_id,
+                            id1: __apps.id1,
+                            id2: __apps.id2,
+                            isDeleted: __apps.isDeleted,
+                            name: __apps.name,
+                            secret: __apps.secret,
+                            token1: __apps.token1,
+                            token2: __apps.token2,
+                            type: __apps.type,
+                            webhook_id: __apps.webhook_id
+                        };
+                        apps = {
+                            [appId]: _apps
+                        };
                     });
                 }));
+            }).then(() => {
+                ('function' === typeof callback) && callback(apps);
+                return Promise.resolve(apps);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
         }
 
-        // 值為空回傳整包apps
-        if ('' === appIds || !appIds) {
-            return admin.database().ref('apps').once('value').then((snap) => {
-                apps = snap.val();
-                return Promise.resolve();
-            });
-        };
-        if ('string' === typeof appIds) {
-            appIds = [appIds];
-        };
-        return Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId).once('value').then((snap) => {
-                let app = snap.val();
-                // DB 沒有取到資料
-                if (null === app || undefined === app || '' === app) {
-                    return Promise.resolve(null);
-                }
-                // 已刪除資料，不呈現於 API
-                if (app.isDeleted) {
-                    return Promise.resolve(null);
-                }
-                var _app = {
-                    group_id: app.group_id,
-                    id1: app.id1,
-                    id2: app.id2,
-                    isDeleted: app.isDeleted,
-                    name: app.name,
-                    secret: app.secret,
-                    token1: app.token1,
-                    token2: app.token2,
-                    type: app.type,
-                    webhook_id: app.webhook_id
+        insert(userId, postApp, callback) {
+            let apps = {};
+            let webhookId = this.Types.ObjectId();
+            let _appId = this.Types.ObjectId();
+            let _apps = new this.AppsModel();
+            _apps._id = _appId;
+            _apps.id1 = postApp.id1 || '';
+            _apps.id2 = postApp.id2 || '';
+            _apps.name = postApp.name || '';
+            _apps.secret = postApp.secret || '';
+            _apps.token1 = postApp.token1 || '';
+            _apps.token2 = postApp.token2 || '';
+            _apps.type = postApp.type || '';
+            _apps.group_id = postApp.group_id;
+            _apps.webhook_id = CHATSHIER === postApp.type ? _appId : webhookId;
+            _apps.isDeleted = false;
+            _apps.updatedTime = Date.now();
+            _apps.createdTime = Date.now();
+
+            return _apps.save().then((__apps) => {
+                let query = {
+                    '_id': __apps._id
                 };
-                apps[appId] = _app;
-                return Promise.resolve();
+                return this.AppsModel.findOne(query).select(this.project);
+            }).then((app) => {
+                apps[app._id] = app;
+                ('function' === typeof callback) && callback(apps);
+                return Promise.resolve(apps);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
-        }));
-    }).then(() => {
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-apps.insert = (userId, postApp, callback) => {
-    let groupId = postApp.group_id;
-    let appId = '';
-
-    Promise.resolve().then(() => {
-        return new Promise((resolve, reject) => {
-            apps._schema((initApp) => {
-                postApp = Object.assign(initApp, postApp);
-                resolve(postApp);
-            });
-        });
-    }).then(() => {
-        return admin.database().ref('apps').push(postApp);
-    }).then((appPushRef) => {
-        appId = appPushRef.key;
-        return admin.database().ref('users/' + userId).once('value');
-    }).then((snap) => {
-        let user = snap.val();
-        let _groupIds = user.group_ids;
-
-        // 當下 user 沒有該 group ，則不能新增 app
-        if (0 > _groupIds.indexOf(groupId)) {
-            return Promise.reject(new Error());
         };
-        return Promise.resolve();
-    }).then(() => {
-        // 如果新增的 app 為 CHATSHIER 內部聊天室，則不需進行新增 webhooks 的動作
-        if (CHATSHIER === postApp.type) {
-            return;
+
+        update(appId, putApp, callback) {
+            let query = {
+                '_id': appId
+            };
+
+            return this.AppsModel.update(query, {
+                $set: putApp
+            }).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                };
+                return this.AppsModel.findOne(query).select(this.project);
+            }).then((app) => {
+                return this.toObject(app._doc);
+            }).then((apps) => {
+                ('function' === typeof callback) && callback(apps);
+                return Promise.resolve(apps);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
         }
 
-        let webhook = {
-            app_id: appId
-        };
-        let webhooksPushRef = admin.database().ref('webhooks').push(webhook);
-        let webhookId = webhooksPushRef.key;
-
-        webhooksPushRef.then(() => {
-            let appWebhook = {
-                webhook_id: webhookId
-            };
-            return admin.database().ref('apps/' + appId).update(appWebhook);
-        });
-    }).then(() => {
-        return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
-            let group = snap.val();
-            let appIds = group.app_ids || [];
-
-            appIds.unshift(appId);
-            let _group = {
-                app_ids: appIds
+        remove(appId, callback) {
+            let query = {
+                '_id': appId
             };
 
-            return admin.database().ref('groups/' + groupId).update(_group);
-        });
-    }).then(() => {
-        // 將資料庫中的 app 資料完整取出後回傳
-        return admin.database().ref('apps/' + appId).once('value');
-    }).then((snap) => {
-        let appInDB = snap.val() || {};
-        let apps = {
-            [appId]: appInDB
-        };
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-apps.update = (appId, putApp, callback) => {
-    Promise.resolve().then(() => {
-        return new Promise((resolve, reject) => {
-            admin.database().ref('apps/' + appId).once('value', snap => {
-                var app = snap.val();
-                if (undefined === app || '' === app || null === app) {
-                    reject(new Error());
-                    return;
-                }
-
-                // 已刪除資料不能更新
-                if (1 === app.isDeleted) {
-                    reject(new Error());
-                    return;
-                }
-                resolve();
+            return this.AppsModel.update(query, {
+                $set: {isDeleted: true}
+            }).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                };
+                return this.AppsModel.findOne(query).select(this.project);
+            }).then((app) => {
+                return this.toObject(app._doc);
+            }).then((apps) => {
+                ('function' === typeof callback) && callback(apps);
+                return Promise.resolve(apps);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
-        });
-    }).then(() => {
-        putApp.updatedTime = Date.now();
-        return admin.database().ref('apps/' + appId).update(putApp);
-    }).then(() => {
-        return admin.database().ref('apps/' + appId).once('value');
-    }).then((snap) => {
-        var app = snap.val();
-        var apps = {
-            [appId]: app
-        };
-        return Promise.resolve(apps);
-    }).then((apps) => {
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-apps.remove = (appId, callback) => {
-    var procced = new Promise((resolve, reject) => {
-        resolve();
-    });
-
-    var deleteApp = {
-        isDeleted: 1,
-        updatedTime: Date.now()
+        }
     };
-    procced.then(() => {
-        return admin.database().ref('apps/' + appId).update(deleteApp);
-    }).then(() => {
-        return admin.database().ref('apps/' + appId).once('value');
-    }).then((snap) => {
-        var app = snap.val();
-        var apps = {
-            [appId]: app
-        };
-        return Promise.resolve(apps);
-    }).then((apps) => {
-        callback(apps);
-    }).catch(() => {
-        callback(null);
-    });
-};
-
-module.exports = apps;
+    return new AppsModel();
+})();

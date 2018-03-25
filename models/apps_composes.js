@@ -1,195 +1,195 @@
 module.exports = (function() {
-    const admin = require('firebase-admin'); // firebase admin SDK
-    let instance = new AppsComposesModel();
+    const ModelCore = require('../cores/model');
+    const APPS = 'apps';
 
-    function AppsComposesModel() {}
-
-    /**
-     * 回傳預設的 compose 資料結構
-     * @param {Function} callback
-     */
-    AppsComposesModel.prototype._schema = function(callback) {
-        let json = {
-            time: '',
-            status: '',
-            type: 'text',
-            text: '',
-            isDeleted: 0,
-            age: '',
-            gender: '',
-            tag_ids: {}
-        };
-        callback(json);
+    const docUnwind = {
+        $unwind: '$composes' // 只針對 document 處理
     };
 
-    /**
-     * 輸入指定的 appId 取得該 App 所有群發的資料
-     *
-     * @param {string[]|string} appIds
-     * @param {string|null} composeId
-     * @param {Function} callback
-     */
-    AppsComposesModel.prototype.find = (appIds, composeId, callback) => {
-        let appsComposes = {};
+    const docOutput = {
+        $project: {
+            // 篩選需要的項目
+            composes: 1
+        }
+    };
 
-        if ('string' === typeof appIds) {
-            appIds = [appIds];
+    class AppsComposesModel extends ModelCore {
+        constructor() {
+            super();
+            this.AppsModel = this.model(APPS, this.AppsSchema);
         }
 
-        Promise.all(appIds.map((appId) => {
-            return admin.database().ref('apps/' + appId + '/composes').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-                let composes = snap.val();
-                if (!composes) {
-                    return Promise.resolve(null);
-                };
-                if (!composeId) {
-                    appsComposes[appId] = {
-                        composes: composes
-                    };
-                    return Promise.resolve(null);
-                };
+        /**
+         * @param {string|string[]} appIds
+         * @param {any|null} composeId
+         * @param {(appComposes: any) => any} [callback]
+         */
+        find(appIds, composeId, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
 
-                if (composeId && composes[composeId]) {
-                    let compose = composes[composeId];
-                    appsComposes[appId] = {
-                        composes: {
-                            [composeId]: compose
-                        }
-                    };
-                    return Promise.resolve(null);
+            // 尋找符合的欄位
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false
+            };
+            if (composeId) {
+                query['composes._id'] = this.Types.ObjectId(composeId);
+                query['composes.isDeleted'] = false;
+            }
+
+            let aggregations = [
+                docUnwind,
+                {
+                    $match: query
+                },
+                docOutput
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                if (0 === results.length) {
+                    return Promise.reject(new Error('COMPOSES_NOT_FOUND'));
                 }
 
-            });
-        })).then(() => {
-            callback(appsComposes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 找到 群發未刪除的資料包，不含 apps 結構
-     *
-     * @param {string} appId
-     * @param {(composes: any) => any} callback
-     * @returns {Promise<any>}
-     */
-
-    AppsComposesModel.prototype.findComposes = (appId, callback) => {
-        return admin.database().ref('apps/' + appId + '/composes/').orderByChild('isDeleted').equalTo(0).once('value').then((snap) => {
-            let composes = snap.val();
-            if (!composes) {
-                return Promise.reject(new Error());
-            }
-            return composes;
-        }).then((composes) => {
-            callback(composes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-
-    /**
-     * 輸入指定的 appId 新增一筆群發的資料
-     *
-     * @param {string} appId
-     * @param {*} postCompose
-     * @param {(appsComposes: any) => any} [callback]
-     * @returns {Promise<any>}
-     */
-    AppsComposesModel.prototype.insert = (appId, postCompose, callback) => {
-        return new Promise((resolve, reject) => {
-            instance._schema((initCompose) => {
-                var _compose = {
-                    createdTime: Date.now(),
-                    updatedTime: Date.now()
-                };
-                let compose = Object.assign(initCompose, postCompose, _compose);
-                resolve(compose);
-            });
-        }).then((compose) => {
-            return admin.database().ref('apps/' + appId + '/composes').push(compose).then((ref) => {
-                let composeId = ref.key;
-                let appsComposes = {
-                    [appId]: {
-                        composes: {
-                            [composeId]: compose
-                        }
-                    }
-                };
+                let appsComposes = results.reduce((output, curr) => {
+                    output[curr._id] = output[curr._id] || { composes: {} };
+                    Object.assign(output[curr._id].composes, this.toObject(curr.composes));
+                    return output;
+                }, {});
                 return appsComposes;
-            });
-        }).then((appsComposes) => {
-            ('function' === typeof callback) && callback(appsComposes);
-            return appsComposes;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
-    /**
-     * 輸入指定的 appId 與 composeId 更新該群發的資料
-     *
-     * @param {string} appId
-     * @param {string} composeId
-     * @param {*} putCompose
-     * @param {Function} callback
-     * @returns {Promise<any>}
-     */
-    AppsComposesModel.prototype.update = (appId, composeId, putCompose, callback) => {
-        let procced = Promise.resolve();
-        return procced.then(() => {
-            if (!appId || !composeId) {
-                return Promise.reject(new Error());
-            }
-            // 1. 更新群發的資料
-            return admin.database().ref('apps/' + appId + '/composes/' + composeId).update(putCompose).then(() => {
-                let appsComposes = {
-                    [appId]: {
-                        composes: {
-                            [composeId]: putCompose
-                        }
-                    }
-                };
+            }).then((appsComposes) => {
+                ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
             });
-        }).then((appsComposes) => {
-            callback(appsComposes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
-    /**
-     * 輸入指定的 appId 與 composeId 刪除該群發的資料
-     *
-     * @param {string} appId
-     * @param {string} composeId
-     * @param {Function} callback
-     * @returns {Promise<any>}
-     */
-    AppsComposesModel.prototype.remove = (appId, composeId, callback) => {
-        let deleteCompose = {
-            isDeleted: 1
-        };
+        }
 
-        let composeRef = admin.database().ref('apps/' + appId + '/composes/' + composeId);
-        return composeRef.update(deleteCompose).then(() => {
-            return composeRef.once('value');
-        }).then((snap) => {
-            let compose = snap.val();
-            let composeId = snap.ref.key;
-            let appsComposes = {
-                [appId]: {
-                    composes: {
-                        [composeId]: compose
-                    }
+        /**
+         * @param {string} appId
+         * @param {any} compose
+         * @param {(appTickets: any) => any} [callback]
+         */
+        insert(appId, compose, callback) {
+            let composeId = this.Types.ObjectId();
+            compose._id = composeId;
+            compose.createdTime = compose.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId
+            };
+
+            let updateOper = {
+                $push: {
+                    composes: compose
                 }
             };
-            callback(appsComposes);
-        }).catch(() => {
-            callback(null);
-        });
-    };
 
-    return instance;
+            return this.AppsModel.update(query, updateOper).then(() => {
+                return this.find(appId, composeId);
+            }).then((appsComposes) => {
+                ('function' === typeof callback) && callback(appsComposes);
+                return appsComposes;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} composeId
+         * @param {any} compose
+         * @param {(appComposes: any) => any} [callback]
+         */
+        update(appId, composeId, compose, callback) {
+            compose._id = composeId;
+            compose.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId,
+                'composes._id': composeId
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in compose) {
+                updateOper.$set['composes.$.' + prop] = compose[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                return this.find(appId, composeId);
+            }).then((appsComposes) => {
+                ('function' === typeof callback) && callback(appsComposes);
+                return appsComposes;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} composeId
+         * @param {(appComposes: any) => any} [callback]
+         */
+        remove(appId, composeId, callback) {
+            let compose = {
+                _id: composeId,
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
+            let query = {
+                '_id': appId,
+                'composes._id': composeId
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in compose) {
+                updateOper.$set['composes.$.' + prop] = compose[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                let aggregations = [
+                    {
+                        $unwind: '$composes'
+                    }, {
+                        $match: {
+                            '_id': this.Types.ObjectId(appId),
+                            'composes._id': this.Types.ObjectId(composeId)
+                        }
+                    }, {
+                        $project: {
+                            composes: 1
+                        }
+                    }
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    if (0 === results.length) {
+                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                    }
+
+                    let appsComposes = results.reduce((output, curr) => {
+                        output[curr._id] = output[curr._id] || { composes: {} };
+                        Object.assign(output[curr._id].composes, this.toObject(curr.composes));
+                        return output;
+                    }, {});
+                    return appsComposes;
+                });
+            }).then((appsComposes) => {
+                ('function' === typeof callback) && callback(appsComposes);
+                return appsComposes;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+    }
+
+    return new AppsComposesModel();
 })();
