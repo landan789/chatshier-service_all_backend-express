@@ -12,6 +12,9 @@ module.exports = (function() {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
+            if (appIds && !(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
             return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
                     let query = {
