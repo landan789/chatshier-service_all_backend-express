@@ -50,8 +50,8 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsComposes = {};
                 if (0 === results.length) {
-                    let appsComposes = {};
                     return Promise.resolve(appsComposes);
                 }
 
