@@ -258,7 +258,6 @@ window.translate.ready.then(function(json) {
 
     findAllGroups();
     findAllApps(); // 列出所有設定的APPs
-    findAuthUserProfile();
     findUserProfile();
 });
 
@@ -1048,7 +1047,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 },
                 updater: function(item) {
                     // 選擇項目後，將 email 的部分設於 input value
-                    return { displayName: item.email };
+                    return { name: item.email };
                 },
                 displayText: function(item) {
                     // 項目顯示樣式為 [username - example@example.com]
@@ -1686,27 +1685,19 @@ function formModalBody(id, app) {
 function clearAppModalBody() {
     $appModal.empty();
 }
-function findAuthUserProfile() {
-    return api.users.find(userId).then(function(resJson) {
-        let users = resJson.data;
-        let user = users[userId];
-        if (userId) {
-            // User 已登入
-            $('h3.panel-title').text(user.name);
-            $('#prof-email').text(user.email);
-            $('#prof-id').text(userId);
-        };
-    });
-}
 
 function findUserProfile() {
     return api.users.find(userId).then(function(resJson) {
-        var profile = resJson.data;
+        var users = resJson.data;
+        var user = users[userId];
+
         $('#prof-id').text(userId);
+        $('h3.panel-title').text(user.name);
+        $('#prof-email').text(user.email);
         $('#prof-IDnumber').text(userId);
-        $('#prof-company').text(profile.company);
-        $('#prof-phonenumber').text(profile.phone);
-        $('#prof-address').text(profile.address);
+        $('#prof-company').text(user.company);
+        $('#prof-phonenumber').text(user.phone);
+        $('#prof-address').text(user.address);
     });
 }
 
@@ -1728,7 +1719,7 @@ function profSubmitBasic() {
         address
     };
     var phoneRule = /^09\d{8}$/;
-    if (!phone.match(phoneRule)) {
+    if (phone && !phone.match(phoneRule)) {
         $('#setting-modal').modal('hide');
         $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
     } else {
