@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER', null));
 
 // API
-app.use('/api', apiDatabase);
+app.use('/api/database', apiDatabase);
 
 app.use('/api/sign', apiSign);
 

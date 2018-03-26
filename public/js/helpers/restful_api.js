@@ -5,7 +5,7 @@ window.restfulAPI = (function() {
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
 
-    var prefixUrl = urlConfig.apiUrl + '/api/';
+    var prefixUrl = urlConfig.apiUrl + '/api/database/';
     var apiUrlTable = Object.freeze({
         apps: prefixUrl + 'apps/',
         appsAutoreplies: prefixUrl + 'apps-autoreplies/',
