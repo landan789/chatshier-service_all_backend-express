@@ -4,7 +4,7 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     let ciperHlp = require('../helpers/cipher');
     let usersMdl = require('../models/users');
-    let jwt = require('../middlewares/jwt');
+    var jwtHlp = require('../helpers/jwt');
 
     class SigninController {
         postOne(req, res, next) {
@@ -48,7 +48,7 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 let userId = Object.keys(users).shift();
-                token = jwt.sign(userId);
+                token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then(() => {
                 let json = {

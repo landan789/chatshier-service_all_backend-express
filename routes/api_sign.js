@@ -2,7 +2,7 @@ let express = require('express');
 let router = express.Router();
 let bodyParser = require('body-parser');
 let formData = require('express-form-data');
-let jwt = require('../middlewares/jwt');
+let jwtHlp = require('../helpers/jwt');
 
 let signupCtl = require('../controllers/signup');
 let signinCtl = require('../controllers/signin');
@@ -22,6 +22,6 @@ router.use(
 
 router.post('/signup/', signupCtl.postOne);
 router.post('/signin/', signinCtl.postOne);
-router.post('/signout/', jwt.authenticate('HEADER'), signoutCtl.postOne);
+router.post('/signout/', jwtHlp.authenticate('HEADER'), signoutCtl.postOne);
 
 module.exports = router;
