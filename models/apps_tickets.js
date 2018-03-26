@@ -133,11 +133,11 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} appId
+         * @param {string} appIds
          * @param {string} ticketId
          * @param {(appTickets: any) => any} [callback]
          */
-        remove(appId, ticketId, callback) {
+        remove(appIds, ticketId, callback) {
             let ticket = {
                 _id: ticketId,
                 isDeleted: true,
@@ -145,7 +145,9 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': this.Types.ObjectId(appId),
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
                 'tickets._id': this.Types.ObjectId(ticketId)
             };
 
