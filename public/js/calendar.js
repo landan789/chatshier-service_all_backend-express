@@ -1,6 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var CalendarEventTypes = (function() {
         var definedType = {
             Calendar: 'C',
@@ -85,7 +87,6 @@
 
     var calendarEventMap = {};
     var api = window.restfulAPI;
-    var userId = '';
 
     var $calendar = $('#calendar');
     var $calendarModal = $('.modal.calendar-modal');
@@ -96,6 +97,15 @@
     var $eventTitle = $calendarModalForm.find('input.event-title');
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
+
+    var $addCalendarBtn = $('#add-cal-btn');
+    var $saveCalendarBtn = $('#save-cal-btn');
+    var $delCalendarBtn = $('#del-cal-btn');
+    var $formCheckLabel = $('.form-check-label');
+    var $startDatetime = $('[for="start_datetime"]');
+    var $endDatetime = $('[for="end_datetime"]');
+    var $startDatetimePicker = $('[name="start_datetime"]');
+    var $endDatetimePicker = $('[name="end_datetime"]');
     var sTimePickerData = null;
     var eTimePickerData = null;
 
@@ -109,183 +119,178 @@
         return window.googleCalendarHelper.findEvents();
     });
 
-    window.auth.ready.then(function(currentUser) {
-        userId = currentUser.uid; // 儲存全域用變數 userId
-        calendarEventMap = {};
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        var $addCalendarBtn = $('#add-cal-btn');
-        var $saveCalendarBtn = $('#save-cal-btn');
-        var $delCalendarBtn = $('#del-cal-btn');
-        var $formCheckLabel = $('.form-check-label');
-        var $startDatetime = $('[for="start_datetime"]');
-        var $endDatetime = $('[for="end_datetime"]');
-        var $startDatetimePicker = $('[name="start_datetime"]');
-        var $endDatetimePicker = $('[name="end_datetime"]');
-        var $eventContent = $('.event-content');
+    calendarEventMap = {};
 
-        // 初始化 modal 裡的 datetime picker
-        // 使用 moment.js 的 locale 設定 i18n 日期格式
-        var datetimePickerInitOpts = {
-            sideBySide: true,
-            locale: 'zh-tw'
-        };
-        $calendarSdtPicker.datetimepicker(datetimePickerInitOpts);
-        $calendarEdtPicker.datetimepicker(datetimePickerInitOpts);
-        sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
-        eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
+    // 初始化 modal 裡的 datetime picker
+    // 使用 moment.js 的 locale 設定 i18n 日期格式
+    var datetimePickerInitOpts = {
+        sideBySide: true,
+        locale: 'zh-tw'
+    };
+    $calendarSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $calendarEdtPicker.datetimepicker(datetimePickerInitOpts);
+    sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
+    eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
 
-        // 初始化 fullCalendar 元件
-        $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
-        $calendar.fullCalendar({
-            locale: 'zh-tw',
-            timezone: 'local',
-            theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
-            buttonIcons: {
-                prev: 'circle-triangle-w',
-                next: 'circle-triangle-e'
-            },
-            // Defines the buttons and title position which is at the top of the calendar.
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,agendaDay'
-            },
+    // 初始化 fullCalendar 元件
+    $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
+    $calendar.fullCalendar({
+        locale: 'zh-tw',
+        timezone: 'local',
+        theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
+        buttonIcons: {
+            prev: 'circle-triangle-w',
+            next: 'circle-triangle-e'
+        },
+        // Defines the buttons and title position which is at the top of the calendar.
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'month,agendaWeek,agendaDay'
+        },
 
-            defaultDate: new Date(), // The initial date displayed when the calendar first loads.
-            editable: true, // true allow user to edit events.
-            eventLimit: true, // allow "more" link when too many events
-            selectable: true, // allows a user to highlight multiple days or timeslots by clicking and dragging.
-            selectHelper: true, // whether to draw a "placeholder" event while the user is dragging.
-            allDaySlot: false,
-            // events is the main option for calendar.
-            events: [],
-            // execute after user select timeslots.
-            select: function(start, end, jsEvent, view) { // 新增新事件
-                var beginDate = start.toDate();
-                beginDate.setHours(0, 0, 0, 0);
-                var endDate = new Date(beginDate);
-                endDate.setDate(endDate.getDate() + 1);
-                updateCalendarModal(beginDate, endDate);
+        defaultDate: new Date(), // The initial date displayed when the calendar first loads.
+        editable: true, // true allow user to edit events.
+        eventLimit: true, // allow "more" link when too many events
+        selectable: true, // allows a user to highlight multiple days or timeslots by clicking and dragging.
+        selectHelper: true, // whether to draw a "placeholder" event while the user is dragging.
+        allDaySlot: false,
+        // events is the main option for calendar.
+        events: [],
+        // execute after user select timeslots.
+        select: function(start, end, jsEvent, view) { // 新增新事件
+            var beginDate = start.toDate();
+            beginDate.setHours(0, 0, 0, 0);
+            var endDate = new Date(beginDate);
+            endDate.setDate(endDate.getDate() + 1);
+            updateCalendarModal(beginDate, endDate);
 
-                $calendarModalTitle.text(CalendarEventTitles.CREATECALENDAR);
-                $endDatetimePicker.parent().parent().show();
-                $eventTitle.removeAttr('disabled');
-                $formCheckLabel.attr('style', 'display: block');
-                $startDatetimePicker.removeAttr('disabled');
-                $endDatetimePicker.removeAttr('disabled');
-                $eventIsAllday.removeAttr('disabled');
-                $eventContent.removeAttr('disabled');
+            $calendarModalTitle.text(CalendarEventTitles.CREATECALENDAR);
+            $endDatetimePicker.parent().parent().show();
+            $eventTitle.removeAttr('disabled');
+            $formCheckLabel.attr('style', 'display: block');
+            $startDatetimePicker.removeAttr('disabled');
+            $endDatetimePicker.removeAttr('disabled');
+            $eventIsAllday.removeAttr('disabled');
+            $eventContent.removeAttr('disabled');
 
-                // 新增行事曆事件處理，先 off 再 on 避免事件疊加
-                $addCalendarBtn.off('click').on('click', function() {
-                    var calendarData = {
-                        title: $eventTitle.val(),
-                        startedTime: sTimePickerData.date().toDate().getTime(),
-                        endedTime: eTimePickerData.date().toDate().getTime(),
-                        description: $eventContent.val(),
-                        isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
-                    };
-
-                    if (!calendarDataIsOK(calendarData)) {
-                        return;
-                    }
-                    insertCalendarEvent(calendarData);
-                });
-
-                // 按鈕顯示設定
-                $addCalendarBtn.show();
-                $saveCalendarBtn.hide();
-                $delCalendarBtn.hide();
-
-                $calendar.fullCalendar('unselect');
-                $calendarModal.modal('show');
-            },
-            eventClick: function(event) { // 更改事件
-                var startDate = event.start.toDate();
-                var endDate = event.end ? event.end.toDate() : startDate;
-                updateCalendarModal(startDate, endDate);
-
-                $eventTitle.val(event.title);
-                $eventIsAllday.prop('checked', !!event.isAllDay);
-                $eventContent.val(event.description);
-
-                switch (event.eventType) {
-                    case CalendarEventTypes.Ticket:
-                        $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
-                        $delCalendarBtn.attr('style', 'display: none');
-                        $formCheckLabel.hide();
-                        $startDatetime.text(CalendarEventLabels.TICKETENDEDTIME);
-                        $endDatetimePicker.parent().parent().hide();
-                        $eventTitle.attr('disabled', true);
-                        $startDatetimePicker.attr('disabled', true);
-                        $endDatetimePicker.attr('disabled', true);
-                        $eventIsAllday.attr('disabled', true);
-                        $eventContent.attr('disabled', true);
-                        break;
-                    case CalendarEventTypes.Calendar:
-                    default:
-                        $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
-                        $delCalendarBtn.attr('style', '');
-                        $formCheckLabel.attr('style', 'display: block');
-                        $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
-                        $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
-                        $endDatetimePicker.parent().parent().show();
-                        $eventTitle.removeAttr('disabled');
-                        $startDatetimePicker.removeAttr('disabled');
-                        $endDatetimePicker.removeAttr('disabled');
-                        $eventIsAllday.removeAttr('disabled');
-                        $eventContent.removeAttr('disabled');
-                        break;
-                }
-                // 更新事件
-                $saveCalendarBtn.off('click').on('click', function() {
-                    var calendar = {
-                        title: $eventTitle.val(),
-                        startedTime: sTimePickerData.date().toDate().getTime(),
-                        endedTime: eTimePickerData.date().toDate().getTime(),
-                        description: $eventContent.val(),
-                        isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
-                    };
-                    updateCalendarEvent(event, calendar);
-                });
-
-                // 刪除事件
-                $delCalendarBtn.off('click').on('click', function() {
-                    deleteCalendarEvent(event);
-                });
-
-                // 按鈕顯示設定
-                $addCalendarBtn.hide();
-                $saveCalendarBtn.show();
-
-                $calendar.fullCalendar('unselect');
-                $calendarModal.modal('show'); // 顯示新增視窗
-            },
-            // execute after user drag and drop an event.
-            eventDrop: function(event, delta, revertFunc) {
-                var startDate = event.start.toDate();
-                var endDate = event.end.toDate();
-
-                var calendar = {
-                    title: event.title,
-                    description: event.description,
-                    startedTime: startDate.getTime(),
-                    endedTime: endDate.getTime(),
-                    isAllDay: event.isAllDay ? 1 : 0
+            // 新增行事曆事件處理，先 off 再 on 避免事件疊加
+            $addCalendarBtn.off('click').on('click', function() {
+                var calendarData = {
+                    title: $eventTitle.val(),
+                    startedTime: sTimePickerData.date().toDate().getTime(),
+                    endedTime: eTimePickerData.date().toDate().getTime(),
+                    description: $eventContent.val(),
+                    isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                 };
-                return updateCalendarEvent(event, calendar, false).catch(function() {
-                    revertFunc();
-                });
-            },
-            eventDurationEditable: true
-        });
 
-        return Promise.all([
-            api.calendarsEvents.findAll(userId), // 取得所有的行事曆事件
-            api.appsTickets.findAll('', userId), // 取得所有的待辦事項
-            gCalendarPromise
-        ]);
-    }).then(function(resJsons) {
+                if (!calendarDataIsOK(calendarData)) {
+                    return;
+                }
+                insertCalendarEvent(calendarData);
+            });
+
+            // 按鈕顯示設定
+            $addCalendarBtn.show();
+            $saveCalendarBtn.hide();
+            $delCalendarBtn.hide();
+
+            $calendar.fullCalendar('unselect');
+            $calendarModal.modal('show');
+        },
+        eventClick: function(event) { // 更改事件
+            var startDate = event.start.toDate();
+            var endDate = event.end ? event.end.toDate() : startDate;
+            updateCalendarModal(startDate, endDate);
+
+            $eventTitle.val(event.title);
+            $eventIsAllday.prop('checked', !!event.isAllDay);
+            $eventContent.val(event.description);
+
+            switch (event.eventType) {
+                case CalendarEventTypes.Ticket:
+                    $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
+                    $delCalendarBtn.attr('style', 'display: none');
+                    $formCheckLabel.hide();
+                    $startDatetime.text(CalendarEventLabels.TICKETENDEDTIME);
+                    $endDatetimePicker.parent().parent().hide();
+                    $eventTitle.attr('disabled', true);
+                    $startDatetimePicker.attr('disabled', true);
+                    $endDatetimePicker.attr('disabled', true);
+                    $eventIsAllday.attr('disabled', true);
+                    $eventContent.attr('disabled', true);
+                    break;
+                case CalendarEventTypes.Calendar:
+                default:
+                    $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
+                    $delCalendarBtn.attr('style', '');
+                    $formCheckLabel.attr('style', 'display: block');
+                    $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
+                    $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
+                    $endDatetimePicker.parent().parent().show();
+                    $eventTitle.removeAttr('disabled');
+                    $startDatetimePicker.removeAttr('disabled');
+                    $endDatetimePicker.removeAttr('disabled');
+                    $eventIsAllday.removeAttr('disabled');
+                    $eventContent.removeAttr('disabled');
+                    break;
+            }
+            // 更新事件
+            $saveCalendarBtn.off('click').on('click', function() {
+                var calendar = {
+                    title: $eventTitle.val(),
+                    startedTime: sTimePickerData.date().toDate().getTime(),
+                    endedTime: eTimePickerData.date().toDate().getTime(),
+                    description: $eventContent.val(),
+                    isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
+                };
+                updateCalendarEvent(event, calendar);
+            });
+
+            // 刪除事件
+            $delCalendarBtn.off('click').on('click', function() {
+                deleteCalendarEvent(event);
+            });
+
+            // 按鈕顯示設定
+            $addCalendarBtn.hide();
+            $saveCalendarBtn.show();
+
+            $calendar.fullCalendar('unselect');
+            $calendarModal.modal('show'); // 顯示新增視窗
+        },
+        // execute after user drag and drop an event.
+        eventDrop: function(event, delta, revertFunc) {
+            var startDate = event.start.toDate();
+            var endDate = event.end.toDate();
+
+            var calendar = {
+                title: event.title,
+                description: event.description,
+                startedTime: startDate.getTime(),
+                endedTime: endDate.getTime(),
+                isAllDay: event.isAllDay ? 1 : 0
+            };
+            return updateCalendarEvent(event, calendar, false).catch(function() {
+                revertFunc();
+            });
+        },
+        eventDurationEditable: true
+    });
+
+    return Promise.all([
+        api.calendarsEvents.findAll(userId), // 取得所有的行事曆事件
+        api.appsTickets.findAll('', userId), // 取得所有的待辦事項
+        gCalendarPromise
+    ]).then(function(resJsons) {
         var calendars = resJsons.shift().data;
         var calendarEventList = [];
 

@@ -1,6 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var LOADING_MSG_AND_ICON = '<p class="message-day"><strong><i>' + 'Loading History Messages...' + '</i></strong><span class="loadingIcon"></span></p>';
     var NO_HISTORY_MSG = '<p class="message-day"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
     var COLOR = {
@@ -22,7 +24,15 @@
     var SOCKET_NAMESPACE = '/chatshier';
 
     var api = window.restfulAPI;
-    var userId = '';
+
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
+
     var chatroomList = []; // list of all users
     var userProfiles = []; // array which store all user's profile
     var apps = {}; // 此變數用來裝所有的 app 資料
@@ -442,8 +452,6 @@
     })();
 
     var preventUpdateProfile = false;
-    // TODO 需要改由 jwt decode 取出 userId
-    userId = '5ab7e97afef42f0b3c58d012';
 
     // 攜帶欲 appId 向伺服器端註冊依據
     // 使伺服器端可以針對特定 app 發送 socket 資料

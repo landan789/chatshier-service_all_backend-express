@@ -1,6 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;
@@ -13,7 +15,6 @@
     var tag_ids = {};
     var appsTags = '';
     var deleteNum = 0;
-    var userId = '';
     var nowSelectAppId = '';
     var modelSelectAppId = '';
     var $jqDoc = $(document);
@@ -32,227 +33,233 @@
 
     var $sendDatetimePicker = $('#send-datetime-picker');
 
-    window.auth.ready.then(function(currentUser) {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        // ACTIONS
-        $(document).on('change', '#app-select', storeApp);
-        $(document).on('click', '.tablinks', clickMsg);
-        $(document).on('click', '#btn-text', btnText);
-        $(document).on('click', '.remove-btn', removeInput);
-        $(document).on('click', '#modal-submit', insertSubmit);
-        $(document).on('click', '#add-btn', cleanmodal);
-        $(document).on('click', '#send-all', function () {
-            let id = $(this).attr('rel');
-            $('#' + id).hide();
+    // ACTIONS
+    $(document).on('change', '#app-select', storeApp);
+    $(document).on('click', '.tablinks', clickMsg);
+    $(document).on('click', '#btn-text', btnText);
+    $(document).on('click', '.remove-btn', removeInput);
+    $(document).on('click', '#modal-submit', insertSubmit);
+    $(document).on('click', '#add-btn', cleanmodal);
+    $(document).on('click', '#send-all', function () {
+        let id = $(this).attr('rel');
+        $('#' + id).hide();
+    });
+    $(document).on('click', '#send-somebody', function () {
+        let id = $(this).attr('rel');
+        $('#' + id).show();
+    });
+    $(document).on('click', 'button#tag', appendInput);
+    $(document).on('change paste keyup', '.search-bar', dataSearch);
+    $(document).on('click', '#condition-close-btn', function() {
+        let $conditionDiv = $(this).parent();
+        let $tagBtn = $(this).parent().parent().find('button#tag');
+
+        let btnName = $tagBtn.attr('name');
+
+        $tagBtn.removeClass();
+        $tagBtn.attr('class', 'btn btn-grey');
+        $tagBtn.text(btnName);
+        $tagBtn.show();
+        $conditionDiv.remove();
+    });
+    $(document).on('click', '#condition-check-btn', function() {
+        let $conditionDiv = $(this).parent();
+        let $conditionInput = $(this).parent().find('input');
+        let $tagBtn = $(this).parent().parent().find('button#tag');
+
+        let btnName = $tagBtn.attr('name');
+        let conditionValue = $conditionInput.val();
+
+        $conditionDiv.hide();
+        $conditionInput.attr('value', conditionValue);
+        $tagBtn.removeClass();
+        $tagBtn.attr('class', 'btn btn-info');
+        $tagBtn.text(btnName + ':' + conditionValue).show();
+    });
+    $composesAddModal.find('#quickAdd').on('click', insertSubmit);
+    $historyTableElem = $('#composes_history_table tbody');
+    $reservationTableElem = $('#composes_reservation_table tbody');
+    $draftTableElem = $('#composes_draft_table tbody');
+    let options = {
+        locale: 'zh-tw',
+        sideBySide: true,
+        minDate: Date.now()
+    };
+    $sendDatetimePicker.datetimepicker(options);
+
+    // FUNCTIONs
+
+    function storeApp() {
+        modelSelectAppId = $(this).find(':selected').val();
+        appCustomerTagChanged();
+    } // end of loadFriendsReply
+
+    function removeInput() {
+        var id = $(this).parent().find('form').find('textarea').attr('id');
+        deleteNum++;
+        delete inputObj[id];
+        if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
+        $(this).parent().remove();
+    }
+
+    function clickMsg() { // 更換switch
+        var target = $(this).attr('rel');
+        $('#' + target).show().siblings().hide();
+    }
+
+    function btnText() {
+        inputNum++;
+        if (inputNum - deleteNum > 3) {
+            $('.error-msg').show();
+            inputNum--;
+        } else {
+            $('#inputText').append(
+                '<div style="margin:2%">' +
+                    '<span class="remove-btn">刪除</span>' +
+                    '<tr>' +
+                        '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                    '</tr>' +
+                    '<tr>' +
+                        '<td style="background-color: #ddd">' +
+                            '<form style="padding:1%">' +
+                                '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
+                            '</form>' +
+                        '</td>' +
+                    '</tr>' +
+                '</div>'
+            );
+            inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
+        }
+    }
+
+    $composeEditModal.on('shown.bs.modal', function(event) {
+        $('#edit-custom-tags').empty();
+        var targetRow = $(event.relatedTarget).parent().parent();
+        var appId = targetRow.attr('text');
+        var composeId = targetRow.attr('id');
+        var $editForm = $composeEditModal.find('.modal-body form');
+        var targetData = composesData[composeId];
+        var customTagsElement = targetRow.find('#tags>#tag');
+        var customTags = {};
+        customTagsElement.each(function() {
+            let tagValue = $(this).text();
+            let tagId = $(this).attr('data-type');
+            customTags[tagId] = tagValue;
         });
-        $(document).on('click', '#send-somebody', function () {
-            let id = $(this).attr('rel');
-            $('#' + id).show();
-        });
-        $(document).on('click', 'button#tag', appendInput);
-        $(document).on('change paste keyup', '.search-bar', dataSearch);
-        $(document).on('click', '#condition-close-btn', function() {
-            let $conditionDiv = $(this).parent();
-            let $tagBtn = $(this).parent().parent().find('button#tag');
 
-            let btnName = $tagBtn.attr('name');
+        var appTags = appsTags[appId].tags;
+        for (let appTagId in appTags) {
+            let appTag = appTags[appTagId];
+            if (appTag.isDeleted || ('age' !== appTag.alias && 'gender' !== appTag.alias && '' !== appTag.alias)) {
+                delete appTags[appTagId];
+                continue;
+            }
 
-            $tagBtn.removeClass();
-            $tagBtn.attr('class', 'btn btn-grey');
-            $tagBtn.text(btnName);
-            $tagBtn.show();
-            $conditionDiv.remove();
-        });
-        $(document).on('click', '#condition-check-btn', function() {
-            let $conditionDiv = $(this).parent();
-            let $conditionInput = $(this).parent().find('input');
-            let $tagBtn = $(this).parent().parent().find('button#tag');
+            switch (appTag.alias) {
+                case 'age':
+                    if (!customTags[appTag.alias]) {
+                        TagBtn('age', '年齡', appTag.setsType, 'edit-custom-tags');
+                        break;
+                    }
 
-            let btnName = $tagBtn.attr('name');
-            let conditionValue = $conditionInput.val();
-
-            $conditionDiv.hide();
-            $conditionInput.attr('value', conditionValue);
-            $tagBtn.removeClass();
-            $tagBtn.attr('class', 'btn btn-info');
-            $tagBtn.text(btnName + ':' + conditionValue).show();
-        });
-        $composesAddModal.find('#quickAdd').on('click', insertSubmit);
-        $historyTableElem = $('#composes_history_table tbody');
-        $reservationTableElem = $('#composes_reservation_table tbody');
-        $draftTableElem = $('#composes_draft_table tbody');
-        let options = {
-            locale: 'zh-tw',
-            sideBySide: true,
-            minDate: Date.now()
-        };
-        $sendDatetimePicker.datetimepicker(options);
-
-        // FUNCTIONs
-
-        function storeApp() {
-            modelSelectAppId = $(this).find(':selected').val();
-            appCustomerTagChanged();
-        } // end of loadFriendsReply
-
-        function removeInput() {
-            var id = $(this).parent().find('form').find('textarea').attr('id');
-            deleteNum++;
-            delete inputObj[id];
-            if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
-            $(this).parent().remove();
+                    $('#edit-custom-tags').append(
+                        '<div class="form-group col-sm-6">' +
+                            '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="年齡" data-type="' + appTag.setsType + '" id="tag">年齡:' + customTags[appTag.alias] + '</button>' +
+                            '<div id="condition" style="display: none;">' +
+                                '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="年齡" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                case 'gender':
+                    if (!customTags[appTag.alias]) {
+                        TagBtn('gender', '性別', appTag.setsType, 'edit-custom-tags');
+                        break;
+                    }
+                    $('#edit-custom-tags').append(
+                        '<div class="form-group col-sm-6">' +
+                            '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="性別" data-type="' + appTag.setsType + '" id="tag">性別:' + customTags[appTag.alias] + '</button>' +
+                            '<div id="condition" style="display: none;">' +
+                                '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="性別" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                case '':
+                    if (!customTags[appTagId]) {
+                        TagBtn(appTagId, appTag.text, appTag.setsType, 'edit-custom-tags');
+                        break;
+                    }
+                    $('#edit-custom-tags').append(
+                        '<div class="form-group col-sm-6">' +
+                            '<button type="button" rel="' + appTagId + '" class="btn btn-info" name="' + appTag.text + '" data-type="' + appTag.setsType + '" id="tag">' + appTag.text + ':' + customTags[appTagId] + '</button>' +
+                            '<div id="condition" style="display: none;">' +
+                                '<input type="text" class="form-gruop" rel="' + appTagId + '" data-type="' + appTag.setsType + '" placeholder="' + appTag.text + '" id="condition-input" value="' + customTags[appTagId] + '">' +
+                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                    break;
+                default:
+                    break;
+            }
         }
 
-        function clickMsg() { // 更換switch
-            var target = $(this).attr('rel');
-            $('#' + target).show().siblings().hide();
-        }
-
-        function btnText() {
-            inputNum++;
-            if (inputNum - deleteNum > 3) {
-                $('.error-msg').show();
-                inputNum--;
+        $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
+        $editForm.find('#edutinput').val(targetData.text);
+        $composeEditModal.find('#edit-submit').off('click').on('click', function() {
+            $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
+            var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
+            var conditionInputElement = $composeEditModal.find('input#condition-input');
+            tagsObjCompose(conditionInputElement);
+            targetData.text = $editForm.find('#edutinput').val();
+            targetData.time = Date.parse($editForm.find('#edit-time').val());
+            targetData.age = age;
+            targetData.gender = gender;
+            targetData.tag_ids = Object.assign({}, tag_ids);
+            if (true === isDraft) {
+                targetData.status = 0;
             } else {
-                $('#inputText').append(
-                    '<div style="margin:2%">' +
-                        '<span class="remove-btn">刪除</span>' +
-                        '<tr>' +
-                            '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td style="background-color: #ddd">' +
-                                '<form style="padding:1%">' +
-                                    '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                                '</form>' +
-                            '</td>' +
-                        '</tr>' +
-                    '</div>'
-                );
-                inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
+                targetData.status = 1;
             }
-        }
-
-        $composeEditModal.on('shown.bs.modal', function(event) {
-            $('#edit-custom-tags').empty();
-            var targetRow = $(event.relatedTarget).parent().parent();
-            var appId = targetRow.attr('text');
-            var composeId = targetRow.attr('id');
-            var $editForm = $composeEditModal.find('.modal-body form');
-            var targetData = composesData[composeId];
-            var customTagsElement = targetRow.find('#tags>#tag');
-            var customTags = {};
-            customTagsElement.each(function() {
-                let tagValue = $(this).text();
-                let tagId = $(this).attr('data-type');
-                customTags[tagId] = tagValue;
-            });
-
-            var appTags = appsTags[appId].tags;
-            for (let appTagId in appTags) {
-                let appTag = appTags[appTagId];
-                if (appTag.isDeleted || ('age' !== appTag.alias && 'gender' !== appTag.alias && '' !== appTag.alias)) {
-                    delete appTags[appTagId];
-                    continue;
-                }
-
-                switch (appTag.alias) {
-                    case 'age':
-                        if (!customTags[appTag.alias]) {
-                            TagBtn('age', '年齡', appTag.setsType, 'edit-custom-tags');
-                            break;
-                        }
-
-                        $('#edit-custom-tags').append(
-                            '<div class="form-group col-sm-6">' +
-                                '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="年齡" data-type="' + appTag.setsType + '" id="tag">年齡:' + customTags[appTag.alias] + '</button>' +
-                                '<div id="condition" style="display: none;">' +
-                                    '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="年齡" id="condition-input" value="' + customTags[appTag.alias] + '">' +
-                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
-                                '</div>' +
-                            '</div>'
-                        );
-                        break;
-                    case 'gender':
-                        if (!customTags[appTag.alias]) {
-                            TagBtn('gender', '性別', appTag.setsType, 'edit-custom-tags');
-                            break;
-                        }
-                        $('#edit-custom-tags').append(
-                            '<div class="form-group col-sm-6">' +
-                                '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="性別" data-type="' + appTag.setsType + '" id="tag">性別:' + customTags[appTag.alias] + '</button>' +
-                                '<div id="condition" style="display: none;">' +
-                                    '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="性別" id="condition-input" value="' + customTags[appTag.alias] + '">' +
-                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
-                                '</div>' +
-                            '</div>'
-                        );
-                        break;
-                    case '':
-                        if (!customTags[appTagId]) {
-                            TagBtn(appTagId, appTag.text, appTag.setsType, 'edit-custom-tags');
-                            break;
-                        }
-                        $('#edit-custom-tags').append(
-                            '<div class="form-group col-sm-6">' +
-                                '<button type="button" rel="' + appTagId + '" class="btn btn-info" name="' + appTag.text + '" data-type="' + appTag.setsType + '" id="tag">' + appTag.text + ':' + customTags[appTagId] + '</button>' +
-                                '<div id="condition" style="display: none;">' +
-                                    '<input type="text" class="form-gruop" rel="' + appTagId + '" data-type="' + appTag.setsType + '" placeholder="' + appTag.text + '" id="condition-input" value="' + customTags[appTagId] + '">' +
-                                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
-                                '</div>' +
-                            '</div>'
-                        );
-                        break;
-                }
-            }
-
-            $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
-            $editForm.find('#edutinput').val(targetData.text);
-            $composeEditModal.find('#edit-submit').off('click').on('click', function() {
-                $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
-                var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
-                var conditionInputElement = $composeEditModal.find('input#condition-input');
-                tagsObjCompose(conditionInputElement);
-                targetData.text = $editForm.find('#edutinput').val();
-                targetData.time = Date.parse($editForm.find('#edit-time').val());
-                targetData.age = age;
-                targetData.gender = gender;
-                targetData.tag_ids = Object.assign({}, tag_ids);
-                if (true === isDraft) {
-                    targetData.status = 0;
-                } else {
-                    targetData.status = 1;
-                }
-                return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
-                    age = '';
-                    gender = '';
-                    tag_ids = {};
+            return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
+                age = '';
+                gender = '';
+                tag_ids = {};
+                $composeEditModal.modal('hide');
+                $.notify('修改成功！', { type: 'success' });
+                $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                return loadComposes(appId, userId);
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
                     $composeEditModal.modal('hide');
-                    $.notify('修改成功！', { type: 'success' });
+                    $.notify('失敗', { type: 'danger' });
                     $composeEditModal.find('#edit-submit').removeAttr('disabled');
                     return loadComposes(appId, userId);
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $composeEditModal.modal('hide');
-                        $.notify('失敗', { type: 'danger' });
-                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
-                        return loadComposes(appId, userId);
-                    }
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $composeEditModal.modal('hide');
-                        $.notify('無此權限', { type: 'danger' });
-                        $composeEditModal.find('#edit-submit').removeAttr('disabled');
-                        return loadComposes(appId, userId);
-                    }
-                });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $composeEditModal.modal('hide');
+                    $.notify('無此權限', { type: 'danger' });
+                    $composeEditModal.find('#edit-submit').removeAttr('disabled');
+                    return loadComposes(appId, userId);
+                }
             });
         });
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    });
+    return api.apps.findAll(userId).then(function(respJson) {
         appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');

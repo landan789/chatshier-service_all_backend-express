@@ -1,7 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var userId = '';
+    $('#loading').fadeOut();
+
     var nowSelectAppId = '';
     var appsData = {};
     var keywordreplies = {};
@@ -19,90 +20,94 @@
 
     const NO_PERMISSION_CODE = '3.16';
 
-    window.auth.ready.then(function(currentUser) {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        $searchBar.on('change paste keyup', function() {
-            let searchText = $(this).val().toLocaleLowerCase();
-            if (!searchText) {
-                $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
-                return;
-            }
-            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
-        });
-        // ==========
-        // 設定關鍵字新增 modal 相關 element 與事件
-        $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
-        $keywordreplyAddModal.on('show.bs.modal', function() {
-            $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
-            $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
-            $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
-            // 新增 modal 即將顯示事件發生時，將 App 清單更新
-            $appSelector.empty();
-            for (var appId in appsData) {
-                var app = appsData[appId];
-                $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-            }
-        });
-        $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
-        // ==========
+    $searchBar.on('change paste keyup', function() {
+        let searchText = $(this).val().toLocaleLowerCase();
+        if (!searchText) {
+            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            return;
+        }
+        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+    });
+    // ==========
+    // 設定關鍵字新增 modal 相關 element 與事件
+    $appSelector = $keywordreplyAddModal.find('.modal-body select[name="keywordreply-app-name"]');
+    $keywordreplyAddModal.on('show.bs.modal', function() {
+        $keywordreplyAddModal.find('input[name="keywordreply-keyword"]').val('');
+        $keywordreplyAddModal.find('textarea[name="keywordreply-text"]').val('');
+        $keywordreplyAddModal.find('input[name="keywordreply-is-draft"]').prop('checked', false);
+        // 新增 modal 即將顯示事件發生時，將 App 清單更新
+        $appSelector.empty();
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
+        }
+    });
+    $keywordreplyAddModal.find('button.btn-insert-submit').on('click', insertSubmit);
+    // ==========
 
-        // ==========
-        // 設定關鍵字編輯 modal 相關 element 與事件
-        $keywordreplyEditModal.on('show.bs.modal', function(event) {
-            // 編輯 modal 即將顯示事件發生時，將欄位資料更新
-            var targetRow = $(event.relatedTarget).parent().parent();
-            var appId = targetRow.attr('data-title');
-            var keywordreplyId = targetRow.prop('id');
-            var targetData = keywordreplies[keywordreplyId];
+    // ==========
+    // 設定關鍵字編輯 modal 相關 element 與事件
+    $keywordreplyEditModal.on('show.bs.modal', function(event) {
+        // 編輯 modal 即將顯示事件發生時，將欄位資料更新
+        var targetRow = $(event.relatedTarget).parent().parent();
+        var appId = targetRow.attr('data-title');
+        var keywordreplyId = targetRow.prop('id');
+        var targetData = keywordreplies[keywordreplyId];
 
-            var $editForm = $keywordreplyEditModal.find('.modal-body form');
-            $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
-            $editForm.find('textarea[name="keywordreply-text"]').val(targetData.text);
+        var $editForm = $keywordreplyEditModal.find('.modal-body form');
+        $editForm.find('input[name="keywordreply-keyword"]').val(targetData.keyword);
+        $editForm.find('textarea[name="keywordreply-text"]').val(targetData.text);
 
-            // 如果是屬於草稿則顯示 checkbox 否則隱藏
-            var checkboxIsDraft = $editForm.find('.form-check.checkbox-is-draft');
-            checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
-            if (!targetData.status) {
-                checkboxIsDraft.show();
-            } else {
-                checkboxIsDraft.hide();
-            }
+        // 如果是屬於草稿則顯示 checkbox 否則隱藏
+        var checkboxIsDraft = $editForm.find('.form-check.checkbox-is-draft');
+        checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
+        if (!targetData.status) {
+            checkboxIsDraft.show();
+        } else {
+            checkboxIsDraft.hide();
+        }
 
-            $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
-                $keywordreplyEditModal.find('button.btn-update-submit').attr('disabled', 'disabled');
-                targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
-                targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
-                targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
-                targetData.updatedTime = Date.now();
+        $keywordreplyEditModal.find('button.btn-update-submit').off('click').on('click', function() {
+            $keywordreplyEditModal.find('button.btn-update-submit').attr('disabled', 'disabled');
+            targetData.keyword = $editForm.find('input[name="keywordreply-keyword"]').val();
+            targetData.text = $editForm.find('textarea[name="keywordreply-text"]').val();
+            targetData.status = $editForm.find('input[name="keywordreply-is-draft"]').prop('checked') ? 0 : 1;
+            targetData.updatedTime = Date.now();
 
-                return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
+            return api.appsKeywordreplies.update(appId, keywordreplyId, userId, targetData).then(function() {
+                $keywordreplyEditModal.modal('hide');
+                $.notify('修改成功！', { type: 'success' });
+                $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
+                return loadKeywordsReplies(appId, userId);
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
                     $keywordreplyEditModal.modal('hide');
-                    $.notify('修改成功！', { type: 'success' });
+                    $.notify('失敗', { type: 'danger' });
                     $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
                     return loadKeywordsReplies(appId, userId);
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $keywordreplyEditModal.modal('hide');
-                        $.notify('失敗', { type: 'danger' });
-                        $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                        return loadKeywordsReplies(appId, userId);
-                    }
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $keywordreplyEditModal.modal('hide');
-                        $.notify('無此權限', { type: 'danger' });
-                        $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
-                        return loadKeywordsReplies(appId, userId);
-                    }
-                });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $keywordreplyEditModal.modal('hide');
+                    $.notify('無此權限', { type: 'danger' });
+                    $keywordreplyEditModal.find('button.btn-update-submit').removeAttr('disabled');
+                    return loadKeywordsReplies(appId, userId);
+                }
             });
         });
-        // ==========
+    });
+    // ==========
 
-        $openTableElem = $('#keywordreply_open_table tbody');
-        $draftTableElem = $('#keywordreply_draft_table tbody');
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    $openTableElem = $('#keywordreply_open_table tbody');
+    $draftTableElem = $('#keywordreply_draft_table tbody');
+    return api.apps.findAll(userId).then(function(respJson) {
         appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');

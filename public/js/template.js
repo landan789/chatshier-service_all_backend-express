@@ -1,12 +1,13 @@
 /// <reference path='../../typings/client/index.d.ts' />
 (function() {
+    $('#loading').fadeOut();
+
     const socket = io.connect();
     var api = window.restfulAPI;
     var $jqDoc = $(document);
     var $templateEditModal = $('#edit-modal');
     var editForm = $('#edit-form');
     var templateData = {};
-    var userId = '';
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
@@ -14,22 +15,27 @@
     var keyword = '';
     const NO_PERMISSION_CODE = '3.16';
 
-    window.auth.ready.then((currentUser) => {
-        userId = currentUser.uid;
-        $(document).on('change', '#template-type', switchTemplateType);
-        $('.template-view').hide();
-        $('#carousel-container').on('slid.bs.carousel', checkCarouselSide);
-        $(document).on('click', '.image-upload', clickImageUpload);
-        $(document).on('change', '.image-ghost', uploadImage);
-        $(document).on('click', '#modal-save', saveTemplate);
-        $(document).on('click', '#edit-btn', editTemplate);
-        $(document).on('click', '#delete-btn', dataRemove);
-        $(document).on('click', '#show-template-modal', clearModal);
-        $(document).on('focus', 'input[type="text"]', function() {
-            $(this).select();
-        });
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
+
+    $(document).on('change', '#template-type', switchTemplateType);
+    $('.template-view').hide();
+    $('#carousel-container').on('slid.bs.carousel', checkCarouselSide);
+    $(document).on('click', '.image-upload', clickImageUpload);
+    $(document).on('change', '.image-ghost', uploadImage);
+    $(document).on('click', '#modal-save', saveTemplate);
+    $(document).on('click', '#edit-btn', editTemplate);
+    $(document).on('click', '#delete-btn', dataRemove);
+    $(document).on('click', '#show-template-modal', clearModal);
+    $(document).on('focus', 'input[type="text"]', function() {
+        $(this).select();
+    });
+    return api.apps.findAll(userId).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 

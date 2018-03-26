@@ -1,13 +1,12 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var APP_GREETING_DAILED_TO_FIND = 'APP GREETING FAILED TO FIND';
+    $('#loading').fadeOut();
 
     var appsData = {};
     var rowCount = 0;
     var findedGreetingIds = {};
     var api = window.restfulAPI;
-    var userId = '';
     var nowSelectAppId = '';
 
     var $jqDoc = $(document);
@@ -15,16 +14,20 @@
 
     const NO_PERMISSION_CODE = '3.16';
 
-    window.auth.ready.then((currentUser) => {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        $(document).on('click', '#check-btn', modalSubmit);
-        $(document).on('click', '#close-btn', modalClose);
-        $(document).on('click', '#add-btn', addMsgCanvas);
-        $(document).on('click', '#delete-btn', delMsgCanvas);
+    $(document).on('click', '#check-btn', modalSubmit);
+    $(document).on('click', '#close-btn', modalClose);
+    $(document).on('click', '#add-btn', addMsgCanvas);
+    $(document).on('click', '#delete-btn', delMsgCanvas);
 
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    return api.apps.findAll(userId).then(function(respJson) {
         appsData = respJson.data;
 
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
