@@ -7,10 +7,10 @@ module.exports = (function() {
     mongoose.connect(url);
     let db = mongoose.connection;
     db.on('error', () => {
-        console.log('[FAILED]    ' + url + ' failed to connect ...');
+        console.log('[FAILED]    ' + url + ' failed to connect !!');
     });
     db.once('open', () => {
-        console.log('[SUCCEEDED] ' + url + ' succeeded to connect ...');
+        console.log('[SUCCEEDED] ' + url + ' succeeded to connect !!');
     });
     // endregion
 
