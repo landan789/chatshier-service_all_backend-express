@@ -8,12 +8,12 @@ module.exports = (function() {
             super();
             this.Model = this.model(GROUPS, this.GroupsSchema);
             this.project = {
-                name: 1,
-                createdTime: 1,
-                updatedTime: 1,
-                isDeleted: 1,
-                members: 1,
-                app_ids: 1
+                name: true,
+                createdTime: true,
+                updatedTime: true,
+                isDeleted: true,
+                members: true,
+                app_ids: true
             };
         }
 
