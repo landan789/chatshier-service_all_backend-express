@@ -27,7 +27,7 @@ server.on('error', (error) => {
             throw error;
     }
 });
-server.on('listening', () => {
+server.on('listening', (event) => {
     var addr = server.address();
     var bind = 'string' === typeof addr ? 'pipe ' + addr : 'port ' + addr.port;
     console.log('[SUCCEEDED] service.chatshier is listening on ' + bind + ' !!');
