@@ -7,7 +7,7 @@ module.exports = (function() {
     let jwtHlp = require('../helpers/jwt');
 
     class SignupController {
-        postOne(req, res, next) {
+        postSignup(req, res, next) {
             let token;
             let users;
             return Promise.resolve().then(() => {
@@ -47,7 +47,7 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
-                let userId = Object.keys(users).shift();
+                let userId = Object.keys(users).shift() || '';
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then(() => {

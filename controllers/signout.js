@@ -7,7 +7,7 @@ module.exports = (function() {
     let jwt = require('jsonwebtoken');
 
     class SignoutController {
-        postOne(req, res, next) {
+        postSignout(req, res, next) {
             let token;
             let users;
             return Promise.resolve().then(() => {

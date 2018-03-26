@@ -14,7 +14,7 @@ module.exports = (function() {
         /**
          * middleware: Authnticate the HTTP request via jwt
          * @param {String} type
-         * @param {Boolean} refresh
+         * @param {Boolean|null} refresh
          */
         authenticate(type, refresh) {
             let jwtFromRequest;
