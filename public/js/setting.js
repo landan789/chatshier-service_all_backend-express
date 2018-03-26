@@ -184,7 +184,7 @@ window.translate.ready.then(function(json) {
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div class="app-form" id="wechat-form">' +
+                '<div class="app-form" id="wechat-form" hidden>' +
                     '<div class="form-group">' +
                         '<label class="col-2 col-form-label">名稱: </label>' +
                         '<div class="col-4">' +
