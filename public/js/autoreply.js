@@ -245,12 +245,11 @@
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         let title = $(this).parent().parent().find('#title').text();
-        let startedTimeMilli = parseInt($(this).parent().parent().find('#started-time').attr('rel'));
-        let startedTime = ISODateTimeString(startedTimeMilli);
-        let endedTimeMilli = parseInt($(this).parent().parent().find('#ended-time').attr('rel'));
-        let endedTime = ISODateTimeString(endedTimeMilli);
+        let startedTime = ISODateTimeString($(this).parent().parent().find('#started-time').attr('rel'));
+        let endedTime = ISODateTimeString($(this).parent().parent().find('#started-time').attr('rel'));
         let text = $(this).parent().parent().find('#text').text();
         // Initialize
+        // TODO;
         $('#edit-appid').text(appId);
         $('#edit-autoreplyid').text(autoreplyId);
         $('#edit-taskTitle').val(title); // 標題
