@@ -214,7 +214,13 @@
     }
 
     function dataRemove() {
-        let userId = auth.currentUser.uid;
+        var userId;
+        try {
+            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+            userId = payload.uid;
+        } catch (ex) {
+            userId = '';
+        }        
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {
@@ -239,10 +245,10 @@
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         let title = $(this).parent().parent().find('#title').text();
-        let startedTimeMilli = parseInt($(this).parent().parent().find('#started-time').attr('rel'));
-        let startedTime = ISODateTimeString(startedTimeMilli);
-        let endedTimeMilli = parseInt($(this).parent().parent().find('#ended-time').attr('rel'));
-        let endedTime = ISODateTimeString(endedTimeMilli);
+        let startedTime = new Date($(this).parent().parent().find('#started-time').attr('rel')).toISOString();
+        startedTime = startedTime.split('.')[0];
+        let endedTime = new Date($(this).parent().parent().find('#ended-time').attr('rel')).toISOString();
+        endedTime = endedTime.split('.')[0];
         let text = $(this).parent().parent().find('#text').text();
         // Initialize
         $('#edit-appid').text(appId);
@@ -260,17 +266,6 @@
             return;
         }
         $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
-    }
-
-    function ISODateTimeString(d) {
-        d = new Date(d);
-
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        return d.getFullYear() + '-' +
-            pad(d.getMonth() + 1) + '-' +
-            pad(d.getDate()) + 'T' +
-            pad(d.getHours()) + ':' +
-            pad(d.getMinutes());
     }
 
     function ToLocalTimeString(millisecond) {

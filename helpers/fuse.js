@@ -11,7 +11,7 @@ module.exports = (function() {
         constructor() {
             this._ready = usersMdl.find().then((users) => {
                 /** @type {{ [userId: string]: FuzzySearchUser }} */
-                this.users = users;
+                this.users = users || {};
 
                 let fuseOptions = this.fuseOptionBuilder({
                     includeScore: false,
@@ -107,9 +107,11 @@ module.exports = (function() {
                 };
                 shouldUpdate = true;
                 return usersMdl.find(userId).then((users) => {
-                    let user = users[userId];
-                    this.users[userId].name = user.name;
-                    this.users[userId].email = user.email;
+                    if (users && users[userId]) {
+                        let user = users[userId];
+                        this.users[userId].name = user.name;
+                        this.users[userId].email = user.email;
+                    }
                 });
             })).then(() => {
                 if (shouldUpdate) {
@@ -197,11 +199,11 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 if (!(appId && inputText)) {
-                    return resolve([]);
+                    return resolve({});
                 }
                 appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
-                        return;
+                        return resolve({});
                     }
                     let keywordreplies = appsKeywordreplies[appId].keywordreplies;
                     let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
@@ -226,44 +228,43 @@ module.exports = (function() {
         };
 
         searchTemplates(appId, inputText, callback) {
-            // let fuseOptions = this.fuseOptionBuilder({
-            //     includeScore: true,
-            //     distance: 100,
-            //     threshold: 1,
-            //     keys: [
-            //         'text'
-            //     ]
-            // });
+            let fuseOptions = this.fuseOptionBuilder({
+                includeScore: true,
+                distance: 100,
+                threshold: 1,
+                keys: [
+                    'text'
+                ]
+            });
 
-            // return new Promise((resolve, reject) => {
-            //     if (!(appId && inputText)) {
-            //         return resolve([]);
-            //     }
-            //     appsTemplatesMdl.find(appId, null, (appsTemplates) => {
-            //         if (!appsTemplates) {
-            //             return;
-            //         }
-            //         let templates = appsTemplates[appId].templates;
-            //         let templatesIds = Object.keys(appsTemplates[appId].templates);
-            //         let list = [{
-            //             text: inputText
-            //         }];
-            //         let templateFuse = new FuseJS(list, fuseOptions);
-            //         let _templates = {};
-            //         templatesIds.forEach((templatesId) => {
-            //             let results = templateFuse.search(templates[templatesId].keyword);
+            return new Promise((resolve, reject) => {
+                if (!(appId && inputText)) {
+                    return resolve([]);
+                }
+                appsTemplatesMdl.find(appId, null, (appsTemplates) => {
+                    if (!appsTemplates) {
+                        return;
+                    }
+                    let templates = appsTemplates[appId].templates;
+                    let templatesIds = Object.keys(appsTemplates[appId].templates);
+                    let list = [{
+                        text: inputText
+                    }];
+                    let templateFuse = new FuseJS(list, fuseOptions);
+                    let _templates = {};
+                    templatesIds.forEach((templatesId) => {
+                        let results = templateFuse.search(templates[templatesId].keyword);
 
-            //             if (results.length > 0 && 0.1 > results[0].score) {
-            //                 _templates[templatesId] = templates[templatesId];
-            //             }
-            //         });
-            //         console.log(_templates);
-            //         resolve(_templates);
-            //     });
-            // }).then((templates) => {
-            //     callback(templates);
-            //     return Promise.resolve(templates);
-            // });
+                        if (results.length > 0 && 0.1 > results[0].score) {
+                            _templates[templatesId] = templates[templatesId];
+                        }
+                    });
+                    resolve(_templates);
+                });
+            }).then((templates) => {
+                callback(templates);
+                return Promise.resolve(templates);
+            });
         };
     }
 
