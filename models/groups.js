@@ -7,6 +7,14 @@ module.exports = (function() {
         constructor() {
             super();
             this.Model = this.model(GROUPS, this.GroupsSchema);
+            this.project = {
+                name: true,
+                createdTime: true,
+                updatedTime: true,
+                isDeleted: true,
+                members: true,
+                app_ids: true
+            };
         }
 
         find(groupIds, userId, callback) {
@@ -29,13 +37,7 @@ module.exports = (function() {
                                 'members.status': true
                             }
                         }, {
-                            $project: {
-                                name: 1,
-                                createdTime: 1,
-                                updatedTime: 1,
-                                isDeleted: 1,
-                                members: 1
-                            }
+                            $project: this.project
                         }
                     ];
                     return this.Model.aggregate(aggregations);
@@ -54,13 +56,7 @@ module.exports = (function() {
                             'members.user_id': userId
                         }
                     }, {
-                        $project: {
-                            name: 1,
-                            createdTime: 1,
-                            updatedTime: 1,
-                            isDeleted: 1,
-                            members: 1
-                        }
+                        $project: this.project
                     }
                 ];
                 return this.Model.aggregate(aggregations);
@@ -76,7 +72,8 @@ module.exports = (function() {
                         createdTime: group.createdTime,
                         updatedTime: group.updatedTime,
                         isDeleted: group.isDeleted,
-                        members: {}
+                        members: {},
+                        app_ids: group.app_ids
                     };
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
