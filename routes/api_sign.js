@@ -21,5 +21,6 @@ router.use(
 router.post('/signup/', signCtl.postSignup);
 router.post('/signin/', signCtl.postSignin);
 router.post('/signout/', jwtHlp.authenticate('HEADER', null), signCtl.postSignout);
+router.post('/refresh/', jwtHlp.authenticate('HEADER', null), signCtl.postRefresh);
 
 module.exports = router;

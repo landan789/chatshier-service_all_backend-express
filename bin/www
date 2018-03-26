@@ -30,7 +30,7 @@ server.on('error', (error) => {
 server.on('listening', () => {
     var addr = server.address();
     var bind = 'string' === typeof addr ? 'pipe ' + addr : 'port ' + addr.port;
-    console.log('[SUCCEEDED] service.chatshier is listening on ' + bind);
+    console.log('[SUCCEEDED] service.chatshier is listening on ' + bind + ' !!');
 });
 var sockets = require('../sockets/index')(server);
 
