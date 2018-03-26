@@ -1,6 +1,7 @@
 module.exports = (function() {
-    let ModelCore = require('../cores/model');
+    const ModelCore = require('../cores/model');
     const USERS = 'users';
+
     class UsersModel extends ModelCore {
         constructor() {
             super();
@@ -10,30 +11,46 @@ module.exports = (function() {
         /**
          * 根據 使用者ID 取得該使用者
          *
-         * @param {string|null} userId
-         * @param {string|null} email
-         * @param {(data: any) => any} callback
+         * @param {string|string[]|null} [userIds]
+         * @param {string|string[]|null} [emails]
+         * @param {(data: any) => any} [callback]
          */
-        find(userId, email, callback) {
-            let query = {};
-            if (userId) {
-                query['_id'] = userId;
-            };
-            if (email) {
-                query['email'] = email;
+        find(userIds, emails, callback) {
+            if (userIds && !(userIds instanceof Array)) {
+                userIds = [userIds];
+            }
+
+            if (emails && !(emails instanceof Array)) {
+                emails = [emails];
+            }
+
+            let query = {
+                isDeleted: false
             };
 
-            let users = {};
-            return this.Model.findOne(query).then((user) => {
-                users = {
-                    [user._id]: user
+            if (userIds instanceof Array) {
+                query['_id'] = {
+                    $in: userIds.map((userId) => this.Types.ObjectId(userId))
                 };
-                
+            };
+            if (emails instanceof Array) {
+                query['email'] = {
+                    $in: emails
+                };
+            };
+
+            return this.Model.find(query).then((results) => {
+                let users = {};
+                if (0 === results.length) {
+                    return users;
+                }
+                users = this.toObject(results);
+
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
+                return users;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -51,17 +68,15 @@ module.exports = (function() {
             }
             return this.Model.findOne(query).then((__user) => {
                 if (__user) {
-                    return Promise.reject(new Error());
+                    return Promise.reject(new Error('USER_IS_EXIST'));
                 };
-                return Promise.resolve(null);
             }).then(() => {
-                return _user.save().then((__user) => {
-                    _query = {
-                        '_id': __user._id
-                    };
-                });
-            }).then(() => {
-                return this.Model.findOne(query);
+                return _user.save();
+            }).then((__user) => {
+                _query = {
+                    '_id': __user._id
+                };
+                return this.Model.findOne(_query);
             }).then((user) => {
                 let _user = {
                     createdTime: user.createdTime,
@@ -74,16 +89,21 @@ module.exports = (function() {
                 users = {
                     [user._id]: _user
                 };
-                return Promise.resolve(users);
+                return users;
             }).then((users) => {
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
+                return users;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
+        /**
+         * @param {string} userId
+         * @param {(calendarId: string|null) => any} [callback]
+         * @returns {Promise<string>}
+         */
         findCalendarId(userId, callback) {
             let query = {
                 '_id': userId
@@ -92,14 +112,13 @@ module.exports = (function() {
                 if (!user) {
                     return Promise.reject(new Error());
                 };
-                return Promise.resolve(user);
-            }).then((user) => {
-                let calendarId = user.calendar_id;
+                return user.calendar_id;
+            }).then((calendarId) => {
                 ('function' === typeof callback) && callback(calendarId);
-                return Promise.resolve(calendarId);
+                return calendarId;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -120,13 +139,12 @@ module.exports = (function() {
                     [user._id]: user
                 };
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
+                return users;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
     }
     return new UsersModel();
-    
 })();

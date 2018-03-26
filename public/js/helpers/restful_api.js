@@ -18,7 +18,6 @@ window.restfulAPI = (function() {
         appsRichmenus: prefixUrl + 'apps-richmenus/',
         appsTags: prefixUrl + 'apps-tags/',
         appsTickets: prefixUrl + 'apps-tickets/',
-        authentications: prefixUrl + 'authentications/',
         calendarsEvents: prefixUrl + 'calendars-events/',
         groupsMembers: prefixUrl + 'groups-members/',
         groups: prefixUrl + 'groups/',
@@ -693,43 +692,6 @@ window.restfulAPI = (function() {
         return AppsChatroomsMessagesAPI;
     })();
 
-    var AuthenticationsAPI = (function() {
-        function AuthenticationsAPI(jwt) {
-            this.urlPrefix = apiUrlTable.authentications;
-        };
-
-        /**
-         * 取得使用者的個人資料
-         *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} email - 目標使用者的 email address
-         */
-        AuthenticationsAPI.prototype.findUsers = function(userId, email) {
-            var destUrl = this.urlPrefix + 'users/' + userId + (email ? ('?email=' + email) : '');
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-        /**
-         * 模糊搜尋目標 email 的所有使用者
-         *
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {string} pattern - 目標使用者 email 搜尋字串
-         */
-        AuthenticationsAPI.prototype.searchUsers = function(userId, email) {
-            var destUrl = this.urlPrefix + 'users/' + userId + '?' + (email ? ('email=' + email + '&') : '') + 'fuzzy=1';
-            var reqInit = {
-                method: 'GET',
-                headers: reqHeaders
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        return AuthenticationsAPI;
-    })();
-
     /**
      * 宣告專門處理相關自動回覆的 API 類別
      */
@@ -905,8 +867,13 @@ window.restfulAPI = (function() {
             this.urlPrefix = apiUrlTable.users;
         };
 
-        UsersAPI.prototype.findOne = function(userId) {
-            var destUrl = this.urlPrefix + 'users/' + userId;
+        UsersAPI.prototype.find = function(userId, email, useFuzzy) {
+            useFuzzy = !!useFuzzy;
+
+            var destUrl = this.urlPrefix + 'users/' + userId + '?';
+            destUrl += (email ? ('email=' + email + '&') : '');
+            destUrl += (useFuzzy ? ('fuzzy=1') : '');
+
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -1019,7 +986,7 @@ window.restfulAPI = (function() {
             };
             return sendRequest(destUrl, reqInit);
         };
-        
+
         /**
          * 新增一筆Template資料
          *
@@ -1301,7 +1268,6 @@ window.restfulAPI = (function() {
         appsRichmenus: new AppsRichmenusAPI(),
         appsTags: new AppsTagsAPI(),
         appsTickets: new AppsTicketsAPI(),
-        authentications: new AuthenticationsAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
