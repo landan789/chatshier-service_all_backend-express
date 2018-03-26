@@ -128,12 +128,12 @@ function init(server) {
                 return senderId && botSvc.getProfile(senderId, appId, app);
             }).then((profile) => {
                 return senderId && new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messager) => {
-                        resolve(messager);
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messagers) => {
+                        resolve(messagers);
                     });
                 });
-            }).then((messager) => {
-                sender = messager;
+            }).then((messagers) => {
+                sender = messagers[appId].messagers[senderId];
                 groupId = app.group_id;
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, null, (groups) => {
@@ -156,11 +156,12 @@ function init(server) {
                 return totalMessages.length > 0 && appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, sender.chatroom_id, messagerIds, totalMessages.length);
             }).then(() => {
                 return totalMessages.length > 0 && new Promise((resolve, reject) => {
-                    appsChatroomsMessagesMdl.insert(appId, sender.chatroom_id, totalMessages, (messages) => {
-                        if (!messages) {
+                    appsChatroomsMessagesMdl.insert(appId, sender.chatroom_id, totalMessages, (appsChatroomsMessages) => {
+                        if (!appsChatroomsMessages) {
                             reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
+                            return;
                         };
-                        resolve(messages);
+                        resolve(appsChatroomsMessages[appId].chatrooms[sender.chatroom_id].messages);
                     });
                 });
             }).then((messages) => {

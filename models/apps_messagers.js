@@ -36,11 +36,11 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'isDeleted': false
+                'isDeleted': false,
+                'messagers.isDeleted': false
             };
             if (messagerId) {
-                query['messagers._id'] = this.Types.ObjectId(messagerId);
-                query['messagers.isDeleted'] = false;
+                query['messagers.platformUid'] = messagerId;
             }
 
             let aggregations = [
@@ -59,7 +59,7 @@ module.exports = (function() {
 
                 appsMessagers = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { messagers: {} };
-                    Object.assign(output[curr._id].messagers, this.toObject(curr.messagers));
+                    Object.assign(output[curr._id].messagers, this.toObject(curr.messagers, 'platformUid'));
                     return output;
                 }, {});
 
@@ -105,7 +105,7 @@ module.exports = (function() {
             let isExist = false;
 
             return this.find(appId, messagerId).then((appsMessagers) => {
-                if (!appsMessagers) {
+                if (0 === Object.keys(appsMessagers).length) {
                     let chatroomId = this.Types.ObjectId();
                     let chatroom = {
                         _id: chatroomId,
@@ -117,6 +117,7 @@ module.exports = (function() {
                         }
                     };
                     return this.AppsModel.findByIdAndUpdate(appId, updateOper).then(() => {
+                        messager._id = this.Types.ObjectId();
                         messager.chatroom_id = chatroomId;
                         return messager;
                     });
@@ -134,19 +135,26 @@ module.exports = (function() {
                 _messager.recentChat = currentTime;
                 return Object.assign(_messager, messager);
             }).then((_messager) => {
-                !isExist && (_messager.createdTime = Date.now());
-                _messager.updatedTime = Date.now();
-                _messager._id = this.Types.ObjectId(messagerId);
-
                 let query = {
-                    '_id': appId,
-                    'messagers._id': messagerId
+                    '_id': appId
                 };
-                !isExist && delete query['messagers._id'];
 
-                let updateOper = { $set: {} };
-                for (let prop in _messager) {
-                    updateOper.$set['messagers.$.' + prop] = _messager[prop];
+                _messager.updatedTime = Date.now();
+                _messager.platformUid = messagerId;
+                let updateOper = {};
+                if (isExist) {
+                    query['messagers._id'] = _messager._id;
+                    query['messagers.platformUid'] = messagerId;
+
+                    updateOper.$set = {};
+                    for (let prop in _messager) {
+                        updateOper.$set['messagers.$.' + prop] = _messager[prop];
+                    }
+                } else {
+                    _messager.createdTime = _messager.updatedTime;
+                    updateOper.$push = {
+                        'messagers': _messager
+                    };
                 }
 
                 let options = {

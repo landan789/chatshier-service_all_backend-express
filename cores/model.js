@@ -78,7 +78,7 @@ module.exports = (function() {
     });
 
     let MessagersSchema = new mongoose.Schema({
-        'Uid': {type: String, default: ''},
+        'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
         'assigned': {type: String, default: ''},
         'chatCount': {type: Number, default: 0}, // TODO chatTimeCount -> chatCount
@@ -213,10 +213,16 @@ module.exports = (function() {
             return mongoose.model(collection, schema);
         }
 
-        toObject(array) {
-            if (array && array._id) {
+        /**
+         * @param {any[]} array
+         * @param {string} [idKey="_id"]
+         */
+        toObject(array, idKey) {
+            idKey = idKey || '_id';
+
+            if (array && array[idKey]) {
                 let output = {
-                    [array._id]: array
+                    [array[idKey]]: array
                 };
                 return output;
             } else if (!(array instanceof Array)) {
@@ -224,11 +230,11 @@ module.exports = (function() {
             }
 
             return array.reduce((output, curr) => {
-                if (!curr._id) {
+                if (!curr[idKey]) {
                     return output;
                 }
 
-                output[curr._id] = curr;
+                output[curr[idKey]] = curr;
                 return output;
             }, {});
         }
