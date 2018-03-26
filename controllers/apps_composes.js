@@ -145,8 +145,9 @@ module.exports = (function() {
             };
             return new Promise((resolve, reject) => {
                 appsComposesMdl.update(appId, composeId, putComposesData, (AppsCompose) => {
-                    if (false === AppsCompose) {
+                    if (!AppsCompose) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
+                        return;
                     }
                     resolve(AppsCompose);
                 });
