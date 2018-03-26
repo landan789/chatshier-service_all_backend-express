@@ -5,62 +5,11 @@ const path = require('path');
 const index = require('../routes/index');
 
 var app = require('../app');
-var debug = require('debug')('project-shield:server');
 var http = require('http');
-// Get port from environment and store in Express.
-var port = normalizePort(process.env.PORT || '3002');
-// app.set('port', port);
-// Create HTTP server.
 var server = http.createServer(app);
-// Listen on provided port, on all network interfaces.
-server.listen(port);
-server.on('error', onError);
-server.on('listened', onListening);
-// SOCKET
-var sockets = require('../sockets/index')(server);
+server.listen(process.env.PORT || '3002');
 
-// Express 靜態 server
-app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/', index);
-
-// EXPRESS functions and app use, KEEP THEM AT THE BOTTOM
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-// error handler
-app.use(function(err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    // res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    console.log(err);
-    // render the error page
-    res.status(500);
-    res.send('error');
-});
-/**
- * Normalize a port into a number, string, or false.
- */
-function normalizePort(val) {
-    var port = parseInt(val, 10);
-
-    if (isNaN(port)) {
-        // named pipe
-        return val;
-    }
-    if (port >= 0) {
-        // port number
-        return port;
-    }
-    return false;
-}
-/**
- * Event listener for HTTP server "error" event.
- */
-function onError(error) {
+server.on('error', (error) => {
     if (error.syscall !== 'listen') {
         throw error;
     }
@@ -77,12 +26,26 @@ function onError(error) {
         default:
             throw error;
     }
-}
-/**
- * Event listener for HTTP server "listening" event.
- */
-function onListening() {
+});
+server.on('listening', () => {
     var addr = server.address();
     var bind = 'string' === typeof addr ? 'pipe ' + addr : 'port ' + addr.port;
-    debug('Listening on ' + bind);
-}
+    console.log('[SUCCEEDED] service.chatshier is listening on ' + bind);
+});
+var sockets = require('../sockets/index')(server);
+
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/', index);
+
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+app.use(function(err, req, res, next) {
+    res.locals.message = err.message;
+
+    console.log(err);
+    res.status(500);
+    res.send('error');
+});
