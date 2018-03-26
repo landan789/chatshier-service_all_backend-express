@@ -13,7 +13,6 @@ interface Window {
         appsTags: AppsTagsAPI,
         appsTickets: AppsTicketsAPI,
         calendarsEvents: CalendarsEventsAPI,
-        authentications: AuthenticationsAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
         users: UsersAPI,
@@ -142,11 +141,6 @@ interface CalendarsEventsAPI {
     remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
 }
 
-interface AuthenticationsAPI {
-    findUsers: (userId: string, email?: string) => Promise<any>;
-    searchUsers: (userId: string, email?: string) => Promise<any>;
-}
-
 interface GroupsMembersAPI {
     findAll: (groupId: string, userId: string) => Promise<any>;
     insert: (groupId: string, userId: string, groupMemberData: any) => Promise<any>;
@@ -169,7 +163,7 @@ interface GroupsAPI {
 }
 
 interface UsersAPI {
-    findOne: (userId: string) => Promise<any>;
+    find: (userId: string, email?: string, useFuzzy = false) => Promise<any>;
     update: (userId: string, userData: any) => Promise<any>;
 }
 

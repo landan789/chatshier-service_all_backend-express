@@ -53,11 +53,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsChatrooms = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOMS_NOT_FOUND'));
+                    return appsChatrooms;
                 }
 
-                let appsChatrooms = results.reduce((output, curr) => {
+                appsChatrooms = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
                             chatrooms: {}

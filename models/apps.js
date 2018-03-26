@@ -7,6 +7,7 @@ module.exports = (function() {
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const CHATSHIER = 'CHATSHIER';
+
     class AppsModel extends ModelCore {
         constructor() {
             super();
@@ -28,55 +29,35 @@ module.exports = (function() {
                 updatedTime: true
             };
         }
+
         find(appIds, webhookId, callback) {
-            var apps = {};
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             };
-            Promise.resolve().then(() => {
-                if (!appIds) {
-                    let query = {
-                        'isDeleted': false
-                    };
-                    return this.AppsModel.find(query).then((__apps) => {
-                        apps = __apps.reduce((output, app) => {
-                            Object.assign(output, this.toObject(app._doc));
-                            return output;
-                        }, {});
-                        return apps;
-                    });
+
+            let query = {
+                'isDeleted': false
+            };
+            appIds && (query['_id'] = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            webhookId && (query['webhook_id'] = this.Types.ObjectId(webhookId));
+
+            return this.AppsModel.find(query, this.project).then((results) => {
+                let apps = {};
+                if (0 === results.length) {
+                    return apps;
                 }
-                return Promise.all(appIds.map((appId) => {
-                    let query = {
-                        '_id': appId,
-                        'isDeleted': false
-                    };
-                    return this.AppsModel.findOne(query).then((__apps) => {
-                        let _apps = {
-                            createdTime: __apps.createdTime,
-                            updatedTime: __apps.updatedTime,
-                            group_id: __apps.group_id,
-                            id1: __apps.id1,
-                            id2: __apps.id2,
-                            isDeleted: __apps.isDeleted,
-                            name: __apps.name,
-                            secret: __apps.secret,
-                            token1: __apps.token1,
-                            token2: __apps.token2,
-                            type: __apps.type,
-                            webhook_id: __apps.webhook_id
-                        };
-                        apps = {
-                            [appId]: _apps
-                        };
-                    });
-                }));
-            }).then(() => {
+
+                apps = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app._doc));
+                    return output;
+                }, {});
+                return apps;
+            }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -107,10 +88,10 @@ module.exports = (function() {
             }).then((app) => {
                 apps[app._id] = app;
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         };
 
@@ -130,10 +111,10 @@ module.exports = (function() {
                 return this.toObject(app._doc);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -153,10 +134,10 @@ module.exports = (function() {
                 return this.toObject(app._doc);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
     };

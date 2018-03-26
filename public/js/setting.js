@@ -184,7 +184,7 @@ window.translate.ready.then(function(json) {
                         '</div>' +
                     '</div>' +
                 '</div>' +
-                '<div class="app-form" id="wechat-form">' +
+                '<div class="app-form" id="wechat-form" hidden>' +
                     '<div class="form-group">' +
                         '<label class="col-2 col-form-label">名稱: </label>' +
                         '<div class="col-4">' +
@@ -258,7 +258,6 @@ window.translate.ready.then(function(json) {
 
     findAllGroups();
     findAllApps(); // 列出所有設定的APPs
-    findAuthUserProfile();
     findUserProfile();
 });
 
@@ -830,7 +829,7 @@ window.googleClientHelper.loadAPI().then(function() {
                             '<div class="avatar-container">' +
                                 '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
                             '</div>' +
-                            '<span class="avatar-name">' + (user.name || user.displayName || '') + '</span>' +
+                            '<span class="avatar-name">' + (user.name || user.name || '') + '</span>' +
                         '</div>' +
                     '</td>' +
                     '<td class="permission">' +
@@ -842,12 +841,12 @@ window.googleClientHelper.loadAPI().then(function() {
                         '</div>' +
                     '</td>' +
                     '<td class="status">' +
-                        '<span class="active ' + (0 === member.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
-                        '<span class="inactive ' + (1 === member.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
+                        '<span class="active ' + (!member.status ? 'hide' : '') + '">' + ACTIVE + '</span>' +
+                        '<span class="inactive ' + (member.status ? 'hide' : '') + '">' + INACTIVE + '</span>' +
                     '</td>' +
                     '<td class="actions">' +
                         '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || 1 === member.status || member.user_id !== auth.currentUser.uid) ? ' hide' : '') + '">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || 1 === member.status || member.user_id !== userId) ? ' hide' : '') + '">' +
                                 '<span class="chsr-icon">' +
                                     '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
                                 '</span>' +
@@ -873,7 +872,7 @@ window.googleClientHelper.loadAPI().then(function() {
                     return member.user_id;
                 };
             });
-            var index = userIds.indexOf(auth.currentUser.uid);
+            var index = userIds.indexOf(userId);
             if (0 > index) {
                 // return;
             };
@@ -975,7 +974,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 var $addButton = $(this);
                 $addButton.attr('disabled', true);
 
-                return api.authentications.findUsers(userId, memberEmail).then(function(resJson) {
+                return api.users.find(userId, memberEmail).then(function(resJson) {
                     var memberUserId = Object.keys(resJson.data).shift();
                     var postMemberData = {
                         type: memberTypes[permission],
@@ -994,7 +993,7 @@ window.googleClientHelper.loadAPI().then(function() {
                         };
                     });
                 }).then(function(insertData) {
-                    return api.authentications.findUsers(userId).then(function(resJson) {
+                    return api.users.find(userId).then(function(resJson) {
                         userGroupMembers = resJson.data || {};
                         instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
@@ -1048,11 +1047,11 @@ window.googleClientHelper.loadAPI().then(function() {
                 },
                 updater: function(item) {
                     // 選擇項目後，將 email 的部分設於 input value
-                    return { displayName: item.email };
+                    return { name: item.email };
                 },
                 displayText: function(item) {
                     // 項目顯示樣式為 [username - example@example.com]
-                    return item.displayName + (item.email ? ' - ' + item.email : '');
+                    return item.name + (item.email ? ' - ' + item.email : '');
                 }
             });
 
@@ -1069,8 +1068,12 @@ window.googleClientHelper.loadAPI().then(function() {
                             return searchCache[emailPattern];
                         }
 
-                        return api.authentications.searchUsers(userId, emailPattern).then(function(resJson) {
-                            return resJson.data || [];
+                        return api.users.find(userId, emailPattern, true).then(function(resJson) {
+                            let users = resJson.data || {};
+                            let userIds = Object.keys(resJson.data);
+                            return userIds.map(function(userId) {
+                                return users[userId];
+                            });
                         });
                     }).then(function(searchResults) {
                         // 將搜尋到的結果存到快取中，相同的搜尋字不需再搜尋兩次
@@ -1170,7 +1173,7 @@ window.googleClientHelper.loadAPI().then(function() {
         groupCtrl.clearAll();
         Promise.all([
             api.groups.findAll(userId),
-            api.authentications.findUsers(userId)
+            api.users.find(userId)
         ]).then(function(resJsons) {
             groups = resJsons[0].data || {};
             userGroupMembers = resJsons[1].data || {};
@@ -1682,27 +1685,19 @@ function formModalBody(id, app) {
 function clearAppModalBody() {
     $appModal.empty();
 }
-function findAuthUserProfile() {
-    return api.authentications.findUsers(userId).then(function(resJson) {
-        let users = resJson.data;
-        let user = users[userId];
-        if (userId) {
-            // User 已登入
-            $('h3.panel-title').text(user.displayName);
-            $('#prof-email').text(user.email);
-            $('#prof-id').text(userId);
-        };
-    });
-}
 
 function findUserProfile() {
-    return api.users.findOne(userId).then(function(resJson) {
-        var profile = resJson.data;
+    return api.users.find(userId).then(function(resJson) {
+        var users = resJson.data;
+        var user = users[userId];
+
         $('#prof-id').text(userId);
+        $('h3.panel-title').text(user.name);
+        $('#prof-email').text(user.email);
         $('#prof-IDnumber').text(userId);
-        $('#prof-company').text(profile.company);
-        $('#prof-phonenumber').text(profile.phone);
-        $('#prof-address').text(profile.address);
+        $('#prof-company').text(user.company);
+        $('#prof-phonenumber').text(user.phone);
+        $('#prof-address').text(user.address);
     });
 }
 
@@ -1724,7 +1719,7 @@ function profSubmitBasic() {
         address
     };
     var phoneRule = /^09\d{8}$/;
-    if (!phone.match(phoneRule)) {
+    if (phone && !phone.match(phoneRule)) {
         $('#setting-modal').modal('hide');
         $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
     } else {

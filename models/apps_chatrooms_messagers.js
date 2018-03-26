@@ -54,11 +54,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsChatroomsMessagers = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOMS_MESSAGERS_NOT_FOUND'));
+                    return appsChatroomsMessagers;
                 }
 
-                let appsChatroomsMessagers = results.reduce((output, curr) => {
+                appsChatroomsMessagers = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
                             chatrooms: {

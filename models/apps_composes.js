@@ -50,11 +50,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsComposes = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('COMPOSES_NOT_FOUND'));
+                    return appsComposes;
                 }
 
-                let appsComposes = results.reduce((output, curr) => {
+                appsComposes = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { composes: {} };
                     Object.assign(output[curr._id].composes, this.toObject(curr.composes));
                     return output;
@@ -160,7 +161,8 @@ module.exports = (function() {
                     }, {
                         $match: {
                             '_id': this.Types.ObjectId(appId),
-                            'composes._id': this.Types.ObjectId(composeId)
+                            'composes._id': this.Types.ObjectId(composeId),
+                            'composes.isDeleted': true
                         }
                     }, {
                         $project: {
@@ -169,18 +171,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.AppsModel.aggregate(aggregations).then((results) => {
-                    if (0 === results.length) {
-                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
-                    }
+                return this.AppsModel.aggregate(aggregations);
+            }).then((results) => {
+                let appsComposes = {};
+                if (0 === results.length) {
+                    return Promise.reject(new Error());
+                }
 
-                    let appsComposes = results.reduce((output, curr) => {
-                        output[curr._id] = output[curr._id] || { composes: {} };
-                        Object.assign(output[curr._id].composes, this.toObject(curr.composes));
-                        return output;
-                    }, {});
-                    return appsComposes;
-                });
+                appsComposes = results.reduce((output, curr) => {
+                    output[curr._id] = output[curr._id] || { composes: {} };
+                    Object.assign(output[curr._id].composes, this.toObject(curr.composes));
+                    return output;
+                }, {});
+                return appsComposes;
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;

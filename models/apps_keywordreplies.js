@@ -1,12 +1,13 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
-    const KEYWORDREPLIES = 'keywordreplies';
+
     class AppsKeywordrepliesModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         };
+
         find(appIds, keywordreplyIds, callback) {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
@@ -35,10 +36,11 @@ module.exports = (function() {
                         }
                     ];
                     return this.AppsModel.aggregate(aggregations).then((results) => {
+                        let appsKeywordreplies = {};
                         if (0 === results.length) {
-                            return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                            return appsKeywordreplies;
                         }
-                        let appsKeywordreplies = results.reduce((output, app) => {
+                        appsKeywordreplies = results.reduce((output, app) => {
                             output[app._id] = output[app._id] || { keywordreplies: {} };
                             Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
                             return output;
@@ -68,10 +70,12 @@ module.exports = (function() {
                     }
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsKeywordreplies = {};
                     if (0 === results.length) {
-                        return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                        return appsKeywordreplies;
                     }
-                    let appsKeywordreplies = results.reduce((output, app) => {
+
+                    appsKeywordreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { keywordreplies: {} };
                         Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
                         return output;
@@ -90,6 +94,7 @@ module.exports = (function() {
         insert(appId, postKeywordreply, callback) {
             let keywordreplyId = this.Types.ObjectId();
             postKeywordreply._id = keywordreplyId;
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.keywordreplies.push(postKeywordreply);
                 return app.save();
@@ -97,12 +102,12 @@ module.exports = (function() {
                 return this.find(appId, keywordreplyId);
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
-                return Promise.resolve(appsKeywordreplies);
+                return appsKeywordreplies;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
-        };
+        }
 
         update(appId, keywordreplyId, putKeywordreply, callback) {
             let query = {
@@ -124,7 +129,8 @@ module.exports = (function() {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
-        };
+        }
+
         increaseReplyCount(appId, keywordreplyIds, callback) {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
@@ -140,6 +146,7 @@ module.exports = (function() {
                     'keywordreplies.$.replyCount': 1
                 }
             };
+
             return this.AppsModel.update(query, operate, { multi: true }).then(() => {
                 return this.find(appId, keywordreplyIds);
             }).then((appsKeywordreplies) => {
@@ -150,6 +157,7 @@ module.exports = (function() {
                 return null;
             });
         }
+
         remove(appId, keywordreplyId, callback) {
             let query = {
                 '_id': appId,
@@ -162,10 +170,7 @@ module.exports = (function() {
                     'keywordreplies.$.isDeleted': true
                 }
             };
-            return this.AppsModel.update(query, updateOper).then((updateResult) => {
-                if (!updateResult.ok) {
-                    return Promise.reject(new Error());
-                }
+            return this.AppsModel.update(query, updateOper).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$keywordreplies'
@@ -180,11 +185,14 @@ module.exports = (function() {
                         }
                     }
                 ];
+
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsKeywordreplies = {};
                     if (0 === results.length) {
-                        return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                        return Promise.reject(new Error());
                     }
-                    let appsKeywordreplies = results.reduce((output, app) => {
+
+                    appsKeywordreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { keywordreplies: {} };
                         Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
                         return output;
