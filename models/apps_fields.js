@@ -303,8 +303,7 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        let appsFields = {};
-                        return Promise.resolve(appsFields);
+                        return Promise.reject(new Error());
                     }
 
                     let appsFields = results.reduce((output, curr) => {

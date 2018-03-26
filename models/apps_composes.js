@@ -172,8 +172,7 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        let appsComposes = {};
-                        return Promise.resolve(appsComposes);
+                        return Promise.reject(new Error());
                     }
 
                     let appsComposes = results.reduce((output, curr) => {

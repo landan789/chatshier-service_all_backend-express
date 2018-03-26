@@ -172,7 +172,7 @@ module.exports = (function() {
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                        return Promise.reject(new Error());
                     }
                     let appsAutoreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { autoreplies: {} };
