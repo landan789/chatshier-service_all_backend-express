@@ -1,5 +1,5 @@
 interface FuzzySearchUser {
-    user_id: string,
-    displayName: string,
+    _id: string,
+    name: string,
     email: string
 }

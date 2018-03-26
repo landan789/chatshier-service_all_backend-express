@@ -11,24 +11,40 @@ module.exports = (function() {
         /**
          * 根據 使用者ID 取得該使用者
          *
-         * @param {string|null} userId
-         * @param {string|null} email
-         * @param {(data: any) => any} callback
+         * @param {string|string[]|null} [userIds]
+         * @param {string|string[]|null} [emails]
+         * @param {(data: any) => any} [callback]
          */
-        find(userId, email, callback) {
-            let query = {};
-            if (userId) {
-                query['_id'] = userId;
-            };
-            if (email) {
-                query['email'] = email;
+        find(userIds, emails, callback) {
+            if (userIds && !(userIds instanceof Array)) {
+                userIds = [userIds];
+            }
+
+            if (emails && !(emails instanceof Array)) {
+                emails = [emails];
+            }
+
+            let query = {
+                isDeleted: false
             };
 
-            let users = {};
-            return this.Model.findOne(query).then((user) => {
-                users = {
-                    [user._id]: user
+            if (userIds instanceof Array) {
+                query['_id'] = {
+                    $in: userIds.map((userId) => this.Types.ObjectId(userId))
                 };
+            };
+            if (emails instanceof Array) {
+                query['email'] = {
+                    $in: emails
+                };
+            };
+
+            return this.Model.find(query).then((results) => {
+                let users = {};
+                if (0 === results.length) {
+                    return users;
+                }
+                users = this.toObject(results);
 
                 ('function' === typeof callback) && callback(users);
                 return users;
