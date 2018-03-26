@@ -53,7 +53,8 @@ module.exports = (function() {
                     return this.CalendarsModel.aggregate(aggregations);
                 }).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error());
+                        let calendarsEvents = {};
+                        return Promise.resolve(calendarsEvents);
                     }
 
                     let calendarEvents = results.reduce((output, calendar) => {
@@ -198,7 +199,8 @@ module.exports = (function() {
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error());
+                    let calendarsEvents = {};
+                    return Promise.resolve(calendarsEvents);
                 }
 
                 let calendarEvents = results.reduce((output, calendar) => {

@@ -54,7 +54,8 @@ module.exports = (function() {
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOMS_NOT_FOUND'));
+                    let appsChatrooms = {};
+                    return Promise.resolve(appsChatrooms);
                 }
 
                 let appsChatrooms = results.reduce((output, curr) => {
