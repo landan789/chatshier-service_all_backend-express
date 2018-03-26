@@ -41,11 +41,11 @@ module.exports = (function() {
 
             return this.Model.find(query).then((results) => {
                 let users = {};
-                if (0 === results.length) {
-                    return users;
+                if (0 !== results.length) {
+                    users = this.toObject(results);
                 }
-                users = this.toObject(results);
-
+                return Promise.resolve(users);
+            }).then((users) => {
                 ('function' === typeof callback) && callback(users);
                 return users;
             }).catch(() => {
