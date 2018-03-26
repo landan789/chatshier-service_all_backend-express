@@ -1,12 +1,13 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
-    const AUTOREPLIES = 'autoreplies';
+
     class AutorepliesModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
+
         find(appIds, autoreplyIds, callback) {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
@@ -32,10 +33,12 @@ module.exports = (function() {
                         }
                     ];
                     return this.AppsModel.aggregate(aggregations).then((results) => {
+                        let appsAutoreplies = {};
                         if (0 === results.length) {
-                            return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                            return appsAutoreplies;
                         }
-                        let appsAutoreplies = results.reduce((output, app) => {
+
+                        appsAutoreplies = results.reduce((output, app) => {
                             output[app._id] = output[app._id] || { autoreplies: {} };
                             Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
                             return output;
@@ -43,6 +46,7 @@ module.exports = (function() {
                         return appsAutoreplies;
                     });
                 };
+
                 let aggregations = [
                     {
                         $unwind: '$autoreplies' // 只針對 autoreplies document 處理
@@ -64,11 +68,14 @@ module.exports = (function() {
                         }
                     }
                 ];
+
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsAutoreplies = {};
                     if (0 === results.length) {
-                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                        return appsAutoreplies;
                     }
-                    let appsAutoreplies = results.reduce((output, app) => {
+
+                    appsAutoreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { autoreplies: {} };
                         Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
                         return output;
@@ -78,9 +85,9 @@ module.exports = (function() {
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -93,14 +100,14 @@ module.exports = (function() {
             }).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
-                console.log(appsAutoreplies);
                 ('function' === typeof callback) && callback(appsAutoreplies);
-                return Promise.resolve(appsAutoreplies);
-            }).catch(() => {
+                return appsAutoreplies;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
+
         update(appId, autoreplyId, putAutoreply, callback) {
             let query = {
                 '_id': appId,
@@ -117,9 +124,9 @@ module.exports = (function() {
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
 
@@ -145,10 +152,12 @@ module.exports = (function() {
                     'autoreplies.$.isDeleted': true
                 }
             };
+
             return this.AppsModel.update(query, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
                 }
+
                 let aggregations = [
                     {
                         $unwind: '$autoreplies'
@@ -165,6 +174,7 @@ module.exports = (function() {
                         }
                     }
                 ];
+
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
                         return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
@@ -179,11 +189,12 @@ module.exports = (function() {
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
+
         findAutoreplies(appIds, callback) {
             if ('string' === typeof appIds) {
                 appIds = [appIds];
@@ -206,20 +217,22 @@ module.exports = (function() {
                 }
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsAutoreplies = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                    return appsAutoreplies;
                 }
-                let appsAutoreplies = results.reduce((output, app) => {
+
+                appsAutoreplies = results.reduce((output, app) => {
                     Object.assign(output, this.toObject(app.autoreplies));
                     return output;
                 }, {});
                 return appsAutoreplies;
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
-                return Promise.resolve(appsAutoreplies);
-            }).catch(() => {
+                return appsAutoreplies;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         };
     }

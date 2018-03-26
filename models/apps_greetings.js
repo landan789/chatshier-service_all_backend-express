@@ -1,8 +1,6 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
-
     const APPS = 'apps';
-    const GREETINGS_WAS_NOT_FOUND = 'GREETINGS_WAS_NOT_FOUND';
 
     class AppsGreetingsModel extends ModelCore {
         constructor() {
@@ -22,47 +20,36 @@ module.exports = (function() {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
-            return Promise.resolve().then(() => {
-                let aggregations = [
-                    {
-                        // 只針對特定 document 處理
-                        $unwind: '$greetings'
-                    }, {
-                        // 篩選項目
-                        $project: {
-                            greetings: 1
-                        }
-                    }
-                ];
 
-                if (!greetingId) {
-                    aggregations.push({
-                        $match: {
-                            // 尋找符合 ID 的欄位
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            }
-                        }
-                    });
-                    return this.AppsModel.aggregate(aggregations);
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 }
+            };
+            greetingId && (query['greetings._id'] = this.Types.ObjectId(greetingId));
 
-                aggregations.push({
-                    $match: {
-                        // 尋找符合 ID 的欄位
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'greetings._id': this.Types.ObjectId(greetingId)
+            let aggregations = [
+                {
+                    // 只針對特定 document 處理
+                    $unwind: '$greetings'
+                }, {
+                    // 尋找符合 ID 的欄位
+                    $match: query
+                }, {
+                    // 篩選項目
+                    $project: {
+                        greetings: 1
                     }
-                });
-                return this.AppsModel.aggregate(aggregations);
-            }).then((results) => {
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsGreetings = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    return appsGreetings;
                 }
 
-                let appsGreetings = results.reduce((output, app) => {
+                appsGreetings = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || { greetings: {} };
                     Object.assign(output[app._id].greetings, this.toObject(app.greetings));
                     return output;
@@ -72,20 +59,24 @@ module.exports = (function() {
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
                 return appsGreetings;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
         /**
          * 找到 加好友回覆未刪除的資料包，不含 apps 結構
          *
-         * @param {string} appIds
+         * @param {string|string[]} appIds
          * @param {(appsGreetings: any) => any} [callback]
          * @return {Promise<any>}
          */
 
         findGreetings(appIds, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             let aggregations = [
                 {
                     // 只針對特定 document 處理
@@ -104,23 +95,25 @@ module.exports = (function() {
                     }
                 }
             ];
+
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appGreetings = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    return appGreetings;
                 }
 
-                let greetings = results.reduce((output, app) => {
+                appGreetings = results.reduce((output, app) => {
                     Object.assign(output, this.toObject(app.greetings));
                     return output;
                 }, {});
 
-                return greetings;
-            }).then((greetings) => {
-                ('function' === typeof callback) && callback(greetings);
-                return greetings;
-            }).catch(() => {
+                return appGreetings;
+            }).then((appGreetings) => {
+                ('function' === typeof callback) && callback(appGreetings);
+                return appGreetings;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
 
@@ -140,51 +133,42 @@ module.exports = (function() {
                 return app.save();
             }).then(() => {
                 return this.find(appId, greetId);
-            }).then((calendars) => {
-                ('function' === typeof callback) && callback(calendars);
-                return Promise.resolve(calendars);
-            }).catch(() => {
+            }).then((appsGreetings) => {
+                ('function' === typeof callback) && callback(appsGreetings);
+                return appsGreetings;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         };
 
         /**
          * 輸入指定的 appId 與 greetingId 刪除該加好友回覆的資料
          *
-         * @param {string} appIds
-         * @param {string|string[]} greetingId
+         * @param {string} appId
+         * @param {string} greetingId
          * @param {(appsGreetings: any) => any} [callback]
-         * @return {Promise<any>}
+         * @returns {Promise<any>}
          */
-        remove(appIds, greetingId, callback) {
-            let greetingQuery = {
-                '_id': {
-                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                },
-                'greetings._id': greetingId
+        remove(appId, greetingId, callback) {
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'greetings._id': this.Types.ObjectId(greetingId)
             };
+
             let setGreeting = {
                 $set: {
                     'greetings.$._id': greetingId,
                     'greetings.$.isDeleted': true
                 }
             };
-            return this.AppsModel.update(greetingQuery, setGreeting).then((updateResult) => {
-                if (!updateResult.ok) {
-                    return Promise.reject(new Error());
-                }
 
+            return this.AppsModel.update(query, setGreeting).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$greetings'
                     }, {
-                        $match: {
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'greetings._id': this.Types.ObjectId(greetingId)
-                        }
+                        $match: query
                     }, {
                         $project: {
                             greetings: 1
@@ -194,11 +178,12 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations);
             }).then((results) => {
+                let appGreetings = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    return appGreetings;
                 }
 
-                let appGreetings = results.reduce((output, app) => {
+                appGreetings = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || {greetings: {}};
                     Object.assign(output[app._id].greetings, this.toObject(app.greetings));
                     return output;
@@ -207,12 +192,11 @@ module.exports = (function() {
             }).then((appGreetings) => {
                 ('function' === typeof callback) && callback(appGreetings);
                 return appGreetings;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
     }
     return new AppsGreetingsModel();
-
 })();

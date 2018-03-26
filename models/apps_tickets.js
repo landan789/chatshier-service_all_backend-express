@@ -50,11 +50,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsTickets = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                    return appsTickets;
                 }
 
-                let appsTickets = results.reduce((output, curr) => {
+                appsTickets = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { tickets: {} };
                     Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
                     return output;
@@ -63,9 +64,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -94,9 +95,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -125,9 +126,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -163,11 +164,12 @@ module.exports = (function() {
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsTickets = {};
                     if (0 === results.length) {
-                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                        return appsTickets;
                     }
 
-                    let appsTickets = results.reduce((output, curr) => {
+                    appsTickets = results.reduce((output, curr) => {
                         output[curr._id] = output[curr._id] || { tickets: {} };
                         Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
                         return output;
@@ -177,9 +179,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
     }

@@ -75,11 +75,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsChatroomsMessages = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOMS_MESSAGES_NOT_FOUND'));
+                    return appsChatroomsMessages;
                 }
 
-                let appsChatroomsMessages = results.reduce((output, curr) => {
+                appsChatroomsMessages = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
                             chatrooms: {
@@ -98,9 +99,9 @@ module.exports = (function() {
             }).then((appChatroomMessages) => {
                 ('function' === typeof callback) && callback(appChatroomMessages);
                 return appChatroomMessages;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
 
@@ -157,9 +158,9 @@ module.exports = (function() {
             }).then((appsChatroomsMessages) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessages);
                 return appsChatroomsMessages;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
     }

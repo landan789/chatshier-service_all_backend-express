@@ -18,68 +18,67 @@ module.exports = (function() {
             if (!(calendarIds instanceof Array)) {
                 calendarIds = [calendarIds];
             }
-            return Promise.all(calendarIds.map((calendarId) => {
-                return Promise.resolve().then(() => {
-                    let aggregations = [
-                        {
-                            $unwind: '$events'
-                        }, {
-                            $project: {
-                                events: 1
-                            }
-                        }
-                    ];
-                    if (!eventIds) {
-                        aggregations.push({
-                            $match: {
-                                '_id': this.Types.ObjectId(calendarId),
-                                'events.isDeleted': false
-                            }
-                        });
-                        return this.CalendarsModel.aggregate(aggregations);
-                    }
-                    if (!(eventIds instanceof Array)) {
-                        eventIds = [eventIds];
-                    }
-                    aggregations.push({
-                        $match: {
-                            '_id': this.Types.ObjectId(calendarId),
-                            'events.isDeleted': false,
-                            'events._id': {
-                                $in: eventIds.map((eventId) => this.Types.ObjectId(eventId))
-                            }
-                        }
-                    });
-                    return this.CalendarsModel.aggregate(aggregations);
-                }).then((results) => {
-                    if (0 === results.length) {
-                        return Promise.reject(new Error());
-                    }
 
-                    let calendarEvents = results.reduce((output, calendar) => {
-                        output[calendar._id] = output[calendar._id] || {events: {}};
-                        Object.assign(output[calendar._id].events, this.toObject(calendar.events));
-                        return output;
-                    }, {});
+            let query = {
+                '_id': {
+                    $in: calendarIds.map((calendarId) => this.Types.ObjectId(calendarId))
+                },
+                'isDeleted': false,
+                'events.isDeleted': false
+            };
+
+            if (eventIds) {
+                if (!(eventIds instanceof Array)) {
+                    eventIds = [eventIds];
+                }
+
+                query['events._id'] = {
+                    $in: eventIds.map((eventId) => this.Types.ObjectId(eventId))
+                };
+            }
+
+            let aggregations = [
+                {
+                    $unwind: '$events'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        events: 1
+                    }
+                }
+            ];
+
+            return this.CalendarsModel.aggregate(aggregations).then((results) => {
+                let calendarEvents = {};
+                if (0 === results.length) {
                     return calendarEvents;
-                });
-            })).then((calendarEvents) => {
+                }
+
+                calendarEvents = results.reduce((output, calendar) => {
+                    output[calendar._id] = output[calendar._id] || {events: {}};
+                    Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                    return output;
+                }, {});
+                return calendarEvents;
+            }).then((calendarEvents) => {
                 let calendarsEvents = calendarEvents.reduce((output, curr) => {
                     Object.assign(output, this.toObject(curr));
                     return output;
                 }, {});
+
                 ('function' === typeof callback) && callback(calendarsEvents);
-                return Promise.resolve(calendarsEvents);
-            }).catch(() => {
+                return calendarsEvents;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         }
 
         /**
          * @param {string} calendarId
          * @param {any} postEvent
-         * @param {(calendar: string) => any} [callback]
+         * @param {(calendar: string|null) => any} [callback]
          * @returns {Promise<any>}
          */
         insert(calendarId, postEvent, callback) {
@@ -114,17 +113,17 @@ module.exports = (function() {
                 });
             }).then((calendars) => {
                 ('function' === typeof callback) && callback(calendars);
-                return Promise.resolve(calendars);
-            }).catch(() => {
+                return calendars;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         };
 
         /**
          * @param {string} calendarId
          * @param {any} putEvent
-         * @param {(calendar: string) => any} [callback]
+         * @param {(calendar: string|null) => any} [callback]
          * @returns {Promise<any>}
          */
         update(calendarId, eventId, putEvent, callback) {
@@ -152,17 +151,17 @@ module.exports = (function() {
                 return this.find(calendarId, eventId);
             }).then((calendar) => {
                 ('function' === typeof callback) && callback(calendar);
-                return Promise.resolve(calendar);
-            }).catch(() => {
+                return calendar;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         };
 
         /**
          * @param {string} calendarId
          * @param {string} eventId
-         * @param {(calendar: string) => any} [callback]
+         * @param {(calendar: string|null) => any} [callback]
          * @returns {Promise<any>}
          */
         remove(calendarId, eventId, callback) {
@@ -170,16 +169,14 @@ module.exports = (function() {
                 '_id': calendarId,
                 'events._id': eventId
             };
+
             let setEvent = {
                 $set: {
                     'events.$.isDeleted': true
                 }
             };
-            return this.CalendarsModel.update(calendarQuery, setEvent).then((updateResult) => {
-                if (!updateResult.ok) {
-                    return Promise.reject(new Error());
-                }
 
+            return this.CalendarsModel.update(calendarQuery, setEvent).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$events'
@@ -197,11 +194,12 @@ module.exports = (function() {
 
                 return this.CalendarsModel.aggregate(aggregations);
             }).then((results) => {
+                let calendarEvents = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error());
+                    return calendarEvents;
                 }
 
-                let calendarEvents = results.reduce((output, calendar) => {
+                calendarEvents = results.reduce((output, calendar) => {
                     output[calendar._id] = output[calendar._id] || {events: {}};
                     Object.assign(output[calendar._id].events, this.toObject(calendar.events));
                     return output;
@@ -210,9 +208,9 @@ module.exports = (function() {
             }).then((calendarEvents) => {
                 ('function' === typeof callback) && callback(calendarEvents);
                 return calendarEvents;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
     }

@@ -7,6 +7,7 @@ module.exports = (function() {
             super();
             this.Model = this.model(GROUPS, this.GroupsSchema);
         }
+
         find(groupIds, userId, callback) {
             let groups = {};
             // polymorphism from groupid | groupid[]
@@ -39,8 +40,10 @@ module.exports = (function() {
                 });
             })).then(() => {
                 ('function' === typeof callback) && callback(groups);
-            }).catch(() => {
+                return groups;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(err);
             });
         }
 
@@ -82,8 +85,10 @@ module.exports = (function() {
                 groups[group._id] = _group;
             }).then(() => {
                 ('function' === typeof callback) && callback(groups);
-            }).catch(() => {
+                return groups;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(err);
             });
         }
 
@@ -134,8 +139,10 @@ module.exports = (function() {
                 appIds = Object.keys(appIds);
 
                 ('function' === typeof callback) && callback(appIds);
-            }).catch(() => {
+                return appIds;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(err);
             });
         }
 
@@ -164,8 +171,10 @@ module.exports = (function() {
             })).then(() => {
                 userIds = Object.keys(userIds);
                 ('function' === typeof callback) && callback(userIds);
-            }).catch(() => {
+                return userIds;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
+                return Promise.reject(err);
             });
         }
     }

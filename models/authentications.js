@@ -43,7 +43,17 @@ module.exports = (function() {
             };
 
             return this.Model.find(query, this.project).then((results) => {
+                let authentications = {};
+                if (0 === results.length) {
+                    return authentications;
+                }
                 return this.toObject(results);
+            }).then((authentications) => {
+                ('function' === typeof callback) && callback(authentications);
+                return authentications;
+            }).catch((err) => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(err);
             });
         }
     }

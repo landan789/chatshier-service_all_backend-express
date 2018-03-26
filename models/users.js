@@ -1,6 +1,7 @@
 module.exports = (function() {
-    let ModelCore = require('../cores/model');
+    const ModelCore = require('../cores/model');
     const USERS = 'users';
+
     class UsersModel extends ModelCore {
         constructor() {
             super();
@@ -28,12 +29,12 @@ module.exports = (function() {
                 users = {
                     [user._id]: user
                 };
-                
+
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
-            }).catch(() => {
+                return users;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         }
 
@@ -51,17 +52,15 @@ module.exports = (function() {
             }
             return this.Model.findOne(query).then((__user) => {
                 if (__user) {
-                    return Promise.reject(new Error());
+                    return Promise.reject(new Error('USER_IS_EXIST'));
                 };
-                return Promise.resolve(null);
             }).then(() => {
-                return _user.save().then((__user) => {
-                    _query = {
-                        '_id': __user._id
-                    };
-                });
-            }).then(() => {
-                return this.Model.findOne(query);
+                return _user.save();
+            }).then((__user) => {
+                _query = {
+                    '_id': __user._id
+                };
+                return this.Model.findOne(_query);
             }).then((user) => {
                 let _user = {
                     createdTime: user.createdTime,
@@ -74,16 +73,21 @@ module.exports = (function() {
                 users = {
                     [user._id]: _user
                 };
-                return Promise.resolve(users);
+                return users;
             }).then((users) => {
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
-            }).catch(() => {
+                return users;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         }
 
+        /**
+         * @param {string} userId
+         * @param {(calendarId: string|null) => any} [callback]
+         * @returns {Promise<string>}
+         */
         findCalendarId(userId, callback) {
             let query = {
                 '_id': userId
@@ -92,14 +96,13 @@ module.exports = (function() {
                 if (!user) {
                     return Promise.reject(new Error());
                 };
-                return Promise.resolve(user);
-            }).then((user) => {
-                let calendarId = user.calendar_id;
+                return user.calendar_id;
+            }).then((calendarId) => {
                 ('function' === typeof callback) && callback(calendarId);
-                return Promise.resolve(calendarId);
-            }).catch(() => {
+                return calendarId;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         }
 
@@ -120,13 +123,12 @@ module.exports = (function() {
                     [user._id]: user
                 };
                 ('function' === typeof callback) && callback(users);
-                return Promise.resolve(users);
-            }).catch(() => {
+                return users;
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return Promise.reject(err);
             });
         }
     }
     return new UsersModel();
-    
 })();

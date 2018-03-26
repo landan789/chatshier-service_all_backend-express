@@ -153,11 +153,12 @@ module.exports = (function() {
                 docOutput
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsFields = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                    return appsFields;
                 }
 
-                let appsFields = results.reduce((output, curr) => {
+                appsFields = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
                             fields: {}
@@ -170,9 +171,9 @@ module.exports = (function() {
             }).then((appsTags) => {
                 ('function' === typeof callback) && callback(appsTags);
                 return appsTags;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -203,9 +204,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         };
 
@@ -231,9 +232,9 @@ module.exports = (function() {
             })).then(() => {
                 ('function' === typeof callback) && callback(appsTags);
                 return appsTags;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -263,9 +264,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
 
@@ -301,11 +302,12 @@ module.exports = (function() {
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsFields = {};
                     if (0 === results.length) {
-                        return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                        return appsFields;
                     }
 
-                    let appsFields = results.reduce((output, curr) => {
+                    appsFields = results.reduce((output, curr) => {
                         if (!output[curr._id]) {
                             output[curr._id] = {
                                 fields: {}
@@ -319,9 +321,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch(() => {
+            }).catch((err) => {
                 ('function' === typeof callback) && callback(null);
-                return null;
+                return Promise.reject(err);
             });
         }
     }
