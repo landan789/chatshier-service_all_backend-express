@@ -1,26 +1,18 @@
-var API_ERROR = require('../config/api_error');
-var API_SUCCESS = require('../config/api_success');
-var calendarsEventsMdl = require('../models/calendars_events');
-var userMdl = require('../models/users');
-var calendarsEvents = {};
+const API_ERROR = require('../config/api_error');
+const API_SUCCESS = require('../config/api_success');
+const calendarsEventsMdl = require('../models/calendars_events');
+const userMdl = require('../models/users');
+let calendarsEvents = {};
 
 calendarsEvents.getAll = function(req, res, next) {
     let userId = req.params.userid;
     let eventId = undefined === req.params.eventid ? null : req.params.eventid;
-    let proceed = Promise.resolve();
 
-    proceed.then(() => {
-        return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (userCalendarId) => {
-                var calendarId = userCalendarId || '';
-                if (!calendarId) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_CALENDAR);
-                    return;
-                }
-                resolve(calendarId);
-            });
-        });
-    }).then((calendarId) => {
+    return userMdl.findCalendarId(userId).then((calendarId) => {
+        if (!calendarId) {
+            return {};
+        }
+
         return new Promise((resolve, reject) => {
             calendarsEventsMdl.find(calendarId, eventId, (calendarsEvents) => {
                 if (!calendarsEvents) {
@@ -31,14 +23,14 @@ calendarsEvents.getAll = function(req, res, next) {
             });
         });
     }).then((calendarsEvents) => {
-        var json = {
+        let json = {
             status: 1,
             msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
             data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
-        var json = {
+        let json = {
             status: 0,
             msg: ERR.MSG,
             code: ERR.CODE
@@ -218,29 +210,28 @@ calendarsEvents.deleteOne = (req, res, next) => {
     }).then(() => {
         return new Promise((resolve, reject) => {
             calendarsEventsMdl.remove(calendarId, eventId, (result) => {
-                if (undefined === result || '' === result || null === result) {
-
+                if (!result) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
                 }
-                var calendarsEvents = result;
+                let calendarsEvents = result;
                 resolve(calendarsEvents);
             });
         });
     }).then((calendarsEvents) => {
-        var json = {
+        let json = {
             status: 1,
             msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
             data: calendarsEvents
         };
         res.status(200).json(json);
     }).catch((ERR) => {
-        var json = {
+        let json = {
             status: 0,
             msg: ERR.MSG,
             code: ERR.CODE
         };
         res.status(500).json(json);
     });
-}
+};
 
 module.exports = calendarsEvents;

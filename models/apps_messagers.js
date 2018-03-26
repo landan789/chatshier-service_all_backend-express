@@ -2,7 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
     const CHAT_COUNT_INTERVAL_TIME = 900000;
-    const MESSAGERS_NOT_FOUND = 'MESSAGERS_NOT_FOUND';
 
     const docUnwind = {
         $unwind: '$messagers' // 只針對 document 處理
@@ -53,12 +52,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsMessagers = {};
                 if (0 === results.length) {
-                    let appsMessagers = {};
-                    return Promise.resolve(appsMessagers);
+                    return appsMessagers;
                 }
 
-                let appsMessagers = results.reduce((output, curr) => {
+                appsMessagers = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { messagers: {} };
                     Object.assign(output[curr._id].messagers, this.toObject(curr.messagers));
                     return output;

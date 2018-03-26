@@ -455,7 +455,7 @@
 
         return Promise.all([
             api.groups.findAll(userId),
-            api.authentications.findUsers(userId)
+            api.users.find(userId)
         ]).then(function(resJsons) {
             var groups = resJsons.shift().data;
             var groupUsers = resJsons.shift().data;
@@ -471,7 +471,7 @@
                             var memberUserId = group.members[memberId].user_id;
                             if (!agents[memberUserId]) {
                                 agents[memberUserId] = {
-                                    name: groupUsers[memberUserId].displayName,
+                                    name: groupUsers[memberUserId].name,
                                     email: groupUsers[memberUserId].email
                                 };
                             }

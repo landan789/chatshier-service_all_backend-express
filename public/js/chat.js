@@ -506,7 +506,7 @@
         api.appsMessagers.findAll(userId),
         api.appsTags.findAll(userId),
         api.groups.findAll(userId),
-        api.authentications.findUsers(userId)
+        api.users.find(userId)
     ]).then(function(responses) {
         apps = responses.shift().data;
         appsChatrooms = responses.shift().data;
@@ -567,7 +567,7 @@
                 // 內部聊天室的成員即是群組成員
                 // 因此 messagerId 直接對應的是 userId
                 if (CHATSHIER === app.type) {
-                    messagers[messagerId].name = groupAllUsers[messagerId].displayName;
+                    messagers[messagerId].name = groupAllUsers[messagerId].name;
                     messagers[messagerId].email = groupAllUsers[messagerId].email;
                 }
             }
@@ -580,11 +580,11 @@
                     var memberUserId = groupMembers[memberId].user_id;
 
                     if (messagers[memberUserId]) {
-                        messagers[memberUserId].name = groupAllUsers[memberUserId].displayName;
+                        messagers[memberUserId].name = groupAllUsers[memberUserId].name;
                         messagers[memberUserId].email = groupAllUsers[memberUserId].email;
                     } else {
                         messagers[memberUserId] = {
-                            name: groupAllUsers[memberUserId].displayName,
+                            name: groupAllUsers[memberUserId].name,
                             email: groupAllUsers[memberUserId].email
                         };
                     }
@@ -671,7 +671,7 @@
                     if (CHATSHIER === appType) {
                         // 內部聊天室的對話者 ID 是 user ID
                         // 所以需要使用 auth api 來獲得使用者資料
-                        return api.authentications.findUsers(userId).then((resJson) => {
+                        return api.users.find(userId).then((resJson) => {
                             var groupUsers = resJson.data;
                             var senderUser = groupUsers[senderId];
 
@@ -679,14 +679,14 @@
                                 return api.appsMessagers.findOne(appId, senderId, userId).then(function(resJson) {
                                     var _appsMessagers = resJson.data;
                                     sender = _appsMessagers[appId].messagers[senderId];
-                                    sender.name = senderUser.displayName;
+                                    sender.name = senderUser.name;
                                     sender.email = senderUser.email;
                                     appsMessagers[appId].messagers[senderId] = sender;
                                     return sender;
                                 });
                             }
 
-                            sender.name = senderUser.displayName;
+                            sender.name = senderUser.name;
                             sender.email = senderUser.email;
                             appsMessagers[appId].messagers[senderId] = sender;
                             return sender;
@@ -2102,7 +2102,7 @@
 
         return Promise.all([
             api.groups.findAll(userId),
-            api.authentications.findUsers(userId)
+            api.users.find(userId)
         ]).then(function(resJsons) {
             var groups = resJsons.shift().data;
             var allGroupUsers = resJsons.shift().data;
@@ -2119,7 +2119,7 @@
                             var memberUserId = group.members[memberId].user_id;
                             if (!agents[memberUserId]) {
                                 agents[memberUserId] = {
-                                    name: allGroupUsers[memberUserId].displayName,
+                                    name: allGroupUsers[memberUserId].name,
                                     email: allGroupUsers[memberUserId].email
                                 };
                             }

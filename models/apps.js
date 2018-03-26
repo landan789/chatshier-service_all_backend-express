@@ -3,15 +3,18 @@ module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
     const USERS = 'users';
+    const GROUPS = 'GROUPS';
     const WEBHOOKS = 'webhooks';
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const CHATSHIER = 'CHATSHIER';
+
     class AppsModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
             this.UsersModel = this.model(USERS, this.UsersSchema);
+            this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
             this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
             this.project = {
                 name: true,
@@ -28,61 +31,42 @@ module.exports = (function() {
                 updatedTime: true
             };
         }
+
         find(appIds, webhookId, callback) {
-            var apps = {};
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             };
-            Promise.resolve().then(() => {
-                if (!appIds) {
-                    let query = {
-                        'isDeleted': false
-                    };
-                    return this.AppsModel.find(query).then((__apps) => {
-                        apps = __apps.reduce((output, app) => {
-                            Object.assign(output, this.toObject(app._doc));
-                            return output;
-                        }, {});
-                        return apps;
-                    });
+
+            let query = {
+                'isDeleted': false
+            };
+            appIds && (query['_id'] = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            webhookId && (query['webhook_id'] = this.Types.ObjectId(webhookId));
+
+            return this.AppsModel.find(query, this.project).then((results) => {
+                let apps = {};
+                if (0 === results.length) {
+                    return apps;
                 }
-                return Promise.all(appIds.map((appId) => {
-                    let query = {
-                        '_id': appId,
-                        'isDeleted': false
-                    };
-                    return this.AppsModel.findOne(query).then((__apps) => {
-                        let _apps = {
-                            createdTime: __apps.createdTime,
-                            updatedTime: __apps.updatedTime,
-                            group_id: __apps.group_id,
-                            id1: __apps.id1,
-                            id2: __apps.id2,
-                            isDeleted: __apps.isDeleted,
-                            name: __apps.name,
-                            secret: __apps.secret,
-                            token1: __apps.token1,
-                            token2: __apps.token2,
-                            type: __apps.type,
-                            webhook_id: __apps.webhook_id
-                        };
-                        apps = {
-                            [appId]: _apps
-                        };
-                    });
-                }));
-            }).then(() => {
+
+                apps = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app._doc));
+                    return output;
+                }, {});
+                return apps;
+            }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
         insert(userId, postApp, callback) {
             let apps = {};
             let webhookId = this.Types.ObjectId();
+            let groupId = postApp.group_id;
             let _appId = this.Types.ObjectId();
             let _apps = new this.AppsModel();
             _apps._id = _appId;
@@ -101,16 +85,36 @@ module.exports = (function() {
 
             return _apps.save().then((__apps) => {
                 let query = {
+                    '_id': groupId
+                };
+                return this.GroupsModel.findOne(query).then((group) => {
+                    let appId = __apps._id;
+                    let appIds = undefined === group.app_ids ? [] : group.app_ids;
+                    appIds.push(appId);
+                    let putGroup = {
+                        $set: {
+                            'app_ids': appIds
+                        }
+                    };
+                    return this.GroupsModel.update(query, putGroup).then((result) => {
+                        if (!result.ok) {
+                            return Promise.reject(new Error());
+                        }
+                        return __apps;
+                    });
+                });
+            }).then((__apps) => {
+                let query = {
                     '_id': __apps._id
                 };
                 return this.AppsModel.findOne(query).select(this.project);
             }).then((app) => {
                 apps[app._id] = app;
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         };
 
@@ -130,10 +134,10 @@ module.exports = (function() {
                 return this.toObject(app._doc);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -153,10 +157,10 @@ module.exports = (function() {
                 return this.toObject(app._doc);
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
-                return Promise.resolve(apps);
+                return apps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
     };

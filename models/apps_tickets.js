@@ -50,12 +50,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsTickets = {};
                 if (0 === results.length) {
-                    let appsTickets = {};
-                    return Promise.resolve(appsTickets);
+                    return appsTickets;
                 }
 
-                let appsTickets = results.reduce((output, curr) => {
+                appsTickets = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { tickets: {} };
                     Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
                     return output;
@@ -164,11 +164,12 @@ module.exports = (function() {
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsTickets = {};
                     if (0 === results.length) {
                         return Promise.reject(new Error());
                     }
 
-                    let appsTickets = results.reduce((output, curr) => {
+                    appsTickets = results.reduce((output, curr) => {
                         output[curr._id] = output[curr._id] || { tickets: {} };
                         Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
                         return output;

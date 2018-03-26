@@ -153,12 +153,12 @@ module.exports = (function() {
                 docOutput
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsFields = {};
                 if (0 === results.length) {
-                    let appsTags = {};
-                    return Promise.resolve(appsTags);
+                    return appsFields;
                 }
 
-                let appsFields = results.reduce((output, curr) => {
+                appsFields = results.reduce((output, curr) => {
                     if (!output[curr._id]) {
                         output[curr._id] = {
                             fields: {}
@@ -302,11 +302,12 @@ module.exports = (function() {
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsFields = {};
                     if (0 === results.length) {
                         return Promise.reject(new Error());
                     }
 
-                    let appsFields = results.reduce((output, curr) => {
+                    appsFields = results.reduce((output, curr) => {
                         if (!output[curr._id]) {
                             output[curr._id] = {
                                 fields: {}
