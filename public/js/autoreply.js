@@ -245,11 +245,12 @@
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         let title = $(this).parent().parent().find('#title').text();
-        let startedTime = ISODateTimeString($(this).parent().parent().find('#started-time').attr('rel'));
-        let endedTime = ISODateTimeString($(this).parent().parent().find('#started-time').attr('rel'));
+        let startedTime = new Date($(this).parent().parent().find('#started-time').attr('rel')).toISOString();
+        startedTime = startedTime.split('.')[0];
+        let endedTime = new Date($(this).parent().parent().find('#ended-time').attr('rel')).toISOString();
+        endedTime = endedTime.split('.')[0];
         let text = $(this).parent().parent().find('#text').text();
         // Initialize
-        // TODO;
         $('#edit-appid').text(appId);
         $('#edit-autoreplyid').text(autoreplyId);
         $('#edit-taskTitle').val(title); // 標題
@@ -265,17 +266,6 @@
             return;
         }
         $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
-    }
-
-    function ISODateTimeString(d) {
-        d = new Date(d);
-
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        return d.getFullYear() + '-' +
-            pad(d.getMonth() + 1) + '-' +
-            pad(d.getDate()) + 'T' +
-            pad(d.getHours()) + ':' +
-            pad(d.getMinutes());
     }
 
     function ToLocalTimeString(millisecond) {
