@@ -214,7 +214,13 @@
     }
 
     function dataRemove() {
-        let userId = auth.currentUser.uid;
+        var userId;
+        try {
+            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+            userId = payload.uid;
+        } catch (ex) {
+            userId = '';
+        }        
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {
