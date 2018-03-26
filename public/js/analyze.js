@@ -1,6 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var AnalyzeType = Object.freeze({
         0: 'MONTH',
         1: 'DAY',
@@ -24,7 +26,6 @@
     var FIRST_MSG_TIME = 0; // 預設的startTime
     var LAST_MSG_TIME = 0;
 
-    var userId = '';
     var nowSelectAppId = '';
     var api = window.restfulAPI;
     var analyzeType = AnalyzeType.MONTH; // 預設從每日單位顯示分析
@@ -38,27 +39,31 @@
     var eTimePickerData = null;
     var date = Date.now();
 
-    window.auth.ready.then((currentUser) => {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        $buttonGroup.find('.view-month').on('click', viewMonth);
-        $buttonGroup.find('.view-date').on('click', viewDay);
-        $buttonGroup.find('.view-hour').on('click', viewHour);
-        $buttonGroup.find('.view-time').on('click', viewTime);
-        $buttonGroup.find('.view-cloud').on('click', viewWordCloud);
+    $buttonGroup.find('.view-month').on('click', viewMonth);
+    $buttonGroup.find('.view-date').on('click', viewDay);
+    $buttonGroup.find('.view-hour').on('click', viewHour);
+    $buttonGroup.find('.view-time').on('click', viewTime);
+    $buttonGroup.find('.view-cloud').on('click', viewWordCloud);
 
-        // 初始化 modal 裡的 datetime picker
-        // 使用 moment.js 的 locale 設定 i18n 日期格式
-        $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
-        $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
-        sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
-        eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
+    // 初始化 modal 裡的 datetime picker
+    // 使用 moment.js 的 locale 設定 i18n 日期格式
+    $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
+    $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
+    sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
+    eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
 
-        return Promise.all([
-            api.apps.findAll(userId),
-            api.appsChatroomsMessages.findAll(userId)
-        ]);
-    }).then(function(respJsons) {
+    return Promise.all([
+        api.apps.findAll(userId),
+        api.appsChatroomsMessages.findAll(userId)
+    ]).then(function(respJsons) {
         var appsData = respJsons.shift().data;
         var messagesData = respJsons.shift().data;
 

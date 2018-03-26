@@ -1,7 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var userId = '';
+    $('#loading').fadeOut();
+
     var apps = {};
     var appsMessagers = {};
     var appsAgents = {};
@@ -21,13 +22,17 @@
     !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
     // ======================
 
-    auth.ready.then(function(currentUser) {
-        userId = currentUser.uid; // 儲存全域用變數 userId
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        jqDoc.on('click', '#add-form-submit', submitAdd); // 新增 ticket
-        jqDoc.on('click', '#add-form-goback', function() { location.href = '/ticket'; }); // 返回 ticket
-        loadUserAllApps();
-    });
+    jqDoc.on('click', '#add-form-submit', submitAdd); // 新增 ticket
+    jqDoc.on('click', '#add-form-goback', function() { location.href = '/ticket'; }); // 返回 ticket
+    loadUserAllApps();
 
     /**
      * 載入使用者所有的 app 清單，將清單儲存至選擇器中，供使用者選取

@@ -1,7 +1,7 @@
 /// <reference path='../../../typings/client/config.d.ts' />
 
 window.restfulAPI = (function() {
-    var jwt = '';
+    var jwt = window.localStorage.getItem('jwt');
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
 
@@ -41,6 +41,7 @@ window.restfulAPI = (function() {
         jwt = value;
         reqHeaders.set('Authorization', jwt);
     };
+    jwt && setJWT(jwt);
 
     /**
      * @param {Response} res
@@ -1286,18 +1287,6 @@ window.restfulAPI = (function() {
 
         return BotAPI;
     })();
-
-    if (window.auth && window.auth.ready) {
-        // 當 firebase 更新時同時更新 API 需要的 JSON Web Token
-        window.auth.onIdTokenChanged(function(currentUser) {
-            if (!currentUser) {
-                return;
-            }
-            return currentUser.getIdToken(false).then(function(jwt) {
-                setJWT(jwt);
-            });
-        });
-    }
 
     return {
         setJWT: setJWT,

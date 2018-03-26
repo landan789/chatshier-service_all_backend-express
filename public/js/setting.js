@@ -1,5 +1,7 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
+$('#loading').fadeOut();
+
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
 const WECHAT = 'WECHAT';
@@ -7,16 +9,19 @@ const CHATSHIER = 'CHATSHIER';
 const ACTIVE = '啟用';
 const INACTIVE = '未啟用';
 const NO_PERMISSION_CODE = '3.16';
-var userId = '';
 var api = window.restfulAPI;
 var transJson = {};
 
+var userId;
+try {
+    var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+    userId = payload.uid;
+} catch (ex) {
+    userId = '';
+}
+
 window.translate.ready.then(function(json) {
     transJson = json;
-});
-
-window.auth.ready.then(function(currentUser) {
-    userId = currentUser.uid;
 
     // ACTIONS
     $('#setting-modal').on('hidden.bs.modal', function() {

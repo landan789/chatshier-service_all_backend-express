@@ -1,6 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
@@ -9,33 +11,36 @@
     var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
 
     var api = window.restfulAPI;
-    var userId = '';
     var nowSelectAppId = '';
 
     const NO_PERMISSION_CODE = '3.16';
 
-    window.auth.ready.then((currentUser) => {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        var currentDate = new Date();
-        var datetimePickerInitOpts = {
-            sideBySide: true,
-            minDate: currentDate,
-            defaultDate: currentDate,
-            locale: 'zh-tw'
-        };
+    var currentDate = new Date();
+    var datetimePickerInitOpts = {
+        sideBySide: true,
+        minDate: currentDate,
+        defaultDate: currentDate,
+        locale: 'zh-tw'
+    };
 
-        $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
-        $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
 
-        $(document).on('click', '#modal-submit', dataInsert); // 新增
-        $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
-        $(document).on('click', '#edit-submit', dataUpdate);
-        $(document).on('click', '#delete-btn', dataRemove); // 刪除
-        $(document).on('change paste keyup', '.search-bar', dataSearch);
+    $(document).on('click', '#modal-submit', dataInsert); // 新增
+    $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
+    $(document).on('click', '#edit-submit', dataUpdate);
+    $(document).on('click', '#delete-btn', dataRemove); // 刪除
+    $(document).on('change paste keyup', '.search-bar', dataSearch);
 
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    return api.apps.findAll(userId).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
