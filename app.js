@@ -6,7 +6,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var cors = require('cors');
 
-var jwt = require('./middlewares/jwt');
+var jwtHlp = require('./helpers/jwt');
 var index = require('./routes/index');
 var api = require('./routes/api');
 var apiSign = require('./routes/api_sign');
@@ -21,14 +21,14 @@ app.use(cors());
 app.use(cookieParser());
 
 // API JWT 權限驗證
-app.use('/api/*/users/:userid', jwt.authenticate('HEADER'));
+app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER'));
 
 // API
 app.use('/api', api);
 
 app.use('/api/sign', apiSign);
 
-app.use('/other', jwt.authenticate('HEADER'));
+app.use('/other', jwtHlp.authenticate('HEADER'));
 app.use('/other', (req, res, next) => {
     res.send(202);
 });

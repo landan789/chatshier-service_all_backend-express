@@ -4,7 +4,7 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     let ciperHlp = require('../helpers/cipher');
     let usersMdl = require('../models/users');
-    let jwt = require('jsonwebtoken');
+    var jwtHlp = require('../helpers/jwt');
 
     class SigninController {
         postOne(req, res, next) {
@@ -48,16 +48,7 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 let userId = Object.keys(users).shift();
-                let payload = {
-                    sub: CHATSHIER.JWT.SUBJECT,
-                    iss: CHATSHIER.JWT.ISSUER,
-                    adu: CHATSHIER.JWT.AUDIENCE,
-                    exp: Date.now() + CHATSHIER.JWT.EXPIRES, // jwt expires after 1 hour
-                    iat: Date.now(),
-                    uid: userId
-                };
-
-                token = jwt.sign(payload, CHATSHIER.JWT.SECRET);
+                token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then(() => {
                 let json = {

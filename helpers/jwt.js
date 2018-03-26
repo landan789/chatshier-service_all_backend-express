@@ -3,18 +3,26 @@ module.exports = (function() {
     let JwtStrategy = require('passport-jwt').Strategy;
     let ExtractJwt = require('passport-jwt').ExtractJwt;
     let usersMdl = require('../models/users');
+    let jsonwebtoken = require('jsonwebtoken');
+
     const CHATSHIER = require('../config/chatshier');
+
     const COOKIE = 'COOKIE';
     const HEADER = 'HEADER';
 
     class Jwt {
-        authenticate(type) {
+        /**
+         * middleware: Authnticate the HTTP request via jwt
+         * @param {String} type
+         * @param {Boolean} refresh
+         */
+        authenticate(type, refresh) {
             let jwtFromRequest;
-            if ('HEADER' === (type).toUpperCase()) {
+            if (HEADER === (type).toUpperCase()) {
                 jwtFromRequest = ExtractJwt.fromHeader('authorization');
             };
 
-            if ('COOKIE' === (type).toUpperCase()) {
+            if (COOKIE === (type).toUpperCase()) {
                 jwtFromRequest = (req) => {
                     let token = null;
                     if (req && req.cookies) {
@@ -35,10 +43,14 @@ module.exports = (function() {
                     return new Promise((resolve, reject) => {
                         let userId = payload.uid;
                         // jwt is expired !
-                        if (payload.exp < Date.now()) {
+                        if (payload.exp < Date.now() && !refresh) {
                             reject(new Error());
                             return;
                         };
+
+                        if (refresh) {
+                            payload.exp = Date.now() + CHATSHIER.JWT.EXPIRES;
+                        }
 
                         usersMdl.find(userId, null, (users) => {
                             if (!users) {
@@ -55,6 +67,23 @@ module.exports = (function() {
                 });
             }));
             return passport.authenticate('jwt', { session: false });
+        }
+        /**
+         * sign(create) a json web token via userid
+         * @param {String} userId
+         */
+        sign(userId) {
+            let payload = {
+                sub: CHATSHIER.JWT.SUBJECT,
+                iss: CHATSHIER.JWT.ISSUER,
+                adu: CHATSHIER.JWT.AUDIENCE,
+                exp: Date.now() + CHATSHIER.JWT.EXPIRES, // jwt expires after 1 hour
+                iat: Date.now(),
+                uid: userId
+            };
+
+            let token = jsonwebtoken.sign(payload, CHATSHIER.JWT.SECRET);
+            return token;
         }
     };
     return new Jwt();
