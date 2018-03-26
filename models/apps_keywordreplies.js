@@ -184,8 +184,7 @@ module.exports = (function() {
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        let appsKeywordreplies = {};
-                        return Promise.resolve(appsKeywordreplies);
+                        return Promise.reject(new Error());
                     }
                     let appsKeywordreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { keywordreplies: {} };
