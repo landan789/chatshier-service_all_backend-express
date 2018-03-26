@@ -95,8 +95,8 @@
             $('#autoreply-tables').append(
                 '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
                     '<th id="title">' + autoreply.title + '</th>' +
-                    '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
-                    '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                    '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
+                    '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                     '<td id="text">' + autoreply.text + '</td>' +
                     '<td>' +
                         '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
@@ -144,8 +144,8 @@
                 $('#autoreply-tables').append(
                     '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
                         '<th id="title" data-title="data-title">' + autoreply.title + '</th>' +
-                        '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
-                        '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                        '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
+                        '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                         '<td id="text">' + autoreply.text + '</td>' +
                         '<td>' +
                             '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
@@ -180,8 +180,8 @@
             $('#' + autoreplyId).empty();
             $('#' + autoreplyId).append(
                 '<th id="title">' + autoreply.title + '</th>' +
-                '<td id="started-time" rel="' + autoreply.startedTime + '">' + ToLocalTimeString(autoreply.startedTime) + '</td>' +
-                '<td id="ended-time" rel="' + autoreply.endedTime + '">' + ToLocalTimeString(autoreply.endedTime) + '</td>' +
+                '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
+                '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
                     '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
@@ -266,14 +266,6 @@
             return;
         }
         $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
-    }
-
-    function ToLocalTimeString(millisecond) {
-        var date = new Date(millisecond);
-        var localDate = date.toLocaleDateString();
-        var localTime = date.toLocaleTimeString();
-        var localTimeString = localDate + localTime;
-        return localTimeString;
     }
 
     function showDialog(textContent) {
