@@ -174,31 +174,20 @@ module.exports = (function() {
             let token;
             let users;
             return Promise.resolve().then(() => {
-                if (!req.body.userid) {
+                if (!req.params.userid) {
                     return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
                 };
 
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(req.body.userid, null, (users) => {
+                    usersMdl.find(req.body.userid, null, (_users) => {
                         // If the user exists then REST API can not insert any user
-                        if (users) {
-                            reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
+                        users = _users;
+                        if (!users) {
+                            reject(API_ERROR.USER_FAILED_TO_FIND);
                         };
                         resolve();
-                    });
-                });
-            }).then(() => {
-                let user = {
-                    name: req.body.name,
-                    email: req.body.email,
-                    password: ciperHlp.encode(req.body.password)
-                };
-                return new Promise((resolve, reject) => {
-                    usersMdl.insert(user, (_users) => {
-                        users = _users;
-                        resolve(users);
                     });
                 });
             }).then(() => {
