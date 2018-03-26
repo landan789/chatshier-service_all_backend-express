@@ -13,8 +13,8 @@ module.exports = {
         HOST: '127.0.0.1',
         PORT: 27017,
         DATABASE: 'chatshier',
-        USERNAME: 'vagrant',
-        PASSWORD: 'password'
+        USERNAME: 'chsr',
+        PASSWORD: '0be44b96e3decd6a6b30cdb30c126089'
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
