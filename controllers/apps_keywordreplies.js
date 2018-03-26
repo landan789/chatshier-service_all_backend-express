@@ -48,7 +48,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 appsKeywordrepliesMdl.find(appId, keywordreplyId, (data) => {
                     if (!data) {
-                        reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                        reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
                         return;
                     }
                     resolve(data);
@@ -85,7 +85,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 appsKeywordrepliesMdl.insert(appId, postKeywordreply, (appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
-                        reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
+                        reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
                         return;
                     }
                     resolve(appsKeywordreplies);

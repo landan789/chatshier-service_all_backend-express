@@ -59,7 +59,8 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    let appGreetings = {};
+                    return Promise.resolve(appGreetings);
                 }
 
                 let appsGreetings = results.reduce((output, app) => {
@@ -106,7 +107,8 @@ module.exports = (function() {
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    let greetings = {};
+                    return Promise.resolve(greetings);
                 }
 
                 let greetings = results.reduce((output, app) => {
@@ -195,7 +197,8 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations);
             }).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error(GREETINGS_WAS_NOT_FOUND));
+                    let appGreetings = {};
+                    return Promise.resolve(appGreetings);
                 }
 
                 let appGreetings = results.reduce((output, app) => {

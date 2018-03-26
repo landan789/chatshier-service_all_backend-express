@@ -51,7 +51,8 @@ module.exports = (function() {
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                    let appsTickets = {};
+                    return Promise.resolve(appsTickets);
                 }
 
                 let appsTickets = results.reduce((output, curr) => {
@@ -164,7 +165,8 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                        let appsTickets = {};
+                        return Promise.resolve(appsTickets);
                     }
 
                     let appsTickets = results.reduce((output, curr) => {

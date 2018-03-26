@@ -11,6 +11,9 @@ module.exports = (function() {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
+            if (appIds && !(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
             return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
                     let query = {
@@ -33,7 +36,8 @@ module.exports = (function() {
                     ];
                     return this.AppsModel.aggregate(aggregations).then((results) => {
                         if (0 === results.length) {
-                            return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                            let appsAutoreplies = {};
+                            return Promise.resolve(appsAutoreplies);
                         }
                         let appsAutoreplies = results.reduce((output, app) => {
                             output[app._id] = output[app._id] || { autoreplies: {} };
@@ -66,7 +70,8 @@ module.exports = (function() {
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('AUTOREPLY_IDS_NOT_FOUND'));
+                        let appsAutoreplies = {};
+                        return Promise.resolve(appsAutoreplies);
                     }
                     let appsAutoreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { autoreplies: {} };

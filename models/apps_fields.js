@@ -154,7 +154,8 @@ module.exports = (function() {
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                    let appsTags = {};
+                    return Promise.resolve(appsTags);
                 }
 
                 let appsFields = results.reduce((output, curr) => {
@@ -302,7 +303,8 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('FIELDS_NOT_FOUND'));
+                        let appsFields = {};
+                        return Promise.resolve(appsFields);
                     }
 
                     let appsFields = results.reduce((output, curr) => {

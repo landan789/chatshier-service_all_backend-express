@@ -50,11 +50,12 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsComposes = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error('COMPOSES_NOT_FOUND'));
+                    return Promise.resolve(appsComposes);
                 }
 
-                let appsComposes = results.reduce((output, curr) => {
+                appsComposes = results.reduce((output, curr) => {
                     output[curr._id] = output[curr._id] || { composes: {} };
                     Object.assign(output[curr._id].composes, this.toObject(curr.composes));
                     return output;
@@ -171,7 +172,8 @@ module.exports = (function() {
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('TICKETS_NOT_FOUND'));
+                        let appsComposes = {};
+                        return Promise.resolve(appsComposes);
                     }
 
                     let appsComposes = results.reduce((output, curr) => {

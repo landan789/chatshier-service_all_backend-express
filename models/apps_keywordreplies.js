@@ -36,7 +36,8 @@ module.exports = (function() {
                     ];
                     return this.AppsModel.aggregate(aggregations).then((results) => {
                         if (0 === results.length) {
-                            return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                            let appsKeywordreplies = {};
+                            return Promise.resolve(appsKeywordreplies);
                         }
                         let appsKeywordreplies = results.reduce((output, app) => {
                             output[app._id] = output[app._id] || { keywordreplies: {} };
@@ -69,7 +70,8 @@ module.exports = (function() {
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                        let appsKeywordreplies = {};
+                        return Promise.resolve(appsKeywordreplies);
                     }
                     let appsKeywordreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { keywordreplies: {} };
@@ -182,7 +184,8 @@ module.exports = (function() {
                 ];
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     if (0 === results.length) {
-                        return Promise.reject(new Error('KEYWORDREPLY_IDS_NOT_FOUND'));
+                        let appsKeywordreplies = {};
+                        return Promise.resolve(appsKeywordreplies);
                     }
                     let appsKeywordreplies = results.reduce((output, app) => {
                         output[app._id] = output[app._id] || { keywordreplies: {} };

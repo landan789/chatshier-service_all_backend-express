@@ -55,7 +55,8 @@ module.exports = (function() {
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 if (0 === results.length) {
-                    return Promise.reject(new Error('CHATROOMS_MESSAGERS_NOT_FOUND'));
+                    let appChatroomMessagers = {};
+                    return Promise.resolve(appChatroomMessagers);
                 }
 
                 let appsChatroomsMessagers = results.reduce((output, curr) => {
