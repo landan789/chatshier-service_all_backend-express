@@ -3,8 +3,12 @@ module.exports = (function() {
     let mongoose = require('mongoose');
 
     // region DB 連線只需要做一次，故放 class 外面
-    let url = 'mongodb://' + CHATSHIER.MONGODB.USERNAME + ':' + CHATSHIER.MONGODB.PASSWORD + '@' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
-    mongoose.connect(url);
+    let url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
+    let options = {
+        user: CHATSHIER.MONGODB.USERNAME,
+        pass: CHATSHIER.MONGODB.PASSWORD
+    };
+    mongoose.connect(url, options);
     let db = mongoose.connection;
     db.on('error', () => {
         console.log('[FAILED]    ' + url + ' failed to connect !!');
