@@ -5,7 +5,7 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsTagsMdl = require('../models/apps_tags');
+    const appsTagsMdl = require('../models/apps_fields');
 
     function AppsTagsController() {}
 

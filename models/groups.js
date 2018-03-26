@@ -1,212 +1,182 @@
 module.exports = (function() {
-    const admin = require('firebase-admin');
-    const SCHEMA = require('../config/schema');
-
+    let ModelCore = require('../cores/model');
+    const GROUPS = 'groups';
     const OWNER = 'OWNER';
-
-    function GroupsModel() {};
-
-
-    GroupsModel.prototype._schema = function(callback) {
-        let json = {
-            app_ids: '',
-            name: 'GROUP',
-            isDeleted: 0,
-            members: '',
-            updatedTime: Date.now(),
-            createdTime: Date.now()
-        };
-        callback(json);
-    };
-    /**
-     * 根據 groupid|groupid[] 回傳 Groups 的資料
-     * @param {string|string[]} groupIds
-     * @param {string|null} userId
-     * @param {function} callback
-     */
-    GroupsModel.prototype.find = function(groupIds, userId, callback) {
-        // 多行處理
-        if ('string' === typeof groupIds) {
-            groupIds = [groupIds];
-        };
-        let groups = {};
-        Promise.all(groupIds.map((groupId) => {
-            return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
-                let group = snap.val();
-                if (null === group || undefined === group || '' === group || 0 !== group.isDeleted) {
-                    return Promise.resolve(null);
+    class GroupsModel extends ModelCore {
+        constructor() {
+            super();
+            this.Model = this.model(GROUPS, this.GroupsSchema);
+        }
+        find(groupIds, userId, callback) {
+            let groups = {};
+            // polymorphism from groupid | groupid[]
+            if ('string' === typeof groupIds) {
+                groupIds = [groupIds];
+            };
+            return Promise.all(groupIds.map((groupId) => {
+                let query = {
+                    '_id': groupId,
+                    'isDeleted': false,
+                    'members.isDeleted': false,
+                    'members.status': true,
+                    'members.user_id': userId
                 };
-                let members = group.members;
-                let userIds = Object.values(members).map((member) => {
-                    // 如果 member 已刪  就不查詢此 group 底下的 app 資料
-                    if (0 === member.isDeleted) {
-                        return member.user_id;
+                return this.Model.findOne(query).then((group) => {
+                    let members = {};
+                    let _members = group.members;
+                    while (0 < _members.length) {
+                        let member = _members.pop();
+                        members[member._id] = member;
                     };
+                    let _group = {
+                        createdTime: group.createdTime,
+                        updatedTime: group.updatedTime,
+                        isDeleted: group.isDeleted,
+                        members: members,
+                        name: group.name
+                    };
+                    groups[group._id] = _group;
                 });
-
-                if (0 > userIds.indexOf(userId) && null !== userId) {
-                    return Promise.resolve(null);
-                };
-                groups[groupId] = group;
-                return Promise.resolve(group);
+            })).then(() => {
+                ('function' === typeof callback) && callback(groups);
+                return Promise.resolve(groups);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
-        })).then(() => {
-            callback(groups);
-        }).catch(() => {
-            callback(null);
-        });
-    };
+        }
 
-    /**
-     * 在某一個 user 之中 新增一筆 group，並指派為 owner
-     *
-     * @param {string} userId
-     * @param {object} group
-     * @param {function} callback
-     */
-    GroupsModel.prototype.insert = function(userId, group, callback) {
-        let groups = {};
-        let groupId;
-        group = Object.assign(SCHEMA.GROUP, group);
-        admin.database().ref('groups/').push(group).then((ref) => {
-            groupId = ref.key;
-            let member = {
-                updatedTime: Date.now(),
-                createdTime: Date.now(),
+        insert(userId, group, callback) {
+            let groups = {};
+            let groupId;
+
+            let _group = new this.Model();
+            _group.app_ids = group.app_ids;
+            _group.name = group.name;
+
+            // The creator of groups must be the owner of group
+            _group.members[0] = {
                 status: 1,
                 type: OWNER,
-                user_id: userId
+                user_id: userId,
+                isDeleted: 0
             };
-            member = Object.assign(SCHEMA.GROUP_MEMBER, member);
-            return admin.database().ref('groups/' + groupId + '/members').push(member);
-        }).then((ref) => {
-            return admin.database().ref('groups/' + groupId).once('value');
-        }).then((snap) => {
-            let group = snap.val();
-            groups = {
-                [groupId]: group
+
+            return _group.save().then((__group) => {
+                let query = {
+                    '_id': __group._id
+                };
+                return this.Model.findOne(query);
+            }).then((group) => {
+                let members = {};
+                let _members = group.members;
+                while (0 < _members.length) {
+                    let member = _members.pop();
+                    members[member._id] = member;
+                };
+                let _group = {
+                    createdTime: group.createdTime,
+                    updatedTime: group.updatedTime,
+                    isDeleted: group.isDeleted,
+                    members: members,
+                    name: group.name
+                };
+                groups[group._id] = _group;
+            }).then(() => {
+                ('function' === typeof callback) && callback(groups);
+                return Promise.resolve(groups);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
+        }
+
+        update(groupId, group, callback) {
+            let query = {
+                '_id': groupId
             };
-            callback(groups);
-        }).catch(() => {
-            callback(null);
-        });
-    };
+            let groups = {};
+            return this.Model.update(query, {
+                $set: group
+            }).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                };
+                return this.Model.findOne(query);
+            }).then((group) => {
+                groups = {
+                    [group._id]: group
+                };
+                ('function' === typeof callback) && callback(groups);
+                return Promise.resolve(groups);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
+        }
 
-    /**
-     * 藉由 groupid 修改一組 group
-     * @param {string} groupId
-     * @param {object} group
-     * @param {function} callback
-     */
-    GroupsModel.prototype.update = function(groupId, group, callback) {
-        let groups = {};
-        Promise.resolve().then(() => {
-            let _group = {
-                updatedTime: Date.now()
+        findAppIds(groupIds, userId, callback) {
+            // polymorphism to both groupid[] and groupid
+            if ('string' === typeof groupIds) {
+                groupIds = [groupIds];
             };
-            group = Object.assign(group, _group);
-            return admin.database().ref('groups/' + groupId).update(group);
-        }).then(() => {
-            return admin.database().ref('groups/' + groupId).once('value');
-        }).then((snap) => {
-            let group = snap.val();
-            groups = {
-                [groupId]: group
-            };
-            return Promise.resolve();
-        }).then(() => {
-            ('function' === typeof callback) && callback(groups);
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-        });
-    };
-
-    /**
-     * 根據 groupid|groupid[] 回傳 對應的 appids 的資料
-     * @param {string|string[]} groupIds
-     * @param {string} userId
-     * @param {(appIds: string[]|null) => any} [callback]
-     * @returns {Promise<string[]>}
-     */
-    GroupsModel.prototype.findAppIds = function(groupIds, userId, callback) {
-        // 多型處理
-        if ('string' === typeof groupIds) {
-            groupIds = [groupIds];
-        };
-
-        let _groupIds = groupIds;
-        let appIds = {};
-        return Promise.resolve().then(() => {
-            if (!_groupIds) {
-                return;
-            }
-
-            return Promise.all(_groupIds.map((groupId) => {
-                return admin.database().ref('groups/' + groupId).once('value').then((snap) => {
-                    let group = snap.val();
-
-                    if (null === group || undefined === group || '' === group || '' === group.app_ids || undefined === group.app_ids || (group.app_ids instanceof Array && 0 === group.app_ids.length)) {
-                        return Promise.resolve(null);
-                    };
-
-                    let members = group.members;
-                    let userIds = Object.values(members).map((member) => {
-                        // 如果 member 已刪除或未啟用 就不查詢此 group 底下的 app 資料
-                        if (0 === member.isDeleted && 1 === member.status) {
-                            return member.user_id;
-                        };
-                    });
-
-                    if (0 > userIds.indexOf(userId)) {
-                        return Promise.resolve(null);
-                    };
-
+            let appIds = {};
+            return Promise.all(groupIds.map((groupId) => {
+                let query = {
+                    '_id': groupId,
+                    'members.user_id': userId,
+                    'members.isDeleted': 0,
+                    'members.status': 1
+                };
+                return this.Model.findOne(query).then((group) => {
                     let _appIds = group.app_ids;
-                    _appIds.forEach((appId) => {
+                    while (0 < _appIds.length) {
+                        let appId = _appIds.pop();
                         appIds[appId] = appId;
+                    };
+                    return Promise.resolve();
+                });
+            })).then(() => {
+                appIds = Object.keys(appIds);
+                ('function' === typeof callback) && callback(appIds);
+                return Promise.resolve(appIds);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
+            });
+        }
+
+        findUserIds(groupIds, callback) {
+            // polymorphism to both groupid[] and groupid
+            if ('string' === typeof groupIds) {
+                groupIds = [groupIds];
+            };
+            let userIds = {};
+            return Promise.all(groupIds.map((groupId) => {
+                let query = {
+                    '_id': groupId
+                };
+                return this.Model.findOne(query).then((group) => {
+                    let members = group.members;
+                    members.map((member) => {
+                        let _userIds = member.user_id;
+                        if ('string' === typeof _userIds) {
+                            _userIds = [_userIds];
+                        };
+                        _userIds.map((userId) => {
+                            userIds[userId] = userId;
+                        });
                     });
                 });
-            }));
-        }).then(() => {
-            let _appIds = Object.keys(appIds);
-            ('function' === typeof callback) && callback(_appIds);
-            return _appIds;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
-
-    /**
-     * 根據 groupid|groupid[] 回傳 群組中對應的 使用者 uesrIDs
-     * @param {string|string[]} groupIds
-     * @param {(userIds: string[]|null) => any} callback
-     */
-    GroupsModel.prototype.findUserIds = function(groupIds, callback) {
-        // 多行處理
-        if ('string' === typeof groupIds) {
-            groupIds = [groupIds];
-        };
-
-        let userIds = [];
-        Promise.all(groupIds.map((groupId) => {
-            return admin.database().ref('groups/' + groupId + '/members').once('value').then((snap) => {
-                let members = snap.val();
-                if (!members) {
-                    return null;
-                };
-
-                for (let memberId in members) {
-                    let member = members[memberId];
-                    let userId = member.user_id;
-                    userId && userIds.push(userId);
-                };
+            })).then(() => {
+                userIds = Object.keys(userIds);
+                ('function' === typeof callback) && callback(userIds);
+                return Promise.resolve(userIds);
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return Promise.reject(null);
             });
-        })).then(() => {
-            callback(userIds);
-        }).catch(() => {
-            callback(null);
-        });
-    };
+        }
+    }
     return new GroupsModel();
 })();

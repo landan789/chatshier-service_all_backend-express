@@ -11,7 +11,7 @@ const READ = 'READ';
 var appsMdl = require('../models/apps');
 var usersMdl = require('../models/users');
 var groupsMdl = require('../models/groups');
-var appsTagsMdl = require('../models/apps_tags');
+var appsTagsMdl = require('../models/apps_fields');
 
 var apps = {};
 
