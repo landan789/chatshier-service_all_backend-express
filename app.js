@@ -6,7 +6,7 @@ var cors = require('cors');
 
 var jwtHlp = require('./helpers/jwt');
 var index = require('./routes/index');
-var api = require('./routes/api');
+var apiDatabase = require('./routes/api_database');
 var apiSign = require('./routes/api_sign');
 var app = express();
 
@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER', null));
 
 // API
-app.use('/api', api);
+app.use('/api/database', apiDatabase);
 
 app.use('/api/sign', apiSign);
 

@@ -14,18 +14,11 @@ var appsRichmenusCtl = require('../controllers/apps_richmenus');
 var appsTagsCtl = require('../controllers/apps_tags');
 var appsGreetingsCtl = require('../controllers/apps_greetings');
 var usersCtl = require('../controllers/users');
-
 var groupsCtl = require('../controllers/groups');
 var groupsMembersCtl = require('../controllers/groups_members');
-
 var botCtl = require('../controllers/bot');
-
-// ===============
-// 訊息相關 Ctrl
 var appsMessagersCtl = require('../controllers/apps_messagers');
 var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
-// ===============
-
 var appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
 
 var router = express.Router();
