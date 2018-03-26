@@ -91,7 +91,7 @@ module.exports = (function() {
             let appId = checkedAppId;
             return new Promise((resolve, reject) => {
                 appsGreetingsMdl.insert(appId, postGreeting, (result) => {
-                    if (false === result) {
+                    if (!result) {
                         reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
                         return;
                     }
@@ -149,8 +149,9 @@ module.exports = (function() {
         }).then(() => { // 刪除目前greeting
             return new Promise((resolve, reject) => {
                 appsGreetingsMdl.remove(appId, greetingId, (result) => {
-                    if (false === result) {
+                    if (!result) {
                         reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
+                        return;
                     }
                     resolve(result);
                 });

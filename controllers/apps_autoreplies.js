@@ -210,7 +210,7 @@ module.exports = (function() {
         }).then(() => {
             return new Promise((resolve, reject) => {
                 appsAutorepliesMdl.remove(appId, autoreplyId, (data) => {
-                    if (false === data) {
+                    if (!data) {
                         reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_REMOVE);
                         return;
                     }
