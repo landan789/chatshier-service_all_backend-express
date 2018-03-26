@@ -48,9 +48,9 @@ module.exports = (function() {
 
                 ('function' === typeof callback) && callback(users);
                 return users;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -93,9 +93,9 @@ module.exports = (function() {
             }).then((users) => {
                 ('function' === typeof callback) && callback(users);
                 return users;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -116,9 +116,9 @@ module.exports = (function() {
             }).then((calendarId) => {
                 ('function' === typeof callback) && callback(calendarId);
                 return calendarId;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -140,9 +140,9 @@ module.exports = (function() {
                 };
                 ('function' === typeof callback) && callback(users);
                 return users;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

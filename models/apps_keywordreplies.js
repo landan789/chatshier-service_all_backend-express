@@ -85,9 +85,9 @@ module.exports = (function() {
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -103,9 +103,9 @@ module.exports = (function() {
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -125,9 +125,9 @@ module.exports = (function() {
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -152,9 +152,9 @@ module.exports = (function() {
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -189,7 +189,7 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     let appsKeywordreplies = {};
                     if (0 === results.length) {
-                        return appsKeywordreplies;
+                        return Promise.reject(new Error());
                     }
 
                     appsKeywordreplies = results.reduce((output, app) => {
@@ -202,9 +202,9 @@ module.exports = (function() {
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

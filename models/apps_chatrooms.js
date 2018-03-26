@@ -71,9 +71,9 @@ module.exports = (function() {
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -105,9 +105,9 @@ module.exports = (function() {
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);
                 return appsChatrooms;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
     }

@@ -99,9 +99,9 @@ module.exports = (function() {
             }).then((appChatroomMessages) => {
                 ('function' === typeof callback) && callback(appChatroomMessages);
                 return appChatroomMessages;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -158,9 +158,9 @@ module.exports = (function() {
             }).then((appsChatroomsMessages) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessages);
                 return appsChatroomsMessages;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

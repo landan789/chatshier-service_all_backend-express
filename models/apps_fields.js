@@ -171,9 +171,9 @@ module.exports = (function() {
             }).then((appsTags) => {
                 ('function' === typeof callback) && callback(appsTags);
                 return appsTags;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -204,9 +204,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -232,9 +232,9 @@ module.exports = (function() {
             })).then(() => {
                 ('function' === typeof callback) && callback(appsTags);
                 return appsTags;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -264,9 +264,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -304,7 +304,7 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     let appsFields = {};
                     if (0 === results.length) {
-                        return appsFields;
+                        return Promise.reject(new Error());
                     }
 
                     appsFields = results.reduce((output, curr) => {
@@ -321,9 +321,9 @@ module.exports = (function() {
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
                 return appsFields;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

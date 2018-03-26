@@ -69,9 +69,9 @@ module.exports = (function() {
 
                 ('function' === typeof callback) && callback(calendarsEvents);
                 return calendarsEvents;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -114,9 +114,9 @@ module.exports = (function() {
             }).then((calendars) => {
                 ('function' === typeof callback) && callback(calendars);
                 return calendars;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -152,9 +152,9 @@ module.exports = (function() {
             }).then((calendar) => {
                 ('function' === typeof callback) && callback(calendar);
                 return calendar;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -196,7 +196,7 @@ module.exports = (function() {
             }).then((results) => {
                 let calendarEvents = {};
                 if (0 === results.length) {
-                    return calendarEvents;
+                    return Promise.reject(new Error());
                 }
 
                 calendarEvents = results.reduce((output, calendar) => {
@@ -208,9 +208,9 @@ module.exports = (function() {
             }).then((calendarEvents) => {
                 ('function' === typeof callback) && callback(calendarEvents);
                 return calendarEvents;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
     }

@@ -64,9 +64,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -95,9 +95,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -126,9 +126,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -166,7 +166,7 @@ module.exports = (function() {
                 return this.AppsModel.aggregate(aggregations).then((results) => {
                     let appsTickets = {};
                     if (0 === results.length) {
-                        return appsTickets;
+                        return Promise.reject(new Error());
                     }
 
                     appsTickets = results.reduce((output, curr) => {
@@ -179,9 +179,9 @@ module.exports = (function() {
             }).then((appsTickets) => {
                 ('function' === typeof callback) && callback(appsTickets);
                 return appsTickets;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

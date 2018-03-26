@@ -55,9 +55,9 @@ module.exports = (function() {
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -89,9 +89,9 @@ module.exports = (function() {
                 apps[app._id] = app;
                 ('function' === typeof callback) && callback(apps);
                 return apps;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -112,9 +112,9 @@ module.exports = (function() {
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -135,9 +135,9 @@ module.exports = (function() {
             }).then((apps) => {
                 ('function' === typeof callback) && callback(apps);
                 return apps;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     };

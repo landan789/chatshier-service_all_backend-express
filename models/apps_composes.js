@@ -64,9 +64,9 @@ module.exports = (function() {
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -95,9 +95,9 @@ module.exports = (function() {
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -126,9 +126,9 @@ module.exports = (function() {
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -161,7 +161,8 @@ module.exports = (function() {
                     }, {
                         $match: {
                             '_id': this.Types.ObjectId(appId),
-                            'composes._id': this.Types.ObjectId(composeId)
+                            'composes._id': this.Types.ObjectId(composeId),
+                            'composes.isDeleted': true
                         }
                     }, {
                         $project: {
@@ -174,7 +175,7 @@ module.exports = (function() {
             }).then((results) => {
                 let appsComposes = {};
                 if (0 === results.length) {
-                    return appsComposes;
+                    return Promise.reject(new Error());
                 }
 
                 appsComposes = results.reduce((output, curr) => {
@@ -186,9 +187,9 @@ module.exports = (function() {
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

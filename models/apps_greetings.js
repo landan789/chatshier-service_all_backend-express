@@ -46,7 +46,7 @@ module.exports = (function() {
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 let appsGreetings = {};
                 if (0 === results.length) {
-                    return appsGreetings;
+                    return Promise.reject(new Error());
                 }
 
                 appsGreetings = results.reduce((output, app) => {
@@ -59,11 +59,12 @@ module.exports = (function() {
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
                 return appsGreetings;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
+
         /**
          * 找到 加好友回覆未刪除的資料包，不含 apps 結構
          *
@@ -111,9 +112,9 @@ module.exports = (function() {
             }).then((appGreetings) => {
                 ('function' === typeof callback) && callback(appGreetings);
                 return appGreetings;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -136,9 +137,9 @@ module.exports = (function() {
             }).then((appsGreetings) => {
                 ('function' === typeof callback) && callback(appsGreetings);
                 return appsGreetings;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
 
@@ -180,7 +181,7 @@ module.exports = (function() {
             }).then((results) => {
                 let appGreetings = {};
                 if (0 === results.length) {
-                    return appGreetings;
+                    return Promise.reject(new Error());
                 }
 
                 appGreetings = results.reduce((output, app) => {
@@ -192,9 +193,9 @@ module.exports = (function() {
             }).then((appGreetings) => {
                 ('function' === typeof callback) && callback(appGreetings);
                 return appGreetings;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         };
     }

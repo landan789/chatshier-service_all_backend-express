@@ -42,9 +42,9 @@ module.exports = (function() {
             })).then(() => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -87,9 +87,9 @@ module.exports = (function() {
             }).then(() => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -111,9 +111,9 @@ module.exports = (function() {
                 };
                 ('function' === typeof callback) && callback(groups);
                 return groups;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -142,9 +142,9 @@ module.exports = (function() {
                 appIds = Object.keys(appIds);
                 ('function' === typeof callback) && callback(appIds);
                 return appIds;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
 
@@ -174,9 +174,9 @@ module.exports = (function() {
                 userIds = Object.keys(userIds);
                 ('function' === typeof callback) && callback(userIds);
                 return userIds;
-            }).catch((err) => {
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(err);
+                return null;
             });
         }
     }

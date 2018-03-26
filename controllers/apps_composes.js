@@ -181,8 +181,9 @@ module.exports = (function() {
             };
             return new Promise((resolve, reject) => {
                 appsComposesMdl.remove(appId, composeId, (result) => {
-                    if (false === result) {
+                    if (!result) {
                         reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
+                        return;
                     }
                     resolve(result);
                 });
