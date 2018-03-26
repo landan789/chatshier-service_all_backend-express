@@ -42,16 +42,11 @@ module.exports = (function() {
                 Promise.resolve().then(() => {
                     return new Promise((resolve, reject) => {
                         let userId = payload.uid;
-                        // jwt is expired !
+                        // jwt has expired !
                         if (payload.exp < Date.now() && !refresh) {
                             reject(new Error());
                             return;
                         };
-
-                        if (refresh) {
-                            payload.exp = Date.now() + CHATSHIER.JWT.EXPIRES;
-                        }
-
                         usersMdl.find(userId, null, (users) => {
                             if (!users) {
                                 reject(new Error());

@@ -1,5 +1,3 @@
-const CHATSHIER = require('./config/chatshier');
-
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
@@ -21,16 +19,11 @@ app.use(cors());
 app.use(cookieParser());
 
 // API JWT 權限驗證
-app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER'));
+app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER', null));
 
 // API
 app.use('/api', api);
 
 app.use('/api/sign', apiSign);
-
-app.use('/other', jwtHlp.authenticate('HEADER'));
-app.use('/other', (req, res, next) => {
-    res.send(202);
-});
 
 module.exports = app;
