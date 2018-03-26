@@ -122,9 +122,10 @@ module.exports = (function() {
             }).then(() => {
                 return new Promise((resolve, reject) => {
                     usersMdl.find(null, req.body.email, (users) => {
-                        // If the user exists then REST API can not insert any user
-                        if (users) {
+                        // If the user email exists then REST API can not insert any user
+                        if (0 < Object.keys(users).length) {
                             reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
+                            return;
                         };
                         resolve();
                     });
