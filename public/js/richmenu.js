@@ -1,38 +1,43 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
 
     var api = window.restfulAPI;
-    var userId = '';
     var nowSelectAppId = '';
 
     var $modal = $('#richmenu-modal');
 
     const NO_PERMISSION_CODE = '3.16';
 
-    window.auth.ready.then((currentUser) => {
-        userId = currentUser.uid;
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        $jqDoc.on('click', '#del', function() { // 刪除
-            let appId = $(this).parent().parent().attr('rel');
-            let richmenuId = $(this).parent().parent().attr('id');
-            remove(appId, richmenuId, userId);
-        });
+    $jqDoc.on('click', '#del', function() { // 刪除
+        let appId = $(this).parent().parent().attr('rel');
+        let richmenuId = $(this).parent().parent().attr('id');
+        remove(appId, richmenuId, userId);
+    });
 
-        $('.content-bar').hide();
-        $('.content-input').hide();
-        $jqDoc.on('click', '#modal-save', saveRichMenus);
-        $jqDoc.on('click', '#show-richmenu-modal', clearModal);
-        $jqDoc.on('change', '.image-ghost', uploadImage);
-        $jqDoc.on('click', 'input[name = richmenu-type]', photoTypeShow);
-        $jqDoc.on('click', 'input[name = content]', contentInputShow);
-        $jqDoc.on('click', '.box', contentBarShow);
+    $('.content-bar').hide();
+    $('.content-input').hide();
+    $jqDoc.on('click', '#modal-save', saveRichMenus);
+    $jqDoc.on('click', '#show-richmenu-modal', clearModal);
+    $jqDoc.on('change', '.image-ghost', uploadImage);
+    $jqDoc.on('click', 'input[name = richmenu-type]', photoTypeShow);
+    $jqDoc.on('click', 'input[name = content]', contentInputShow);
+    $jqDoc.on('click', '.box', contentBarShow);
 
-        return api.apps.findAll(userId);
-    }).then(function(respJson) {
+    return api.apps.findAll(userId).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
@@ -96,7 +101,7 @@
         $('.content-input').hide();
         $modal.find('.show-richmenu-type').find('.box').remove();
         var checked = $(this).val();
-        var typeBox = new typeObj();
+        var typeBox = new TypeObject();
         var box1 = typeBox.box1;
         var box2 = typeBox.box2;
         var box3 = typeBox.box3;
@@ -135,6 +140,8 @@
             case 'type7':
                 box1.css('width', '540px').css('height', '360px');
                 $modal.find('.show-richmenu-type').append(box1);
+                break;
+            default:
                 break;
         }
     }
@@ -175,7 +182,7 @@
     }
 
     function appenedBox() {
-        var typeBox = new typeObj();
+        var typeBox = new TypeObject();
         var box1 = typeBox.box1;
         var box2 = typeBox.box2;
         var box3 = typeBox.box3;
@@ -208,7 +215,7 @@
                     type: 'Message',
                     text: $('#box' + (i + 1)).attr('ref')
                 }
-            }
+            };
         }
 
         // if (!channelId || !keyword || !type) {
@@ -218,10 +225,10 @@
             let template = createTemplate(type);
             if (template) {
                 let data = {
-                    "appId": appId,
-                    "keyword": keyword,
-                    "status": status,
-                    "template": template
+                    appId: appId,
+                    keyword: keyword,
+                    status: status,
+                    template: template
                 };
                 console.log(data);
                 if (propId) {
@@ -250,10 +257,12 @@
                 return 2;
             case 'type7':
                 return 1;
+            default:
+                return 0;
         }
-    };
+    }
 
-    var tableObj = function() {
+    function TableObject() {
         this.tr = $('<tr>');
         this.th = $('<th>');
         this.td1 = $('<td>');
@@ -271,16 +280,16 @@
         this.DeleteBtn = $('<button>').attr('type', 'button')
             .addClass('btn btn-danger fa fa-trash-o')
             .attr('id', 'del');
-    };
+    }
 
-    var typeObj = function() {
+    function TypeObject() {
         this.box1 = $('<div>').addClass('box').attr('id', 'box1');
         this.box2 = $('<div>').addClass('box').attr('id', 'box2');
         this.box3 = $('<div>').addClass('box').attr('id', 'box3');
         this.box4 = $('<div>').addClass('box').attr('id', 'box4');
         this.box5 = $('<div>').addClass('box').attr('id', 'box5');
         this.box6 = $('<div>').addClass('box').attr('id', 'box6');
-    };
+    }
 
     function loadRichmenus(appId, userId) {
         $('#richmenu').empty();
@@ -304,7 +313,7 @@
                 linkText = linkText + '，' + richmenu.areas[i].action.type;
             }
         }
-        var list = new tableObj();
+        var list = new TableObject();
         var title = list.th.text(richmenu.name);
         var chatBarText = list.td1.text(richmenu.chatBarText);
         var link = list.td3.text(linkText);

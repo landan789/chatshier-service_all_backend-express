@@ -1,80 +1,86 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    $('#loading').fadeOut();
+
     var ticketInfo = {};
     var messagersData = {};
     var appsAgents = {};
 
     var api = window.restfulAPI;
-    var userId = '';
     var lastSelectedTicket = null;
 
     var $jqDoc = $(document);
     var $ticketBody = null;
 
-    window.auth.ready.then(function(currentUser) {
-        userId = currentUser.uid; // 儲存全域用變數 userId
-        $ticketBody = $('.ticket-body');
+    var userId;
+    try {
+        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        userId = payload.uid;
+    } catch (ex) {
+        userId = '';
+    }
 
-        // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
-        $jqDoc.on('click', '.ticket-body .ticket-row', showTicketDetail); // 查看待辦事項細節
-        $jqDoc.on('click', '#ticket_info_modify', modifyTicket); // 修改待辦事項
-        // $jqDoc.on('click', '.edit', showInput);
-        // $jqDoc.on('click', '.inner-text', function(event) {
-        //     event.stopPropagation();
-        // });
-        $jqDoc.on('focusout', '.inner-text', hideInput);
-        $jqDoc.on('keypress', '.inner-text', function(e) {
-            if (13 === e.which) $(this).blur();
-        });
+    $ticketBody = $('.ticket-body');
 
-        $('#ticket_info_delete').click(function() {
-            var alertWarning = $('#alert-warning');
-
-            alertWarning.find('p').html('是否要刪除表單?');
-            alertWarning.show();
-            alertWarning.find('#yes').off('click').on('click', function() {
-                alertWarning.hide();
-
-                return api.appsTickets.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
-                    loadTable();
-
-                    var alertDanger = $('#alert-danger');
-                    alertDanger.children('span').text('表單已刪除');
-                    window.setTimeout(function() {
-                        alertDanger.show();
-                        window.setTimeout(function() { alertDanger.hide(); }, 3000);
-                    }, 1000);
-                });
-            });
-
-            alertWarning.find('#no').off('click').on('click', function() {
-                alertWarning.hide();
-            });
-        });
-
-        // ===========
-        // 搜尋過濾功能
-        $('#ticket_search_bar').keyup(function() {
-            var $content = $('.ticket-body tr');
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $content.show().filter(function() {
-                var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text1.indexOf(val);
-            }).hide();
-        });
-        // ===========
-
-        // ===========
-        // 點擊表單名稱進行排序功能
-        var $ticketTableHeaders = $('.main .ticket thead tr th');
-        $ticketTableHeaders.on('click', function(ev) {
-            sortCloseTable(ev.target.cellIndex);
-        });
-        // ===========
-
-        loadTable();
+    // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
+    $jqDoc.on('click', '.ticket-body .ticket-row', showTicketDetail); // 查看待辦事項細節
+    $jqDoc.on('click', '#ticket_info_modify', modifyTicket); // 修改待辦事項
+    // $jqDoc.on('click', '.edit', showInput);
+    // $jqDoc.on('click', '.inner-text', function(event) {
+    //     event.stopPropagation();
+    // });
+    $jqDoc.on('focusout', '.inner-text', hideInput);
+    $jqDoc.on('keypress', '.inner-text', function(e) {
+        if (13 === e.which) $(this).blur();
     });
+
+    $('#ticket_info_delete').click(function() {
+        var alertWarning = $('#alert-warning');
+
+        alertWarning.find('p').html('是否要刪除表單?');
+        alertWarning.show();
+        alertWarning.find('#yes').off('click').on('click', function() {
+            alertWarning.hide();
+
+            return api.appsTickets.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
+                loadTable();
+
+                var alertDanger = $('#alert-danger');
+                alertDanger.children('span').text('表單已刪除');
+                window.setTimeout(function() {
+                    alertDanger.show();
+                    window.setTimeout(function() { alertDanger.hide(); }, 3000);
+                }, 1000);
+            });
+        });
+
+        alertWarning.find('#no').off('click').on('click', function() {
+            alertWarning.hide();
+        });
+    });
+
+    // ===========
+    // 搜尋過濾功能
+    $('#ticket_search_bar').keyup(function() {
+        var $content = $('.ticket-body tr');
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        $content.show().filter(function() {
+            var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+            return !~text1.indexOf(val);
+        }).hide();
+    });
+    // ===========
+
+    // ===========
+    // 點擊表單名稱進行排序功能
+    var $ticketTableHeaders = $('.main .ticket thead tr th');
+    $ticketTableHeaders.on('click', function(ev) {
+        sortCloseTable(ev.target.cellIndex);
+    });
+    // ===========
+
+    loadTable();
 
     function loadTable() {
         $ticketBody.empty();
