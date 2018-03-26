@@ -3,6 +3,7 @@ module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
     const USERS = 'users';
+    const GROUPS = 'GROUPS';
     const WEBHOOKS = 'webhooks';
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
@@ -13,6 +14,7 @@ module.exports = (function() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
             this.UsersModel = this.model(USERS, this.UsersSchema);
+            this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
             this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
             this.project = {
                 name: true,
@@ -64,6 +66,7 @@ module.exports = (function() {
         insert(userId, postApp, callback) {
             let apps = {};
             let webhookId = this.Types.ObjectId();
+            let groupId = postApp.group_id;
             let _appId = this.Types.ObjectId();
             let _apps = new this.AppsModel();
             _apps._id = _appId;
@@ -81,6 +84,26 @@ module.exports = (function() {
             _apps.createdTime = Date.now();
 
             return _apps.save().then((__apps) => {
+                let query = {
+                    '_id': groupId
+                };
+                return this.GroupsModel.findOne(query).then((group) => {
+                    let appId = __apps._id;
+                    let appIds = undefined === group.app_ids ? [] : group.app_ids;
+                    appIds.push(appId);
+                    let putGroup = {
+                        $set: {
+                            'app_ids': appIds
+                        }
+                    };
+                    return this.GroupsModel.update(query, putGroup).then((result) => {
+                        if (!result.ok) {
+                            return Promise.reject(new Error());
+                        }
+                        return __apps;
+                    });
+                });
+            }).then((__apps) => {
                 let query = {
                     '_id': __apps._id
                 };

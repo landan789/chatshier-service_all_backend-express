@@ -10,36 +10,79 @@ module.exports = (function() {
         }
 
         find(groupIds, userId, callback) {
-            let groups = {};
             // polymorphism from groupid | groupid[]
-            if ('string' === typeof groupIds) {
+            if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
-            return Promise.all(groupIds.map((groupId) => {
-                let query = {
-                    '_id': groupId,
-                    'isDeleted': false,
-                    'members.isDeleted': false,
-                    'members.status': true,
-                    'members.user_id': userId
-                };
-                return this.Model.findOne(query).then((group) => {
-                    let members = {};
-                    let _members = group.members;
-                    while (0 < _members.length) {
-                        let member = _members.pop();
-                        members[member._id] = member;
-                    };
-                    let _group = {
+            return Promise.resolve().then(() => {
+                if (!userId) {
+                    let aggregations = [
+                        {
+                            $unwind: '$members'
+                        }, {
+                            $match: {
+                                '_id': {
+                                    $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                                },
+                                'isDeleted': false,
+                                'members.isDeleted': false,
+                                'members.status': true
+                            }
+                        }, {
+                            $project: {
+                                name: 1,
+                                createdTime: 1,
+                                updatedTime: 1,
+                                isDeleted: 1,
+                                members: 1
+                            }
+                        }
+                    ];
+                    return this.Model.aggregate(aggregations);
+                }
+                let aggregations = [
+                    {
+                        $unwind: '$members'
+                    }, {
+                        $match: {
+                            '_id': {
+                                $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                            },
+                            'isDeleted': false,
+                            'members.isDeleted': false,
+                            'members.status': true,
+                            'members.user_id': userId
+                        }
+                    }, {
+                        $project: {
+                            name: 1,
+                            createdTime: 1,
+                            updatedTime: 1,
+                            isDeleted: 1,
+                            members: 1
+                        }
+                    }
+                ];
+                return this.Model.aggregate(aggregations);
+            }).then((results) => {
+                let groups = {};
+                if (0 === results.length) {
+                    return Promise.resolve(groups);
+                }
+
+                groups = results.reduce((output, group) => {
+                    output[group._id] = output[group._id] || {
+                        name: group.name,
                         createdTime: group.createdTime,
                         updatedTime: group.updatedTime,
                         isDeleted: group.isDeleted,
-                        members: members,
-                        name: group.name
+                        members: {}
                     };
-                    groups[group._id] = _group;
-                });
-            })).then(() => {
+                    Object.assign(output[group._id].members, this.toObject(group.members));
+                    return output;
+                }, {});
+                return groups;
+            }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
             }).catch(() => {
@@ -48,43 +91,22 @@ module.exports = (function() {
             });
         }
 
-        insert(userId, group, callback) {
-            let groups = {};
-            let groupId;
-
-            let _group = new this.Model();
-            _group.app_ids = group.app_ids;
-            _group.name = group.name;
+        insert(userId, postGroup, callback) {
+            let group = new this.Model();
+            group.name = postGroup.name;
 
             // The creator of groups must be the owner of group
-            _group.members[0] = {
+            group.members[0] = {
                 status: 1,
                 type: OWNER,
                 user_id: userId,
                 isDeleted: 0
             };
 
-            return _group.save().then((__group) => {
-                let query = {
-                    '_id': __group._id
-                };
-                return this.Model.findOne(query);
-            }).then((group) => {
-                let members = {};
-                let _members = group.members;
-                while (0 < _members.length) {
-                    let member = _members.pop();
-                    members[member._id] = member;
-                };
-                let _group = {
-                    createdTime: group.createdTime,
-                    updatedTime: group.updatedTime,
-                    isDeleted: group.isDeleted,
-                    members: members,
-                    name: group.name
-                };
-                groups[group._id] = _group;
-            }).then(() => {
+            return group.save().then((insertedGroup) => {
+                let groupId = insertedGroup._id;
+                return this.find(groupId, userId);
+            }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
             }).catch(() => {
@@ -93,22 +115,26 @@ module.exports = (function() {
             });
         }
 
-        update(groupId, group, callback) {
+        update(groupId, putGroup, callback) {
+            putGroup.updatedTime = undefined === putGroup.updatedTime ? Date.now() : putGroup.updatedTime;
             let query = {
                 '_id': groupId
             };
-            let groups = {};
-            return this.Model.update(query, {
-                $set: group
-            }).then((result) => {
+            let group = {
+                '_id': putGroup
+            };
+            for (let prop in putGroup) {
+                if (null === putGroup[prop]) {
+                    continue;
+                }
+                group.$set['events.$.' + prop] = putGroup[prop];
+            }
+            return this.Model.update(query, group).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
-                };
-                return this.Model.findOne(query);
-            }).then((group) => {
-                groups = {
-                    [group._id]: group
-                };
+                }
+                return this.find(groupId, null);
+            }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
             }).catch(() => {
@@ -119,7 +145,7 @@ module.exports = (function() {
 
         findAppIds(groupIds, userId, callback) {
             // polymorphism to both groupid[] and groupid
-            if ('string' === typeof groupIds) {
+            if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
             let appIds = {};
@@ -127,8 +153,8 @@ module.exports = (function() {
                 let query = {
                     '_id': groupId,
                     'members.user_id': userId,
-                    'members.isDeleted': 0,
-                    'members.status': 1
+                    'members.isDeleted': false,
+                    'members.status': true
                 };
                 return this.Model.findOne(query).then((group) => {
                     let _appIds = group.app_ids;
@@ -150,7 +176,7 @@ module.exports = (function() {
 
         findUserIds(groupIds, callback) {
             // polymorphism to both groupid[] and groupid
-            if ('string' === typeof groupIds) {
+            if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
             let userIds = {};
