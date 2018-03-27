@@ -49,18 +49,6 @@ module.exports = (function() {
                         members: {},
                         app_ids: group.app_ids
                     };
-                    let members = group.members;
-                    let userIds = members.map((member) => {
-                        // 如果 member 已刪  就不查詢此 group 底下的 app 資料
-                        if (member.isDeleted) {
-                            members.pop(member);
-                        };
-                        return member.user_id;
-                    });
-
-                    if (0 > userIds.indexOf(userId) && null !== userId) {
-                        return Promise.resolve(null);
-                    };
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
                 }, {});
