@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var CalendarEventTypes = (function() {
         var definedType = {
             Calendar: 'C',

@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var appsData = {};
     var composesData = {};
     var api = window.restfulAPI;

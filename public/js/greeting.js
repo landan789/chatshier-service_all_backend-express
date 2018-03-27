@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var appsData = {};
     var rowCount = 0;
     var findedGreetingIds = {};
