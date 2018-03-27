@@ -40,6 +40,8 @@ module.exports = (function() {
                 if (0 === results.length) {
                     return Promise.resolve(groups);
                 }
+
+                let userIds = [];
                 groups = results.reduce((output, group) => {
                     output[group._id] = output[group._id] || {
                         name: group.name,
@@ -49,21 +51,16 @@ module.exports = (function() {
                         members: {},
                         app_ids: group.app_ids
                     };
-                    let members = group.members;
-                    let userIds = members.map((member) => {
-                        // 如果 member 已刪  就不查詢此 group 底下的 app 資料
-                        if (member.isDeleted) {
-                            members.pop(member);
-                        };
-                        return member.user_id;
-                    });
 
-                    if (0 > userIds.indexOf(userId) && null !== userId) {
-                        return Promise.resolve(null);
-                    };
+                    userIds.push(group.members.user_id);
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
                 }, {});
+
+                if (userId && 0 > userIds.indexOf(userId)) {
+                    return Promise.reject(new Error());
+                };
+
                 return groups;
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
