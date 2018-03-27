@@ -9,18 +9,29 @@
 
     var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
     var cookieManager = window.chatshierCookie.manager;
+    var api = window.restfulAPI;
 
     /**
      * automatically refresh when the time before jwt expired time 10 minutes
      */
     function jwtRefresh() {
         let jwt = window.localStorage.getItem('jwt');
-        let payload = jwt_decode(jwt);
-        let userId = payload.uid;
+        let userId;
+
         let nextPromise = new Promise((resolve, reject) => {
             let jwt = window.localStorage.getItem('jwt');
-            let payload = jwt_decode(jwt);
-            let time = payload.exp - Date.now() - 10 * 1000;
+            let payload = window.jwt_decode(jwt);
+            let exp;
+
+            try {
+                payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+                exp = payload.exp;
+                userId = payload.uid;
+            } catch (ex) {
+                exp = 0;
+            }
+
+            let time = exp - Date.now() - 10 * 1000;
             if (0 > time) {
                 time = 0;
             }
@@ -78,7 +89,7 @@
             state = state | HAS_USER;
         }
 
-        if ('/login' === pathname || '/signup' === pathname) {
+        if ('/signin' === pathname || '/signup' === pathname) {
             state = state | IS_LOGIN_SIGNUP_PAGE;
         }
 
