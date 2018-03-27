@@ -126,13 +126,13 @@ module.exports = (function() {
                 isExist = true;
                 let _messager = appsMessagers[appId].messagers[messagerId];
                 let currentTime = Date.now();
-                if (_messager.recentChat) {
-                    let lastChatedTimeGap = currentTime - parseInt(_messager.recentChat);
+                if (_messager.lastTime) {
+                    let lastChatedTimeGap = currentTime - parseInt(_messager.lastTime);
                     if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
-                        _messager.chatTimeCount++;
+                        _messager.chatCount++;
                     }
                 }
-                _messager.recentChat = currentTime;
+                _messager.lastTime = currentTime;
                 return Object.assign(_messager, messager);
             }).then((_messager) => {
                 let query = {

@@ -133,6 +133,10 @@ function init(server) {
                     });
                 });
             }).then((messagers) => {
+                if (!messagers) {
+                    return;
+                }
+
                 sender = messagers[appId].messagers[senderId];
                 groupId = app.group_id;
                 return new Promise((resolve, reject) => {
@@ -141,6 +145,10 @@ function init(server) {
                     });
                 });
             }).then((groups) => {
+                if (!groups) {
+                    return;
+                }
+
                 let group = groups[groupId];
                 let members = group.members;
                 let messagerIds = Object.keys(members).map((memberId) => {
@@ -152,6 +160,10 @@ function init(server) {
                 });
                 return Promise.resolve(messagerIds);
             }).then((messagerIds) => {
+                if (!messagerIds) {
+                    return;
+                }
+
                 totalMessages = receivedMessages.concat(repliedMessages);
                 return totalMessages.length > 0 && appsChatroomsMessagersMdl.increaseMessagersUnRead(appId, sender.chatroom_id, messagerIds, totalMessages.length);
             }).then(() => {

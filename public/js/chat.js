@@ -1207,7 +1207,7 @@
                     '</td>';
                 case setsTypeEnums.DATE:
                     tagValue = tagValue || 0;
-                    var tagDateStr = new Date(tagValue - timezoneGap).toJSON().split('.').shift();
+                    var tagDateStr = new Date(new Date(tagValue).getTime() - timezoneGap).toJSON().split('.').shift();
                     return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';
