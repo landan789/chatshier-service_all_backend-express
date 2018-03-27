@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
 
     var nowSelectAppId = '';
     var appsData = {};

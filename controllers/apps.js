@@ -209,7 +209,7 @@ apps.postOne = (req, res, next) => {
 
         return new Promise((resolve, reject) => {
             groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
-                if (null === groups || undefined === groups || '' === groups || 0 === Object.keys(groups).length) {
+                if (!groups || (groups && 0 === Object.keys(groups).length)) {
                     reject(API_ERROR.GROUP_DID_NOT_EXIST);
                     return;
                 }

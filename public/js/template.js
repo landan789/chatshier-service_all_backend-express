@@ -1,7 +1,5 @@
 /// <reference path='../../typings/client/index.d.ts' />
 (function() {
-    $('#loading').fadeOut();
-
     const socket = io.connect();
     var api = window.restfulAPI;
     var $jqDoc = $(document);

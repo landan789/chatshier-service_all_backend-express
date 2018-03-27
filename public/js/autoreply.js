@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
