@@ -39,7 +39,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMdl.find(groupIds, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
-                        reject(groups);
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(groups);
@@ -211,7 +211,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMdl.find(groupId, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
-                        reject(groups);
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(groups);
@@ -235,7 +235,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMdl.update(groupId, putGroup, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
-                        reject(groups);
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                         return;
                     }
                     resolve(groups);

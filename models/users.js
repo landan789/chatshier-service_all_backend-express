@@ -35,7 +35,7 @@ module.exports = (function() {
             };
             if (emails instanceof Array) {
                 query['email'] = {
-                    $in: emails
+                    $in: emails.map((email) => email)
                 };
             };
 

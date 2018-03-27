@@ -79,8 +79,8 @@ module.exports = (function() {
         var memberUserId = req.body.userid;
 
         var postMember = {
-            user_id: req.body.userid || '',
-            status: 0, // 0 邀請中 ; 1 已加入
+            user_id: memberUserId || '',
+            status: false, // false 邀請中 ; true 已加入
             type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : READ // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
         };
         var proceed = Promise.resolve();
@@ -93,16 +93,17 @@ module.exports = (function() {
                     return reject(API_ERROR.GROUPID_WAS_EMPTY);
                 };
 
-                usersMdl.find(userId, null, (users) => {
+                usersMdl.find(memberUserId, null, (users) => {
                     if (!users) {
+                        // 不存在的 user 無法加入 群組
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve(users[userId]);
+                    resolve();
                 });
             });
-        }).then((user) => {
+        }).then(() => {
             return new Promise((resolve, reject) => {
-                usersMdl.find(postMember.user_id, null, (users) => {
+                usersMdl.find(userId, null, (users) => {
                     if (!users) {
                         reject(API_ERROR.USER_FAILED_TO_FIND);
                         // 不存在的 user 無法加入 群組
@@ -132,11 +133,11 @@ module.exports = (function() {
                 var userId = member.user_id;
                 return userId;
             });
-            var paramsIndex = userIds.indexOf(req.params.userid);
+            var paramsIndex = userIds.indexOf(userId);
             var paramsMemberId = Object.keys(members)[paramsIndex];
             var paramsMember = members[paramsMemberId];
 
-            var bodyIndex = userIds.indexOf(req.body.userid);
+            var bodyIndex = userIds.indexOf(memberUserId);
             var bodyMemberId = Object.keys(members)[bodyIndex];
             var bodyMember = members[bodyMemberId];
 
@@ -149,7 +150,8 @@ module.exports = (function() {
 
             if (0 <= bodyIndex && bodyMember.isDeleted) {
                 var _member = {
-                    status: 0
+                    isDeleted: false,
+                    status: false
                 };
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.update(groupId, bodyMemberId, _member, (groupsMembers) => {
@@ -192,10 +194,11 @@ module.exports = (function() {
                                 // 目前內部聊天室的 chatroom 只會有一個
                                 // 因此所有群組成員的 chatroom_id 都會是一樣
                                 // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
-                                let messager = appMessagers[appId].messagers[userId];
-                                let newMessager = {
-                                    chatroom_id: messager.chatroom_id
-                                };
+                                let newMessager = {};
+                                if (appMessagers && appMessagers[appId]) {
+                                    let messager = appMessagers[appId].messagers[userId];
+                                    newMessager.chatroom_id = messager.chatroom_id;
+                                }
                                 return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
                             });
                         });
@@ -226,7 +229,7 @@ module.exports = (function() {
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
         var putMember = {
-            status: 0 <= [0, 1].indexOf(Number(req.body.status)) ? Number(req.body.status) : null, // 0 邀請中 ; 1 已加入
+            status: !!req.body.status, // false 邀請中 ; true 已加入
             type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : null // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
         };
 
@@ -298,7 +301,7 @@ module.exports = (function() {
             var _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
             var member = members[_memberId];
-            if (1 === putMember.status && _memberId !== memberId) {
+            if (putMember.status && _memberId !== memberId) {
                 // 當下使用者只能改變自己的 member.status 狀態，回應邀請
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_STATUS);
             };

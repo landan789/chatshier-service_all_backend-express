@@ -22,50 +22,24 @@ module.exports = (function() {
             if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
-            return Promise.resolve().then(() => {
-                if (!userId) {
-                    let aggregations = [
-                        {
-                            $unwind: '$members'
-                        }, {
-                            $match: {
-                                '_id': {
-                                    $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
-                                },
-                                'isDeleted': false,
-                                'members.isDeleted': false,
-                                'members.status': true
-                            }
-                        }, {
-                            $project: this.project
-                        }
-                    ];
-                    return this.Model.aggregate(aggregations);
-                }
-                let aggregations = [
-                    {
-                        $unwind: '$members'
-                    }, {
-                        $match: {
-                            '_id': {
-                                $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
-                            },
-                            'isDeleted': false,
-                            'members.isDeleted': false,
-                            'members.status': true,
-                            'members.user_id': userId
-                        }
-                    }, {
-                        $project: this.project
+            let aggregations = [
+                {
+                    $unwind: '$members'
+                }, {
+                    $match: {
+                        '_id': {
+                            $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                        },
+                        'isDeleted': false,
+                        'members.isDeleted': false
                     }
-                ];
-                return this.Model.aggregate(aggregations);
-            }).then((results) => {
+                }
+            ];
+            return this.Model.aggregate(aggregations).then((results) => {
                 let groups = {};
                 if (0 === results.length) {
                     return Promise.resolve(groups);
                 }
-
                 groups = results.reduce((output, group) => {
                     output[group._id] = output[group._id] || {
                         name: group.name,
@@ -74,6 +48,18 @@ module.exports = (function() {
                         isDeleted: group.isDeleted,
                         members: {},
                         app_ids: group.app_ids
+                    };
+                    let members = group.members;
+                    let userIds = members.map((member) => {
+                        // 如果 member 已刪  就不查詢此 group 底下的 app 資料
+                        if (member.isDeleted) {
+                            members.pop(member);
+                        };
+                        return member.user_id;
+                    });
+
+                    if (0 > userIds.indexOf(userId) && null !== userId) {
+                        return Promise.resolve(null);
                     };
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
@@ -118,13 +104,14 @@ module.exports = (function() {
                 '_id': groupId
             };
             let group = {
-                '_id': putGroup
+                '_id': groupId,
+                $set: {}
             };
             for (let prop in putGroup) {
                 if (null === putGroup[prop]) {
                     continue;
                 }
-                group.$set['events.$.' + prop] = putGroup[prop];
+                group.$set[prop] = putGroup[prop];
             }
             return this.Model.update(query, group).then((result) => {
                 if (!result.ok) {
