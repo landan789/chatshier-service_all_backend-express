@@ -115,6 +115,8 @@
             return { items: [] };
         }
         return window.googleCalendarHelper.findEvents();
+    }).catch(() => {
+        return { items: [] };
     });
 
     var userId;

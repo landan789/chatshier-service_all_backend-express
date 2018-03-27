@@ -66,7 +66,7 @@ calendarsEvents.postOne = (req, res, next) => {
                 if (!(userCalendarId instanceof Array)) {
                     userCalendarId = [userCalendarId];
                 };
-                var calendarId = 0 === userCalendarId.length ? '' : userCalendarId;
+                var calendarId = 0 === userCalendarId.length ? null : userCalendarId;
                 // 首次插入資料時不會有 calendarId
                 resolve(calendarId);
             });
@@ -81,7 +81,7 @@ calendarsEvents.postOne = (req, res, next) => {
                 if (!calendarId) {
                     // 插入事件至指定的行事曆並同時更新使用者的 calendar_id 欄位
                     let userCalendarId = {
-                        calendar_id: Object.keys(calendarsEvents)[0]
+                        calendar_ids: Object.keys(calendarsEvents)[0]
                     };
                     userMdl.update(userId, userCalendarId, (user) => {
                         if (!user) {

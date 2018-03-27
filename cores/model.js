@@ -186,7 +186,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
-        'calendar_id': {type: String, default: ''},
+        'calendar_ids': {type: Array, default: []},
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
