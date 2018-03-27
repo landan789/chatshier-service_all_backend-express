@@ -15,7 +15,7 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         find(calendarIds, eventIds, callback) {
-            if (!(calendarIds instanceof Array)) {
+            if (!(calendarIds instanceof Array) && calendarIds) {
                 calendarIds = [calendarIds];
             }
 
@@ -76,16 +76,16 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} calendarId
+         * @param {string|string[]} calendarIds
          * @param {any} postEvent
          * @param {(calendar: string|null) => any} [callback]
          * @returns {Promise<any>}
          */
-        insert(calendarId, postEvent, callback) {
+        insert(calendarIds, postEvent, callback) {
             let eventId = this.Types.ObjectId();
             postEvent._id = eventId;
             return Promise.resolve().then(() => {
-                if (!calendarId) {
+                if (!calendarIds) {
                     // 首次插入資料時不會有 calendarId
                     // 因此須自行新增一個 calendarId
                     let calendar = new this.CalendarsModel();
@@ -97,10 +97,10 @@ module.exports = (function() {
                 }
 
                 let query = {
-                    '_id': calendarId
+                    '_id': calendarIds
                 };
                 let calendar = {
-                    '_id': calendarId,
+                    '_id': calendarIds,
                     $push: {
                         events: postEvent
                     }
@@ -109,7 +109,7 @@ module.exports = (function() {
                     if (!result.ok) {
                         return Promise.reject(new Error());
                     }
-                    return this.find(calendarId, eventId);
+                    return this.find(calendarIds, eventId);
                 });
             }).then((calendars) => {
                 ('function' === typeof callback) && callback(calendars);
