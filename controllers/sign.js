@@ -10,6 +10,7 @@ module.exports = (function() {
         postSignin(req, res, next) {
             let token;
             let users;
+            let userId;
             let user = {
                 email: req.body.email || '',
                 password: req.body.password || ''
@@ -27,17 +28,18 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(null, req.body.email, (users) => {
-                        // If the user email exists then REST API can not insert any user
-                        if (0 < Object.keys(users).length) {
-                            reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
+                    usersMdl.find(null, req.body.email, (_users) => {
+                        // If the user email deoes not exist then REST API can not sign up
+                        if (0 === Object.keys(_users).length) {
+                            reject(API_ERROR.USER_FAILED_TO_FIND);
                             return;
                         };
-                        resolve();
+                        users = _users;
+                        resolve(users);
                     });
                 });
             }).then(() => {
-                let userId = Object.keys(users).shift() || '';
+                userId = Object.keys(users).shift() || '';
                 let user = users[userId];
                 // The encoded user password from front end must match to the user password in database
                 if (ciperHlp.encode(req.body.password) !== user.password) {
@@ -47,7 +49,7 @@ module.exports = (function() {
                 users[userId].password = '';
                 return Promise.resolve();
             }).then(() => {
-                let userId = Object.keys(users).shift();
+                userId = Object.keys(users).shift();
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then(() => {
