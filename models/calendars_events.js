@@ -138,7 +138,7 @@ module.exports = (function() {
                 }
             };
             for (let prop in putEvent) {
-                if (null === putEvent[prop]) {
+                if (null === putEvent[prop] || undefined === putEvent[prop]) {
                     continue;
                 }
                 setEvent.$set['events.$.' + prop] = putEvent[prop];

@@ -38,6 +38,8 @@
     var appsChatrooms = {};
     var appsTags = {};
     var appsAgents = {};
+    var groups = {};
+    var groupsUsers = {};
 
     // selectors
     var $infoPanel = $('#infoPanel');
@@ -511,8 +513,8 @@
         appsMessagers = responses.shift().data;
         appsTags = responses.shift().data;
 
-        var groups = responses.shift().data;
-        var groupAllUsers = responses.shift().data;
+        groups = responses.shift().data;
+        groupsUsers = responses.shift().data;
         var socketRegPromises = [];
 
         // 過濾 API 資料裡的 app 資料
@@ -544,30 +546,22 @@
                 };
             }
 
-            var messagers = appsMessagers[appId].messagers;
-            for (var messagerId in messagers) {
-                // 內部聊天室的成員即是群組成員
-                // 因此 messagerId 直接對應的是 userId
-                if (CHATSHIER === app.type) {
-                    messagers[messagerId].name = groupAllUsers[messagerId].name;
-                    messagers[messagerId].email = groupAllUsers[messagerId].email;
-                }
-            }
-
             // 把群組內所有使用者的名字加入對話者資料
             // 使各平台 app 內 messagers 的資料具有群組成員的資料
-            if (CHATSHIER !== app.type && groups[app.group_id]) {
+            if (groups[app.group_id]) {
+                var messagers = appsMessagers[appId].messagers;
                 var groupMembers = groups[app.group_id].members;
+
                 for (var memberId in groupMembers) {
                     var memberUserId = groupMembers[memberId].user_id;
 
                     if (messagers[memberUserId]) {
-                        messagers[memberUserId].name = groupAllUsers[memberUserId].name;
-                        messagers[memberUserId].email = groupAllUsers[memberUserId].email;
+                        messagers[memberUserId].name = groupsUsers[memberUserId].name;
+                        messagers[memberUserId].email = groupsUsers[memberUserId].email;
                     } else {
                         messagers[memberUserId] = {
-                            name: groupAllUsers[memberUserId].name,
-                            email: groupAllUsers[memberUserId].email
+                            name: groupsUsers[memberUserId].name,
+                            email: groupsUsers[memberUserId].email
                         };
                     }
                 }
@@ -2073,12 +2067,21 @@
             return Promise.resolve(appsAgents[appId]);
         }
 
-        return Promise.all([
-            api.groups.findAll(userId),
-            api.users.find(userId)
-        ]).then(function(resJsons) {
-            var groups = resJsons.shift().data;
-            var allGroupUsers = resJsons.shift().data;
+        return Promise.resolve().then(() => {
+            if (appsAgents[appId]) {
+                return appsAgents[appId];
+            }
+
+            if (!(groups && groupsUsers)) {
+                return Promise.all([
+                    api.groups.findAll(userId),
+                    api.users.find(userId)
+                ]).then(function(resJsons) {
+                    groups = resJsons.shift().data;
+                    groupsUsers = resJsons.shift().data;
+                });
+            }
+        }).then(function() {
             var agents = {};
 
             for (var groupId in groups) {
@@ -2092,8 +2095,8 @@
                             var memberUserId = group.members[memberId].user_id;
                             if (!agents[memberUserId]) {
                                 agents[memberUserId] = {
-                                    name: allGroupUsers[memberUserId].name,
-                                    email: allGroupUsers[memberUserId].email
+                                    name: groupsUsers[memberUserId].name,
+                                    email: groupsUsers[memberUserId].email
                                 };
                             }
                         }

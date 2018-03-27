@@ -117,10 +117,10 @@
     function messageDataPreprocess(messages) {
         if (messages.length > 0) {
             messages.sort(function(a, b) {
-                return a.time - b.time; // 以時間排序，最早的在前
+                return new Date(a.time).getTime() - new Date(b.time).getTime(); // 以時間排序，最早的在前
             });
-            FIRST_MSG_TIME = messages[0].time; // 預設的 startTime 為最早的訊息的時間
-            LAST_MSG_TIME = messages[messages.length - 1].time;
+            FIRST_MSG_TIME = new Date(messages[0].time).getTime(); // 預設的 startTime 為最早的訊息的時間
+            LAST_MSG_TIME = new Date(messages[messages.length - 1].time).getTime();
         } else {
             FIRST_MSG_TIME = LAST_MSG_TIME = date;
         }
@@ -408,8 +408,9 @@
     function getSelecedTimeData() {
         // 將資料過濾成在開始 ~ 結束時間內
         return messagesDataArray[nowSelectAppId].reduce(function(output, message) {
-            if (message.time >= startTime && message.time <= endTime) {
-                output.push(message.time);
+            let messageTime = new Date(message.time).getTime();
+            if (messageTime >= startTime && messageTime <= endTime) {
+                output.push(messageTime);
             }
             return output;
         }, []);
@@ -420,8 +421,8 @@
         var messages = messagesDataArray[nowSelectAppId];
         var filteringMsgs = [];
         for (var i = 0; i < messages.length; i++) {
-            var t = messages[i].time;
-            if (t >= startTime && t <= endTime) {
+            var messageTime = new Date(messages[i].time).getTime();
+            if (messageTime >= startTime && messageTime <= endTime) {
                 filteringMsgs.push(messages[i].text);
             }
         }
