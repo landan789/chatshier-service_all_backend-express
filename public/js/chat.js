@@ -803,21 +803,20 @@
         };
 
         for (var appId in apps) {
-            var appName = apps[appId].name;
-            var appType = apps[appId].type;
-            var appChatrooms = appsChatrooms[appId].chatrooms;
+            var app = apps[appId];
+            var chatrooms = appsChatrooms[appId].chatrooms;
 
-            for (var chatroomId in appChatrooms) {
+            for (var chatroomId in chatrooms) {
                 var uiRequireData = {
                     appId: appId,
-                    name: appName,
-                    type: appType,
+                    name: app.name,
+                    type: app.type,
                     chatroom: appsChatrooms[appId].chatrooms[chatroomId] || {},
                     chatroomId: chatroomId
                 };
                 var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
 
-                switch (appType) {
+                switch (app.type) {
                     // 由於屬於特定平台 app 的 messager 只會有一位
                     case LINE:
                     case FACEBOOK:

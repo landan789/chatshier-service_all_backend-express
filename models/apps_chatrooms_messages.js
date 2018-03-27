@@ -58,6 +58,7 @@ module.exports = (function() {
                         chatrooms: {
                             _id: '$chatrooms._id',
                             isDeleted: '$chatrooms.isDeleted',
+                            messagers: '$chatrooms.messagers',
                             messages: !messageIds ? '$chatrooms.messages' : {
                                 $filter: {
                                     input: '$chatrooms.messages',
@@ -80,19 +81,23 @@ module.exports = (function() {
                     return appsChatroomsMessages;
                 }
 
-                appsChatroomsMessages = results.reduce((output, curr) => {
-                    if (!output[curr._id]) {
-                        output[curr._id] = {
+                appsChatroomsMessages = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
                             chatrooms: {
-                                [curr.chatrooms._id]: {
+                                [app.chatrooms._id]: {
+                                    messagers: {},
                                     messages: {}
                                 }
                             }
                         };
                     }
-                    let messagesSrc = output[curr._id].chatrooms[curr.chatrooms._id].messages;
-                    let messagesDest = curr.chatrooms.messages;
+                    let messagesSrc = output[app._id].chatrooms[app.chatrooms._id].messages;
+                    let messagesDest = app.chatrooms.messages;
                     Object.assign(messagesSrc, this.toObject(messagesDest));
+                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
+                    let messagersDest = app.chatrooms.messagers;
+                    Object.assign(messagersSrc, this.toObject(messagersDest));
                     return output;
                 }, {});
                 return appsChatroomsMessages;

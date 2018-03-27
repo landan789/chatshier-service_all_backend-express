@@ -58,13 +58,13 @@ module.exports = (function() {
                     return appsChatrooms;
                 }
 
-                appsChatrooms = results.reduce((output, curr) => {
-                    if (!output[curr._id]) {
-                        output[curr._id] = {
+                appsChatrooms = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
                             chatrooms: {}
                         };
                     }
-                    Object.assign(output[curr._id].chatrooms, this.toObject(curr.chatrooms));
+                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
                     return output;
                 }, {});
                 return appsChatrooms;

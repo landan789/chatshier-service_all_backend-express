@@ -158,13 +158,13 @@ module.exports = (function() {
                     return appsFields;
                 }
 
-                appsFields = results.reduce((output, curr) => {
-                    if (!output[curr._id]) {
-                        output[curr._id] = {
+                appsFields = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
                             fields: {}
                         };
                     }
-                    Object.assign(output[curr._id].fields, this.toObject(curr.fields));
+                    Object.assign(output[app._id].fields, this.toObject(app.fields));
                     return output;
                 }, {});
                 return this.replaceToTags(appsFields);
@@ -307,13 +307,13 @@ module.exports = (function() {
                         return Promise.reject(new Error());
                     }
 
-                    appsFields = results.reduce((output, curr) => {
-                        if (!output[curr._id]) {
-                            output[curr._id] = {
+                    appsFields = results.reduce((output, app) => {
+                        if (!output[app._id]) {
+                            output[app._id] = {
                                 fields: {}
                             };
                         }
-                        Object.assign(output[curr._id].fields, this.toObject(curr.fields));
+                        Object.assign(output[app._id].fields, this.toObject(app.fields));
                         return output;
                     }, {});
                     return this.replaceToTags(appsFields);

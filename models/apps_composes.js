@@ -55,9 +55,9 @@ module.exports = (function() {
                     return appsComposes;
                 }
 
-                appsComposes = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { composes: {} };
-                    Object.assign(output[curr._id].composes, this.toObject(curr.composes));
+                appsComposes = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { composes: {} };
+                    Object.assign(output[app._id].composes, this.toObject(app.composes));
                     return output;
                 }, {});
                 return appsComposes;
@@ -178,9 +178,9 @@ module.exports = (function() {
                     return Promise.reject(new Error());
                 }
 
-                appsComposes = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { composes: {} };
-                    Object.assign(output[curr._id].composes, this.toObject(curr.composes));
+                appsComposes = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { composes: {} };
+                    Object.assign(output[app._id].composes, this.toObject(app.composes));
                     return output;
                 }, {});
                 return appsComposes;
