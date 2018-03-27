@@ -10,6 +10,7 @@
     var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
     var cookieManager = window.chatshierCookie.manager;
     var api = window.restfulAPI;
+    const REFRESH_TIME = 5 * 1000;
 
     /**
      * automatically refresh when the time before jwt expired time 10 minutes
@@ -31,7 +32,7 @@
                 exp = 0;
             }
 
-            let time = exp - Date.now() - 10 * 1000;
+            let time = exp - Date.now() - REFRESH_TIME;
             if (0 > time) {
                 time = 0;
             }
