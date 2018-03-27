@@ -234,12 +234,12 @@ module.exports = (function() {
                 return array || {};
             }
 
-            return array.reduce((output, curr) => {
-                if (!curr[idKey]) {
+            return array.reduce((output, item) => {
+                if (!item[idKey]) {
                     return output;
                 }
 
-                output[curr[idKey]] = curr;
+                output[item[idKey]] = item;
                 return output;
             }, {});
         }

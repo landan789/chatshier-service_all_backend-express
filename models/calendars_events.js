@@ -62,8 +62,8 @@ module.exports = (function() {
                 }, {});
                 return calendarEvents;
             }).then((calendarEvents) => {
-                let calendarsEvents = calendarEvents.reduce((output, curr) => {
-                    Object.assign(output, this.toObject(curr));
+                let calendarsEvents = calendarEvents.reduce((output, calendar) => {
+                    Object.assign(output, this.toObject(calendar));
                     return output;
                 }, {});
 

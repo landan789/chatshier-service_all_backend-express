@@ -55,9 +55,9 @@ module.exports = (function() {
                     return appsTickets;
                 }
 
-                appsTickets = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { tickets: {} };
-                    Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
+                appsTickets = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { tickets: {} };
+                    Object.assign(output[app._id].tickets, this.toObject(app.tickets));
                     return output;
                 }, {});
                 return appsTickets;
@@ -171,9 +171,9 @@ module.exports = (function() {
                         return Promise.reject(new Error());
                     }
 
-                    appsTickets = results.reduce((output, curr) => {
-                        output[curr._id] = output[curr._id] || { tickets: {} };
-                        Object.assign(output[curr._id].tickets, this.toObject(curr.tickets));
+                    appsTickets = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { tickets: {} };
+                        Object.assign(output[app._id].tickets, this.toObject(app.tickets));
                         return output;
                     }, {});
                     return appsTickets;

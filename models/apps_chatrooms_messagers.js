@@ -59,18 +59,18 @@ module.exports = (function() {
                     return appsChatroomsMessagers;
                 }
 
-                appsChatroomsMessagers = results.reduce((output, curr) => {
-                    if (!output[curr._id]) {
-                        output[curr._id] = {
+                appsChatroomsMessagers = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
                             chatrooms: {
-                                [curr.chatrooms._id]: {
+                                [app.chatrooms._id]: {
                                     messagers: {}
                                 }
                             }
                         };
                     }
-                    let messagersSrc = output[curr._id].chatrooms[curr.chatrooms._id].messagers;
-                    let messagersDest = curr.chatrooms.messagers;
+                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
+                    let messagersDest = app.chatrooms.messagers;
                     Object.assign(messagersSrc, this.toObject(messagersDest));
                     return output;
                 }, {});
@@ -116,7 +116,7 @@ module.exports = (function() {
                     let updateOper = {};
                     let options = {};
 
-                    if (!appsChatroomsMessagers) {
+                    if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
                         delete query['chatrooms.messagers._id'];
 
                         updateOper.$push = {

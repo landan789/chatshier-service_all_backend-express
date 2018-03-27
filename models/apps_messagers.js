@@ -57,9 +57,9 @@ module.exports = (function() {
                     return appsMessagers;
                 }
 
-                appsMessagers = results.reduce((output, curr) => {
-                    output[curr._id] = output[curr._id] || { messagers: {} };
-                    Object.assign(output[curr._id].messagers, this.toObject(curr.messagers, 'platformUid'));
+                appsMessagers = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { messagers: {} };
+                    Object.assign(output[app._id].messagers, this.toObject(app.messagers, 'platformUid'));
                     return output;
                 }, {});
 
