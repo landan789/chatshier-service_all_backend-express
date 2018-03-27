@@ -27,14 +27,13 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(null, req.body.email, (_users) => {
+                    usersMdl.find(null, req.body.email, (users) => {
                         // If the user email exists then REST API can not insert any user
-                        if (!_users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
+                        if (0 < Object.keys(users).length) {
+                            reject(API_ERROR.USER_EMAIL_HAD_BEEN_SIGNED_UP);
                             return;
                         };
-                        users = _users;
-                        resolve(users);
+                        resolve();
                     });
                 });
             }).then(() => {
