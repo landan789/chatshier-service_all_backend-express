@@ -146,56 +146,59 @@
     function loadKeywordsReplies(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         return api.appsKeywordreplies.findAll(appId, userId).then(function(resJson) {
-            let appsKeywordreplis = resJson.data;
-            keywordreplies = appsKeywordreplis[appId].keywordreplies;
             $openTableElem.empty();
             $draftTableElem.empty();
-            for (var keywordreplyId in keywordreplies) {
-                var keywordreply = keywordreplies[keywordreplyId];
-                if (keywordreply.isDeleted) {
-                    continue;
-                }
 
-                var trGrop =
-                '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
-                    '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
-                    '<td>' + keywordreply.text + '</td>' +
-                    '<td>' + keywordreply.replyCount + '</td>' +
-                    '<td>' +
-                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
-                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
-                    '</td>' +
-                '</tr>';
-                if (!keywordreply.status) {
-                    $draftTableElem.append(trGrop);
-                } else {
-                    $openTableElem.append(trGrop);
-                }
-            }
-
-            $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
-                var targetRow = $(event.target).parent().parent();
-                var appId = targetRow.attr('data-title');
-                var keywordreplyId = targetRow.prop('id');
-
-                return showDialog('確定要刪除嗎？').then(function(isOK) {
-                    if (!isOK) {
-                        return;
+            let appsKeywordreplis = resJson.data;
+            if (appsKeywordreplis && appsKeywordreplis[appId]) {
+                keywordreplies = appsKeywordreplis[appId].keywordreplies;
+                for (var keywordreplyId in keywordreplies) {
+                    var keywordreply = keywordreplies[keywordreplyId];
+                    if (keywordreply.isDeleted) {
+                        continue;
                     }
 
-                    return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
-                        $.notify('刪除成功！', { type: 'success' });
-                        return loadKeywordsReplies(appId, userId);
-                    }).catch((resJson) => {
-                        if (undefined === resJson.status) {
-                            $.notify('失敗', { type: 'danger' });
+                    var trGrop =
+                    '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
+                        '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
+                        '<td>' + keywordreply.text + '</td>' +
+                        '<td>' + keywordreply.replyCount + '</td>' +
+                        '<td>' +
+                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                        '</td>' +
+                    '</tr>';
+                    if (!keywordreply.status) {
+                        $draftTableElem.append(trGrop);
+                    } else {
+                        $openTableElem.append(trGrop);
+                    }
+                }
+
+                $jqDoc.find('td #delete-btn').off('click').on('click', function(event) {
+                    var targetRow = $(event.target).parent().parent();
+                    var appId = targetRow.attr('data-title');
+                    var keywordreplyId = targetRow.prop('id');
+
+                    return showDialog('確定要刪除嗎？').then(function(isOK) {
+                        if (!isOK) {
+                            return;
                         }
-                        if (NO_PERMISSION_CODE === resJson.code) {
-                            $.notify('無此權限', { type: 'danger' });
-                        }
+
+                        return api.appsKeywordreplies.remove(appId, keywordreplyId, userId).then(function() {
+                            $.notify('刪除成功！', { type: 'success' });
+                            return loadKeywordsReplies(appId, userId);
+                        }).catch((resJson) => {
+                            if (undefined === resJson.status) {
+                                $.notify('失敗', { type: 'danger' });
+                            }
+                            if (NO_PERMISSION_CODE === resJson.code) {
+                                $.notify('無此權限', { type: 'danger' });
+                            }
+                        });
                     });
                 });
-            });
+            }
         });
     }
 

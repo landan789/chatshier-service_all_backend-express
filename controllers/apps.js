@@ -211,6 +211,7 @@ apps.postOne = (req, res, next) => {
             groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
                 if (null === groups || undefined === groups || '' === groups || 0 === Object.keys(groups).length) {
                     reject(API_ERROR.GROUP_DID_NOT_EXIST);
+                    return;
                 }
                 var group = groups[req.body.groupid];
                 resolve(group);
@@ -319,6 +320,7 @@ apps.putOne = (req, res, next) => {
             }
             if (0 === Object.keys(putApp).length) {
                 reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                return;
             };
             resolve();
         });

@@ -30,6 +30,7 @@ let jobProcess = () => {
         appsMdl.find(appIds, null, (apps) => {
             if (!apps) {
                 reject(API_ERROR.APPS_FAILED_TO_FIND);
+                return;
             }
             resolve(apps);
         });

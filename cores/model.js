@@ -85,12 +85,12 @@ module.exports = (function() {
         'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
         'assigned': {type: String, default: ''},
-        'chatCount': {type: Number, default: 0}, // TODO chatTimeCount -> chatCount
+        'chatCount': {type: Number, default: 0},
         'chatroom_id': {type: String, default: ''},
         'custom_tags': {type: Object, default: {}},
         'email': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()}, // firstChat -> createdTime
+        'createdTime': {type: Date, default: Date.now()},
         'gender': {type: String, default: 'MALE'},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},

@@ -15,6 +15,7 @@ let appsPromise = new Promise((resolve, reject) => {
     appsMdl.find('', null, (apps) => {
         if (!apps) {
             reject(new Error());
+            return;
         }
         resolve(apps);
     });
