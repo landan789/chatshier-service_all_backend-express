@@ -5,24 +5,25 @@ window.restfulAPI = (function() {
     var reqHeaders = new Headers();
     reqHeaders.set('Content-Type', 'application/json');
 
-    var prefixUrl = urlConfig.apiUrl + '/api/database/';
+    var apiDatabaseUrl = urlConfig.apiUrl + '/api/database/';
+    var apiSignUrl = urlConfig.apiUrl + '/api/sign/';
     var apiUrlTable = Object.freeze({
-        apps: prefixUrl + 'apps/',
-        appsAutoreplies: prefixUrl + 'apps-autoreplies/',
-        appsChatroomsMessages: prefixUrl + 'apps-chatrooms-messages/',
-        appsComposes: prefixUrl + 'apps-composes/',
-        appsGreetings: prefixUrl + 'apps-greetings/',
-        appsMessagers: prefixUrl + 'apps-messagers/',
-        appsKeywordreplies: prefixUrl + 'apps-keywordreplies/',
-        appsTemplates: prefixUrl + 'apps-templates/',
-        appsRichmenus: prefixUrl + 'apps-richmenus/',
-        appsTags: prefixUrl + 'apps-tags/',
-        appsTickets: prefixUrl + 'apps-tickets/',
-        calendarsEvents: prefixUrl + 'calendars-events/',
-        groupsMembers: prefixUrl + 'groups-members/',
-        groups: prefixUrl + 'groups/',
-        users: prefixUrl + 'users/',
-        bot: prefixUrl + 'bot/'
+        apps: apiDatabaseUrl + 'apps/',
+        appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',
+        appsChatroomsMessages: apiDatabaseUrl + 'apps-chatrooms-messages/',
+        appsComposes: apiDatabaseUrl + 'apps-composes/',
+        appsGreetings: apiDatabaseUrl + 'apps-greetings/',
+        appsMessagers: apiDatabaseUrl + 'apps-messagers/',
+        appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
+        appsTemplates: apiDatabaseUrl + 'apps-templates/',
+        appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
+        appsTags: apiDatabaseUrl + 'apps-tags/',
+        appsTickets: apiDatabaseUrl + 'apps-tickets/',
+        calendarsEvents: apiDatabaseUrl + 'calendars-events/',
+        groupsMembers: apiDatabaseUrl + 'groups-members/',
+        groups: apiDatabaseUrl + 'groups/',
+        users: apiDatabaseUrl + 'users/',
+        signRefresh: apiSignUrl + 'refresh/'
     });
 
     // ======================
@@ -1131,6 +1132,20 @@ window.restfulAPI = (function() {
         return AppsRichmenusAPI;
     })();
 
+    var SignAPI = (function() {
+        function SignAPI() {
+        };
+        SignAPI.prototype.refresh = function(userId) {
+            var destUrl = apiUrlTable.signRefresh + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+        return SignAPI;
+    })();
+
     var BotAPI = (function() {
         function BotAPI() {
             this.urlPrefix = apiUrlTable.bot;
@@ -1272,6 +1287,6 @@ window.restfulAPI = (function() {
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
-        bot: new BotAPI()
+        sign: new SignAPI()
     };
 })();

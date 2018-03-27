@@ -1,7 +1,5 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
-$('#loading').fadeOut();
-
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
 const WECHAT = 'WECHAT';
