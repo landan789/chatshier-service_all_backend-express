@@ -30,7 +30,7 @@
                 let jwt = window.localStorage.getItem('jwt');
                 let payload = window.jwt_decode(jwt);
                 let exp;
-    
+
                 try {
                     payload = window.jwt_decode(window.localStorage.getItem('jwt'));
                     exp = payload.exp;
@@ -38,7 +38,7 @@
                 } catch (ex) {
                     exp = 0;
                 }
-    
+
                 let time = exp - Date.now() - REFRESH_TIME;
                 if (0 > time) {
                     time = 0;
@@ -58,28 +58,28 @@
         }
     }
 
-    $(document).ready(function() {
-        let state = getState();
-        if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
-            state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
-            state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
-            state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
-            // 登入資訊不齊全，一律進行登出動作
-            location.replace('/logout');
-        } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
-            // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
+    let state = getState();
+    if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+        state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES) ||
+        state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
+        state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
+        // 登入資訊不齊全，一律進行登出動作
+        location.replace('/logout');
+    } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+        // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
+        $(document).ready(function() {
             $('#loading').fadeOut();
             jwtRefresh();
-        } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
-        // 已經登入後再瀏覽登入或註冊頁面的話，直接導向聊天室頁面
-            location.replace('/chat');
-        } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
-        // 沒有進行登入卻欲瀏覽其他登入或註冊以外的頁面，直接導向登入頁面
-            location.replace('/signin');
-        } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
-        // 已在登入頁面並且沒有登入資料
-        }
-    });
+        });
+    } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
+    // 已經登入後再瀏覽登入或註冊頁面的話，直接導向聊天室頁面
+        location.replace('/chat');
+    } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+    // 沒有進行登入卻欲瀏覽其他登入或註冊以外的頁面，直接導向登入頁面
+        location.replace('/signin');
+    } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
+    // 已在登入頁面並且沒有登入資料
+    }
 
     function getState() {
         let state = parseInt('000', 2);
