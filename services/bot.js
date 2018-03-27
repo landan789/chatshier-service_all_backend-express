@@ -115,7 +115,11 @@ module.exports = (function() {
                             channelSecret: app.secret,
                             channelAccessToken: app.token1
                         };
-                        line.middleware(lineConfig)(req, res, () => {
+                        line.middleware(lineConfig)(req, res, (err) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
                             resolve({});
                         });
                         break;

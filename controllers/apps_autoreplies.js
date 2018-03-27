@@ -201,7 +201,7 @@ module.exports = (function() {
             });
         }).then((autoreplyIds) => { // 判斷appId中是否有目前autoreplyId
             return new Promise((resolve, reject) => {
-                if (false === autoreplyIds.includes(autoreplyId)) {
+                if (!autoreplyIds.includes(autoreplyId)) {
                     reject(API_ERROR.USER_DID_NOT_HAVE_THIS_AUTOREPLY);
                     return;
                 }

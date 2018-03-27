@@ -546,20 +546,12 @@
                 };
             }
 
-            var messagers = appsMessagers[appId].messagers;
-            for (var messagerId in messagers) {
-                // 內部聊天室的成員即是群組成員
-                // 因此 messagerId 直接對應的是 userId
-                if (CHATSHIER === app.type) {
-                    messagers[messagerId].name = groupAllUsers[messagerId].name;
-                    messagers[messagerId].email = groupAllUsers[messagerId].email;
-                }
-            }
-
             // 把群組內所有使用者的名字加入對話者資料
             // 使各平台 app 內 messagers 的資料具有群組成員的資料
-            if (CHATSHIER !== app.type && groups[app.group_id]) {
+            if (groups[app.group_id]) {
+                var messagers = appsMessagers[appId].messagers;
                 var groupMembers = groups[app.group_id].members;
+
                 for (var memberId in groupMembers) {
                     var memberUserId = groupMembers[memberId].user_id;
 
