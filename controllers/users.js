@@ -59,7 +59,7 @@ module.exports = (function() {
             }).then((userIds) => {
                 return new Promise((resolve, reject) => {
                     // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
-                    if (!queryEmail) {
+                    if (queryEmail) {
                         userIds = null;
                     }
 
