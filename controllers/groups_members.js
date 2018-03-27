@@ -327,6 +327,7 @@ module.exports = (function() {
                 groupsMembersMdl.update(groupId, memberId, putMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
                         reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                        return;
                     };
                     resolve(groupsMembers);
                 });
@@ -419,6 +420,7 @@ module.exports = (function() {
                 groupsMembersMdl.remove(groupId, memberId, (groupsMembers) => {
                     if (!groupsMembers) {
                         reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
+                        return;
                     };
                     resolve(groupsMembers);
                 });

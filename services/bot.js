@@ -231,11 +231,13 @@ module.exports = (function() {
                 case FACEBOOK:
                     let entry = body.entry;
                     messages = [];
-                    entry.map((_entry) => {
-                        let messaging = _entry.messaging;
-                        messaging.map((_messaging) => {
-                            let attachments = _messaging.message.attachments || '';
+                    entry.forEach((_entry) => {
+                        let messaging = _entry.messaging || [];
+
+                        messaging.forEach((_messaging) => {
+                            let attachments = _messaging.message.attachments;
                             let text = _messaging.message.text || '';
+
                             // !attachments 沒有夾帶檔案
                             if (!attachments && text) {
                                 let _message = {
@@ -250,7 +252,8 @@ module.exports = (function() {
                                 messages.push(_message);
                                 return;
                             }
-                            attachments.map((attachment) => {
+
+                            attachments.forEach((attachment) => {
                                 let src;
                                 if ('location' === attachment.type) {
                                     let coordinates = attachment.payload.coordinates;

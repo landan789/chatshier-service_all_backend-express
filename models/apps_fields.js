@@ -58,19 +58,19 @@ module.exports = (function() {
             setsType: SetsTypes.MULTI_SELECT
         }, {
             text: 'First chat date',
-            alias: 'firstChat',
+            alias: 'createdTime',
             type: FieldsTypes.SYSTEM,
             sets: [0],
             setsType: SetsTypes.DATE
         }, {
             text: 'Recent chat date',
-            alias: 'recentChat',
+            alias: 'lastTime',
             type: FieldsTypes.SYSTEM,
             sets: [0],
             setsType: SetsTypes.DATE
         }, {
             text: 'Chat time(s)',
-            alias: 'chatTimeCount',
+            alias: 'chatCount',
             type: FieldsTypes.SYSTEM,
             sets: [0],
             setsType: SetsTypes.NUMBER

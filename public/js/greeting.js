@@ -67,22 +67,25 @@
         $('#MsgCanvas').empty();
         rowCount = 0;
         return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
-            let greetings = resJson.data;
-            let greeting = greetings[appId].greetings;
-            for (let greetingId in greeting) {
-                $('table #MsgCanvas').append(
-                    '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                        '<th>' + greeting[greetingId].text + '</th>' +
-                        '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
-                        '<td>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
-                        '</td>' +
-                    '</tr>'
-                );
+            let appsGreetings = resJson.data;
+            if (appsGreetings && appsGreetings[appId]) {
+                let greeting = appsGreetings[appId].greetings;
+                for (let greetingId in greeting) {
+                    $('table #MsgCanvas').append(
+                        '<tr id="' + greetingId + '" rel="' + appId + '">' +
+                            '<th>' + greeting[greetingId].text + '</th>' +
+                            '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
+                            '<td>' +
+                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '</td>' +
+                        '</tr>'
+                    );
 
-                rowCount++;
-                findedGreetingIds[greetingId] = greetingId;
+                    rowCount++;
+                    findedGreetingIds[greetingId] = greetingId;
+                }
             }
+
             if (rowCount < 5) {
                 appendNewTr(appId);
             }
@@ -124,32 +127,30 @@
     } // end of addMsgCanvas
 
     function delMsgCanvas() {
-        var userId = auth.currentUser.uid;
         var appId = $(this).parent().parent().attr('rel');
-        let greetingId = $(this).parent().parent().attr('id');
-        if ('-' === greetingId.charAt(0)) {
-            return showDialog('確定要刪除嗎？').then(function(isOK) {
-                if (!isOK) {
-                    return;
+        var greetingId = $(this).parent().parent().attr('id');
+
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
+            }
+            return api.appsGreetings.remove(appId, greetingId, userId).then(function(resJson) {
+                $('#' + greetingId).remove();
+                delete findedGreetingIds[greetingId];
+                rowCount--;
+                if (4 === rowCount) {
+                    appendNewTr(appId);
                 }
-                return api.appsGreetings.remove(appId, greetingId, userId).then(function(resJson) {
-                    $('#' + greetingId).remove();
-                    delete findedGreetingIds[greetingId];
-                    rowCount--;
-                    if (4 === rowCount) {
-                        appendNewTr(appId);
-                    }
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $.notify('失敗', { type: 'danger' });
-                    }
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $.notify('無此權限', { type: 'danger' });
-                    }
-                });
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
             });
-        }
-    } // end of delMsgCanvas
+        });
+    }
 
     function modalClose() {
         let id = $(this).parent().parent().attr('id');
@@ -165,7 +166,6 @@
         var greetingIds = Object.keys(findedGreetingIds);
         var greetingIdsLength = greetingIds.length;
         var appendId = greetingIds[greetingIdsLength - 1];
-        var userId = auth.currentUser.uid;
         var appId = $(this).parent().parent().attr('rel');
         var $textarea = $(this).parent().parent().children().children('textarea');
         var trId = $(this).parent().parent().attr('id');

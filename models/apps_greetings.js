@@ -46,7 +46,7 @@ module.exports = (function() {
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 let appsGreetings = {};
                 if (0 === results.length) {
-                    return Promise.reject(new Error());
+                    return appsGreetings;
                 }
 
                 appsGreetings = results.reduce((output, app) => {

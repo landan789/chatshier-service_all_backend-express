@@ -137,22 +137,25 @@
     function loadAutoreplies(appId, userId) {
         $('#autoreply-tables').empty();
         return api.appsAutoreplies.findAll(appId, userId).then(function(resJson) {
-            let autoreplies = resJson.data[appId].autoreplies;
-            for (let autoreplyId in autoreplies) {
-                let autoreply = autoreplies[autoreplyId];
+            let appsAutoreplies = resJson.data;
+            if (appsAutoreplies && appsAutoreplies[appId]) {
+                let autoreplies = appsAutoreplies[appId].autoreplies;
+                for (let autoreplyId in autoreplies) {
+                    let autoreply = autoreplies[autoreplyId];
 
-                $('#autoreply-tables').append(
-                    '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                        '<th id="title" data-title="data-title">' + autoreply.title + '</th>' +
-                        '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
-                        '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
-                        '<td id="text">' + autoreply.text + '</td>' +
-                        '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
-                        '</td>' +
-                    '</tr>'
-                );
+                    $('#autoreply-tables').append(
+                        '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
+                            '<th id="title" data-title="data-title">' + autoreply.title + '</th>' +
+                            '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
+                            '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
+                            '<td id="text">' + autoreply.text + '</td>' +
+                            '<td>' +
+                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '</td>' +
+                        '</tr>'
+                    );
+                }
             }
         });
     }

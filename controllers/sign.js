@@ -31,6 +31,7 @@ module.exports = (function() {
                         // If the user email exists then REST API can not insert any user
                         if (!_users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
+                            return;
                         };
                         users = _users;
                         resolve(users);
@@ -187,6 +188,7 @@ module.exports = (function() {
                         users = _users;
                         if (!users) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
+                            return;
                         };
                         resolve();
                     });
