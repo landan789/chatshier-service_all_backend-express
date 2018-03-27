@@ -80,7 +80,6 @@ module.exports = (function() {
     };
 
     AppsGreetingsController.prototype.postOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
         let type = req.body.type;
         let text = req.body.text;
         let postGreeting = {
@@ -117,51 +116,33 @@ module.exports = (function() {
     };
 
     AppsGreetingsController.prototype.deleteOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
+        let appId = req.params.appid;
         let greetingId = req.params.greetingid;
-        let appId = '';
 
-        return AppsGreetingsController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            appId = checkedAppId;
-
-            if (!greetingId) {
-                return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
-            };
-
+        return AppsGreetingsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             return new Promise((resolve, reject) => { // 取得目前appId下所有greetings
-                appsGreetingsMdl.findGreetings(appId, (data) => {
-                    if (null === data || '' === data || undefined === data) {
-                        reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
-                        return;
-                    }
-                    let greetingIds = Object.keys(data);
-                    resolve(greetingIds);
-                });
-            });
-        }).then((greetingIds) => { // 判斷appId中是否有目前greetingId
-            return new Promise((resolve, reject) => {
-                if (false === greetingIds.includes(greetingId)) {
-                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_GREETING);
+                if (!greetingId) {
+                    reject(API_ERROR.GREETINGID_WAS_EMPTY);
                     return;
-                }
-                resolve();
-            });
-        }).then(() => { // 刪除目前greeting
-            return new Promise((resolve, reject) => {
-                appsGreetingsMdl.remove(appId, greetingId, (result) => {
-                    if (!result) {
+                } else if (!checkedAppIds.includes(appId)) {
+                    reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                    return;
+                };
+
+                // 刪除指定的 greeting
+                appsGreetingsMdl.remove(appId, greetingId, (appsGreetings) => {
+                    if (!appsGreetings) {
                         reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
                         return;
                     }
-                    resolve(result);
+                    resolve(appsGreetings);
                 });
             });
-        }).then((greeting) => {
-            let result = greeting !== undefined ? greeting : {};
+        }).then((appsGreetings) => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                data: result
+                data: appsGreetings
             };
             res.status(200).json(json);
         }).catch((ERR) => {
