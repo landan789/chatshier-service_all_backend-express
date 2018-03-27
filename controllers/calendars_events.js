@@ -212,6 +212,7 @@ calendarsEvents.deleteOne = (req, res, next) => {
             calendarsEventsMdl.remove(calendarId, eventId, (result) => {
                 if (!result) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_REMOVE);
+                    return;
                 }
                 let calendarsEvents = result;
                 resolve(calendarsEvents);

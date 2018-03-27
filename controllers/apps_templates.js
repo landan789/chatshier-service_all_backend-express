@@ -145,15 +145,16 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
             };
             return new Promise((resolve, reject) => {
-                appsTemplatesMdl.update(appId, templateId, putTemplateData, (AppsTemplate) => {
-                    if (false === AppsTemplate) {
+                appsTemplatesMdl.update(appId, templateId, putTemplateData, (appsTemplate) => {
+                    if (!appsTemplate) {
                         reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
+                        return;
                     }
-                    resolve(AppsTemplate);
+                    resolve(appsTemplate);
                 });
             });
-        }).then((AppsTemplate) => {
-            let result = AppsTemplate !== undefined ? AppsTemplate : {};
+        }).then((appsTemplate) => {
+            let result = appsTemplate !== undefined ? appsTemplate : {};
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
@@ -182,8 +183,9 @@ module.exports = (function() {
             };
             return new Promise((resolve, reject) => {
                 appsTemplatesMdl.remove(appId, templateId, (result) => {
-                    if (false === result) {
+                    if (!result) {
                         reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
+                        return;
                     }
                     resolve(result);
                 });

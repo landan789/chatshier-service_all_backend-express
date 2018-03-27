@@ -373,6 +373,7 @@ function init(server) {
                     appsMdl.find(appId, null, (apps) => {
                         if (!apps) {
                             reject(API_ERROR.APPID_WAS_EMPTY);
+                            return;
                         }
                         let app = apps[appId];
                         resolve(app);
@@ -387,6 +388,7 @@ function init(server) {
                     appsMessagersMdl.find(appId, null, (appsMessagers) => {
                         if (!appsMessagers) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                            return;
                         };
                         messagers = appsMessagers[appId].messagers;
                         resolve();
@@ -459,6 +461,7 @@ function init(server) {
                             // 失敗需要 reject, catch
                             if (!_appsComposes) {
                                 reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
+                                return;
                             }
                             appsInsertedComposes = _appsComposes;
                             resolve();
@@ -484,6 +487,7 @@ function init(server) {
                             appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (messagesInDB) => {
                                 if (!messagesInDB) {
                                     reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
+                                    return;
                                 };
                                 let messageId = Object.keys(messagesInDB).shift() || '';
                                 resolve(messagesInDB[messageId]);
