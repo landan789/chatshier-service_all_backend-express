@@ -101,8 +101,8 @@ module.exports = (function() {
 
         /**
          * @param {string} userId
-         * @param {(calendarId: string|null) => any} [callback]
-         * @returns {Promise<string>}
+         * @param {(calendarIds: string[]|null) => any} [callback]
+         * @returns {Promise<string[]|null>}
          */
         findCalendarId(userId, callback) {
             let query = {
@@ -113,9 +113,9 @@ module.exports = (function() {
                     return Promise.reject(new Error());
                 };
                 return user.calendar_ids;
-            }).then((calendarId) => {
-                ('function' === typeof callback) && callback(calendarId);
-                return calendarId;
+            }).then((calendarIds) => {
+                ('function' === typeof callback) && callback(calendarIds);
+                return calendarIds;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;

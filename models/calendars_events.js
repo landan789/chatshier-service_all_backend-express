@@ -11,11 +11,11 @@ module.exports = (function() {
         /**
          * @param {any|string[]} calendarIds
          * @param {any|string[]} eventIds
-         * @param {(calendar: string|string[]|null) => any} [callback]
+         * @param {(calendarsEvents: any|null) => any} [callback]
          * @returns {Promise<any>}
          */
         find(calendarIds, eventIds, callback) {
-            if (!(calendarIds instanceof Array) && calendarIds) {
+            if (calendarIds && !(calendarIds instanceof Array)) {
                 calendarIds = [calendarIds];
             }
 
@@ -28,7 +28,7 @@ module.exports = (function() {
             };
 
             if (eventIds) {
-                if (!(eventIds instanceof Array)) {
+                if (eventIds && !(eventIds instanceof Array)) {
                     eventIds = [eventIds];
                 }
 
@@ -61,12 +61,7 @@ module.exports = (function() {
                     return output;
                 }, {});
                 return calendarEvents;
-            }).then((calendarEvents) => {
-                let calendarsEvents = calendarEvents.reduce((output, calendar) => {
-                    Object.assign(output, this.toObject(calendar));
-                    return output;
-                }, {});
-
+            }).then((calendarsEvents) => {
                 ('function' === typeof callback) && callback(calendarsEvents);
                 return calendarsEvents;
             }).catch(() => {
@@ -84,8 +79,13 @@ module.exports = (function() {
         insert(calendarIds, postEvent, callback) {
             let eventId = this.Types.ObjectId();
             postEvent._id = eventId;
+
             return Promise.resolve().then(() => {
-                if (!calendarIds) {
+                if (calendarIds && !(calendarIds instanceof Array)) {
+                    calendarIds = [calendarIds];
+                }
+
+                if (!calendarIds || (calendarIds && 0 === calendarIds.length)) {
                     // 首次插入資料時不會有 calendarId
                     // 因此須自行新增一個 calendarId
                     let calendar = new this.CalendarsModel();
@@ -96,15 +96,21 @@ module.exports = (function() {
                     });
                 }
 
-                let query = {
-                    '_id': calendarIds
-                };
+                let query = {};
+                if (calendarIds instanceof Array) {
+                    query._id = {
+                        $in: calendarIds.map((calendarId) => this.Types.ObjectId(calendarId))
+                    };
+                } else {
+                    query._id = this.Types.ObjectId(calendarIds);
+                }
+
                 let calendar = {
-                    '_id': calendarIds,
                     $push: {
                         events: postEvent
                     }
                 };
+
                 return this.CalendarsModel.update(query, calendar).then((result) => {
                     if (!result.ok) {
                         return Promise.reject(new Error());
