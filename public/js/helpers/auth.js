@@ -19,38 +19,43 @@
         let jwt = window.localStorage.getItem('jwt');
         let userId;
 
-        let nextPromise = new Promise((resolve, reject) => {
-            let jwt = window.localStorage.getItem('jwt');
-            let payload = window.jwt_decode(jwt);
-            let exp;
-
-            try {
-                payload = window.jwt_decode(window.localStorage.getItem('jwt'));
-                exp = payload.exp;
-                userId = payload.uid;
-            } catch (ex) {
-                exp = 0;
-            }
-
-            let time = exp - Date.now() - REFRESH_TIME;
-            if (0 > time) {
-                time = 0;
-            }
-            window.setTimeout(() => {
-                resolve();
-            }, time);
-        });
-
-        nextPromise.then(() => {
-            return api.sign.refresh(userId);
-        }).then((response) => {
-            let jwt = response.jwt;
-            window.localStorage.setItem('jwt', jwt);
-        }).then(() => {
-            return nextPromise();
+        return nextPromise().then(() => {
+            // nothing to do
         }).catch(() => {
             location.replace('/logout');
         });
+
+        function nextPromise() {
+            return new Promise((resolve, reject) => {
+                let jwt = window.localStorage.getItem('jwt');
+                let payload = window.jwt_decode(jwt);
+                let exp;
+    
+                try {
+                    payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+                    exp = payload.exp;
+                    userId = payload.uid;
+                } catch (ex) {
+                    exp = 0;
+                }
+    
+                let time = exp - Date.now() - REFRESH_TIME;
+                if (0 > time) {
+                    time = 0;
+                }
+                window.setTimeout(() => {
+                    resolve();
+                }, time);
+            }).then(() => {
+                return api.sign.refresh(userId);
+            }).then((response) => {
+                let jwt = response.jwt;
+                window.localStorage.setItem('jwt', jwt);
+                return;
+            }).then(() => {
+                return nextPromise();
+            });
+        }
     }
 
     $(document).ready(function() {
