@@ -520,13 +520,6 @@
         // 過濾 API 資料裡的 app 資料
         for (var appId in apps) {
             var app = apps[appId];
-            if (app.isDeleted) {
-                delete apps[appId];
-                delete appsChatrooms[appId];
-                delete appsMessagers[appId];
-                delete appsTags[appId];
-                continue;
-            }
 
             // 向 server 登記此 socket 有多少 appId
             socketRegPromises.push(new Promise(function(resolve) {
@@ -535,58 +528,49 @@
                 });
             }));
 
-            // 過濾 chatroom 資料
-            if (appsChatrooms[appId]) {
-                var chatrooms = appsChatrooms[appId].chatrooms;
-                for (var chatroomId in chatrooms) {
-                    var chatroomData = chatrooms[chatroomId];
-                    if (chatroomData.isDeleted) {
-                        delete chatrooms[chatroomId];
-                        continue;
-                    }
+            if (!appsChatrooms[appId]) {
+                appsChatrooms[appId] = {
+                    chatrooms: {}
+                };
+            }
+
+            if (!appsTags[appId]) {
+                appsTags[appId] = {
+                    tags: {}
+                };
+            }
+
+            if (!appsMessagers[appId]) {
+                appsMessagers[appId] = {
+                    messagers: {}
+                };
+            }
+
+            var messagers = appsMessagers[appId].messagers;
+            for (var messagerId in messagers) {
+                // 內部聊天室的成員即是群組成員
+                // 因此 messagerId 直接對應的是 userId
+                if (CHATSHIER === app.type) {
+                    messagers[messagerId].name = groupAllUsers[messagerId].name;
+                    messagers[messagerId].email = groupAllUsers[messagerId].email;
                 }
             }
 
-            // 過濾 tag 資料
-            if (appsTags[appId]) {
-                var tags = appsTags[appId].tags;
-                for (var tagId in tags) {
-                    var tag = tags[tagId];
-                    if (tag.isDeleted) {
-                        delete tags[tagId];
-                        continue;
-                    }
-                }
-            }
+            // 把群組內所有使用者的名字加入對話者資料
+            // 使各平台 app 內 messagers 的資料具有群組成員的資料
+            if (CHATSHIER !== app.type && groups[app.group_id]) {
+                var groupMembers = groups[app.group_id].members;
+                for (var memberId in groupMembers) {
+                    var memberUserId = groupMembers[memberId].user_id;
 
-            // 過濾 messager 資料
-            if (appsMessagers[appId]) {
-                var messagers = appsMessagers[appId].messagers;
-                for (var messagerId in messagers) {
-                    // 內部聊天室的成員即是群組成員
-                    // 因此 messagerId 直接對應的是 userId
-                    if (CHATSHIER === app.type) {
-                        messagers[messagerId].name = groupAllUsers[messagerId].name;
-                        messagers[messagerId].email = groupAllUsers[messagerId].email;
-                    }
-                }
-
-                // 把群組內所有使用者的名字加入對話者資料
-                // 使各平台 app 內 messagers 的資料具有群組成員的資料
-                if (CHATSHIER !== app.type && groups[app.group_id]) {
-                    var groupMembers = groups[app.group_id].members;
-                    for (var memberId in groupMembers) {
-                        var memberUserId = groupMembers[memberId].user_id;
-
-                        if (messagers[memberUserId]) {
-                            messagers[memberUserId].name = groupAllUsers[memberUserId].name;
-                            messagers[memberUserId].email = groupAllUsers[memberUserId].email;
-                        } else {
-                            messagers[memberUserId] = {
-                                name: groupAllUsers[memberUserId].name,
-                                email: groupAllUsers[memberUserId].email
-                            };
-                        }
+                    if (messagers[memberUserId]) {
+                        messagers[memberUserId].name = groupAllUsers[memberUserId].name;
+                        messagers[memberUserId].email = groupAllUsers[memberUserId].email;
+                    } else {
+                        messagers[memberUserId] = {
+                            name: groupAllUsers[memberUserId].name,
+                            email: groupAllUsers[memberUserId].email
+                        };
                     }
                 }
             }
@@ -774,11 +758,6 @@
         });
     }
 
-    function fileName(url) {
-        let ext = url.slice(url.indexOf('/') + 1, url.indexOf('/') + 4);
-        return Date.now() + '.' + ext;
-    }
-
     function generateAppsIcons(apps) {
         var $chatApp = $('#chat_App');
 
@@ -821,10 +800,11 @@
         var findMessagersInChatroom = function(appId, chatroomId) {
             var output = {};
             var messagers = appsMessagers[appId].messagers;
-            for (var msgerId in messagers) {
-                var _messager = messagers[msgerId];
+
+            for (var messagerId in messagers) {
+                var _messager = messagers[messagerId];
                 if (_messager.chatroom_id && _messager.chatroom_id === chatroomId) {
-                    output[msgerId] = _messager;
+                    output[messagerId] = _messager;
                 }
             }
             return output;
@@ -833,40 +813,37 @@
         for (var appId in apps) {
             var appName = apps[appId].name;
             var appType = apps[appId].type;
+            var appChatrooms = appsChatrooms[appId].chatrooms;
 
-            if (appsChatrooms[appId]) {
-                var appChatrooms = appsChatrooms[appId].chatrooms;
+            for (var chatroomId in appChatrooms) {
+                var uiRequireData = {
+                    appId: appId,
+                    name: appName,
+                    type: appType,
+                    chatroom: appsChatrooms[appId].chatrooms[chatroomId] || {},
+                    chatroomId: chatroomId
+                };
+                var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
 
-                for (var chatroomId in appChatrooms) {
-                    var uiRequireData = {
-                        appId: appId,
-                        name: appName,
-                        type: appType,
-                        chatroom: appsChatrooms[appId].chatrooms[chatroomId] || {},
-                        chatroomId: chatroomId
-                    };
-                    var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
-
-                    switch (appType) {
-                        // 由於屬於特定平台 app 的 messager 只會有一位
-                        case LINE:
-                        case FACEBOOK:
-                        case WECHAT:
-                            var _msgerId = Object.keys(chatroomMessagers).shift();
-                            var messager = appsMessagers[appId].messagers[_msgerId];
-                            uiRequireData.profile = messager;
-                            uiRequireData.messagerId = _msgerId;
-                            break;
-                        // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
-                        default:
-                            uiRequireData.profile = Object.assign({}, appsMessagers[appId].messagers[userId]);
-                            uiRequireData.profile.photo = '/image/group.png';
-                            uiRequireData.messagerId = userId;
-                            break;
-                    }
-                    createChatroom(uiRequireData);
-                    createProfilePanel(uiRequireData);
+                switch (appType) {
+                    // 由於屬於特定平台 app 的 messager 只會有一位
+                    case LINE:
+                    case FACEBOOK:
+                    case WECHAT:
+                        var _msgerId = Object.keys(chatroomMessagers).shift();
+                        var messager = appsMessagers[appId].messagers[_msgerId];
+                        uiRequireData.profile = messager;
+                        uiRequireData.messagerId = _msgerId;
+                        break;
+                    // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
+                    default:
+                        uiRequireData.profile = Object.assign({}, appsMessagers[appId].messagers[userId]);
+                        uiRequireData.profile.photo = '/image/group.png';
+                        uiRequireData.messagerId = userId;
+                        break;
                 }
+                createChatroom(uiRequireData);
+                createProfilePanel(uiRequireData);
             }
         }
 
@@ -2068,11 +2045,6 @@
         var date = new Date(input);
         var dateStr = ' (' + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ') ';
         return dateStr;
-    }
-
-    function toTimeStrMinusQuo(input) {
-        var date = new Date(input);
-        return addZero(date.getHours()) + ':' + addZero(date.getMinutes());
     }
 
     function multiSelectChange(ev) {

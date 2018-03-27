@@ -22,7 +22,7 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} appIds
-         * @param {string} messagerId
+         * @param {string|null} messagerId
          * @param {(appsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */

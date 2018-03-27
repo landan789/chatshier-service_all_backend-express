@@ -158,7 +158,7 @@ function init(server) {
                         return userId;
                     }
                 });
-                return Promise.resolve(messagerIds);
+                return messagerIds;
             }).then((messagerIds) => {
                 if (!messagerIds) {
                     return;
