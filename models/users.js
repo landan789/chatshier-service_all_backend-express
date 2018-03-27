@@ -112,7 +112,7 @@ module.exports = (function() {
                 if (!user) {
                     return Promise.reject(new Error());
                 };
-                return user.calendar_id;
+                return user.calendar_ids;
             }).then((calendarId) => {
                 ('function' === typeof callback) && callback(calendarId);
                 return calendarId;
