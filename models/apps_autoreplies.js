@@ -205,7 +205,8 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'autoreplies.isDeleted': false
             };
             let aggregations = [
                 {
