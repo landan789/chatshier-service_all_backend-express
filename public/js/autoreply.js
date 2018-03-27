@@ -162,7 +162,6 @@
         $('#edit-submit').attr('disabled', 'disabled');
         let appId = $(this).parent().parent().find('#edit-appid').text();
         let autoreplyId = $(this).parent().parent().find('#edit-autoreplyid').text();
-        let userId = auth.currentUser.uid;
         let name = $('#edit-taskTitle').val(); // 標題
         let starttime = Date.parse($('#edit-taskStart').val()); // 開始時間
         let endtime = Date.parse($('#edit-taskEnd').val()); // 結束時間

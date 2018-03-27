@@ -172,7 +172,7 @@ function init(server) {
                 return totalMessages.length > 0 && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, sender.chatroom_id, totalMessages, (appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
-                            reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
+                            reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                             return;
                         };
                         resolve(appsChatroomsMessages[appId].chatrooms[sender.chatroom_id].messages);
@@ -500,7 +500,7 @@ function init(server) {
                         return new Promise((resolve, reject) => {
                             appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (messagesInDB) => {
                                 if (!messagesInDB) {
-                                    reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
+                                    reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
                                     return;
                                 };
                                 let messageId = Object.keys(messagesInDB).shift() || '';
