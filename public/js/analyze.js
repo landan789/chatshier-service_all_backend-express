@@ -79,12 +79,14 @@
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
 
-            var chatrooms = messagesData[appId].chatrooms;
-            for (var chatroomId in messagesData[appId].chatrooms) {
-                var messages = chatrooms[chatroomId].messages || {};
+            if (messagesData[appId]) {
+                var chatrooms = messagesData[appId].chatrooms;
+                for (var chatroomId in messagesData[appId].chatrooms) {
+                    var messages = chatrooms[chatroomId].messages || {};
 
-                for (var messageId in messages) {
-                    messagesDataArray[appId].push(messages[messageId]);
+                    for (var messageId in messages) {
+                        messagesDataArray[appId].push(messages[messageId]);
+                    }
                 }
             }
         }

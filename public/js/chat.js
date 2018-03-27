@@ -226,7 +226,7 @@
                             continue;
                         }
 
-                        var dueTimeDateStr = new Date(ticket.dueTime - timezoneGap).toJSON().split('T').shift();
+                        var dueTimeDateStr = new Date(new Date(ticket.dueTime) - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
                             '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
