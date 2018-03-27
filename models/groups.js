@@ -40,6 +40,8 @@ module.exports = (function() {
                 if (0 === results.length) {
                     return Promise.resolve(groups);
                 }
+
+                let userIds = [];
                 groups = results.reduce((output, group) => {
                     output[group._id] = output[group._id] || {
                         name: group.name,
@@ -49,9 +51,16 @@ module.exports = (function() {
                         members: {},
                         app_ids: group.app_ids
                     };
+
+                    userIds.push(group.members.user_id);
                     Object.assign(output[group._id].members, this.toObject(group.members));
                     return output;
                 }, {});
+
+                if (userId && 0 > userIds.indexOf(userId)) {
+                    return Promise.reject(new Error());
+                };
+
                 return groups;
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
@@ -148,28 +157,39 @@ module.exports = (function() {
 
         findUserIds(groupIds, callback) {
             // polymorphism to both groupid[] and groupid
-            if (!(groupIds instanceof Array)) {
+            if (groupIds && !(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
-            let userIds = {};
-            return Promise.all(groupIds.map((groupId) => {
-                let query = {
-                    '_id': groupId
-                };
-                return this.Model.findOne(query).then((group) => {
+
+            let query = {
+                '_id': {
+                    $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                },
+                'isDeleted': false,
+                'members.isDeleted': false,
+                'members.status': true
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$members'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        members: true
+                    }
+                }
+            ];
+
+            return this.Model.aggregate(aggregations).then((groupsMembers) => {
+                let users = {};
+                groupsMembers.forEach((group) => {
                     let members = group.members;
-                    members.map((member) => {
-                        let _userIds = member.user_id;
-                        if ('string' === typeof _userIds) {
-                            _userIds = [_userIds];
-                        };
-                        _userIds.map((userId) => {
-                            userIds[userId] = userId;
-                        });
-                    });
+                    users[members.user_id] = members.user_id;
                 });
-            })).then(() => {
-                userIds = Object.keys(userIds);
+                return Object.keys(users);
+            }).then((userIds) => {
                 ('function' === typeof callback) && callback(userIds);
                 return userIds;
             }).catch(() => {

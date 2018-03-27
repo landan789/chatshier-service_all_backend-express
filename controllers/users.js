@@ -33,14 +33,12 @@ module.exports = (function() {
             let groupIds = user.group_ids || [];
 
             if (useFuzzy) {
-                let pattern = queryEmail;
-
                 // 沒有輸入搜尋的關鍵字樣本，回傳空陣列
-                if (!pattern) {
+                if (!queryEmail) {
                     return [];
                 }
 
-                return fuseHlp.searchUser(pattern).then((result) => {
+                return fuseHlp.searchUser(queryEmail).then((result) => {
                     // 如果搜尋結果超過5筆，只需回傳5筆
                     if (result.length > 5) {
                         return result.slice(0, 5);

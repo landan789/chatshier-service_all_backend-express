@@ -83,10 +83,12 @@ function init(server) {
             let fromPath;
             let toPath;
             let _messages;
+
             return new Promise((resolve, reject) => {
                 appsMdl.find(null, webhookid, (apps) => {
-                    if (!apps) {
-                        return reject(API_ERROR.APP_DID_NOT_EXIST);
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        reject(API_ERROR.APP_DID_NOT_EXIST);
+                        return;
                     }
                     resolve(apps);
                 });
