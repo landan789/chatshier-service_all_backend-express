@@ -10,8 +10,8 @@
     var inputObj = {};
     var age = '';
     var gender = '';
-    var tag_ids = {};
-    var appsTags = '';
+    var field_ids = {};
+    var appsFields = '';
     var deleteNum = 0;
     var nowSelectAppId = '';
     var modelSelectAppId = '';
@@ -20,12 +20,12 @@
     var $composeEditModal = $('#editModal');
     var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
-    var $customTags = $('#custom-tags');
+    var $customFields = $('#custom-fields');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
-    var tagEnums = api.appsTags.enums;
+    var fieldEnums = api.appsFields.enums;
     const NO_PERMISSION_CODE = '3.16';
     const DID_NOT_HAVE_TAGS = '15.6';
 
@@ -54,33 +54,33 @@
         let id = $(this).attr('rel');
         $('#' + id).show();
     });
-    $(document).on('click', 'button#tag', appendInput);
+    $(document).on('click', 'button#field', appendInput);
     $(document).on('change paste keyup', '.search-bar', dataSearch);
     $(document).on('click', '#condition-close-btn', function() {
         let $conditionDiv = $(this).parent();
-        let $tagBtn = $(this).parent().parent().find('button#tag');
+        let $fieldBtn = $(this).parent().parent().find('button#field');
 
-        let btnName = $tagBtn.attr('name');
+        let btnName = $fieldBtn.attr('name');
 
-        $tagBtn.removeClass();
-        $tagBtn.attr('class', 'btn btn-grey');
-        $tagBtn.text(btnName);
-        $tagBtn.show();
+        $fieldBtn.removeClass();
+        $fieldBtn.attr('class', 'btn btn-grey');
+        $fieldBtn.text(btnName);
+        $fieldBtn.show();
         $conditionDiv.remove();
     });
     $(document).on('click', '#condition-check-btn', function() {
         let $conditionDiv = $(this).parent();
         let $conditionInput = $(this).parent().find('input');
-        let $tagBtn = $(this).parent().parent().find('button#tag');
+        let $fieldBtn = $(this).parent().parent().find('button#field');
 
-        let btnName = $tagBtn.attr('name');
+        let btnName = $fieldBtn.attr('name');
         let conditionValue = $conditionInput.val();
 
         $conditionDiv.hide();
         $conditionInput.attr('value', conditionValue);
-        $tagBtn.removeClass();
-        $tagBtn.attr('class', 'btn btn-info');
-        $tagBtn.text(btnName + ':' + conditionValue).show();
+        $fieldBtn.removeClass();
+        $fieldBtn.attr('class', 'btn btn-info');
+        $fieldBtn.text(btnName + ':' + conditionValue).show();
     });
     $composesAddModal.find('#quickAdd').on('click', insertSubmit);
     $historyTableElem = $('#composes_history_table tbody');
@@ -139,40 +139,40 @@
     }
 
     $composeEditModal.on('shown.bs.modal', function(event) {
-        $('#edit-custom-tags').empty();
+        $('#edit-custom-fields').empty();
         var targetRow = $(event.relatedTarget).parent().parent();
         var appId = targetRow.attr('text');
         var composeId = targetRow.attr('id');
         var $editForm = $composeEditModal.find('.modal-body form');
         var targetData = composesData[composeId];
-        var customTagsElement = targetRow.find('#tags>#tag');
-        var customTags = {};
-        customTagsElement.each(function() {
-            let tagValue = $(this).text();
-            let tagId = $(this).attr('data-type');
-            customTags[tagId] = tagValue;
+        var customFieldsElement = targetRow.find('#fields>#field');
+        var customFields = {};
+        customFieldsElement.each(function() {
+            let fieldValue = $(this).text();
+            let fieldId = $(this).attr('data-type');
+            customFields[fieldId] = fieldValue;
         });
 
-        var appTags = appsTags[appId].tags;
-        for (let appTagId in appTags) {
-            let appTag = appTags[appTagId];
-            if (appTag.isDeleted || ('age' !== appTag.alias && 'gender' !== appTag.alias && '' !== appTag.alias)) {
-                delete appTags[appTagId];
+        var fields = appsFields[appId].fields;
+        for (let fieldId in fields) {
+            let field = fields[fieldId];
+            if (field.isDeleted || ('age' !== field.alias && 'gender' !== field.alias && '' !== field.alias)) {
+                delete fields[fieldId];
                 continue;
             }
 
-            switch (appTag.alias) {
+            switch (field.alias) {
                 case 'age':
-                    if (!customTags[appTag.alias]) {
-                        TagBtn('age', '年齡', appTag.setsType, 'edit-custom-tags');
+                    if (!customFields[field.alias]) {
+                        TagBtn('age', '年齡', field.setsType, 'edit-custom-fields');
                         break;
                     }
 
-                    $('#edit-custom-tags').append(
+                    $('#edit-custom-fields').append(
                         '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="年齡" data-type="' + appTag.setsType + '" id="tag">年齡:' + customTags[appTag.alias] + '</button>' +
+                            '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="年齡" data-type="' + field.setsType + '" id="field">年齡:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="年齡" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="年齡" id="condition-input" value="' + customFields[field.alias] + '">' +
                                 '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
                                 '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
@@ -180,15 +180,15 @@
                     );
                     break;
                 case 'gender':
-                    if (!customTags[appTag.alias]) {
-                        TagBtn('gender', '性別', appTag.setsType, 'edit-custom-tags');
+                    if (!customFields[field.alias]) {
+                        TagBtn('gender', '性別', field.setsType, 'edit-custom-fields');
                         break;
                     }
-                    $('#edit-custom-tags').append(
+                    $('#edit-custom-fields').append(
                         '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + appTag.alias + '" class="btn btn-info" name="性別" data-type="' + appTag.setsType + '" id="tag">性別:' + customTags[appTag.alias] + '</button>' +
+                            '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="性別" data-type="' + field.setsType + '" id="field">性別:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + appTag.alias + '" data-type="' + appTag.setsType + '" placeholder="性別" id="condition-input" value="' + customTags[appTag.alias] + '">' +
+                                '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="性別" id="condition-input" value="' + customFields[field.alias] + '">' +
                                 '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
                                 '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
@@ -196,15 +196,15 @@
                     );
                     break;
                 case '':
-                    if (!customTags[appTagId]) {
-                        TagBtn(appTagId, appTag.text, appTag.setsType, 'edit-custom-tags');
+                    if (!customFields[fieldId]) {
+                        TagBtn(fieldId, field.text, field.setsType, 'edit-custom-fields');
                         break;
                     }
-                    $('#edit-custom-tags').append(
+                    $('#edit-custom-fields').append(
                         '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + appTagId + '" class="btn btn-info" name="' + appTag.text + '" data-type="' + appTag.setsType + '" id="tag">' + appTag.text + ':' + customTags[appTagId] + '</button>' +
+                            '<button type="button" rel="' + fieldId + '" class="btn btn-info" name="' + field.text + '" data-type="' + field.setsType + '" id="field">' + field.text + ':' + customFields[fieldId] + '</button>' +
                             '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + appTagId + '" data-type="' + appTag.setsType + '" placeholder="' + appTag.text + '" id="condition-input" value="' + customTags[appTagId] + '">' +
+                                '<input type="text" class="form-gruop" rel="' + fieldId + '" data-type="' + field.setsType + '" placeholder="' + field.text + '" id="condition-input" value="' + customFields[fieldId] + '">' +
                                 '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
                                 '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
@@ -222,12 +222,12 @@
             $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
             var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
             var conditionInputElement = $composeEditModal.find('input#condition-input');
-            tagsObjCompose(conditionInputElement);
+            fieldsObjCompose(conditionInputElement);
             targetData.text = $editForm.find('#edutinput').val();
             targetData.time = Date.parse($editForm.find('#edit-time').val());
             targetData.age = age;
             targetData.gender = gender;
-            targetData.tag_ids = Object.assign({}, tag_ids);
+            targetData.field_ids = Object.assign({}, field_ids);
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
@@ -236,7 +236,7 @@
             return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
                 age = '';
                 gender = '';
-                tag_ids = {};
+                field_ids = {};
                 $composeEditModal.modal('hide');
                 $.notify('修改成功！', { type: 'success' });
                 $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -302,28 +302,31 @@
     }
 
     function appCustomerTagChanged() {
-        $customTags.empty();
+        $customFields.empty();
         if (!modelSelectAppId) {
             modelSelectAppId = $(this).find(':selected').val();
         }
-        return api.appsTags.findAll(userId).then((resJson) => {
-            appsTags = resJson.data;
-            let appTags = resJson.data[modelSelectAppId].tags;
-            for (let appTag in appTags) {
-                let tag = appTags[appTag];
-                if (tag.isDeleted) {
-                    delete appTags[appTag];
+        return api.appsFields.findAll(userId).then((resJson) => {
+            appsFields = resJson.data;
+            let fields = resJson.data[modelSelectAppId].fields;
+            for (let fieldId in fields) {
+                let field = fields[fieldId];
+                if (field.isDeleted) {
+                    delete fields[fieldId];
                     continue;
                 }
-                switch (tag.alias) {
+                switch (field.alias) {
                     case 'age':
-                        TagBtn('age', '年齡', tag.setsType, 'custom-tags');
+                        TagBtn('age', '年齡', field.setsType, 'custom-fields');
                         break;
                     case 'gender':
-                        TagBtn('gender', '性別', tag.setsType, 'custom-tags');
+                        TagBtn('gender', '性別', field.setsType, 'custom-fields');
                         break;
                     case '':
-                        TagBtn(appTag, tag.text, tag.setsType, 'custom-tags');
+                        TagBtn(fieldId, field.text, field.setsType, 'custom-fields');
+                        break;
+                    default:
+                        break;
                 }
             }
         });
@@ -336,7 +339,7 @@
             .attr('class', 'btn btn-grey')
             .attr('name', text)
             .attr('data-type', type)
-            .attr('id', 'tag')
+            .attr('id', 'field')
             .text(text);
         div.append(btn);
         $('#' + elementId).append(div);
@@ -388,7 +391,7 @@
                     '<tr id="' + composeId + '" text="' + appId + '">' +
                         '<th id="text" data-title="' + composeData.text + '">' + composeData.text + '</th>' +
                         '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
-                        appendTags(composeData) +
+                        appendFields(composeData) +
                         '<td>' +
                             '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                             '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
@@ -404,8 +407,8 @@
             }
         });
     }
-    function appendTags(composeData) {
-        let composeTags = {
+    function appendFields(composeData) {
+        let composeFields = {
             'age': {
                 'value': ''
             },
@@ -413,7 +416,7 @@
                 'value': ''
             }
         };
-        let tagsTd = '<td id="tags">';
+        let fieldsTd = '<td id="fields">';
         let composeAge = composeData.age || '';
         let composeAgeString = '';
         for (let i = 0; i < composeAge.length; i++) {
@@ -426,22 +429,22 @@
             }
         }
         let composeGender = composeData.gender || '';
-        if (!composeData.tag_ids && '' === composeData.age && '' === composeGender) {
-            tagsTd += '<snap id="sendAll">無';
-            return tagsTd;
+        if (!composeData.field_ids && '' === composeData.age && '' === composeGender) {
+            fieldsTd += '<snap id="sendAll">無';
+            return fieldsTd;
         }
-        composeTags = Object.assign(composeTags, composeData.tag_ids) || composeTags;
-        composeTags['age'].value = composeAgeString;
-        composeTags['gender'].value = composeGender;
-        for (var tagId in composeTags) {
-            let composeTag = composeTags[tagId];
+        composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
+        composeFields['age'].value = composeAgeString;
+        composeFields['gender'].value = composeGender;
+        for (var fieldId in composeFields) {
+            let composeTag = composeFields[fieldId];
             if (!composeTag.value) {
                 continue;
             }
-            tagsTd += '<snap id="tag" data-type="' + tagId + '">' + composeTag.value;
+            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value;
         }
-        tagsTd += '</td>';
-        return tagsTd;
+        fieldsTd += '</td>';
+        return fieldsTd;
     }
 
     function dataSearch() {
@@ -493,7 +496,7 @@
         $('#send-all').prop('checked', true);
         $('div#limit-user').hide();
         $('div#condition').remove();
-        $('button[id="tag"]').show();
+        $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
         $('#send-time').val('');
         $('#checkbox_value').prop('checked', false);
@@ -503,21 +506,21 @@
         deleteNum = 0;
         age = '';
         gender = '';
-        tag_ids = {};
+        field_ids = {};
     }
 
     function appendInput() {
         let text = $(this).text();
         let rel = $(this).attr('rel');
         let dataType = $(this).attr('data-type');
-        let $tagDiv = $(this).parent();
+        let $fieldDiv = $(this).parent();
         let $conditionDiv = $(this).parent().find('div');
 
         let conditionId = $conditionDiv.attr('id');
 
         $(this).hide();
         if (!conditionId) {
-            $tagDiv.append(
+            $fieldDiv.append(
                 '<div id="condition">' +
                     '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
                     '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
@@ -534,7 +537,7 @@
         var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
         var sendTime = $composesAddModal.find('#send-time').val();
         var conditionInputElement = $composesAddModal.find('input#condition-input');
-        tagsObjCompose(conditionInputElement);
+        fieldsObjCompose(conditionInputElement);
         $errorMsgElem.empty().hide();
 
         var isTextVaild = true;
@@ -556,7 +559,7 @@
             isDraft: isDraft,
             age: age,
             gender: gender,
-            tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
+            field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
         };
 
         let messages = [];
@@ -569,7 +572,7 @@
                     time: Date.now() - 60000,
                     age: age,
                     gender: gender,
-                    tag_ids: 0 === Object.keys(tag_ids).length ? {} : tag_ids
+                    field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
                 };
                 messages.push(compose);
             }
@@ -653,7 +656,7 @@
                         '<tr id="' + composeId + '" text="' + appId + '">' +
                             '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                            appendTags(appsComposes) +
+                            appendFields(appsComposes) +
                             '<td>' +
                                 '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
@@ -673,7 +676,7 @@
             });
         }
     }
-    function tagsObjCompose(conditionInputElement) {
+    function fieldsObjCompose(conditionInputElement) {
         conditionInputElement.each(function () {
             var conditionVal = $(this).val();
             var conditionRel = $(this).attr('rel');
@@ -683,7 +686,7 @@
             }
 
             switch (conditionDataType) {
-                case tagEnums.setsType.NUMBER:
+                case fieldEnums.setsType.NUMBER:
                     let ageRange = conditionVal.split(/[-~]/);
                     for (let i in ageRange) {
                         ageRange[i] = parseInt(ageRange[i]);
@@ -709,7 +712,7 @@
                     }
                     break;
                 default:
-                    tag_ids[conditionRel] = {
+                    field_ids[conditionRel] = {
                         value: conditionVal
                     };
             }
@@ -726,7 +729,7 @@
                 time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
                 age: options.age,
                 gender: options.gender,
-                tag_ids: options.tag_ids
+                field_ids: options.field_ids
             };
             return compose;
         });

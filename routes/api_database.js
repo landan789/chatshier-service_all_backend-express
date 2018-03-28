@@ -11,7 +11,7 @@ var appsCtl = require('../controllers/apps');
 var appsTicketsCtl = require('../controllers/apps_tickets');
 var calendarsEventsCtl = require('../controllers/calendars_events');
 var appsRichmenusCtl = require('../controllers/apps_richmenus');
-var appsTagsCtl = require('../controllers/apps_tags');
+var appsFieldsCtl = require('../controllers/apps_fields');
 var appsGreetingsCtl = require('../controllers/apps_greetings');
 var usersCtl = require('../controllers/users');
 var groupsCtl = require('../controllers/groups');
@@ -93,10 +93,10 @@ router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/u
 
 // ==========
 // 資料客戶分類條件
-router.get('/apps-tags/users/:userid', appsTagsCtl.getAll);
-router.post('/apps-tags/apps/:appid/users/:userid', appsTagsCtl.postOne);
-router.put('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.putOne);
-router.delete('/apps-tags/apps/:appid/tags/:tagid/users/:userid', appsTagsCtl.deleteOne);
+router.get('/apps-fields/users/:userid', appsFieldsCtl.getAll);
+router.post('/apps-fields/apps/:appid/users/:userid', appsFieldsCtl.postOne);
+router.put('/apps-fields/apps/:appid/fields/:fieldid/users/:userid', appsFieldsCtl.putOne);
+router.delete('/apps-fields/apps/:appid/fields/:fieldid/users/:userid', appsFieldsCtl.deleteOne);
 // ==========
 
 // ==========

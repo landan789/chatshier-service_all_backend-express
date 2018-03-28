@@ -11,7 +11,7 @@ const READ = 'READ';
 var appsMdl = require('../models/apps');
 var usersMdl = require('../models/users');
 var groupsMdl = require('../models/groups');
-var appsTagsMdl = require('../models/apps_fields');
+var appsFieldsMdl = require('../models/apps_fields');
 
 var apps = {};
 
@@ -62,7 +62,7 @@ apps.getAll = (req, res, next) => {
         };
         res.status(500).json(json);
     });
-}
+};
 
 apps.getOne = (req, res, next) => {
     var appId = req.params.appid;
@@ -74,7 +74,6 @@ apps.getOne = (req, res, next) => {
 
     proceed.then(() => {
         return new Promise((resolve, reject) => {
-
             if ('' === appId || null === appId) {
                 reject(API_ERROR.APPID_WAS_EMPTY);
                 return;
@@ -258,8 +257,8 @@ apps.postOne = (req, res, next) => {
     }).then((apps) => {
         var appId = Object.keys(apps).shift() || '';
         return new Promise((resolve, reject) => {
-            appsTagsMdl.insertDefaultTags(appId, (tags) => {
-                if (!tags) {
+            appsFieldsMdl.insertDefaultFields(appId, (fields) => {
+                if (!fields) {
                     reject(API_ERROR.APP_FAILED_TO_INSERT);
                     return;
                 }

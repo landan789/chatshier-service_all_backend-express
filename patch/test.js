@@ -131,7 +131,7 @@ function testAppsFields(appId) {
         console.log('--- inserted ---');
         console.log(JSON.stringify(inserted, void 0, 2));
 
-        let fieldId = Object.keys(inserted[appId].tags).shift();
+        let fieldId = Object.keys(inserted[appId].fields).shift();
         field.description = 'update';
         return appsFieldsMdl.update(appId, fieldId, field).then((updated) => {
             console.log('--- updated ---');
