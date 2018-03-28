@@ -129,8 +129,8 @@ module.exports = (function() {
 
                     // 將預設的客戶分類條件資料新增至 App 中
                     return new Promise((resolve, reject) => {
-                        appsFieldsMdl.insertDefaultFields(appId, (tags) => {
-                            if (!tags) {
+                        appsFieldsMdl.insertDefaultFields(appId, (appsFields) => {
+                            if (!appsFields) {
                                 return reject(API_ERROR.APP_FAILED_TO_INSERT);
                             }
                             resolve();

@@ -421,11 +421,11 @@ function init(server) {
                             let originMessager = originMessagers[messagerId];
                             let originMessagerAge = originMessager.age || '';
                             let originMessagerGender = originMessager.gender || '';
-                            let originMessagerTags = originMessager.custom_fields || {};
+                            let originMessagerFields = originMessager.custom_fields || {};
 
                             let messageAge = message.age || '';
                             let messageGender = message.gender || '';
-                            let messageTags = 0 === Object.keys(message.tag_ids).length ? {} : message.tag_ids;
+                            let messageFields = 0 === Object.keys(message.field_ids).length ? {} : message.field_ids;
 
                             for (let i = 0; i < messageAge.length; i++) {
                                 if (i % 2) {
@@ -443,17 +443,17 @@ function init(server) {
                             if (originMessagerGender !== messageGender && '' !== messageGender) {
                                 delete messagers[messagerId];
                             }
-                            Object.keys(messageTags).map((tagId) => {
-                                let originMessagerTagValue = originMessagerTags[tagId].value || '';
-                                let messageTagValue = messageTags[tagId].value || '';
-                                if (originMessagerTagValue instanceof Array) {
-                                    for (let i in originMessagerTagValue) {
-                                        if (originMessagerTagValue[i] !== messageTagValue && '' !== messageTagValue) {
+                            Object.keys(messageFields).map((fieldId) => {
+                                let originMessagerFieldValue = originMessagerFields[fieldId].value || '';
+                                let messageFieldValue = messageFields[fieldId].value || '';
+                                if (originMessagerFieldValue instanceof Array) {
+                                    for (let i in originMessagerFieldValue) {
+                                        if (originMessagerFieldValue[i] !== messageFieldValue && '' !== messageFieldValue) {
                                             delete messagers[messagerId];
                                         }
                                     }
                                 } else {
-                                    if (originMessagerTagValue !== messageTagValue && '' !== messageTagValue) {
+                                    if (originMessagerFieldValue !== messageFieldValue && '' !== messageFieldValue) {
                                         delete messagers[messagerId];
                                     }
                                 }
@@ -461,7 +461,7 @@ function init(server) {
                         });
                     });
                     if (0 === Object.keys(messagers).length) {
-                        reject(API_ERROR.APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS);
+                        reject(API_ERROR.APP_COMPOSE_DID_NOT_HAVE_THESE_FIELDS);
                         return;
                     }
                     resolve();

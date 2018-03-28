@@ -3,7 +3,7 @@ Released: 2018-03-14
 
 == Features ==
  * keywordreply with fizzy searching
- * compose with tags (customized fields)
+ * compose with fields (customized fields)
  * google calandar
  * storage via Dropbox
  * signup page changes to react.js

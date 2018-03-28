@@ -191,7 +191,7 @@ module.exports = (function() {
         };
 
         /**
-         * 將預設的 tag 資料批次新增到指定的 app 裡，完成插入後回傳所有 tag ID
+         * 將預設的 field 資料批次新增到指定的 app 裡，完成插入後回傳所有 field ID
          *
          * @param {string} appId
          * @param {(appsFields: any|null) => any} callback
@@ -206,7 +206,7 @@ module.exports = (function() {
             return Promise.all(defaultFields.map((field, i) => {
                 field.order = i;
                 return this.insert(appId, field).then((_appsFields) => {
-                    _appsFields && Object.assign(appsFields[appId].tags, _appsFields[appId].tags);
+                    _appsFields && Object.assign(appsFields[appId].fields, _appsFields[appId].fields);
                     return _appsFields;
                 });
             })).then(() => {

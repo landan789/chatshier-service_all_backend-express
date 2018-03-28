@@ -80,7 +80,7 @@ module.exports = (function() {
         let text = req.body.text;
         let age = req.body.age;
         let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
+        let field_ids = req.body.field_ids;
         let postCompose = {
             type: type,
             text: text,
@@ -88,7 +88,7 @@ module.exports = (function() {
             status: status,
             age: age,
             gender: gender,
-            tag_ids: tag_ids
+            field_ids: field_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -128,7 +128,7 @@ module.exports = (function() {
         let text = req.body.text;
         let age = req.body.age;
         let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
+        let field_ids = req.body.field_ids;
         let putComposesData = {
             type: type,
             text: text,
@@ -136,7 +136,7 @@ module.exports = (function() {
             status: status,
             age: age,
             gender: gender,
-            tag_ids: tag_ids
+            field_ids: field_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;

@@ -69,7 +69,7 @@ let jobProcess = () => {
                         messages.push(message);
                         let composeAge = composes[composeId].age || '';
                         let composeGender = composes[composeId].gander || '';
-                        let composeFields = composes[composeId].tag_ids || {};
+                        let composeFields = composes[composeId].field_ids || {};
 
                         for (let i = 0; i < composeAge.length; i++) {
                             if (i % 2) {
@@ -87,9 +87,9 @@ let jobProcess = () => {
                         if (originMessagerGender !== composeGender && '' !== composeGender) {
                             delete messagers[messagerId];
                         }
-                        for (let tagId in composeFields) {
-                            let originMessagerTagValue = originMessagerFields[tagId].value || '';
-                            let composeTagValue = composeFields[tagId].value || '';
+                        for (let fieldId in composeFields) {
+                            let originMessagerTagValue = originMessagerFields[fieldId].value || '';
+                            let composeTagValue = composeFields[fieldId].value || '';
                             if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
                                 delete messagers[messagerId];
                             }

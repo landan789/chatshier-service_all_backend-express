@@ -95,8 +95,8 @@ router.delete('/apps-keywordreplies/apps/:appid/keywordreplies/:keywordreplyid/u
 // 資料客戶分類條件
 router.get('/apps-fields/users/:userid', appsFieldsCtl.getAll);
 router.post('/apps-fields/apps/:appid/users/:userid', appsFieldsCtl.postOne);
-router.put('/apps-fields/apps/:appid/fields/:tagid/users/:userid', appsFieldsCtl.putOne);
-router.delete('/apps-fields/apps/:appid/fields/:tagid/users/:userid', appsFieldsCtl.deleteOne);
+router.put('/apps-fields/apps/:appid/fields/:fieldid/users/:userid', appsFieldsCtl.putOne);
+router.delete('/apps-fields/apps/:appid/fields/:fieldid/users/:userid', appsFieldsCtl.deleteOne);
 // ==========
 
 // ==========

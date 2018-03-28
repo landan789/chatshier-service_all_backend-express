@@ -292,45 +292,45 @@ window.googleClientHelper.loadAPI().then(function() {
 // ===============
 // #region 客戶分類條件 Tab 代碼區塊
 (function() {
-    var NEW_TAG_ID_PREFIX = 'temp_tag_id';
-    var tagEnums = api.appsTags.enums;
+    var NEW_TAG_ID_PREFIX = 'temp_field_id';
+    var fieldEnums = api.appsFields.enums;
 
-    var tagPanelCtrl = (function() {
-        var instance = new TagPanelCtrl();
+    var fieldPanelCtrl = (function() {
+        var instance = new FieldPanelCtrl();
 
         // 宣告用來處理整個客戶分類條件容器的控制類別
-        function TagPanelCtrl() {
+        function FieldPanelCtrl() {
             this.saveListeners = [];
             this.deleteListeners = [];
-            this.$tagPanel = $('.chsr-tags.panel-group .panel');
+            this.$fieldPanel = $('.chsr-fields.panel-group .panel');
         }
 
         /**
          * @param {string} appId
          */
-        TagPanelCtrl.prototype.toggleItem = function(appId) {
-            var tagCollapseId = appId + '_collapse';
-            this.$tagPanel.find('#' + tagCollapseId).collapse();
+        FieldPanelCtrl.prototype.toggleItem = function(appId) {
+            var fieldCollapseId = appId + '_collapse';
+            this.$fieldPanel.find('#' + fieldCollapseId).collapse();
         };
 
         /**
          * @param {string} appId
          * @param {*} appData
          */
-        TagPanelCtrl.prototype.addAppItem = function(appId, appData) {
+        FieldPanelCtrl.prototype.addAppItem = function(appId, appData) {
             var _this = this;
-            var tagCollapseId = appId + '_collapse';
-            _this.$tagPanel.append(
+            var fieldCollapseId = appId + '_collapse';
+            _this.$fieldPanel.append(
                 '<div class="panel-heading" role="tab" id="' + appId + '">' +
                     '<h4 class="panel-title">' +
-                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_fields_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
+                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_fields_wapper" href="#' + fieldCollapseId + '" aria-expanded="true" aria-controls="' + fieldCollapseId + '">' +
                             (appData.name || '') +
                         '</a>' +
                     '</h4>' +
                 '</div>' +
-                '<div id="' + tagCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
+                '<div id="' + fieldCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
                     '<div class="panel-body">' +
-                        '<button type="button" class="btn btn-default add-tag">' +
+                        '<button type="button" class="btn btn-default add-field">' +
                             '<span class="fa fa-plus fa-fw"></span>新增' +
                         '</button>' +
                         '<table class="table table-striped">' +
@@ -352,58 +352,58 @@ window.googleClientHelper.loadAPI().then(function() {
                 '</div>'
             );
 
-            var $tagCollapse = _this.$tagPanel.find('#' + tagCollapseId);
-            var $tagTableBody = $tagCollapse.find('.panel-body table tbody');
-            $tagTableBody.sortable(); // 使 jquery ui 的 sortable 的功能作動，讓 table 內的項目可以被拖曳移動
+            var $fieldCollapse = _this.$fieldPanel.find('#' + fieldCollapseId);
+            var $fieldTableBody = $fieldCollapse.find('.panel-body table tbody');
+            $fieldTableBody.sortable(); // 使 jquery ui 的 sortable 的功能作動，讓 table 內的項目可以被拖曳移動
 
-            $tagCollapse.find('.btn.add-tag').on('click', function() {
-                _this.addTagItem(appId, NEW_TAG_ID_PREFIX + Date.now(), {
+            $fieldCollapse.find('.btn.add-field').on('click', function() {
+                _this.addFieldItem(appId, NEW_TAG_ID_PREFIX + Date.now(), {
                     text: '新客戶分類條件',
-                    type: tagEnums.type.CUSTOM
+                    type: fieldEnums.type.CUSTOM
                 });
             });
 
-            $tagCollapse.find('.btn.all-confirm').on('click', function(ev) {
-                var $tagRows = $tagTableBody.find('tr.tag-content');
-                var uiTags = {};
+            $fieldCollapse.find('.btn.all-confirm').on('click', function(ev) {
+                var $fieldRows = $fieldTableBody.find('tr.field-content');
+                var uiFields = {};
 
-                for (var i = 0; i < $tagRows.length; i++) {
-                    var $row = $($tagRows[i]);
+                for (var i = 0; i < $fieldRows.length; i++) {
+                    var $row = $($fieldRows[i]);
                     var data = {
-                        text: $row.find('.tag-name input').val(),
-                        setsType: $row.find('.tag-type select option:selected').val(),
+                        text: $row.find('.field-name input').val(),
+                        setsType: $row.find('.field-type select option:selected').val(),
                         order: i
                     };
                     var setsValue = 0;
 
                     switch (data.setsType) {
-                        case tagEnums.setsType.MULTI_SELECT:
-                        case tagEnums.setsType.CHECKBOX:
-                        case tagEnums.setsType.SELECT:
+                        case fieldEnums.setsType.MULTI_SELECT:
+                        case fieldEnums.setsType.CHECKBOX:
+                        case fieldEnums.setsType.SELECT:
                             // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
-                            data.sets = $row.find('.tag-sets .sets-item').val().split('\n');
+                            data.sets = $row.find('.field-sets .sets-item').val().split('\n');
                             break;
-                        case tagEnums.setsType.NUMBER:
-                        case tagEnums.setsType.DATE:
+                        case fieldEnums.setsType.NUMBER:
+                        case fieldEnums.setsType.DATE:
                             // 文字、數字及日期資料用陣列的長度來定義顯示單行或多行
-                            setsValue = parseInt($row.find('.tag-sets option:selected').val());
+                            setsValue = parseInt($row.find('.field-sets option:selected').val());
                             data.sets = setsValue ? [0, 0] : [0];
                             break;
-                        case tagEnums.setsType.TEXT:
+                        case fieldEnums.setsType.TEXT:
                         default:
-                            setsValue = parseInt($row.find('.tag-sets option:selected').val());
+                            setsValue = parseInt($row.find('.field-sets option:selected').val());
                             data.sets = setsValue ? ['', ''] : [''];
                             break;
                     }
 
-                    // 每一行的 td 客戶分類條件的 ID 都直接使用 tagId 設定，因此用來設定對應的資料
-                    uiTags[$row.attr('id')] = data;
+                    // 每一行的 td 客戶分類條件的 ID 都直接使用 fieldId 設定，因此用來設定對應的資料
+                    uiFields[$row.attr('id')] = data;
                 }
 
                 for (var idx in _this.saveListeners) {
                     _this.saveListeners[idx](ev, {
                         appId: appId,
-                        uiTags: uiTags
+                        uiFields: uiFields
                     });
                 }
             });
@@ -411,18 +411,18 @@ window.googleClientHelper.loadAPI().then(function() {
 
         /**
          * @param {string} appId
-         * @param {string} tagId
-         * @param {*} tagData
+         * @param {string} fieldId
+         * @param {*} field
          */
-        TagPanelCtrl.prototype.addTagItem = function(appId, tagId, tagData) {
+        FieldPanelCtrl.prototype.addFieldItem = function(appId, fieldId, field) {
             var _this = this;
-            var tagCollapseId = appId + '_collapse';
-            var $tagTableBody = this.$tagPanel.find('#' + tagCollapseId + ' .panel-body table tbody');
+            var fieldCollapseId = appId + '_collapse';
+            var $fieldTableBody = this.$fieldPanel.find('#' + fieldCollapseId + ' .panel-body table tbody');
 
             var getSetsHtml = function(setsType, setsData) {
                 switch (setsType) {
-                    case tagEnums.setsType.SELECT:
-                    case tagEnums.setsType.MULTI_SELECT:
+                    case fieldEnums.setsType.SELECT:
+                    case fieldEnums.setsType.MULTI_SELECT:
                         return '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
                             (function(sets) {
                                 var transStrs = [];
@@ -432,11 +432,11 @@ window.googleClientHelper.loadAPI().then(function() {
                                 return transStrs;
                             })(setsData).join('\n') +
                         '</textarea>';
-                    case tagEnums.setsType.CHECKBOX:
+                    case fieldEnums.setsType.CHECKBOX:
                         return '<input type="text" class="sets-item form-control" value="無設定" disabled />';
-                    case tagEnums.setsType.TEXT:
-                    case tagEnums.setsType.DATE:
-                    case tagEnums.setsType.NUMBER:
+                    case fieldEnums.setsType.TEXT:
+                    case fieldEnums.setsType.DATE:
+                    case fieldEnums.setsType.NUMBER:
                     default:
                         return '<select class="sets-item form-control">' +
                             '<option value="0">單行</option>' +
@@ -445,61 +445,61 @@ window.googleClientHelper.loadAPI().then(function() {
                 }
             };
 
-            $tagTableBody.append(
-                '<tr class="tag-content" id="' + tagId + '">' +
-                    '<td class="tag-name long-token">' +
-                        '<input class="form-control" type="text" value="' + (transJson[tagData.text] ? transJson[tagData.text] : (tagData.text || '')) + '" />' +
+            $fieldTableBody.append(
+                '<tr class="field-content" id="' + fieldId + '">' +
+                    '<td class="field-name long-token">' +
+                        '<input class="form-control" type="text" value="' + (transJson[field.text] ? transJson[field.text] : (field.text || '')) + '" />' +
                     '</td>' +
-                    '<td class="tag-type">' +
+                    '<td class="field-type">' +
                         '<select class="form-control">' +
-                            '<option value="' + tagEnums.setsType.TEXT + '">文字</option>' +
-                            '<option value="' + tagEnums.setsType.NUMBER + '">數字</option>' +
-                            '<option value="' + tagEnums.setsType.DATE + '">時間</option>' +
-                            '<option value="' + tagEnums.setsType.SELECT + '">單項選擇</option>' +
-                            '<option value="' + tagEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
-                            '<option value="' + tagEnums.setsType.CHECKBOX + '">單項勾選</option>' +
+                            '<option value="' + fieldEnums.setsType.TEXT + '">文字</option>' +
+                            '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
+                            '<option value="' + fieldEnums.setsType.DATE + '">時間</option>' +
+                            '<option value="' + fieldEnums.setsType.SELECT + '">單項選擇</option>' +
+                            '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
+                            '<option value="' + fieldEnums.setsType.CHECKBOX + '">單項勾選</option>' +
                         '</select>' +
                     '</td>' +
-                    '<td class="tag-sets">' +
-                        getSetsHtml(tagData.setsType, tagData.sets) +
+                    '<td class="field-sets">' +
+                        getSetsHtml(field.setsType, field.sets) +
                     '</td>' +
-                    '<td class="tag-delete">' +
-                        '<button type="button" class="btn btn-default btn-sm btn-danger tag-delete-btn' + (tagEnums.type.SYSTEM === tagData.type ? ' hide' : '') + '">' +
+                    '<td class="field-delete">' +
+                        '<button type="button" class="btn btn-default btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' hide' : '') + '">' +
                             '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
                         '</button>' +
                     '</td>' +
-                    '<td class="tag-drag-icon">' +
+                    '<td class="field-drag-icon">' +
                         '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
                     '</td>' +
                 '</tr>');
-            var $tagRow = $tagTableBody.find('#' + tagId);
-            var $tagTypeSelect = $tagRow.find('.tag-type select');
-            $tagTypeSelect.find('option[value="' + tagData.setsType + '"]').prop('selected', true);
+            var $fieldRow = $fieldTableBody.find('#' + fieldId);
+            var $fieldTypeSelect = $fieldRow.find('.field-type select');
+            $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
 
-            if (tagData.type !== tagEnums.type.CUSTOM) {
-                $tagTypeSelect.prop('disabled', true);
-                $tagRow.find('.tag-name input').prop('disabled', true);
-                $tagRow.find('.tag-sets .sets-item').prop('disabled', true);
+            if (field.type !== fieldEnums.type.CUSTOM) {
+                $fieldTypeSelect.prop('disabled', true);
+                $fieldRow.find('.field-name input').prop('disabled', true);
+                $fieldRow.find('.field-sets .sets-item').prop('disabled', true);
             }
 
-            $tagTypeSelect.on('change', function(ev) {
+            $fieldTypeSelect.on('change', function(ev) {
                 var $nextCol = $(ev.target.parentElement.nextElementSibling);
                 var selectedVal = ev.target.value;
                 $nextCol.html(getSetsHtml(selectedVal, ['']));
             });
 
-            $tagRow.find('.btn.tag-delete-btn').on('click', function(ev) {
+            $fieldRow.find('.btn.field-delete-btn').on('click', function(ev) {
                 $(ev.target).parentsUntil('tbody').remove();
                 for (var idx in _this.deleteListeners) {
                     _this.deleteListeners[idx]({
                         appId: appId,
-                        tagId: tagId
+                        fieldId: fieldId
                     });
                 }
             });
         };
 
-        TagPanelCtrl.prototype.onSave = function(handler) {
+        FieldPanelCtrl.prototype.onSave = function(handler) {
             var _this = this;
             _this.saveListeners.push(handler);
             return function() {
@@ -508,7 +508,7 @@ window.googleClientHelper.loadAPI().then(function() {
             };
         };
 
-        TagPanelCtrl.prototype.onDelete = function(handler) {
+        FieldPanelCtrl.prototype.onDelete = function(handler) {
             var _this = this;
             _this.deleteListeners.push(handler);
             return function() {
@@ -529,71 +529,71 @@ window.googleClientHelper.loadAPI().then(function() {
         }
 
         var firstAppId = '';
-        tagPanelCtrl.$tagPanel.empty();
+        fieldPanelCtrl.$fieldPanel.empty();
         return Promise.all([
             api.apps.findAll(userId),
-            api.appsTags.findAll(userId)
+            api.appsFields.findAll(userId)
         ]).then(function(resJsons) {
             var appsData = resJsons.shift().data;
-            var appsTagsData = resJsons.shift().data;
+            var appsFieldsData = resJsons.shift().data;
 
-            tagPanelCtrl.saveListeners.length = 0;
-            tagPanelCtrl.deleteListeners.length = 0;
+            fieldPanelCtrl.saveListeners.length = 0;
+            fieldPanelCtrl.deleteListeners.length = 0;
 
             for (var appId in appsData) {
                 var appData = appsData[appId] || {};
-                var tags = appsTagsData[appId].tags || {};
-                tagPanelCtrl.addAppItem(appId, appData);
+                var fields = appsFieldsData[appId].fields || {};
+                fieldPanelCtrl.addAppItem(appId, appData);
                 firstAppId = firstAppId || appId;
 
                 // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
-                var tagIds = Object.keys(tags);
-                tagIds.sort(function(a, b) {
-                    return tags[a].order - tags[b].order;
+                var fieldIds = Object.keys(fields);
+                fieldIds.sort(function(a, b) {
+                    return fields[a].order - fields[b].order;
                 });
 
-                for (var i in tagIds) {
-                    var tagId = tagIds[i];
-                    var tag = tags[tagId];
-                    if (tag.isDeleted) {
-                        delete tags[tagId];
+                for (var i in fieldIds) {
+                    var fieldId = fieldIds[i];
+                    var field = fields[fieldId];
+                    if (field.isDeleted) {
+                        delete fields[fieldId];
                         continue;
                     }
-                    tagPanelCtrl.addTagItem(appId, tagId, tag);
+                    fieldPanelCtrl.addFieldItem(appId, fieldId, field);
                 }
             }
 
             // 監聽每行客戶分類條件的儲存事件，根據 UI 上資料的變更
             // 檢查哪些資料需要更新哪些資料需要新增
-            tagPanelCtrl.onSave(function(ev, args) {
+            fieldPanelCtrl.onSave(function(ev, args) {
                 $(ev.target).attr('disabled', true);
-                var tagsOrg = appsTagsData[args.appId].tags;
-                var tagIds = Object.keys(tagsOrg);
+                var fieldsOrg = appsFieldsData[args.appId].fields;
+                var fieldIds = Object.keys(fieldsOrg);
 
                 /**
                  * 深層比對目標物件中的資料在來源物件中是否具有相同資料
                  */
-                var tagHasChanged = function(srcTag, destTag) {
-                    for (var key in destTag) {
+                var fieldHasChanged = function(srcField, destField) {
+                    for (var key in destField) {
                         // 因為有翻譯文字的關係
                         // 非自定義客戶分類條件的名稱與系統性別的設定不檢查
-                        if (('text' === key && tagEnums.type.CUSTOM !== srcTag.type) ||
-                            ('sets' === key && 'gender' === srcTag.alias)) {
+                        if (('text' === key && fieldEnums.type.CUSTOM !== srcField.type) ||
+                            ('sets' === key && 'gender' === srcField.alias)) {
                             continue;
                         }
 
-                        if (srcTag[key] === destTag[key]) {
+                        if (srcField[key] === destField[key]) {
                             continue;
                         }
 
-                        if (!(srcTag[key] instanceof Array && destTag[key] instanceof Array)) {
+                        if (!(srcField[key] instanceof Array && destField[key] instanceof Array)) {
                             return true;
-                        } else if (srcTag[key].length !== destTag[key].length) {
+                        } else if (srcField[key].length !== destField[key].length) {
                             return true;
                         }
 
-                        for (var i in destTag[key]) {
-                            if (srcTag[key][i] !== destTag[key][i]) {
+                        for (var i in destField[key]) {
+                            if (srcField[key][i] !== destField[key][i]) {
                                 return true;
                             }
                         }
@@ -601,50 +601,50 @@ window.googleClientHelper.loadAPI().then(function() {
                     return false;
                 };
 
-                return Promise.all(tagIds.map(function(tagId) {
-                    var tagOrg = tagsOrg[tagId];
-                    var tagOnUI = Object.assign({}, args.uiTags[tagId]);
-                    delete args.uiTags[tagId]; // 確認完用的 UI 資料直接刪除，不需再處理
+                return Promise.all(fieldIds.map(function(fieldId) {
+                    var fieldOrg = fieldsOrg[fieldId];
+                    var fieldOnUI = Object.assign({}, args.uiFields[fieldId]);
+                    delete args.uiFields[fieldId]; // 確認完用的 UI 資料直接刪除，不需再處理
 
                     // 需對照 UI 上目前每個客戶分類條件的順序，更新至對應的客戶分類條件
-                    if (!!tagOnUI && tagHasChanged(tagOrg, tagOnUI)) {
+                    if (!!fieldOnUI && fieldHasChanged(fieldOrg, fieldOnUI)) {
                         // 只允許自定義的欄位可進行資料變更動作
-                        if (tagOrg.type === tagEnums.type.CUSTOM) {
-                            tagOrg.text = tagOnUI.text;
-                            tagOrg.setsType = tagOnUI.setsType;
-                            tagOrg.sets = tagOnUI.sets;
+                        if (fieldOrg.type === fieldEnums.type.CUSTOM) {
+                            fieldOrg.text = fieldOnUI.text;
+                            fieldOrg.setsType = fieldOnUI.setsType;
+                            fieldOrg.sets = fieldOnUI.sets;
                         }
-                        tagOrg.order = tagOnUI.order;
-                        return api.appsTags.update(args.appId, tagId, userId, tagOrg);
-                    } else if (tagOrg.isDeleted) {
-                        return api.appsTags.remove(args.appId, tagId, userId).then(function() {
-                            delete appsTagsData[args.appId].tags[tagId];
+                        fieldOrg.order = fieldOnUI.order;
+                        return api.appsFields.update(args.appId, fieldId, userId, fieldOrg);
+                    } else if (fieldOrg.isDeleted) {
+                        return api.appsFields.remove(args.appId, fieldId, userId).then(function() {
+                            delete appsFieldsData[args.appId].fields[fieldId];
                         });
                     }
                     return Promise.resolve();
                 })).then(function() {
-                    return Promise.all(Object.keys(args.uiTags).map(function(tagId) {
+                    return Promise.all(Object.keys(args.uiFields).map(function(fieldId) {
                         // 將剩下的 id 檢查是否為新增的客戶分類條件
                         // 新增的客戶分類條件 id 前綴設定為 NEW_TAG_ID_PREFIX 變數
                         // 非新增的客戶分類條件資料不進行資料插入動作
-                        if (tagId.indexOf(NEW_TAG_ID_PREFIX) < 0) {
+                        if (fieldId.indexOf(NEW_TAG_ID_PREFIX) < 0) {
                             return Promise.resolve();
                         }
 
-                        var tagOnUI = args.uiTags[tagId];
-                        var newTag = {
-                            text: tagOnUI.text,
-                            type: tagEnums.type.CUSTOM,
-                            sets: tagOnUI.sets,
-                            setsType: tagOnUI.setsType,
-                            order: tagOnUI.order
+                        var fieldOnUI = args.uiFields[fieldId];
+                        var newField = {
+                            text: fieldOnUI.text,
+                            type: fieldEnums.type.CUSTOM,
+                            sets: fieldOnUI.sets,
+                            setsType: fieldOnUI.setsType,
+                            order: fieldOnUI.order
                         };
-                        return api.appsTags.insert(args.appId, userId, newTag).then(function(resJson) {
-                            // 完成資料庫儲存後，將暫時使用的 tagId 替換成真正資料庫的 tagId
-                            var insertTags = resJson.data;
-                            var newTagId = Object.keys(insertTags[args.appId].tags).shift();
-                            appsTagsData[args.appId].tags[newTagId] = insertTags[args.appId].tags[newTagId];
-                            $('#' + tagId + '.tag-content').attr('id', newTagId);
+                        return api.appsFields.insert(args.appId, userId, newField).then(function(resJson) {
+                            // 完成資料庫儲存後，將暫時使用的 fieldId 替換成真正資料庫的 fieldId
+                            var insertFields = resJson.data;
+                            var newFieldId = Object.keys(insertFields[args.appId].fields).shift();
+                            appsFieldsData[args.appId].fields[newFieldId] = insertFields[args.appId].fields[newFieldId];
+                            $('#' + fieldId + '.field-content').attr('id', newFieldId);
                         });
                     }));
                 }).then(function() {
@@ -655,16 +655,16 @@ window.googleClientHelper.loadAPI().then(function() {
             });
 
             // 監聽每行客戶分類條件的刪除事件，刪除時在原始資料上標記刪除
-            tagPanelCtrl.onDelete(function(ev) {
-                var tagsData = appsTagsData[ev.appId].tags[ev.tagId];
-                if (!tagsData) {
+            fieldPanelCtrl.onDelete(function(ev) {
+                var field = appsFieldsData[ev.appId].fields[ev.fieldId];
+                if (!field) {
                     return;
                 }
-                tagsData.isDeleted = true;
+                field.isDeleted = true;
             });
 
             // 所有資料載入完後展開第一個 collapse
-            tagPanelCtrl.toggleItem(firstAppId);
+            fieldPanelCtrl.toggleItem(firstAppId);
         });
     });
 })();

@@ -35,7 +35,7 @@
     var apps = {}; // 此變數用來裝所有的 app 資料
     var appsMessagers = {};
     var appsChatrooms = {};
-    var appsTags = {};
+    var appsFields = {};
     var appsAgents = {};
     var groups = {};
     var groupsUsers = {};
@@ -508,14 +508,14 @@
         api.apps.findAll(userId),
         api.appsChatroomsMessages.findAll(userId),
         api.appsMessagers.findAll(userId),
-        api.appsTags.findAll(userId),
+        api.appsFields.findAll(userId),
         api.groups.findAll(userId),
         api.users.find(userId)
     ]).then(function(responses) {
         apps = responses.shift().data;
         appsChatrooms = responses.shift().data;
         appsMessagers = responses.shift().data;
-        appsTags = responses.shift().data;
+        appsFields = responses.shift().data;
 
         groups = responses.shift().data;
         groupsUsers = responses.shift().data;
@@ -538,9 +538,9 @@
                 };
             }
 
-            if (!appsTags[appId]) {
-                appsTags[appId] = {
-                    tags: {}
+            if (!appsFields[appId]) {
+                appsFields[appId] = {
+                    fields: {}
                 };
             }
 
@@ -1121,37 +1121,37 @@
     }
 
     function generatePersonProfileHtml(appId, messager) {
-        var customTags = messager.custom_fields || {};
+        var customFields = messager.custom_fields || {};
 
-        var tdHtmlBuilder = function(tagId, tagData) {
+        var tdHtmlBuilder = function(fieldId, field) {
             var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-            var setsTypeEnums = api.appsTags.enums.setsType;
-            var readonly = tagData.type === api.appsTags.enums.type.SYSTEM;
-            var tagValue = '';
+            var setsTypeEnums = api.appsFields.enums.setsType;
+            var readonly = field.type === api.appsFields.enums.type.SYSTEM;
+            var fieldValue = '';
 
-            if (tagData.type === api.appsTags.enums.type.CUSTOM) {
-                tagValue = customTags[tagId] ? customTags[tagId].value : '';
+            if (field.type === api.appsFields.enums.type.CUSTOM) {
+                fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
             } else {
-                tagValue = messager[tagData.alias] || '';
+                fieldValue = messager[field.alias] || '';
             }
 
-            switch (tagData.setsType) {
+            switch (field.setsType) {
                 case setsTypeEnums.SELECT:
-                    return '<td class="profile-content user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<select class="form-control td-inner" value="' + tagValue + '">' +
+                    return '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<select class="form-control td-inner" value="' + fieldValue + '">' +
                             (function(sets) {
                                 var opts = '<option value="">未選擇</option>';
                                 for (var i in sets) {
-                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === tagValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
                                 }
                                 return opts;
-                            })(tagData.sets) +
+                            })(field.sets) +
                         '</select>' +
                     '</td>';
                 case setsTypeEnums.MULTI_SELECT:
-                    tagValue = (tagValue instanceof Array) ? tagValue : [];
+                    fieldValue = (fieldValue instanceof Array) ? fieldValue : [];
 
-                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<div class="btn-group btn-block td-inner">' +
                             '<button class="btn btn-default btn-block" data-toggle="dropdown" aria-expanded="false">' +
                                 '<span class="multi-select-values"></span>' +
@@ -1166,29 +1166,29 @@
                                         }
 
                                         checkboxes += '<li>' +
-                                            '<input type="checkbox" value="' + sets[i] + '"' + (tagValue[i] ? ' checked="true"' : '') + '">' + sets[i] +
+                                            '<input type="checkbox" value="' + sets[i] + '"' + (fieldValue[i] ? ' checked="true"' : '') + '">' + sets[i] +
                                         '</li>';
                                     }
                                     return checkboxes;
-                                })(tagData.sets) +
+                                })(field.sets) +
                             '</ul>' +
                         '</div>' +
                     '</td>';
                 case setsTypeEnums.CHECKBOX:
-                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="td-inner" type="checkbox"' + (tagValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
+                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
                     '</td>';
                 case setsTypeEnums.DATE:
-                    tagValue = tagValue || 0;
-                    var tagDateStr = new Date(new Date(tagValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="datetime-local" value="' + tagDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                    fieldValue = fieldValue || 0;
+                    var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
+                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
-                    return '<td class="user-info-td" alias="' + tagData.alias + '" type="' + tagData.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + tagValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';
             }
         };
@@ -1241,25 +1241,25 @@
             '<table class="table table-hover panel-table">' +
                 (function() {
                     // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
-                    var tagKeys = Object.keys(appsTags[appId].tags);
-                    tagKeys.sort(function(a, b) {
-                        return appsTags[appId].tags[a].order - appsTags[appId].tags[b].order;
+                    var fieldKeys = Object.keys(appsFields[appId].fields);
+                    fieldKeys.sort(function(a, b) {
+                        return appsFields[appId].fields[a].order - appsFields[appId].fields[b].order;
                     });
                     var rowsHtml = '';
 
-                    for (var i in tagKeys) {
-                        var tagId = tagKeys[i];
-                        var tagData = appsTags[appId].tags[tagId];
+                    for (var i in fieldKeys) {
+                        var fieldId = fieldKeys[i];
+                        var field = appsFields[appId].fields[fieldId];
                         rowsHtml +=
-                            '<tr id="' + tagId + '">' +
-                                '<th class="profile-label user-info-th" alias="' + tagData.alias + '">' + (transJson[tagData.text] || tagData.text) + '</th>' +
-                                tdHtmlBuilder(tagId, tagData) +
+                            '<tr id="' + fieldId + '">' +
+                                '<th class="profile-label user-info-th" alias="' + field.alias + '">' + (transJson[field.text] || field.text) + '</th>' +
+                                tdHtmlBuilder(fieldId, field) +
                             '</tr>';
 
                         // 指派人的資料是屬於非同步的工作
                         // 因此在 html append 到 dom 上後，在抓取資料
                         // 找到指派人的欄位把資料填入
-                        if ('assigned' === tagData.alias) {
+                        if ('assigned' === field.alias) {
                             asyncLoadAgants();
                         }
                     }
@@ -1704,11 +1704,11 @@
 
         $tds.each(function() {
             var $td = $(this);
-            var tagId = $td.parentsUntil('tbody').last().attr('id');
+            var fieldId = $td.parentsUntil('tbody').last().attr('id');
 
             var alias = $td.attr('alias');
             var setsType = $td.attr('type');
-            var setsTypeEnums = api.appsTags.enums.setsType;
+            var setsTypeEnums = api.appsFields.enums.setsType;
 
             // 此欄位不允許編輯的話，不處理資料
             if ('true' !== $td.attr('modify')) {
@@ -1748,7 +1748,7 @@
                     messagerUiData[alias] = value;
                 } else {
                     // 沒有別名的屬性代表是自定義的客戶分類條件資料
-                    messagerUiData.custom_fields[tagId] = {
+                    messagerUiData.custom_fields[fieldId] = {
                         value: value
                     };
                 }

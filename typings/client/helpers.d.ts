@@ -10,7 +10,7 @@ interface Window {
         appsKeywordreplies: AppsKeywordrepliesAPI,
         appsTemplates: AppsTemplatesAPI,
         appsRichmenus: AppsRichmenusAPI,
-        appsTags: AppsTagsAPI,
+        appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
         calendarsEvents: CalendarsEventsAPI,
         groupsMembers: GroupsMembersAPI,
@@ -105,11 +105,11 @@ interface AppsRichmenusAPI {
     remove: (appId: string, richmenuId: string, userId: string) => Promise<any>;
 }
 
-interface AppsTagsAPI {
+interface AppsFieldsAPI {
     findAll: (userId: string) => Promise<any>;
-    insert: (appId: string, userId: string, tagData: any) => Promise<any>;
-    update: (appId: string, tagId: string, userId: string, tagData: any) => Promise<any>;
-    remove: (appId: string, tagId: string, userId: string) => Promise<any>;
+    insert: (appId: string, userId: string, field: any) => Promise<any>;
+    update: (appId: string, fieldId: string, userId: string, field: any) => Promise<any>;
+    remove: (appId: string, fieldId: string, userId: string) => Promise<any>;
     enums: {
         type: {
             SYSTEM: 'SYSTEM',
