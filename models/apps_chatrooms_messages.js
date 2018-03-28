@@ -16,8 +16,8 @@ module.exports = (function() {
          * 根據 App ID, Chatroom ID, Message ID 找到 AppsChatroomsMessages 資訊
          *
          * @param {string[]|string} appIds
-         * @param {any|null} chatroomId
-         * @param {any|null} messageIds
+         * @param {string|null} chatroomId
+         * @param {any[]|null} messageIds
          * @param {(appsChatroomsMessages: any) => any} [callback]
          */
         find(appIds, chatroomId, messageIds, callback) {
@@ -31,8 +31,7 @@ module.exports = (function() {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'isDeleted': false,
-                'chatrooms.isDeleted': false,
-                'chatrooms.messages.isDeleted': false
+                'chatrooms.isDeleted': false
             };
 
             if (chatroomId) {
@@ -43,6 +42,7 @@ module.exports = (function() {
                 if (!(messageIds instanceof Array)) {
                     messageIds = [messageIds];
                 }
+
                 query['chatrooms.messages._id'] = {
                     $in: messageIds.map((messageId) => this.Types.ObjectId(messageId))
                 };
@@ -65,7 +65,11 @@ module.exports = (function() {
                                     as: 'message',
                                     cond: {
                                         $or: messageIds.map((messageId) => ({
-                                            $eq: [ '$$message._id', this.Types.ObjectId(messageId) ]
+                                            in: [{
+                                                $eq: [ '$$message._id', this.Types.ObjectId(messageId) ]
+                                            }, {
+                                                $eq: [ '$$message.isDeleted', false ]
+                                            }]
                                         }))
                                     }
                                 }
@@ -84,14 +88,17 @@ module.exports = (function() {
                 appsChatroomsMessages = results.reduce((output, app) => {
                     if (!output[app._id]) {
                         output[app._id] = {
-                            chatrooms: {
-                                [app.chatrooms._id]: {
-                                    messagers: {},
-                                    messages: {}
-                                }
-                            }
+                            chatrooms: {}
                         };
                     }
+
+                    if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                        output[app._id].chatrooms[app.chatrooms._id] = {
+                            messagers: {},
+                            messages: {}
+                        };
+                    }
+
                     let messagesSrc = output[app._id].chatrooms[app.chatrooms._id].messages;
                     let messagesDest = app.chatrooms.messages;
                     Object.assign(messagesSrc, this.toObject(messagesDest));

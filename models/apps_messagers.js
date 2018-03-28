@@ -103,44 +103,53 @@ module.exports = (function() {
          */
         replaceMessager(appId, messagerId, messager, callback) {
             let isExist = false;
+            messager.platformUid = messagerId;
 
             return this.find(appId, messagerId).then((appsMessagers) => {
-                if (0 === Object.keys(appsMessagers).length) {
+                if (!messager.chatroom_id &&
+                    (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length))) {
                     let chatroomId = this.Types.ObjectId();
                     let chatroom = {
                         _id: chatroomId,
                         createdTime: Date.now()
                     };
+
+                    let query = {
+                        '_id': appId
+                    };
+
                     let updateOper = {
                         $push: {
                             chatrooms: chatroom
                         }
                     };
-                    return this.AppsModel.findByIdAndUpdate(appId, updateOper).then(() => {
+                    return this.AppsModel.update(query, updateOper).then(() => {
                         messager._id = this.Types.ObjectId();
                         messager.chatroom_id = chatroomId;
                         return messager;
                     });
                 }
 
-                isExist = true;
-                let _messager = appsMessagers[appId].messagers[messagerId];
-                let currentTime = Date.now();
-                if (_messager.lastTime) {
-                    let lastChatedTimeGap = currentTime - parseInt(_messager.lastTime);
-                    if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
-                        _messager.chatCount++;
+                if (appsMessagers[appId] && appsMessagers[appId].messagers) {
+                    isExist = true;
+                    let _messager = appsMessagers[appId].messagers[messagerId];
+                    let currentTime = Date.now();
+                    if (_messager.lastTime) {
+                        let lastChatedTimeGap = currentTime - parseInt(_messager.lastTime);
+                        if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                            _messager.chatCount++;
+                        }
                     }
+                    _messager.lastTime = currentTime;
+                    messager = Object.assign({}, _messager, messager);
                 }
-                _messager.lastTime = currentTime;
-                return Object.assign(_messager, messager);
+                return messager;
             }).then((_messager) => {
                 let query = {
                     '_id': appId
                 };
 
                 _messager.updatedTime = Date.now();
-                _messager.platformUid = messagerId;
                 let updateOper = {};
                 if (isExist) {
                     query['messagers._id'] = _messager._id;

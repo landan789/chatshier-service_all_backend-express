@@ -31,8 +31,7 @@
         userId = '';
     }
 
-    var chatroomList = []; // list of all users
-    var userProfiles = []; // array which store all user's profile
+    var chatroomList = [];
     var apps = {}; // 此變數用來裝所有的 app 資料
     var appsMessagers = {};
     var appsChatrooms = {};
@@ -53,8 +52,13 @@
         transJson = Object.assign(transJson, json);
     });
 
+    // wechat 的預設表情符號並不是依照 unicode 編碼，傳過來的訊息是依照 wechat 自家的特殊符號編碼而定
+    // 因此要解析 wechat 的表情符號必須進行轉換
+    // 1. 使用正規表達式檢測文字內是否含有 wechat 的表情符號
+    // 2. 將 wechat 表情符號的編碼根據對照表進行轉換
     var wechatEmojiRegex = new RegExp("/::\\)|/::~|/::B|/::\\||/:8-\\)|/::<|/::$|/::X|/::Z|/::'\\(|/::-\\||/::@|/::P|/::D|/::O|/::\\(|/::\\+|/:--b|/::Q|/::T|/:,@P|/:,@-D|/::d|/:,@o|/::g|/:\\|-\\)|/::!|/::L|/::>|/::,@|/:,@f|/::-S|/:\\?|/:,@x|/:,@@|/::8|/:,@!|/:!!!|/:xx|/:bye|/:wipe|/:dig|/:handclap|/:&-\\(|/:B-\\)|/:<@|/:@>|/::-O|/:>-\\||/:P-\\(|/::'\\||/:X-\\)|/::\\*|/:@x|/:8\\*|/:pd|/:<W>|/:beer|/:basketb|/:oo|/:coffee|/:eat|/:pig|/:rose|/:fade|/:showlove|/:heart|/:break|/:cake|/:li|/:bome|/:kn|/:footb|/:ladybug|/:shit|/:moon|/:sun|/:gift|/:hug|/:strong|/:weak|/:share|/:v|/:@\\)|/:jj|/:@@|/:bad|/:lvu|/:no|/:ok|/:love|/:<L>|/:jump|/:shake|/:<O>|/:circle|/:kotow|/:turn|/:skip|/:oY|/:#-0|/:hiphot|/:kiss|/:<&|/:&>", 'g');
     var wechatEmojiTable = Object.freeze({
+        // TODO: 補完 wechat 預設表情符號編碼
         '/::)': '😃',
         '/::~': '😖',
         '/::B': '😍',
@@ -805,34 +809,37 @@
         for (var appId in apps) {
             var app = apps[appId];
             var chatrooms = appsChatrooms[appId].chatrooms;
+            var messagers = appsMessagers[appId].messagers;
 
             for (var chatroomId in chatrooms) {
                 var uiRequireData = {
                     appId: appId,
                     name: app.name,
                     type: app.type,
-                    chatroom: appsChatrooms[appId].chatrooms[chatroomId] || {},
-                    chatroomId: chatroomId
+                    chatroomId: chatroomId,
+                    chatroom: chatrooms[chatroomId]
                 };
-                var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
 
                 switch (app.type) {
                     // 由於屬於特定平台 app 的 messager 只會有一位
                     case LINE:
                     case FACEBOOK:
                     case WECHAT:
+                        var chatroomMessagers = findMessagersInChatroom(appId, chatroomId);
                         var _msgerId = Object.keys(chatroomMessagers).shift();
-                        var messager = appsMessagers[appId].messagers[_msgerId];
+                        var messager = messagers[_msgerId];
+
                         uiRequireData.profile = messager;
                         uiRequireData.messagerId = _msgerId;
                         break;
                     // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                     default:
-                        uiRequireData.profile = Object.assign({}, appsMessagers[appId].messagers[userId]);
+                        uiRequireData.profile = Object.assign({}, messagers[userId]);
                         uiRequireData.profile.photo = '/image/group.png';
                         uiRequireData.messagerId = userId;
                         break;
                 }
+
                 createChatroom(uiRequireData);
                 createProfilePanel(uiRequireData);
             }
@@ -840,8 +847,8 @@
 
         // 根據訊息時間排序聊天室(訊息時間越晚越上面)
         var sortByMessageTime = function(elA, elB) {
-            var tA = parseInt($(elA).find('.client-message').attr('message-time'));
-            var tB = parseInt($(elB).find('.client-message').attr('message-time'));
+            var tA = parseInt(new Date($(elA).find('.client-message').attr('message-time')).getTime());
+            var tB = parseInt(new Date($(elB).find('.client-message').attr('message-time')).getTime());
             return tA < tB;
         };
 
@@ -935,12 +942,10 @@
         var chatroom = requireData.chatroom;
         var chatroomId = requireData.chatroomId;
 
-        chatroomList.push(chatroomId); // make a name list of all chated user
-        userProfiles[appId] = profile;
-
         if (!(requireData && requireData.chatroom)) {
             return;
         }
+        chatroomId && chatroomList.push(chatroomId);
 
         var messages = chatroom.messages || {};
         var msgKeys = Object.keys(messages);

@@ -93,7 +93,7 @@ module.exports = (function() {
                 });
             }).then((groups) => {
                 // group 成功新增之後，將 user 的 group_ids 更新
-                let groupId = Object.keys(groups).shift();
+                let groupId = Object.keys(groups).shift() || '';
                 if (!groupId) {
                     return groups;
                 }
@@ -115,7 +115,7 @@ module.exports = (function() {
                         };
 
                         appsMdl.insert(userId, postApp, (apps) => {
-                            if (!apps) {
+                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
                                 reject(API_ERROR.APP_FAILED_TO_INSERT);
                                 return;
                             }
@@ -124,6 +124,9 @@ module.exports = (function() {
                     });
                 }).then((apps) => {
                     let appId = Object.keys(apps).shift() || '';
+                    let group = groups[groupId];
+                    group.app_ids.push(appId);
+
                     // 將預設的客戶分類條件資料新增至 App 中
                     return new Promise((resolve, reject) => {
                         appsTagsMdl.insertDefaultTags(appId, (tags) => {
@@ -136,7 +139,8 @@ module.exports = (function() {
                         // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
                         return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                             let chatroomId = Object.keys(appsChatrooms[appId].chatrooms).shift();
-                            let members = Object.values(groups[groupId].members);
+                            let members = Object.values(group.members);
+
                             return Promise.all(members.map((member) => {
                                 let messager = {
                                     chatroom_id: chatroomId
