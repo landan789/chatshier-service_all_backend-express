@@ -74,21 +74,14 @@ module.exports = (function() {
     AppsComposesController.prototype.postOne = (req, res) => {
         res.setHeader('Content-Type', 'application/json');
 
-        let status = req.body.status;
-        let time = req.body.time;
-        let type = req.body.type;
-        let text = req.body.text;
-        let age = req.body.age;
-        let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
         let postCompose = {
-            type: type,
-            text: text,
-            time: time,
-            status: status,
-            age: age,
-            gender: gender,
-            tag_ids: tag_ids
+            type: req.body.type,
+            text: req.body.text,
+            time: req.body.time,
+            status: !!req.body.status,
+            ageRange: req.body.age,
+            gender: req.body.gender,
+            field_ids: req.body.tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -122,21 +115,14 @@ module.exports = (function() {
     AppsComposesController.prototype.putOne = (req, res) => {
         let composeId = req.params.composeid;
         let appId = '';
-        let status = req.body.status;
-        let time = req.body.time;
-        let type = req.body.type;
-        let text = req.body.text;
-        let age = req.body.age;
-        let gender = req.body.gender;
-        let tag_ids = req.body.tag_ids;
         let putComposesData = {
-            type: type,
-            text: text,
-            time: time,
-            status: status,
-            age: age,
-            gender: gender,
-            tag_ids: tag_ids
+            type: req.body.type,
+            text: req.body.text,
+            time: req.body.time,
+            status: !!req.body.status,
+            ageRange: req.body.age,
+            gender: req.body.gender,
+            field_ids: req.body.tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
