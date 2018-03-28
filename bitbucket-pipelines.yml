@@ -5,11 +5,11 @@
 # You can specify a custom docker image from Docker Hub as your build environment.
 image: node:6.9.4
 
-pipelines:
+pipelines:  
   default:
     - step:
-        caches:
-          - node
-        script: # Modify the commands below to build your repository.
-          - npm install
-          - npm test
+        script:
+           - mkdir -p ~/.ssh
+           - cat my_known_hosts >> ~/.ssh/known_hosts
+           - (umask  077 ; echo $MY_SSH_KEY | base64 --decode > ~/.ssh/id_rsa)
+           - ssh <user>@<host> 'echo "connected to `host` as $USER"'
