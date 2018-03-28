@@ -70,7 +70,7 @@ module.exports = (function() {
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'age': {type: Number},
+        'age': {type: Array, defult: []},
         'status': {type: Number},
         'gender': {type: String, default: ''},
         'tag_ids': {type: Object, default: {}},
