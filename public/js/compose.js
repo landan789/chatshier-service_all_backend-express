@@ -8,7 +8,7 @@
     const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
-    var age = '';
+    var ageRange = [];
     var gender = '';
     var field_ids = {};
     var appsFields = '';
@@ -225,16 +225,16 @@
             fieldsObjCompose(conditionInputElement);
             targetData.text = $editForm.find('#edutinput').val();
             targetData.time = Date.parse($editForm.find('#edit-time').val());
-            targetData.age = age;
+            targetData.ageRange = ageRange;
             targetData.gender = gender;
-            targetData.field_ids = Object.assign({}, field_ids);
+            targetData.field_ids = 0 === Object.values(field_ids).length ? {} : field_ids;
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
                 targetData.status = 1;
             }
             return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
-                age = '';
+                ageRange = [];
                 gender = '';
                 field_ids = {};
                 $composeEditModal.modal('hide');
@@ -429,7 +429,7 @@
             }
         }
         let composeGender = composeData.gender || '';
-        if (!composeData.field_ids && 0 === composeData.ageRange.length && '' === composeGender) {
+        if (((0 === Object.values(composeData.field_ids).length && composeData.field_ids instanceof Object) || !composeData.field_ids) && (0 === composeData.ageRange.length && '' === composeGender)) {
             fieldsTd += '<snap id="sendAll">無';
             return fieldsTd;
         }
@@ -504,7 +504,7 @@
         inputObj = {};
         inputNum = 0;
         deleteNum = 0;
-        age = '';
+        ageRange = [];
         gender = '';
         field_ids = {};
     }
@@ -557,9 +557,9 @@
         let options = {
             sendTime: sendTime,
             isDraft: isDraft,
-            age: age,
+            ageRange: ageRange,
             gender: gender,
-            field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+            field_ids: 0 === Object.values(field_ids).length ? {} : field_ids
         };
 
         let messages = [];
@@ -570,9 +570,9 @@
                     text: $('#' + key).val(),
                     status: 1,
                     time: Date.now() - 60000,
-                    age: age,
+                    ageRange: ageRange,
                     gender: gender,
-                    field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+                    field_ids: 0 === Object.values(field_ids).length ? {} : field_ids
                 };
                 messages.push(compose);
             }
@@ -697,7 +697,7 @@
 
             switch (conditionRel) {
                 case 'age':
-                    age = conditionVal;
+                    ageRange = conditionVal;
                     break;
                 case 'gender':
                     switch (conditionVal) {
@@ -727,7 +727,7 @@
                 text: message.text,
                 status: options.isDraft ? 0 : 1,
                 time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
-                age: options.age,
+                ageRange: options.ageRange,
                 gender: options.gender,
                 field_ids: options.field_ids
             };
