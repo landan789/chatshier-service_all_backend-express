@@ -77,6 +77,7 @@ module.exports = (function() {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberUserId = req.body.userid;
+        let memberUser;
 
         var postMember = {
             user_id: memberUserId || '',
@@ -98,6 +99,7 @@ module.exports = (function() {
                         // 不存在的 user 無法加入 群組
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
+                    memberUser = users[memberUserId];
                     resolve();
                 });
             });
@@ -161,6 +163,26 @@ module.exports = (function() {
                         };
                         resolve(groupsMembers);
                     });
+                }).then((groupsMembers) => {
+                    return new Promise((resolve, reject) => {
+                        let userGroupIds = memberUser.group_ids;
+                        let index = userGroupIds.indexOf(groupId);
+                        if (0 <= index) {
+                            resolve();
+                            return;
+                        }
+
+                        memberUser.group_ids.push(groupId);
+                        usersMdl.update(memberUserId, memberUser, (users) => {
+                            if (!users || (users && 0 === Object.keys(users).length)) {
+                                reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                                return;
+                            };
+                            resolve();
+                        });
+                    }).then(() => {
+                        return groupsMembers;
+                    });
                 });
             }
 
@@ -176,6 +198,7 @@ module.exports = (function() {
                 // 抓取出 group 裡的 app_ids 清單
                 // 將此 group member 加入此 group 裡所有 app 的 messagers
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                    appIds = appIds || [];
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
                             appsMdl.find(appId, null, (apps) => {
