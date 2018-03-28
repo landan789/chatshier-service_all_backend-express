@@ -1136,6 +1136,12 @@ window.googleClientHelper.loadAPI().then(function() {
                     // 成功更新後更新本地端的資料
                     groups[groupId].members[memberId].type = putMemberData.type;
                     $permissionItem.addClass('btn-primary').siblings().removeClass('btn-primary');
+                }).catch((resJson) => {
+                    if ('3.11' === resJson.code) {
+                        $.notify('權限不足，無法更新成員權限', { type: 'danger' });
+                        return;
+                    }
+                    $.notify('更新成員權限失敗', { type: 'danger' });
                 });
             });
 
