@@ -65,7 +65,7 @@ describe('Test Apps Model', () => {
     });
 
     it('Insert an app', () => {
-        let testApp = {
+        let insertApp = {
             id1: 'I_am_id1',
             id2: 'I_am_id2',
             name: 'testApp',
@@ -76,13 +76,23 @@ describe('Test Apps Model', () => {
             group_id: groupId
         };
 
-        return appsMdl.insert(userId, testApp).then((apps) => {
+        return appsMdl.insert(userId, insertApp).then((apps) => {
             expect(apps).to.not.be.null;
             expect(apps).to.be.an('object');
             let appIds = Object.keys(apps);
             expect(appIds.length).gt(0);
             appId = appIds.shift();
             expect(appId).to.be.string;
+
+            let app = apps[appId];
+            expect(app.id1).to.eq(insertApp.id1);
+            expect(app.id2).to.eq(insertApp.id2);
+            expect(app.name).to.eq(insertApp.name);
+            expect(app.secret).to.eq(insertApp.secret);
+            expect(app.token1).to.eq(insertApp.token1);
+            expect(app.token2).to.eq(insertApp.token2);
+            expect(app.type).to.eq(insertApp.type);
+            expect(app.group_id).to.eq(insertApp.group_id);
         }).catch((err) => {
             testError = err;
         });
