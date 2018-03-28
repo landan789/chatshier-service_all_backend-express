@@ -56,7 +56,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
         'replyCount': {type: Number, default: 0},
-        'status': {type: Boolean, default: false},
+        'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()}
@@ -69,7 +69,7 @@ module.exports = (function() {
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
         'ageRange': {type: Array},
-        'status': {type: Boolean, default: false},
+        'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'gender': {type: String, default: ''},
         'field_ids': {type: Object, default: {}},
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
