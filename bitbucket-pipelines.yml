@@ -12,4 +12,4 @@ pipelines:
            - mkdir -p ~/.ssh
            - cat my_known_hosts >> ~/.ssh/known_hosts
            - (umask  077 ; echo $MY_SSH_KEY | base64 --decode > ~/.ssh/id_rsa)
-           - ssh <user>@<host> 'echo "connected to `host` as $USER"'
+           - ssh vagrant@220.133.105.17 -p 2222 'echo "connected to `host` as $USER"'
