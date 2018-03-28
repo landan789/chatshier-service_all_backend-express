@@ -11,6 +11,7 @@ const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
 const appsMessagersMdl = require('../models/apps_messagers');
+const appsComposesMdl = require('../models/apps_composes');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 const CHATSHIER = 'CHATSHIER';
@@ -39,70 +40,88 @@ let jobProcess = () => {
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
+            let messages = [];
+            let messagers = {};
             if (CHATSHIER === app.type || app.isDeleted) {
                 return Promise.resolve([]);
             }
 
-            let messages = [];
-            let composes = app.composes === undefined ? '' : app.composes;
-            let messagers = app.messagers || {};
-            for (let messagerId in messagers) {
-                let originMessager = messagers[messagerId] || {};
-                if (originMessager.isDeleted) {
-                    delete messagers[messagerId];
-                    continue;
-                }
-                let originMessagerAge = originMessager.age || '';
-                let originMessagerGender = originMessager.gender || '';
-                let originMessagerFields = originMessager.custom_fields || {};
+            let p1 = new Promise((resolve, reject) => {
+                appsComposesMdl.find(appId, null, (appsComposes) => {
+                    if (!appsComposes) {
+                        return reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    }
+                    resolve(appsComposes[appId].composes);
+                });
+            });
+            let p2 = new Promise((resolve, reject) => {
+                appsMessagersMdl.find(appId, null, (appsMessagers) => {
+                    if (!appsMessagers) {
+                        return reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                    }
+                    resolve(appsMessagers[appId].messagers);
+                });
+            });
+            return Promise.all([p1, p2]).then((results) => {
+                let composes = results[0];
+                messagers = results[1];
+                for (let messagerId in messagers) {
+                    let originMessager = messagers[messagerId] || {};
+                    if (originMessager.isDeleted) {
+                        delete messagers[messagerId];
+                        continue;
+                    }
+                    let originMessagerAge = originMessager.age || '';
+                    let originMessagerGender = originMessager.gender || '';
+                    let originMessagerFields = originMessager.custom_fields || {};
 
-                for (let composeId in composes) {
-                    if (composes[composeId].text &&
-                        1 === composes[composeId].status &&
-                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                        !composes[composeId].isDeleted
-                    ) {
-                        let message = {
-                            type: composes[composeId].type,
-                            text: composes[composeId].text
-                        };
-                        messages.push(message);
-                        let composeAge = composes[composeId].age || '';
-                        let composeGender = composes[composeId].gander || '';
-                        let composeFields = composes[composeId].field_ids || {};
+                    for (let composeId in composes) {
+                        if (composes[composeId].text &&
+                            composes[composeId].status &&
+                            timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
+                            !composes[composeId].isDeleted
+                        ) {
+                            let message = {
+                                type: composes[composeId].type,
+                                text: composes[composeId].text
+                            };
+                            messages.push(message);
+                            let composeAgeRange = composes[composeId].ageRange || '';
+                            let composeGender = composes[composeId].gander || '';
+                            let composeFields = composes[composeId].field_ids || {};
 
-                        for (let i = 0; i < composeAge.length; i++) {
-                            if (i % 2) {
-                                if (originMessagerAge > composeAge[i] && '' !== composeAge[i]) {
-                                    delete messagers[messagerId];
-                                    continue;
-                                }
-                            } else {
-                                if (originMessagerAge < composeAge[i] && '' !== composeAge[i]) {
-                                    delete messagers[messagerId];
-                                    continue;
+                            for (let i = 0; i < composeAgeRange.length; i++) {
+                                if (i % 2) {
+                                    if (originMessagerAge > composeAgeRange[i] && '' !== composeAgeRange[i]) {
+                                        delete messagers[messagerId];
+                                        continue;
+                                    }
+                                } else {
+                                    if (originMessagerAge < composeAgeRange[i] && '' !== composeAgeRange[i]) {
+                                        delete messagers[messagerId];
+                                        continue;
+                                    }
                                 }
                             }
-                        }
-                        if (originMessagerGender !== composeGender && '' !== composeGender) {
-                            delete messagers[messagerId];
-                        }
-                        for (let fieldId in composeFields) {
-                            let originMessagerTagValue = originMessagerFields[fieldId].value || '';
-                            let composeTagValue = composeFields[fieldId].value || '';
-                            if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
+                            if (originMessagerGender !== composeGender && '' !== composeGender) {
                                 delete messagers[messagerId];
                             }
+                            for (let fieldId in composeFields) {
+                                let originMessagerTagValue = originMessagerFields[fieldId].value || '';
+                                let composeTagValue = composeFields[fieldId].value || '';
+                                if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
+                                    delete messagers[messagerId];
+                                }
+                            }
                         }
-                    }
+                    };
+                }
+                // 沒有訊息對象 或 沒有群發訊息 就不做處理
+                if (0 === Object.keys(messagers).length || 0 === messages.length) {
+                    return Promise.resolve(null);
                 };
-            }
-            // 沒有訊息對象 或 沒有群發訊息 就不做處理
-            if (0 === Object.keys(messagers).length || 0 === messages.length) {
-                return Promise.resolve(null);
-            };
-
-            return botSvc.multicast(Object.keys(messagers), messages, appId, app).then(() => {
+                return botSvc.multicast(Object.keys(messagers), messages, appId, app);
+            }).then(() => {
                 return Promise.all(Object.keys(messagers).map((messagerId) => {
                     let chatroomId = messagers[messagerId].chatroom_id;
                     if (!chatroomId) {
