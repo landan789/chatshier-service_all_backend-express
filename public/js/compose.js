@@ -397,11 +397,11 @@
                             '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
-                if (0 === composeData.status) {
+                if (!composeData.status) {
                     $draftTableElem.append(trGrop);
-                } else if (1 === composeData.status && Date.parse(composeData.time) > timeInMs) {
+                } else if (composeData.status && Date.parse(composeData.time) > timeInMs) {
                     $reservationTableElem.append(trGrop);
-                } else if (1 === composeData.status && Date.parse(composeData.time) <= timeInMs) {
+                } else if (composeData.status && Date.parse(composeData.time) <= timeInMs) {
                     $historyTableElem.append(trGrop);
                 }
             }
@@ -409,7 +409,7 @@
     }
     function appendFields(composeData) {
         let composeFields = {
-            'age': {
+            'ageRange': {
                 'value': ''
             },
             'gender': {
@@ -417,24 +417,24 @@
             }
         };
         let fieldsTd = '<td id="fields">';
-        let composeAge = composeData.age || '';
+        let composeAgeRange = composeData.ageRange || '';
         let composeAgeString = '';
-        for (let i = 0; i < composeAge.length; i++) {
+        for (let i = 0; i < composeAgeRange.length; i++) {
             if (i % 2) {
-                composeAgeString += '-' + composeAge[i];
+                composeAgeString += '-' + composeAgeRange[i];
                 continue;
             } else {
-                composeAgeString += composeAge[i];
+                composeAgeString += composeAgeRange[i];
                 continue;
             }
         }
         let composeGender = composeData.gender || '';
-        if (!composeData.field_ids && '' === composeData.age && '' === composeGender) {
+        if (!composeData.field_ids && 0 === composeData.ageRange.length && '' === composeGender) {
             fieldsTd += '<snap id="sendAll">無';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
-        composeFields['age'].value = composeAgeString;
+        composeFields['ageRange'].value = composeAgeString;
         composeFields['gender'].value = composeGender;
         for (var fieldId in composeFields) {
             let composeTag = composeFields[fieldId];
@@ -662,11 +662,11 @@
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';
-                    if (0 === compose.status) {
+                    if (!compose.status) {
                         $draftTableElem.append(trGrop);
-                    } else if (1 === compose.status && Date.parse(compose.time) > timeInMs) {
+                    } else if (compose.status && Date.parse(compose.time) > timeInMs) {
                         $reservationTableElem.append(trGrop);
-                    } else if (1 === compose.status && Date.parse(compose.time) <= timeInMs) {
+                    } else if (compose.status && Date.parse(compose.time) <= timeInMs) {
                         $historyTableElem.append(trGrop);
                     }
                     composesData[composeId] = compose;
@@ -724,7 +724,7 @@
         let composes = messages.map(function(message) {
             let compose = {
                 type: message.type,
-                text: messages.text,
+                text: message.text,
                 status: options.isDraft ? 0 : 1,
                 time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
                 age: options.age,
