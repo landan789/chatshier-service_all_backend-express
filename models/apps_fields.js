@@ -118,11 +118,11 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((fieldId) => this.Types.ObjectId(fieldId))
                 },
-                'isDeleted': false
+                'isDeleted': false,
+                'fields.isDeleted': false
             };
             if (fieldId) {
                 query['fields._id'] = this.Types.ObjectId(fieldId);
-                query['fields.isDeleted'] = false;
             }
 
             let aggregations = [
