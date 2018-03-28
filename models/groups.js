@@ -17,6 +17,11 @@ module.exports = (function() {
             };
         }
 
+        /**
+         * @param {string[]|string} groupIds
+         * @param {string} userId
+         * @param {(groups: any) => any} [callback]
+         */
         find(groupIds, userId, callback) {
             // polymorphism from groupid | groupid[]
             if (!(groupIds instanceof Array)) {
@@ -71,6 +76,11 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} userId
+         * @param {any} postGroup
+         * @param {(groups: any) => any} [callback]
+         */
         insert(userId, postGroup, callback) {
             let group = new this.Model();
             group.name = postGroup.name;
@@ -95,6 +105,11 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} groupId
+         * @param {any} putGroup
+         * @param {(groups: any) => any} [callback]
+         */
         update(groupId, putGroup, callback) {
             putGroup.updatedTime = undefined === putGroup.updatedTime ? Date.now() : putGroup.updatedTime;
             let query = {
@@ -155,6 +170,10 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string|string[]} groupIds
+         * @param {(userIds: string[]) => any} [callback]
+         */
         findUserIds(groupIds, callback) {
             // polymorphism to both groupid[] and groupid
             if (groupIds && !(groupIds instanceof Array)) {
