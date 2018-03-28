@@ -603,7 +603,7 @@
                     composes: messages
                 };
 
-                socket.emit('push composes to all', emitData, (json) => {
+                socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, emitData, (json) => {
                     $composesAddModal.modal('hide');
                     $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
                     if (1 === json.status) {
