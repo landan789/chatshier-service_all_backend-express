@@ -99,10 +99,10 @@
     "APP_KEYWORDREPLY_FAILED_TO_UPDATE": { "MSG": "app keywordreply failed to update", "CODE": "12.3" },
     "APP_KEYWORDREPLY_FAILED_TO_REMOVE": { "MSG": "app keywordreply failed to remove", "CODE": "12.4" },
 
-    "APP_TAG_FAILED_TO_FIND": { "MSG": "app tag failed to find", "CODE": "13.1" },
-    "APP_TAG_FAILED_TO_INSERT": { "MSG": "app tag failed to insert", "CODE": "13.2" },
-    "APP_TAG_FAILED_TO_UPDATE": { "MSG": "app tag failed to update", "CODE": "13.3" },
-    "APP_TAG_FAILED_TO_REMOVE": { "MSG": "app tag failed to remove", "CODE": "13.4" },
+    "APP_FIELD_FAILED_TO_FIND": { "MSG": "app field failed to find", "CODE": "13.1" },
+    "APP_FIELD_FAILED_TO_INSERT": { "MSG": "app field failed to insert", "CODE": "13.2" },
+    "APP_FIELD_FAILED_TO_UPDATE": { "MSG": "app field failed to update", "CODE": "13.3" },
+    "APP_FIELD_FAILED_TO_REMOVE": { "MSG": "app field failed to remove", "CODE": "13.4" },
 
     "APP_GREETING_FAILED_TO_FIND": { "MSG": "app greeting failed to find", "CODE": "14.1" },
     "APP_GREETING_FAILED_TO_INSERT": { "MSG": "app greeting failed to insert", "CODE": "14.2" },
@@ -113,7 +113,7 @@
     "APP_COMPOSE_FAILED_TO_UPDATE": { "MSG": "app compose failed to update", "CODE": "15.3" },
     "APP_COMPOSE_FAILED_TO_REMOVE": { "MSG": "app compose failed to remove", "CODE": "15.4" },
     "APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW": { "MSG": "app compose time must be later than now", "CODE": "15.5" },
-    "APP_COMPOSE_DID_NOT_HAVE_THESE_TAGS": { "MSG": "app compose did not have these tags", "CODE": "15.6" },
+    "APP_COMPOSE_DID_NOT_HAVE_THESE_FIELDS": { "MSG": "app compose did not have these fields", "CODE": "15.6" },
 
     "SCHEDULE_WAS_EMPTY": { "MSG": "schedule was empty", "CODE": "16.1" },
 

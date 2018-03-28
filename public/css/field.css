@@ -1,4 +1,4 @@
-#tag-wrap {
+#field-wrap {
   position: relative;
   padding: 0 50px;
   width:80%;
@@ -15,18 +15,18 @@
 .bigFont {
   font-size: 2em;
 }
-#tag-header, #tag-search, #tag-tab {
+#field-header, #field-search, #field-tab {
   position: relative;
   /*border: solid 5px black;
   height: 100px;*/
 }
 
-#tag-header {
+#field-header {
   height: 30px;
   margin-top: 20px;
 }
 
-#tag-search {
+#field-search {
   height: 20px;
 }
 
@@ -66,14 +66,14 @@
 
 /*Tabs*/
 /* Style the tab */
-div.tag-tab {
+div.field-tab {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
 /* Style the buttons inside the tab */
-div.tag-tab button {
+div.field-tab button {
     background-color: inherit;
     float: left;
     border: none;
@@ -84,12 +84,12 @@ div.tag-tab button {
 }
 
 /* Change background color of buttons on hover */
-div.tag-tab button:hover {
+div.field-tab button:hover {
     background-color: #ddd;
 }
 
 /* Create an active/current tablink class */
-div.tag-tab button.active {
+div.field-tab button.active {
     background-color: #ccc;
 }
 .btn-toolbar {
@@ -101,7 +101,7 @@ div.tag-tab button.active {
   border: 1px solid #ccc;
 }
 
-/*tag form*/
+/*field form*/
 #task-list {
   list-style: none;
   border: solid 1px black;
@@ -116,7 +116,7 @@ select option{
 }
 
 @media (max-width: 1135px){
-  #tag-wrap {
+  #field-wrap {
     position: relative;
     left: 250px;
     width: 75%;
@@ -130,7 +130,7 @@ select option{
 }
 
 @media (max-width: 1000px){
-  #tag-wrap {
+  #field-wrap {
     position: relative;
     left: 250px;
     width: 72%;
@@ -144,7 +144,7 @@ select option{
 }
 
 @media (max-width: 767px){
-  #tag-wrap {
+  #field-wrap {
     position: relative;
     left: 0px;
     width: 100%;

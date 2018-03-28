@@ -5,23 +5,23 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsTagsMdl = require('../models/apps_fields');
+    const appsFieldsMdl = require('../models/apps_fields');
 
-    function AppsTagsController() {}
+    function AppsFieldsController() {}
 
-    util.inherits(AppsTagsController, controllerCre.constructor);
+    util.inherits(AppsFieldsController, controllerCre.constructor);
 
-    AppsTagsController.prototype.getAll = function(req, res) {
-        return AppsTagsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+    AppsFieldsController.prototype.getAll = function(req, res) {
+        return AppsFieldsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
-            // 1. 根據 appId 清單去 tags model 抓取清單
+            // 1. 根據 appId 清單去 Fields model 抓取清單
             return new Promise((resolve, reject) => {
-                appsTagsMdl.find(appIds, null, (appsTags) => {
-                    if (!appsTags) {
-                        reject(API_ERROR.APP_TAG_FAILED_TO_FIND);
+                appsFieldsMdl.find(appIds, null, (appsFields) => {
+                    if (!appsFields) {
+                        reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
                         return;
                     }
-                    resolve(appsTags);
+                    resolve(appsFields);
                 });
             });
         }).then((data) => {
@@ -41,24 +41,24 @@ module.exports = (function() {
         });
     };
 
-    AppsTagsController.prototype.postOne = function(req, res) {
+    AppsFieldsController.prototype.postOne = function(req, res) {
         let appId = req.params.appid;
 
         // 建立並過濾用戶端傳過來的資料
         let postTagData = {
             text: req.body.text || '',
-            type: req.body.type || appsTagsMdl.TypeEnum.CUSTOM,
+            type: req.body.type || appsFieldsMdl.FieldsTypes.CUSTOM,
             sets: req.body.sets || [''],
             setsType: req.body.setsType ? req.body.setsType : 0,
             order: req.body.order ? req.body.order : 0
         };
 
-        return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
-            // 1. 將 tag 資料插入至指定 appId 中
+        return AppsFieldsController.prototype.AppsRequestVerify(req).then(() => {
+            // 1. 將 field 資料插入至指定 appId 中
             return new Promise((resolve, reject) => {
-                appsTagsMdl.insert(appId, postTagData, (data) => {
+                appsFieldsMdl.insert(appId, postTagData, (data) => {
                     if (!data) {
-                        reject(API_ERROR.APP_TAG_FAILED_TO_INSERT);
+                        reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
                         return;
                     }
                     resolve(data);
@@ -81,29 +81,29 @@ module.exports = (function() {
         });
     };
 
-    AppsTagsController.prototype.putOne = function(req, res) {
+    AppsFieldsController.prototype.putOne = function(req, res) {
         let appId = req.params.appid;
-        let tagId = req.params.tagid;
+        let fieldId = req.params.fieldid;
 
         // 建立並過濾用戶端傳過來的資料
         let putTagData = {
-            type: req.body.type || appsTagsMdl.TypeEnum.CUSTOM,
+            type: req.body.type || appsFieldsMdl.FieldsTypes.CUSTOM,
             order: req.body.order ? req.body.order : 0
         };
 
         // 欲更新的資料只有是自定義型態才可變更名稱及資料
-        if (appsTagsMdl.TypeEnum.CUSTOM === putTagData.type) {
+        if (appsFieldsMdl.FieldsTypes.CUSTOM === putTagData.type) {
             putTagData.text = req.body.text || '';
             putTagData.sets = req.body.sets || [''];
             putTagData.setsType = req.body.setsType ? req.body.setsType : 0;
         }
 
-        return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
-            // 1. 將 tag 資料更新至指定 appId 中
+        return AppsFieldsController.prototype.AppsRequestVerify(req).then(() => {
+            // 1. 將 field 資料更新至指定 appId 中
             return new Promise((resolve, reject) => {
-                appsTagsMdl.update(appId, tagId, putTagData, (data) => {
+                appsFieldsMdl.update(appId, fieldId, putTagData, (data) => {
                     if (!data) {
-                        reject(API_ERROR.APP_TAG_FAILED_TO_UPDATE);
+                        reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
                         return;
                     }
                     resolve(data);
@@ -126,16 +126,16 @@ module.exports = (function() {
         });
     };
 
-    AppsTagsController.prototype.deleteOne = function(req, res) {
+    AppsFieldsController.prototype.deleteOne = function(req, res) {
         let appId = req.params.appid;
-        let tagId = req.params.tagid;
+        let fieldId = req.params.fieldid;
 
-        return AppsTagsController.prototype.AppsRequestVerify(req).then(() => {
-            // 1. 藉由 tags model 將指定的 tag 資料刪除
+        return AppsFieldsController.prototype.AppsRequestVerify(req).then(() => {
+            // 1. 藉由 Fields model 將指定的 field 資料刪除
             return new Promise((resolve, reject) => {
-                appsTagsMdl.remove(appId, tagId, (data) => {
+                appsFieldsMdl.remove(appId, fieldId, (data) => {
                     if (!data) {
-                        reject(API_ERROR.APP_TAG_FAILED_TO_REMOVE);
+                        reject(API_ERROR.APP_FIELD_FAILED_TO_REMOVE);
                         return;
                     }
                     resolve(data);
@@ -158,5 +158,5 @@ module.exports = (function() {
         });
     };
 
-    return new AppsTagsController();
+    return new AppsFieldsController();
 })();
