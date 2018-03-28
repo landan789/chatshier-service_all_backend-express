@@ -18,5 +18,5 @@ pipelines:
     master:
       - step:
           script:
-            - echo "release ends..."
+            - echo "master ends..."
 
