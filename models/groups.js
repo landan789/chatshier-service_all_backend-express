@@ -144,23 +144,37 @@ module.exports = (function() {
             if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
+
+            let query = {
+                '_id': {
+                    $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
+                },
+                'isDeleted': false,
+                'members.user_id': userId,
+                'members.isDeleted': false,
+                'members.status': true
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$members'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        app_ids: true
+                    }
+                }
+            ];
+
             let appIds = {};
-            return Promise.all(groupIds.map((groupId) => {
-                let query = {
-                    '_id': groupId,
-                    'members.user_id': userId,
-                    'members.isDeleted': false,
-                    'members.status': true
-                };
-                return this.Model.findOne(query).then((group) => {
-                    let _appIds = group.app_ids;
-                    while (0 < _appIds.length) {
-                        let appId = _appIds.pop();
-                        appIds[appId] = appId;
-                    };
-                    return Promise.resolve();
+            return this.Model.aggregate(aggregations).then((groups) => {
+                groups.forEach((group) => {
+                    group.app_ids.forEach((appId) => {
+                        appIds[appId] = true;
+                    });
                 });
-            })).then(() => {
+            }).then(() => {
                 appIds = Object.keys(appIds);
                 ('function' === typeof callback) && callback(appIds);
                 return appIds;
@@ -185,8 +199,7 @@ module.exports = (function() {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
                 'isDeleted': false,
-                'members.isDeleted': false,
-                'members.status': true
+                'members.isDeleted': false
             };
 
             let aggregations = [

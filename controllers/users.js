@@ -89,53 +89,6 @@ module.exports = (function() {
         });
     };
 
-    UsersController.prototype.postOne = (req, res, next) => {
-        let userId = req.params.userid;
-        let postUser = {
-            company: undefined === req.body.company ? '' : req.body.company,
-            phone: undefined === req.body.phone ? '' : req.body.phone,
-            address: undefined === req.body.address ? '' : req.body.address
-        };
-        return new Promise((resolve, reject) => {
-            if (!userId) {
-                return reject(API_ERROR.USERID_WAS_EMPTY);
-            };
-            usersMdl.insert(postUser, (users) => {
-                if (!users) {
-                    reject(API_ERROR.USER_FAILED_TO_INSERT);
-                    return;
-                }
-                resolve(users);
-            });
-        }).then((users) => {
-            // 更新 user fuzzy search 清單，使搜尋時可找到此 user
-            let userIds = Object.keys(users);
-            fuseHlp.updateUsers(userIds);
-
-            let redisReqBody = JSON.stringify({
-                userIds: userIds,
-                eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
-            });
-            return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {
-                return users;
-            });
-        }).then((users) => {
-            let json = {
-                status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                data: users
-            };
-            res.status(200).json(json);
-        }).catch((ERR) => {
-            let json = {
-                status: 0,
-                mgs: ERR.MSG,
-                code: ERR.CODE
-            };
-            res.status(500).json(json);
-        });
-    };
-
     UsersController.prototype.putOne = (req, res, next) => {
         let userId = req.params.userid;
         let userData = {
@@ -159,11 +112,10 @@ module.exports = (function() {
             });
         }).then((users) => {
             // 更新 fuzzy search 清單中此 user 的資料
-            let userIds = Object.keys(users);
-            fuseHlp.updateUsers(userIds);
+            fuseHlp.updateUsers(users);
 
             let redisReqBody = JSON.stringify({
-                userIds: userIds,
+                users: users,
                 eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
             });
             return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {

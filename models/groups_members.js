@@ -6,6 +6,7 @@ module.exports = (function() {
     const ADMIN = 'ADMIN';
     const WRITE = 'WRITE';
     const READ = 'READ';
+
     class GroupsMembersModel extends ModelCore {
         constructor() {
             super();
@@ -52,7 +53,7 @@ module.exports = (function() {
                 return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -63,8 +64,7 @@ module.exports = (function() {
 
             let query = {
                 '_id': this.Types.ObjectId(groupId),
-                'isDeleted': false,
-                'members.isDeleted': false
+                'isDeleted': false
             };
 
             if (memberIds instanceof Array) {
@@ -100,7 +100,7 @@ module.exports = (function() {
                 return Promise.resolve(members);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -140,8 +140,7 @@ module.exports = (function() {
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
-            }).catch((err) => {
-                console.log(err);
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });

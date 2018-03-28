@@ -77,6 +77,7 @@ module.exports = (function() {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberUserId = req.body.userid;
+        let memberUser;
 
         var postMember = {
             user_id: memberUserId || '',
@@ -98,6 +99,7 @@ module.exports = (function() {
                         // 不存在的 user 無法加入 群組
                         return reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
+                    memberUser = users[memberUserId];
                     resolve();
                 });
             });
@@ -119,12 +121,12 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
-                    if (null === members || undefined === members || '' === members) {
-                        reject(members);
+                groupsMembersMdl.findMembers(groupId, null, (groupsMembers) => {
+                    if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                        reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                         return;
                     }
-                    resolve(members);
+                    resolve(groupsMembers);
                 });
             });
         }).then((members) => {
@@ -149,25 +151,44 @@ module.exports = (function() {
             };
 
             if (0 <= bodyIndex && bodyMember.isDeleted) {
-                var _member = {
-                    isDeleted: false,
-                    status: false
-                };
+                postMember.isDeleted = false;
+                postMember.status = false;
+
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.update(groupId, bodyMemberId, _member, (groupsMembers) => {
-                        if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                            reject(groupsMembers);
+                    groupsMembersMdl.update(groupId, bodyMemberId, postMember, (groupsMembers) => {
+                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
                         };
                         resolve(groupsMembers);
+                    });
+                }).then((groupsMembers) => {
+                    return new Promise((resolve, reject) => {
+                        let userGroupIds = memberUser.group_ids;
+                        let index = userGroupIds.indexOf(groupId);
+                        if (0 <= index) {
+                            resolve();
+                            return;
+                        }
+
+                        memberUser.group_ids.push(groupId);
+                        usersMdl.update(memberUserId, memberUser, (users) => {
+                            if (!users || (users && 0 === Object.keys(users).length)) {
+                                reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                                return;
+                            };
+                            resolve();
+                        });
+                    }).then(() => {
+                        return groupsMembers;
                     });
                 });
             }
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
-                    if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                        reject(groupsMembers);
+                    if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                         return;
                     };
                     resolve(groupsMembers);
@@ -176,6 +197,7 @@ module.exports = (function() {
                 // 抓取出 group 裡的 app_ids 清單
                 // 將此 group member 加入此 group 裡所有 app 的 messagers
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                    appIds = appIds || [];
                     return Promise.all(appIds.map((appId) => {
                         return new Promise((resolve) => {
                             appsMdl.find(appId, null, (apps) => {
@@ -228,10 +250,14 @@ module.exports = (function() {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
-        var putMember = {
-            status: !!req.body.status, // false 邀請中 ; true 已加入
-            type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : null // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
-        };
+
+        var putMember = {};
+        if (undefined !== req.body.status) {
+            putMember.status = !!req.body.status; // false 邀請中 ; true 已加入
+        }
+        if (undefined !== req.body.type && 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type)) {
+            putMember.type = req.body.type;
+        }
 
         // 前端未填入的訊息，不覆蓋
         for (var key in putMember) {
@@ -242,15 +268,15 @@ module.exports = (function() {
         var proceed = Promise.resolve();
 
         proceed.then(() => {
-            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            if ('' === userId || undefined === userId || null === userId) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
             };
 
-            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+            if ('' === groupId || undefined === groupId || null === groupId) {
                 return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
             };
 
-            if ('' === req.params.memberid || undefined === req.params.memberid || null === req.params.memberid) {
+            if ('' === memberId || undefined === memberId || null === memberId) {
                 return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
             };
 
