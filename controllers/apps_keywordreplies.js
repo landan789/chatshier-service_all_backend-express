@@ -77,7 +77,7 @@ module.exports = (function() {
             subKeywords: req.body.subKeywords || '',
             text: req.body.text || '',
             replyCount: req.body.replyCount ? req.body.replyCount : 0,
-            status: req.body.status ? req.body.status : 0
+            status: !!req.body.status
         };
         var appId = '';
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
@@ -116,7 +116,7 @@ module.exports = (function() {
             subKeywords: req.body.subKeywords || '',
             text: req.body.text || '',
             replyCount: 0,
-            status: req.body.status ? req.body.status : 0
+            status: !!req.body.status
         };
 
         return AppsKeywordrepliesController.prototype.AppsRequestVerify(req).then((appIds) => {

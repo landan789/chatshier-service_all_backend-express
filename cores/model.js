@@ -56,7 +56,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
         'replyCount': {type: Number, default: 0},
-        'status': {type: Number, default: 0},
+        'status': {type: Boolean, default: false},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()}
@@ -64,17 +64,15 @@ module.exports = (function() {
 
     let ComposesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
-        'endedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
-        'startedTime': {type: Date, default: Date.now()},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'age': {type: Array, defult: []},
-        'status': {type: Number},
+        'ageRange': {type: Array},
+        'status': {type: Boolean, default: false},
         'gender': {type: String, default: ''},
-        'tag_ids': {type: Object, default: {}},
-        'time': {type: Date, default: Date.now() - 60000}
+        'field_ids': {type: Object, default: {}},
+        'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     });
 
     let GreetingsSchema = new mongoose.Schema({
