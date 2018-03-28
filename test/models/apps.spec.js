@@ -1,7 +1,5 @@
 const chai = require('chai');
-const assert = chai.assert;
 const expect = chai.expect;
-const should = chai.should;
 
 const appsMdl = require('../../models/apps.js');
 const usersMdl = require('../../models/users.js');
@@ -11,6 +9,7 @@ const ciperHlp = require('../../helpers/cipher');
 let userId;
 let groupId;
 let appId;
+let testError;
 
 const preTest = () => {
     let testUser = {
@@ -56,20 +55,28 @@ const postTest = (err) => {
 };
 
 describe('Test Apps Model', () => {
-    it.only('Insert an app', () => {
-        return preTest().then(() => {
-            let testApp = {
-                id1: 'I_am_id1',
-                id2: 'I_am_id2',
-                name: 'testApp',
-                secret: 'I_am_secret',
-                token1: 'I_am_token1',
-                token2: 'I_am_token2',
-                type: 'CHATSHIER',
-                group_id: groupId
-            };
-            return appsMdl.insert(userId, testApp);
-        }).then((apps) => {
+    beforeEach(() => {
+        testError = void 0;
+        return preTest();
+    });
+
+    afterEach(() => {
+        return postTest(testError);
+    });
+
+    it('Insert an app', () => {
+        let testApp = {
+            id1: 'I_am_id1',
+            id2: 'I_am_id2',
+            name: 'testApp',
+            secret: 'I_am_secret',
+            token1: 'I_am_token1',
+            token2: 'I_am_token2',
+            type: 'CHATSHIER',
+            group_id: groupId
+        };
+
+        return appsMdl.insert(userId, testApp).then((apps) => {
             expect(apps).to.not.be.null;
             expect(apps).to.be.an('object');
             let appIds = Object.keys(apps);
@@ -77,43 +84,39 @@ describe('Test Apps Model', () => {
             appId = appIds.shift();
             expect(appId).to.be.string;
         }).catch((err) => {
-            return err;
-        }).then((err) => {
-            return postTest(err);
+            testError = err;
         });
     });
 
-    it.only('Update an app', () => {
-        return preTest().then(() => {
-            let insertApp = {
-                id1: 'I_am_id1',
-                id2: 'I_am_id2',
-                name: 'testApp',
-                secret: 'I_am_secret',
-                token1: 'I_am_token1',
-                token2: 'I_am_token2',
-                type: 'CHATSHIER',
-                group_id: groupId
-            };
+    it('Update an app', () => {
+        let insertApp = {
+            id1: 'I_am_id1',
+            id2: 'I_am_id2',
+            name: 'testApp',
+            secret: 'I_am_secret',
+            token1: 'I_am_token1',
+            token2: 'I_am_token2',
+            type: 'CHATSHIER',
+            group_id: groupId
+        };
 
-            return appsMdl.insert(userId, insertApp).then((apps) => {
-                expect(apps).to.not.be.null;
-                expect(apps).to.be.an('object', 'apps should be Object');
-                let appIds = Object.keys(apps);
-                expect(appIds.length).gt(0, 'After insert, should return an app');
-                appId = appIds.shift();
-                expect(appId).to.be.string;
+        return appsMdl.insert(userId, insertApp).then((apps) => {
+            expect(apps).to.not.be.null;
+            expect(apps).to.be.an('object', 'apps should be Object');
+            let appIds = Object.keys(apps);
+            expect(appIds.length).gt(0, 'After insert, should return an app');
+            appId = appIds.shift();
+            expect(appId).to.be.string;
 
-                let app = apps[appId];
-                expect(app.id1).to.eq(insertApp.id1);
-                expect(app.id2).to.eq(insertApp.id2);
-                expect(app.name).to.eq(insertApp.name);
-                expect(app.secret).to.eq(insertApp.secret);
-                expect(app.token1).to.eq(insertApp.token1);
-                expect(app.token2).to.eq(insertApp.token2);
-                expect(app.type).to.eq(insertApp.type);
-                expect(app.group_id).to.eq(insertApp.group_id);
-            });
+            let app = apps[appId];
+            expect(app.id1).to.eq(insertApp.id1);
+            expect(app.id2).to.eq(insertApp.id2);
+            expect(app.name).to.eq(insertApp.name);
+            expect(app.secret).to.eq(insertApp.secret);
+            expect(app.token1).to.eq(insertApp.token1);
+            expect(app.token2).to.eq(insertApp.token2);
+            expect(app.type).to.eq(insertApp.type);
+            expect(app.group_id).to.eq(insertApp.group_id);
         }).then(() => {
             let updateApp = {
                 id1: 'I_am_id1123',
@@ -136,43 +139,38 @@ describe('Test Apps Model', () => {
                 expect(app.secret).to.eq(updateApp.secret);
             });
         }).catch((err) => {
-            return err;
-        }).then((err) => {
-            return postTest(err);
+            testError = err;
         });
     });
 
-    it.only('Remove an app', () => {
-        return preTest().then(() => {
-            let insertApp = {
-                id1: 'I_am_id1',
-                id2: 'I_am_id2',
-                name: 'testApp',
-                secret: 'I_am_secret',
-                token1: 'I_am_token1',
-                token2: 'I_am_token2',
-                type: 'CHATSHIER',
-                group_id: groupId
-            };
+    it('Remove an app', () => {
+        let insertApp = {
+            id1: 'I_am_id1',
+            id2: 'I_am_id2',
+            name: 'testApp',
+            secret: 'I_am_secret',
+            token1: 'I_am_token1',
+            token2: 'I_am_token2',
+            type: 'CHATSHIER',
+            group_id: groupId
+        };
+        return appsMdl.insert(userId, insertApp).then((apps) => {
+            expect(apps).to.not.be.null;
+            expect(apps).to.be.an('object');
+            let appIds = Object.keys(apps);
+            expect(appIds.length).gt(0);
+            appId = appIds.shift();
+            expect(appId).to.be.string;
 
-            return appsMdl.insert(userId, insertApp).then((apps) => {
-                expect(apps).to.not.be.null;
-                expect(apps).to.be.an('object');
-                let appIds = Object.keys(apps);
-                expect(appIds.length).gt(0);
-                appId = appIds.shift();
-                expect(appId).to.be.string;
-
-                let app = apps[appId];
-                expect(app.id1).to.eq(insertApp.id1);
-                expect(app.id2).to.eq(insertApp.id2);
-                expect(app.name).to.eq(insertApp.name);
-                expect(app.secret).to.eq(insertApp.secret);
-                expect(app.token1).to.eq(insertApp.token1);
-                expect(app.token2).to.eq(insertApp.token2);
-                expect(app.type).to.eq(insertApp.type);
-                expect(app.group_id).to.eq(insertApp.group_id);
-            });
+            let app = apps[appId];
+            expect(app.id1).to.eq(insertApp.id1);
+            expect(app.id2).to.eq(insertApp.id2);
+            expect(app.name).to.eq(insertApp.name);
+            expect(app.secret).to.eq(insertApp.secret);
+            expect(app.token1).to.eq(insertApp.token1);
+            expect(app.token2).to.eq(insertApp.token2);
+            expect(app.type).to.eq(insertApp.type);
+            expect(app.group_id).to.eq(insertApp.group_id);
         }).then(() => {
             return appsMdl.remove(appId).then((apps) => {
                 expect(apps).to.not.be.null;
@@ -186,9 +184,7 @@ describe('Test Apps Model', () => {
                 expect(app.isDeleted).to.be.true;
             });
         }).catch((err) => {
-            return err;
-        }).then((err) => {
-            return postTest(err);
+            testError = err;
         });
     });
 });
