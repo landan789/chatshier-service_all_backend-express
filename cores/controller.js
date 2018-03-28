@@ -17,6 +17,9 @@ module.exports = (function() {
 
     function ControllerCore () {};
 
+    /**
+     * @returns {Promise<string[]>}
+     */
     ControllerCore.prototype.AppsRequestVerify = function(req) {
         let appId = req.params.appid;
         let userId = req.params.userid;

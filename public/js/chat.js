@@ -741,12 +741,13 @@
                 return;
             }
             var appId = data.appId;
-            var msgerId = data.messageId;
+            var messagerId = data.messagerId;
             var messager = data.messager;
-            appsMessagers[appId].messagers[msgerId] = messager;
+            appsMessagers[appId].messagers[messagerId] = messager;
+            console.log(data.messager);
 
             // 更新 UI 資料
-            var $profileCard = $('.card-group[app-id="' + appId + '"][messager-id="' + msgerId + '"]');
+            var $profileCard = $('.card-group[app-id="' + appId + '"][messager-id="' + messagerId + '"]');
             $profileCard.find('.panel-table').remove();
 
             var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, messager));
@@ -1121,6 +1122,7 @@
     }
 
     function generatePersonProfileHtml(appId, messager) {
+        messager.assigned = messager.assigned || '';
         var customFields = messager.custom_fields || {};
 
         var tdHtmlBuilder = function(fieldId, field) {
@@ -1128,6 +1130,9 @@
             var setsTypeEnums = api.appsFields.enums.setsType;
             var readonly = field.type === api.appsFields.enums.type.SYSTEM;
             var fieldValue = '';
+
+            console.log('field.alias: ' + field.alias);
+            console.log('messager[field.alias]: ' + messager[field.alias]);
 
             if (field.type === api.appsFields.enums.type.CUSTOM) {
                 fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
@@ -1236,7 +1241,6 @@
             });
         };
 
-        messager.assigned = messager.assigned || [];
         var messagerProfileHtml =
             '<table class="table table-hover panel-table">' +
                 (function() {
