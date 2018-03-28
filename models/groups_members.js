@@ -6,6 +6,7 @@ module.exports = (function() {
     const ADMIN = 'ADMIN';
     const WRITE = 'WRITE';
     const READ = 'READ';
+
     class GroupsMembersModel extends ModelCore {
         constructor() {
             super();
@@ -52,7 +53,7 @@ module.exports = (function() {
                 return Promise.resolve(groups);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 
@@ -100,7 +101,7 @@ module.exports = (function() {
                 return Promise.resolve(members);
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
-                return Promise.reject(null);
+                return null;
             });
         }
 

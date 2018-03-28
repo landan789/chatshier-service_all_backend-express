@@ -185,8 +185,7 @@ module.exports = (function() {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
                 'isDeleted': false,
-                'members.isDeleted': false,
-                'members.status': true
+                'members.isDeleted': false
             };
 
             let aggregations = [

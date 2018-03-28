@@ -819,7 +819,7 @@ window.googleClientHelper.loadAPI().then(function() {
             return html;
         };
 
-        GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, user, member, memberSelf) {
+        GroupPanelCtrl.prototype.generateMemberHtml = function(memberId, memberUser, member, memberSelf) {
             var html =
                 '<tr class="group-member" member-id="' + memberId + '">' +
                     '<td class="user">' +
@@ -827,7 +827,7 @@ window.googleClientHelper.loadAPI().then(function() {
                             '<div class="avatar-container">' +
                                 '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
                             '</div>' +
-                            '<span class="avatar-name">' + (user.name || user.name || '') + '</span>' +
+                            '<span class="avatar-name">' + (memberUser.name || memberUser.name || '') + '</span>' +
                         '</div>' +
                     '</td>' +
                     '<td class="permission">' +
@@ -844,7 +844,7 @@ window.googleClientHelper.loadAPI().then(function() {
                     '</td>' +
                     '<td class="actions">' +
                         '<div class="action-container text-right">' +
-                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || 1 === member.status || member.user_id !== userId) ? ' hide' : '') + '">' +
+                            '<a role="button" class="btn-join' + ((memberTypes.OWNER === member.type || member.status || member.user_id !== userId) ? ' hide' : '') + '">' +
                                 '<span class="chsr-icon">' +
                                     '<i class="fa fa-2x fa-plus-circle remove-icon"></i>' +
                                 '</span>' +
@@ -1092,12 +1092,12 @@ window.googleClientHelper.loadAPI().then(function() {
         };
 
         GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
-            var user = userGroupMembers[member.user_id];
-            if (!user) {
+            var memberUser = userGroupMembers[member.user_id];
+            if (!memberUser) {
                 return;
             };
 
-            var memberItemHtml = instance.generateMemberHtml(memberId, user, member, memberSelf);
+            var memberItemHtml = instance.generateMemberHtml(memberId, memberUser, member, memberSelf);
             $groupElems[groupId].$memberList.append(memberItemHtml);
 
             var $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
@@ -1130,7 +1130,7 @@ window.googleClientHelper.loadAPI().then(function() {
             });
 
             $memberActions.on('click', '.btn-join', function() {
-                var putMemberData = { status: 1 };
+                var putMemberData = { status: true };
                 var $self = $(this);
                 return api.groupsMembers.update(groupId, memberId, userId, putMemberData).then(function() {
                     // 更新 API，加入群組
@@ -1304,7 +1304,7 @@ function insertOneApp(appData) {
             groupType(appId, apps[appId]);
         }
     }).catch((resJson) => {
-        if (undefined === resJson.status) {
+        if (!resJson.status) {
             $('#setting-modal').modal('hide');
             clearAppModalBody();
             $.notify('失敗', { type: 'danger' });
@@ -1352,7 +1352,7 @@ function updateOneApp(appId, appData) {
                 break;
         };
     }).catch((resJson) => {
-        if (undefined === resJson.status) {
+        if (!resJson.status) {
             $('#setting-modal').modal('hide');
             clearAppModalBody();
             $.notify('失敗', { type: 'danger' });
@@ -1377,7 +1377,7 @@ function removeOneApp(appId) {
             $.notify('成功刪除!', { type: 'success' });
             $('tr.' + appId).remove();
         }).catch((resJson) => {
-            if (undefined === resJson.status) {
+            if (!resJson.status) {
                 $.notify('失敗', { type: 'danger' });
             }
             if (NO_PERMISSION_CODE === resJson.code) {
