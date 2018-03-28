@@ -119,12 +119,12 @@ module.exports = (function() {
             }
         }).then(() => {
             return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
-                    if (null === members || undefined === members || '' === members) {
-                        reject(members);
+                groupsMembersMdl.findMembers(groupId, null, (groupsMembers) => {
+                    if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                        reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                         return;
                     }
-                    resolve(members);
+                    resolve(groupsMembers);
                 });
             });
         }).then((members) => {
@@ -155,8 +155,8 @@ module.exports = (function() {
                 };
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.update(groupId, bodyMemberId, _member, (groupsMembers) => {
-                        if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                            reject(groupsMembers);
+                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
                         };
                         resolve(groupsMembers);
@@ -166,8 +166,8 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
-                    if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
-                        reject(groupsMembers);
+                    if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                         return;
                     };
                     resolve(groupsMembers);

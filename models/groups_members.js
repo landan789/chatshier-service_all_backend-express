@@ -64,8 +64,7 @@ module.exports = (function() {
 
             let query = {
                 '_id': this.Types.ObjectId(groupId),
-                'isDeleted': false,
-                'members.isDeleted': false
+                'isDeleted': false
             };
 
             if (memberIds instanceof Array) {
