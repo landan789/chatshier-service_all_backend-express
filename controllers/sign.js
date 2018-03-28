@@ -2,9 +2,12 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
     const CHATSHIER = require('../config/chatshier');
-    let ciperHlp = require('../helpers/cipher');
-    let usersMdl = require('../models/users');
-    var jwtHlp = require('../helpers/jwt');
+
+    const ciperHlp = require('../helpers/cipher');
+    const jwtHlp = require('../helpers/jwt');
+    const fuseHlp = require('../helpers/fuse');
+    const redisHlp = require('../helpers/redis');
+    const usersMdl = require('../models/users');
 
     class SignController {
         postSignin(req, res, next) {
@@ -143,6 +146,17 @@ module.exports = (function() {
                         users = _users;
                         resolve(users);
                     });
+                });
+            }).then((users) => {
+                // 更新 user fuzzy search 清單，使搜尋時可找到此 user
+                fuseHlp.updateUsers(users);
+
+                let redisReqBody = JSON.stringify({
+                    users: users,
+                    eventName: redisHlp.EVENTS.UPDATE_FUSE_USERS
+                });
+                return redisHlp.publish(redisHlp.CHANNELS.REDIS_API_CHANNEL, redisReqBody).then(() => {
+                    return users;
                 });
             }).then(() => {
                 let userId = Object.keys(users).shift() || '';

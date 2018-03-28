@@ -45,8 +45,8 @@ module.exports = (function() {
                     let json = JSON.parse(messageBody);
                     let eventName = json.eventName;
                     if (eventName === redisHlp.EVENTS.UPDATE_FUSE_USERS) {
-                        let userIds = json.userIds;
-                        this.updateUsers(userIds);
+                        let users = json.users;
+                        this.updateUsers(users);
                     }
                     break;
                 default:
@@ -83,51 +83,54 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string[]} userIds
-         * @returns {Promise<boolean>}
+         * @param {any} users
+         * @returns {boolean}
          */
-        updateUsers(userIds) {
+        updateUsers(users) {
             let shouldUpdate = false;
-            if (!userIds) {
-                return Promise.resolve(shouldUpdate);
+            if (!users || (users && 0 === Object.keys(users).length)) {
+                return shouldUpdate;
             }
 
-            userIds = userIds || [];
-            return Promise.all(userIds.map((userId) => {
-                // 此 userId 已經在清單中不需更新
+            for (let userId in users) {
+                let user = users[userId];
+
                 if (this.users[userId]) {
-                    return Promise.resolve();
+                    if (this.users[userId].name !== user.name) {
+                        this.users[userId].name = user.name;
+                        shouldUpdate = true;
+                    }
+
+                    if (this.users[userId].email !== user.email) {
+                        this.users[userId].email = user.email;
+                        shouldUpdate = true;
+                    }
+                    continue;
                 }
 
                 // 將此 user 新增至 fuzzy search 清單中
                 this.users[userId] = {
                     _id: userId,
-                    name: '',
-                    email: ''
+                    name: user.name,
+                    email: user.email
                 };
                 shouldUpdate = true;
-                return usersMdl.find(userId).then((users) => {
-                    if (users && users[userId]) {
-                        let user = users[userId];
-                        this.users[userId].name = user.name;
-                        this.users[userId].email = user.email;
-                    }
+            }
+
+            if (shouldUpdate) {
+                let fuseOptions = this.fuseOptionBuilder({
+                    includeScore: false,
+                    keys: [
+                        'name',
+                        'email'
+                    ]
                 });
-            })).then(() => {
-                if (shouldUpdate) {
-                    let fuseOptions = this.fuseOptionBuilder({
-                        includeScore: false,
-                        keys: [
-                            'name',
-                            'email'
-                        ]
-                    });
-                    // 如果使用者清單有變動的話，建立新的 fuse.js 執行實體
-                    let userList = Object.keys(this.users).map((userId) => this.users[userId]);
-                    this.userFuse = new FuseJS(userList, fuseOptions);
-                }
-                return shouldUpdate;
-            });
+                // 如果使用者清單有變動的話，建立新的 fuse.js 執行實體
+                let userIds = Object.keys(this.users);
+                let userList = userIds.map((userId) => this.users[userId]);
+                this.userFuse = new FuseJS(userList, fuseOptions);
+            }
+            return shouldUpdate;
         };
 
         /**

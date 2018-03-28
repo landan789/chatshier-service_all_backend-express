@@ -26,28 +26,17 @@
 .tab-content {
     position: relative;
     padding: 0 50px;
-    margin-left: 15%;
-}
-
-.tab-content .tag-name {
-    width: 30%;
-}
-
-.tab-content .tag-type {
-    width: 15%;
-}
-
-.tab-content .tag-sets {
-    width: 30%;
-}
-
-.tab-content .tag-delete {
-    width: 15%;
-}
-
-.tab-content .tag-drag-icon {
-    width: 10%;
-}
+    margin-left: 15%; }
+    .tab-content .tag-name {
+        width: 30%; }
+    .tab-content .tag-type {
+        width: 15%; }
+    .tab-content .tag-sets {
+        width: 30%; }
+    .tab-content .tag-delete {
+        width: 15%; }
+    .tab-content .tag-drag-icon {
+        width: 10%; }
 
 .long-token {
     max-width: 600px;
@@ -143,12 +132,10 @@ p:empty:not(:focus)::before {
 }
 
 .group-wrapper {
-    display: flex;
-}
-
-.group-wrapper .group-body {
-    min-width: 800px;
-}
+    display: flex; }
+    .group-wrapper .typeahead .dropdown-item {
+        overflow: hidden;
+        text-overflow: ellipsis; }
 
 .group-list-panel {
     width: 20%;
@@ -188,59 +175,37 @@ p:empty:not(:focus)::before {
     overflow: hidden;
 }
 
-table.chsr-group {
+.chsr-group {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
-    margin-bottom: 0;
-}
-
-table.chsr-group .status{
-    line-height: 2.4;
-}
-
-table.chsr-group tbody td {
-    vertical-align: middle;
-}
+    margin-bottom: 0; }
+    .chsr-group .status {
+        line-height: 2.4; }
+    .chsr-group tbody td {
+        vertical-align: middle; }
+    .chsr-group .user {
+        width: 40%; }
+    .chsr-group .permission {
+        width: 20%; }
+    .chsr-group .status {
+        width: 20%; }
+    .chsr-group .actions {
+        width: 7%;
+        text-align: right; }
+    .chsr-group .outline {
+        border: none;
+        background-color: transparent; }
+    .chsr-group .outline i.fa {
+        margin-left: .5rem; }
 
 .permission {
-    width: 30%;
-}
-
-.permission .btn.outline {
-    text-align: left;
-}
-
-.permission .permission-group .permission-item {
-    border: 1px solid #2e6da4;
-    padding: .5rem;
-}
-
-.chsr-group .user {
-    width: 43%;
-}
-
-.chsr-group .permission {
-    width: 20%;
-}
-
-.chsr-group .status {
-    width: 20%;
-}
-
-.chsr-group .actions {
-    width: 7%;
-    text-align: right;
-}
-
-.chsr-group .outline {
-    border: none;
-    background-color: transparent;
-}
-
-.chsr-group .outline i.fa {
-    margin-left: .5rem;
-}
+    width: 30%; }
+    .permission .btn.outline {
+        text-align: left; }
+    .permission .permission-group .permission-item {
+        border: 1px solid #2e6da4;
+        padding: .5rem; }
 
 .group-member .user .chips {
     display: flex;
