@@ -140,8 +140,7 @@ module.exports = (function() {
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
-            }).catch((err) => {
-                console.log(err);
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });

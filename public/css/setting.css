@@ -191,7 +191,7 @@ p:empty:not(:focus)::before {
     .chsr-group .status {
         width: 20%; }
     .chsr-group .actions {
-        width: 7%;
+        width: 10%;
         text-align: right; }
     .chsr-group .outline {
         border: none;
@@ -212,14 +212,13 @@ p:empty:not(:focus)::before {
     align-items: center;
 }
 
-.action-container {
-    padding-right: 1rem;
-    display: inline;
-}
-
-.actions .remove-icon {
+.actions .action-icon {
     cursor: pointer;
-    color: #bbb;
-}
+    color: #bbb; }
+    .actions .action-container {
+        display: inline; }
+    .actions .action-container a:first-of-type {
+        margin-right: .5rem; }
+
 /* #endregion */
 /*******************/

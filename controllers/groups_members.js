@@ -151,12 +151,11 @@ module.exports = (function() {
             };
 
             if (0 <= bodyIndex && bodyMember.isDeleted) {
-                var _member = {
-                    isDeleted: false,
-                    status: false
-                };
+                postMember.isDeleted = false;
+                postMember.status = false;
+
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.update(groupId, bodyMemberId, _member, (groupsMembers) => {
+                    groupsMembersMdl.update(groupId, bodyMemberId, postMember, (groupsMembers) => {
                         if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                             return;
@@ -251,10 +250,14 @@ module.exports = (function() {
         var userId = req.params.userid;
         var groupId = req.params.groupid;
         var memberId = req.params.memberid;
-        var putMember = {
-            status: !!req.body.status, // false 邀請中 ; true 已加入
-            type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : null // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
-        };
+
+        var putMember = {};
+        if (undefined !== req.body.status) {
+            putMember.status = !!req.body.status; // false 邀請中 ; true 已加入
+        }
+        if (undefined !== req.body.type && 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type)) {
+            putMember.type = req.body.type;
+        }
 
         // 前端未填入的訊息，不覆蓋
         for (var key in putMember) {
@@ -265,15 +268,15 @@ module.exports = (function() {
         var proceed = Promise.resolve();
 
         proceed.then(() => {
-            if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
+            if ('' === userId || undefined === userId || null === userId) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
             };
 
-            if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
+            if ('' === groupId || undefined === groupId || null === groupId) {
                 return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
             };
 
-            if ('' === req.params.memberid || undefined === req.params.memberid || null === req.params.memberid) {
+            if ('' === memberId || undefined === memberId || null === memberId) {
                 return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
             };
 
