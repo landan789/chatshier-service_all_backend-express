@@ -338,7 +338,7 @@ function init(server) {
                 ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
                 ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
                 req.body.assigned && (messagerData.assigned = req.body.assigned);
-                req.body.custom_tags && (messagerData.custom_tags = req.body.custom_tags);
+                req.body.custom_fields && (messagerData.custom_fields = req.body.custom_fields);
 
                 return new Promise((resolve, reject) => {
                     appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
@@ -421,7 +421,7 @@ function init(server) {
                             let originMessager = originMessagers[messagerId];
                             let originMessagerAge = originMessager.age || '';
                             let originMessagerGender = originMessager.gender || '';
-                            let originMessagerTags = originMessager.custom_tags || {};
+                            let originMessagerTags = originMessager.custom_fields || {};
 
                             let messageAge = message.age || '';
                             let messageGender = message.gender || '';

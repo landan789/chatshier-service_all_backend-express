@@ -1121,7 +1121,7 @@
     }
 
     function generatePersonProfileHtml(appId, messager) {
-        var customTags = messager.custom_tags || {};
+        var customTags = messager.custom_fields || {};
 
         var tdHtmlBuilder = function(tagId, tagData) {
             var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
@@ -1698,7 +1698,7 @@
 
         $('#infoCanvas').scrollTop(0);
         var messagerUiData = {
-            custom_tags: {}
+            custom_fields: {}
         };
         var $tds = $(this).parents('.card-group').find('.panel-table tbody td');
 
@@ -1748,7 +1748,7 @@
                     messagerUiData[alias] = value;
                 } else {
                     // 沒有別名的屬性代表是自定義的客戶分類條件資料
-                    messagerUiData.custom_tags[tagId] = {
+                    messagerUiData.custom_fields[tagId] = {
                         value: value
                     };
                 }

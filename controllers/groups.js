@@ -9,7 +9,7 @@ module.exports = (function() {
 
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
-    const appsTagsMdl = require('../models/apps_fields');
+    const appsFieldsMdl = require('../models/apps_fields');
     const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
@@ -129,7 +129,7 @@ module.exports = (function() {
 
                     // 將預設的客戶分類條件資料新增至 App 中
                     return new Promise((resolve, reject) => {
-                        appsTagsMdl.insertDefaultTags(appId, (tags) => {
+                        appsFieldsMdl.insertDefaultFields(appId, (tags) => {
                             if (!tags) {
                                 return reject(API_ERROR.APP_FAILED_TO_INSERT);
                             }

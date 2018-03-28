@@ -104,7 +104,7 @@ module.exports = (function() {
             ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
             ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
             req.body.assigned && (messagerData.assigned = req.body.assigned);
-            req.body.custom_tags && (messagerData.custom_tags = req.body.custom_tags);
+            req.body.custom_fields && (messagerData.custom_fields = req.body.custom_fields);
 
             return new Promise((resolve, reject) => {
                 appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {

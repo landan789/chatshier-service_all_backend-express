@@ -54,7 +54,7 @@ let jobProcess = () => {
                 }
                 let originMessagerAge = originMessager.age || '';
                 let originMessagerGender = originMessager.gender || '';
-                let originMessagerTags = originMessager.custom_tags || {};
+                let originMessagerFields = originMessager.custom_fields || {};
 
                 for (let composeId in composes) {
                     if (composes[composeId].text &&
@@ -69,7 +69,7 @@ let jobProcess = () => {
                         messages.push(message);
                         let composeAge = composes[composeId].age || '';
                         let composeGender = composes[composeId].gander || '';
-                        let composeTags = composes[composeId].tag_ids || {};
+                        let composeFields = composes[composeId].tag_ids || {};
 
                         for (let i = 0; i < composeAge.length; i++) {
                             if (i % 2) {
@@ -87,9 +87,9 @@ let jobProcess = () => {
                         if (originMessagerGender !== composeGender && '' !== composeGender) {
                             delete messagers[messagerId];
                         }
-                        for (let tagId in composeTags) {
-                            let originMessagerTagValue = originMessagerTags[tagId].value || '';
-                            let composeTagValue = composeTags[tagId].value || '';
+                        for (let tagId in composeFields) {
+                            let originMessagerTagValue = originMessagerFields[tagId].value || '';
+                            let composeTagValue = composeFields[tagId].value || '';
                             if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
                                 delete messagers[messagerId];
                             }
@@ -114,7 +114,6 @@ let jobProcess = () => {
                     }));
                 }));
             });
-
         }));
     }).then(() => {
         let finishedUnixTime = Date.now();

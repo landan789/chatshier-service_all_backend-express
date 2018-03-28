@@ -323,7 +323,7 @@ window.googleClientHelper.loadAPI().then(function() {
             _this.$tagPanel.append(
                 '<div class="panel-heading" role="tab" id="' + appId + '">' +
                     '<h4 class="panel-title">' +
-                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_tags_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
+                        '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#apps_fields_wapper" href="#' + tagCollapseId + '" aria-expanded="true" aria-controls="' + tagCollapseId + '">' +
                             (appData.name || '') +
                         '</a>' +
                     '</h4>' +

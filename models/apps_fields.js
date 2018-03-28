@@ -1,5 +1,3 @@
-// 原 apps_tags.js
-
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
@@ -104,24 +102,6 @@ module.exports = (function() {
         }
 
         /**
-         * 為了將資料欄位 tags 符合前端因此暫時使用此方法將欄位名稱做轉換
-         *
-         * @param {any} appsFields
-         */
-        replaceToTags(appsFields) {
-            if (!(appsFields && Object.keys(appsFields).length > 0)) {
-                return appsFields;
-            }
-
-            let appsTags = {};
-            for (let appId in appsFields) {
-                appsTags[appId] = {};
-                appsTags[appId].tags = appsFields[appId].fields;
-            }
-            return appsTags;
-        }
-
-        /**
          * 根據輸入的 appId 陣列清單取得所有的客戶分類條件
          *
          * @param {string|string[]} appIds
@@ -167,10 +147,10 @@ module.exports = (function() {
                     Object.assign(output[app._id].fields, this.toObject(app.fields));
                     return output;
                 }, {});
-                return this.replaceToTags(appsFields);
-            }).then((appsTags) => {
-                ('function' === typeof callback) && callback(appsTags);
-                return appsTags;
+                return appsFields;
+            }).then((appsFields) => {
+                ('function' === typeof callback) && callback(appsFields);
+                return appsFields;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -214,24 +194,24 @@ module.exports = (function() {
          * 將預設的 tag 資料批次新增到指定的 app 裡，完成插入後回傳所有 tag ID
          *
          * @param {string} appId
-         * @param {(appsField: any|null) => any} callback
+         * @param {(appsFields: any|null) => any} callback
          */
-        insertDefaultTags(appId, callback) {
-            let appsTags = {
+        insertDefaultFields(appId, callback) {
+            let appsFields = {
                 [appId]: {
-                    tags: {}
+                    fields: {}
                 }
             };
 
             return Promise.all(defaultFields.map((field, i) => {
                 field.order = i;
-                return this.insert(appId, field).then((_appsTags) => {
-                    _appsTags && Object.assign(appsTags[appId].tags, _appsTags[appId].tags);
-                    return _appsTags;
+                return this.insert(appId, field).then((_appsFields) => {
+                    _appsFields && Object.assign(appsFields[appId].tags, _appsFields[appId].tags);
+                    return _appsFields;
                 });
             })).then(() => {
-                ('function' === typeof callback) && callback(appsTags);
-                return appsTags;
+                ('function' === typeof callback) && callback(appsFields);
+                return appsFields;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -316,7 +296,7 @@ module.exports = (function() {
                         Object.assign(output[app._id].fields, this.toObject(app.fields));
                         return output;
                     }, {});
-                    return this.replaceToTags(appsFields);
+                    return appsFields;
                 });
             }).then((appsFields) => {
                 ('function' === typeof callback) && callback(appsFields);
