@@ -81,7 +81,7 @@ module.exports = (function() {
             status: !!req.body.status,
             ageRange: req.body.age,
             gender: req.body.gender,
-            tag_ids: req.body.tag_ids
+            field_ids: req.body.tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -122,7 +122,7 @@ module.exports = (function() {
             status: !!req.body.status,
             ageRange: req.body.age,
             gender: req.body.gender,
-            tag_ids: req.body.tag_ids
+            field_ids: req.body.tag_ids
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;
