@@ -17,7 +17,7 @@ window.restfulAPI = (function() {
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
-        appsTags: apiDatabaseUrl + 'apps-tags/',
+        appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
@@ -582,12 +582,12 @@ window.restfulAPI = (function() {
         return AppsComposesAPI;
     })();
 
-    var AppsTagsAPI = (function() {
-        function AppsTagsAPI() {
-            this.urlPrefix = apiUrlTable.appsTags;
+    var AppsFieldsAPI = (function() {
+        function AppsFieldsAPI() {
+            this.urlPrefix = apiUrlTable.appsFields;
         }
 
-        AppsTagsAPI.prototype.enums = Object.freeze({
+        AppsFieldsAPI.prototype.enums = Object.freeze({
             type: {
                 SYSTEM: 'SYSTEM',
                 DEFAULT: 'DEFAULT',
@@ -608,7 +608,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} userId - 使用者的 firebase ID
          */
-        AppsTagsAPI.prototype.findAll = function(userId) {
+        AppsFieldsAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
@@ -620,16 +620,16 @@ window.restfulAPI = (function() {
         /**
          * 新增一筆 App 客戶分類條件的資料
          *
-         * @param {string} appId - 目標待辦事項的 App ID
+         * @param {string} appId - 目標的 App ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} insertTagData - 欲新增的待辦事項資料
+         * @param {*} field - 欲新增的資料
          */
-        AppsTagsAPI.prototype.insert = function(appId, userId, insertTagData) {
+        AppsFieldsAPI.prototype.insert = function(appId, userId, field) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
-                body: JSON.stringify(insertTagData)
+                body: JSON.stringify(field)
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -638,16 +638,16 @@ window.restfulAPI = (function() {
          * 更新一筆目標 App 客戶分類條件資料
          *
          * @param {string} appId - 目標客戶分類條件所屬的 App ID
-         * @param {string} tagId - 目標客戶分類條件的 ID
+         * @param {string} fieldId - 目標客戶分類條件的 ID
          * @param {string} userId - 使用者的 firebase ID
-         * @param {*} modifiedTagData - 已編輯後欲更新的客戶分類條件資料
+         * @param {*} field - 已編輯後欲更新的客戶分類條件資料
          */
-        AppsTagsAPI.prototype.update = function(appId, tagId, userId, modifiedTagData) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/tags/' + tagId + '/users/' + userId;
+        AppsFieldsAPI.prototype.update = function(appId, fieldId, userId, field) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/fields/' + fieldId + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
-                body: JSON.stringify(modifiedTagData)
+                body: JSON.stringify(field)
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -656,11 +656,11 @@ window.restfulAPI = (function() {
          * 刪除一筆目標 App 客戶分類條件資料
          *
          * @param {string} appId - 目標客戶分類條件所屬的 App ID
-         * @param {string} tagId - 目標客戶分類條件的 ID
+         * @param {string} fieldId - 目標客戶分類條件的 ID
          * @param {string} userId - 使用者的 firebase ID
          */
-        AppsTagsAPI.prototype.remove = function(appId, tagId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/tags/' + tagId + '/users/' + userId;
+        AppsFieldsAPI.prototype.remove = function(appId, fieldId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/fields/' + fieldId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -668,7 +668,7 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
-        return AppsTagsAPI;
+        return AppsFieldsAPI;
     })();
 
     var AppsChatroomsMessagesAPI = (function() {
@@ -1281,7 +1281,7 @@ window.restfulAPI = (function() {
         appsMessagers: new AppsMessagersAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
-        appsTags: new AppsTagsAPI(),
+        appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
         groupsMembers: new GroupsMembersAPI(),

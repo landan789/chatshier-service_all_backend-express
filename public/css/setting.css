@@ -29,23 +29,23 @@
     margin-left: 15%;
 }
 
-.tab-content .tag-name {
+.tab-content .field-name {
     width: 30%;
 }
 
-.tab-content .tag-type {
+.tab-content .field-type {
     width: 15%;
 }
 
-.tab-content .tag-sets {
+.tab-content .field-sets {
     width: 30%;
 }
 
-.tab-content .tag-delete {
+.tab-content .field-delete {
     width: 15%;
 }
 
-.tab-content .tag-drag-icon {
+.tab-content .field-drag-icon {
     width: 10%;
 }
 
@@ -94,7 +94,7 @@ p:empty:not(:focus)::before {
     margin-left: 15px;
 }
 
-.chsr-tags .panel-heading {
+.chsr-fields .panel-heading {
     border-bottom: 1px solid #ddd;
 }
 
