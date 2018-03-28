@@ -62,34 +62,36 @@ calendarsEvents.postOne = (req, res, next) => {
         });
     }).then(() => {
         return new Promise((resolve, reject) => {
-            userMdl.findCalendarId(userId, (userCalendarId) => {
-                if (!(userCalendarId instanceof Array)) {
-                    userCalendarId = [userCalendarId];
+            userMdl.findCalendarId(userId, (calendarIds) => {
+                if (!calendarIds) {
+                    reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
+                    return;
                 };
-                var calendarId = 0 === userCalendarId.length ? null : userCalendarId;
-                // 首次插入資料時不會有 calendarId
-                resolve(calendarId);
+                // 首次插入資料時不會有 calendarIds
+                resolve(calendarIds);
             });
         });
-    }).then((calendarId) => {
+    }).then((calendarIds) => {
         return new Promise((resolve, reject) => {
-            calendarsEventsMdl.insert(calendarId, event, (calendarsEvents) => {
-                if (null === calendarsEvents || undefined === calendarsEvents || '' === calendarsEvents) {
+            calendarsEventsMdl.insert(calendarIds, event, (calendarsEvents) => {
+                if (!calendarsEvents) {
                     reject(API_ERROR.CALENDAR_EVENT_FAILED_TO_INSERT);
                     return;
                 }
-                if (!calendarId) {
+
+                if (!calendarIds || (calendarIds && 0 === calendarIds.length)) {
                     // 插入事件至指定的行事曆並同時更新使用者的 calendar_id 欄位
-                    let userCalendarId = {
-                        calendar_ids: Object.keys(calendarsEvents)[0]
+                    let user = {
+                        calendar_ids: Object.keys(calendarsEvents)
                     };
-                    userMdl.update(userId, userCalendarId, (user) => {
-                        if (!user) {
+                    userMdl.update(userId, user, (users) => {
+                        if (!users || (users && 0 === Object.keys(users).length)) {
                             reject(API_ERROR.USER_FAILED_TO_UPDATE);
                             return;
                         }
-                        resolve();
+                        resolve(calendarsEvents);
                     });
+                    return;
                 }
                 resolve(calendarsEvents);
             });
