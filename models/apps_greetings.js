@@ -24,7 +24,8 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'greetings.isDeleted': false
             };
             greetingId && (query['greetings._id'] = this.Types.ObjectId(greetingId));
 
