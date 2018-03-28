@@ -198,7 +198,7 @@ module.exports = (function() {
                 return Promise.resolve();
             }).then(() => {
                 return new Promise((resolve, reject) => {
-                    usersMdl.find(req.body.userid, null, (_users) => {
+                    usersMdl.find(req.params.userid, null, (_users) => {
                         // If the user exists then REST API can not insert any user
                         users = _users;
                         if (!users) {
