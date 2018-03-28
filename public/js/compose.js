@@ -399,9 +399,9 @@
                     '</tr>';
                 if (0 === composeData.status) {
                     $draftTableElem.append(trGrop);
-                } else if (1 === composeData.status && composeData.time > timeInMs) {
+                } else if (1 === composeData.status && Date.parse(composeData.time) > timeInMs) {
                     $reservationTableElem.append(trGrop);
-                } else if (1 === composeData.status && (composeData.time < timeInMs || composeData.time === timeInMs)) {
+                } else if (1 === composeData.status && Date.parse(composeData.time) <= timeInMs) {
                     $historyTableElem.append(trGrop);
                 }
             }
@@ -664,9 +664,9 @@
                         '</tr>';
                     if (0 === compose.status) {
                         $draftTableElem.append(trGrop);
-                    } else if (1 === compose.status && compose.time > timeInMs) {
+                    } else if (1 === compose.status && Date.parse(compose.time) > timeInMs) {
                         $reservationTableElem.append(trGrop);
-                    } else if (1 === compose.status && (compose.time < timeInMs || compose.time === timeInMs)) {
+                    } else if (1 === compose.status && Date.parse(compose.time) <= timeInMs) {
                         $historyTableElem.append(trGrop);
                     }
                     composesData[composeId] = compose;
