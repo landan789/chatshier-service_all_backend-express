@@ -744,7 +744,6 @@
             var messagerId = data.messagerId;
             var messager = data.messager;
             appsMessagers[appId].messagers[messagerId] = messager;
-            console.log(data.messager);
 
             // 更新 UI 資料
             var $profileCard = $('.card-group[app-id="' + appId + '"][messager-id="' + messagerId + '"]');
@@ -1130,9 +1129,6 @@
             var setsTypeEnums = api.appsFields.enums.setsType;
             var readonly = field.type === api.appsFields.enums.type.SYSTEM;
             var fieldValue = '';
-
-            console.log('field.alias: ' + field.alias);
-            console.log('messager[field.alias]: ' + messager[field.alias]);
 
             if (field.type === api.appsFields.enums.type.CUSTOM) {
                 fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';

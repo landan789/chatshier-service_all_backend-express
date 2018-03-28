@@ -29,7 +29,7 @@ window.addEventListener('mouseup', function(event) {
 //搜尋篩選要檢視的chart
 function filterChart() {
     let getInputVal = $('#search-input').val().toLowerCase();
-    console.log(getInputVal);
+
     if (getInputVal !== '總覽') {
         $('.panel-default').css("display", "none");
 

@@ -88,7 +88,6 @@
     // =====load template start=====
     // function loadChannelInfo(userId, callback) {
     //     socket.emit('request channels', userId, (data) => {
-    //         console.log(data);
     //         if (data.chanId_1 && data.name1) appendToView(data.chanId_1, data.name1);
     //         if (data.chanId_2 && data.name2) appendToView(data.chanId_2, data.name2);
     //         // if( data.fbPageId && data.fbName ) container.append('<option value="'+data.fbPageId+'">'+data.fbName+'</option>');
@@ -129,7 +128,6 @@
         return api.appsTemplates.findOne(appId, templateId, userId).then(function(resJson) {
             let data = resJson.data;
             let template = data[appId].template;
-            console.log(data);
             let type = template.type;
             $('#template-keyword').val(template.keyword);
             $('#template-type').val(template.type).trigger('change');
