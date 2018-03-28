@@ -68,9 +68,13 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'text': {type: String, default: ''},
-        'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
-        'updatedTime': {type: Date, default: Date.now()}
+        'updatedTime': {type: Date, default: Date.now()},
+        'age': {type: Array, defult: []},
+        'status': {type: Number},
+        'gender': {type: String, default: ''},
+        'tag_ids': {type: Object, default: {}},
+        'time': {type: Date, default: Date.now() - 60000}
     });
 
     let GreetingsSchema = new mongoose.Schema({
