@@ -227,7 +227,7 @@
             targetData.time = Date.parse($editForm.find('#edit-time').val());
             targetData.ageRange = ageRange;
             targetData.gender = gender;
-            targetData.field_ids = 0 === Object.values(field_ids).length ? {} : field_ids;
+            targetData.field_ids = 0 === Object.keys(field_ids).length ? {} : field_ids;
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
@@ -429,7 +429,7 @@
             }
         }
         let composeGender = composeData.gender || '';
-        if (((0 === Object.values(composeData.field_ids).length && composeData.field_ids instanceof Object) || !composeData.field_ids) && (0 === composeData.ageRange.length && '' === composeGender)) {
+        if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
             fieldsTd += '<snap id="sendAll">無';
             return fieldsTd;
         }
@@ -559,7 +559,7 @@
             isDraft: isDraft,
             ageRange: ageRange,
             gender: gender,
-            field_ids: 0 === Object.values(field_ids).length ? {} : field_ids
+            field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
         };
 
         let messages = [];
@@ -572,7 +572,7 @@
                     time: Date.now() - 60000,
                     ageRange: ageRange,
                     gender: gender,
-                    field_ids: 0 === Object.values(field_ids).length ? {} : field_ids
+                    field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
                 };
                 messages.push(compose);
             }
