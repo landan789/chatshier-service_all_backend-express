@@ -5,7 +5,6 @@
 # You can specify a custom docker image from Docker Hub as your build environment.
 image: node:8.10.0
 
-
 pipelines:  
   branches:
     default:
@@ -21,7 +20,7 @@ pipelines:
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             
             - echo "start to git pull on all servers."
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && ls'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && ls && echo ${SERVICE_DIR'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
 
