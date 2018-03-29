@@ -1,12 +1,4 @@
-const admin = require('firebase-admin');
 const schedule = require('node-schedule');
-
-const serviceAccount = require('../config/firebase-adminsdk');
-const databaseURL = require('../config/firebase_admin_database_url');
-const API_ERROR = require('../config/api_error');
-
-const SCHEMA = require('../config/schema');
-
 const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
@@ -14,13 +6,9 @@ const appsMessagersMdl = require('../models/apps_messagers');
 const appsComposesMdl = require('../models/apps_composes');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
+const API_ERROR = require('../config/api_error');
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: databaseURL.url
-});
 
 let jobProcess = () => {
     let startedUnixTime = Date.now();
