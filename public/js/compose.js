@@ -43,7 +43,7 @@
     $(document).on('change', '#app-select', storeApp);
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#btn-text', btnText);
-    $(document).on('click', '.remove-btn', removeInput);
+    $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
     $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
@@ -362,30 +362,6 @@
                 if (composeData.isDeleted) {
                     continue;
                 }
-
-                $('#delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('text');
-                    var composeId = targetRow.attr('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.appsComposes.remove(appId, composeId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadComposes(appId, userId);
-                        }).catch((resJson) => {
-                            if (undefined === resJson.status) {
-                                $.notify('失敗', { type: 'danger' });
-                            }
-                            if (NO_PERMISSION_CODE === resJson.code) {
-                                $.notify('無此權限', { type: 'danger' });
-                            }
-                        });
-                    });
-                });
 
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
@@ -747,6 +723,35 @@
                 $.notify('無此權限', { type: 'danger' });
                 return loadComposes(appId, userId);
             }
+        });
+    }
+
+    function dataRemove() {
+        var userId;
+        try {
+            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+            userId = payload.uid;
+        } catch (ex) {
+            userId = '';
+        }        
+        var targetRow = $(event.target).parent().parent();
+        var appId = targetRow.attr('text');
+        var composeId = targetRow.attr('id');
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
+            }
+            return api.appsComposes.remove(appId, composeId, userId).then(function(resJson) {
+                $('#' + composeId).remove();
+                $.notify('刪除成功！', { type: 'success' });
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
+            });
         });
     }
 
