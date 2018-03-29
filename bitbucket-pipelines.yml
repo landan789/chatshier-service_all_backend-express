@@ -7,6 +7,10 @@ image: node:8.10.0
 
 pipelines:  
   branches:
+    default:
+      - step:
+          script:
+            - rm -Rf ~/.ssh/knon_host
     develop:
       - step:
           script:
