@@ -9,6 +9,7 @@
     },
 
     "env": {
+        "mocha": true,
         "commonjs": true,
         "es6": true,
         "node": true,
@@ -20,7 +21,8 @@
         "import",
         "node",
         "promise",
-        "standard"
+        "standard",
+        "chai-friendly"
     ],
 
     "globals": {
@@ -28,6 +30,10 @@
         "navigator": true,
         "window": true,
         "firebase": true,
+
+        "describe": true,
+        "it": true,
+
         "io": true,
         "SOCKET_EVENTS": true,
         "auth": true,
@@ -144,7 +150,7 @@
         "no-unreachable": "error",
         "no-unsafe-finally": "error",
         "no-unsafe-negation": "error",
-        "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }],
+        "no-unused-expressions": ["off", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }],
         "no-unused-vars": ["warn", { "vars": "all", "args": "none", "ignoreRestSiblings": true }],
         "no-use-before-define": ["error", { "functions": false, "classes": false, "variables": false }],
         "no-useless-call": "error",
@@ -195,6 +201,8 @@
         "standard/array-bracket-even-spacing": ["error", "either"],
         "standard/computed-property-even-spacing": ["error", "even"],
         "standard/no-callback-literal": ["warn"],
-        "standard/object-curly-even-spacing": ["error", "either"]
+        "standard/object-curly-even-spacing": ["error", "either"],
+
+        "chai-friendly/no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }],
     }
 }

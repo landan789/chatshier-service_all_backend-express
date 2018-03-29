@@ -24,7 +24,8 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'greetings.isDeleted': false
             };
             greetingId && (query['greetings._id'] = this.Types.ObjectId(greetingId));
 
@@ -87,7 +88,8 @@ module.exports = (function() {
                         // 尋找符合 ID 的欄位
                         '_id': {
                             $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        }
+                        },
+                        'greetings.isDeleted': false
                     }
                 }, {
                     // 篩選項目

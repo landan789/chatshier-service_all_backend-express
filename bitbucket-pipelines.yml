@@ -1,0 +1,25 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: node:8.10.0
+
+pipelines:  
+  branches:
+    develop:
+      - step:
+          script:
+            - echo "develop ends..."
+    release:
+      - step:
+          script:
+            - echo "release ends..."
+    master:
+      - step:
+          script:
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SCHEDULE_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVICE_1_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVICE_2_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
+            - echo "master ends..."
+

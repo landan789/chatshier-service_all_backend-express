@@ -115,7 +115,7 @@ window.translate.ready.then(function(json) {
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
-                        '<option value="WECHAT">WeChat</option>' +
+                        // '<option value="WECHAT">WeChat</option>' +
                     '</select>' +
                 '</div>' +
                 '<div class="app-form" id="line-form">' +

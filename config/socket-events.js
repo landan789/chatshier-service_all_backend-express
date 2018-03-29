@@ -7,6 +7,7 @@ module.exports = {
 
     UPDATE_MESSAGER_TO_SERVER: 'UPDATE_MESSAGER_TO_SERVER',
     UPDATE_MESSAGER_TO_CLIENT: 'UPDATE_MESSAGER_TO_CLIENT',
+    PUSH_COMPOSES_TO_ALL: 'PUSH_COMPOSES_TO_ALL',
 
     /**
      * socket.io base event (server only)

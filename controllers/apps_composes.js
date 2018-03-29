@@ -79,7 +79,7 @@ module.exports = (function() {
             text: req.body.text,
             time: req.body.time,
             status: !!req.body.status,
-            ageRange: req.body.age,
+            ageRange: '' === req.body.age ? [] : req.body.age,
             gender: req.body.gender,
             field_ids: req.body.field_ids
         };
@@ -120,7 +120,7 @@ module.exports = (function() {
             text: req.body.text,
             time: req.body.time,
             status: !!req.body.status,
-            ageRange: req.body.age,
+            ageRange: '' === req.body.age ? [] : req.body.age,
             gender: req.body.gender,
             field_ids: req.body.field_ids
         };

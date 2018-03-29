@@ -44,8 +44,8 @@ module.exports = (function() {
     AppsAutorepliesController.prototype.getOne = (req, res, next) => {
         var appId = '';
         var autoreplyId = req.params.autoreplyid;
-        return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            appId = checkedAppId;
+        return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+            appId = checkedAppIds;
             return new Promise((resolve, reject) => {
                 appsAutorepliesMdl.find(appId, autoreplyId, (appsAutoreplies) => {
                     if (false === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {
@@ -81,8 +81,8 @@ module.exports = (function() {
             text: undefined === req.body.text ? '' : req.body.text
         };
 
-        return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            let appId = checkedAppId;
+        return AppsAutorepliesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+            let appId = checkedAppIds;
             return new Promise((resolve, reject) => {
                 appsAutorepliesMdl.insert(appId, autoreply, (appsAutoreplies) => {
                     if (null === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {

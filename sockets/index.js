@@ -129,17 +129,17 @@ function init(server) {
             }).then(() => {
                 return senderId && botSvc.getProfile(senderId, appId, app);
             }).then((profile) => {
-                return senderId && new Promise((resolve) => {
-                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (messagers) => {
-                        resolve(messagers);
+                return senderId && new Promise((resolve, reject) => {
+                    appsMessagersMdl.replaceMessager(appId, senderId, profile, (appsMessagers) => {
+                        if (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length)) {
+                            reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
+                            return;
+                        }
+                        resolve(appsMessagers);
                     });
                 });
-            }).then((messagers) => {
-                if (!messagers) {
-                    return;
-                }
-
-                sender = messagers[appId].messagers[senderId];
+            }).then((appsMessagers) => {
+                sender = appsMessagers[appId].messagers[senderId];
                 groupId = app.group_id;
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(groupId, null, (groups) => {
@@ -320,40 +320,43 @@ function init(server) {
         });
 
         socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, (req, callback) => {
-            let msgerId = req.params.messagerid;
-            let appId = '';
+            let messagerId = req.params.messagerid;
+            let appId = req.params.appid;
 
-            return controllerCre.AppsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-                if (!msgerId) {
+            return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
+                if (!checkedAppIds || (checkedAppIds && 0 === checkedAppIds.length)) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                } else if (checkedAppIds.indexOf(appId) < 0) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
+                } else if (!messagerId) {
                     return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
                 }
 
                 // 只允許更新 API 可編輯的屬性
-                let messagerData = {};
-                ('string' === typeof req.body.photo) && (messagerData.photo = req.body.photo);
-                ('number' === typeof req.body.age) && (messagerData.age = req.body.age);
-                ('string' === typeof req.body.email) && (messagerData.email = req.body.email);
-                ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
-                ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
-                ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
-                req.body.assigned && (messagerData.assigned = req.body.assigned);
-                req.body.custom_fields && (messagerData.custom_fields = req.body.custom_fields);
+                let messager = {};
+                ('string' === typeof req.body.photo) && (messager.photo = req.body.photo);
+                ('number' === typeof req.body.age) && (messager.age = req.body.age);
+                ('string' === typeof req.body.email) && (messager.email = req.body.email);
+                ('string' === typeof req.body.phone) && (messager.phone = req.body.phone);
+                ('string' === typeof req.body.gender) && (messager.gender = req.body.gender);
+                ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
+                req.body.assigned && (messager.assigned = req.body.assigned);
+                req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
 
                 return new Promise((resolve, reject) => {
-                    appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
-                        if (!messager) {
+                    appsMessagersMdl.replaceMessager(appId, messagerId, messager, (appsMessagers) => {
+                        if (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length)) {
                             reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
                             return;
                         }
-                        resolve(messager);
+                        resolve(appsMessagers);
                     });
                 });
-            }).then((messager) => {
+            }).then((appsMessagers) => {
                 let messagerToSocket = {
                     appId: appId,
-                    messageId: msgerId,
-                    messager: messager
+                    messagerId: messagerId,
+                    messager: appsMessagers[appId].messagers[messagerId]
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
             }).then(() => {
@@ -362,7 +365,7 @@ function init(server) {
         });
 
         // 推播全部人
-        socket.on('push composes to all', (data, callback) => {
+        socket.on(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, (data, callback) => {
             let userId = data.userId;
             let appId = data.appId;
             let messages = data.composes;
