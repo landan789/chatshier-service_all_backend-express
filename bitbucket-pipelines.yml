@@ -18,5 +18,8 @@ pipelines:
     master:
       - step:
           script:
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SCHEDULE_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVICE_1_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVICE_2_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
             - echo "master ends..."
 
