@@ -124,7 +124,7 @@ function init(server) {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
                 return Promise.all(keywordreplies.map((keywordreply) => {
-                    return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply.id);
+                    return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
                 return senderId && botSvc.getProfile(senderId, appId, app);
