@@ -73,7 +73,7 @@ module.exports = (function() {
         'gender': {type: String, default: ''},
         'field_ids': {type: Object, default: {}},
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
-    });
+    }, { minimize: false });
 
     let GreetingsSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
@@ -100,7 +100,7 @@ module.exports = (function() {
         'lastTime': {type: Date, default: Date.now()},
         'remark': {type: String, default: ''},
         'totalCount': {type: Number, default: 0}
-    });
+    }, { minimize: false });
 
     let FieldsSchema = new mongoose.Schema({
         'text': {type: String, default: ''},

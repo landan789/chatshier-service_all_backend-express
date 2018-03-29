@@ -72,7 +72,7 @@
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
                             '<th>' + greeting[greetingId].text + '</th>' +
-                            '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
+                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                             '<td>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                             '</td>' +
@@ -105,7 +105,7 @@
     function addMsgCanvas() {
         rowCount++;
         $(this).parent().parent().remove('tr');
-        let nowTime = new Date().getTime();
+        let nowTime = Date.now();
         let appId = $(this).parent().parent().attr('rel');
 
         $('table #MsgCanvas').append(
@@ -173,7 +173,8 @@
         }
         let greetingData = {
             type: 'text',
-            text: $textarea.val()
+            text: $textarea.val(),
+            createdTime : Date.now()
         };
         return api.appsGreetings.insert(appId, userId, greetingData).then(function(resJson) {
             $('#' + trId).remove();
@@ -183,7 +184,7 @@
             var trGrop =
             '<tr id="' + greetingId + '" rel="' + appId + '">' +
                 '<th>' + greeting[greetingId].text + '</th>' +
-                '<td>' + ToLocalTimeString(greeting[greetingId].updatedTime) + '</td>' +
+                '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                 '<td>' +
                     '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                 '</td>' +

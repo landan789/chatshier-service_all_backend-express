@@ -5,22 +5,37 @@
 # You can specify a custom docker image from Docker Hub as your build environment.
 image: node:8.10.0
 
-
 pipelines:  
   branches:
+    default:
+      - step:
+          script:
+            - rm -Rf ~/.ssh/knon_host
     develop:
       - step:
           script:
-            - echo "develop ends..."
+            - echo "[STEP 1] start to git pull on all servers."
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 "cd ${SERVICE_DIR} && git stash && git checkout master && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 "cd ${SERVICE_DIR} && git stash && git checkout master && git fetch && git pull"
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 "cd ${SERVICE_DIR} && git stash && git checkout master && git fetch && git pull"
+
+            - echo "[STEP 2] start to npm install on all servers."
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 "cd ${SERVICE_DIR} && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 "cd ${SERVICE_DIR} && npm install"
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 "cd ${SERVICE_DIR} && npm install"
+            
+            - echo "[SUCCEEDED] develop has been deployed."
     release:
       - step:
           script:
-            - echo "release ends..."
+            - echo "start to npm install on all servers."
+            - echo "[SUCCEEDED] release has been deployed."
     master:
       - step:
           script:
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@45.33.40.237 -p 22 'cd /home/vagrant/service.chatshier && npm install'
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SERVICE_1_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SERVICE_2_IP -p 22 'cd /home/vagrant/service.chatshier && npm install'
-            - echo "master ends..."
+            - echo "start to npm install on all servers."
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - echo "[SUCCEEDED] master has been deployed."
 

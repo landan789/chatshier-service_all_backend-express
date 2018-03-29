@@ -8,7 +8,7 @@
     const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
     var inputObj = {};
-    var age = '';
+    var ageRange = [];
     var gender = '';
     var field_ids = {};
     var appsFields = '';
@@ -44,6 +44,7 @@
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#btn-text', btnText);
     $(document).on('click', '.remove-btn', removeInput);
+    $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
     $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
@@ -149,7 +150,7 @@
         var customFields = {};
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
-            let fieldId = $(this).attr('data-type');
+            let fieldId = 'ageRange' === $(this).attr('data-type') ? 'age' : $(this).attr('data-type');
             customFields[fieldId] = fieldValue;
         });
 
@@ -225,16 +226,16 @@
             fieldsObjCompose(conditionInputElement);
             targetData.text = $editForm.find('#edutinput').val();
             targetData.time = Date.parse($editForm.find('#edit-time').val());
-            targetData.age = age;
+            targetData.ageRange = ageRange;
             targetData.gender = gender;
-            targetData.field_ids = Object.assign({}, field_ids);
+            targetData.field_ids = 0 === Object.keys(field_ids).length ? {} : field_ids;
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
                 targetData.status = 1;
             }
             return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
-                age = '';
+                ageRange = [];
                 gender = '';
                 field_ids = {};
                 $composeEditModal.modal('hide');
@@ -363,30 +364,6 @@
                     continue;
                 }
 
-                $('#delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('text');
-                    var composeId = targetRow.attr('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.appsComposes.remove(appId, composeId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadComposes(appId, userId);
-                        }).catch((resJson) => {
-                            if (undefined === resJson.status) {
-                                $.notify('失敗', { type: 'danger' });
-                            }
-                            if (NO_PERMISSION_CODE === resJson.code) {
-                                $.notify('無此權限', { type: 'danger' });
-                            }
-                        });
-                    });
-                });
-
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
                         '<th id="text" data-title="' + composeData.text + '">' + composeData.text + '</th>' +
@@ -429,8 +406,8 @@
             }
         }
         let composeGender = composeData.gender || '';
-        if (!composeData.field_ids && 0 === composeData.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll">無';
+        if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
+            fieldsTd += '<snap id="sendAll">無</snap>';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
@@ -441,7 +418,7 @@
             if (!composeTag.value) {
                 continue;
             }
-            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value;
+            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
         }
         fieldsTd += '</td>';
         return fieldsTd;
@@ -504,7 +481,7 @@
         inputObj = {};
         inputNum = 0;
         deleteNum = 0;
-        age = '';
+        ageRange = [];
         gender = '';
         field_ids = {};
     }
@@ -557,7 +534,7 @@
         let options = {
             sendTime: sendTime,
             isDraft: isDraft,
-            age: age,
+            ageRange: ageRange,
             gender: gender,
             field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
         };
@@ -570,7 +547,7 @@
                     text: $('#' + key).val(),
                     status: 1,
                     time: Date.now() - 60000,
-                    age: age,
+                    ageRange: ageRange,
                     gender: gender,
                     field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
                 };
@@ -656,7 +633,7 @@
                         '<tr id="' + composeId + '" text="' + appId + '">' +
                             '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                            appendFields(appsComposes) +
+                            appendFields(compose) +
                             '<td>' +
                                 '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
@@ -697,7 +674,7 @@
 
             switch (conditionRel) {
                 case 'age':
-                    age = conditionVal;
+                    ageRange = conditionVal;
                     break;
                 case 'gender':
                     switch (conditionVal) {
@@ -727,7 +704,7 @@
                 text: message.text,
                 status: options.isDraft ? 0 : 1,
                 time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
-                age: options.age,
+                ageRange: options.ageRange,
                 gender: options.gender,
                 field_ids: options.field_ids
             };
@@ -747,6 +724,35 @@
                 $.notify('無此權限', { type: 'danger' });
                 return loadComposes(appId, userId);
             }
+        });
+    }
+
+    function dataRemove() {
+        var userId;
+        try {
+            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+            userId = payload.uid;
+        } catch (ex) {
+            userId = '';
+        }        
+        var targetRow = $(event.target).parent().parent();
+        var appId = targetRow.attr('text');
+        var composeId = targetRow.attr('id');
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
+            }
+            return api.appsComposes.remove(appId, composeId, userId).then(function(resJson) {
+                $('#' + composeId).remove();
+                $.notify('刪除成功！', { type: 'success' });
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
+            });
         });
     }
 
