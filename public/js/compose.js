@@ -149,7 +149,7 @@
         var customFields = {};
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
-            let fieldId = $(this).attr('data-type');
+            let fieldId = 'ageRange' === $(this).attr('data-type') ? 'age' : $(this).attr('data-type');
             customFields[fieldId] = fieldValue;
         });
 
@@ -430,7 +430,7 @@
         }
         let composeGender = composeData.gender || '';
         if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll">無';
+            fieldsTd += '<snap id="sendAll">無</snap>';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
@@ -441,7 +441,7 @@
             if (!composeTag.value) {
                 continue;
             }
-            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value;
+            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
         }
         fieldsTd += '</td>';
         return fieldsTd;
