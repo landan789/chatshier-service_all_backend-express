@@ -44,6 +44,7 @@
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#btn-text', btnText);
     $(document).on('click', '.remove-btn', removeInput);
+    $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
     $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
@@ -363,30 +364,6 @@
                     continue;
                 }
 
-                $('#delete-btn').off('click').on('click', function(event) {
-                    var targetRow = $(event.target).parent().parent();
-                    var appId = targetRow.attr('text');
-                    var composeId = targetRow.attr('id');
-
-                    return showDialog('確定要刪除嗎？').then(function(isOK) {
-                        if (!isOK) {
-                            return;
-                        }
-
-                        return api.appsComposes.remove(appId, composeId, userId).then(function() {
-                            $.notify('刪除成功！', { type: 'success' });
-                            return loadComposes(appId, userId);
-                        }).catch((resJson) => {
-                            if (undefined === resJson.status) {
-                                $.notify('失敗', { type: 'danger' });
-                            }
-                            if (NO_PERMISSION_CODE === resJson.code) {
-                                $.notify('無此權限', { type: 'danger' });
-                            }
-                        });
-                    });
-                });
-
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
                         '<th id="text" data-title="' + composeData.text + '">' + composeData.text + '</th>' +
@@ -656,7 +633,7 @@
                         '<tr id="' + composeId + '" text="' + appId + '">' +
                             '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                            appendFields(appsComposes) +
+                            appendFields(compose) +
                             '<td>' +
                                 '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
@@ -747,6 +724,35 @@
                 $.notify('無此權限', { type: 'danger' });
                 return loadComposes(appId, userId);
             }
+        });
+    }
+
+    function dataRemove() {
+        var userId;
+        try {
+            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+            userId = payload.uid;
+        } catch (ex) {
+            userId = '';
+        }        
+        var targetRow = $(event.target).parent().parent();
+        var appId = targetRow.attr('text');
+        var composeId = targetRow.attr('id');
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
+            }
+            return api.appsComposes.remove(appId, composeId, userId).then(function(resJson) {
+                $('#' + composeId).remove();
+                $.notify('刪除成功！', { type: 'success' });
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $.notify('失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
+            });
         });
     }
 
