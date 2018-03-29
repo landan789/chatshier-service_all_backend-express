@@ -15,7 +15,7 @@ pipelines:
     develop:
       - step:
           script:
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null `$SSH_USER`@`$SCHEDULE_IP` -p 22 'cd SERVICE_DIR && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null `echo $SSH_USER`@`echo $SCHEDULE_IP` -p 22 'cd SERVICE_DIR && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null `$SSH_USER`@`$SERVICE_1_IP` -p 22 'cd SERVICE_DIR && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null `$SSH_USER`@`$SERVICE_2_IP` -p 22 'cd SERVICE_DIR && npm install'
             - echo "develop ends..."
