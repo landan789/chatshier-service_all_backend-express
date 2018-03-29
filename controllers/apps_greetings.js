@@ -82,9 +82,11 @@ module.exports = (function() {
     AppsGreetingsController.prototype.postOne = (req, res) => {
         let type = req.body.type;
         let text = req.body.text;
+        let createdTime = req.body.createdTime;
         let postGreeting = {
             type: type,
-            text: text
+            text: text,
+            createdTime : createdTime
         };
         return AppsGreetingsController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             let appId = checkedAppId;
