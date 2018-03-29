@@ -18,6 +18,12 @@ pipelines:
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            
+            - echo "start to git pull on all servers."
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} git stash && git fetch && git pull'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} git stash && git fetch && git pull'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} git stash && git fetch && git pull'
+
             - echo "[SUCCEEDED] develop has been deployed."
     release:
       - step:
