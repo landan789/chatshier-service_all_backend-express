@@ -138,7 +138,7 @@ module.exports = (function() {
                     isDeleted: false,
                     from: message.from,
                     messager_id: message.messager_id,
-                    text: message.text || (message.altText ? message.altText + '\n' : '') + '請至智慧手機上確認訊息內容。',
+                    text: message.text || (message.altText ? message.altText  + '請至智慧手機上確認訊息內容。'+'\n' : ''),
                     time: Date.now(),
                     type: message.type,
                     src: message.src || ''
