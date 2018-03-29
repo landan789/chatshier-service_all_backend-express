@@ -426,18 +426,18 @@ function init(server) {
                             let originMessagerGender = originMessager.gender || '';
                             let originMessagerFields = originMessager.custom_fields || {};
 
-                            let messageAge = message.age || '';
+                            let messageAgeRange = message.ageRange || '';
                             let messageGender = message.gender || '';
                             let messageFields = 0 === Object.keys(message.field_ids).length ? {} : message.field_ids;
 
-                            for (let i = 0; i < messageAge.length; i++) {
+                            for (let i = 0; i < messageAgeRange.length; i++) {
                                 if (i % 2) {
-                                    if (originMessagerAge > messageAge[i] && '' !== messageAge[i]) {
+                                    if (originMessagerAge > messageAgeRange[i] && '' !== messageAgeRange[i]) {
                                         delete messagers[messagerId];
                                         continue;
                                     }
                                 } else {
-                                    if (originMessagerAge < messageAge[i] && '' !== messageAge[i]) {
+                                    if (originMessagerAge < messageAgeRange[i] && '' !== messageAgeRange[i]) {
                                         delete messagers[messagerId];
                                         continue;
                                     }

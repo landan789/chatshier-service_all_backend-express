@@ -79,9 +79,9 @@ module.exports = (function() {
             text: req.body.text,
             time: req.body.time,
             status: !!req.body.status,
-            ageRange: '' === req.body.age ? [] : req.body.age,
+            ageRange: '' === req.body.ageRange ? [] : req.body.ageRange,
             gender: req.body.gender,
-            field_ids: req.body.field_ids
+            field_ids: req.body.field_ids || {}
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             let appId = checkedAppIds;
@@ -120,9 +120,9 @@ module.exports = (function() {
             text: req.body.text,
             time: req.body.time,
             status: !!req.body.status,
-            ageRange: '' === req.body.age ? [] : req.body.age,
+            ageRange: '' === req.body.ageRange ? [] : req.body.ageRange,
             gender: req.body.gender,
-            field_ids: req.body.field_ids
+            field_ids: req.body.field_ids || {}
         };
         return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
             appId = checkedAppId;

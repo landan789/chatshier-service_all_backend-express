@@ -133,11 +133,11 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} appId
+         * @param {string[]} appIds
          * @param {string} composeId
          * @param {(appComposes: any) => any} [callback]
          */
-        remove(appId, composeId, callback) {
+        remove(appIds, composeId, callback) {
             let compose = {
                 _id: composeId,
                 isDeleted: true,
@@ -145,7 +145,7 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': appId,
+                '_id': appIds.map((appId) => appId),
                 'composes._id': composeId
             };
 
@@ -160,9 +160,10 @@ module.exports = (function() {
                         $unwind: '$composes'
                     }, {
                         $match: {
-                            '_id': this.Types.ObjectId(appId),
-                            'composes._id': this.Types.ObjectId(composeId),
-                            'composes.isDeleted': true
+                            '_id': {
+                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                            },
+                            'composes._id': this.Types.ObjectId(composeId)
                         }
                     }, {
                         $project: {
