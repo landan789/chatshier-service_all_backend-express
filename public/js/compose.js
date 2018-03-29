@@ -43,6 +43,7 @@
     $(document).on('change', '#app-select', storeApp);
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#btn-text', btnText);
+    $(document).on('click', '.remove-btn', removeInput);
     $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
     $(document).on('click', '#add-btn', cleanmodal);
