@@ -5,7 +5,6 @@
 # You can specify a custom docker image from Docker Hub as your build environment.
 image: node:8.10.0
 
-
 pipelines:  
   branches:
     develop:
