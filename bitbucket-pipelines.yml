@@ -14,19 +14,22 @@ pipelines:
     develop:
       - step:
           script:
+            - echo "start to npm install on all servers."
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
             - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
-            - echo "develop ends..."
+            - echo "[SUCCEEDED] develop has been deployed."
     release:
       - step:
           script:
-            - echo "release ends..."
+            - echo "start to npm install on all servers."
+            - echo "[SUCCEEDED] release has been deployed."
     master:
       - step:
           script:
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@45.33.40.237 -p 22 'cd SERVICE_DIR && npm install'
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SERVICE_1_IP -p 22 'cd SERVICE_DIR && npm install'
-            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SSH_USER@$SERVICE_2_IP -p 22 'cd SERVICE_DIR && npm install'
-            - echo "master ends..."
+            - echo "start to npm install on all servers."
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_1_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SERVICE_2_IP} -p 22 'cd ${SERVICE_DIR} && npm install'
+            - echo "[SUCCEEDED] master has been deployed."
 
