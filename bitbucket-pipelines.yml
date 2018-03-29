@@ -3,12 +3,20 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: node:6.9.4
+image: node:8.10.0
 
 pipelines:  
-  default:
-    - step:
-        script:
-           - mkdir -p ~/.ssh
-           - (umask  077 ; echo $MY_SSH_KEY | base64 --decode > ~/.ssh/id_rsa)
-           - ssh vagrant@220.133.105.17 -p 2222 'echo "connected to `host` as $USER"'
+  branches:
+    develop:
+      - step:
+          script:
+            - echo "develop ends..."
+    release:
+      - step:
+          script:
+            - echo "release ends..."
+    master:
+      - step:
+          script:
+            - echo "master ends..."
+

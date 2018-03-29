@@ -96,23 +96,23 @@ module.exports = (function() {
             }
 
             // 只允許更新 API 可編輯的屬性
-            let messagerData = {};
-            ('string' === typeof req.body.photo) && (messagerData.photo = req.body.photo);
-            ('number' === typeof req.body.age) && (messagerData.age = req.body.age);
-            ('string' === typeof req.body.email) && (messagerData.email = req.body.email);
-            ('string' === typeof req.body.phone) && (messagerData.phone = req.body.phone);
-            ('string' === typeof req.body.gender) && (messagerData.gender = req.body.gender);
-            ('string' === typeof req.body.remark) && (messagerData.remark = req.body.remark);
-            req.body.assigned && (messagerData.assigned = req.body.assigned);
-            req.body.custom_fields && (messagerData.custom_fields = req.body.custom_fields);
+            let messager = {};
+            ('string' === typeof req.body.photo) && (messager.photo = req.body.photo);
+            ('number' === typeof req.body.age) && (messager.age = req.body.age);
+            ('string' === typeof req.body.email) && (messager.email = req.body.email);
+            ('string' === typeof req.body.phone) && (messager.phone = req.body.phone);
+            ('string' === typeof req.body.gender) && (messager.gender = req.body.gender);
+            ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
+            req.body.assigned && (messager.assigned = req.body.assigned);
+            req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
 
             return new Promise((resolve, reject) => {
-                appsMessagersMdl.replaceMessager(appId, msgerId, messagerData, (messager) => {
-                    if (!messager) {
+                appsMessagersMdl.replaceMessager(appId, msgerId, messager, (appsMessagers) => {
+                    if (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length)) {
                         reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
                         return;
                     }
-                    resolve(messager);
+                    resolve(appsMessagers);
                 });
             });
         }).then((data) => {

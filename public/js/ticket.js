@@ -162,7 +162,6 @@
     //         var day = new Date(original);
     //         day = Date.parse(day) + 8 * 60 * 60 * 1000;
     //         day = new Date(day);
-    //         // console.log(day);
     //         $(this).html("<input type='datetime-local' class='inner-text' value='" + day.toJSON().substring(0, 23) + "'></input>");
     //     } else if (prop == 'description') {
     //         $(this).html("<textarea  class='inner-text form-control'>" + original + "</textarea>");
