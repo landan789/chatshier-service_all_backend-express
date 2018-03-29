@@ -65,7 +65,7 @@ module.exports = (function() {
                                     as: 'message',
                                     cond: {
                                         $or: messageIds.map((messageId) => ({
-                                            in: [{
+                                            $and: [{
                                                 $eq: [ '$$message._id', this.Types.ObjectId(messageId) ]
                                             }, {
                                                 $eq: [ '$$message.isDeleted', false ]
