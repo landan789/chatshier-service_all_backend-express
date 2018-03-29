@@ -1,0 +1,23 @@
+{
+  "apps" : [{
+    "name"        : "service.chatshier",
+    "script"      : "./bin/www",
+    "watch"       : true,
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "env_production" : {
+       "NODE_ENV": "production"
+    }
+  },{
+    "name"       : "schedule.chatshier",
+    "script"     : "./schedules/index.js",
+    "watch"       : true,
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "env_production" : {
+       "NODE_ENV": "production"
+    }
+  }]
+}
