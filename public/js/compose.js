@@ -656,7 +656,7 @@
                         '<tr id="' + composeId + '" text="' + appId + '">' +
                             '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                            appendFields(appsComposes) +
+                            appendFields(compose) +
                             '<td>' +
                                 '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
