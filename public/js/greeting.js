@@ -139,6 +139,7 @@
                 if (4 === rowCount) {
                     appendNewTr(appId);
                 }
+                $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
@@ -196,6 +197,7 @@
             }
             $(trGrop).insertAfter('#' + appendId);
             findedGreetingIds[greetingId] = greetingId;
+            $.notify('新增成功', { type: 'success' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
                 $.notify('失敗', { type: 'danger' });
