@@ -204,7 +204,7 @@ module.exports = (function() {
                 if (!(appId && inputText)) {
                     return resolve({});
                 }
-                appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
+                appsKeywordrepliesMdl.findKeywordreplies(appId, null,(appsKeywordreplies) => {
                     if (!appsKeywordreplies) {
                         return resolve({});
                     }
