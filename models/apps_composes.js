@@ -9,7 +9,7 @@ module.exports = (function() {
     const docOutput = {
         $project: {
             // 篩選需要的項目
-            composes: 1
+            composes: true
         }
     };
 
@@ -165,11 +165,8 @@ module.exports = (function() {
                             },
                             'composes._id': this.Types.ObjectId(composeId)
                         }
-                    }, {
-                        $project: {
-                            composes: 1
-                        }
-                    }
+                    }, 
+                        docOutput
                 ];
 
                 return this.AppsModel.aggregate(aggregations);
