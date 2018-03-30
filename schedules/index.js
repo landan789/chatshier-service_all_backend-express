@@ -37,7 +37,7 @@ let jobProcess = () => {
             let p1 = new Promise((resolve, reject) => {
                 appsComposesMdl.find(appId, null, (appsComposes) => {
                     if (!appsComposes) {
-                        return reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                        return resolve([]);
                     }
                     resolve(appsComposes[appId].composes);
                 });
@@ -45,7 +45,7 @@ let jobProcess = () => {
             let p2 = new Promise((resolve, reject) => {
                 appsMessagersMdl.find(appId, null, (appsMessagers) => {
                     if (!appsMessagers) {
-                        return reject(API_ERROR.APP_MESSAGER_FAILED_TO_FIND);
+                        return resolve([]);
                     }
                     resolve(appsMessagers[appId].messagers);
                 });
@@ -53,27 +53,29 @@ let jobProcess = () => {
             return Promise.all([p1, p2]).then((results) => {
                 let composes = results[0];
                 messagers = results[1];
-                for (let messagerId in messagers) {
-                    let originMessager = messagers[messagerId] || {};
-                    if (originMessager.isDeleted) {
-                        delete messagers[messagerId];
-                        continue;
-                    }
-                    let originMessagerAge = originMessager.age || '';
-                    let originMessagerGender = originMessager.gender || '';
-                    let originMessagerFields = originMessager.custom_fields || {};
 
-                    for (let composeId in composes) {
-                        if (composes[composeId].text &&
-                            composes[composeId].status &&
-                            timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                            !composes[composeId].isDeleted
-                        ) {
-                            let message = {
-                                type: composes[composeId].type,
-                                text: composes[composeId].text
-                            };
-                            messages.push(message);
+                for (let composeId in composes) {
+                    if (composes[composeId].text &&
+                        composes[composeId].status &&
+                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
+                        !composes[composeId].isDeleted
+                    ) {
+                        let message = {
+                            type: composes[composeId].type,
+                            text: composes[composeId].text
+                        };
+                        messages.push(message);
+
+                        for (let messagerId in messagers) {
+                            let originMessager = messagers[messagerId] || {};
+                            if (originMessager.isDeleted) {
+                                delete messagers[messagerId];
+                                continue;
+                            }
+                            let originMessagerAge = originMessager.age || '';
+                            let originMessagerGender = originMessager.gender || '';
+                            let originMessagerFields = originMessager.custom_fields || {};
+
                             let composeAgeRange = composes[composeId].ageRange || '';
                             let composeGender = composes[composeId].gander || '';
                             let composeFields = composes[composeId].field_ids || {};
@@ -102,8 +104,8 @@ let jobProcess = () => {
                                 }
                             }
                         }
-                    };
-                }
+                    }
+                }          
                 // 沒有訊息對象 或 沒有群發訊息 就不做處理
                 if (0 === Object.keys(messagers).length || 0 === messages.length) {
                     return Promise.resolve(null);
