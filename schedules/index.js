@@ -105,7 +105,7 @@ let jobProcess = () => {
                             }
                         }
                     }
-                }          
+                }
                 // 沒有訊息對象 或 沒有群發訊息 就不做處理
                 if (0 === Object.keys(messagers).length || 0 === messages.length) {
                     return Promise.resolve(null);
