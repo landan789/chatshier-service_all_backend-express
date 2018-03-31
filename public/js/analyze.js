@@ -243,7 +243,7 @@
             magCount = 0;
             nowSeg = nextSeg;
             nextSeg += DATE;
-            timeData.unshift(msgTime);
+            timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
@@ -284,7 +284,7 @@
             });
             magCount = 0;
             nowSeg += HOUR;
-            timeData.unshift(msgTime);
+            timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
