@@ -44,35 +44,6 @@ module.exports = (function() {
          * @param {(consumers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insert(platformUid, consumer, callback) {
-            consumer = consumer || {};
-
-            let consumerId = this.Types.ObjectId();
-            consumer._id = consumerId;
-            consumer.platformUid = platformUid;
-            consumer.createdTime = consumer.updatedTime = Date.now();
-
-            let doc = { $push: consumer };
-            return this.Model.updateOne({}, doc).then((result) => {
-                if (!result.ok) {
-                    return Promise.reject(new Error());
-                }
-                return this.find(platformUid);
-            }).then((consumers) => {
-                ('function' === typeof callback) && callback(consumers);
-                return consumers;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        /**
-         * @param {string} platformUid
-         * @param {any} consumer
-         * @param {(consumers: any) => any} [callback]
-         * @returns {Promise<any>}
-         */
         update(platformUid, consumer, callback) {
             consumer = consumer || {};
 
@@ -88,7 +59,12 @@ module.exports = (function() {
                 doc.$set[prop] = consumer[prop];
             }
 
-            return this.Model.update(query, doc).then((result) => {
+            let optons = {
+                upsert: true,
+                setDefaultsOnInsert: true
+            };
+
+            return this.Model.update(query, doc, optons).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
