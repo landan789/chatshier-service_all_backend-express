@@ -611,18 +611,12 @@
                 }
 
                 var message = messages[i];
-                var senderId = message.messager_id;
+                var messagerId = message.messager_id;
+                var messager = messagers[messagerId];
+                var platformUid = messagers[messagerId].platformUid;
+                var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
 
                 return Promise.resolve().then(function() {
-                    var platformUid = messagers[senderId].platformUid;
-
-                    var sender;
-                    if (CHATSHIER === sender.type) {
-                        sender = users[platformUid];
-                    } else {
-                        sender = consumers[platformUid];
-                    }
-
                     // 如果 sender 在前端有資料的話直接往下傳
                     if (sender && sender.name) {
                         return sender;
@@ -667,7 +661,7 @@
                             appId: appId,
                             name: apps[appId].name,
                             type: apps[appId].type,
-                            messagerId: senderId,
+                            platformUid: platformUid,
                             chatroomId: chatroomId,
                             chatroom: appsChatrooms[appId].chatrooms[chatroomId],
                             profile: sender
@@ -678,13 +672,22 @@
                     }
 
                     var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
-                    var chatroomMsgers = chatroom.messagers || {};
-                    if (!chatroomMsgers[userId]) {
-                        chatroomMsgers[userId] = { unRead: 0 };
-                        chatroom.messagers = chatroomMsgers;
+                    var messagers = chatroom.messagers || {};
+                    if (!messagers[messagerId]) {
+                        messagers[messagerId] = { unRead: 0 };
+                        Object.assign(chatroom.messagers, messagers);
                     }
-                    var chatroomUserSelf = chatroomMsgers[userId];
-                    senderId !== userId && chatroomUserSelf.unRead++;
+
+                    var messagerSelf = (function() {
+                        for (var messagerId in messagers) {
+                            var messager = messagers[messagerId];
+                            if (userId === messager.platformUid) {
+                                return messager;
+                            }
+                        }
+                        return {};
+                    })();
+                    platformUid !== userId && messagerSelf.unRead++;
 
                     updateClientTab(sender, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(sender, message, appId, chatroomId); // update 聊天室
