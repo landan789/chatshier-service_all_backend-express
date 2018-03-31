@@ -46,11 +46,11 @@ describe('Test AppsChatroomsMessagers Model', () => {
         return messager;
     };
 
-    const insert = (platformUid, newMessager) => {
+    const replace = (platformUid, newMessager) => {
         let appId = appsPreTest.appId;
         let chatroomId = appsChatroomsPreTest.chatroomId;
 
-        return appsChatroomsMessagersMdl.insert(appId, chatroomId, platformUid, newMessager).then((appsChatroomsMessagers) => {
+        return appsChatroomsMessagersMdl.replace(appId, chatroomId, platformUid, newMessager).then((appsChatroomsMessagers) => {
             let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
             expect(messager.platformUid).eq(platformUid);
             expect(messager.type).eq(newMessager.type);
@@ -59,13 +59,13 @@ describe('Test AppsChatroomsMessagers Model', () => {
         });
     };
 
-    it('Insert a messager', () => {
+    it('replace a messager', () => {
         let platformUid = 'U54345CDABEF2323245778B';
         let newMessager = {
             type: 'LINE'
         };
 
-        return insert(platformUid, newMessager);
+        return replace(platformUid, newMessager);
     });
 
     it('Increase messager unRead count', () => {
@@ -78,7 +78,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         };
         let unReadCount = 0;
 
-        return insert(platformUid, newMessager).then((appsChatroomsMessagers) => {
+        return replace(platformUid, newMessager).then((appsChatroomsMessagers) => {
             let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
             unReadCount = messager.unRead + 5;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);
@@ -102,7 +102,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         };
         let unReadCount = 0;
 
-        return insert(platformUid, newMessager).then((appsChatroomsMessagers) => {
+        return replace(platformUid, newMessager).then((appsChatroomsMessagers) => {
             let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
             unReadCount = messager.unRead + 3;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);

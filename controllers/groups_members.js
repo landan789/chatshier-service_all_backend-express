@@ -13,7 +13,7 @@ module.exports = (function() {
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
     const groupsMembersMdl = require('../models/groups_members');
-    const appsMessagersMdl = require('../models/apps_messagers');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 
     function GroupsMembersController() {};
 
@@ -30,7 +30,7 @@ module.exports = (function() {
             if ('' === req.params.groupid || undefined === req.params.groupid || null === req.params.groupid) {
                 return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
             };
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 usersMdl.find(userId, null, (users) => {
                     if (!users) {
@@ -119,7 +119,7 @@ module.exports = (function() {
             if (0 > groupIds.indexOf(groupId)) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findMembers(groupId, null, (groupsMembers) => {
                     if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
@@ -199,30 +199,16 @@ module.exports = (function() {
                 return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                     appIds = appIds || [];
                     return Promise.all(appIds.map((appId) => {
-                        return new Promise((resolve) => {
-                            appsMdl.find(appId, null, (apps) => {
-                                resolve(apps);
-                            });
-                        }).then((apps) => {
-                            let app = apps[appId];
-
-                            // 非內部聊天室的 app 不處理
-                            // 否則會造成加一個群組新成員 chatroom 就會新創一個
-                            if (CHATSHIER !== app.type) {
-                                return;
+                        // 抓取新增此成員的人的 chatroomId 來作為新成員的 chatroomId
+                        // 將群組中的所有 app 的 chatroom 加入此成員
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, userId).then((appsChatroomsMessagers) => {
+                            if (!appsChatroomsMessagers) {
+                                return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
                             }
-
-                            return appsMessagersMdl.find(appId, userId).then((appMessagers) => {
-                                // 目前內部聊天室的 chatroom 只會有一個
-                                // 因此所有群組成員的 chatroom_id 都會是一樣
-                                // 抓取新增此成員的人的 chatroom_id 來作為 new messager 的 chatroom_id
-                                let newMessager = {};
-                                if (appMessagers && appMessagers[appId]) {
-                                    let messager = appMessagers[appId].messagers[userId];
-                                    newMessager.chatroom_id = messager.chatroom_id;
-                                }
-                                return appsMessagersMdl.replaceMessager(appId, memberUserId, newMessager);
-                            });
+                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                            let chatroomId = Object.keys(chatrooms).shift() || '';
+                            let messager = { type: CHATSHIER };
+                            return appsChatroomsMessagersMdl.replace(appId, chatroomId, memberUserId, messager);
                         });
                     }));
                 }).then(() => {
@@ -283,7 +269,7 @@ module.exports = (function() {
             if (0 === Object.keys(putMember).length) {
                 return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
             };
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 let userId = req.params.userid;
                 usersMdl.find(userId, null, (users) => {
@@ -300,7 +286,7 @@ module.exports = (function() {
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findMembers(groupId, null, (members) => {
                     if (null === members || undefined === members || '' === members) {
@@ -351,7 +337,7 @@ module.exports = (function() {
                 // 當下使用者為 WRITE 不能夠 修改 成員的 權限狀態
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_TYPE);
             }
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.update(groupId, memberId, putMember, (groupsMembers) => {
                     if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
@@ -458,7 +444,7 @@ module.exports = (function() {
                 // 群組成員刪除後，也需要刪除內部聊天室的 messager
                 // 群組成員的 userId 即是內部聊天室的 messagerId
                 let deletedMember = groupsMembers[groupId].members[memberId];
-                let msgerId = deletedMember.user_id;
+                let memberUserId = deletedMember.user_id;
 
                 return new Promise((resolve) => {
                     let idx = userGroupIds.indexOf(groupId);
@@ -467,15 +453,16 @@ module.exports = (function() {
                     let updateUser = {
                         group_ids: userGroupIds
                     };
-                    usersMdl.update(msgerId, updateUser, () => {
+                    usersMdl.update(memberUserId, updateUser, () => {
                         resolve();
                     });
                 }).then(() => {
                     // 抓取出 group 裡的 app_ids 清單
                     // 將此 group member 從所有 app 裡的 messagers 刪除
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                        appIds = appIds || [];
                         return Promise.all(appIds.map((appId) => {
-                            return appsMessagersMdl.remove(appId, msgerId);
+                            return appsChatroomsMessagersMdl.remove(appId, null, memberUserId);
                         }));
                     });
                 }).then(() => {

@@ -2,17 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    const docUnwind = {
-        $unwind: '$chatrooms' // 只針對 chatrooms document 處理
-    };
-
-    const docOutput = {
-        $project: {
-            // 篩選不需要的項目
-            chatrooms: true
-        }
-    };
-
     class AppsChatroomsModel extends ModelCore {
         constructor() {
             super();
@@ -20,30 +9,46 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} appId
-         * @param {any|string[]} chatroomIds
+         * @param {string|string[]} appIds
+         * @param {any|null} chatroomIds
          * @param {(appsChatrooms: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        find(appId, chatroomIds, callback) {
+        find(appIds, chatroomIds, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             if (!(chatroomIds instanceof Array)) {
                 chatroomIds = [chatroomIds];
             }
 
-            let aggregations = [
-                docUnwind,
-                {
-                    $match: {
-                        // 尋找符合 appId 及 chatroomIds 的欄位
-                        '_id': this.Types.ObjectId(appId),
-                        'isDeleted': false,
-                        'chatrooms._id': {
-                            $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
-                        },
-                        'chatrooms.isDeleted': false
-                    }
+            let query = {
+                // 尋找符合 appId 及 chatroomIds 的欄位
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                docOutput
+                'isDeleted': false,
+                'chatrooms.isDeleted': false
+            };
+
+            if (chatroomIds instanceof Array) {
+                query['chatrooms._id'] = {
+                    $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
+                };
+            }
+
+            let aggregations = [
+                {
+                    $unwind: '$chatrooms'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選不需要的項目
+                        chatrooms: true
+                    }
+                }
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {

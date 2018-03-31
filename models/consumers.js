@@ -6,6 +6,22 @@ module.exports = (function() {
         constructor() {
             super();
             this.Model = this.model(CONSUMERS, this.ConsumerSchema);
+            this.project = {
+                platformUid: true,
+                age: true,
+                chatCount: true,
+                email: true,
+                isDeleted: true,
+                updatedTime: true,
+                createdTime: true,
+                gender: true,
+                name: true,
+                photo: true,
+                lastTime: true,
+                remark: true,
+                totalCount: true,
+                custom_fields: true
+            };
         }
 
         /**
@@ -22,13 +38,13 @@ module.exports = (function() {
 
             let query = {
                 'platformUid': {
-                    $in: platformUids.map((consumerId) => this.Types.ObjectId(consumerId))
+                    $in: platformUids
                 },
                 'isDeleted': false
             };
 
-            return this.Model.find(query).then((consumers) => {
-                return this.toObject(consumers);
+            return this.Model.find(query, this.project).then((consumers) => {
+                return this.toObject(consumers, 'platformUid');
             }).then((consumers) => {
                 ('function' === typeof callback) && callback(consumers);
                 return consumers;
@@ -108,7 +124,7 @@ module.exports = (function() {
                     'platformUid': platformUid,
                     'isDeleted': true
                 };
-                return this.Model.findOne(query).then((consumer) => {
+                return this.Model.findOne(query, this.project).then((consumer) => {
                     return this.toObject(consumer);
                 });
             }).then((consumers) => {

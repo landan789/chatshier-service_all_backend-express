@@ -116,7 +116,7 @@ function init(server) {
 
                             // 自動建立一個聊天室後，將此訊息發送者加入，並同時更新 consumer 資料
                             return Promise.all([
-                                appsChatroomsMessagersMdl.insert(appId, chatroomId, platformUid, messager),
+                                appsChatroomsMessagersMdl.replace(appId, chatroomId, platformUid, messager),
                                 consumersMdl.update(platformUid, profile)
                             ]).then((promiseResponses) => {
                                 let appsChatroomsMessagers = promiseResponses.shift();
@@ -339,8 +339,8 @@ function init(server) {
             });
         });
 
-        socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, (req, callback) => {
-            let messagerId = req.params.messagerid;
+        socket.on(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, (req, callback) => {
+            let platformUid = req.params.platformuid;
             let appId = req.params.appid;
 
             return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
@@ -348,37 +348,35 @@ function init(server) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
                 } else if (checkedAppIds.indexOf(appId) < 0) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                } else if (!messagerId) {
-                    return Promise.reject(API_ERROR.MESSAGERID_WAS_EMPTY);
+                } else if (!platformUid) {
+                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
                 // 只允許更新 API 可編輯的屬性
-                let messager = {};
-                ('string' === typeof req.body.photo) && (messager.photo = req.body.photo);
-                ('number' === typeof req.body.age) && (messager.age = req.body.age);
-                ('string' === typeof req.body.email) && (messager.email = req.body.email);
-                ('string' === typeof req.body.phone) && (messager.phone = req.body.phone);
-                ('string' === typeof req.body.gender) && (messager.gender = req.body.gender);
-                ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
-                req.body.assigned && (messager.assigned = req.body.assigned);
-                req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
+                let consumer = {};
+                ('string' === typeof req.body.photo) && (consumer.photo = req.body.photo);
+                ('number' === typeof req.body.age) && (consumer.age = req.body.age);
+                ('string' === typeof req.body.email) && (consumer.email = req.body.email);
+                ('string' === typeof req.body.phone) && (consumer.phone = req.body.phone);
+                ('string' === typeof req.body.gender) && (consumer.gender = req.body.gender);
+                ('string' === typeof req.body.remark) && (consumer.remark = req.body.remark);
+                req.body.custom_fields && (consumer.custom_fields = req.body.custom_fields);
 
-                return new Promise((resolve, reject) => {
-                    appsMessagersMdl.replaceMessager(appId, messagerId, messager, (appsMessagers) => {
-                        if (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length)) {
-                            reject(API_ERROR.APP_MESSAGER_FAILED_TO_UPDATE);
-                            return;
+                return controllerCre.AppsRequestVerify(req).then(() => {
+                    return consumersMdl.update(platformUid, consumer).then((consumers) => {
+                        if (!consumers) {
+                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
                         }
-                        resolve(appsMessagers);
+                        return consumers;
                     });
                 });
-            }).then((appsMessagers) => {
-                let messagerToSocket = {
+            }).then((consumers) => {
+                let consumerToSocket = {
                     appId: appId,
-                    messagerId: messagerId,
-                    messager: appsMessagers[appId].messagers[messagerId]
+                    platformUid: platformUid,
+                    consumer: consumers[platformUid]
                 };
-                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
+                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, consumerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             });

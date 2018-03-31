@@ -18,7 +18,7 @@
     "TYPE_WAS_EMPTY": { "MSG": "type was empty", "CODE": "1.12" },
     "GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "1.13" },
     "MEMBERID_WAS_EMPTY": { "MSG": "memberid was empty", "CODE": "1.14" },
-    "MESSAGERID_WAS_EMPTY": { "MSG": "messagerid was empty", "CODE": "1.15" },
+    "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
     "AUTOREPLYID_WAS_EMPTY": {"MSG": "autoreplyid was empty", "CODE": "1.16"},
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "COMPOSEID_WAS_EMPTY": {"MSG": "composeid was empty", "CODE": "1.18"},
@@ -67,10 +67,10 @@
     "APP_TICKET_FAILED_TO_UPDATE": { "MSG": "app ticket failed to update", "CODE": "6.3" },
     "APP_TICKET_FAILED_TO_REMOVE": { "MSG": "app ticket failed to remove", "CODE": "6.4" },
 
-    "APP_MESSAGER_FAILED_TO_FIND": { "MSG": "app messager failed to find", "CODE": "7.1" },
-    "APP_MESSAGER_FAILED_TO_INSERT": { "MSG": "app messager failed to insert", "CODE": "7.2" },
-    "APP_MESSAGER_FAILED_TO_UPDATE": { "MSG": "app messager failed to update", "CODE": "7.3" },
-    "APP_MESSAGER_FAILED_TO_REMOVE": { "MSG": "app messager failed to remove", "CODE": "7.4" },
+    "CONSUMER_FAILED_TO_FIND": { "MSG": "consumer failed to find", "CODE": "7.1" },
+    "CONSUMER_FAILED_TO_INSERT": { "MSG": "consumer failed to insert", "CODE": "7.2" },
+    "CONSUMER_FAILED_TO_UPDATE": { "MSG": "consumer failed to update", "CODE": "7.3" },
+    "CONSUMER_FAILED_TO_REMOVE": { "MSG": "consumer failed to remove", "CODE": "7.4" },
 
     "APP_RICHMENU_FAILED_TO_FIND": { "MSG": "app richmenu failed to find", "CODE": "8.1" },
     "APP_RICHMENU_FAILED_TO_INSERT": { "MSG": "app richmenu failed to insert", "CODE": "8.2" },
@@ -91,7 +91,7 @@
     "APP_AUTOREPLY_FAILED_TO_UPDATE": { "MSG": "app autorelpy failed to update", "CODE": "10.3" },
     "APP_AUTOREPLY_FAILED_TO_REMOVE": { "MSG": "app autorelpy failed to remove", "CODE": "10.4" },
 
-    "APP_CHATROOM_MESSAGES_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.1" },
+    "APP_CHATROOMS_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.1" },
     "APP_CHATROOM_MESSAGES_FAILED_TO_INSERT": { "MSG": "app chatroom message failed to insert", "CODE": "11.2" },
 
     "APP_KEYWORDREPLY_FAILED_TO_FIND": { "MSG": "app keywordreply failed to find", "CODE": "12.1" },
