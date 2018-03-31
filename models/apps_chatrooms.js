@@ -19,10 +19,6 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            if (!(chatroomIds instanceof Array)) {
-                chatroomIds = [chatroomIds];
-            }
-
             let query = {
                 // 尋找符合 appId 及 chatroomIds 的欄位
                 '_id': {
@@ -31,6 +27,10 @@ module.exports = (function() {
                 'isDeleted': false,
                 'chatrooms.isDeleted': false
             };
+
+            if (chatroomIds && !(chatroomIds instanceof Array)) {
+                chatroomIds = [chatroomIds];
+            }
 
             if (chatroomIds instanceof Array) {
                 query['chatrooms._id'] = {
@@ -45,7 +45,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        // 篩選不需要的項目
+                        // 篩選需要的項目
                         chatrooms: true
                     }
                 }
@@ -63,7 +63,16 @@ module.exports = (function() {
                             chatrooms: {}
                         };
                     }
-                    Object.assign(output[app._id].chatrooms, this.toObject(app.chatrooms));
+
+                    if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                        output[app._id].chatrooms[app.chatrooms._id] = {
+                            messagers: {},
+                            messages: {}
+                        };
+                    }
+
+                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messagers, this.toObject(app.chatrooms.messagers));
+                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
                     return output;
                 }, {});
                 return appsChatrooms;

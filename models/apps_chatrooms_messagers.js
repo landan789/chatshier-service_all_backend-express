@@ -92,9 +92,8 @@ module.exports = (function() {
                             messagers: {}
                         };
                     }
-                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
-                    let messagersDest = app.chatrooms.messagers;
-                    Object.assign(messagersSrc, this.toObject(messagersDest));
+
+                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messagers, this.toObject(app.chatrooms.messagers));
                     return output;
                 }, {});
                 return appsChatroomsMessagers;

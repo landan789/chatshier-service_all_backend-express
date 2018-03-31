@@ -13,13 +13,13 @@ window.restfulAPI = (function() {
         appsChatrooms: apiDatabaseUrl + 'apps-chatrooms/',
         appsComposes: apiDatabaseUrl + 'apps-composes/',
         appsGreetings: apiDatabaseUrl + 'apps-greetings/',
-        appsMessagers: apiDatabaseUrl + 'apps-messagers/',
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
+        consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
@@ -280,17 +280,17 @@ window.restfulAPI = (function() {
     /**
      * 宣告專門處理 Messager 相關的 API 類別
      */
-    var AppsMessagersAPI = (function() {
-        function AppsMessagersAPI() {
-            this.urlPrefix = apiUrlTable.appsMessagers;
+    var ConsumersAPI = (function() {
+        function ConsumersAPI() {
+            this.urlPrefix = apiUrlTable.consumers;
         }
 
         /**
-         * 取得使用者所有在 Chatshier 內設定的 App 內的所有 Messagers
+         * 取得使用者所有 consumer
          *
          * @param {string} userId
          */
-        AppsMessagersAPI.prototype.findAll = function(userId) {
+        ConsumersAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
@@ -300,14 +300,14 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 取得指定 AppId 內使用者的所有 Messagers
+         * 取得指定的 consumer 資料
          *
          * @param {string} appId - 目標 messager 的 App ID
-         * @param {string} msgerId - 目標 messager ID
+         * @param {string} platformUid
          * @param {string} userId
          */
-        AppsMessagersAPI.prototype.findOne = function(appId, msgerId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
+        ConsumersAPI.prototype.findOne = function(appId, platformUid, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -316,24 +316,24 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 更新指定 AppId 內的 messager 資料
+         * 更新指定 consumer 資料
          *
          * @param {string} appId - 目標 messager 的 App ID
-         * @param {string} msgerId - 目標 messager ID
+         * @param {string} platformUid
          * @param {string} userId
-         * @param {any} msgerData - 欲更新的 messager 資料
+         * @param {any} consumer - 欲更新的 consumer 資料
          */
-        AppsMessagersAPI.prototype.update = function(appId, msgerId, userId, msgerData) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
+        ConsumersAPI.prototype.update = function(appId, platformUid, userId, consumer) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
-                body: JSON.stringify(msgerData)
+                body: JSON.stringify(consumer)
             };
             return sendRequest(destUrl, reqInit);
         };
 
-        return AppsMessagersAPI;
+        return ConsumersAPI;
     })();
 
     /**
@@ -1278,12 +1278,12 @@ window.restfulAPI = (function() {
         appsChatrooms: new AppsChatroomsAPI(),
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),
-        appsMessagers: new AppsMessagersAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
+        consumers: new ConsumersAPI(),
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
