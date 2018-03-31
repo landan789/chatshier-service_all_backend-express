@@ -59,7 +59,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         });
     };
 
-    it('replace a messager', () => {
+    it('Replace a messager', () => {
         let platformUid = 'U54345CDABEF2323245778B';
         let newMessager = {
             type: 'LINE'

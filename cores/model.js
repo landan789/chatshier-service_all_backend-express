@@ -183,6 +183,7 @@ module.exports = (function() {
     });
 
     const ConsumerSchema = new mongoose.Schema({
+        'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
         'chatCount': {type: Number, default: 0},

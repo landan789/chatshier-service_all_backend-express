@@ -245,36 +245,53 @@ module.exports = (function() {
             messager.updatedTime = Date.now();
 
             let query = {
-                '_id': appId,
-                'chatrooms._id': chatroomId,
+                '_id': this.Types.ObjectId(appId),
+                'chatrooms._id': this.Types.ObjectId(chatroomId),
                 'chatrooms.messagers.platformUid': platformUid
             };
 
-            let doc = { $set: {} };
-            for (let prop in messager) {
-                doc.$set['chatrooms.$[chatroom].messagers.$[messager].' + prop] = messager[prop];
-            }
+            return this.AppsModel.findOne(query).then((result) => {
+                let isExist = !!result;
 
-            let options = {
-                upsert: true,
-                setDefaultsOnInsert: true,
-                arrayFilters: [
-                    {
-                        'chatroom._id': this.Types.ObjectId(chatroomId)
-                    }, {
-                        'messager.platformUid': platformUid
+                let doc = {};
+                let options = {};
+
+                if (isExist) {
+                    doc.$set = {};
+                    for (let prop in messager) {
+                        doc.$set['chatrooms.$[chatroom].messagers.$[messager].' + prop] = messager[prop];
                     }
-                ]
-            };
 
-            return this.AppsModel.update(query, doc, options).then(() => {
-                return this.findByPlatformUid(appId, chatroomId, platformUid);
-            }).then((appsChatroomsMessagers) => {
-                ('function' === typeof callback) && callback(appsChatroomsMessagers);
-                return appsChatroomsMessagers;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
+                    options.upsert = true;
+                    options.setDefaultsOnInsert = true;
+                    options.arrayFilters = [
+                        {
+                            'chatroom._id': this.Types.ObjectId(chatroomId)
+                        }, {
+                            'messager.platformUid': platformUid
+                        }
+                    ];
+                } else {
+                    delete query['chatrooms.messagers.platformUid'];
+                    doc.$push = {
+                        'chatrooms.$[chatroom].messagers': messager
+                    };
+                    options.arrayFilters = [
+                        {
+                            'chatroom._id': this.Types.ObjectId(chatroomId)
+                        }
+                    ];
+                }
+
+                return this.AppsModel.update(query, doc, options).then(() => {
+                    return this.findByPlatformUid(appId, chatroomId, platformUid);
+                }).then((appsChatroomsMessagers) => {
+                    ('function' === typeof callback) && callback(appsChatroomsMessagers);
+                    return appsChatroomsMessagers;
+                }).catch(() => {
+                    ('function' === typeof callback) && callback(null);
+                    return null;
+                });
             });
         }
 

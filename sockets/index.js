@@ -117,7 +117,7 @@ function init(server) {
                             // 自動建立一個聊天室後，將此訊息發送者加入，並同時更新 consumer 資料
                             return Promise.all([
                                 appsChatroomsMessagersMdl.replace(appId, chatroomId, platformUid, messager),
-                                consumersMdl.update(platformUid, profile)
+                                consumersMdl.replace(platformUid, profile)
                             ]).then((promiseResponses) => {
                                 let appsChatroomsMessagers = promiseResponses.shift();
                                 let messagers = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers;
@@ -132,7 +132,7 @@ function init(server) {
                     let messagers = chatrooms[chatroomId].messagers;
                     let messager = messagers[platformUid];
                     messagerId = messager._id;
-                    return consumersMdl.update(platformUid, profile);
+                    return consumersMdl.replace(platformUid, profile);
                 });
             }).then(() => {
                 return botSvc.getReceivedMessages(req, res, messagerId, appId, app);
@@ -363,7 +363,7 @@ function init(server) {
                 req.body.custom_fields && (consumer.custom_fields = req.body.custom_fields);
 
                 return controllerCre.AppsRequestVerify(req).then(() => {
-                    return consumersMdl.update(platformUid, consumer).then((consumers) => {
+                    return consumersMdl.replace(platformUid, consumer).then((consumers) => {
                         if (!consumers) {
                             return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
                         }

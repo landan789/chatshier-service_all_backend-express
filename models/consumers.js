@@ -60,7 +60,7 @@ module.exports = (function() {
          * @param {(consumers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        update(platformUid, consumer, callback) {
+        replace(platformUid, consumer, callback) {
             consumer = consumer || {};
 
             consumer.platformUid = platformUid;

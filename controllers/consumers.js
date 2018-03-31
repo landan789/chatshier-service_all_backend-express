@@ -84,7 +84,7 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
             }
 
-            return consumersMdl.update(platformUid, consumer).then((consumers) => {
+            return consumersMdl.replace(platformUid, consumer).then((consumers) => {
                 if (!consumers) {
                     return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
                 }

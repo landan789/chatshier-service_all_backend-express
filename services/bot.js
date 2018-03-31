@@ -469,6 +469,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 let senderProfile = {
+                    type: app.type,
                     name: '',
                     photo: ''
                 };
