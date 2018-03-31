@@ -19,7 +19,7 @@ module.exports = (function() {
 
         /**
          * @param {string[]|string} groupIds
-         * @param {string} userId
+         * @param {string|null} userId
          * @param {(groups: any) => any} [callback]
          */
         find(groupIds, userId, callback) {

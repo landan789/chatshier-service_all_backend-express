@@ -9,13 +9,7 @@ module.exports = (function() {
     const docOutput = {
         $project: {
             // 篩選不需要的項目
-            chatrooms: {
-                // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
-                _id: '$chatrooms._id',
-                isDeleted: '$chatrooms.isDeleted',
-                createdTime: '$chatrooms.createdTime',
-                messagers: '$chatrooms.messagers'
-            }
+            chatrooms: true
         }
     };
 

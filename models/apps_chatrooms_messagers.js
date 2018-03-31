@@ -2,22 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    const docUnwind = {
-        $unwind: '$chatrooms' // 只針對 document 處理
-    };
-
-    const docOutput = {
-        $project: {
-            // 篩選不需要的項目
-            chatrooms: {
-                // 因為 messages 資料會很多，所以輸出不要包含聊天室中的 messages
-                _id: '$chatrooms._id',
-                isDeleted: '$chatrooms.isDeleted',
-                messagers: '$chatrooms.messagers'
-            }
-        }
-    };
-
     class AppsChatroomsMessagersModel extends ModelCore {
         constructor() {
             super();
@@ -27,30 +11,60 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {string|string[]} messagerIds
-         * @param {(appChatroomMessager: any) => any} [callback]
+         * @param {any|null} messagerIds
+         * @param {(appsChatroomMessager: any) => any} [callback]
          */
         find(appId, chatroomId, messagerIds, callback) {
-            if (!(messagerIds instanceof Array)) {
-                messagerIds = [messagerIds];
+            // 尋找符合的欄位
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
+                'chatrooms.isDeleted': false
+            };
+
+            if (chatroomId) {
+                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+            }
+
+            if (messagerIds) {
+                if (!(messagerIds instanceof Array)) {
+                    messagerIds = [messagerIds];
+                }
+
+                query['chatrooms.messagers._id'] = {
+                    $in: messagerIds.map((messageId) => this.Types.ObjectId(messageId))
+                };
             }
 
             let aggregations = [
-                docUnwind,
                 {
-                    $match: {
-                        // 尋找符合的欄位
-                        '_id': this.Types.ObjectId(appId),
-                        'isDeleted': false,
-                        'chatrooms._id': this.Types.ObjectId(chatroomId),
-                        'chatrooms.isDeleted': false,
-                        'chatrooms.messagers._id': {
-                            $in: messagerIds.map((messagerId) => this.Types.ObjectId(messagerId))
-                        },
-                        'chatrooms.messagers.isDeleted': false
+                    $unwind: '$chatrooms'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選需要的項目
+                        chatrooms: {
+                            _id: '$chatrooms._id',
+                            isDeleted: '$chatrooms.isDeleted',
+                            messagers: !messagerIds ? '$chatrooms.messagers' : {
+                                $filter: {
+                                    input: '$chatrooms.messagers',
+                                    as: 'messager',
+                                    cond: {
+                                        $or: messagerIds.map((messagerId) => ({
+                                            $and: [{
+                                                $eq: [ '$$messager._id', this.Types.ObjectId(messagerId) ]
+                                            }, {
+                                                $eq: [ '$$messager.isDeleted', false ]
+                                            }]
+                                        }))
+                                    }
+                                }
+                            }
+                        }
                     }
-                },
-                docOutput
+                }
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
@@ -62,11 +76,12 @@ module.exports = (function() {
                 appsChatroomsMessagers = results.reduce((output, app) => {
                     if (!output[app._id]) {
                         output[app._id] = {
-                            chatrooms: {
-                                [app.chatrooms._id]: {
-                                    messagers: {}
-                                }
-                            }
+                            chatrooms: {}
+                        };
+                    }
+                    if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                        output[app._id].chatrooms[app.chatrooms._id] = {
+                            messagers: {}
                         };
                     }
                     let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
@@ -86,15 +101,197 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
+         * @param {string|null} chatroomId
+         * @param {string|string[]} platformUids
+         * @param {(appsChatroomMessager: any) => any} [callback]
+         */
+        findByPlatformUid(appId, chatroomId, platformUids, callback) {
+            if (!(platformUids instanceof Array)) {
+                platformUids = [platformUids];
+            }
+
+            // 尋找符合的欄位
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
+                'chatrooms.isDeleted': false,
+                'chatrooms.messagers.isDeleted': false,
+                'chatrooms.messagers.platformUid': {
+                    $in: platformUids
+                }
+            };
+
+            if (chatroomId) {
+                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+            }
+
+            let aggregations = [
+                {
+                    $unwind: '$chatrooms'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選需要的項目
+                        chatrooms: {
+                            _id: '$chatrooms._id',
+                            isDeleted: '$chatrooms.isDeleted',
+                            messagers: {
+                                $filter: {
+                                    input: '$chatrooms.messagers',
+                                    as: 'messager',
+                                    cond: {
+                                        $or: platformUids.map((platformUid) => ({
+                                            $and: [{
+                                                $eq: [ '$$messager.platformUid', platformUid ]
+                                            }, {
+                                                $eq: [ '$$messager.isDeleted', false ]
+                                            }]
+                                        }))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsChatroomsMessagers = {};
+                if (0 === results.length) {
+                    return appsChatroomsMessagers;
+                }
+
+                appsChatroomsMessagers = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
+                            chatrooms: {}
+                        };
+                    }
+                    if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                        output[app._id].chatrooms[app.chatrooms._id] = {
+                            messagers: {}
+                        };
+                    }
+                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
+                    let messagersDest = app.chatrooms.messagers;
+                    Object.assign(messagersSrc, this.toObject(messagersDest, 'platformUid'));
+                    return output;
+                }, {});
+                return appsChatroomsMessagers;
+            }).then((appChatroomMessagers) => {
+                ('function' === typeof callback) && callback(appChatroomMessagers);
+                return appChatroomMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
          * @param {string} chatroomId
-         * @param {string|string[]} messagerIds
+         * @param {string} platformUid
+         * @param {any} messager
+         * @param {(appChatroomMessager: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        insert(appId, chatroomId, platformUid, messager, callback) {
+            messager = messager || {};
+
+            let messagerId = this.Types.ObjectId();
+            messager._id = messagerId;
+            messager.platformUid = platformUid;
+            messager.createdTime = messager.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId,
+                'chatrooms._id': chatroomId
+            };
+
+            let doc = {
+                $push: {
+                    'chatrooms.$[chatroom].messagers': messager
+                }
+            };
+
+            let options = {
+                arrayFilters: [{
+                    'chatroom._id': this.Types.ObjectId(chatroomId)
+                }]
+            };
+
+            return this.AppsModel.update(query, doc, options).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                }
+                return this.findByPlatformUid(appId, chatroomId, platformUid);
+            }).then((appsChatroomsMessagers) => {
+                ('function' === typeof callback) && callback(appsChatroomsMessagers);
+                return appsChatroomsMessagers;
+            }).catch((err) => {
+                console.log(err);
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {string} messagerId
+         * @param {(appChatroomMessager: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        update(appId, chatroomId, messagerId, messager, callback) {
+            messager = messager || {};
+
+            messager._id = this.Types.ObjectId(messagerId);
+            messager.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId,
+                'chatrooms._id': chatroomId,
+                'chatrooms.messagers._id': messagerId
+            };
+
+            let doc = { $set: {} };
+            for (let prop in messager) {
+                doc.$set['chatrooms.$[chatroom].messagers.$[messager].' + prop] = messager[prop];
+            }
+
+            let options = {
+                arrayFilters: [
+                    {
+                        'chatroom._id': this.Types.ObjectId(chatroomId)
+                    }, {
+                        'messager._id': messager._id
+                    }
+                ]
+            };
+
+            return this.AppsModel.update(query, doc, options).then(() => {
+                return this.find(appId, chatroomId, messagerId);
+            }).then((appsChatroomsMessagers) => {
+                ('function' === typeof callback) && callback(appsChatroomsMessagers);
+                return appsChatroomsMessagers;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {string|string[]} platformUids
          * @param {number} [unReadCount]
          * @param {(appsChatroomsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        increaseMessagersUnRead(appId, chatroomId, messagerIds, unReadCount, callback) {
-            if (!(messagerIds instanceof Array)) {
-                messagerIds = [messagerIds];
+        increaseUnReadByPlatformUid(appId, chatroomId, platformUids, unReadCount, callback) {
+            if (!(platformUids instanceof Array)) {
+                platformUids = [platformUids];
             };
             unReadCount = unReadCount || 1;
 
@@ -103,48 +300,45 @@ module.exports = (function() {
                 'chatrooms._id': chatroomId
             };
 
-            return Promise.all(messagerIds.map((messagerId) => {
-                query['chatrooms.messagers._id'] = messagerId;
+            return Promise.all(platformUids.map((platformUid) => {
+                query['chatrooms.messagers.platformUid'] = platformUid;
 
-                return this.find(appId, chatroomId, messagerId).then((appsChatroomsMessagers) => {
+                return this.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
                     let messager = {
-                        '_id': messagerId,
+                        'platformUid': platformUid,
                         'unRead': unReadCount,
                         'updatedTime': Date.now()
                     };
 
-                    let updateOper = {};
+                    let doc = {};
                     let options = {};
 
                     if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
-                        delete query['chatrooms.messagers._id'];
-
-                        updateOper.$push = {
+                        messager._id = this.Types.ObjectId();
+                        doc.$push = {
                             'chatrooms.$[chatroom].messagers': messager
                         };
 
-                        options.arrayFilters = [
-                            {
-                                'chatroom._id': this.Types.ObjectId(chatroomId)
-                            }
-                        ];
-                        return this.AppsModel.update(query, updateOper, options);
+                        options.arrayFilters = [{
+                            'chatroom._id': this.Types.ObjectId(chatroomId)
+                        }];
+                        return this.AppsModel.update(query, doc, options);
                     }
 
-                    updateOper.$inc = {
+                    doc.$inc = {
                         'chatrooms.$[chatroom].messagers.$[messager].unRead': messager.unRead
                     };
                     options.arrayFilters = [
                         {
                             'chatroom._id': this.Types.ObjectId(chatroomId)
                         }, {
-                            'messager._id': this.Types.ObjectId(messagerId)
+                            'messager.platformUid': platformUid
                         }
                     ];
-                    return this.AppsModel.update(query, updateOper, options);
+                    return this.AppsModel.update(query, doc, options);
                 });
             })).then(() => {
-                return this.find(appId, chatroomId, messagerIds);
+                return this.findByPlatformUid(appId, chatroomId, platformUids);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
@@ -157,13 +351,13 @@ module.exports = (function() {
         /**
          * @param {string} appId
          * @param {string} chatroomId
-         * @param {string} messagerId
+         * @param {string} platformUid
          * @param {(appsChatroomsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        resetMessagerUnRead(appId, chatroomId, messagerId, callback) {
+        resetUnReadByPlatformUid(appId, chatroomId, platformUid, callback) {
             let messager = {
-                _id: this.Types.ObjectId(messagerId),
+                platformUid: platformUid,
                 unRead: 0,
                 updatedTime: Date.now()
             };
@@ -171,7 +365,7 @@ module.exports = (function() {
             let query = {
                 '_id': appId,
                 'chatrooms._id': chatroomId,
-                'chatrooms.messagers._id': messagerId
+                'chatrooms.messagers.platformUid': platformUid
             };
 
             let updateOper = { $set: {} };
@@ -184,12 +378,12 @@ module.exports = (function() {
                 arrayFilters: [{
                     'chatroom._id': this.Types.ObjectId(chatroomId)
                 }, {
-                    'messager._id': this.Types.ObjectId(messagerId)
+                    'messager.platformUid': platformUid
                 }]
             };
 
             return this.AppsModel.update(query, updateOper, options).then(() => {
-                return this.find(appId, chatroomId, messagerId);
+                return this.findByPlatformUid(appId, chatroomId, platformUid);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;

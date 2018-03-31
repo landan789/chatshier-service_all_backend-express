@@ -2,10 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    const docUnwind = {
-        $unwind: '$chatrooms' // 只針對 document 處理
-    };
-
     class AppsChatroomsMessagesModel extends ModelCore {
         constructor() {
             super();
@@ -21,7 +17,7 @@ module.exports = (function() {
          * @param {(appsChatroomsMessages: any) => any} [callback]
          */
         find(appIds, chatroomId, messageIds, callback) {
-            if ('string' === typeof appIds) {
+            if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
@@ -49,8 +45,9 @@ module.exports = (function() {
             }
 
             let aggregations = [
-                docUnwind,
                 {
+                    $unwind: '$chatrooms'
+                }, {
                     $match: query
                 }, {
                     $project: {
@@ -138,7 +135,7 @@ module.exports = (function() {
                     isDeleted: false,
                     from: message.from,
                     messager_id: message.messager_id,
-                    text: message.text || (message.altText ? message.altText  + '請至智慧手機上確認訊息內容。'+'\n' : ''),
+                    text: message.text || (message.altText ? message.altText + '請至智慧手機上確認訊息內容。' + '\n' : ''),
                     time: Date.now(),
                     type: message.type,
                     src: message.src || ''

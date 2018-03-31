@@ -1,15 +1,16 @@
 module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
-    let mongoose = require('mongoose');
+    const mongoose = require('mongoose');
 
     // region DB 連線只需要做一次，故放 class 外面
-    let url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
-    let options = {
+    const url = 'mongodb://' + CHATSHIER.MONGODB.HOST + ':' + CHATSHIER.MONGODB.PORT + '/' + CHATSHIER.MONGODB.DATABASE;
+    const options = {
         user: CHATSHIER.MONGODB.USERNAME,
         pass: CHATSHIER.MONGODB.PASSWORD
     };
     mongoose.connect(url, options);
-    let db = mongoose.connection;
+
+    const db = mongoose.connection;
     db.on('error', () => {
         console.log('[FAILED]    ' + url + ' failed to connect !!');
     });
@@ -19,9 +20,9 @@ module.exports = (function() {
     // endregion
 
     // region DB Schema
-    let RootsSchema = new mongoose.Schema();
+    const RootsSchema = new mongoose.Schema();
 
-    let AutorepliesSchema = new mongoose.Schema({
+    const AutorepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -32,13 +33,16 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    let ChatroomsSchema = new mongoose.Schema({
+    const ChatroomsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'messagers': [{
+            'type': {type: String, default: 'CHATSHIER'},
+            'platformUid': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
-            'unRead': {type: Number, default: 0}
+            'unRead': {type: Number, default: 0},
+            'assigned_ids': {type: Array, default: []}
         }],
         'messages': [{
             'from': {type: String, default: 'SYSTEM'},
@@ -51,7 +55,7 @@ module.exports = (function() {
         }]
     });
 
-    let KeywordrepliesSchema = new mongoose.Schema({
+    const KeywordrepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
@@ -62,7 +66,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()}
     });
 
-    let ComposesSchema = new mongoose.Schema({
+    const ComposesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
@@ -75,7 +79,7 @@ module.exports = (function() {
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });
 
-    let GreetingsSchema = new mongoose.Schema({
+    const GreetingsSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
@@ -83,26 +87,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    let MessagersSchema = new mongoose.Schema({
-        'platformUid': {type: String, default: ''},
-        'age': {type: Number, default: 0},
-        'assigned': {type: String, default: ''},
-        'chatCount': {type: Number, default: 0},
-        'chatroom_id': {type: String, default: ''},
-        'custom_fields': {type: Object, default: {}},
-        'email': {type: String, default: ''},
-        'updatedTime': {type: Date, default: Date.now()},
-        'createdTime': {type: Date, default: Date.now()},
-        'gender': {type: String, default: ''},
-        'isDeleted': {type: Boolean, default: false},
-        'name': {type: String, default: ''},
-        'photo': {type: String, default: ''},
-        'lastTime': {type: Date, default: Date.now()},
-        'remark': {type: String, default: ''},
-        'totalCount': {type: Number, default: 0}
-    }, { minimize: false });
-
-    let FieldsSchema = new mongoose.Schema({
+    const FieldsSchema = new mongoose.Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
         'type': {type: String, default: 'CUSTOM'},
@@ -114,7 +99,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false}
     });
 
-    let TicketsSchema = new mongoose.Schema({
+    const TicketsSchema = new mongoose.Schema({
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -126,7 +111,7 @@ module.exports = (function() {
         'status': {type: Number, default: 0} // TODO 三個 型態建議用字串大寫
     });
 
-    let AppsSchema = new mongoose.Schema({
+    const AppsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'group_id': {type: String, default: ''},
@@ -144,13 +129,12 @@ module.exports = (function() {
         'keywordreplies': [KeywordrepliesSchema],
         'composes': [ComposesSchema],
         'greetings': [GreetingsSchema],
-        'messagers': [MessagersSchema],
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'webhook_id': {type: String, default: ''}
     });
 
-    let EventsSchema = new mongoose.Schema({
+    const EventsSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'description': {type: String, default: ''},
@@ -161,12 +145,12 @@ module.exports = (function() {
         'title': {type: String, default: ''}
     });
 
-    let CalendarsSchema = new mongoose.Schema({
+    const CalendarsSchema = new mongoose.Schema({
         'events': [EventsSchema],
         'isDeleted': {type: Boolean, default: false}
     });
 
-    let MembersSchema = new mongoose.Schema({
+    const MembersSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -175,7 +159,7 @@ module.exports = (function() {
         'user_id': {type: String, default: ''}
     });
 
-    let GroupsSchema = new mongoose.Schema({
+    const GroupsSchema = new mongoose.Schema({
         'app_ids': {type: Array, default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
@@ -184,7 +168,7 @@ module.exports = (function() {
         'name': {type: String, default: ''}
     });
 
-    let UsersSchema = new mongoose.Schema({
+    const UsersSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
@@ -198,9 +182,24 @@ module.exports = (function() {
         'group_ids': {type: Array, default: []}
     });
 
-    let WebhooksSchema = new mongoose.Schema({
-        'app_id': {type: String, default: ''}
-    });
+    const ConsumerSchema = new mongoose.Schema({
+        'platformUid': {type: String, default: ''},
+        'age': {type: Number, default: 0},
+        'chatCount': {type: Number, default: 0},
+        'chatroom_id': {type: String, default: ''},
+        'custom_fields': {type: Object, default: {}},
+        'email': {type: String, default: ''},
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()},
+        'gender': {type: String, default: ''},
+        'isDeleted': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
+        'photo': {type: String, default: ''},
+        'lastTime': {type: Date, default: Date.now()},
+        'remark': {type: String, default: ''},
+        'totalCount': {type: Number, default: 0}
+    }, { minimize: false });
+
     // endregion
 
     class ModelCore {
@@ -210,10 +209,9 @@ module.exports = (function() {
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;
+            this.ConsumerSchema = ConsumerSchema;
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
-            this.WebhooksSchema = WebhooksSchema;
-            this.KeywordrepliesSchema = KeywordrepliesSchema;
         }
 
         model(collection, schema) {

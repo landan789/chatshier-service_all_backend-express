@@ -139,6 +139,10 @@ function init(server) {
                     });
                 });
             }).then((appsMessagers) => {
+                if (!appsMessagers) {
+                    return;
+                }
+
                 sender = appsMessagers[appId].messagers[senderId];
                 groupId = app.group_id;
                 return new Promise((resolve, reject) => {
