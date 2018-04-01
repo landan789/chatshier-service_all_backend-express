@@ -692,7 +692,11 @@
             }
             var appId = data.appId;
             var platformUid = data.platformUid;
+            var chatroomId = data.chatroomId;
             var consumer = data.consumer;
+            var messager = data.messager;
+
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messager._id] = messager;
             consumers[platformUid] = consumer;
 
             // 更新 UI 資料
@@ -1069,7 +1073,7 @@
             if (field.type === api.appsFields.enums.type.CUSTOM) {
                 fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
             } else {
-                fieldValue = person[field.alias] || '';
+                fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
             }
 
             // 在 html append 到 dom 上後，抓取資料找到指派人的欄位把資料填入
@@ -1650,7 +1654,7 @@
             switch (setsType) {
                 case setsTypeEnums.NUMBER:
                     value = parseInt($tdDataElem.val(), 10);
-                    value = !isNaN(value) ? value : void 0;
+                    value = !isNaN(value) ? value : '';
                     break;
                 case setsTypeEnums.DATE:
                     value = $tdDataElem.val();
@@ -1689,8 +1693,10 @@
 
         var phoneRule = /^0\d{9,}$/;
         var emailRule = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
-
-        if (consumerUiData.email && !emailRule.test(consumerUiData.email)) {
+        if ('number' === typeof consumerUiData.age && !(consumerUiData.age >= 0 && consumerUiData.age <= 150)) {
+            $.notify('年齡限制 0 ~ 150 歲', { type: 'warning' });
+            return;
+        } else if (consumerUiData.email && !emailRule.test(consumerUiData.email)) {
             $.notify('電子郵件不符合格式', { type: 'warning' });
             return;
         } else if (consumerUiData.phone && !phoneRule.test(consumerUiData.phone)) {
@@ -1725,6 +1731,7 @@
                 params: {
                     userid: userId,
                     appid: appId,
+                    chatroomid: chatroomId,
                     platformuid: platformUid
                 },
                 body: consumerUiData

@@ -355,15 +355,18 @@ function init(server) {
         });
 
         socket.on(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, (req, callback) => {
-            let platformUid = req.params.platformuid;
             let appId = req.params.appid;
+            let chatroomId = req.params.chatroomid;
+            let platformUid = req.params.platformuid;
+
+            let consumerToSocket = {
+                appId: appId,
+                platformUid: platformUid,
+                chatroomId: chatroomId
+            };
 
             return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
-                if (!checkedAppIds || (checkedAppIds && 0 === checkedAppIds.length)) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                } else if (checkedAppIds.indexOf(appId) < 0) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                } else if (!platformUid) {
+                if (!platformUid) {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
@@ -377,20 +380,20 @@ function init(server) {
                 ('string' === typeof req.body.remark) && (consumer.remark = req.body.remark);
                 req.body.custom_fields && (consumer.custom_fields = req.body.custom_fields);
 
-                return controllerCre.AppsRequestVerify(req).then(() => {
-                    return consumersMdl.replace(platformUid, consumer).then((consumers) => {
-                        if (!consumers) {
-                            return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-                        }
-                        return consumers;
-                    });
-                });
+                return consumersMdl.replace(platformUid, consumer);
             }).then((consumers) => {
-                let consumerToSocket = {
-                    appId: appId,
-                    platformUid: platformUid,
-                    consumer: consumers[platformUid]
-                };
+                if (!consumers) {
+                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
+                }
+                let consumer = consumers[platformUid];
+                consumerToSocket.consumer = consumer;
+                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid);
+            }).then((appsChatroomsMessagers) => {
+                if (!appsChatroomsMessagers) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                }
+                let messager = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[platformUid];
+                consumerToSocket.messager = messager;
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, consumerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
