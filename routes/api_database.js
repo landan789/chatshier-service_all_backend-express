@@ -54,6 +54,7 @@ router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsT
 router.get('/apps-chatrooms/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms/apps/:appid/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.getOne);
+router.put('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.update);
 // ===============
 
 // ==========

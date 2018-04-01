@@ -38,11 +38,13 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'messagers': [{
+            'createdTime': {type: Date, default: Date.now()},
+            'updatedTime': {type: Date, default: Date.now()},
             'type': {type: String, default: 'CHATSHIER'},
             'platformUid': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
             'unRead': {type: Number, default: 0},
-            'assigned_ids': {type: Array, default: []}
+            'assigned_ids': {type: [{type: String}], default: []}
         }],
         'messages': [{
             'from': {type: String, default: 'SYSTEM'},
@@ -160,7 +162,7 @@ module.exports = (function() {
     });
 
     const GroupsSchema = new mongoose.Schema({
-        'app_ids': {type: Array, default: []},
+        'app_ids': {type: [{type: String}], default: []},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
@@ -172,15 +174,15 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
-        'calendar_ids': {type: Array, default: []},
-        'chatroom_ids': {type: Array, default: []},
+        'calendar_ids': {type: [{type: String}], default: []},
+        'chatroom_ids': {type: [{type: String}], default: []},
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
         'password': {type: String, default: '300102985f51c92c06703ea845025b4fb4c791b7'}, // cipher.Hlp.encode('123456') -> 300102985f51c92c06703ea845025b4fb4c791b7
         'name': {type: String, default: ''},
-        'group_ids': {type: Array, default: []}
+        'group_ids': {type: [{type: String}], default: []}
     });
 
     const ConsumersSchema = new mongoose.Schema({
@@ -188,7 +190,7 @@ module.exports = (function() {
         'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
         'chatCount': {type: Number, default: 0},
-        'chatroom_ids': {type: Array, default: []},
+        'chatroom_ids': {type: [{type: String}], default: []},
         'custom_fields': {type: Object, default: {}},
         'email': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},

@@ -43,11 +43,33 @@
 
         return Promise.all([
             api.apps.findAll(userId),
-            api.consumers.findAll(userId)
+            api.consumers.findAll(userId),
+            api.users.find(userId),
+            api.groups.findAll(userId)
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
             consumers = respJsons.shift().data;
-            return findAppsAgents(Object.keys(apps));
+            users = respJsons.shift().data;
+            groups = respJsons.shift().data;
+
+            for (let appId in apps) {
+                // 準備各個 app 的指派人清單
+                // 由於每個 app 可能隸屬於不同的群組
+                // 因此指派人清單必須根據 app 所屬的群組分別建立清單
+                appsAgents[appId] = { agents: {} };
+                for (var groupId in groups) {
+                    var group = groups[groupId];
+                    if (0 <= group.app_ids.indexOf(appId)) {
+                        for (var memberId in group.members) {
+                            var memberUserId = group.members[memberId].user_id;
+                            appsAgents[appId].agents[memberUserId] = {
+                                name: users[memberUserId].name,
+                                email: users[memberUserId].email
+                            };
+                        }
+                    }
+                }
+            }
         }).then(function(appAgents) {
             $appSelectElem.empty();
             let appIds = Object.keys(apps);
@@ -224,47 +246,5 @@
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });
         }
-    }
-
-    function findAppsAgents(appIds) {
-        if ('string' === typeof appIds && appsAgents[appIds]) {
-            return Promise.resolve(appsAgents[appIds]);
-        }
-
-        if (!(appIds instanceof Array)) {
-            appIds = [appIds];
-        }
-
-        return Promise.all([
-            api.users.find(userId),
-            api.groups.findAll(userId)
-        ]).then(function(resJsons) {
-            users = resJsons.shift().data;
-            groups = resJsons.shift().data;
-            var agents = {};
-
-            appIds.forEach(function(appId) {
-                for (var groupId in groups) {
-                    var group = groups[groupId];
-
-                    if (0 <= group.app_ids.indexOf(appId)) {
-                        for (var memberId in group.members) {
-                            var memberUserId = group.members[memberId].user_id;
-                            if (!agents[memberUserId]) {
-                                agents[memberUserId] = {
-                                    name: users[memberUserId].name,
-                                    email: users[memberUserId].email
-                                };
-                            }
-                        }
-                    }
-                }
-
-                appsAgents[appId] = {
-                    agents: agents
-                };
-            });
-            return appsAgents;
-        });
     }
 })();

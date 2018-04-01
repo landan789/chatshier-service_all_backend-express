@@ -2,9 +2,9 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const appsChatroomsMdl = require('../../../models/apps_chatrooms.js');
-const appsPreTest = require('../pre_test/apps');
+const appsBeforeTest = require('../before_test/apps');
 
-class AppsChatroomsPreTest {
+class AppsChatroomsBeforeTest {
     constructor() {
         this._chatroomId = '';
         this._testError = void 0;
@@ -26,7 +26,7 @@ class AppsChatroomsPreTest {
     run() {
         this.clean();
 
-        return appsChatroomsMdl.insert(appsPreTest.appId).then((appsChatrooms) => {
+        return appsChatroomsMdl.insert(appsBeforeTest.appId).then((appsChatrooms) => {
             expect(appsChatrooms).to.not.be.null;
             expect(appsChatrooms).to.be.an('object');
             let appsIds = Object.keys(appsChatrooms);
@@ -49,4 +49,4 @@ class AppsChatroomsPreTest {
     }
 }
 
-module.exports = new AppsChatroomsPreTest();
+module.exports = new AppsChatroomsBeforeTest();

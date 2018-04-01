@@ -347,9 +347,10 @@ module.exports = (function() {
                                 let messager = {
                                     type: CHATSHIER,
                                     isDeleted: false,
-                                    unRead: 0
+                                    unRead: 0,
+                                    platformUid: memberUserId
                                 };
-                                return appsChatroomsMessagersMdl.replace(appId, chatroomId, memberUserId, messager);
+                                return appsChatroomsMessagersMdl.replace(appId, chatroomId, messager);
                             });
                         }));
                     });

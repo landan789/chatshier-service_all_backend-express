@@ -713,6 +713,26 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
+        AppsChatroomsMessagersAPI.prototype.update = function(appId, chatroomId, messagerId, userId, messager) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(messager)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        AppsChatroomsMessagersAPI.prototype.updateByPlatformUid = function(appId, chatroomId, platformUid, userId, messager) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + platformUid + '/users/' + userId + '?use_uid=1';
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(messager)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
         return AppsChatroomsMessagersAPI;
     })();
 

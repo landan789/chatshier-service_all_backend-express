@@ -111,11 +111,14 @@ function init(server) {
                         return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
                             let chatrooms = appsChatrooms[appId].chatrooms;
                             chatroomId = Object.keys(chatrooms).shift() || '';
-                            let messager = { type: app.type };
+                            let messager = {
+                                type: app.type,
+                                platformUid: platformUid
+                            };
 
                             // 自動建立一個聊天室後，將此訊息發送者加入，並同時更新 consumer 資料
                             return Promise.all([
-                                appsChatroomsMessagersMdl.replace(appId, chatroomId, platformUid, messager),
+                                appsChatroomsMessagersMdl.replace(appId, chatroomId, messager),
                                 consumersMdl.replace(platformUid, profile)
                             ]).then((promiseResponses) => {
                                 let appsChatroomsMessagers = promiseResponses.shift();
@@ -391,6 +394,8 @@ function init(server) {
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, consumerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
+            }).catch((err) => {
+                ('function' === typeof callback) && callback(err);
             });
         });
 

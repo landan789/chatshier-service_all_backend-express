@@ -3,19 +3,19 @@ const expect = chai.expect;
 
 const appsChatroomsMessagersMdl = require('../../models/apps_chatrooms_messagers.js');
 
-const appsPreTest = require('./pre_test/apps');
-const appsChatroomsPreTest = require('./pre_test/apps_chatrooms');
-const appsPostTest = require('./post_test/apps');
+const appsBeforeTest = require('./before_test/apps');
+const appsChatroomsBeforeTest = require('./before_test/apps_chatrooms');
+const appsAfterTest = require('./after_test/apps');
 
 describe('Test AppsChatroomsMessagers Model', () => {
     beforeEach(() => {
-        return appsPreTest.run().then(() => {
-            return appsChatroomsPreTest.run();
+        return appsBeforeTest.run().then(() => {
+            return appsChatroomsBeforeTest.run();
         });
     });
 
     afterEach(() => {
-        return appsPostTest.run();
+        return appsAfterTest.run();
     });
 
     const checkAndRetrieve = (appsChatroomsMessagers, platformUid) => {
@@ -24,7 +24,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         let appIds = Object.keys(appsChatroomsMessagers);
         expect(appIds.length).eq(1);
         let appId = appIds.shift();
-        expect(appId).eq(appsPreTest.appId);
+        expect(appId).eq(appsBeforeTest.appId);
         let app = appsChatroomsMessagers[appId];
         expect(app).to.be.an('object');
 
@@ -33,7 +33,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         let chatroomIds = Object.keys(chatrooms);
         expect(chatroomIds.length).eq(1);
         let chatroomId = chatroomIds.shift();
-        expect(chatroomId).eq(appsChatroomsPreTest.chatroomId);
+        expect(chatroomId).eq(appsChatroomsBeforeTest.chatroomId);
         let chatroom = chatrooms[chatroomId];
         expect(chatroom).to.be.an('object');
 
@@ -46,73 +46,76 @@ describe('Test AppsChatroomsMessagers Model', () => {
         return messager;
     };
 
-    const replace = (platformUid, newMessager) => {
-        let appId = appsPreTest.appId;
-        let chatroomId = appsChatroomsPreTest.chatroomId;
+    const replace = (messager) => {
+        let appId = appsBeforeTest.appId;
+        let chatroomId = appsChatroomsBeforeTest.chatroomId;
+        let platformUid = messager.platformUid;
 
-        return appsChatroomsMessagersMdl.replace(appId, chatroomId, platformUid, newMessager).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            expect(messager.platformUid).eq(platformUid);
-            expect(messager.type).eq(newMessager.type);
-            expect(messager.unRead).eq(0);
+        return appsChatroomsMessagersMdl.replace(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            expect(_messager.platformUid).eq(platformUid);
+            expect(_messager.type).eq(messager.type);
+            expect(_messager.unRead).eq(0);
             return appsChatroomsMessagers;
         });
     };
 
     it('Replace a messager', () => {
         let platformUid = 'U54345CDABEF2323245778B';
-        let newMessager = {
-            type: 'LINE'
+        let messager = {
+            type: 'LINE',
+            platformUid: platformUid
         };
-
-        return replace(platformUid, newMessager);
+        return replace(messager);
     });
 
     it('Increase messager unRead count', () => {
-        let appId = appsPreTest.appId;
-        let chatroomId = appsChatroomsPreTest.chatroomId;
+        let appId = appsBeforeTest.appId;
+        let chatroomId = appsChatroomsBeforeTest.chatroomId;
 
         let platformUid = '1234567890';
-        let newMessager = {
-            type: 'FACEBOOK'
+        let messager = {
+            type: 'FACEBOOK',
+            platformUid: platformUid
         };
         let unReadCount = 0;
 
-        return replace(platformUid, newMessager).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            unReadCount = messager.unRead + 5;
+        return replace(messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            unReadCount = _messager.unRead + 5;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);
         }).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            expect(messager.unRead).eq(unReadCount);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            expect(_messager.unRead).eq(unReadCount);
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid);
         }).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            expect(messager.unRead).eq(unReadCount + 1);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            expect(_messager.unRead).eq(unReadCount + 1);
         });
     });
 
     it('Reset messager unRead count', () => {
-        let appId = appsPreTest.appId;
-        let chatroomId = appsChatroomsPreTest.chatroomId;
+        let appId = appsBeforeTest.appId;
+        let chatroomId = appsChatroomsBeforeTest.chatroomId;
 
         let platformUid = '1234567890';
-        let newMessager = {
-            type: 'FACEBOOK'
+        let messager = {
+            type: 'FACEBOOK',
+            platformUid: platformUid
         };
         let unReadCount = 0;
 
-        return replace(platformUid, newMessager).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            unReadCount = messager.unRead + 3;
+        return replace(messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            unReadCount = _messager.unRead + 3;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);
         }).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            expect(messager.unRead).eq(unReadCount);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            expect(_messager.unRead).eq(unReadCount);
             return appsChatroomsMessagersMdl.resetUnReadByPlatformUid(appId, chatroomId, platformUid);
         }).then((appsChatroomsMessagers) => {
-            let messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
-            expect(messager.unRead).eq(0);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            expect(_messager.unRead).eq(0);
         });
     });
 });

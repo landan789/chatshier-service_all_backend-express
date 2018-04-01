@@ -6,7 +6,7 @@ const usersMdl = require('../../../models/users.js');
 const groupsMdl = require('../../../models/groups.js');
 const ciperHlp = require('../../../helpers/cipher');
 
-class AppsPreTest {
+class AppsBeforeTest {
     constructor() {
         this._userId = '';
         this._groupId = '';
@@ -97,4 +97,4 @@ class AppsPreTest {
     }
 }
 
-module.exports = new AppsPreTest();
+module.exports = new AppsBeforeTest();

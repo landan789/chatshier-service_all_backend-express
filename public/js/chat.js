@@ -511,15 +511,28 @@
         var socketRegPromises = [];
         for (var appId in apps) {
             if (!appsChatrooms[appId]) {
-                appsChatrooms[appId] = {
-                    chatrooms: {}
-                };
+                appsChatrooms[appId] = { chatrooms: {} };
             }
 
             if (!appsFields[appId]) {
-                appsFields[appId] = {
-                    fields: {}
-                };
+                appsFields[appId] = { fields: {} };
+            }
+
+            // 準備各個 app 的指派人清單
+            // 由於每個 app 可能隸屬於不同的群組
+            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
+            appsAgents[appId] = { agents: {} };
+            for (var groupId in groups) {
+                var group = groups[groupId];
+                if (0 <= group.app_ids.indexOf(appId)) {
+                    for (var memberId in group.members) {
+                        var memberUserId = group.members[memberId].user_id;
+                        appsAgents[appId].agents[memberUserId] = {
+                            name: users[memberUserId].name,
+                            email: users[memberUserId].email
+                        };
+                    }
+                }
             }
 
             // 向 server 登記此 socket 有多少 appId
@@ -683,11 +696,15 @@
             consumers[platformUid] = consumer;
 
             // 更新 UI 資料
-            var $profileCard = $('.card-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
-            $profileCard.find('.panel-table').remove();
+            var $profileCards = $('.card-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
+            $profileCards.find('.panel-table').remove();
 
-            var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, consumer));
-            $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
+            $profileCards.each(function() {
+                var $profileCard = $(this);
+                var chatroomId = $profileCard.attr('chatroom-id');
+                var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, platformUid, consumer));
+                $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
+            });
         });
     }
 
@@ -992,7 +1009,7 @@
                         var html = '';
 
                         if (CHATSHIER !== appType) {
-                            html = generatePersonProfileHtml(appId, person) +
+                            html = generatePersonProfileHtml(appId, chatroomId, platformUid, person) +
                                 '<div class="profile-confirm text-center">' +
                                     '<button type="button" class="btn btn-info">確認</button>' +
                                 '</div>';
@@ -1030,9 +1047,18 @@
         infoCanvas.append(profilePanelHtml);
     }
 
-    function generatePersonProfileHtml(appId, person) {
-        person.assigned = person.assigned || '';
+    function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
         var customFields = person.custom_fields || {};
+        var chatrooms = appsChatrooms[appId].chatrooms;
+        var messagers = chatrooms[chatroomId].messagers;
+        var messager = (function() {
+            for (var messagerId in messagers) {
+                var _messager = messagers[messagerId];
+                if (platformUid === _messager.platformUid) {
+                    return _messager;
+                }
+            }
+        })();
 
         var tdHtmlBuilder = function(fieldId, field) {
             var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
@@ -1044,6 +1070,24 @@
                 fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
             } else {
                 fieldValue = person[field.alias] || '';
+            }
+
+            // 在 html append 到 dom 上後，抓取資料找到指派人的欄位把資料填入
+            if ('assigned' === field.alias) {
+                // 指派人存放的位置在每個 chatroom 的 messager 裡
+                // 取得 chatroom messager 的 assigned_ids 來確認有指派給 chatshier 那些 users
+                var agents = appsAgents[appId].agents;
+                var assignedIds = messager.assigned_ids;
+                field.sets = [];
+                fieldValue = [];
+
+                for (var agentUserId in agents) {
+                    field.sets.push({
+                        agentUserId: agentUserId,
+                        agentName: agents[agentUserId].name
+                    });
+                    fieldValue.push(0 <= assignedIds.indexOf(agentUserId));
+                }
             }
 
             switch (field.setsType) {
@@ -1060,12 +1104,20 @@
                         '</select>' +
                     '</td>';
                 case setsTypeEnums.MULTI_SELECT:
-                    fieldValue = (fieldValue instanceof Array) ? fieldValue : [];
+                    var selectValues = fieldValue instanceof Array ? fieldValue : [];
+                    var multiSelectText = selectValues.reduce(function(output, value, i) {
+                        if (!value) {
+                            return output;
+                        }
+
+                        output.push('assigned' === field.alias ? field.sets[i].agentName : field.sets[i]);
+                        return output;
+                    }, []).join(',');
 
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<div class="btn-group btn-block td-inner">' +
                             '<button class="btn btn-default btn-block" data-toggle="dropdown" aria-expanded="false">' +
-                                '<span class="multi-select-values"></span>' +
+                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                 '<span class="caret"></span>' +
                             '</button>' +
                             '<ul class="multi-select-container dropdown-menu">' +
@@ -1076,9 +1128,17 @@
                                             continue;
                                         }
 
-                                        checkboxes += '<li>' +
-                                            '<input type="checkbox" value="' + sets[i] + '"' + (fieldValue[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                        '</li>';
+                                        if ('assigned' === field.alias) {
+                                            checkboxes +=
+                                                '<li>' +
+                                                    '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
+                                                '</li>';
+                                        } else {
+                                            checkboxes +=
+                                                '<li>' +
+                                                    '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
+                                                '</li>';
+                                        }
                                     }
                                     return checkboxes;
                                 })(field.sets) +
@@ -1104,49 +1164,6 @@
             }
         };
 
-        var asyncLoadAgants = function() {
-            return getAppAgants(appId).then(function(agents) {
-                var agentData = (function() {
-                    var nameList = [];
-                    var idList = [];
-                    var nameSelected = [];
-
-                    for (var agentUserId in agents) {
-                        idList.push(agentUserId);
-                        nameList.push(agents[agentUserId].name);
-                        if (person.assigned.indexOf(agentUserId) >= 0) {
-                            nameSelected.push(agents[agentUserId].name);
-                        };
-                    }
-
-                    return {
-                        nameList: nameList,
-                        idList: idList,
-                        nameSelected: nameSelected
-                    };
-                })();
-
-                // 找到指定的 app 底下的指派人欄位
-                // 如有沒有找到的話就不用處理
-                var $tdOfAgant = $('.card-group[app-id="' + appId + '"] .user-info-td[alias="assigned"]');
-                if (!$tdOfAgant.length) {
-                    return;
-                }
-                $tdOfAgant.find('.multi-select-values').text(agentData.nameSelected.join(','));
-
-                var $dropdownMenu = $tdOfAgant.find('.multi-select-container.dropdown-menu');
-                $dropdownMenu.empty();
-                for (var i in agentData.nameList) {
-                    var hasChecked = agentData.nameSelected.indexOf(agentData.nameList[i]) >= 0;
-                    $dropdownMenu.append(
-                        '<li>' +
-                            '<input type="checkbox" value="' + agentData.idList[i] + '"' + (hasChecked ? ' checked="true"' : '') + '">' + agentData.nameList[i] +
-                        '</li>'
-                    );
-                }
-            });
-        };
-
         var messagerProfileHtml =
             '<table class="table table-hover panel-table">' +
                 (function() {
@@ -1165,13 +1182,6 @@
                                 '<th class="profile-label user-info-th" alias="' + field.alias + '">' + (transJson[field.text] || field.text) + '</th>' +
                                 tdHtmlBuilder(fieldId, field) +
                             '</tr>';
-
-                        // 指派人的資料是屬於非同步的工作
-                        // 因此在 html append 到 dom 上後，在抓取資料
-                        // 找到指派人的欄位把資料填入
-                        if ('assigned' === field.alias) {
-                            asyncLoadAgants();
-                        }
                     }
                     return rowsHtml;
                 })() +
@@ -1313,7 +1323,7 @@
             $profileTab.text('用戶資料');
             $ticketTodoPanel.show();
         } else {
-            $profileTab.text('群組資料');
+            $profileTab.text('群組資料').trigger('click');
             $ticketTodoPanel.hide();
         }
     }
@@ -1613,16 +1623,14 @@
     //     $(this).parent().html('<p class="td-inner">' + val + '</p>'); // 將INPUT元素刪掉，把資料直接放上去
     // }
 
-    function userInfoConfirm() {
+    function userInfoConfirm(ev) {
         if (!confirm('確定要更新對象用戶的個人資料嗎？')) {
-            return Promise.resolve();
+            return;
         }
 
         $('#infoCanvas').scrollTop(0);
-        var consumerUiData = {
-            custom_fields: {}
-        };
-        var $tds = $(this).parents('.card-group').find('.panel-table tbody td');
+        var consumerUiData = {};
+        var $tds = $(ev.target).parents('.card-group').find('.panel-table tbody td');
 
         $tds.each(function() {
             var $td = $(this);
@@ -1642,6 +1650,7 @@
             switch (setsType) {
                 case setsTypeEnums.NUMBER:
                     value = parseInt($tdDataElem.val(), 10);
+                    value = !isNaN(value) ? value : void 0;
                     break;
                 case setsTypeEnums.DATE:
                     value = $tdDataElem.val();
@@ -1651,8 +1660,8 @@
                     value = $tdDataElem.prop('checked');
                     break;
                 case setsTypeEnums.MULTI_SELECT:
-                    var selectVals = [];
                     var $checkboxes = $tdDataElem.find('input[type="checkbox"]:checked');
+                    var selectVals = [];
                     $checkboxes.each(function() {
                         selectVals.push($(this).val());
                     });
@@ -1670,6 +1679,7 @@
                     consumerUiData[alias] = value;
                 } else {
                     // 沒有別名的屬性代表是自定義的客戶分類條件資料
+                    consumerUiData.custom_fields = consumerUiData.custom_fields || {};
                     consumerUiData.custom_fields[fieldId] = {
                         value: value
                     };
@@ -1682,23 +1692,40 @@
 
         if (consumerUiData.email && !emailRule.test(consumerUiData.email)) {
             $.notify('電子郵件不符合格式', { type: 'warning' });
-            return Promise.resolve();
+            return;
         } else if (consumerUiData.phone && !phoneRule.test(consumerUiData.phone)) {
-            $.notify('電話號碼不符合格式', { type: 'warning' });
-            return Promise.resolve();
+            $.notify('電話號碼不符合格式, ex: 0912XXXXXX', { type: 'warning' });
+            return;
         }
 
-        // 如果有可編輯的資料有變更再發出更新請求
-        if (Object.keys(consumerUiData).length > 0) {
-            var $personCard = $(this).parents('.card-group');
-            var appId = $personCard.attr('app-id');
-            var platformUid = $personCard.attr('platform-uid');
+        var $personCard = $(this).parents('.card-group');
+        var appId = $personCard.attr('app-id');
+        var chatroomId = $personCard.attr('chatroom-id');
+        var platformUid = $personCard.attr('platform-uid');
+
+        return Promise.resolve().then(function() {
+            if (consumerUiData.assigned) {
+                // assigned_ids 的資料不是設定於 consumer 或 user 中
+                // 而是設定於每個 chatroom 中的 messager 裡
+                var assignedIds = consumerUiData.assigned;
+                delete consumerUiData.assigned;
+
+                var messager = {
+                    assigned_ids: assignedIds
+                };
+                return api.appsChatroomsMessagers.updateByPlatformUid(appId, chatroomId, platformUid, userId, messager);
+            }
+        }).then(function() {
+            // 如果有編輯的資料變更再發出更新請求
+            if (0 === Object.keys(consumerUiData).length) {
+                return;
+            }
 
             var socketRequest = {
                 params: {
                     userid: userId,
                     appid: appId,
-                    platformUid: platformUid
+                    platformuid: platformUid
                 },
                 body: consumerUiData
             };
@@ -1706,18 +1733,25 @@
             // 資料送出後，會再收到群組內的 socket 資料
             // 設置 flag 防止再次更新 profile
             preventUpdateProfile = true;
-            return new Promise((resolve, reject) => {
+            return new Promise(function(resolve, reject) {
                 var waitTimer = window.setTimeout(reject, 3000);
-                chatshierSocket.emit(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, socketRequest, function() {
+                chatshierSocket.emit(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, socketRequest, function(err) {
                     window.clearTimeout(waitTimer);
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
                     resolve();
                 });
-            }).then(() => {
+            }).then(function() {
                 // 將成功更新的資料覆蓋前端本地端的全域 app 資料
                 Object.assign(consumers[platformUid], consumerUiData);
                 $.notify('用戶資料更新成功', { type: 'success' });
             });
-        }
+        }).catch(function(err) {
+            console.error(err);
+            $.notify('用戶資料更新失敗', { type: 'danger' });
+        });
     }
     // =====end profile function=====
 
@@ -1987,52 +2021,4 @@
     }
 
     // =====end utility function
-
-    function getAppAgants(appId) {
-        if (appsAgents[appId]) {
-            return Promise.resolve(appsAgents[appId]);
-        }
-
-        return Promise.resolve().then(() => {
-            if (appsAgents[appId]) {
-                return appsAgents[appId];
-            }
-
-            if (!(groups && users)) {
-                return Promise.all([
-                    api.groups.findAll(userId),
-                    api.users.find(userId)
-                ]).then(function(resJsons) {
-                    groups = resJsons.shift().data;
-                    users = resJsons.shift().data;
-                });
-            }
-        }).then(function() {
-            var agents = {};
-
-            for (var groupId in groups) {
-                var group = groups[groupId];
-
-                for (var i in group.app_ids) {
-                    var _appId = group.app_ids[i];
-
-                    if (_appId === appId) {
-                        for (var memberId in group.members) {
-                            var memberUserId = group.members[memberId].user_id;
-                            if (!agents[memberUserId]) {
-                                agents[memberUserId] = {
-                                    name: users[memberUserId].name,
-                                    email: users[memberUserId].email
-                                };
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-
-            appsAgents[appId] = agents;
-            return appsAgents[appId];
-        });
-    }
 })();

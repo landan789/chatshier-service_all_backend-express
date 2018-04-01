@@ -2,16 +2,16 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const appsMdl = require('../../models/apps.js');
-const appsPreTest = require('./pre_test/apps');
-const appsPostTest = require('./post_test/apps');
+const appsBeforeTest = require('./before_test/apps');
+const appsAfterTest = require('./after_test/apps');
 
 describe('Test Apps Model', () => {
     beforeEach(() => {
-        return appsPreTest.run();
+        return appsBeforeTest.run();
     });
 
     afterEach(() => {
-        return appsPostTest.run();
+        return appsAfterTest.run();
     });
 
     const checkAndRetrieve = (apps) => {
@@ -33,23 +33,23 @@ describe('Test Apps Model', () => {
             name: 'updateApp',
             secret: 'I_am_secret12345'
         };
-        return appsMdl.update(appsPreTest.appId, updateApp).then((apps) => {
+        return appsMdl.update(appsBeforeTest.appId, updateApp).then((apps) => {
             let app = checkAndRetrieve(apps);
             expect(app.id1).to.eq(updateApp.id1);
             expect(app.id2).to.eq(updateApp.id2);
             expect(app.name).to.eq(updateApp.name);
             expect(app.secret).to.eq(updateApp.secret);
         }).catch((err) => {
-            appsPreTest.testError = err;
+            appsBeforeTest.testError = err;
         });
     });
 
     it('Remove an app', () => {
-        return appsMdl.remove(appsPreTest.appId).then((apps) => {
+        return appsMdl.remove(appsBeforeTest.appId).then((apps) => {
             let app = checkAndRetrieve(apps);
             expect(app.isDeleted).to.be.true;
         }).catch((err) => {
-            appsPreTest.testError = err;
+            appsBeforeTest.testError = err;
         });
     });
 });
