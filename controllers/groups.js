@@ -129,25 +129,18 @@ module.exports = (function() {
                     let group = groups[groupId];
                     group.app_ids.push(appId);
 
-                    // 將預設的客戶分類條件資料新增至 App 中
-                    return new Promise((resolve, reject) => {
-                        appsFieldsMdl.insertDefaultFields(appId, (appsFields) => {
-                            if (!appsFields) {
-                                return reject(API_ERROR.APP_FAILED_TO_INSERT);
-                            }
-                            resolve();
-                        });
-                    }).then(() => {
-                        // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
-                        return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
-                            let chatrooms = appsChatrooms[appId].chatrooms;
-                            let chatroomId = Object.keys(chatrooms).shift() || '';
-                            let members = Object.values(group.members);
+                    // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
+                    return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                        if (!appsChatrooms) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                        }
 
-                            return Promise.all(members.map((member) => {
-                                let messager = { type: CHATSHIER };
-                                return appsChatroomsMessagersMdl.replace(appId, chatroomId, member.user_id, messager);
-                            }));
+                        // 將預設的客戶分類條件資料新增至 App 中
+                        return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
+                            if (!appsFields) {
+                                return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                            }
+                            return appsFields;
                         });
                     });
                 }).then(() => {

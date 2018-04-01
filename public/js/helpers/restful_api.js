@@ -11,6 +11,7 @@ window.restfulAPI = (function() {
         apps: apiDatabaseUrl + 'apps/',
         appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',
         appsChatrooms: apiDatabaseUrl + 'apps-chatrooms/',
+        appsChatroomsMessagers: apiDatabaseUrl + 'apps-chatrooms-messagers/',
         appsComposes: apiDatabaseUrl + 'apps-composes/',
         appsGreetings: apiDatabaseUrl + 'apps-greetings/',
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
@@ -306,8 +307,8 @@ window.restfulAPI = (function() {
          * @param {string} platformUid
          * @param {string} userId
          */
-        ConsumersAPI.prototype.findOne = function(appId, platformUid, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid + '/users/' + userId;
+        ConsumersAPI.prototype.findOne = function(platformUid, userId) {
+            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -318,13 +319,12 @@ window.restfulAPI = (function() {
         /**
          * 更新指定 consumer 資料
          *
-         * @param {string} appId - 目標 messager 的 App ID
          * @param {string} platformUid
          * @param {string} userId
          * @param {any} consumer - 欲更新的 consumer 資料
          */
-        ConsumersAPI.prototype.update = function(appId, platformUid, userId, consumer) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid + '/users/' + userId;
+        ConsumersAPI.prototype.update = function(platformUid, userId, consumer) {
+            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
@@ -693,10 +693,32 @@ window.restfulAPI = (function() {
         return AppsChatroomsAPI;
     })();
 
+    var AppsChatroomsMessagersAPI = (function() {
+        function AppsChatroomsMessagersAPI(jwt) {
+            this.urlPrefix = apiUrlTable.appsChatroomsMessagers;
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {string} messagerId
+         * @param {string} userId
+         */
+        AppsChatroomsMessagersAPI.prototype.findOne = function(appId, chatroomId, messagerId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsChatroomsMessagersAPI;
+    })();
+
     /**
      * 宣告專門處理相關自動回覆的 API 類別
      */
-
     var AppsAutorepliesAPI = (function() {
         function AppsAutorepliesAPI() {
             this.urlPrefix = apiUrlTable.appsAutoreplies;
@@ -1276,6 +1298,7 @@ window.restfulAPI = (function() {
         appsAutoreplies: new AppsAutorepliesAPI(),
         appsTemplates: new AppsTemplatesAPI(),
         appsChatrooms: new AppsChatroomsAPI(),
+        appsChatroomsMessagers: new AppsChatroomsMessagersAPI(),
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),

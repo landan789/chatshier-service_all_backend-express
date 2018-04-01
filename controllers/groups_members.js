@@ -163,15 +163,14 @@ module.exports = (function() {
                         resolve(groupsMembers);
                     });
                 }).then((groupsMembers) => {
-                    return new Promise((resolve, reject) => {
-                        let userGroupIds = memberUser.group_ids;
-                        let index = userGroupIds.indexOf(groupId);
-                        if (0 <= index) {
-                            resolve();
-                            return;
-                        }
+                    let userGroupIds = memberUser.group_ids;
+                    let index = userGroupIds.indexOf(groupId);
+                    if (0 <= index) {
+                        return;
+                    }
 
-                        memberUser.group_ids.push(groupId);
+                    memberUser.group_ids.push(groupId);
+                    return new Promise((resolve, reject) => {
                         usersMdl.update(memberUserId, memberUser, (users) => {
                             if (!users || (users && 0 === Object.keys(users).length)) {
                                 reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
@@ -192,27 +191,6 @@ module.exports = (function() {
                         return;
                     };
                     resolve(groupsMembers);
-                });
-            }).then((groupsMembers) => {
-                // 抓取出 group 裡的 app_ids 清單
-                // 將此 group member 加入此 group 裡所有 app 的 messagers
-                return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
-                    appIds = appIds || [];
-                    return Promise.all(appIds.map((appId) => {
-                        // 抓取新增此成員的人的 chatroomId 來作為新成員的 chatroomId
-                        // 將群組中的所有 app 的 chatroom 加入此成員
-                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, userId).then((appsChatroomsMessagers) => {
-                            if (!appsChatroomsMessagers) {
-                                return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
-                            }
-                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                            let chatroomId = Object.keys(chatrooms).shift() || '';
-                            let messager = { type: CHATSHIER };
-                            return appsChatroomsMessagersMdl.replace(appId, chatroomId, memberUserId, messager);
-                        });
-                    }));
-                }).then(() => {
-                    return groupsMembers;
                 });
             });
         }).then((groupsMembers) => {
@@ -281,8 +259,8 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
+            let groupIds = user.group_ids;
+            let index = groupIds.indexOf(groupId);
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
@@ -340,22 +318,53 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.update(groupId, memberId, putMember, (groupsMembers) => {
-                    if (null === groupsMembers || undefined === groupsMembers || '' === groupsMembers) {
+                    if (!groupsMembers) {
                         reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                         return;
                     };
                     resolve(groupsMembers);
                 });
+            }).then((groupsMembers) => {
+                let member = groupsMembers[groupId].members[memberId];
+
+                // 有更新 member 的 status 的話且更新為已加入的話
+                // 抓取出 group 裡的 app_ids 清單
+                // 則將此成員加入此群組中所有 app 的 chatrooms 裡
+                if (undefined !== req.body.status && member.status) {
+                    return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                        appIds = appIds || [];
+                        let memberUserId = member.user_id;
+
+                        return Promise.all(appIds.map((appId) => {
+                            // 抓取新增此成員的人的 chatroomId 來作為新成員的 chatroomId
+                            // 將群組中的所有 app 的 chatroom 加入此成員
+                            return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, userId).then((appsChatroomsMessagers) => {
+                                if (!appsChatroomsMessagers) {
+                                    return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                                }
+                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                let chatroomId = Object.keys(chatrooms).shift() || '';
+                                let messager = {
+                                    type: CHATSHIER,
+                                    isDeleted: false,
+                                    unRead: 0
+                                };
+                                return appsChatroomsMessagersMdl.replace(appId, chatroomId, memberUserId, messager);
+                            });
+                        }));
+                    });
+                }
+                return groupsMembers;
             });
-        }).then((groupsMembers) => {
-            var json = {
+        }).then((data) => {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                data: groupsMembers
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -453,10 +462,10 @@ module.exports = (function() {
                     let updateUser = {
                         group_ids: userGroupIds
                     };
-                    usersMdl.update(memberUserId, updateUser, () => {
-                        resolve();
+                    usersMdl.update(memberUserId, updateUser, (users) => {
+                        resolve(users);
                     });
-                }).then(() => {
+                }).then((users) => {
                     // 抓取出 group 裡的 app_ids 清單
                     // 將此 group member 從所有 app 裡的 messagers 刪除
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {

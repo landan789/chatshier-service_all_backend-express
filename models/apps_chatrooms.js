@@ -1,11 +1,17 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
+    const GROUPS = 'groups';
+    const USERS = 'users';
+
+    const CHATSHIER = 'CHATSHIER';
 
     class AppsChatroomsModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
+            this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
+            this.UsersModel = this.model(USERS, this.UsersSchema);
         }
 
         /**
@@ -99,7 +105,7 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': appId
+                '_id': this.Types.ObjectId(appId)
             };
 
             let updateOper = {
@@ -109,6 +115,57 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper).then(() => {
+                // 查詢該 app 的 group_id
+                // 將該 group 的 members 都加入此 chatroom 中
+                let project = {
+                    group_id: true
+                };
+                return this.AppsModel.findOne(query, project);
+            }).then((app) => {
+                let groupId = app.group_id;
+                return this.GroupsModel.findOne({ _id: groupId });
+            }).then((group) => {
+                let members = group.members;
+                let memberUserIds = [];
+                members.forEach((member) => member.status && memberUserIds.push(member.user_id));
+
+                query['chatrooms._id'] = chatroomId;
+                let options = {
+                    arrayFilters: [
+                        {
+                            'chatroom._id': chatroomId
+                        }
+                    ]
+                };
+
+                return Promise.all(memberUserIds.map((memberUserId) => {
+                    let messagerId = this.Types.ObjectId();
+                    let messager = {
+                        _id: messagerId,
+                        type: CHATSHIER,
+                        platformUid: memberUserId,
+                        createdTime: Date.now(),
+                        updatedTime: Date.now()
+                    };
+
+                    let doc = {
+                        $push: {
+                            'chatrooms.$[chatroom].messagers': messager
+                        }
+                    };
+                    return this.AppsModel.update(query, doc, options).then(() => {
+                        // 將 member 加入至 chatroom 後
+                        // 將 chatroomId 更新進 memberUser 的 chatroom_ids 中
+                        let query = { _id: memberUserId };
+                        let project = { chatroom_ids: true };
+
+                        return this.UsersModel.findOne(query, project).then((userDoc) => {
+                            userDoc.chatroom_ids.push(chatroomId.toHexString());
+                            return userDoc.save();
+                        });
+                    });
+                }));
+            }).then(() => {
                 return this.find(appId, chatroomId);
             }).then((appsChatrooms) => {
                 ('function' === typeof callback) && callback(appsChatrooms);

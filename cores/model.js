@@ -173,6 +173,7 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
         'calendar_ids': {type: Array, default: []},
+        'chatroom_ids': {type: Array, default: []},
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
@@ -182,12 +183,12 @@ module.exports = (function() {
         'group_ids': {type: Array, default: []}
     });
 
-    const ConsumerSchema = new mongoose.Schema({
+    const ConsumersSchema = new mongoose.Schema({
         'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
         'chatCount': {type: Number, default: 0},
-        'chatroom_id': {type: String, default: ''},
+        'chatroom_ids': {type: Array, default: []},
         'custom_fields': {type: Object, default: {}},
         'email': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},
@@ -210,7 +211,7 @@ module.exports = (function() {
             this.RootsSchema = RootsSchema;
             this.AppsSchema = AppsSchema;
             this.CalendarsSchema = CalendarsSchema;
-            this.ConsumerSchema = ConsumerSchema;
+            this.ConsumersSchema = ConsumersSchema;
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
         }

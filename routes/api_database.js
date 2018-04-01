@@ -19,6 +19,7 @@ const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
 const botCtl = require('../controllers/bot');
 const appsChatroomsCtl = require('../controllers/apps_chatrooms');
+const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
 const appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
 
 const router = express.Router();
@@ -52,6 +53,7 @@ router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsT
 // 聊天室訊息
 router.get('/apps-chatrooms/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms/apps/:appid/users/:userid', appsChatroomsCtl.getAll);
+router.get('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.getOne);
 // ===============
 
 // ==========

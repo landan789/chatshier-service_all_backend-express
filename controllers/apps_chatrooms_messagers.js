@@ -5,24 +5,27 @@ module.exports = (function() {
 
     let controllerCre = require('../cores/controller');
 
-    const appsChatroomsMdl = require('../models/apps_chatrooms');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 
-    function AppsChatroomsController() {}
+    function AppsChatroomsMessagersController() {}
 
-    util.inherits(AppsChatroomsController, controllerCre.constructor);
+    util.inherits(AppsChatroomsMessagersController, controllerCre.constructor);
 
     /**
      * 處理取得所有 Chatrooms
      */
-    AppsChatroomsController.prototype.getAll = function(req, res, next) {
+    AppsChatroomsMessagersController.prototype.getOne = function(req, res, next) {
+        let chatroomId = req.params.chatroomid;
+        let messagerId = req.params.messagerid;
+
         return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
-            // 再根據所有使用者的 App ID 陣列清單取得對應的所有 Chatrooms
-            return appsChatroomsMdl.find(appIds, null).then((appsChatrooms) => {
-                if (!appsChatrooms) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+
+            return appsChatroomsMessagersMdl.find(appIds, chatroomId, messagerId).then((appsChatroomsMessagers) => {
+                if (!appsChatroomsMessagers) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
                 }
-                return appsChatrooms;
+                return appsChatroomsMessagers;
             });
         }).then((data) => {
             let json = {
@@ -41,5 +44,5 @@ module.exports = (function() {
         });
     };
 
-    return new AppsChatroomsController();
+    return new AppsChatroomsMessagersController();
 })();

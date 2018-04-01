@@ -3,16 +3,17 @@ interface Window {
         setJWT: (value: string) => void,
         apps: AppAPI,
         appsAutoreplies: AppsAutorepliesAPI,
-        appsChatroomsMessages: AppsChatroomsMessagesAPI,
+        appsChatrooms: AppsChatroomsAPI,
+        appsChatroomsMessagers: AppsChatroomsMessagersAPI,
         appsComposes: AppsComposesAPI,
         appsGreetings: AppsGreetingsAPI,
-        appsMessagers: AppsMessagersAPI,
         appsKeywordreplies: AppsKeywordrepliesAPI,
         appsTemplates: AppsTemplatesAPI,
         appsRichmenus: AppsRichmenusAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
         calendarsEvents: CalendarsEventsAPI,
+        consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
         users: UsersAPI,
@@ -59,8 +60,12 @@ interface AppsAutorepliesAPI {
     remove: (appId: string, autoreplyId: string, userId: string) => Promise<any>;
 }
 
-interface AppsChatroomsMessagesAPI {
+interface AppsChatroomsAPI {
     findAll: (userId: string) => Promise<any>;
+}
+
+interface AppsChatroomsMessagersAPI {
+    findOne: (appId: string, chatroomId: string, messagerId: string, userId: string) => Promise<any>;
 }
 
 interface AppsComposesAPI {
@@ -74,12 +79,6 @@ interface AppsGreetingsAPI {
     findAll: (appId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, greetingData: any) => Promise<any>;
     remove: (appId: string, greetingId: string, userId: string) => Promise<any>;
-}
-
-interface AppsMessagersAPI {
-    findAll: (userId: string) => Promise<any>;
-    findOne: (appId: string, msgerId: string, userId: string) => Promise<any>;
-    update: (appId: string, msgerId: string, userId: string, msgerData: any) => Promise<any>;
 }
 
 interface AppsKeywordrepliesAPI {
@@ -139,6 +138,12 @@ interface CalendarsEventsAPI {
     insert: (userId: string, calendarData: any) => Promise<any>;
     update: (calendarId: string, eventId: string, userId: string, calendarData: any) => Promise<any>;
     remove: (calendarId: string, eventId: string, userId: string) => Promise<any>;
+}
+
+interface ConsumersAPI {
+    findAll: (userId: string) => Promise<any>;
+    findOne: (platformUid: string, userId: string) => Promise<any>;
+    update: (platformUid: string, userId: string, consumer: any) => Promise<any>;
 }
 
 interface GroupsMembersAPI {

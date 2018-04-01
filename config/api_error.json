@@ -91,8 +91,10 @@
     "APP_AUTOREPLY_FAILED_TO_UPDATE": { "MSG": "app autorelpy failed to update", "CODE": "10.3" },
     "APP_AUTOREPLY_FAILED_TO_REMOVE": { "MSG": "app autorelpy failed to remove", "CODE": "10.4" },
 
-    "APP_CHATROOMS_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.1" },
+    "APP_CHATROOMS_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.11" },
+    "APP_CHATROOMS_FAILED_TO_INSERT": { "MSG": "app chatroom failed to insert", "CODE": "11.12" },
     "APP_CHATROOM_MESSAGES_FAILED_TO_INSERT": { "MSG": "app chatroom message failed to insert", "CODE": "11.2" },
+    "APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND": { "MSG": "app chatroom messager failed to find", "CODE": "11.3" },
 
     "APP_KEYWORDREPLY_FAILED_TO_FIND": { "MSG": "app keywordreply failed to find", "CODE": "12.1" },
     "APP_KEYWORDREPLY_FAILED_TO_INSERT": { "MSG": "app keywordreply failed to insert", "CODE": "12.2" },

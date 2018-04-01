@@ -5,7 +5,7 @@ module.exports = (function() {
     class ConsumersModel extends ModelCore {
         constructor() {
             super();
-            this.Model = this.model(CONSUMERS, this.ConsumerSchema);
+            this.Model = this.model(CONSUMERS, this.ConsumersSchema);
             this.project = {
                 platformUid: true,
                 age: true,

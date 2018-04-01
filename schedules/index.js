@@ -115,10 +115,9 @@ let jobProcess = () => {
                 // 找出發送平台用戶所在的 chatroom
                 // 將所有已發送的訊息加到隸屬於發送平台用戶的 chatroom 訊息中
                 return Promise.all(platformUids.map((platformUid) => {
-                    return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
-                        appsChatroomsMessagers = appsChatroomsMessagers || {};
-                        let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                        let chatroomIds = Object.keys(chatrooms);
+                    return consumersMdl.find(platformUid).then((consumers) => {
+                        let consumer = consumers[platformUid];
+                        let chatroomIds = consumer.chatroom_ids;
 
                         return Promise.all(chatroomIds.map((chatroomId) => {
                             return Promise.all(messages.map((message) => {

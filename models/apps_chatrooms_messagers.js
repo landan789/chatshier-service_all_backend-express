@@ -1,12 +1,16 @@
 module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
+    const USERS = 'users';
+    const CONSUMERS = 'consumers';
     const CHATSHIER = 'CHATSHIER';
 
     class AppsChatroomsMessagersModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
+            this.ConsumersModel = this.model(CONSUMERS, this.ConsumersSchema);
+            this.UsersModel = this.model(USERS, this.UsersSchema);
         }
 
         /**
@@ -239,7 +243,7 @@ module.exports = (function() {
          */
         replace(appId, chatroomId, platformUid, messager, callback) {
             messager = messager || {};
-
+            messager.type = messager.type || CHATSHIER;
             messager.platformUid = platformUid;
             messager.updatedTime = Date.now();
 
@@ -283,6 +287,29 @@ module.exports = (function() {
                 }
 
                 return this.AppsModel.update(query, doc, options).then(() => {
+                    // 將 messager 加入至 chatroom 後，檢查 messager 身份為何
+                    // 屬於 chatshier 用戶時，將此 chatroomId 新增至 user 的 chatroom_ids 裡
+                    // 屬於第三方平台的用戶時，將此 chatroomId 新增至 consumer 的 chatroom_ids 裡
+                    let project = {
+                        chatroom_ids: true
+                    };
+
+                    if (CHATSHIER === messager.type) {
+                        return this.UsersModel.findOne({ _id: platformUid }, project).then((userDoc) => {
+                            if (0 > userDoc.chatroom_ids.indexOf(chatroomId)) {
+                                userDoc.chatroom_ids.push(chatroomId);
+                                return userDoc.save();
+                            }
+                        });
+                    }
+
+                    return this.ConsumersModel.findOne({ platformUid: platformUid }, project).then((consumerDoc) => {
+                        if (0 > consumerDoc.chatroom_ids.indexOf(chatroomId)) {
+                            consumerDoc.chatroom_ids.push(chatroomId);
+                            return consumerDoc.save();
+                        }
+                    });
+                }).then(() => {
                     return this.findByPlatformUid(appId, chatroomId, platformUid);
                 }).then((appsChatroomsMessagers) => {
                     ('function' === typeof callback) && callback(appsChatroomsMessagers);
@@ -408,12 +435,12 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {string|null} chatroomId
+         * @param {string|string[]|null} chatroomIds
          * @param {string} platformUid
          * @param {(appsChatroomsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        remove(appId, chatroomId, platformUid, callback) {
+        remove(appId, chatroomIds, platformUid, callback) {
             let messager = {
                 platformUid: platformUid,
                 isDeleted: true,
@@ -430,8 +457,15 @@ module.exports = (function() {
             let updateOper = { $set: {} };
             let options = {};
 
-            if (chatroomId) {
-                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+            if (chatroomIds) {
+                if (!(chatroomIds instanceof Array)) {
+                    chatroomIds = [chatroomIds];
+                }
+
+                query['chatrooms._id'] = {
+                    $in: chatroomIds.map((chatroomId) => this.Types.ObjectId(chatroomId))
+                };
+
                 options.arrayFilters = [{
                     'chatroom._id': query['chatrooms._id']
                 }, {
@@ -510,6 +544,38 @@ module.exports = (function() {
                         Object.assign(messagersSrc, this.toObject(messagersDest, 'platformUid'));
                         return output;
                     }, {});
+                    return appsChatroomsMessagers;
+                });
+            }).then((appsChatroomsMessagers) => {
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+
+                // 將 messager 從 chatroom 刪除後，檢查 messager 身份為何
+                // 屬於 chatshier 用戶時，將此 chatroomId 從 user 的 chatroom_ids 裡移除
+                // 屬於第三方平台用戶時，將此 chatroomId 從 consumer 的 chatroom_ids 裡移除
+                return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
+                    let _messager = chatrooms[chatroomId].messagers[platformUid];
+                    let project = {
+                        chatroom_ids: true
+                    };
+
+                    if (CHATSHIER === _messager.type) {
+                        return this.UsersModel.findOne({ _id: platformUid }, project).then((userDoc) => {
+                            let idx = userDoc.chatroom_ids.indexOf(chatroomId);
+                            if (0 <= idx) {
+                                userDoc.chatroom_ids.splice(idx, 1);
+                                return userDoc.save();
+                            }
+                        });
+                    }
+
+                    return this.ConsumersModel.findOne({ platformUid: platformUid }, project).then((consumerDoc) => {
+                        let idx = consumerDoc.chatroom_ids.indexOf(chatroomId);
+                        if (0 <= idx) {
+                            consumerDoc.chatroom_ids.splice(idx, 1);
+                            return consumerDoc.save();
+                        }
+                    });
+                })).then(() => {
                     return appsChatroomsMessagers;
                 });
             }).then((appsChatroomsMessagers) => {

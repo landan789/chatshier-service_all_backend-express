@@ -194,7 +194,7 @@ module.exports = (function() {
          * 將預設的 field 資料批次新增到指定的 app 裡，完成插入後回傳所有 field ID
          *
          * @param {string} appId
-         * @param {(appsFields: any|null) => any} callback
+         * @param {(appsFields: any|null) => any} [callback]
          */
         insertDefaultFields(appId, callback) {
             let appsFields = {
