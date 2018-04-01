@@ -105,7 +105,7 @@ module.exports = (function() {
         'description': {type: String, default: ''},
         'dueTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
-        'messager_id': {type: String, default: ''},
+        'platformUid': {type: String, default: ''},
         'assigned_id': {type: String, default: ''},
         'priority': {type: Number, default: 0}, // TODO 三個 型態建議用字串大寫
         'status': {type: Number, default: 0} // TODO 三個 型態建議用字串大寫

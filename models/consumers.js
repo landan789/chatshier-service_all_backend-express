@@ -27,21 +27,24 @@ module.exports = (function() {
         /**
          * 查找時必須使用各平台的 platformUid 而不是 consumerId
          *
-         * @param {string|string[]} platformUids
+         * @param {string|string[]|null} platformUids
          * @param {(consumers: any) => any} [callback]
          * @returns {Promise<any>}
          */
         find(platformUids, callback) {
-            if (!(platformUids instanceof Array)) {
+            if (platformUids && !(platformUids instanceof Array)) {
                 platformUids = [platformUids];
             }
 
             let query = {
-                'platformUid': {
-                    $in: platformUids
-                },
                 'isDeleted': false
             };
+
+            if (platformUids instanceof Array) {
+                query['platformUid'] = {
+                    $in: platformUids
+                };
+            }
 
             return this.Model.find(query, this.project).then((consumers) => {
                 return this.toObject(consumers, 'platformUid');

@@ -14,27 +14,26 @@ module.exports = (function() {
 
     AppsTicketsController.prototype.getAllByUserid = (req, res, next) => {
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            let appId = checkedAppIds;
+            let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.find(appId || appIds, null, (data) => {
-                    var apps = data;
-                    if (null === apps || '' === apps || undefined === apps) {
+                appsTicketsMdl.find(appIds, null, (appsTickets) => {
+                    if (!appsTickets) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
 
-                    resolve(apps);
+                    resolve(appsTickets);
                 });
             });
-        }).then((apps) => {
-            var json = {
+        }).then((data) => {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: apps
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -48,29 +47,23 @@ module.exports = (function() {
             let appId = checkedAppIds;
             let ticketId = req.params.ticketid;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.find(appId, ticketId, (data) => {
-                    var apps = data;
-                    if (null === apps || '' === apps || undefined === apps) {
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
-                        return;
-                    } else if (0 === Object.keys(apps).length) {
+                appsTicketsMdl.find(appId, ticketId, (appsTickets) => {
+                    if (!appsTickets || (appsTickets && 0 === Object.keys(appsTickets).length)) {
                         reject(API_ERROR.APP_FAILED_TO_FIND);
                         return;
                     }
-
-                    resolve(apps);
+                    resolve(appsTickets);
                 });
             });
         }).then((data) => {
-            var apps = data;
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: apps
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -80,35 +73,35 @@ module.exports = (function() {
     };
 
     AppsTicketsController.prototype.postOne = (req, res, next) => {
-        var postTikeck = {
+        let postTikeck = {
             description: req.body.description === undefined ? '' : req.body.description,
             dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
             priority: req.body.priority === undefined ? '' : req.body.priority,
-            messager_id: req.body.messager_id === undefined ? '' : req.body.messager_id,
+            platformUid: req.body.platformUid === undefined ? '' : req.body.platformUid,
             status: req.body.status === undefined ? '' : req.body.status,
             assigned_id: req.body.assigned_id === undefined ? '' : req.body.assigned_id
         };
+
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            let appId = checkedAppIds;
+            let appIds = checkedAppIds;
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.insert(appId, postTikeck, (appsTickets) => {
-                    if (false === appsTickets || null === appsTickets || undefined === appsTickets) {
+                appsTicketsMdl.insert(appIds, postTikeck, (appsTickets) => {
+                    if (!appsTickets) {
                         reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                         return;
                     }
-
                     resolve(appsTickets);
                 });
             });
         }).then((data) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -118,10 +111,10 @@ module.exports = (function() {
     };
 
     AppsTicketsController.prototype.putOne = (req, res, next) => {
-        var appId = '';
-        var ticketId = req.params.ticketid;
+        let appId = '';
+        let ticketId = req.params.ticketid;
 
-        var putTikcket = {
+        let putTikcket = {
             description: req.body.description || '',
             dueTime: req.body.dueTime ? req.body.dueTime : 0,
             priority: req.body.priority ? req.body.priority : 0,
@@ -164,14 +157,14 @@ module.exports = (function() {
                 });
             });
         }).then((data) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                 data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -181,8 +174,8 @@ module.exports = (function() {
     };
 
     AppsTicketsController.prototype.deleteOne = (req, res, next) => {
-        var appId = '';
-        var ticketId = req.params.ticketid;
+        let appId = '';
+        let ticketId = req.params.ticketid;
 
         return AppsTicketsController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
             appId = checkedAppIds;
@@ -220,13 +213,13 @@ module.exports = (function() {
                 });
             });
         }).then(() => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE

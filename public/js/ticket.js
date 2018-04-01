@@ -1,12 +1,15 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var ticketInfo = {};
-    var messagersData = {};
+    var apps = {};
     var appsAgents = {};
+    var appsTickets = {};
+    var consumers = {};
+    var groups = {};
+    var users = {};
 
     var api = window.restfulAPI;
-    var lastSelectedTicket = null;
+    var selectedTicket = null;
 
     var $jqDoc = $(document);
     var $ticketBody = null;
@@ -23,7 +26,7 @@
 
     // 等待 firebase 登入完成後，再進行 ticket 資料渲染處理
     $jqDoc.on('click', '.ticket-body .ticket-row', showTicketDetail); // 查看待辦事項細節
-    $jqDoc.on('click', '#ticket_info_modify', modifyTicket); // 修改待辦事項
+    $jqDoc.on('click', '#ticket_info_modify', updateTicket); // 修改待辦事項
     // $jqDoc.on('click', '.edit', showInput);
     // $jqDoc.on('click', '.inner-text', function(event) {
     //     event.stopPropagation();
@@ -41,15 +44,14 @@
         alertWarning.find('#yes').off('click').on('click', function() {
             alertWarning.hide();
 
-            return api.appsTickets.remove(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId).then(function() {
-                loadTable();
-
+            return api.appsTickets.remove(selectedTicket.appId, selectedTicket.ticketId, userId).then(function() {
                 var alertDanger = $('#alert-danger');
                 alertDanger.children('span').text('表單已刪除');
                 window.setTimeout(function() {
                     alertDanger.show();
                     window.setTimeout(function() { alertDanger.hide(); }, 3000);
                 }, 1000);
+                return loadTable();
             });
         });
 
@@ -78,79 +80,45 @@
     });
     // ===========
 
-    loadTable();
+    Promise.all([
+        api.apps.findAll(userId),
+        api.consumers.findAll(userId)
+    ]).then(function(respJsons) {
+        apps = respJsons.shift().data;
+        consumers = respJsons.shift().data;
+        return findAppsAgents(Object.keys(apps));
+    }).then(function() {
+        return loadTable();
+    });
 
     function loadTable() {
         $ticketBody.empty();
 
-        var asyncLoadTasks = [
-            api.appsTickets.findAll('', userId)
-        ];
-
-        // 如果沒有載入過 Messagers 才進行載入動作
-        if (0 === Object.keys(messagersData).length) {
-            asyncLoadTasks.push(api.appsMessagers.findAll(userId));
-        }
-
         // 取得所有的 appId tickets
-        return Promise.all(asyncLoadTasks).then(function(respJsons) {
-            if (!respJsons) {
-                return;
-            }
+        return api.appsTickets.findAll('', userId).then(function(resJson) {
+            appsTickets = resJson.data;
 
-            if (respJsons[1] && 0 === Object.keys(messagersData).length) {
-                // 把此用戶的所有 App 裡的所有 Messagers 製成一份 ID 對應的清單
-                var appsMessagersData = respJsons[1].data;
-                for (var appId in appsMessagersData) {
-                    var messagers = appsMessagersData[appId].messagers;
-                    for (var messagerId in messagers) {
-                        messagersData[messagerId] = messagers[messagerId];
-                    }
+            for (var appId in appsTickets) {
+                var tickets = appsTickets[appId].tickets;
+
+                // 批此處理每個 tickets 的 app 資料
+                for (var ticketId in tickets) {
+                    var ticket = tickets[ticketId];
+                    var consumer = consumers[ticket.platformUid] || {};
+                    var agent = appsAgents[appId].agents[ticket.assigned_id];
+
+                    // 將每筆 ticket 資料反映於 html DOM 上
+                    $ticketBody.append(
+                        '<tr app-id=' + appId + ' ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
+                        '<td style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + (consumer.name || '') + '</td>' +
+                        '<td id="description">' + ticket.description + '</td>' +
+                        '<td id="status" class="status">' + statusNumberToText(ticket.status) + '</td>' +
+                        '<td id="priority" class="priority">' + priorityNumberToText(ticket.priority) + '</td>' +
+                        '<td id="time">' + ToLocalTimeString(ticket.dueTime) + '</td>' +
+                        '<td id="assigened">' + (agent ? agent.name : '無') + '</td>' +
+                        '<td>' + dueDate(ticket.dueTime) + '</td>' +
+                        '</tr>');
                 }
-            }
-
-            var appsTicketsData = respJsons[0].data || {};
-            return Promise.resolve().then(function() {
-                if (0 === Object.keys(appsAgents).length) {
-                    let appIds = Object.keys(appsTicketsData);
-                    return getAppsAgents(appIds);
-                }
-                return appsAgents;
-            }).then(function(appsAgents) {
-                for (var ticketAppId in appsTicketsData) {
-                    var tickets = appsTicketsData[ticketAppId].tickets;
-
-                    // 批此處理每個 tickets 的 app 資料
-                    for (var ticketId in tickets) {
-                        var ticketData = tickets[ticketId];
-                        if (ticketData.isDeleted) {
-                            // 如果此 ticket 已被標注刪除，則忽略不顯示
-                            continue;
-                        }
-                        ticketData.ticketId = ticketId;
-                        ticketData.ticketAppId = ticketAppId;
-                        ticketInfo[ticketId] = ticketData;
-                        var messagerInfo = messagersData[ticketData.messager_id] || {};
-                        var agent = appsAgents[ticketAppId][ticketData.assigned_id];
-
-                        // 將每筆 ticket 資料反映於 html DOM 上
-                        $ticketBody.append(
-                            '<tr app-id=' + ticketAppId + ' id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
-                            '<td style="border-left: 5px solid ' + priorityColor(ticketData.priority) + '">' + (messagerInfo.name || '') + '</td>' +
-                            '<td id="description">' + ticketData.description + '</td>' +
-                            '<td id="status" class="status">' + statusNumberToText(ticketData.status) + '</td>' +
-                            '<td id="priority" class="priority">' + priorityNumberToText(ticketData.priority) + '</td>' +
-                            '<td id="time">' + ToLocalTimeString(ticketData.dueTime) + '</td>' +
-                            '<td id="assigened">' + (agent ? agent.name : '無') + '</td>' +
-                            '<td>' + dueDate(ticketData.dueTime) + '</td>' +
-                            '</tr>');
-                    }
-                }
-            });
-        }).catch(function(error) {
-            if ('401 Unauthorized' === error.message) {
-                // 只有在 promise reject 會收到 401，代表 firebase 登入失敗，等待 100ms 後重新執行
-                window.setTimeout(function() { loadTable(); }, 100);
             }
         });
     }
@@ -197,8 +165,9 @@
             if (0 === Object.keys(n).length) {
                 html += '<option value="">無資料</option>';
             } else {
-                for (var agentId in n) {
-                    html += '<option value="' + agentId + '"' + (agentId === val ? ' selected="true"' : '') + '>' + n[agentId].name + '</option>';
+                for (var agentUserId in n) {
+                    var agent = n[agentUserId];
+                    html += '<option value="' + agentUserId + '"' + (agentUserId === val ? ' selected="true"' : '') + '>' + agent.name + '</option>';
                 }
             }
         }
@@ -211,51 +180,53 @@
      */
     function showTicketDetail() {
         var appId = $(this).attr('app-id');
-        var ticketId = $(this).attr('id');
-        var ticketData = ticketInfo[ticketId];
-        lastSelectedTicket = ticketData;
+        var ticketId = $(this).attr('ticket-id');
+        var ticket = appsTickets[appId].tickets[ticketId];
+        var consumer = consumers[ticket.platformUid];
+        selectedTicket = Object.assign({}, ticket);
+        selectedTicket.appId = appId;
+        selectedTicket.ticketId = ticketId;
 
         var infoInputTable = $('.info-input-table').empty();
-        var messagerInfo = messagersData[ticketData.messager_id] || {};
-        $('#ID-num').css('background-color', priorityColor(ticketData.priority));
-        $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticketData.priority));
+        $('#ID-num').css('background-color', priorityColor(ticket.priority));
+        $('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
 
         var moreInfoHtml =
             '<tr>' +
-            '<th>客戶姓名</th>' +
-            '<td class="edit">' + (messagerInfo.name || '') + '</td>' +
+                '<th>客戶姓名</th>' +
+                '<td class="edit">' + (consumer.name || '') + '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th class="priority">優先</th>' +
-            '<td class="form-group">' + showSelect('priority', ticketData.priority) + '</td>' +
+                '<th class="priority">優先</th>' +
+                '<td class="form-group">' + showSelect('priority', ticket.priority) + '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th class="status">狀態</th>' +
-            '<td class="form-group">' + showSelect('status', ticketData.status) + '</td>' +
+                '<th class="status">狀態</th>' +
+                '<td class="form-group">' + showSelect('status', ticket.status) + '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th class="description">描述</th>' +
-            '<td class="edit form-group">' +
-            '<textarea class="inner-text form-control">' + ticketData.description + '</textarea>' +
-            '</td>' +
+                '<th class="description">描述</th>' +
+                '<td class="edit form-group">' +
+                    '<textarea class="inner-text form-control">' + ticket.description + '</textarea>' +
+                '</td>' +
             '</tr>' +
             '<tr class="assigned">' +
-            '<th>指派人</th>' +
-            '<td class="form-group">' + showSelect('assigned', appsAgents[appId], ticketData.assigned_id) + '</td>' +
+                '<th>指派人</th>' +
+                '<td class="form-group">' + showSelect('assigned', appsAgents[appId].agents, ticket.assigned_id) + '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th class="time-edit">到期時間' + dueDate(ticketData.dueTime) + '</th>' +
-            '<td class="form-group">' +
-            '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticketData.dueTime) + '">' +
-            '</td>' +
+                '<th class="time-edit">到期時間' + dueDate(ticket.dueTime) + '</th>' +
+                '<td class="form-group">' +
+                    '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticket.dueTime) + '">' +
+                '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th>建立日期</th>' +
-            '<td>' + displayDate(ticketData.createdTime) + '</td>' +
+                '<th>建立日期</th>' +
+                '<td>' + displayDate(ticket.createdTime) + '</td>' +
             '</tr>' +
             '<tr>' +
-            '<th>最後更新</th>' +
-            '<td>' + displayDate(ticketData.updatedTime) + '</td>' +
+                '<th>最後更新</th>' +
+                '<td>' + displayDate(ticket.updatedTime) + '</td>' +
             '</tr>';
         infoInputTable.append(moreInfoHtml);
     }
@@ -311,7 +282,7 @@
     /**
      * 在 ticket 更多訊息中，進行修改 ticket 動作
      */
-    function modifyTicket() {
+    function updateTicket() {
         var $modifyTable = $('#ticket_info_modal .info-input-table');
         $modifyTable.find('input').blur();
 
@@ -334,15 +305,14 @@
         };
 
         // 發送修改請求 api 至後端進行 ticket 修改
-        return api.appsTickets.update(lastSelectedTicket.ticketAppId, lastSelectedTicket.ticketId, userId, modifiedTicket).then(function() {
-            loadTable();
-
+        return api.appsTickets.update(selectedTicket.appId, selectedTicket.ticketId, userId, modifiedTicket).then(function() {
             var alertSuccess = $('#alert-success');
             alertSuccess.children('span').text('表單已更新，指派人: ' + assignedName);
             window.setTimeout(function() {
                 alertSuccess.show();
                 window.setTimeout(function() { alertSuccess.hide(); }, 3000);
             }, 1000);
+            return loadTable();
         }).catch(function() {
             var alertDanger = $('#alert-danger');
             alertDanger.children('span').text('表單更新失敗，請重試').show();
@@ -441,7 +411,7 @@
         }
     };
 
-    function getAppsAgents(appIds) {
+    function findAppsAgents(appIds) {
         if ('string' === typeof appIds && appsAgents[appIds]) {
             return Promise.resolve(appsAgents[appIds]);
         }
@@ -451,33 +421,34 @@
         }
 
         return Promise.all([
-            api.groups.findAll(userId),
-            api.users.find(userId)
+            api.users.find(userId),
+            api.groups.findAll(userId)
         ]).then(function(resJsons) {
-            var groups = resJsons.shift().data;
-            var groupUsers = resJsons.shift().data;
+            users = resJsons.shift().data;
+            groups = resJsons.shift().data;
             var agents = {};
 
-            for (var i in appIds) {
-                var appId = appIds[i];
+            appIds.forEach(function(appId) {
                 for (var groupId in groups) {
                     var group = groups[groupId];
 
-                    if (group.app_ids.indexOf(appId)) {
+                    if (0 <= group.app_ids.indexOf(appId)) {
                         for (var memberId in group.members) {
                             var memberUserId = group.members[memberId].user_id;
                             if (!agents[memberUserId]) {
                                 agents[memberUserId] = {
-                                    name: groupUsers[memberUserId].name,
-                                    email: groupUsers[memberUserId].email
+                                    name: users[memberUserId].name,
+                                    email: users[memberUserId].email
                                 };
                             }
                         }
                     }
                 }
 
-                appsAgents[appId] = agents;
-            }
+                appsAgents[appId] = {
+                    agents: agents
+                };
+            });
             return appsAgents;
         });
     }

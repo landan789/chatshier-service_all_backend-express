@@ -2,23 +2,21 @@
 
 (function() {
     var apps = {};
-    var appsMessagers = {};
     var appsAgents = {};
+    var consumers = {};
+    var groups = {};
+    var users = {};
     var api = window.restfulAPI;
+
+    var CHATSHIER = 'CHATSHIER';
 
     var jqDoc = $(document);
     var $appSelectElem = $('select#add-form-app');
-    var $messagerSelectElem = $('select#add-form-name');
-    var $messagerIdElem = $('input#add-form-uid');
-    var $messagerEmailElem = $('input#add-form-email');
-    var $messagerPhoneElem = $('input#add-form-phone');
+    var $consumerSelectElem = $('select#add-form-name');
+    var $platformUidElem = $('input#add-form-uid');
+    var $consumerEmailElem = $('input#add-form-email');
+    var $consumerPhoneElem = $('input#add-form-phone');
     var $assignedSelectElem = $('select#assigned-name');
-
-    // ======================
-    // urlConfig undefined error handle
-    !urlConfig && (urlConfig = {});
-    !urlConfig.apiUrl && (urlConfig.apiUrl = window.location.origin); // 預設 website 與 api server 為同一網域
-    // ======================
 
     var userId;
     try {
@@ -45,11 +43,11 @@
 
         return Promise.all([
             api.apps.findAll(userId),
-            api.appsMessagers.findAll(userId)
+            api.consumers.findAll(userId)
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
-            appsMessagers = respJsons.shift().data;
-            return getAppsAgents(Object.keys(apps));
+            consumers = respJsons.shift().data;
+            return findAppsAgents(Object.keys(apps));
         }).then(function(appAgents) {
             $appSelectElem.empty();
             let appIds = Object.keys(apps);
@@ -59,9 +57,8 @@
 
                 for (var appId in apps) {
                     var app = apps[appId];
-                    if (app.isDeleted || 'CHATSHIER' === app.type) {
+                    if (CHATSHIER === app.type) {
                         delete apps[appId];
-                        delete appsMessagers[appId];
                         continue;
                     }
                     $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
@@ -71,7 +68,7 @@
                     $appSelectElem.append('<option value="">無資料</option>');
                 } else {
                     var selectedAppId = $appSelectElem.find('option:selected').val();
-                    updateMessagerInfoElems(appsMessagers[selectedAppId].messagers, appAgents[selectedAppId]);
+                    updateConsumerInfoElems(consumers, appAgents[selectedAppId].agents);
                 }
             } else {
                 $appSelectElem.append('<option value="">無資料</option>');
@@ -80,7 +77,7 @@
             // 啟用選取器選取的事件
             $appSelectElem.on('change', function(ev) {
                 var appId = ev.target.value;
-                updateMessagerInfoElems(appsMessagers[appId].messagers, appsAgents[appId]);
+                updateConsumerInfoElems(consumers, appsAgents[appId].agents);
             });
         });
     }
@@ -88,63 +85,61 @@
     /**
      * 根據輸入的清單更新客戶的資訊於 view 上顯示
      *
-     * @param {any} messagerData
+     * @param {any} consumers
      */
-    function updateMessagerInfoElems(messagerData, agents) {
-        if (!$messagerSelectElem) {
-            return;
-        }
-
-        $messagerSelectElem.empty();
-        if (messagerData && Object.keys(messagerData).length > 0) {
-            for (var messagerId in messagerData) {
-                $messagerSelectElem.append('<option value=' + messagerId + '>' + messagerData[messagerId].name + '</option>');
+    function updateConsumerInfoElems(consumers, agents) {
+        $consumerSelectElem.empty();
+        if (consumers && Object.keys(consumers).length > 0) {
+            for (var consumerId in consumers) {
+                var consumer = consumers[consumerId];
+                $consumerSelectElem.append('<option value=' + consumer.platformUid + '>' + consumer.name + '</option>');
             }
         } else {
-            $messagerSelectElem.append('<option value="">無資料</option>');
+            $consumerSelectElem.append('<option value="">無資料</option>');
         }
 
         $assignedSelectElem.empty();
         if (agents && Object.keys(agents).length > 0) {
-            for (var agentId in agents) {
-                $assignedSelectElem.append('<option value=' + agentId + '>' + agents[agentId].name + '</option>');
+            for (var agentUserId in agents) {
+                var agent = agents[agentUserId];
+                $assignedSelectElem.append('<option value=' + agentUserId + '>' + agent.name + '</option>');
             }
         } else {
             $assignedSelectElem.append('<option value="">無資料</option>');
         }
 
-        var updateInfo = function(selectedId) {
-            if (!selectedId) {
-                $messagerIdElem.prop('value', '');
-                $messagerEmailElem.prop('value', '');
-                $messagerPhoneElem.prop('value', '');
+        var updateInfo = function(selectedUid) {
+            if (!selectedUid) {
+                $platformUidElem.prop('value', '');
+                $consumerEmailElem.prop('value', '');
+                $consumerPhoneElem.prop('value', '');
                 return;
             }
 
-            var messagerInfo = messagerData[selectedId];
-            if (messagerInfo) {
-                $messagerIdElem.prop('value', selectedId);
-                $messagerEmailElem.prop('value', messagerInfo.email);
-                $messagerPhoneElem.prop('value', messagerInfo.phone);
+            var consumer = consumers[selectedUid];
+            if (consumer) {
+                $platformUidElem.prop('value', selectedUid);
+                $consumerEmailElem.prop('value', consumer.email);
+                $consumerPhoneElem.prop('value', consumer.phone);
             }
         };
-        updateInfo($messagerSelectElem.val());
+        updateInfo($consumerSelectElem.val());
 
         // 重新建立事件
-        $messagerSelectElem.off('change').on('change', function(ev) {
-            var messagerId = ev.target.value;
-            updateInfo(messagerId);
+        $consumerSelectElem.off('change').on('change', function(ev) {
+            var platformUid = ev.target.value;
+            updateInfo(platformUid);
         });
     }
 
     function submitAdd() {
         var $submitBtn = $(this);
 
-        var messagerId = $messagerIdElem.val();
-        // var messagerName = $messagerSelectElem.find('option:selected').text();
-        // var messagerEmail = $messagerEmailElem.val();
-        // var messagerPhone = $messagerPhoneElem.val();
-        var ticketAppId = $appSelectElem.find('option:selected').val();
+        var platformUid = $platformUidElem.val();
+        // var consumerName = $consumerSelectElem.find('option:selected').text();
+        // var consumerEmail = $consumerEmailElem.val();
+        // var consumerPhone = $consumerPhoneElem.val();
+        var appId = $appSelectElem.find('option:selected').val();
         var $errorElem = $('#error');
         var $formUname = $('#add-form-name');
         var $formDescription = $('#add-form-description');
@@ -156,12 +151,12 @@
         // var phoneReg = /\b[0-9]+\b/;
 
         $errorElem.empty();
-        if (!ticketAppId) {
+        if (!appId) {
             $errorElem.append('請選擇App');
             window.setTimeout(function() {
                 $errorElem.empty();
             }, 3000);
-        // } else if (!emailReg.test(messagerEmail)) {
+        // } else if (!emailReg.test(consumerEmail)) {
         //     $errorElem.append('請輸入正確的email格式');
 
         //     var formEmail = $('#form-email');
@@ -170,7 +165,7 @@
         //         $errorElem.empty();
         //         formEmail.css('border', '1px solid #ccc');
         //     }, 3000);
-        // } else if (!phoneReg.test(messagerPhone)) {
+        // } else if (!phoneReg.test(consumerPhone)) {
         //     $errorElem.append('請輸入正確的電話格式');
 
         //     var formPhone = $('#form-phone');
@@ -179,14 +174,14 @@
         //         $errorElem.empty();
         //         formPhone.css('border', '1px solid #ccc');
         //     }, 3000);
-        // } else if (!messagerName) {
+        // } else if (!consumerName) {
         //     $errorElem.append('請輸入客戶姓名');
         //     $('#add-form-name').css('border', '1px solid red');
         //     window.setTimeout(function() {
         //         $errorElem.empty();
         //         $('#add-form-name').css('border', '1px solid #ccc');
         //     }, 3000);
-        } else if (!messagerId) {
+        } else if (!platformUid) {
             $errorElem.append('請選擇目標客戶');
 
             $formUname.css('border', '1px solid red');
@@ -218,20 +213,20 @@
                 description: description || '',
                 dueTime: Date.now() + (86400000 * 3), // 過期時間預設為3天後
                 priority: priority,
-                messager_id: messagerId,
+                platformUid: platformUid,
                 status: status,
                 assigned_id: assignedId
             };
 
             $submitBtn.attr('disabled', true);
-            return api.appsTickets.insert(ticketAppId, userId, newTicket).then(function() {
+            return api.appsTickets.insert(appId, userId, newTicket).then(function() {
                 $submitBtn.removeAttr('disabled');
                 window.location.href = '/ticket'; // 返回 ticket 清單頁
             });
         }
     }
 
-    function getAppsAgents(appIds) {
+    function findAppsAgents(appIds) {
         if ('string' === typeof appIds && appsAgents[appIds]) {
             return Promise.resolve(appsAgents[appIds]);
         }
@@ -241,33 +236,34 @@
         }
 
         return Promise.all([
-            api.groups.findAll(userId),
-            api.users.find(userId)
+            api.users.find(userId),
+            api.groups.findAll(userId)
         ]).then(function(resJsons) {
-            var groups = resJsons.shift().data;
-            var groupUsers = resJsons.shift().data;
+            users = resJsons.shift().data;
+            groups = resJsons.shift().data;
             var agents = {};
 
-            for (var i in appIds) {
-                var appId = appIds[i];
+            appIds.forEach(function(appId) {
                 for (var groupId in groups) {
                     var group = groups[groupId];
 
-                    if (group.app_ids.indexOf(appId)) {
+                    if (0 <= group.app_ids.indexOf(appId)) {
                         for (var memberId in group.members) {
                             var memberUserId = group.members[memberId].user_id;
                             if (!agents[memberUserId]) {
                                 agents[memberUserId] = {
-                                    name: groupUsers[memberUserId].name,
-                                    email: groupUsers[memberUserId].email
+                                    name: users[memberUserId].name,
+                                    email: users[memberUserId].email
                                 };
                             }
                         }
                     }
                 }
 
-                appsAgents[appId] = agents;
-            }
+                appsAgents[appId] = {
+                    agents: agents
+                };
+            });
             return appsAgents;
         });
     }
