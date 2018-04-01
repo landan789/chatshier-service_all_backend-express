@@ -333,7 +333,7 @@
                 '</tr>' +
                 '<tr class="assigned">' +
                     '<th>指派人</th>' +
-                    '<td class="form-group">' + showSelect('assigned', appsAgents[appId], ticket.assigned_id) + '</td>' +
+                    '<td class="form-group">' + showSelect('assigned', appsAgents[appId].agents, ticket.assigned_id) + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="time-edit">到期時間' + dueDate(ticket.dueTime) + '</th>' +
