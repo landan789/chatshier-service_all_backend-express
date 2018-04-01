@@ -248,7 +248,7 @@
                 });
 
                 $addTicketModal.off('show.bs.modal').on('show.bs.modal', function() {
-                    var agents = appsAgents[appId];
+                    var agents = appsAgents[appId].agents;
                     var $consumerNameSelect = $addTicketModal.find('select#add-form-name');
                     var $platformUidElem = $addTicketModal.find('input#add-form-uid');
                     var $consumerEmailElem = $addTicketModal.find('input#add-form-email');

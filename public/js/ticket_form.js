@@ -52,7 +52,15 @@
             users = respJsons.shift().data;
             groups = respJsons.shift().data;
 
-            for (let appId in apps) {
+            $appSelectElem.empty();
+
+            for (var appId in apps) {
+                var app = apps[appId];
+                if (CHATSHIER === app.type) {
+                    delete apps[appId];
+                    continue;
+                }
+
                 // 準備各個 app 的指派人清單
                 // 由於每個 app 可能隸屬於不同的群組
                 // 因此指派人清單必須根據 app 所屬的群組分別建立清單
@@ -69,31 +77,15 @@
                         }
                     }
                 }
+
+                $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
             }
-        }).then(function(appAgents) {
-            $appSelectElem.empty();
-            let appIds = Object.keys(apps);
 
-            if (apps && appIds.length > 0) {
-                // 確定取回來的資料有數據，重新配置選取器內的選項資料
-
-                for (var appId in apps) {
-                    var app = apps[appId];
-                    if (CHATSHIER === app.type) {
-                        delete apps[appId];
-                        continue;
-                    }
-                    $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
-                }
-
-                if (0 === Object.keys(apps).length) {
-                    $appSelectElem.append('<option value="">無資料</option>');
-                } else {
-                    var selectedAppId = $appSelectElem.find('option:selected').val();
-                    updateConsumerInfoElems(consumers, appAgents[selectedAppId].agents);
-                }
-            } else {
+            if (0 === Object.keys(apps).length) {
                 $appSelectElem.append('<option value="">無資料</option>');
+            } else {
+                var selectedAppId = $appSelectElem.find('option:selected').val();
+                updateConsumerInfoElems(consumers, appsAgents[selectedAppId].agents);
             }
 
             // 啟用選取器選取的事件
