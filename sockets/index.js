@@ -439,7 +439,7 @@ function init(server) {
                 appType = app.type;
                 return botSvc.create(appId, app);
             }).then(() => {
-                appsChatroomsMessagersMdl.findPlatformUids(appId).then((platformUids) => {
+                return appsChatroomsMessagersMdl.findPlatformUids(appId).then((platformUids) => {
                     platformUids = platformUids || [];
                     return consumersMdl.find(platformUids);
                 }).then((_consumers) => {
