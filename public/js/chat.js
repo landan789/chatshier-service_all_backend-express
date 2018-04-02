@@ -597,6 +597,7 @@
 
             var appId = socketBody.app_id;
             var chatroomId = socketBody.chatroom_id;
+            var messager = socketBody.messager;
             var messages = socketBody.messages;
             messages.sort(function(a, b) {
                 // 根據發送的時間從早到晚排序
@@ -621,7 +622,7 @@
 
                 var message = messages[i];
                 var messagerId = message.messager_id;
-                var messager = messagers[messagerId];
+                messagers[messagerId] = messager;
                 var senderUid;
 
                 return Promise.resolve().then(function() {
@@ -672,6 +673,12 @@
                     }
                     updateClientTab(messager, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(messager, message, appId, chatroomId); // update 聊天室
+
+                    // 更新 UI 資料
+                    var $profileCard = $('.card-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + senderUid + '"]');
+                    $profileCard.find('.panel-table').remove();
+                    var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, senderUid, sender));
+                    $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
                 }).then(function() {
                     return nextMessage(i + 1);
                 });

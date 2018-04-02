@@ -62,7 +62,6 @@ module.exports = (function() {
          */
         replace(platformUid, consumer, callback) {
             consumer = consumer || {};
-
             consumer.platformUid = platformUid;
             consumer.updatedTime = Date.now();
 

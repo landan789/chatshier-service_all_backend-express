@@ -1,10 +1,7 @@
 const socketIO = require('socket.io');
 
-const line = require('@line/bot-sdk');
 const wechat = require('wechat');
-const facebook = require('facebook-bot-messenger'); // facebook串接
-const fuseHlp = require('../helpers/fuse');
-const StorageHlp = require('../helpers/storage');
+const storageHlp = require('../helpers/storage');
 
 const app = require('../app');
 
@@ -32,6 +29,8 @@ const API_SUCCESS = require('../config/api_success');
 
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
+
+const CHAT_COUNT_INTERVAL_TIME = 900000;
 
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
@@ -82,7 +81,7 @@ function init(server) {
             let totalMessages = [];
             let platformUid;
             let chatroomId;
-            let messagerId;
+            let messager;
 
             let fromPath;
             let toPath;
@@ -127,8 +126,7 @@ function init(server) {
 
                                 let appsChatroomsMessagers = promiseResponses.shift();
                                 let messagers = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers;
-                                let messager = messagers[platformUid];
-                                messagerId = messager._id;
+                                messager = messagers[platformUid];
                                 return consumer;
                             });
                         });
@@ -137,20 +135,36 @@ function init(server) {
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     chatroomId = Object.keys(chatrooms).shift() || '';
                     let messagers = chatrooms[chatroomId].messagers;
-                    let messager = messagers[platformUid];
-                    messagerId = messager._id;
+                    messager = messagers[platformUid];
+
+                    // 如果 messager 已經存在，更新最後聊天時間及計算聊天次數
+                    let currentTime = Date.now();
+                    let _messager = {
+                        platformUid: platformUid,
+                        chatCount: messager.chatCount ? messager.chatCount : 0,
+                        lastTime: currentTime
+                    };
+                    if (messager.lastTime) {
+                        let lastChatedTimeGap = currentTime - new Date(messager.lastTime).getTime();
+                        if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                            _messager.chatCount++;
+                        }
+                    }
 
                     return Promise.all([
                         consumersMdl.replace(platformUid, profile),
-                        appsChatroomsMessagersMdl.replace(appId, chatroomId, messager)
+                        appsChatroomsMessagersMdl.replace(appId, chatroomId, _messager)
                     ]).then((promiseResponses) => {
                         let consumers = promiseResponses.shift();
                         let consumer = consumers[platformUid];
+                        let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                        let messagers = chatrooms[chatroomId].messagers;
+                        messager = messagers[platformUid];
                         return consumer;
                     });
                 });
             }).then(() => {
-                return botSvc.getReceivedMessages(req, res, messagerId, appId, app);
+                return botSvc.getReceivedMessages(req, res, messager._id, appId, app);
             }).then((messages) => {
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
@@ -207,8 +221,8 @@ function init(server) {
                 }
 
                 // 接收到的事件為 follow 或 unfollow 時
-                // 只處理 repliedMessages 
-                if (eventType && ('follow' === eventType || 'unfollow' === eventType)){
+                // 只處理 repliedMessages
+                if (eventType && ('follow' === eventType || 'unfollow' === eventType)) {
                     totalMessages = repliedMessages;
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
@@ -230,7 +244,7 @@ function init(server) {
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
                     toPath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src${fromPath}`;
-                    return StorageHlp.filesMoveV2(fromPath, toPath);
+                    return storageHlp.filesMoveV2(fromPath, toPath);
                 }
                 return messages;
             }).then(() => {
@@ -246,6 +260,7 @@ function init(server) {
                     // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
                     // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                     recipientUid: '',
+                    messager: messager,
                     messages: Object.values(_messages)
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
@@ -321,8 +336,8 @@ function init(server) {
                             if ('text' === message.type) {
                                 return;
                             }
-                            return StorageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
-                                return StorageHlp.sharingCreateSharedLink(originalFilePath);
+                            return storageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
+                                return storageHlp.sharingCreateSharedLink(originalFilePath);
                             }).then((response) => {
                                 let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                                 let url = wwwurl.replace('?dl=0', '');
@@ -347,7 +362,7 @@ function init(server) {
                                 return;
                             }
                             let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${_message.time}.${media[_message.type]}`;
-                            return StorageHlp.filesMoveV2(originalFilePath, newFilePath);
+                            return storageHlp.filesMoveV2(originalFilePath, newFilePath);
                         }).then(() => {
                             return new Promise((resolve) => {
                                 // 根據 app 內的 group_id 找到群組內所有成員
