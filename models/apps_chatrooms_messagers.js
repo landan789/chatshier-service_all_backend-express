@@ -338,8 +338,6 @@ module.exports = (function() {
             }
 
             let options = {
-                upsert: true,
-                setDefaultsOnInsert: true,
                 arrayFilters: [
                     {
                         'chatroom._id': this.Types.ObjectId(chatroomId)
@@ -647,9 +645,6 @@ module.exports = (function() {
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     let chatroomIds = Object.keys(chatrooms);
 
-                    // 將 messager 從 chatroom 刪除後，檢查 messager 身份為何
-                    // 屬於 chatshier 用戶時，將此 chatroomId 從 user 的 chatroom_ids 裡移除
-                    // 屬於第三方平台用戶時，將此 chatroomId 從 consumer 的 chatroom_ids 裡移除
                     return Promise.all(chatroomIds.map((chatroomId) => {
                         let _messager = chatrooms[chatroomId].messagers[platformUid];
                         return this._removeChatroomIds(chatroomId, platformUid, _messager.type);
@@ -660,8 +655,7 @@ module.exports = (function() {
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
-            }).catch((err) => {
-                console.log(err);
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
@@ -705,6 +699,9 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         _removeChatroomIds(chatroomId, platformUid, messagerType) {
+            // 將 messager 從 chatroom 刪除後，檢查 messager 身份為何
+            // 屬於 chatshier 用戶時，將此 chatroomId 從 user 的 chatroom_ids 裡移除
+            // 屬於第三方平台用戶時，將此 chatroomId 從 consumer 的 chatroom_ids 裡移除
             let project = {
                 chatroom_ids: true
             };

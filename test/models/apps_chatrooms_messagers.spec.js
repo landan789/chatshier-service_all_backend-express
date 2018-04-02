@@ -43,6 +43,8 @@ describe('Test AppsChatroomsMessagers Model', () => {
         expect(messagerId).to.be.string;
         let messager = messagers[platformUid];
         expect(messager).to.be.an('object');
+        expect(messager._id).to.be.string;
+        expect(messager.assigned_ids).to.be.an('array');
         return messager;
     };
 
@@ -116,6 +118,76 @@ describe('Test AppsChatroomsMessagers Model', () => {
         }).then((appsChatroomsMessagers) => {
             let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
             expect(_messager.unRead).eq(0);
+        });
+    });
+
+    it('Update messager assigned_ids', () => {
+        let userId = appsBeforeTest.userId;
+        let appId = appsBeforeTest.appId;
+        let chatroomId = appsChatroomsBeforeTest.chatroomId;
+
+        let platformUid = '1234567890';
+        let messager = {
+            type: 'FACEBOOK',
+            platformUid: platformUid
+        };
+        let messagerId;
+
+        return replace(messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            messagerId = _messager._id;
+
+            messager = {
+                assigned_ids: [userId]
+            };
+
+            return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, messager);
+        }).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, messagerId);
+            messagerId = _messager._id;
+            let _assignedIds = _messager.assigned_ids;
+            expect(_assignedIds).to.be.an('array').that.does.include(userId);
+
+            messager = {
+                assigned_ids: []
+            };
+            return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, messager);
+        }).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, messagerId);
+            messagerId = _messager._id;
+            let _assignedIds = _messager.assigned_ids;
+            expect(_assignedIds).to.be.an('array').that.does.empty;
+
+            messager = {
+                assigned_ids: [userId]
+            };
+            return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager);
+        }).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _assignedIds = _messager.assigned_ids;
+            expect(_assignedIds).to.be.an('array').that.does.include(userId);
+        });
+    });
+
+    it('Remove a messager', () => {
+        let appId = appsBeforeTest.appId;
+        let chatroomId = appsChatroomsBeforeTest.chatroomId;
+
+        let platformUid = '1234567890';
+        let messager = {
+            type: 'FACEBOOK',
+            platformUid: platformUid
+        };
+
+        return replace(messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let isDeleted = _messager.isDeleted;
+            expect(isDeleted).to.be.false;
+            return appsChatroomsMessagersMdl.remove(appId, chatroomId, platformUid);
+        }).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let isDeleted = _messager.isDeleted;
+            expect(isDeleted).to.be.true;
         });
     });
 });
