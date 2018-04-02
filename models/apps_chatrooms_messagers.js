@@ -115,6 +115,7 @@ module.exports = (function() {
          * @param {string|null} chatroomId
          * @param {string|string[]} platformUids
          * @param {(appsChatroomMessager: any) => any} [callback]
+         * @returns {Promise<any>}
          */
         findByPlatformUid(appId, chatroomId, platformUids, callback) {
             if (!(platformUids instanceof Array)) {
@@ -203,6 +204,7 @@ module.exports = (function() {
          * @param {string|string[]} appIds
          * @param {boolean} [shouldFindChatshier=false]
          * @param {(platformUids: string[]|null) => any} [callback]
+         * @returns {Promise<any>}
          */
         findPlatformUids(appIds, shouldFindChatshier, callback) {
             shouldFindChatshier = !!shouldFindChatshier;
@@ -242,7 +244,6 @@ module.exports = (function() {
          */
         replace(appId, chatroomId, messager, callback) {
             messager = messager || {};
-            messager.type = messager.type || CHATSHIER;
 
             let platformUid = messager.platformUid;
             if (!platformUid) {
@@ -252,7 +253,9 @@ module.exports = (function() {
 
             let query = {
                 '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
                 'chatrooms._id': this.Types.ObjectId(chatroomId),
+                'chatrooms.isDeleted': false,
                 'chatrooms.messagers.platformUid': platformUid
             };
 
@@ -275,7 +278,7 @@ module.exports = (function() {
         insert(appId, chatroomId, messager, callback) {
             messager = messager || {};
             messager.type = messager.type || CHATSHIER;
-            messager.createdTime = messager.updatedTime = Date.now();
+            messager.createdTime = messager.updatedTime = messager.lastTime = Date.now();
 
             let platformUid = messager.platformUid;
             if (!platformUid) {

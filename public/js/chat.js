@@ -597,6 +597,7 @@
 
             var appId = socketBody.app_id;
             var chatroomId = socketBody.chatroom_id;
+            var messager = socketBody.messager;
             var messages = socketBody.messages;
             messages.sort(function(a, b) {
                 // 根據發送的時間從早到晚排序
@@ -621,7 +622,7 @@
 
                 var message = messages[i];
                 var messagerId = message.messager_id;
-                var messager = messagers[messagerId];
+                messagers[messagerId] = messager;
                 var senderUid;
 
                 return Promise.resolve().then(function() {
@@ -629,7 +630,7 @@
                         return users[userId];
                     }
                     senderUid = messagers[messagerId].platformUid;
-                    
+
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
 
                     // 如果前端沒資料代表是新用戶
@@ -672,6 +673,12 @@
                     }
                     updateClientTab(messager, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(messager, message, appId, chatroomId); // update 聊天室
+
+                    // 更新 UI 資料
+                    var $profileCard = $('.card-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + senderUid + '"]');
+                    $profileCard.find('.panel-table').remove();
+                    var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, senderUid, sender));
+                    $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
                 }).then(function() {
                     return nextMessage(i + 1);
                 });
@@ -1151,6 +1158,11 @@
                     '</td>';
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
+                    if ('createdTime' === field.alias) {
+                        fieldValue = messager.createdTime;
+                    } else if ('lastTime' === field.alias) {
+                        fieldValue = messager.lastTime;
+                    }
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
@@ -1158,6 +1170,9 @@
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
+                    if ('chatCount' === field.alias) {
+                        fieldValue = messager.chatCount;
+                    }
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';

@@ -3,6 +3,7 @@ interface ChatshierChatSocketBody {
     chatroom_id: string;
     recipientUid: string;
     type: string;
+    messager?: any,
     messages: ChatshierMessage[]
 }
 
