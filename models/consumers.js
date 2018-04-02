@@ -9,17 +9,15 @@ module.exports = (function() {
             this.project = {
                 platformUid: true,
                 age: true,
-                chatCount: true,
                 email: true,
                 isDeleted: true,
                 updatedTime: true,
                 createdTime: true,
+                chatroom_ids: true,
                 gender: true,
                 name: true,
                 photo: true,
-                lastTime: true,
                 remark: true,
-                totalCount: true,
                 custom_fields: true
             };
         }
@@ -65,7 +63,6 @@ module.exports = (function() {
          */
         replace(platformUid, consumer, callback) {
             consumer = consumer || {};
-
             consumer.platformUid = platformUid;
             consumer.updatedTime = Date.now();
 

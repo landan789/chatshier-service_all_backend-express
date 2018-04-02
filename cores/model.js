@@ -43,6 +43,9 @@ module.exports = (function() {
             'type': {type: String, default: 'CHATSHIER'},
             'platformUid': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
+            'lastTime': {type: Date, default: Date.now()},
+            'chatCount': {type: Number, default: 0},
+            'totalCount': {type: Number, default: 0},
             'unRead': {type: Number, default: 0},
             'assigned_ids': {type: [{type: String}], default: []}
         }],
@@ -189,7 +192,6 @@ module.exports = (function() {
         'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
         'age': {type: Number, default: 0},
-        'chatCount': {type: Number, default: 0},
         'chatroom_ids': {type: [{type: String}], default: []},
         'custom_fields': {type: Object, default: {}},
         'email': {type: String, default: ''},
@@ -199,9 +201,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
         'photo': {type: String, default: ''},
-        'lastTime': {type: Date, default: Date.now()},
-        'remark': {type: String, default: ''},
-        'totalCount': {type: Number, default: 0}
+        'remark': {type: String, default: ''}
     }, { minimize: false });
 
     // endregion
