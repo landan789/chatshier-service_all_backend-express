@@ -188,7 +188,19 @@ function init(server) {
                     return;
                 }
 
-                totalMessages = receivedMessages.concat(repliedMessages);
+                let eventType = '';
+                if (receivedMessages.length > 0) {
+                    eventType = receivedMessages[0].eventType || null;
+                }
+
+                // 接收到的事件為 follow 或 unfollow 時
+                // 只處理 repliedMessages 
+                if (eventType && ('follow' === eventType || 'unfollow' === eventType)){
+                    totalMessages = repliedMessages;
+                } else {
+                    totalMessages = receivedMessages.concat(repliedMessages);
+                }
+
                 return totalMessages.length > 0 && chatroomId && appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, recipientIds, totalMessages.length);
             }).then(() => {
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
