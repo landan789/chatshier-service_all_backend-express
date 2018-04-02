@@ -4,6 +4,8 @@ module.exports = (function() {
     const USERS = 'users';
     const CONSUMERS = 'consumers';
     const CHATSHIER = 'CHATSHIER';
+    // const CHAT_COUNT_INTERVAL_TIME = 900000;
+    const CHAT_COUNT_INTERVAL_TIME = 1000;
 
     class AppsChatroomsMessagersModel extends ModelCore {
         constructor() {
@@ -115,6 +117,7 @@ module.exports = (function() {
          * @param {string|null} chatroomId
          * @param {string|string[]} platformUids
          * @param {(appsChatroomMessager: any) => any} [callback]
+         * @returns {Promise<any>}
          */
         findByPlatformUid(appId, chatroomId, platformUids, callback) {
             if (!(platformUids instanceof Array)) {
@@ -203,6 +206,7 @@ module.exports = (function() {
          * @param {string|string[]} appIds
          * @param {boolean} [shouldFindChatshier=false]
          * @param {(platformUids: string[]|null) => any} [callback]
+         * @returns {Promise<any>}
          */
         findPlatformUids(appIds, shouldFindChatshier, callback) {
             shouldFindChatshier = !!shouldFindChatshier;
@@ -250,16 +254,23 @@ module.exports = (function() {
                 return Promise.resolve(null);
             }
 
-            let query = {
-                '_id': this.Types.ObjectId(appId),
-                'chatrooms._id': this.Types.ObjectId(chatroomId),
-                'chatrooms.messagers.platformUid': platformUid
-            };
-
-            return this.AppsModel.findOne(query).then((result) => {
-                let isExist = !!result;
+            return this.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomMessager) => {
+                let isExist = !!(appsChatroomMessager && Object.keys(appsChatroomMessager).length > 0);
                 if (isExist) {
-                    return this.updateByPlatformUid(appId, chatroomId, platformUid, messager, callback);
+                    let messagerInDB = appsChatroomMessager[appId].chatrooms[chatroomId].messagers[platformUid];
+                    let currentTime = Date.now();
+                    let _messager = {
+                        chatCount: messagerInDB.chatCount ? messagerInDB.chatCount : 0,
+                        lastTime: currentTime
+                    };
+
+                    if (messagerInDB.lastTime) {
+                        let lastChatedTimeGap = currentTime - new Date(messagerInDB.lastTime).getTime();
+                        if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                            _messager.chatCount++;
+                        }
+                    }
+                    return this.updateByPlatformUid(appId, chatroomId, platformUid, _messager, callback);
                 } else {
                     return this.insert(appId, chatroomId, messager, callback);
                 }
@@ -275,7 +286,7 @@ module.exports = (function() {
         insert(appId, chatroomId, messager, callback) {
             messager = messager || {};
             messager.type = messager.type || CHATSHIER;
-            messager.createdTime = messager.updatedTime = Date.now();
+            messager.createdTime = messager.updatedTime = messager.lastTime = Date.now();
 
             let platformUid = messager.platformUid;
             if (!platformUid) {

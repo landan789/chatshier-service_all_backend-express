@@ -629,7 +629,7 @@
                         return users[userId];
                     }
                     senderUid = messagers[messagerId].platformUid;
-                    
+
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
 
                     // 如果前端沒資料代表是新用戶
@@ -1151,6 +1151,11 @@
                     '</td>';
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
+                    if ('createdTime' === field.alias) {
+                        fieldValue = messager.createdTime;
+                    } else if ('lastTime' === field.alias) {
+                        fieldValue = messager.lastTime;
+                    }
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
@@ -1158,6 +1163,9 @@
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
+                    if ('chatCount' === field.alias) {
+                        fieldValue = messager.chatCount;
+                    }
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';

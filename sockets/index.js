@@ -113,18 +113,23 @@ function init(server) {
                             chatroomId = Object.keys(chatrooms).shift() || '';
                             let messager = {
                                 type: app.type,
-                                platformUid: platformUid
+                                platformUid: platformUid,
+                                lastTime: Date.now()
                             };
 
                             // 自動建立一個聊天室後，將此訊息發送者加入，並同時更新 consumer 資料
                             return Promise.all([
-                                appsChatroomsMessagersMdl.replace(appId, chatroomId, messager),
-                                consumersMdl.replace(platformUid, profile)
+                                consumersMdl.replace(platformUid, profile),
+                                appsChatroomsMessagersMdl.replace(appId, chatroomId, messager)
                             ]).then((promiseResponses) => {
+                                let consumers = promiseResponses.shift();
+                                let consumer = consumers[platformUid];
+
                                 let appsChatroomsMessagers = promiseResponses.shift();
                                 let messagers = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers;
                                 let messager = messagers[platformUid];
                                 messagerId = messager._id;
+                                return consumer;
                             });
                         });
                     }
@@ -134,7 +139,15 @@ function init(server) {
                     let messagers = chatrooms[chatroomId].messagers;
                     let messager = messagers[platformUid];
                     messagerId = messager._id;
-                    return consumersMdl.replace(platformUid, profile);
+
+                    return Promise.all([
+                        consumersMdl.replace(platformUid, profile),
+                        appsChatroomsMessagersMdl.replace(appId, chatroomId, messager)
+                    ]).then((promiseResponses) => {
+                        let consumers = promiseResponses.shift();
+                        let consumer = consumers[platformUid];
+                        return consumer;
+                    });
                 });
             }).then(() => {
                 return botSvc.getReceivedMessages(req, res, messagerId, appId, app);
