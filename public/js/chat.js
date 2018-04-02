@@ -625,17 +625,11 @@
                 var senderUid;
 
                 return Promise.resolve().then(function() {
-                    if (!messager) {
-                        return api.appsChatroomsMessagers.findOne(appId, chatroomId, messagerId, userId).then(function(resJson) {
-                            var appsChatroomsMessagers = resJson.data;
-                            messager = messagers[messagerId] = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
-                        });
-                    }
-                }).then(function() {
-                    senderUid = messagers[messagerId].platformUid;
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
+                    senderUid = messagers[messagerId].platformUid;
+                    
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
 
                     // 如果前端沒資料代表是新用戶
@@ -667,7 +661,7 @@
                             appId: appId,
                             name: apps[appId].name,
                             type: apps[appId].type,
-                            platformUid: senderUid,
+                            platformUid: senderUid || '',
                             chatroomId: chatroomId,
                             chatroom: chatroom,
                             person: sender
@@ -840,8 +834,10 @@
     }
 
     function generateMessageHtml(srcHtml, message, messager, appType) {
-        var platformUid = messager.platformUid;
-        var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        if (messager && SYSTEM !== message.from) {
+            var platformUid = messager.platformUid;
+            var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        }
         var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
         var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
@@ -1571,12 +1567,14 @@
     }
 
     function updateClientTab(messager, message, appId, chatroomId) {
-        var platformUid = messager.platformUid;
-        var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        if (messager && SYSTEM !== message.from) {
+            var platformUid = messager.platformUid;
+            var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        }
+        var senderName = SYSTEM === message.from ? 'Chatshier' : sender.name;
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
         var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
-        var senderName = SYSTEM === message.from ? 'Chatshier' : sender.name;
         $selectedTablinks.find('.client-name').text(senderName);
 
         /** @type {ChatshierMessage} */
