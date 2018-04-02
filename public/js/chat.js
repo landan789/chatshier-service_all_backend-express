@@ -840,8 +840,10 @@
     }
 
     function generateMessageHtml(srcHtml, message, messager, appType) {
-        var platformUid = messager.platformUid;
-        var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        if (messager && SYSTEM !== message.from) {
+            var platformUid = messager.platformUid;
+            var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
+        }
         var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
         var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
