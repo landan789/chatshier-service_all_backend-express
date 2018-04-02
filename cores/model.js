@@ -45,7 +45,6 @@ module.exports = (function() {
             'isDeleted': {type: Boolean, default: false},
             'lastTime': {type: Date, default: Date.now()},
             'chatCount': {type: Number, default: 0},
-            'totalCount': {type: Number, default: 0},
             'unRead': {type: Number, default: 0},
             'assigned_ids': {type: [{type: String}], default: []}
         }],

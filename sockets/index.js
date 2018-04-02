@@ -119,13 +119,14 @@ function init(server) {
                             // 自動建立一個聊天室後，將此訊息發送者加入，並同時更新 consumer 資料
                             return Promise.all([
                                 consumersMdl.replace(platformUid, profile),
-                                appsChatroomsMessagersMdl.replace(appId, chatroomId, messager)
+                                appsChatroomsMessagersMdl.insert(appId, chatroomId, messager)
                             ]).then((promiseResponses) => {
                                 let consumers = promiseResponses.shift();
                                 let consumer = consumers[platformUid];
 
                                 let appsChatroomsMessagers = promiseResponses.shift();
-                                let messagers = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers;
+                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                let messagers = chatrooms[chatroomId].messagers;
                                 messager = messagers[platformUid];
                                 return consumer;
                             });
@@ -153,10 +154,12 @@ function init(server) {
 
                     return Promise.all([
                         consumersMdl.replace(platformUid, profile),
-                        appsChatroomsMessagersMdl.replace(appId, chatroomId, _messager)
+                        appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, _messager)
                     ]).then((promiseResponses) => {
                         let consumers = promiseResponses.shift();
                         let consumer = consumers[platformUid];
+
+                        let appsChatroomsMessagers = promiseResponses.shift();
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
                         messager = messagers[platformUid];
@@ -260,7 +263,7 @@ function init(server) {
                     // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
                     // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                     recipientUid: '',
-                    messager: messager,
+                    sender: messager,
                     messages: Object.values(_messages)
                 };
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
@@ -296,6 +299,7 @@ function init(server) {
             // Uid LINE 或 FACEBOOK 用戶的 Uid
             let recipientUid = socketBody.recipientUid;
             let app;
+            let sender;
 
             return new Promise((resolve) => {
                 appsMdl.find(appId, null, (apps) => {
@@ -322,8 +326,8 @@ function init(server) {
                             return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_FIND);
                         }
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                        let messager = chatrooms[chatroomId].messagers[senderUid];
-                        let messagerId = messager._id;
+                        sender = chatrooms[chatroomId].messagers[senderUid];
+                        let messagerId = sender._id;
 
                         messages[i].messager_id = messagerId;
                         let message = messages[i];
@@ -387,7 +391,36 @@ function init(server) {
                 };
                 return nextMessage(0);
             }).then(() => {
+                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    let messagers = chatrooms[chatroomId].messagers;
+                    let messager = messagers[recipientUid];
+
+                    // 如果 messager 已經存在，更新最後聊天時間及計算聊天次數
+                    let currentTime = Date.now();
+                    let _messager = {
+                        platformUid: recipientUid,
+                        chatCount: messager.chatCount ? messager.chatCount : 0,
+                        lastTime: currentTime
+                    };
+                    if (messager.lastTime) {
+                        let lastChatedTimeGap = currentTime - new Date(messager.lastTime).getTime();
+                        if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                            _messager.chatCount++;
+                        }
+                    }
+
+                    return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, recipientUid, _messager).then(() => {
+                        let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                        let messagers = chatrooms[chatroomId].messagers;
+                        let messager = messagers[recipientUid];
+                        return messager;
+                    });
+                });
+            }).then((recipient) => {
                 // 將 socket 資料原封不動的廣播到 chatshier chatroom
+                socketBody.sender = sender;
+                socketBody.recipient = recipient;
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();

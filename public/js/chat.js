@@ -597,7 +597,10 @@
 
             var appId = socketBody.app_id;
             var chatroomId = socketBody.chatroom_id;
-            var messager = socketBody.messager;
+            var senderMsger = socketBody.sender;
+            var senderUid;
+            var recipientMsger = socketBody.recipient;
+            var recipientUid = socketBody.recipientUid;
             var messages = socketBody.messages;
             messages.sort(function(a, b) {
                 // 根據發送的時間從早到晚排序
@@ -621,16 +624,19 @@
                 }
 
                 var message = messages[i];
-                var messagerId = message.messager_id;
-                messagers[messagerId] = messager;
-                var senderUid;
+                var senderMsgerId = message.messager_id;
+                if (senderMsger) {
+                    messagers[senderMsgerId] = senderMsger;
+                } else {
+                    senderMsger = messagers[senderMsgerId];
+                }
 
                 return Promise.resolve().then(function() {
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
-                    senderUid = messagers[messagerId].platformUid;
 
+                    senderUid = senderMsger.platformUid;
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
 
                     // 如果前端沒資料代表是新用戶
@@ -671,14 +677,26 @@
                         createProfilePanel(uiRequireData);
                         return;
                     }
-                    updateClientTab(messager, message, appId, chatroomId); // update 客戶清單
-                    updateMessagePanel(messager, message, appId, chatroomId); // update 聊天室
+                    updateClientTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
-                    // 更新 UI 資料
-                    var $profileCard = $('.card-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + senderUid + '"]');
-                    $profileCard.find('.panel-table').remove();
-                    var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, senderUid, sender));
-                    $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
+                    // 更新 consumer chat information 資料
+                    var consumer;
+                    if (CHATSHIER !== message.from) {
+                        consumer = consumers[senderUid];
+                    } else if (recipientMsger && CHATSHIER !== recipientMsger.type) {
+                        messagers[recipientMsger._id] = recipientMsger;
+                        recipientUid = recipientMsger.platformUid;
+                        consumer = consumers[recipientUid];
+                    }
+
+                    if (consumer) {
+                        var consumerUid = consumer.platformUid;
+                        var $profileCard = $('.card-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
+                        $profileCard.find('.panel-table').remove();
+                        var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
+                        $(newProfileNode.shift()).appendTo($profileCard.find('.photo-container'));
+                    }
                 }).then(function() {
                     return nextMessage(i + 1);
                 });
@@ -1158,9 +1176,9 @@
                     '</td>';
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
-                    if ('createdTime' === field.alias) {
+                    if ('createdTime' === field.alias && messager.createdTime) {
                         fieldValue = messager.createdTime;
-                    } else if ('lastTime' === field.alias) {
+                    } else if ('lastTime' === field.alias && messager.lastTime) {
                         fieldValue = messager.lastTime;
                     }
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
