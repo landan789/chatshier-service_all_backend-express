@@ -524,13 +524,17 @@ module.exports = (function() {
         };
 
         /**
-         * @param {string} appId
+         * @param {string|string[]} appIds
          * @param {string|string[]|null} chatroomIds
          * @param {string} platformUid
          * @param {(appsChatroomsMessagers: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        remove(appId, chatroomIds, platformUid, callback) {
+        remove(appIds, chatroomIds, platformUid, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             let messager = {
                 platformUid: platformUid,
                 isDeleted: true,
@@ -538,7 +542,9 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': this.Types.ObjectId(appId),
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
                 'chatrooms.isDeleted': false,
                 'chatrooms.messagers.platformUid': platformUid,
                 'chatrooms.messagers.isDeleted': false
@@ -575,14 +581,12 @@ module.exports = (function() {
                 }
             }
 
-            return this.AppsModel.update(query, updateOper, options).then(() => {
-                let query = {
-                    '_id': this.Types.ObjectId(appId),
-                    'chatrooms.isDeleted': false,
-                    'chatrooms.messagers.platformUid': platformUid,
-                    'chatrooms.messagers.isDeleted': true
-                };
+            return this.AppsModel.update(query, updateOper, options).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(result);
+                }
 
+                query['chatrooms.messagers.isDeleted'] = true;
                 let aggregations = [
                     {
                         $unwind: '$chatrooms'
@@ -637,41 +641,27 @@ module.exports = (function() {
                     return appsChatroomsMessagers;
                 });
             }).then((appsChatroomsMessagers) => {
-                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                let appIds = Object.keys(appsChatroomsMessagers);
 
-                // 將 messager 從 chatroom 刪除後，檢查 messager 身份為何
-                // 屬於 chatshier 用戶時，將此 chatroomId 從 user 的 chatroom_ids 裡移除
-                // 屬於第三方平台用戶時，將此 chatroomId 從 consumer 的 chatroom_ids 裡移除
-                return Promise.all(Object.keys(chatrooms).map((chatroomId) => {
-                    let _messager = chatrooms[chatroomId].messagers[platformUid];
-                    let project = {
-                        chatroom_ids: true
-                    };
+                return Promise.all(appIds.map((appId) => {
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    let chatroomIds = Object.keys(chatrooms);
 
-                    if (CHATSHIER === _messager.type) {
-                        return this.UsersModel.findOne({ _id: platformUid }, project).then((userDoc) => {
-                            let idx = userDoc ? userDoc.chatroom_ids.indexOf(chatroomId) : -1;
-                            if (0 <= idx) {
-                                userDoc.chatroom_ids.splice(idx, 1);
-                                return userDoc.save();
-                            }
-                        });
-                    }
-
-                    return this.ConsumersModel.findOne({ platformUid: platformUid }, project).then((consumerDoc) => {
-                        let idx = consumerDoc ? consumerDoc.chatroom_ids.indexOf(chatroomId) : -1;
-                        if (0 <= idx) {
-                            consumerDoc.chatroom_ids.splice(idx, 1);
-                            return consumerDoc.save();
-                        }
-                    });
+                    // 將 messager 從 chatroom 刪除後，檢查 messager 身份為何
+                    // 屬於 chatshier 用戶時，將此 chatroomId 從 user 的 chatroom_ids 裡移除
+                    // 屬於第三方平台用戶時，將此 chatroomId 從 consumer 的 chatroom_ids 裡移除
+                    return Promise.all(chatroomIds.map((chatroomId) => {
+                        let _messager = chatrooms[chatroomId].messagers[platformUid];
+                        return this._removeChatroomIds(chatroomId, platformUid, _messager.type);
+                    }));
                 })).then(() => {
                     return appsChatroomsMessagers;
                 });
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
@@ -703,6 +693,36 @@ module.exports = (function() {
             return this.ConsumersModel.findOne({ platformUid: platformUid }, project).then((consumerDoc) => {
                 if (consumerDoc && 0 > consumerDoc.chatroom_ids.indexOf(chatroomId)) {
                     consumerDoc.chatroom_ids.push(chatroomId);
+                    return consumerDoc.save();
+                }
+            });
+        }
+
+        /**
+         * @param {string} chatroomId
+         * @param {string} platformUid
+         * @param {string} messagerType
+         * @returns {Promise<any>}
+         */
+        _removeChatroomIds(chatroomId, platformUid, messagerType) {
+            let project = {
+                chatroom_ids: true
+            };
+
+            if (CHATSHIER === messagerType) {
+                return this.UsersModel.findOne({ _id: platformUid }, project).then((userDoc) => {
+                    let idx = userDoc ? userDoc.chatroom_ids.indexOf(chatroomId) : -1;
+                    if (0 <= idx) {
+                        userDoc.chatroom_ids.splice(idx, 1);
+                        return userDoc.save();
+                    }
+                });
+            }
+
+            return this.ConsumersModel.findOne({ platformUid: platformUid }, project).then((consumerDoc) => {
+                let idx = consumerDoc ? consumerDoc.chatroom_ids.indexOf(chatroomId) : -1;
+                if (0 <= idx) {
+                    consumerDoc.chatroom_ids.splice(idx, 1);
                     return consumerDoc.save();
                 }
             });

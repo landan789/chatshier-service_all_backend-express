@@ -1,6 +1,6 @@
 module.exports = (function() {
-    var API_ERROR = require('../config/api_error');
-    var API_SUCCESS = require('../config/api_success');
+    const API_ERROR = require('../config/api_error');
+    const API_SUCCESS = require('../config/api_success');
 
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
@@ -18,10 +18,10 @@ module.exports = (function() {
     function GroupsMembersController() {};
 
     GroupsMembersController.prototype.getAll = function(req, res, next) {
-        var userId = req.params.userid;
-        var groupId = req.params.groupid;
+        let userId = req.params.userid;
+        let groupId = req.params.groupid;
 
-        var proceed = Promise.resolve();
+        let proceed = Promise.resolve();
         proceed.then(() => {
             if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
@@ -41,8 +41,8 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var groupIds = user.group_ids;
-            var index = groupIds.indexOf(groupId);
+            let groupIds = user.group_ids;
+            let index = groupIds.indexOf(groupId);
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
@@ -57,14 +57,14 @@ module.exports = (function() {
                 });
             });
         }).then((groupsMembers) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                 data: groupsMembers
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -74,17 +74,17 @@ module.exports = (function() {
     };
 
     GroupsMembersController.prototype.postOne = function(req, res, next) {
-        var userId = req.params.userid;
-        var groupId = req.params.groupid;
-        var memberUserId = req.body.userid;
+        let userId = req.params.userid;
+        let groupId = req.params.groupid;
+        let memberUserId = req.body.userid;
         let memberUser;
 
-        var postMember = {
+        let postMember = {
             user_id: memberUserId || '',
             status: false, // false 邀請中 ; true 已加入
             type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : READ // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
         };
-        var proceed = Promise.resolve();
+        let proceed = Promise.resolve();
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
@@ -131,17 +131,17 @@ module.exports = (function() {
             });
         }).then((members) => {
             // 該群組下的所有使用者 IDs
-            var userIds = Object.values(members).map((member) => {
-                var userId = member.user_id;
+            let userIds = Object.values(members).map((member) => {
+                let userId = member.user_id;
                 return userId;
             });
-            var paramsIndex = userIds.indexOf(userId);
-            var paramsMemberId = Object.keys(members)[paramsIndex];
-            var paramsMember = members[paramsMemberId];
+            let paramsIndex = userIds.indexOf(userId);
+            let paramsMemberId = Object.keys(members)[paramsIndex];
+            let paramsMember = members[paramsMemberId];
 
-            var bodyIndex = userIds.indexOf(memberUserId);
-            var bodyMemberId = Object.keys(members)[bodyIndex];
-            var bodyMember = members[bodyMemberId];
+            let bodyIndex = userIds.indexOf(memberUserId);
+            let bodyMemberId = Object.keys(members)[bodyIndex];
+            let bodyMember = members[bodyMemberId];
 
             if (0 <= bodyIndex && !bodyMember.isDeleted) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
@@ -194,14 +194,14 @@ module.exports = (function() {
                 });
             });
         }).then((groupsMembers) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 data: groupsMembers
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
@@ -211,11 +211,11 @@ module.exports = (function() {
     };
 
     GroupsMembersController.prototype.putOne = function(req, res, next) {
-        var userId = req.params.userid;
-        var groupId = req.params.groupid;
-        var memberId = req.params.memberid;
+        let userId = req.params.userid;
+        let groupId = req.params.groupid;
+        let memberId = req.params.memberid;
 
-        var putMember = {};
+        let putMember = {};
         if (undefined !== req.body.status) {
             putMember.status = !!req.body.status; // false 邀請中 ; true 已加入
         }
@@ -224,12 +224,12 @@ module.exports = (function() {
         }
 
         // 前端未填入的訊息，不覆蓋
-        for (var key in putMember) {
+        for (let key in putMember) {
             if (null === putMember[key]) {
                 delete putMember[key];
             }
         }
-        var proceed = Promise.resolve();
+        let proceed = Promise.resolve();
 
         proceed.then(() => {
             if ('' === userId || undefined === userId || null === userId) {
@@ -267,7 +267,7 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findMembers(groupId, null, (members) => {
-                    if (null === members || undefined === members || '' === members) {
+                    if (!members) {
                         reject(members);
                         return;
                     }
@@ -276,21 +276,22 @@ module.exports = (function() {
             });
         }).then((members) => {
             // 該群組下的所有使用者 IDs
-            var userIds = Object.values(members).map((member) => {
-                var userId = member.user_id;
-                if (member.isDeleted) {
-                    return null;
+            let groupOwner;
+            let userIds = Object.values(members).map((member) => {
+                let userId = member.user_id;
+                if (OWNER === member.type) {
+                    groupOwner = member;
                 }
                 return userId;
             });
-            var index = userIds.indexOf(req.params.userid);
+            let index = userIds.indexOf(req.params.userid);
 
             if (0 > index) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
-            var _memberId = Object.keys(members)[index];
+            let _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
-            var member = members[_memberId];
+            let member = members[_memberId];
             if (putMember.status && _memberId !== memberId) {
                 // 當下使用者只能改變自己的 member.status 狀態，回應邀請
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP_MEMBER_STATUS);
@@ -326,6 +327,8 @@ module.exports = (function() {
                 });
             }).then((groupsMembers) => {
                 let member = groupsMembers[groupId].members[memberId];
+                let memberUserId = member.user_id;
+                let ownerUserId = groupOwner.user_id;
 
                 // 有更新 member 的 status 的話且更新為已加入的話
                 // 抓取出 group 裡的 app_ids 清單
@@ -333,26 +336,33 @@ module.exports = (function() {
                 if (undefined !== req.body.status && member.status) {
                     return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
                         appIds = appIds || [];
-                        let memberUserId = member.user_id;
 
                         return Promise.all(appIds.map((appId) => {
-                            // 抓取新增此成員的人的 chatroomId 來作為新成員的 chatroomId
-                            // 將群組中的所有 app 的 chatroom 加入此成員
-                            return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, userId).then((appsChatroomsMessagers) => {
+                            // 群者此群組擁有者在群組 app 內所有的 chatroomId
+                            // 將新成員加入至所有 app 的 chatroom 中
+                            return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, ownerUserId).then((appsChatroomsMessagers) => {
                                 if (!appsChatroomsMessagers) {
                                     return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                                } else if (!appsChatroomsMessagers[appId]) {
+                                    return [];
                                 }
+
                                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                                let chatroomId = Object.keys(chatrooms).shift() || '';
-                                let messager = {
-                                    type: CHATSHIER,
-                                    isDeleted: false,
-                                    unRead: 0,
-                                    platformUid: memberUserId
-                                };
-                                return appsChatroomsMessagersMdl.replace(appId, chatroomId, messager);
+                                let chatroomIds = Object.keys(chatrooms);
+
+                                return Promise.all(chatroomIds.map((chatroomId) => {
+                                    let messager = {
+                                        type: CHATSHIER,
+                                        isDeleted: false,
+                                        unRead: 0,
+                                        platformUid: memberUserId
+                                    };
+                                    return appsChatroomsMessagersMdl.replace(appId, chatroomId, messager);
+                                }));
                             });
                         }));
+                    }).then(() => {
+                        return groupsMembers;
                     });
                 }
                 return groupsMembers;
@@ -375,11 +385,11 @@ module.exports = (function() {
     };
 
     GroupsMembersController.prototype.deleteOne = function(req, res, next) {
-        var userId = req.params.userid;
-        var groupId = req.params.groupid;
-        var memberId = req.params.memberid;
+        let userId = req.params.userid;
+        let groupId = req.params.groupid;
+        let memberId = req.params.memberid;
 
-        var proceed = Promise.resolve();
+        let proceed = Promise.resolve();
 
         proceed.then(() => {
             return new Promise((resolve, reject) => {
@@ -400,8 +410,8 @@ module.exports = (function() {
                 });
             });
         }).then((user) => {
-            var userGroupIds = user.group_ids;
-            var index = userGroupIds.indexOf(groupId);
+            let userGroupIds = user.group_ids;
+            let index = userGroupIds.indexOf(groupId);
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
@@ -420,74 +430,77 @@ module.exports = (function() {
             let members = promiseData.members;
 
             // 該群組下的所有使用者 IDs
-            var groupUserIds = Object.values(members).map((member) => {
-                var userId = member.user_id;
+            let groupUserIds = Object.values(members).map((member) => {
+                let userId = member.user_id;
                 if (member.isDeleted) {
                     return null;
                 }
                 return userId;
             });
 
-            var index = groupUserIds.indexOf(userId);
+            let index = groupUserIds.indexOf(userId);
             if (0 > index) {
                 return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_REMOVED_FROM_THIS_GROUP);
             }
 
-            var _memberId = Object.keys(members)[index];
+            let _memberId = Object.keys(members)[index];
             // member 當下使用者所對應到的 member 在 該 group 中
-            var member = members[_memberId];
+            let member = members[_memberId];
             if (OWNER !== member.type && ADMIN !== member.type) {
                 // 只有當下使用者為 OWNER 或 ADMIN 才能夠 刪除 成員
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
             }
 
-            return new Promise((resolve, reject) => {
-                groupsMembersMdl.remove(groupId, memberId, (groupsMembers) => {
-                    if (!groupsMembers) {
-                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
-                        return;
-                    };
-                    resolve(groupsMembers);
-                });
-            }).then((groupsMembers) => {
+            return groupsMembersMdl.remove(groupId, memberId).then((groupsMembers) => {
+                if (!groupsMembers) {
+                    return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
+                };
+
                 // 群組成員 user 資料中的 groups 也須一併移除 group
                 // 群組成員刪除後，也需要刪除內部聊天室的 messager
                 // 群組成員的 userId 即是內部聊天室的 messagerId
                 let deletedMember = groupsMembers[groupId].members[memberId];
                 let memberUserId = deletedMember.user_id;
 
-                return new Promise((resolve) => {
-                    let idx = userGroupIds.indexOf(groupId);
-                    userGroupIds.splice(idx, 1);
+                let idx = userGroupIds.indexOf(groupId);
+                userGroupIds.splice(idx, 1);
 
-                    let updateUser = {
-                        group_ids: userGroupIds
-                    };
-                    usersMdl.update(memberUserId, updateUser, (users) => {
-                        resolve(users);
-                    });
-                }).then((users) => {
+                let updateUser = {
+                    group_ids: userGroupIds
+                };
+
+                return usersMdl.update(memberUserId, updateUser).then((users) => {
+                    if (!users) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                    }
+
+                    let memberUser = users[memberUserId];
+                    let chatroomIds = memberUser.chatroom_ids;
+
                     // 抓取出 group 裡的 app_ids 清單
-                    // 將此 group member 從所有 app 裡的 messagers 刪除
-                    return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                    // 將此 group member 從所有 app 裡的 chatrooms messagers 刪除
+                    return groupsMdl.findAppIds(groupId, memberUserId).then((appIds) => {
                         appIds = appIds || [];
-                        return Promise.all(appIds.map((appId) => {
-                            return appsChatroomsMessagersMdl.remove(appId, null, memberUserId);
-                        }));
+                        return appsChatroomsMessagersMdl.remove(appIds, chatroomIds, memberUserId).then((appsChatroomsMessagers) => {
+                            if (!appsChatroomsMessagers) {
+                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
+                            };
+                            return appsChatroomsMessagers;
+                        });
                     });
                 }).then(() => {
                     return groupsMembers;
                 });
             });
         }).then((groupsMembers) => {
-            var json = {
+            let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                 data: groupsMembers
             };
             res.status(200).json(json);
         }).catch((ERROR) => {
-            var json = {
+            let json = {
                 status: 0,
                 msg: ERROR.MSG,
                 code: ERROR.CODE
