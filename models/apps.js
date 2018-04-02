@@ -4,7 +4,7 @@ module.exports = (function() {
     const APPS = 'apps';
     const USERS = 'users';
     const GROUPS = 'GROUPS';
-    const WEBHOOKS = 'webhooks';
+
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const CHATSHIER = 'CHATSHIER';
@@ -15,7 +15,7 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
             this.UsersModel = this.model(USERS, this.UsersSchema);
             this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
-            this.WebhooksModel = this.model(WEBHOOKS, this.WebhooksSchema);
+
             this.project = {
                 name: true,
                 id1: true,

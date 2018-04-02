@@ -7,10 +7,12 @@ module.exports = (function() {
     const WRITE = 'WRITE';
     const READ = 'READ';
 
+    const CHATSHIER = 'CHATSHIER';
+
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const appsFieldsMdl = require('../models/apps_fields');
-    const appsMessagersMdl = require('../models/apps_messagers');
     const usersMdl = require('../models/users');
     const groupsMdl = require('../models/groups');
 
@@ -24,7 +26,7 @@ module.exports = (function() {
             if ('' === req.params.userid || undefined === req.params.userid || null === req.params.userid) {
                 return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
             };
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 usersMdl.find(userId, null, (users) => {
                     if (!users) {
@@ -127,26 +129,18 @@ module.exports = (function() {
                     let group = groups[groupId];
                     group.app_ids.push(appId);
 
-                    // 將預設的客戶分類條件資料新增至 App 中
-                    return new Promise((resolve, reject) => {
-                        appsFieldsMdl.insertDefaultFields(appId, (appsFields) => {
-                            if (!appsFields) {
-                                return reject(API_ERROR.APP_FAILED_TO_INSERT);
-                            }
-                            resolve();
-                        });
-                    }).then(() => {
-                        // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
-                        return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
-                            let chatroomId = Object.keys(appsChatrooms[appId].chatrooms).shift();
-                            let members = Object.values(group.members);
+                    // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
+                    return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                        if (!appsChatrooms) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_INSERT);
+                        }
 
-                            return Promise.all(members.map((member) => {
-                                let messager = {
-                                    chatroom_id: chatroomId
-                                };
-                                return appsMessagersMdl.replaceMessager(appId, member.user_id, messager);
-                            }));
+                        // 將預設的客戶分類條件資料新增至 App 中
+                        return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
+                            if (!appsFields) {
+                                return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                            }
+                            return appsFields;
                         });
                     });
                 }).then(() => {
@@ -195,7 +189,7 @@ module.exports = (function() {
             if (0 === Object.keys(putGroup).length) {
                 return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
             };
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 usersMdl.find(userId, null, (users) => {
                     if (!users) {
@@ -211,7 +205,7 @@ module.exports = (function() {
             if (0 > index) {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 groupsMdl.find(groupId, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
@@ -235,7 +229,7 @@ module.exports = (function() {
             if (READ === member.type) {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_UPDATE_GROUP);
             };
-        }).then(() => {
+
             return new Promise((resolve, reject) => {
                 groupsMdl.update(groupId, putGroup, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {

@@ -13,6 +13,7 @@ module.exports = (function() {
             this.UsersModel = this.model(USERS, this.UsersSchema);
             this.GroupsModel = this.model(GROUPS, this.GroupsSchema);
         }
+
         find(groupIds, memberId, callback) {
             // polymorphism from groupid | groupid[]
             if (!(groupIds instanceof Array)) {
@@ -170,8 +171,7 @@ module.exports = (function() {
             }).then((members) => {
                 ('function' === typeof callback) && callback(members);
                 return members;
-            }).catch((error) => {
-                console.log(error);
+            }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });

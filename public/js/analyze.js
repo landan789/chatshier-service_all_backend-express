@@ -62,7 +62,7 @@
 
     return Promise.all([
         api.apps.findAll(userId),
-        api.appsChatroomsMessages.findAll(userId)
+        api.appsChatrooms.findAll(userId)
     ]).then(function(respJsons) {
         var appsData = respJsons.shift().data;
         var messagesData = respJsons.shift().data;

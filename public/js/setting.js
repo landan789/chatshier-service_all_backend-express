@@ -733,7 +733,7 @@ window.googleClientHelper.loadAPI().then(function() {
 
         GroupPanelCtrl.prototype.generateGroupHtml = function(groupId, groupName, member) {
             var html =
-                '<div class="group-tab" role="tab">' +
+                '<div group-id="' + groupId + '" class="group-tab" role="tab">' +
                     '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '" aria-expanded="true" aria-controls="' + groupId + '">' +
                         (groupName || '') +
                     '</a>' +
@@ -890,7 +890,7 @@ window.googleClientHelper.loadAPI().then(function() {
 
             // #region 每個群組相關事件宣告
             // 將群組中經常取用的 element 一次抓取出來，方便存取
-            var $collapse = $groupBody.find('#' + groupId);
+            var $collapse = $groupBody.find('.panel-collapse#' + groupId);
             $groupElems[groupId] = {
                 $collapse: $collapse,
                 $groupName: $groupBody.find('.group-name'),
@@ -1159,7 +1159,10 @@ window.googleClientHelper.loadAPI().then(function() {
             });
 
             $memberActions.on('click', '.btn-remove', function() {
-                if (memberTypes.OWNER === groups[groupId].members[memberId].type) {
+                let member = groups[groupId].members[memberId];
+                let memberUserId = member.user_id;
+
+                if (memberTypes.OWNER === member.type) {
                     $.notify('群組擁有者無法刪除', { type: 'warning' });
                     return;
                 } else if (!confirm('確定刪除此成員嗎？')) {
@@ -1170,6 +1173,13 @@ window.googleClientHelper.loadAPI().then(function() {
                     // 成功更新後刪除本地端的資料
                     $memberRow.remove();
                     delete groups[groupId].members[memberId];
+
+                    // 如果是群組成員自行離開群組，離開後開除整個群組資料
+                    if (memberUserId === userId) {
+                        $groupBody.find('.group-tab[group-id="' + groupId + '"]').remove();
+                        $groupBody.find('.panel-collapse#' + groupId).remove();
+                        delete groups[groupId];
+                    }
                 });
             });
         };

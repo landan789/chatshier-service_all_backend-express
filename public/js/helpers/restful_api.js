@@ -10,16 +10,17 @@ window.restfulAPI = (function() {
     var apiUrlTable = Object.freeze({
         apps: apiDatabaseUrl + 'apps/',
         appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',
-        appsChatroomsMessages: apiDatabaseUrl + 'apps-chatrooms-messages/',
+        appsChatrooms: apiDatabaseUrl + 'apps-chatrooms/',
+        appsChatroomsMessagers: apiDatabaseUrl + 'apps-chatrooms-messagers/',
         appsComposes: apiDatabaseUrl + 'apps-composes/',
         appsGreetings: apiDatabaseUrl + 'apps-greetings/',
-        appsMessagers: apiDatabaseUrl + 'apps-messagers/',
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
+        consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
@@ -125,7 +126,7 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有在 Chatshier 內設定的 App
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
@@ -139,7 +140,7 @@ window.restfulAPI = (function() {
         /**
          * 取得指定的使用者在 Chatshier 內設定的 App
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppAPI.prototype.findOne = function(appId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
@@ -153,7 +154,7 @@ window.restfulAPI = (function() {
         /**
          * 新增 Chatshier App
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {any} postAppData - 新增的 Chatshier App 資料
          */
         AppAPI.prototype.insert = function(userId, postAppData) {
@@ -170,7 +171,7 @@ window.restfulAPI = (function() {
          * 更新指定的 Chatshier App
          *
          * @param {string} appId - 指定的 AppId
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {any} putAppData - 新增的 Chatshier App 資料
          */
         AppAPI.prototype.update = function(appId, userId, putAppData) {
@@ -187,7 +188,7 @@ window.restfulAPI = (function() {
          * 刪除指定的 Chatshier App
          *
          * @param {string} appId - 指定的 AppId
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppAPI.prototype.remove = function(appId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
@@ -212,7 +213,7 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有的 calendar 事件
          *
-         * @param {string} userId - 使用者的 firebase id
+         * @param {string} userId
          */
         CalendarsEventsAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
@@ -227,7 +228,7 @@ window.restfulAPI = (function() {
          * 插入一筆 calendar 事件
          *
          * @param {string} calendarId - 識別不同行事曆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} calendarData - 要進行插入的 calendar 事件資料
          */
         CalendarsEventsAPI.prototype.insert = function(userId, calendarData) {
@@ -245,7 +246,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} calendarId - 識別不同行事曆的 ID
          * @param {string} eventId - calendar 的事件ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} calendarData - 要進行更新的 calendar 事件資料
          */
         CalendarsEventsAPI.prototype.update = function(calendarId, eventId, userId, calendarData) {
@@ -280,17 +281,17 @@ window.restfulAPI = (function() {
     /**
      * 宣告專門處理 Messager 相關的 API 類別
      */
-    var AppsMessagersAPI = (function() {
-        function AppsMessagersAPI() {
-            this.urlPrefix = apiUrlTable.appsMessagers;
+    var ConsumersAPI = (function() {
+        function ConsumersAPI() {
+            this.urlPrefix = apiUrlTable.consumers;
         }
 
         /**
-         * 取得使用者所有在 Chatshier 內設定的 App 內的所有 Messagers
+         * 取得使用者所有 consumer
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
-        AppsMessagersAPI.prototype.findAll = function(userId) {
+        ConsumersAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
@@ -300,14 +301,14 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 取得指定 AppId 內使用者的所有 Messagers
+         * 取得指定的 consumer 資料
          *
          * @param {string} appId - 目標 messager 的 App ID
-         * @param {string} msgerId - 目標 messager ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} platformUid
+         * @param {string} userId
          */
-        AppsMessagersAPI.prototype.findOne = function(appId, msgerId, userId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
+        ConsumersAPI.prototype.findOne = function(platformUid, userId) {
+            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -316,24 +317,23 @@ window.restfulAPI = (function() {
         };
 
         /**
-         * 更新指定 AppId 內的 messager 資料
+         * 更新指定 consumer 資料
          *
-         * @param {string} appId - 目標 messager 的 App ID
-         * @param {string} msgerId - 目標 messager ID
-         * @param {string} userId - 使用者的 firebase ID
-         * @param {any} msgerData - 欲更新的 messager 資料
+         * @param {string} platformUid
+         * @param {string} userId
+         * @param {any} consumer - 欲更新的 consumer 資料
          */
-        AppsMessagersAPI.prototype.update = function(appId, msgerId, userId, msgerData) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/messager/' + msgerId + '/users/' + userId;
+        ConsumersAPI.prototype.update = function(platformUid, userId, consumer) {
+            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
             var reqInit = {
                 method: 'PUT',
                 headers: reqHeaders,
-                body: JSON.stringify(msgerData)
+                body: JSON.stringify(consumer)
             };
             return sendRequest(destUrl, reqInit);
         };
 
-        return AppsMessagersAPI;
+        return ConsumersAPI;
     })();
 
     /**
@@ -348,7 +348,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有設定待辦事項
          *
          * @param {string} appId - 目標待辦事項的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsTicketsAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -363,7 +363,7 @@ window.restfulAPI = (function() {
          * 新增一筆待辦事項資料
          *
          * @param {string} appId - 目標待辦事項的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} ticketData - 欲新增的待辦事項資料
          */
         AppsTicketsAPI.prototype.insert = function(appId, userId, ticketData) {
@@ -381,7 +381,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} ticketId - 目標待辦事項的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} ticketData - 已編輯後欲更新的待辦事項資料
          */
         AppsTicketsAPI.prototype.update = function(appId, ticketId, userId, ticketData) {
@@ -399,7 +399,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標待辦事項的 App ID
          * @param {string} ticketId - 目標待辦事項的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsTicketsAPI.prototype.remove = function(appId, ticketId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/tickets/' + ticketId + '/users/' + userId;
@@ -425,7 +425,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有關鍵字回覆資料
          *
          * @param {string} appId - 目標關鍵字回覆的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsKeywordrepliesAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -440,7 +440,7 @@ window.restfulAPI = (function() {
          * 新增一筆關鍵字回覆的資料
          *
          * @param {string} appId - 目標待辦事項的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} newKeywordreplyData - 欲新增的待辦事項資料
          */
         AppsKeywordrepliesAPI.prototype.insert = function(appId, userId, newKeywordreplyData) {
@@ -458,7 +458,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標關鍵字回覆的 App ID
          * @param {string} keywordreplyId - 目標關鍵字回覆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} modifiedKeywordreplyData - 已編輯後欲更新的關鍵字回覆資料
          */
         AppsKeywordrepliesAPI.prototype.update = function(appId, keywordreplyId, userId, modifiedKeywordreplyData) {
@@ -476,7 +476,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標關鍵字回覆的 App ID
          * @param {string} keywordreplyId - 目標關鍵字回覆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsKeywordrepliesAPI.prototype.remove = function(appId, keywordreplyId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/keywordreplies/' + keywordreplyId + '/users/' + userId;
@@ -502,7 +502,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有群發回覆資料
          *
          * @param {string} appId - 目標群發的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsComposesAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -518,7 +518,7 @@ window.restfulAPI = (function() {
          * 新增一筆群發的資料
          *
          * @param {string} appId - 目標群發的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {any|any[]} composes - 欲新增的群發資料
          */
         AppsComposesAPI.prototype.insert = function(appId, userId, composes, usingRecursive) {
@@ -548,7 +548,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標群發的 App ID
          * @param {string} composeId - 目標群發的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {any} compose - 已編輯後欲更新的群發資料
          */
         AppsComposesAPI.prototype.update = function(appId, composeId, userId, compose) {
@@ -567,7 +567,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標群發的 App ID
          * @param {string} composeId - 目標群發的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsComposesAPI.prototype.remove = function(appId, composeId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/composes/' + composeId + '/users/' + userId;
@@ -606,7 +606,7 @@ window.restfulAPI = (function() {
         /**
          * 取得使用者所有客戶分類條件資料
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsFieldsAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
@@ -621,7 +621,7 @@ window.restfulAPI = (function() {
          * 新增一筆 App 客戶分類條件的資料
          *
          * @param {string} appId - 目標的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} field - 欲新增的資料
          */
         AppsFieldsAPI.prototype.insert = function(appId, userId, field) {
@@ -639,7 +639,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標客戶分類條件所屬的 App ID
          * @param {string} fieldId - 目標客戶分類條件的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} field - 已編輯後欲更新的客戶分類條件資料
          */
         AppsFieldsAPI.prototype.update = function(appId, fieldId, userId, field) {
@@ -657,7 +657,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標客戶分類條件所屬的 App ID
          * @param {string} fieldId - 目標客戶分類條件的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsFieldsAPI.prototype.remove = function(appId, fieldId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/fields/' + fieldId + '/users/' + userId;
@@ -671,17 +671,17 @@ window.restfulAPI = (function() {
         return AppsFieldsAPI;
     })();
 
-    var AppsChatroomsMessagesAPI = (function() {
-        function AppsChatroomsMessagesAPI(jwt) {
-            this.urlPrefix = apiUrlTable.appsChatroomsMessages;
+    var AppsChatroomsAPI = (function() {
+        function AppsChatroomsAPI(jwt) {
+            this.urlPrefix = apiUrlTable.appsChatrooms;
         };
 
         /**
          * 取得每個 App 使用者的所有聊天室資訊
          *
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
-        AppsChatroomsMessagesAPI.prototype.findAll = function(userId) {
+        AppsChatroomsAPI.prototype.findAll = function(userId) {
             var destUrl = this.urlPrefix + 'users/' + userId;
             var reqInit = {
                 method: 'GET',
@@ -690,13 +690,55 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
-        return AppsChatroomsMessagesAPI;
+        return AppsChatroomsAPI;
+    })();
+
+    var AppsChatroomsMessagersAPI = (function() {
+        function AppsChatroomsMessagersAPI(jwt) {
+            this.urlPrefix = apiUrlTable.appsChatroomsMessagers;
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {string} messagerId
+         * @param {string} userId
+         */
+        AppsChatroomsMessagersAPI.prototype.findOne = function(appId, chatroomId, messagerId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        AppsChatroomsMessagersAPI.prototype.update = function(appId, chatroomId, messagerId, userId, messager) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + messagerId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(messager)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        AppsChatroomsMessagersAPI.prototype.updateByPlatformUid = function(appId, chatroomId, platformUid, userId, messager) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/messagers/' + platformUid + '/users/' + userId + '?use_uid=1';
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(messager)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return AppsChatroomsMessagersAPI;
     })();
 
     /**
      * 宣告專門處理相關自動回覆的 API 類別
      */
-
     var AppsAutorepliesAPI = (function() {
         function AppsAutorepliesAPI() {
             this.urlPrefix = apiUrlTable.appsAutoreplies;
@@ -706,7 +748,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有自動回覆資料
          *
          * @param {string} appId - 目標自動回覆的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsAutorepliesAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -721,7 +763,7 @@ window.restfulAPI = (function() {
          * 新增一筆自動回覆資料
          *
          * @param {string} appId - 目標自動回覆的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} newAutoreplyData - 欲新增的自動回覆資料
          */
         AppsAutorepliesAPI.prototype.insert = function(appId, userId, newAutoreplyData) {
@@ -739,7 +781,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標自動回覆的 App ID
          * @param {string} autoreplyId - 目標自動回覆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} modifiedAutoreplyData - 已編輯後欲更新的自動回覆資料
          */
         AppsAutorepliesAPI.prototype.update = function(appId, autoreplyId, userId, modifiedAutoreplyData) {
@@ -757,7 +799,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標自動回覆的 App ID
          * @param {string} autoreplyId - 目標自動回覆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsAutorepliesAPI.prototype.remove = function(appId, autoreplyId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/autoreplies/' + autoreplyId + '/users/' + userId;
@@ -904,7 +946,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有加好友回覆資料
          *
          * @param {string} appId - 目標加好友回覆的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsGreetingsAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -919,7 +961,7 @@ window.restfulAPI = (function() {
          * 新增一筆加好友回覆資料
          *
          * @param {string} appId - 目標加好友回覆的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} newGreetingData - 欲新增的好友回覆資料
          */
         AppsGreetingsAPI.prototype.insert = function(appId, userId, newGreetingData) {
@@ -937,7 +979,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標加好友回覆的 App ID
          * @param {string} greetingId - 目標加好友回覆的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsGreetingsAPI.prototype.remove = function(appId, greetingId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/greetings/' + greetingId + '/users/' + userId;
@@ -961,7 +1003,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有Template資料
          *
          * @param {string} appId - 目標Template的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsTemplatesAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -977,7 +1019,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Template的 App ID
          * @param {string} templateId - 目標Template的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsTemplatesAPI.prototype.findOne = function(appId, templateId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
@@ -992,7 +1034,7 @@ window.restfulAPI = (function() {
          * 新增一筆Template資料
          *
          * @param {string} appId - 目標Template的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} newTemplateData - 欲新增的Template資料
          */
         AppsTemplatesAPI.prototype.insert = function(appId, userId, newTemplateData) {
@@ -1010,7 +1052,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Template的 App ID
          * @param {string} templateId - 目標Template的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} modifiedTemplateData - 已編輯後欲更新的Template資料
          */
         AppsTemplatesAPI.prototype.update = function(appId, templateId, userId, modifiedTemplateData) {
@@ -1028,7 +1070,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Template的 App ID
          * @param {string} templateId - 目標Template的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsTemplatesAPI.prototype.remove = function(appId, templateId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/templates/' + templateId + '/users/' + userId;
@@ -1051,7 +1093,7 @@ window.restfulAPI = (function() {
          * 取得使用者所有Richmenu資料
          *
          * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsRichmenusAPI.prototype.findAll = function(appId, userId) {
             var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
@@ -1067,7 +1109,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Richmenu的 App ID
          * @param {string} richmenuId - 目標Richmenu的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} postRichmenuData - 更新的Richmenu資料
          */
         AppsRichmenusAPI.prototype.findOne = function(appId, richmenuId, userId) {
@@ -1083,7 +1125,7 @@ window.restfulAPI = (function() {
          * 新增一筆Richmenu資料
          *
          * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} postRichmenuData - 新增的Richmenu資料
          */
         AppsRichmenusAPI.prototype.insert = function(appId, userId, postRichmenuData) {
@@ -1101,7 +1143,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Richmenu的 App ID
          * @param {string} richmenuId - 目標Richmenu的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          * @param {*} putRichmenuData - 更新的Richmenu資料
          */
         AppsRichmenusAPI.prototype.update = function(appId, richmenuId, userId, putRichmenuData) {
@@ -1119,7 +1161,7 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Richmenu的 App ID
          * @param {string} richmenuId - 目標Richmenu的 ID
-         * @param {string} userId - 使用者的 firebase ID
+         * @param {string} userId
          */
         AppsRichmenusAPI.prototype.remove = function(appId, richmenuId, userId) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/users/' + userId;
@@ -1275,15 +1317,16 @@ window.restfulAPI = (function() {
         apps: new AppAPI(),
         appsAutoreplies: new AppsAutorepliesAPI(),
         appsTemplates: new AppsTemplatesAPI(),
-        appsChatroomsMessages: new AppsChatroomsMessagesAPI(),
+        appsChatrooms: new AppsChatroomsAPI(),
+        appsChatroomsMessagers: new AppsChatroomsMessagersAPI(),
         appsComposes: new AppsComposesAPI(),
         appsGreetings: new AppsGreetingsAPI(),
-        appsMessagers: new AppsMessagersAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
+        consumers: new ConsumersAPI(),
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
