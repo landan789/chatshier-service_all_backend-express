@@ -697,7 +697,7 @@
             return nextMessage(0);
         });
 
-        socket.on(SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, function(data) {
+        socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, function(data) {
             if (preventUpdateProfile) {
                 preventUpdateProfile = false;
                 return;
@@ -705,11 +705,9 @@
             var appId = data.appId;
             var platformUid = data.platformUid;
             var chatroomId = data.chatroomId;
-            var consumer = data.consumer;
             var messager = data.messager;
-
+            var consumer = consumers[platformUid];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messager._id] = messager;
-            consumers[platformUid] = consumer;
 
             // 更新 UI 資料
             var $profileCards = $('.card-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
@@ -1050,9 +1048,12 @@
     }
 
     function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
-        var customFields = person.custom_fields || {};
         var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var customFields = messager.custom_fields || {};
         var messagerSelf = findMessagerSelf(appId, chatroomId);
+
+        var messagerCase = ['age', 'email', 'gender', 'phone', 'remark', 'custom_fields'];
+        var messagerSelfCase = ['createdTime', 'lastTime', 'chatCount'];
 
         var tdHtmlBuilder = function(fieldId, field) {
             var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
@@ -1063,7 +1064,13 @@
             if (field.type === api.appsFields.enums.type.CUSTOM) {
                 fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
             } else {
-                fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
+                if (messagerCase.indexOf(field.alias) >= 0) {
+                    fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
+                } else if (messagerSelfCase.indexOf(field.alias) >= 0) {
+                    fieldValue = undefined !== messagerSelf[field.alias] ? messagerSelf[field.alias] : '';
+                } else {
+                    fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
+                }
             }
 
             // 在 html append 到 dom 上後，抓取資料找到指派人的欄位把資料填入
@@ -1145,11 +1152,6 @@
                     '</td>';
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
-                    if ('createdTime' === field.alias && messagerSelf.createdTime) {
-                        fieldValue = messagerSelf.createdTime;
-                    } else if ('lastTime' === field.alias && messagerSelf.lastTime) {
-                        fieldValue = messagerSelf.lastTime;
-                    }
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
@@ -1157,9 +1159,6 @@
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
-                    if ('chatCount' === field.alias) {
-                        fieldValue = messagerSelf.chatCount;
-                    }
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
                     '</td>';
@@ -1642,7 +1641,7 @@
         }
 
         $('#infoCanvas').scrollTop(0);
-        var consumerUiData = {};
+        var messagerUiData = {};
         var $tds = $(ev.target).parents('.card-group').find('.panel-table tbody td');
 
         $tds.each(function() {
@@ -1689,11 +1688,11 @@
 
             if (value !== null && value !== undefined) {
                 if (alias) {
-                    consumerUiData[alias] = value;
+                    messagerUiData[alias] = value;
                 } else {
                     // 沒有別名的屬性代表是自定義的客戶分類條件資料
-                    consumerUiData.custom_fields = consumerUiData.custom_fields || {};
-                    consumerUiData.custom_fields[fieldId] = {
+                    messagerUiData.custom_fields = messagerUiData.custom_fields || {};
+                    messagerUiData.custom_fields[fieldId] = {
                         value: value
                     };
                 }
@@ -1702,13 +1701,13 @@
 
         var phoneRule = /^0\d{9,}$/;
         var emailRule = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
-        if ('number' === typeof consumerUiData.age && !(consumerUiData.age >= 0 && consumerUiData.age <= 150)) {
+        if ('number' === typeof messagerUiData.age && !(messagerUiData.age >= 0 && messagerUiData.age <= 150)) {
             $.notify('年齡限制 0 ~ 150 歲', { type: 'warning' });
             return;
-        } else if (consumerUiData.email && !emailRule.test(consumerUiData.email)) {
+        } else if (messagerUiData.email && !emailRule.test(messagerUiData.email)) {
             $.notify('電子郵件不符合格式', { type: 'warning' });
             return;
-        } else if (consumerUiData.phone && !phoneRule.test(consumerUiData.phone)) {
+        } else if (messagerUiData.phone && !phoneRule.test(messagerUiData.phone)) {
             $.notify('電話號碼不符合格式, ex: 0912XXXXXX', { type: 'warning' });
             return;
         }
@@ -1718,52 +1717,45 @@
         var chatroomId = $personCard.attr('chatroom-id');
         var platformUid = $personCard.attr('platform-uid');
 
-        return Promise.resolve().then(function() {
-            if (consumerUiData.assigned) {
-                // assigned_ids 的資料不是設定於 consumer 或 user 中
-                // 而是設定於每個 chatroom 中的 messager 裡
-                var assignedIds = consumerUiData.assigned;
-                delete consumerUiData.assigned;
+        // 如果有編輯的資料變更再發出更新請求
+        if (0 === Object.keys(messagerUiData).length) {
+            return;
+        }
 
-                var messager = {
-                    assigned_ids: assignedIds
-                };
-                return api.appsChatroomsMessagers.updateByPlatformUid(appId, chatroomId, platformUid, userId, messager);
-            }
-        }).then(function() {
-            // 如果有編輯的資料變更再發出更新請求
-            if (0 === Object.keys(consumerUiData).length) {
-                return;
-            }
+        // 將 assigned 資料改為資料欄位名稱
+        if (messagerUiData.assigned) {
+            messagerUiData.assigned_ids = messagerUiData.assigned;
+            delete messagerUiData.assigned;
+        }
 
-            var socketRequest = {
-                params: {
-                    userid: userId,
-                    appid: appId,
-                    chatroomid: chatroomId,
-                    platformuid: platformUid
-                },
-                body: consumerUiData
-            };
+        var socketRequest = {
+            params: {
+                userid: userId,
+                appid: appId,
+                chatroomid: chatroomId,
+                platformuid: platformUid
+            },
+            body: messagerUiData
+        };
 
-            // 資料送出後，會再收到群組內的 socket 資料
-            // 設置 flag 防止再次更新 profile
-            preventUpdateProfile = true;
-            return new Promise(function(resolve, reject) {
-                var waitTimer = window.setTimeout(reject, 3000);
-                chatshierSocket.emit(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, socketRequest, function(err) {
-                    window.clearTimeout(waitTimer);
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    resolve();
-                });
-            }).then(function() {
-                // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-                Object.assign(consumers[platformUid], consumerUiData);
-                $.notify('用戶資料更新成功', { type: 'success' });
+        // 資料送出後，會再收到群組內的 socket 資料
+        // 設置 flag 防止再次更新 profile
+        preventUpdateProfile = true;
+        return new Promise(function(resolve, reject) {
+            var waitTimer = window.setTimeout(reject, 3000);
+            chatshierSocket.emit(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, socketRequest, function(err) {
+                window.clearTimeout(waitTimer);
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve();
             });
+        }).then(function() {
+            // 將成功更新的資料覆蓋前端本地端的全域 app 資料
+            let messager = findChatroomMessager(appId, chatroomId);
+            Object.assign(messager, messagerUiData);
+            $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function(err) {
             console.error(err);
             $.notify('用戶資料更新失敗', { type: 'danger' });

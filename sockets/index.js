@@ -413,12 +413,12 @@ function init(server) {
             });
         });
 
-        socket.on(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, (req, callback) => {
+        socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, (req, callback) => {
             let appId = req.params.appid;
             let chatroomId = req.params.chatroomid;
             let platformUid = req.params.platformuid;
 
-            let consumerToSocket = {
+            let messagerToSocket = {
                 appId: appId,
                 platformUid: platformUid,
                 chatroomId: chatroomId
@@ -430,30 +430,26 @@ function init(server) {
                 }
 
                 // 只允許更新 API 可編輯的屬性
-                let consumer = {};
-                ('string' === typeof req.body.photo) && (consumer.photo = req.body.photo);
-                ('number' === typeof req.body.age) && (consumer.age = req.body.age);
-                ('string' === typeof req.body.email) && (consumer.email = req.body.email);
-                ('string' === typeof req.body.phone) && (consumer.phone = req.body.phone);
-                ('string' === typeof req.body.gender) && (consumer.gender = req.body.gender);
-                ('string' === typeof req.body.remark) && (consumer.remark = req.body.remark);
-                req.body.custom_fields && (consumer.custom_fields = req.body.custom_fields);
+                let messager = {};
+                ('number' === typeof req.body.age) && (messager.age = req.body.age);
+                ('string' === typeof req.body.email) && (messager.email = req.body.email);
+                ('string' === typeof req.body.phone) && (messager.phone = req.body.phone);
+                ('string' === typeof req.body.gender) && (messager.gender = req.body.gender);
+                ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
+                req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
+                req.body.assigned_ids && (messager.assigned_ids = req.body.assigned_ids);
 
-                return consumersMdl.replace(platformUid, consumer);
-            }).then((consumers) => {
-                if (!consumers) {
-                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-                }
-                let consumer = consumers[platformUid];
-                consumerToSocket.consumer = consumer;
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid);
+                return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
-                let messager = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[platformUid];
-                consumerToSocket.messager = messager;
-                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, consumerToSocket);
+
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                let messagers = chatrooms[chatroomId].messagers;
+                let messager = messagers[platformUid];
+                messagerToSocket.messager = messager;
+                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {

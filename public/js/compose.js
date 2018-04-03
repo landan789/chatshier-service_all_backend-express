@@ -94,7 +94,6 @@
         defaultDate: dateNow
     };
     $sendDatetimePicker.datetimepicker(options);
-   
 
     // FUNCTIONs
 
