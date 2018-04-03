@@ -92,7 +92,10 @@
                         if (CHATSHIER === messager.type) {
                             continue;
                         }
-                        appsConsumers[appId].consumers[messager.platformUid] = consumers[messager.platformUid];
+                        var consumer = consumers[messager.platformUid];
+                        consumer.phone = messager.phone;
+                        consumer.email = messager.email;
+                        appsConsumers[appId].consumers[messager.platformUid] = consumer;
                     }
                 }
 
