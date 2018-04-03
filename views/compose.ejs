@@ -186,9 +186,14 @@
                 <div class="modal-body">
                     <form>
                         <!-- 時間 -->
-                        <div class="form-group">
-                            <label for="edit-time">時間: </label>
-                            <input type="datetime-local" class="form-control datetime-style" id="edit-time" value="TIME" />
+                        <div class="date-group">
+                            <div class="input-group date" id="start_datetime_picker">
+                                <span class="input-group-addon">時間</span>
+                                <input type="text" class="form-control" name="start_datetime" id="edit-time" value=""/>
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
                         </div>
                         <label for="custom-fields">篩選條件: </label>
                         <div id="edit-limit-user" class="panel panel-default">

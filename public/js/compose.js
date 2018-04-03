@@ -21,6 +21,7 @@
     var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
     var $customFields = $('#custom-fields');
+    var $composesDtPicker = $('#start_datetime_picker');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;
@@ -30,7 +31,6 @@
     const DID_NOT_HAVE_TAGS = '15.6';
 
     var $sendDatetimePicker = $('#send-datetime-picker');
-
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -87,12 +87,14 @@
     $historyTableElem = $('#composes_history_table tbody');
     $reservationTableElem = $('#composes_reservation_table tbody');
     $draftTableElem = $('#composes_draft_table tbody');
+    var dateNow = Date.now();
     let options = {
         locale: 'zh-tw',
         sideBySide: true,
-        minDate: Date.now()
+        defaultDate: dateNow
     };
     $sendDatetimePicker.datetimepicker(options);
+   
 
     // FUNCTIONs
 
@@ -216,8 +218,12 @@
                     break;
             }
         }
-
-        $editForm.find('#edit-time').val(ISODateTimeString(targetData.time));
+        let editOptions = {
+            sideBySide: true,
+            locale: 'zh-tw',
+            defaultDate: targetData.time
+        };
+        $composesDtPicker.datetimepicker(editOptions);
         $editForm.find('#edutinput').val(targetData.text);
         $composeEditModal.find('#edit-submit').off('click').on('click', function() {
             $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
@@ -225,7 +231,7 @@
             var conditionInputElement = $composeEditModal.find('input#condition-input');
             fieldsObjCompose(conditionInputElement);
             targetData.text = $editForm.find('#edutinput').val();
-            targetData.time = Date.parse($editForm.find('#edit-time').val());
+            targetData.time = $composesDtPicker.data('DateTimePicker').date().toDate().getTime();
             targetData.ageRange = ageRange;
             targetData.gender = gender;
             targetData.field_ids = 0 === Object.keys(field_ids).length ? {} : field_ids;
