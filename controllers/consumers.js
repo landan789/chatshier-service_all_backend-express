@@ -13,7 +13,7 @@ module.exports = (function() {
     ConsumersController.prototype.getAll = (req, res, next) => {
         return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
-            return appsChatroomsMessagersMdl.findPlatformUids(appIds, false);
+            return appsChatroomsMessagersMdl.findPlatformUids(appIds);
         }).then((platformUids) => {
             platformUids = platformUids || [];
             return consumersMdl.find(platformUids).then((consumers) => {

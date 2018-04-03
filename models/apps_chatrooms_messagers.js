@@ -202,13 +202,11 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} appIds
-         * @param {boolean} [shouldFindChatshier=false]
+         * @param {string} [messagerType]
          * @param {(platformUids: string[]|null) => any} [callback]
          * @returns {Promise<any>}
          */
-        findPlatformUids(appIds, shouldFindChatshier, callback) {
-            shouldFindChatshier = !!shouldFindChatshier;
-
+        findPlatformUids(appIds, messagerType, callback) {
             return this.find(appIds).then((appsChatroomsMessagers) => {
                 appsChatroomsMessagers = appsChatroomsMessagers || {};
                 let platformUids = [];
@@ -218,9 +216,8 @@ module.exports = (function() {
                         let messagers = chatrooms[chatroomId].messagers;
                         for (let messagerId in messagers) {
                             let messager = messagers[messagerId];
-                            if (shouldFindChatshier && CHATSHIER === messager.type) {
-                                platformUids.push(messager.platformUid);
-                            } else if (CHATSHIER !== messager.type) {
+                            if ((!messagerType && CHATSHIER !== messager.type) ||
+                                (messagerType && messagerType === messager.type)) {
                                 platformUids.push(messager.platformUid);
                             }
                         }
@@ -264,7 +261,7 @@ module.exports = (function() {
                 if (isExist) {
                     return this.updateByPlatformUid(appId, chatroomId, platformUid, messager, callback);
                 } else {
-                    return this.insert(appId, chatroomId, messager, callback);
+                    return this.insertByPlatformUid(appId, chatroomId, messager, callback);
                 }
             });
         }
@@ -275,8 +272,11 @@ module.exports = (function() {
          * @param {(appChatroomMessager: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insert(appId, chatroomId, messager, callback) {
+        insertByPlatformUid(appId, chatroomId, messager, callback) {
             messager = messager || {};
+
+            let messagerId = this.Types.ObjectId();
+            messager._id = messagerId;
             messager.type = messager.type || CHATSHIER;
             messager.createdTime = messager.updatedTime = messager.lastTime = Date.now();
 
@@ -437,7 +437,6 @@ module.exports = (function() {
                 return this.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
                     let messager = {
                         'platformUid': platformUid,
-                        'unRead': unReadCount,
                         'updatedTime': Date.now()
                     };
 
@@ -446,6 +445,7 @@ module.exports = (function() {
 
                     if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
                         messager._id = this.Types.ObjectId();
+                        messager.unRead = unReadCount;
                         doc.$push = {
                             'chatrooms.$[chatroom].messagers': messager
                         };
@@ -457,8 +457,14 @@ module.exports = (function() {
                     }
 
                     doc.$inc = {
-                        'chatrooms.$[chatroom].messagers.$[messager].unRead': messager.unRead
+                        'chatrooms.$[chatroom].messagers.$[messager].unRead': unReadCount
                     };
+
+                    doc.$set = {};
+                    for (let prop in messager) {
+                        doc.$set['chatrooms.$[chatroom].messagers.$[messager].' + prop] = messager[prop];
+                    }
+
                     options.arrayFilters = [
                         {
                             'chatroom._id': this.Types.ObjectId(chatroomId)
