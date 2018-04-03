@@ -389,7 +389,7 @@ function init(server) {
                     let currentTime = Date.now();
                     let _messager = {
                         platformUid: senderMsger.platformUid,
-                        chatCount: senderMsger.chatCount ? senderMsger.chatCount : 0,
+                        chatCount: senderMsger.chatCount ? senderMsger.chatCount : 1,
                         lastTime: currentTime
                     };
                     if (senderMsger.lastTime) {
