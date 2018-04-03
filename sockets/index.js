@@ -135,7 +135,7 @@ function init(server) {
                 });
             }).then(() => {
                 if (!platformMessager) {
-                    return;
+                    return [];
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
@@ -184,7 +184,7 @@ function init(server) {
                 });
                 return recipientUids;
             }).then((recipientUids) => {
-                if (!recipientUids) {
+                if (!(recipientUids && platformUid)) {
                     return recipientUids;
                 }
 
