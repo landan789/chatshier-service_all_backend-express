@@ -2,9 +2,10 @@ const schedule = require('node-schedule');
 const timerHlp = require('../helpers/timer');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
-const appsMessagersMdl = require('../models/apps_messagers');
 const appsComposesMdl = require('../models/apps_composes');
+const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
+const consumersMdl = require('../models/consumers');
 
 const API_ERROR = require('../config/api_error');
 const CHATSHIER = 'CHATSHIER';
@@ -29,7 +30,9 @@ let jobProcess = () => {
         return Promise.all(Object.keys(apps).map((appId) => {
             let app = apps[appId];
             let messages = [];
-            let messagers = {};
+            let consumers = {};
+            let platformUids = [];
+
             if (CHATSHIER === app.type || app.isDeleted) {
                 return Promise.resolve([]);
             }
@@ -42,17 +45,14 @@ let jobProcess = () => {
                     resolve(appsComposes[appId].composes);
                 });
             });
-            let p2 = new Promise((resolve, reject) => {
-                appsMessagersMdl.find(appId, null, (appsMessagers) => {
-                    if (!appsMessagers) {
-                        return resolve([]);
-                    }
-                    resolve(appsMessagers[appId].messagers);
-                });
+            let p2 = appsChatroomsMessagersMdl.findPlatformUids(appId, app.type).then((_platformUids) => {
+                platformUids = _platformUids || [];
+                return consumersMdl.find(platformUids);
             });
+
             return Promise.all([p1, p2]).then((results) => {
                 let composes = results[0];
-                messagers = results[1];
+                consumers = results[1];
 
                 for (let composeId in composes) {
                     if (composes[composeId].text &&
@@ -66,10 +66,10 @@ let jobProcess = () => {
                         };
                         messages.push(message);
 
-                        for (let messagerId in messagers) {
-                            let originMessager = messagers[messagerId] || {};
+                        for (let platformUid in consumers) {
+                            let originMessager = consumers[platformUid] || {};
                             if (originMessager.isDeleted) {
-                                delete messagers[messagerId];
+                                delete consumers[platformUid];
                                 continue;
                             }
                             let originMessagerAge = originMessager.age || '';
@@ -83,44 +83,49 @@ let jobProcess = () => {
                             for (let i = 0; i < composeAgeRange.length; i++) {
                                 if (i % 2) {
                                     if (originMessagerAge > composeAgeRange[i] && '' !== composeAgeRange[i]) {
-                                        delete messagers[messagerId];
+                                        delete consumers[platformUid];
                                         continue;
                                     }
                                 } else {
                                     if (originMessagerAge < composeAgeRange[i] && '' !== composeAgeRange[i]) {
-                                        delete messagers[messagerId];
+                                        delete consumers[platformUid];
                                         continue;
                                     }
                                 }
                             }
                             if (originMessagerGender !== composeGender && '' !== composeGender) {
-                                delete messagers[messagerId];
+                                delete consumers[platformUid];
                             }
                             for (let fieldId in composeFields) {
                                 let originMessagerTagValue = originMessagerFields[fieldId].value || '';
                                 let composeTagValue = composeFields[fieldId].value || '';
                                 if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
-                                    delete messagers[messagerId];
+                                    delete consumers[platformUid];
                                 }
                             }
                         }
                     }
                 }
                 // 沒有訊息對象 或 沒有群發訊息 就不做處理
-                if (0 === Object.keys(messagers).length || 0 === messages.length) {
+                if (0 === platformUids.length || 0 === messages.length) {
                     return Promise.resolve(null);
                 };
-                return botSvc.multicast(Object.keys(messagers), messages, appId, app);
+                return botSvc.multicast(platformUids, messages, appId, app);
             }).then(() => {
-                return Promise.all(Object.keys(messagers).map((messagerId) => {
-                    let chatroomId = messagers[messagerId].chatroom_id;
-                    if (!chatroomId) {
-                        return Promise.resolve(null);
-                    }
-                    return Promise.all(messages.map((message) => {
-                        console.log('[database] insert to db each message each messager[' + messagerId + '] ... ');
-                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
-                    }));
+                // 找出發送平台用戶所在的 chatroom
+                // 將所有已發送的訊息加到隸屬於發送平台用戶的 chatroom 訊息中
+                return Promise.all(platformUids.map((platformUid) => {
+                    return consumersMdl.find(platformUid).then((consumers) => {
+                        let consumer = consumers[platformUid];
+                        let chatroomIds = consumer.chatroom_ids;
+
+                        return Promise.all(chatroomIds.map((chatroomId) => {
+                            return Promise.all(messages.map((message) => {
+                                console.log('[database] insert to db each message each messager[' + platformUid + '] ... ');
+                                return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
+                            }));
+                        }));
+                    });
                 }));
             });
         }));
@@ -134,6 +139,6 @@ let jobProcess = () => {
     });
 };
 
-// the rule of schedule follows the rule of Linux crontab 
+// the rule of schedule follows the rule of Linux crontab
 let job1 = schedule.scheduleJob('10 * * * * *', jobProcess);
 // jobProcess();

@@ -8,7 +8,7 @@
         "prebuild-react": "npm run sub-sync",
         "build-react": "./bin/build-react",
         "postbuild-react": "git add public/static views/react.ejs react.chatshier",
-        "test": "mocha 'test/**/*.spec.js'"
+        "test": "mocha 'test/**/*.spec.js' --exit"
     },
     "engines": {
         "node": "8.9.3",

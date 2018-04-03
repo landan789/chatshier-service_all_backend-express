@@ -34,11 +34,11 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'isDeleted': false
+                'isDeleted': false,
+                'tickets.isDeleted': false
             };
             if (ticketId) {
                 query['tickets._id'] = this.Types.ObjectId(ticketId);
-                query['tickets.isDeleted'] = false;
             }
 
             let aggregations = [
@@ -76,6 +76,8 @@ module.exports = (function() {
          * @param {(appTickets: any) => any} [callback]
          */
         insert(appId, ticket, callback) {
+            ticket = ticket || {};
+
             let ticketId = this.Types.ObjectId();
             ticket._id = ticketId;
             ticket.createdTime = ticket.updatedTime = Date.now();
@@ -133,11 +135,15 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} appIds
+         * @param {string|string[]} appIds
          * @param {string} ticketId
          * @param {(appTickets: any) => any} [callback]
          */
         remove(appIds, ticketId, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             let ticket = {
                 _id: ticketId,
                 isDeleted: true,

@@ -16,16 +16,15 @@
      * automatically refresh when the time before jwt expired time 10 minutes
      */
     function jwtRefresh() {
-        let jwt = window.localStorage.getItem('jwt');
-        let userId;
-
         return nextPromise().then(() => {
             // nothing to do
         }).catch(() => {
-            location.replace('/logout');
+            window.location.replace('/logout');
         });
 
         function nextPromise() {
+            let userId;
+
             return new Promise((resolve, reject) => {
                 let jwt = window.localStorage.getItem('jwt');
                 let payload = window.jwt_decode(jwt);
@@ -51,8 +50,7 @@
             }).then((response) => {
                 let jwt = response.jwt;
                 window.localStorage.setItem('jwt', jwt);
-                return;
-            }).then(() => {
+                window.restfulAPI && window.restfulAPI.setJWT(jwt);
                 return nextPromise();
             });
         }
@@ -64,7 +62,7 @@
         state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
         state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
         // 登入資訊不齊全，一律進行登出動作
-        location.replace('/logout');
+        window.location.replace('/logout');
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
         // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
         $(document).ready(function() {
@@ -73,10 +71,10 @@
         });
     } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
     // 已經登入後再瀏覽登入或註冊頁面的話，直接導向聊天室頁面
-        location.replace('/chat');
+        window.location.replace('/chat');
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
     // 沒有進行登入卻欲瀏覽其他登入或註冊以外的頁面，直接導向登入頁面
-        location.replace('/signin');
+        window.location.replace('/signin');
     } else if (state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | NO_COOKIES)) {
     // 已在登入頁面並且沒有登入資料
     }
@@ -85,7 +83,7 @@
         let state = parseInt('000', 2);
         let username = cookieManager.getCookie(CHSR_COOKIE.USER_NAME);
         let email = cookieManager.getCookie(CHSR_COOKIE.USER_EMAIL);
-        let pathname = location.pathname;
+        let pathname = window.location.pathname;
 
         if (username && email) {
             state = state | HAS_COOKIES;

@@ -2,10 +2,6 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    const docUnwind = {
-        $unwind: '$chatrooms' // 只針對 document 處理
-    };
-
     class AppsChatroomsMessagesModel extends ModelCore {
         constructor() {
             super();
@@ -21,7 +17,7 @@ module.exports = (function() {
          * @param {(appsChatroomsMessages: any) => any} [callback]
          */
         find(appIds, chatroomId, messageIds, callback) {
-            if ('string' === typeof appIds) {
+            if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
@@ -49,8 +45,9 @@ module.exports = (function() {
             }
 
             let aggregations = [
-                docUnwind,
                 {
+                    $unwind: '$chatrooms'
+                }, {
                     $match: query
                 }, {
                     $project: {
@@ -58,7 +55,6 @@ module.exports = (function() {
                         chatrooms: {
                             _id: '$chatrooms._id',
                             isDeleted: '$chatrooms.isDeleted',
-                            messagers: '$chatrooms.messagers',
                             messages: !messageIds ? '$chatrooms.messages' : {
                                 $filter: {
                                     input: '$chatrooms.messages',
@@ -94,17 +90,11 @@ module.exports = (function() {
 
                     if (!output[app._id].chatrooms[app.chatrooms._id]) {
                         output[app._id].chatrooms[app.chatrooms._id] = {
-                            messagers: {},
                             messages: {}
                         };
                     }
 
-                    let messagesSrc = output[app._id].chatrooms[app.chatrooms._id].messages;
-                    let messagesDest = app.chatrooms.messages;
-                    Object.assign(messagesSrc, this.toObject(messagesDest));
-                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
-                    let messagersDest = app.chatrooms.messagers;
-                    Object.assign(messagersSrc, this.toObject(messagersDest));
+                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
                     return output;
                 }, {});
                 return appsChatroomsMessages;
@@ -138,7 +128,7 @@ module.exports = (function() {
                     isDeleted: false,
                     from: message.from,
                     messager_id: message.messager_id,
-                    text: message.text || (message.altText ? message.altText  + '請至智慧手機上確認訊息內容。'+'\n' : ''),
+                    text: message.text || (message.altText ? message.altText + '請至智慧手機上確認訊息內容。' + '\n' : ''),
                     time: Date.now(),
                     type: message.type,
                     src: message.src || ''

@@ -148,15 +148,22 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="edit-task-time" class="col-2 col-form-label">開始時間:  </label>
-                            <div class="col-4">
-                                <input class="form-control" type="datetime-local" id="edit-taskStart" style="width:50%" />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-task-time" class="col-2 col-form-label">結束時間:  </label>
-                            <div class="col-4">
-                                <input class="form-control" type="datetime-local" id="edit-taskEnd" style="width:50%" />
+                            <label for="modal-datetime">傳送日期:</label><br>
+                            <div class="date-group">
+                                <div class="input-group date" id="start_datetime_picker">
+                                    <span class="input-group-addon">開始日期</span>
+                                    <input type="text" class="form-control" name="start_datetime" id="edit-taskStart"/>
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                                <div class="input-group date" id="end_datetime_picker">
+                                    <span class="input-group-addon">結束日期</span>
+                                    <input type="text" class="form-control" name="end_datetime" id="edit-taskEnd"/>
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">

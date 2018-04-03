@@ -139,12 +139,53 @@ module.exports = (function() {
                 }
             });
         }
+
+        /**
+         * @param {any} req
+         * @param {any} app
+         * @returns {string}
+         */
+        retrievePlatformUid(req, app) {
+            let body = req.body || {};
+            let platformUId = '';
+
+            switch (app.type) {
+                case LINE:
+                    let events = body.events || [];
+                    events.forEach((event) => {
+                        // LINE 系統 webhook 測試不理會
+                        if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                            return;
+                        }
+                        platformUId = platformUId || event.source.userId;
+                    });
+                    break;
+                case FACEBOOK:
+                    let entries = body.entry || [];
+                    entries.forEach((entry) => {
+                        let messagings = entry.messaging || [];
+                        messagings.forEach((messaging) => {
+                            platformUId = platformUId || messaging.sender.id;
+                        });
+                    });
+                    break;
+                case WECHAT:
+                    let weixin = req.weixin;
+                    platformUId = weixin.FromUserName;
+                    break;
+                default:
+                    break;
+            }
+            return platformUId;
+        }
+
         /**
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
+         *
+         * @param {string} messagerId
          * @return {any}
          */
-
-        getReceivedMessages(req, res, appId, app) {
+        getReceivedMessages(req, res, messagerId, appId, app) {
             let body = req.body;
             let media = {
                 image: 'png',
@@ -161,7 +202,7 @@ module.exports = (function() {
                             return Promise.resolve();
                         }
                         let _message = {
-                            messager_id: event.source.userId, // LINE 平台的 sender id
+                            messager_id: messagerId, // LINE 平台的 sender id
                             from: LINE,
                             type: event.message ? event.message.type : '', // LINE POST 訊息型別
                             eventType: event.type, // LINE POST 事件型別
@@ -245,7 +286,7 @@ module.exports = (function() {
                             // !attachments 沒有夾帶檔案
                             if (!attachments && text) {
                                 let _message = {
-                                    messager_id: _messaging.sender.id, // FACEBOOK 平台的 sender id
+                                    messager_id: messagerId, // FACEBOOK 平台的 sender id
                                     from: FACEBOOK,
                                     text: text,
                                     type: 'text',
@@ -288,7 +329,7 @@ module.exports = (function() {
                                 };
 
                                 let _message = {
-                                    messager_id: _messaging.sender.id, // FACEBOOK 平台的 sender id
+                                    messager_id: messagerId, // FACEBOOK 平台的 sender id
                                     from: FACEBOOK,
                                     text: text,
                                     type: attachment.type || 'text',
@@ -305,7 +346,7 @@ module.exports = (function() {
                 case WECHAT:
                     let weixin = req.weixin;
                     let message = {
-                        messager_id: weixin.FromUserName, // WECHAT 平台的 sender id
+                        messager_id: messagerId, // WECHAT 平台的 sender id
                         type: weixin.MsgType,
                         time: parseInt(weixin.CreateTime) * 1000,
                         from: WECHAT,
@@ -428,6 +469,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 let senderProfile = {
+                    type: app.type,
                     name: '',
                     photo: ''
                 };

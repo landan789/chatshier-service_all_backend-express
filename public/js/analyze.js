@@ -62,7 +62,7 @@
 
     return Promise.all([
         api.apps.findAll(userId),
-        api.appsChatroomsMessages.findAll(userId)
+        api.appsChatrooms.findAll(userId)
     ]).then(function(respJsons) {
         var appsData = respJsons.shift().data;
         var messagesData = respJsons.shift().data;
@@ -243,6 +243,7 @@
             magCount = 0;
             nowSeg = nextSeg;
             nextSeg += DATE;
+            timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
@@ -250,11 +251,6 @@
         var endDate = new Date(endTime);
         var beginLabel = getDateStr(beginDate);
         var endLabel = getDateStr(endDate);
-
-        chartData.unshift({
-            time: beginLabel,
-            messages: magCount
-        });
 
         beginLabel !== endLabel && chartData.push({
             time: endLabel,
@@ -288,6 +284,7 @@
             });
             magCount = 0;
             nowSeg += HOUR;
+            timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
@@ -296,14 +293,9 @@
         var beginLabel = getDateStr(beginDate) + ' ' + getTimeStr(beginDate);
         var endLabel = getDateStr(endDate) + ' ' + getTimeStr(endDate);
 
-        chartData.unshift({
-            time: beginLabel,
-            messages: 0
-        });
-
         beginLabel !== endLabel && chartData.push({
             time: endLabel,
-            messages: 0
+            messages: magCount
         });
 
         generateChart(chartData);

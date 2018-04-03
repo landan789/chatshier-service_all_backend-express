@@ -19,7 +19,7 @@ module.exports = (function() {
 
         /**
          * @param {string[]|string} groupIds
-         * @param {string} userId
+         * @param {string|null} userId
          * @param {(groups: any) => any} [callback]
          */
         find(groupIds, userId, callback) {
@@ -151,7 +151,6 @@ module.exports = (function() {
                 },
                 'isDeleted': false,
                 'members.user_id': userId,
-                'members.isDeleted': false,
                 'members.status': true
             };
 
@@ -167,15 +166,15 @@ module.exports = (function() {
                 }
             ];
 
-            let appIds = {};
+            let apps = {};
             return this.Model.aggregate(aggregations).then((groups) => {
                 groups.forEach((group) => {
                     group.app_ids.forEach((appId) => {
-                        appIds[appId] = true;
+                        apps[appId] = true;
                     });
                 });
             }).then(() => {
-                appIds = Object.keys(appIds);
+                let appIds = Object.keys(apps);
                 ('function' === typeof callback) && callback(appIds);
                 return appIds;
             }).catch(() => {

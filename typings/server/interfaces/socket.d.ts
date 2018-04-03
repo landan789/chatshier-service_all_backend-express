@@ -1,8 +1,10 @@
 interface ChatshierChatSocketBody {
     app_id: string;
     chatroom_id: string;
-    recipientId: string;
+    senderUid: string;
+    recipientUid: string;
     type: string;
+    messagers?: any;
     messages: ChatshierMessage[]
 }
 

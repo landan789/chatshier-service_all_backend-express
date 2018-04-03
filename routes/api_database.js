@@ -1,27 +1,28 @@
-var API_ERROR = require('../config/api_error');
-var API_SUCCESS = require('../config/api_success');
-var express = require('express');
-var bodyParser = require('body-parser');
-var formData = require('express-form-data');
+const API_ERROR = require('../config/api_error');
+const API_SUCCESS = require('../config/api_success');
+const express = require('express');
+const bodyParser = require('body-parser');
+const formData = require('express-form-data');
 
-var appsAutorepliesCtl = require('../controllers/apps_autoreplies');
-var appsComposesCtl = require('../controllers/apps_composes');
-var appsTemplateCtl = require('../controllers/apps_templates');
-var appsCtl = require('../controllers/apps');
-var appsTicketsCtl = require('../controllers/apps_tickets');
-var calendarsEventsCtl = require('../controllers/calendars_events');
-var appsRichmenusCtl = require('../controllers/apps_richmenus');
-var appsFieldsCtl = require('../controllers/apps_fields');
-var appsGreetingsCtl = require('../controllers/apps_greetings');
-var usersCtl = require('../controllers/users');
-var groupsCtl = require('../controllers/groups');
-var groupsMembersCtl = require('../controllers/groups_members');
-var botCtl = require('../controllers/bot');
-var appsMessagersCtl = require('../controllers/apps_messagers');
-var appsChatroomsMessagesCtl = require('../controllers/apps_chatrooms_messages');
-var appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
+const appsAutorepliesCtl = require('../controllers/apps_autoreplies');
+const appsComposesCtl = require('../controllers/apps_composes');
+const appsTemplateCtl = require('../controllers/apps_templates');
+const appsCtl = require('../controllers/apps');
+const appsTicketsCtl = require('../controllers/apps_tickets');
+const calendarsEventsCtl = require('../controllers/calendars_events');
+const appsRichmenusCtl = require('../controllers/apps_richmenus');
+const appsFieldsCtl = require('../controllers/apps_fields');
+const appsGreetingsCtl = require('../controllers/apps_greetings');
+const consumersCtl = require('../controllers/consumers');
+const usersCtl = require('../controllers/users');
+const groupsCtl = require('../controllers/groups');
+const groupsMembersCtl = require('../controllers/groups_members');
+const botCtl = require('../controllers/bot');
+const appsChatroomsCtl = require('../controllers/apps_chatrooms');
+const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
+const appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
 
-var router = express.Router();
+const router = express.Router();
 
 // HTTP body x-www-form-urlencoded parser
 // HTTP body 允許 json 格式
@@ -49,16 +50,11 @@ router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTick
 router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.deleteOne);
 
 // ===============
-// messager 個人資料訊息相關
-router.get('/apps-messagers/users/:userid', appsMessagersCtl.getAllMessagers);
-router.get('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.getMessager);
-router.put('/apps-messagers/apps/:appid/messager/:messagerid/users/:userid', appsMessagersCtl.updateMessager);
-// ===============
-
-// ===============
 // 聊天室訊息
-router.get('/apps-chatrooms-messages/users/:userid', appsChatroomsMessagesCtl.getAll);
-router.get('/apps-chatrooms-messages/apps/:appid/users/:userid', appsChatroomsMessagesCtl.getAllByAppId);
+router.get('/apps-chatrooms/users/:userid', appsChatroomsCtl.getAll);
+router.get('/apps-chatrooms/apps/:appid/users/:userid', appsChatroomsCtl.getAll);
+router.get('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.getOne);
+router.put('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.update);
 // ===============
 
 // ==========
@@ -127,6 +123,13 @@ router.post('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.postOne
 router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.putOne);
 router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.deleteOne);
 // ==========
+
+// ===============
+// consumer 個人資料訊息相關
+router.get('/consumers/users/:userid', consumersCtl.getAll);
+router.get('/consumers/consumers/:platformuid/users/:userid', consumersCtl.getOne);
+router.put('/consumers/consumers/:platformuid/users/:userid', consumersCtl.update);
+// ===============
 
 // vendor 的個人資料
 router.get('/users/users/:userid', usersCtl.getOne);

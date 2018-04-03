@@ -5,8 +5,26 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
 
+    var date = Date.now();
     var $autoreplyAddSdtPicker = $('.autoreply-add.modal #start_datetime_picker');
     var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
+    var $autoreplyEditSdtPicker = $('#editModal #start_datetime_picker');
+    var $autoreplyEditEdtPicker = $('#editModal #end_datetime_picker');
+    var datetimePickerInitOpts = {
+        sideBySide: true,
+        defaultDate: date,
+        locale: 'zh-tw'
+    };
+    var datetimePickerInitOptsToEdit = {
+        sideBySide: true,
+        locale: 'zh-tw'
+    };
+   
+   
+    $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
+    $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
 
     var api = window.restfulAPI;
     var nowSelectAppId = '';
@@ -20,18 +38,6 @@
     } catch (ex) {
         userId = '';
     }
-
-    var currentDate = new Date();
-    var datetimePickerInitOpts = {
-        sideBySide: true,
-        minDate: currentDate,
-        defaultDate: currentDate,
-        locale: 'zh-tw'
-    };
-
-    $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
-    $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
-
     $(document).on('click', '#modal-submit', dataInsert); // 新增
     $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
     $(document).on('click', '#edit-submit', dataUpdate);
@@ -72,7 +78,6 @@
     function dataInsert() {
         $('#modal-submit').attr('disabled', 'disabled');
         let appId = $('#app-select option:selected').attr('id');
-
         let startedTime = $autoreplyAddSdtPicker.data('DateTimePicker').date().toDate().getTime();
         let endedTime = $autoreplyAddEdtPicker.data('DateTimePicker').date().toDate().getTime();
 
@@ -143,7 +148,7 @@
 
                     $('#autoreply-tables').append(
                         '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                            '<th id="title" data-title="data-title">' + autoreply.title + '</th>' +
+                            '<th id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
                             '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                             '<td id="text">' + autoreply.text + '</td>' +
@@ -163,8 +168,8 @@
         let appId = $(this).parent().parent().find('#edit-appid').text();
         let autoreplyId = $(this).parent().parent().find('#edit-autoreplyid').text();
         let name = $('#edit-taskTitle').val(); // 標題
-        let starttime = Date.parse($('#edit-taskStart').val()); // 開始時間
-        let endtime = Date.parse($('#edit-taskEnd').val()); // 結束時間
+        let starttime = $autoreplyEditSdtPicker.data('DateTimePicker').date(); // 開始時間
+        let endtime = $autoreplyEditEdtPicker.data('DateTimePicker').date(); // 結束時間
         let textInput = $('#edit-taskContent').val(); // 任務內容
         var data = {
             title: name,
@@ -245,9 +250,9 @@
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         let title = $(this).parent().parent().find('#title').text();
-        let startedTime = new Date($(this).parent().parent().find('#started-time').attr('rel')).toISOString();
+        let startedTime = new Date($(this).parent().parent().find('#started-time').attr('rel')).toLocaleString();
         startedTime = startedTime.split('.')[0];
-        let endedTime = new Date($(this).parent().parent().find('#ended-time').attr('rel')).toISOString();
+        let endedTime = new Date($(this).parent().parent().find('#ended-time').attr('rel')).toLocaleString();
         endedTime = endedTime.split('.')[0];
         let text = $(this).parent().parent().find('#text').text();
         // Initialize
