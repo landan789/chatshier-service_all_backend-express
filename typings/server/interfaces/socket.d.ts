@@ -1,16 +1,16 @@
 interface ChatshierChatSocketBody {
     app_id: string;
     chatroom_id: string;
+    senderUid: string;
     recipientUid: string;
     type: string;
-    messager?: any,
+    messagers?: any;
     messages: ChatshierMessage[]
 }
 
 interface ChatshierMessage {
     from: 'LINE' | 'FACEBOOK' | 'CHATSHIER' | 'SYSTEM';
-    platformUid?: string;
-    messager_id?: string;
+    messager_id: string;
     src: any;
     text: string;
     time: number;

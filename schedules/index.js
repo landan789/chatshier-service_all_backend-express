@@ -45,7 +45,7 @@ let jobProcess = () => {
                     resolve(appsComposes[appId].composes);
                 });
             });
-            let p2 = appsChatroomsMessagersMdl.findPlatformUids(appId).then((_platformUids) => {
+            let p2 = appsChatroomsMessagersMdl.findPlatformUids(appId, app.type).then((_platformUids) => {
                 platformUids = _platformUids || [];
                 return consumersMdl.find(platformUids);
             });
