@@ -14,15 +14,14 @@ server.on('error', (error) => {
     if (error.syscall !== 'listen') {
         throw error;
     }
-    var bind = 'string' === typeof port ? 'Pipe ' + port : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
+            console.error(' requires elevated privileges');
             process.exit(1);
         case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
+            console.error(' is already in use');
             process.exit(1);
         default:
             throw error;
