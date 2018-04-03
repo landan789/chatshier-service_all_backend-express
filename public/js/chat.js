@@ -217,7 +217,10 @@
 
             return api.appsTickets.findAll(appId, userId).then(function(resJson) {
                 var appData = resJson.data;
-                var clientPlatformUid = $('.card-group[app-id="' + appId + '"][style="display: block;"]').attr('platform-uid');
+
+                $cardGroup = $('.card-group[app-id="' + appId + '"][style="display: block;"]');
+                var chatroomId = $cardGroup.attr('chatroom-id');
+                var clientPlatformUid = $cardGroup.attr('platform-uid');
 
                 if (appData && appData[appId] && appData[appId].tickets) {
                     tickets = appData[appId].tickets;
@@ -251,8 +254,8 @@
                     var agents = appsAgents[appId].agents;
                     var $consumerNameSelect = $addTicketModal.find('select#add-form-name');
                     var $platformUidElem = $addTicketModal.find('input#add-form-uid');
-                    var $consumerEmailElem = $addTicketModal.find('input#add-form-email');
-                    var $consumerPhoneElem = $addTicketModal.find('input#add-form-phone');
+                    var $messagerEmailElem = $addTicketModal.find('input#add-form-email');
+                    var $messagerPhoneElem = $addTicketModal.find('input#add-form-phone');
                     var $assignedSelectElem = $addTicketModal.find('select#assigned-name');
 
                     var consumer = consumers[clientPlatformUid];
@@ -271,15 +274,15 @@
                     var updateInfo = function(selectedUid) {
                         if (!selectedUid) {
                             $platformUidElem.prop('value', '');
-                            $consumerEmailElem.prop('value', '');
-                            $consumerPhoneElem.prop('value', '');
+                            $messagerEmailElem.prop('value', '');
+                            $messagerPhoneElem.prop('value', '');
                             return;
                         }
 
-                        var consumer = consumers[selectedUid];
+                        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
                         $platformUidElem.prop('value', selectedUid);
-                        $consumerEmailElem.prop('value', consumer.email);
-                        $consumerPhoneElem.prop('value', consumer.phone);
+                        $messagerEmailElem.prop('value', messager.email);
+                        $messagerPhoneElem.prop('value', messager.phone);
                     };
                     updateInfo($consumerNameSelect.val());
 
@@ -1753,7 +1756,7 @@
             });
         }).then(function() {
             // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-            let messager = findChatroomMessager(appId, chatroomId);
+            let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
             Object.assign(messager, messagerUiData);
             $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function(err) {
