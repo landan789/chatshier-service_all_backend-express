@@ -11,7 +11,7 @@ module.exports = (function() {
 
     util.inherits(AppsChatroomsMessagersController, controllerCre.constructor);
 
-    AppsChatroomsMessagersController.prototype.getOne = function(req, res, next) {
+    AppsChatroomsMessagersController.prototype.getAll = function(req, res, next) {
         let chatroomId = req.params.chatroomid;
         let messagerId = req.params.messagerid;
 

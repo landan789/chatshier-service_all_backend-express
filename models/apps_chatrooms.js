@@ -153,17 +153,7 @@ module.exports = (function() {
                             'chatrooms.$[chatroom].messagers': messager
                         }
                     };
-                    return this.AppsModel.update(query, doc, options).then(() => {
-                        // 將 member 加入至 chatroom 後
-                        // 將 chatroomId 更新進 memberUser 的 chatroom_ids 中
-                        let query = { _id: memberUserId };
-                        let project = { chatroom_ids: true };
-
-                        return this.UsersModel.findOne(query, project).then((userDoc) => {
-                            userDoc.chatroom_ids.push(chatroomId.toHexString());
-                            return userDoc.save();
-                        });
-                    });
+                    return this.AppsModel.update(query, doc, options);
                 }));
             }).then(() => {
                 return this.find(appId, chatroomId);
