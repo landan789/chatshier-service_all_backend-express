@@ -32,21 +32,30 @@ let jobProcess = () => {
             let messages = [];
             let consumers = {};
             let platformUids = [];
+            let chatroomIds = [];
 
             if (CHATSHIER === app.type || app.isDeleted) {
-                return Promise.resolve([]);
+                return Promise.resolve(null);
             }
 
             let p1 = new Promise((resolve, reject) => {
                 appsComposesMdl.find(appId, null, (appsComposes) => {
                     if (!appsComposes) {
-                        return resolve([]);
+                        return resolve({});
                     }
                     resolve(appsComposes[appId].composes);
                 });
             });
-            let p2 = appsChatroomsMessagersMdl.findPlatformUids(appId, app.type).then((_platformUids) => {
-                platformUids = _platformUids || [];
+            let p2 = appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                chatroomIds = Object.keys(chatrooms);
+                for (let chatroomId in chatrooms) {
+                    let messagers = chatrooms[chatroomId].messagers;
+                    for (let messagerId in messagers) {
+                        let messager = messagers[messagerId];
+                        platformUids.push(messager.platformUid);
+                    }
+                }
                 return consumersMdl.find(platformUids);
             });
 
@@ -112,20 +121,12 @@ let jobProcess = () => {
                 };
                 return botSvc.multicast(platformUids, messages, appId, app);
             }).then(() => {
-                // 找出發送平台用戶所在的 chatroom
-                // 將所有已發送的訊息加到隸屬於發送平台用戶的 chatroom 訊息中
-                return Promise.all(platformUids.map((platformUid) => {
-                    return consumersMdl.find(platformUid).then((consumers) => {
-                        let consumer = consumers[platformUid];
-                        let chatroomIds = consumer.chatroom_ids;
-
-                        return Promise.all(chatroomIds.map((chatroomId) => {
-                            return Promise.all(messages.map((message) => {
-                                console.log('[database] insert to db each message each messager[' + platformUid + '] ... ');
-                                return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
-                            }));
-                        }));
-                    });
+                // 將所有已發送的訊息加到隸屬於 consumer 的 chatroom 中
+                return Promise.all(chatroomIds.map((chatroomId) => {
+                    return Promise.all(messages.map((message) => {
+                        console.log('[database] insert to db each message ... ');
+                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
+                    }));
                 }));
             });
         }));

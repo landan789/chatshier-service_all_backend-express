@@ -474,14 +474,11 @@ module.exports = (function() {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
                     }
 
-                    let memberUser = users[memberUserId];
-                    let chatroomIds = memberUser.chatroom_ids;
-
                     // 抓取出 group 裡的 app_ids 清單
                     // 將此 group member 從所有 app 裡的 chatrooms messagers 刪除
                     return groupsMdl.findAppIds(groupId, memberUserId).then((appIds) => {
                         appIds = appIds || [];
-                        return appsChatroomsMessagersMdl.remove(appIds, chatroomIds, memberUserId).then((appsChatroomsMessagers) => {
+                        return appsChatroomsMessagersMdl.remove(appIds, null, memberUserId).then((appsChatroomsMessagers) => {
                             if (!appsChatroomsMessagers) {
                                 return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
                             };

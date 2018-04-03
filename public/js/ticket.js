@@ -91,7 +91,7 @@
         users = respJsons.shift().data;
         groups = respJsons.shift().data;
 
-        for (let appId in apps) {
+        for (var appId in apps) {
             // 準備各個 app 的指派人清單
             // 由於每個 app 可能隸屬於不同的群組
             // 因此指派人清單必須根據 app 所屬的群組分別建立清單
@@ -123,7 +123,7 @@
             for (var appId in appsTickets) {
                 var tickets = appsTickets[appId].tickets;
 
-                // 批此處理每個 tickets 的 app 資料
+                // 批次處理每個 tickets 的 app 資料
                 for (var ticketId in tickets) {
                     var ticket = tickets[ticketId];
                     var consumer = consumers[ticket.platformUid] || {};

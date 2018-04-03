@@ -3,6 +3,8 @@
 (function() {
     var apps = {};
     var appsAgents = {};
+    var appsConsumers = {};
+    var appsChatroomsMessagers = {};
     var consumers = {};
     var groups = {};
     var users = {};
@@ -43,11 +45,13 @@
 
         return Promise.all([
             api.apps.findAll(userId),
+            api.appsChatroomsMessagers.findAll(userId),
             api.consumers.findAll(userId),
             api.users.find(userId),
             api.groups.findAll(userId)
         ]).then(function(respJsons) {
             apps = respJsons.shift().data;
+            appsChatroomsMessagers = respJsons.shift().data;
             consumers = respJsons.shift().data;
             users = respJsons.shift().data;
             groups = respJsons.shift().data;
@@ -78,6 +82,20 @@
                     }
                 }
 
+                // 利用各個 chatroom 裡的 messager 將 consumer 與 app 建立關聯
+                var chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                appsConsumers[appId] = { consumers: {} };
+                for (var chatroomId in chatrooms) {
+                    var messagers = chatrooms[chatroomId].messagers;
+                    for (var messagerId in messagers) {
+                        var messager = messagers[messagerId];
+                        if (CHATSHIER === messager.type) {
+                            continue;
+                        }
+                        appsConsumers[appId].consumers[messager.platformUid] = consumers[messager.platformUid];
+                    }
+                }
+
                 $appSelectElem.append('<option value=' + appId + '>' + app.name + '</option>');
             }
 
@@ -85,13 +103,21 @@
                 $appSelectElem.append('<option value="">無資料</option>');
             } else {
                 var selectedAppId = $appSelectElem.find('option:selected').val();
-                updateConsumerInfoElems(consumers, appsAgents[selectedAppId].agents);
+                updateConsumerInfoElems(
+                    appsConsumers[selectedAppId].consumers,
+                    appsAgents[selectedAppId].agents,
+                    apps[selectedAppId].type
+                );
             }
 
             // 啟用選取器選取的事件
             $appSelectElem.on('change', function(ev) {
                 var appId = ev.target.value;
-                updateConsumerInfoElems(consumers, appsAgents[appId].agents);
+                updateConsumerInfoElems(
+                    appsConsumers[appId].consumers,
+                    appsAgents[appId].agents,
+                    apps[appId].type
+                );
             });
         });
     }
@@ -100,12 +126,16 @@
      * 根據輸入的清單更新客戶的資訊於 view 上顯示
      *
      * @param {any} consumers
+     * @param {any} agents
      */
-    function updateConsumerInfoElems(consumers, agents) {
+    function updateConsumerInfoElems(consumers, agents, consumerType) {
         $consumerSelectElem.empty();
         if (consumers && Object.keys(consumers).length > 0) {
-            for (var consumerId in consumers) {
-                var consumer = consumers[consumerId];
+            for (var platformUid in consumers) {
+                var consumer = consumers[platformUid];
+                if (consumer.type !== consumerType) {
+                    continue;
+                }
                 $consumerSelectElem.append('<option value=' + consumer.platformUid + '>' + consumer.name + '</option>');
             }
         } else {

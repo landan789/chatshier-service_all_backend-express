@@ -65,6 +65,7 @@ interface AppsChatroomsAPI {
 }
 
 interface AppsChatroomsMessagersAPI {
+    findAll: (userId: string) => Promise<any>;
     findOne: (appId: string, chatroomId: string, messagerId: string, userId: string) => Promise<any>;
     update: (appId: string, chatroomId: string, messagerId: string, userId: string, messager: any) => Promise<any>;
     updateByPlatformUid: (appId: string, chatroomId: string, platformUid: string, userId: string, messager: any) => Promise<any>;

@@ -13,12 +13,12 @@ module.exports = (function() {
                 isDeleted: true,
                 updatedTime: true,
                 createdTime: true,
-                chatroom_ids: true,
                 gender: true,
                 name: true,
                 photo: true,
                 remark: true,
-                custom_fields: true
+                custom_fields: true,
+                type: true
             };
         }
 
