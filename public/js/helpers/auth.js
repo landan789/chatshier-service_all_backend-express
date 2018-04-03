@@ -51,7 +51,6 @@
                 let jwt = response.jwt;
                 window.localStorage.setItem('jwt', jwt);
                 window.restfulAPI && window.restfulAPI.setJWT(jwt);
-            }).then(() => {
                 return nextPromise();
             });
         }
