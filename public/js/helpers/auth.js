@@ -13,7 +13,7 @@
     const REFRESH_TIME = 5 * 1000;
 
     /**
-     * automatically refresh when the time before jwt expired time 10 minutes
+     * jwt automatically refreshes 10 minutes before jwt expires
      */
     function jwtRefresh() {
         return nextPromise().then(() => {
