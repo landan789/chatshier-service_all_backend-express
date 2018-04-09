@@ -1120,7 +1120,7 @@
 
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                            '<button class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                            '<button class="btn btn-light btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                 '<span class="caret"></span>' +
                             '</button>' +

@@ -113,7 +113,7 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-default fa fa-check" id="check-btn"></button>' +
+                    '<button type="button" class="btn btn-light fa fa-check" id="check-btn"></button>' +
                     '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
                 '</td>' +
             '</tr>'

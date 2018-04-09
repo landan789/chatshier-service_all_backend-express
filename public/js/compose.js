@@ -186,8 +186,8 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="年齡" data-type="' + field.setsType + '" id="field">年齡:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="年齡" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -202,8 +202,8 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="性別" data-type="' + field.setsType + '" id="field">性別:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="性別" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -218,8 +218,8 @@
                             '<button type="button" rel="' + fieldId + '" class="btn btn-info" name="' + field.text + '" data-type="' + field.setsType + '" id="field">' + field.text + ':' + customFields[fieldId] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + fieldId + '" data-type="' + field.setsType + '" placeholder="' + field.text + '" id="condition-input" value="' + customFields[fieldId] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
+                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -516,8 +516,8 @@
             $fieldDiv.append(
                 '<div id="condition">' +
                     '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
-                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                    '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
+                    '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
                 '</div>'
             );
         }

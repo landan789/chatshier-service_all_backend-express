@@ -330,7 +330,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 '</div>' +
                 '<div id="' + fieldCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
                     '<div class="panel-body">' +
-                        '<button type="button" class="btn btn-default add-field">' +
+                        '<button type="button" class="btn btn-light add-field">' +
                             '<span class="fa fa-plus fa-fw"></span>新增' +
                         '</button>' +
                         '<table class="table table-striped">' +
@@ -346,7 +346,7 @@ window.googleClientHelper.loadAPI().then(function() {
                             '<tbody></tbody>' +
                         '</table>' +
                         '<div class="align-center">' +
-                            '<button type="button" class="btn btn-default all-confirm bold-word">儲存設定</button>' +
+                            '<button type="button" class="btn btn-light all-confirm bold-word">儲存設定</button>' +
                         '</div>' +
                     '</div>' +
                 '</div>'
@@ -464,7 +464,7 @@ window.googleClientHelper.loadAPI().then(function() {
                         getSetsHtml(field.setsType, field.sets) +
                     '</td>' +
                     '<td class="field-delete">' +
-                        '<button type="button" class="btn btn-default btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' hide' : '') + '">' +
+                        '<button type="button" class="btn btn-light btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' hide' : '') + '">' +
                             '<span class="fas fa-times"></span>&nbsp刪除' +
                         '</button>' +
                     '</td>' +
@@ -759,7 +759,7 @@ window.googleClientHelper.loadAPI().then(function() {
                     //     '<div class="col-4">' +
                     //         '<div class="input-group file-container" id="group_photo">' +
                     //             '<span class="input-group-btn">' +
-                    //                 '<button class="btn btn-default file-choose">' +
+                    //                 '<button class="btn btn-light file-choose">' +
                     //                     '<i class="fa fa-upload"></i>' +
                     //                 '</button>' +
                     //             '</span>' +
@@ -786,7 +786,7 @@ window.googleClientHelper.loadAPI().then(function() {
                                 '<td class="permission">' +
                                     '<div class="input-group text-right">' +
                                         '<div class="input-group-btn">' +
-                                            '<button class="btn btn-default btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                            '<button class="btn btn-light btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                                                 '<span class="permission-text">Permission</span>' + '&nbsp;' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
@@ -805,7 +805,7 @@ window.googleClientHelper.loadAPI().then(function() {
                                 '</td>' +
                                 '<td class="actions">' +
                                     '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'hide') + '">' +
-                                        '<button class="btn btn-default btn-block outline add-button">' +
+                                        '<button class="btn btn-light btn-block outline add-button">' +
                                             '新增' +
                                             '<i class="fa fa-user-plus"></i>' +
                                         '</button>' +
@@ -1452,7 +1452,7 @@ function loadGroups(groupData, groupId) {
         '</div>' +
         '<div id="' + groupId + '-group" class="panel-collapse collapse" role="tabpanel">' +
             '<div class="app-table-space">' +
-                '<button type="button" class="btn btn-default" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+                '<button type="button" class="btn btn-light" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
                     '<span class="fa fa-plus"></span> 新增APP' +
                 '</button>' +
                 '<br/><br/>' +
