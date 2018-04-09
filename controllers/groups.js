@@ -170,6 +170,7 @@ module.exports = (function() {
         let putGroup = {
             name: req.body.name || null
         };
+        let groups;
 
         // 前端未填入的訊息，不覆蓋
         for (let key in putGroup) {
@@ -239,40 +240,42 @@ module.exports = (function() {
                     resolve(groups);
                 });
             });
-        }).then((groups) => {
+        }).then((updatedGroups) => {
+            groups = updatedGroups;
+
+            return groupsMdl.findAppIds(groupId, userId);
+        }).then((appIds) => {
+            if (!appIds) {
+                Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
+                return;
+            }
+            return appsMdl.find(appIds, null);
+        }).then((apps) => {
+            if (!apps) {
+                Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                return;
+            }
+
+            let appIds = Object.keys(apps);
             let putApp = {
                 name: 'Chatshier - ' + putGroup.name
             };
-            return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
-                if (!appIds) {
-                    Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
-                    return;
-                }
-                return appsMdl.find(appIds, null);
-            }).then((apps) => {
-                if (!apps) {
-                    Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                    return;
-                }
-                let appIds = Object.keys(apps);
-                return Promise.all(appIds.map((appId) => {
-                    let app = apps[appId];
-                    if (CHATSHIER === app.type) { // 更新 屬於 內部群組 的 app 名稱
-                        return new Promise((resolve, reject) => {
-                            appsMdl.update(appId, putApp).then((app) => {
-                                if (!app) {
-                                    reject(API_ERROR.APP_FAILED_TO_UPDATE);
-                                    return;
-                                }
-                                resolve();
-                            });
+
+            return Promise.all(appIds.map((appId) => {
+                let app = apps[appId];
+                if (CHATSHIER === app.type) { // 更新 屬於 內部群組 的 app 名稱
+                    return new Promise((resolve, reject) => {
+                        appsMdl.update(appId, putApp).then((app) => {
+                            if (!app) {
+                                reject(API_ERROR.APP_FAILED_TO_UPDATE);
+                                return;
+                            }
+                            resolve();
                         });
-                    }
-                }));
-            }).then(() => {
-                return groups;
-            });
-        }).then((groups) => {
+                    });
+                }
+            }));
+        }).then(() => {
             let json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
