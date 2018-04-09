@@ -51,8 +51,7 @@ button:focus {
     .chsr .dropdown-menu .divider {
         margin: 0; }
     .chsr .dropdown-menu .dropdown-item {
-        font-size: .85rem;
-        padding: 10px 20px; }
+        font-size: .85rem; }
     .chsr .dropdown-toggle::after {
         display: none; }
 
