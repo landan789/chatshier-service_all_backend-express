@@ -87,13 +87,24 @@
     $historyTableElem = $('#composes_history_table tbody');
     $reservationTableElem = $('#composes_reservation_table tbody');
     $draftTableElem = $('#composes_draft_table tbody');
-    var dateNow = Date.now();
-    let options = {
-        locale: 'zh-tw',
+
+    var datetimePickerInitOpts = {
         sideBySide: true,
-        defaultDate: dateNow
+        locale: 'zh-tw',
+        defaultDate: Date.now(),
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
     };
-    $sendDatetimePicker.datetimepicker(options);
+    $sendDatetimePicker.datetimepicker(datetimePickerInitOpts);
 
     // FUNCTIONs
 

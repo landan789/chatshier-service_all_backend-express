@@ -133,7 +133,18 @@
     // 使用 moment.js 的 locale 設定 i18n 日期格式
     var datetimePickerInitOpts = {
         sideBySide: true,
-        locale: 'zh-tw'
+        locale: 'zh-tw',
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
     };
     $calendarSdtPicker.datetimepicker(datetimePickerInitOpts);
     $calendarEdtPicker.datetimepicker(datetimePickerInitOpts);

@@ -10,21 +10,28 @@
     var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
     var $autoreplyEditSdtPicker = $('#editModal #start_datetime_picker');
     var $autoreplyEditEdtPicker = $('#editModal #end_datetime_picker');
+
     var datetimePickerInitOpts = {
         sideBySide: true,
-        defaultDate: date,
-        locale: 'zh-tw'
+        locale: 'zh-tw',
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
     };
-    var datetimePickerInitOptsToEdit = {
-        sideBySide: true,
-        locale: 'zh-tw'
-    };
-   
-   
     $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
     $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
-    $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
-    $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
+
+    datetimePickerInitOpts.defaultDate = date;
+    $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOpts);
 
     var api = window.restfulAPI;
     var nowSelectAppId = '';

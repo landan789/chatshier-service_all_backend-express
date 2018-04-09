@@ -1790,18 +1790,18 @@
     }
     // =====end internal function
 
-    // =====start searchBox change func=====
+    // =====start search input change func=====
     /** @type {JQuery<HTMLElement>[]} */
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    var $searchWapper = $('#user div.search');
-    var $searchInput = $searchWapper.find('input#searchBox');
+    var $searchWapper = $('#user .search');
+    var $searchInput = $searchWapper.find('input.search-box');
 
     $searchInput.on('keyup', function(ev) {
-        var searchStr = $(this).val().toLowerCase();
+        var searchStr = $(ev.target).val().toLowerCase();
         if (!searchStr) {
-            $('#search-right').addClass('invisible');
+            $searchWapper.find('.search-results').addClass('invisible');
             displayAll();
 
             $('.tablinks').each(function() {
@@ -1815,10 +1815,10 @@
         var code = ev.keyCode || ev.which;
         if (38 === code) {
             // 向上鍵
-            return $searchWapper.find('.glyphicon-chevron-up').click();
+            return $searchWapper.find('.fa-chevron-up').click();
         } else if (40 === code) {
             // 向下鍵
-            return $searchWapper.find('.glyphicon-chevron-down').click();
+            return $searchWapper.find('.fa-chevron-down').click();
         } else if (13 !== code) {
             return;
         }
@@ -1883,7 +1883,7 @@
             if (1 <= count) {
                 $('#this-number').html(1);
                 $('#total-number').html(count);
-                $('#search-right').removeClass('invisible');
+                $searchWapper.find('.search-results').removeClass('invisible');
                 $(this).css('color', color);
             }
 
@@ -1891,7 +1891,7 @@
         });
     });
 
-    $searchWapper.on('click', '.glyphicon-chevron-up', function() {
+    $searchWapper.on('click', '.fa-chevron-up', function() {
         if (!($panels.length && $tablinks.length)) {
             return;
         }
@@ -1916,7 +1916,7 @@
         $('#this-number').html(i);
     });
 
-    $searchWapper.on('click', '.glyphicon-chevron-down', function() {
+    $searchWapper.on('click', '.fa-chevron-down', function() {
         if (!($panels.length && $tablinks.length)) {
             return;
         }
@@ -1989,7 +1989,7 @@
         }
         $('#clients').append(arr);
     }
-    // =====end searchBox change func=====
+    // =====end search input change func=====
 
     // =====start utility function
 

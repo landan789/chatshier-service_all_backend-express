@@ -465,11 +465,11 @@ window.googleClientHelper.loadAPI().then(function() {
                     '</td>' +
                     '<td class="field-delete">' +
                         '<button type="button" class="btn btn-default btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' hide' : '') + '">' +
-                            '<span class="glyphicon glyphicon-remove"></span>&nbsp刪除' +
+                            '<span class="fas fa-times"></span>&nbsp刪除' +
                         '</button>' +
                     '</td>' +
                     '<td class="field-drag-icon">' +
-                        '<span class="glyphicon glyphicon-menu-hamburger" style="color:#C0C0C0;"></span>' +
+                        '<span class="fas fa-bars" style="color:#C0C0C0;"></span>' +
                     '</td>' +
                 '</tr>');
             var $fieldRow = $fieldTableBody.find('#' + fieldId);
