@@ -686,6 +686,8 @@
                     }
                     conditionVal = ageRange;
                     break;
+                default:
+                    break;
             }
 
             switch (conditionRel) {
@@ -750,7 +752,7 @@
             userId = payload.uid;
         } catch (ex) {
             userId = '';
-        }        
+        }
         var targetRow = $(event.target).parent().parent();
         var appId = targetRow.attr('text');
         var composeId = targetRow.attr('id');

@@ -344,7 +344,7 @@
 
     function priorityColor(priority) {
         var colors = {
-            1: '#33CCFF',
+            1: '#33ccff',
             2: 'rgb(113, 180, 209)',
             3: 'rgb(233, 198, 13)',
             4: 'rgb(230, 100, 100)'

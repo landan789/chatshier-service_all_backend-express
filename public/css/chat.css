@@ -133,12 +133,12 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
         text-align: center;
     }
     .chat-app-item + .tooltip > .tooltip-inner {
-        background-color: #33CCFF;
-        border: 1px solid #33CCFF;
+        background-color: #33ccff;
+        border: 1px solid #33ccff;
     }
 
     .chat-app-item + .tooltip.right > .tooltip-arrow {
-        border-right-color: #33CCFF;
+        border-right-color: #33ccff;
     }
 }
 
@@ -232,7 +232,7 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
         margin-top: 50px;
     }
     .chsr.badge{
-        background-color: #33CCFF;
+        background-color: #33ccff;
     }
 }
 
@@ -577,7 +577,7 @@ div.loading-img {
         max-height: 24px;
     }
     .ticket tr:nth-child(even) {
-        background-color: #33CCFF;
+        background-color: #33ccff;
         color: white;
     }
     .ticket .ticket-row {
@@ -782,12 +782,12 @@ img[alt="無法顯示相片"] {
 
 [data-target="#add-ticket-modal"],
 .show-option {
-    color: #33CCFF;
+    color: #33ccff;
 }
 
 [data-target="#add-ticket-modal"]:hover {
     text-decoration: none;
-    color: #33CCFF;
+    color: #33ccff;
     cursor: pointer;
 }
 

@@ -232,7 +232,7 @@
             userId = payload.uid;
         } catch (ex) {
             userId = '';
-        }        
+        }
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {

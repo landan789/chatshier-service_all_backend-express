@@ -177,7 +177,7 @@
         let greetingData = {
             type: 'text',
             text: $textarea.val(),
-            createdTime : Date.now()
+            createdTime: Date.now()
         };
         return api.appsGreetings.insert(appId, userId, greetingData).then(function(resJson) {
             $('#' + trId).remove();

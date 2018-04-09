@@ -1,38 +1,12 @@
-/* fix padding under menu after resize */
-
-@media (max-width: 414px) {
-    .prof-wid {
-        width: 100%;
-    }
-}
-
-@media screen and (max-width: 767px) {
-    .prof-wid {
-        width: 100%;
-    }
-}
-
-@media (max-width: 1141px) {
-    .prof-wid {
-        width: 95%;
-    }
-}
-
 .border-info > .card-header {
     color: #ffffff;
-    background-color: #33CCFF;
-    border-color: #33CCFF;
-}
-
-.left {
-    position: fixed;
-    left: 0;
+    background-color: #33ccff;
+    border-color: #33ccff;
 }
 
 .tab-content {
     position: relative;
-    padding: 0 50px;
-    margin-left: 15%; }
+    padding: 0 50px; }
     .tab-content .field-name {
         width: 30%; }
     .tab-content .field-type {
@@ -49,6 +23,11 @@
     word-wrap: break-word;
 }
 
+.chsr.nav-pills .nav-link.active {
+    color: white;
+    background-color: #33ccff;
+}
+
 .feature-icon {
     display: inline-block;
     width: 24px;
@@ -56,23 +35,6 @@
     .feature-icon img {
         width: 100%;
         height: 100%; }
-
-
-.margin-top-twenty {
-    margin: 20px 0;
-}
-
-.padding-zero {
-    padding: 0px;
-}
-
-.align-center {
-    text-align: center;
-}
-
-.bold-word {
-    font-weight: bold;
-}
 
 p:empty:not(:focus)::before {
     content: attr(data-placeholder);
@@ -85,28 +47,28 @@ p:empty:not(:focus)::before {
     left: auto;
 }
 
-.margin-left-15 {
-    margin-left: 15px;
-}
-
-.chsr-fields .panel-heading {
-    border-bottom: 1px solid #ddd;
-}
-
 [data-toggle="collapse"]:after {
-    font-family: "Glyphicons Halflings";
-    content: "\e113";
+    font-family: "Font Awesome\ 5 Free";
+    content: "\f077";
+    font-weight: 900;
     float: right;
     color: #888;
-    padding: 0 1rem;
-}
-
-[data-toggle="collapse"].collapsed:after {
-    content: "\e114";
-}
+    padding: 0 1rem; }
+    [data-toggle="collapse"].collapsed:after {
+        content: "\f078"; }
 
 .app-table-space {
     padding: 1%;
+}
+
+.chsr-fields .card-header {
+    border-bottom: 1px solid #ddd;
+}
+
+.chsr-fields .app-name {
+    cursor: pointer;
+    color: #33ccff;
+    text-decoration: none;
 }
 
 /*******************/
@@ -130,6 +92,7 @@ p:empty:not(:focus)::before {
 .group-tab .group-name, .group-app .group-name {
     padding: 10px 15px;
     text-decoration: none;
+    color: #33ccff;
 }
 
 .panel-collapse {
@@ -137,11 +100,10 @@ p:empty:not(:focus)::before {
     border: 1px solid #ddd;
 }
 
-.group-wrapper {
-    display: flex; }
-    .group-wrapper .typeahead .dropdown-item {
-        overflow: hidden;
-        text-overflow: ellipsis; }
+.typeahead .dropdown-item {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .group-list-panel {
     width: 20%;
@@ -183,6 +145,7 @@ p:empty:not(:focus)::before {
 
 .chsr-group {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     background-color: white;
     margin-bottom: 0; }

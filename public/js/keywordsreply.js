@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-
     var nowSelectAppId = '';
     var appsData = {};
     var keywordreplies = {};

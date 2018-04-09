@@ -18,7 +18,7 @@ button:focus {
 
 /* 使導覽列的 link 元素的滑鼠游標都為點擊模式 */
 .nav-item {
-    color: #33CCFF; }
+    color: #33ccff; }
     .nav-item .nav-link {
         cursor: pointer; }
 
@@ -30,7 +30,7 @@ button:focus {
 .chsr.navbar {
     height: 100%;
     margin-bottom: 0;
-    background-color: #33CCFF;
+    background-color: #33ccff;
     padding-top: 0;
     padding-bottom: 0; }
     .chsr.navbar .navbar-brand.white,
@@ -72,11 +72,11 @@ button:focus {
 .nav-pills > li.active > a:focus,
 .nav-pills > li.active > a:hover {
     color: white;
-    background-color: #33CCFF;
+    background-color: #33ccff;
 }
 
 a:hover {
-    color: #33CCFF;
+    color: #33ccff;
     text-decoration: underline
 }
 /*start of search bar*/
@@ -411,7 +411,7 @@ input {
     }
     
     .top-blue-down-white {
-        background: linear-gradient(#33CCFF 40%, #ffffff);
+        background: linear-gradient(#33ccff 40%, #ffffff);
     }
     
     .loader {
@@ -464,7 +464,7 @@ input {
         font-size: 100px;
         font-family: Helvetica;
         font-weight: 900;
-        color: #33CCFF;
+        color: #33ccff;
         float: left;
     }
     
