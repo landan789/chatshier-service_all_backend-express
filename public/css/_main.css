@@ -9,6 +9,17 @@ body, html{
     z-index: 1051 !important; 
 }
 
+/* 取消 bootstrap 引入 normalize.css 的 button focus 邊框 */
+button:focus {
+    outline: none !important;
+}
+
+/* 使導覽列的 link 元素的滑鼠游標都為點擊模式 */
+.nav-item {
+    color: #33CCFF; }
+    .nav-item .nav-link {
+        cursor: pointer; }
+
 /*導覽列*/
 .chsr.toolbar {
     height: 50px;
@@ -23,7 +34,6 @@ body, html{
     .chsr.navbar .navbar-brand.white,
     .chsr.navbar .nav-link,
     .chsr.navbar .nav-link:hover {
-        cursor: pointer;
         color: white; }
     .chsr.navbar .nav-item {
         font-size: .85rem; }
