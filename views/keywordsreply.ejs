@@ -25,7 +25,6 @@
             <div class="chsr card">
                 <div class="title">
                     <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
                     <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
                 </div>
@@ -83,8 +82,8 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="keywordreply_edit_modal_title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <div class="modal-body">
@@ -126,44 +125,43 @@
         </div>
     </div>
     <div class="modal fade" id="keywordreply_add_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_add_modal_title" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="keywordreply_add_modal_title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <div class="modal-body">
                     <!-- Form Content -->
                     <div class="form-group">
-                        <label for="keywordreply-app-name" class="col-2 col-form-label">目標App:</label>
-                        <div class="col-4">
+                        <label for="keywordreply-app-name" class="col-form-label">目標App:</label>
+                        <div class="select-container">
                             <select class="form-control" name="keywordreply-app-name">
-                        <option value=''>載入中...</option>
-                    </select>
+                                <option value=''>載入中...</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="keywordreply-keyword" class="col-2 col-form-label">關鍵字:</label>
-                        <div class="col-4">
+                        <label for="keywordreply-keyword" class="col-form-label">關鍵字:</label>
+                        <div class="input-container">
                             <input class="form-control" type="text" name="keywordreply-keyword">
                         </div>
                     </div>
 
                     <!-- <div class="form-group">
-                <label for="modal-task-name" class="col-2 col-form-label">
-                    副關鍵字:
-                    <p>可設定多個關鍵字，請用 ',' 隔開，不需空格。範例：你好,哈囉,嗨</p>
-                </label>
+                        <label for="modal-task-name" class="col-form-label">
+                            副關鍵字:
+                            <p>可設定多個關鍵字，請用 ',' 隔開，不需空格。範例：你好,哈囉,嗨</p>
+                        </label>
 
-                <div class="col-4">
-                    <div class="col-4" id="subKeyCanvas"></div>
-                    <input class="form-control" type="text" value="" id="modal-subKey" />
-                </div>
-            </div> -->
+                        <div class="input-container">
+                            <input class="form-control" type="text" value="" id="keywordSubKey" />
+                        </div>
+                    </div> -->
 
                     <div class="form-group">
                         <label for="modal-text">回覆內容:  </label>
@@ -174,9 +172,9 @@
 
                     <div class="form-check">
                         <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
-                    是否儲存為草稿？
-                </label>
+                            <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
+                            是否儲存為草稿？
+                        </label>
                     </div>
 
                     <span class="text-danger error-msg"></span>
@@ -191,7 +189,7 @@
     </div>
 
     <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     <h4 id="textContent"></h4>

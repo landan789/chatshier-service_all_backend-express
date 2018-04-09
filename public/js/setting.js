@@ -1474,8 +1474,8 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">LINE</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group1" class="line">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span> 刪除</button>' +
-                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil"></span> 編輯</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fas fa-trash-alt"></span> 刪除</button>' +
+                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fas fa-edit"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
                 '</tr>' +
@@ -1508,8 +1508,8 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">Facebook</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group3" class="fb">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span> 刪除</button>' +
-                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil"></span> 編輯</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fas fa-trash-alt"></span> 刪除</button>' +
+                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fas fa-edit"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
                 '</tr>' +
@@ -1550,8 +1550,8 @@ function groupType(index, app) {
                     '<th class="col-md-3 col-lg-3">Wechat</th>' +
                     '<th class="col-md-9 col-lg-9">' +
                         '<div id="group1" class="wechat">' +
-                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fa fa-trash-o"></span> 刪除</button>' +
-                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fa fa-pencil"></span> 編輯</button>' +
+                            '<button class="btn btn-danger pull-right" id="del" rel="' + index + '"><span class="fas fa-trash-alt"></span> 刪除</button>' +
+                            '<button type="button" class="btn btn-grey pull-right" rel="' + index + '" id="edit" data-toggle="modal" data-target="#setting-modal"><span class="fas fa-edit"></span> 編輯</button>' +
                         '</div>' +
                     '</th>' +
                 '</tr>' +

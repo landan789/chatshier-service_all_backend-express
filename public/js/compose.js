@@ -42,7 +42,7 @@
     // ACTIONS
     $(document).on('change', '#app-select', storeApp);
     $(document).on('click', '.tablinks', clickMsg);
-    $(document).on('click', '#btn-text', btnText);
+    $(document).on('click', '#addComposeText', addComposeText);
     $(document).on('click', '.remove-btn', removeInput);
     $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
@@ -126,17 +126,17 @@
         $('#' + target).show().siblings().hide();
     }
 
-    function btnText() {
+    function addComposeText() {
         inputNum++;
         if (inputNum - deleteNum > 3) {
             $('.error-msg').show();
             inputNum--;
         } else {
             $('#inputText').append(
-                '<div style="margin:2%">' +
-                    '<span class="remove-btn">刪除</span>' +
+                '<div class="m-3">' +
+                    '<i class="fas fa-times remove-btn"></i>' +
                     '<tr>' +
-                        '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                        '<th class="p-3" style="background-color: #ddd">輸入文字:</th>' +
                     '</tr>' +
                     '<tr>' +
                         '<td style="background-color: #ddd">' +
@@ -386,8 +386,8 @@
                         '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
                         appendFields(composeData) +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
                 if (!composeData.status) {
@@ -651,8 +651,8 @@
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
-                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';
                     if (!compose.status) {

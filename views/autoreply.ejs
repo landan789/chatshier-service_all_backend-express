@@ -25,10 +25,9 @@
 
     <div id="home">
         <div class="container mt-5">
-            <div class="row chsr card">
+            <div class="chsr card">
                 <div class="title">
                     <h3 class="padding-lr h3-padding"> 自動回覆訊息</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr"> 首頁 / 訊息 / 自動回覆</p>
                     <p class="address padding-lr">當用戶對LINE@傳送訊息，訊息將自動回覆</p>
 
@@ -68,32 +67,33 @@
     </div>
 
     <div class="autoreply-add modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label class="col-2 col-form-label">App:</label>
-                            <div class="col-4">
-                                <select class="form-control" id="app-select">
-                                </select>
+                            <label class="col-form-label">App:</label>
+                            <div class="select-container">
+                                <select class="form-control" id="app-select"></select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-task-name" class="col-2 col-form-label">事件名稱(不可重複):</label>
-                            <div class="col-4">
-                                <input class="form-control" type="text" value="" id="modal-task-name">
+                            <label for="modal-task-name" class="col-form-label">事件名稱(不可重複):</label>
+                            <div class="input-container">
+                                <input class="form-control" type="text" id="modal-task-name">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="modal-datetime">傳送日期:</label><br>
                             <div class="date-group">
                                 <div class="input-group date" id="start_datetime_picker">
-                                    <span class="input-group-addon">開始日期</span>
+                                    <span class="input-group-prepend">
+                                        <span class="input-group-text">開始日期</span>
+                                    </span>
                                     <input type="text" class="form-control" name="start_datetime" />
                                     <span class="input-group-addon input-group-prepend">
                                         <span class="input-group-text">
@@ -102,7 +102,9 @@
                                     </span>
                                 </div>
                                 <div class="input-group date" id="end_datetime_picker">
-                                    <span class="input-group-addon">結束日期</span>
+                                    <span class="input-group-prepend">
+                                        <span class="input-group-text">結束日期</span>
+                                    </span>
                                     <input type="text" class="form-control" name="end_datetime" />
                                     <span class="input-group-addon input-group-prepend">
                                         <span class="input-group-text">
@@ -114,8 +116,8 @@
                         </div>
                         <div class="form-group">
                             <label for="modal-text">自動回覆訊息:  </label>
-                            <div id="text" style="display:block">
-                                <input class="form-control" type="text" value="" id="enter-text" style="width:50%;height:50px">
+                            <div id="text" class="textarea-container">
+                                <textarea class="form-control" id="enter-text" style="width:50%; height:5rem"></textarea>
                             </div>
                         </div>
                     </form>
@@ -129,11 +131,13 @@
     </div>
 
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>

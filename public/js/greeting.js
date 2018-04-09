@@ -74,7 +74,7 @@
                             '<th>' + greeting[greetingId].text + '</th>' +
                             '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -116,7 +116,7 @@
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
                     '<button type="button" class="btn btn-light fa fa-check" id="check-btn"></button>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                 '</td>' +
             '</tr>'
         );
@@ -189,7 +189,7 @@
                 '<th>' + greeting[greetingId].text + '</th>' +
                 '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                 '</td>' +
             '</tr>';
             if (0 === greetingIdsLength) {

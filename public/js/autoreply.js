@@ -109,8 +109,8 @@
                     '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                     '<td id="text">' + autoreply.text + '</td>' +
                     '<td>' +
-                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                        '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                        '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                     '</td>' +
                 '</tr>'
             );
@@ -160,8 +160,8 @@
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                             '<td id="text">' + autoreply.text + '</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -196,8 +196,8 @@
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                 '</td>'
             );
 

@@ -21,12 +21,10 @@
     <% include ../views/partials/loading.ejs %>
     <div id="home">
         <div class="container mt-5">
-            <div class="row chsr card">
+            <div class="chsr card">
                 <div class="title">
                     <h3 class="padding-lr h3-padding"> 圖文選單</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr"> 首頁 / 訊息 / 圖文選單</p>
-
                 </div>
                 <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
@@ -69,7 +67,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>

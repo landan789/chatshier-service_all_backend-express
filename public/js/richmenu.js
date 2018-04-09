@@ -270,13 +270,13 @@
         this.td5 = $('<td>');
         this.td6 = $('<td>');
         this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-light fa fa-pencil')
+            .addClass('btn btn-light fas fa-edit')
             .attr('id', 'edit')
             .attr('data-toggle', 'modal')
             .attr('data-target', '#richmenu-modal')
             .attr('aria-hidden', 'true');
         this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
+            .addClass('btn btn-danger fas fa-trash-alt')
             .attr('id', 'del');
     }
 
