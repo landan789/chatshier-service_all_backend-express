@@ -243,26 +243,34 @@ module.exports = (function() {
             let putApp = {
                 name: 'Chatshier - ' + putGroup.name
             };
-            return new Promise((resolve, reject) => {
-                groupsMdl.findAppIds(groupId, userId, (appIds) => {
-                    appsMdl.find(appIds, null, (apps) => {
-                        if (!apps) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        for (let appId in apps) {
-                            let app = apps[appId];
-                            if (CHATSHIER === app.type) { // 更新 屬於 內部群組 的 app 名稱
-                                appsMdl.update(appId, putApp).then((app) => {
-                                    if (!app) {
-                                        reject(API_ERROR.APP_FAILED_TO_UPDATE);
-                                    }
-                                });
-                            }
-                        }
-                        resolve(groups);
-                    });
-                });
+            return groupsMdl.findAppIds(groupId, userId).then((appIds) => {
+                if (!appIds) {
+                    Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
+                    return;
+                }
+                return appsMdl.find(appIds, null);
+            }).then((apps) => {
+                if (!apps) {
+                    Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    return;
+                }
+                let appIds = Object.keys(apps);
+                return Promise.all(appIds.map((appId) => {
+                    let app = apps[appId];
+                    if (CHATSHIER === app.type) { // 更新 屬於 內部群組 的 app 名稱
+                        return new Promise((resolve, reject) => {
+                            appsMdl.update(appId, putApp).then((app) => {
+                                if (!app) {
+                                    reject(API_ERROR.APP_FAILED_TO_UPDATE);
+                                    return;
+                                }
+                                resolve();
+                            });
+                        });
+                    }
+                }));
+            }).then(() => {
+                return groups;
             });
         }).then((groups) => {
             let json = {
