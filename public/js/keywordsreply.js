@@ -27,13 +27,26 @@
         userId = '';
     }
 
-    $searchBar.on('change paste keyup', function() {
+    $searchBar.on('keyup', function(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
-            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
             return;
         }
-        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        var code = ev.keyCode || ev.which;
+        if (13 === code) {
+            // enter鍵
+            var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+            if(0 === target.length){
+                $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
+            }
+            else{
+                target.siblings().hide();
+                target.show();
+            }
+            return;
+        } 
+       
     });
     // ==========
     // 設定關鍵字新增 modal 相關 element 與事件
@@ -160,7 +173,7 @@
                     var trGrop =
                     '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
                         '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
-                        '<td>' + keywordreply.text + '</td>' +
+                        '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
                             '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
