@@ -151,7 +151,7 @@
                             '<th id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
                             '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
-                            '<td id="text">' + autoreply.text + '</td>' +
+                            '<td id="text" data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
                             '<td>' +
                                 '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
@@ -264,13 +264,25 @@
         $('#edit-taskContent').val(text); // 任務內容
     } // end open edit
 
-    function dataSearch() {
+    function dataSearch(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
             $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
             return;
         }
-        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        var code = ev.keyCode || ev.which;
+        if (13 === code) {
+            // enter鍵
+           var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+            if(0 === target.length){
+                $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
+            }
+           else{
+               target.siblings().hide();
+               target.show();
+         }
+           return;
+        } 
     }
 
     function showDialog(textContent) {
