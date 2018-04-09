@@ -331,7 +331,7 @@ window.googleClientHelper.loadAPI().then(function() {
                 '<div id="' + fieldCollapseId + '" class="panel-collapse collapse" role="tabpanel" aria-labelledby="' + appId + '">' +
                     '<div class="panel-body">' +
                         '<button type="button" class="btn btn-light add-field">' +
-                            '<span class="fa fa-plus fa-fw"></span>新增' +
+                            '<i class="fas fa-plus fa-fw"></i>新增' +
                         '</button>' +
                         '<table class="table table-striped">' +
                             '<thead>' +
@@ -1453,7 +1453,7 @@ function loadGroups(groupData, groupId) {
         '<div id="' + groupId + '-group" class="panel-collapse collapse" role="tabpanel">' +
             '<div class="app-table-space">' +
                 '<button type="button" class="btn btn-light" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                    '<span class="fa fa-plus"></span> 新增APP' +
+                    '<i class="fas fa-plus"></i> 新增APP' +
                 '</button>' +
                 '<br/><br/>' +
                 '<table class="table chsr-group chsr-table">' +

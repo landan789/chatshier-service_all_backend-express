@@ -63,28 +63,28 @@
                 continue;
             }
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
-            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
+            $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadAutoreplies(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
+        nowSelectAppId = $(ev.target).attr('app-id');
         $appDropdown.find('.dropdown-text').text(ev.target.text);
         loadAutoreplies(nowSelectAppId, userId);
     }
 
     function dataInsert() {
         $('#modal-submit').attr('disabled', 'disabled');
-        let appId = $('#app-select option:selected').attr('id');
+        let appId = $appSelector.find('option:selected').val();
         let startedTime = $autoreplyAddSdtPicker.data('DateTimePicker').date().toDate().getTime();
         let endedTime = $autoreplyAddEdtPicker.data('DateTimePicker').date().toDate().getTime();
 
@@ -104,7 +104,7 @@
 
             $('#autoreply-tables').append(
                 '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                    '<th id="title">' + autoreply.title + '</th>' +
+                    '<th class="mb-2" id="title">' + autoreply.title + '</th>' +
                     '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                     '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                     '<td id="text">' + autoreply.text + '</td>' +
@@ -155,7 +155,7 @@
 
                     $('#autoreply-tables').append(
                         '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                            '<th id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
+                            '<th class="mb-2" id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
                             '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                             '<td id="text">' + autoreply.text + '</td>' +
@@ -191,7 +191,7 @@
 
             $('#' + autoreplyId).empty();
             $('#' + autoreplyId).append(
-                '<th id="title">' + autoreply.title + '</th>' +
+                '<th class="mb-2" id="title">' + autoreply.title + '</th>' +
                 '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +

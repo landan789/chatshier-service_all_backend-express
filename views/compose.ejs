@@ -25,28 +25,30 @@
 
     <div id="home">
         <!-- [status filter] -->
-        <div class="container margin-top">
-            <div class="row chsr panel">
-                <div class="title title-top">
+        <div class="container mt-5">
+            <div class="row chsr card">
+                <div class="title">
                     <h3 class="padding-lr h3-padding">預約群發</h3>
                     <hr class="hr-margin-bottom">
                     <p class="address padding-lr">首頁 / 訊息 /群發 </p>
                     <p class="address padding-lr">新增、編輯傳送到LINE@的訊息</p>
                 </div>
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="dropdown-text">請選擇應用程式</span>
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
                 </div>
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="searchWidget">
                     <div class="search-add">
                         <span class="icon"><i class="fa fa-search"></i></span>
                         <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" id="add-btn" class="btn btn-light fa fa-plus inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="disabled"></button>
+                        <button type="button" id="add-btn" class="btn btn-light inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
 
                     <div class="chsr table">
@@ -122,9 +124,9 @@
                         </div>
                     </div>
                     <!-- LIMIT USER -->
-                    <div id="limit-user" class="panel panel-default" hidden>
-                        <div class="panel-heading">條件</div>
-                        <div class="panel-body" id="custom-fields"></div>
+                    <div id="limit-user" class="card" hidden>
+                        <div class="card-header">條件</div>
+                        <div class="card-body" id="custom-fields"></div>
                     </div>
                     <!-- 時間 -->
                     <div class="form-group">
@@ -199,9 +201,9 @@
                             </div>
                         </div>
                         <label for="custom-fields">篩選條件: </label>
-                        <div id="edit-limit-user" class="panel panel-default">
-                            <div class="panel-heading">條件</div>
-                            <div class="panel-body" id="edit-custom-fields"></div>
+                        <div id="edit-limit-user" class="card">
+                            <div class="card-header">條件</div>
+                            <div class="card-body" id="edit-custom-fields"></div>
                         </div>
                         <div class="form-group">
                             <label for="text">訊息: </label>

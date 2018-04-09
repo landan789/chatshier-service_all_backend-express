@@ -51,7 +51,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadGreetings(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -96,7 +96,9 @@
                 '<th></th>' +
                 '<td></td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-grey fa fa-plus" id="add-btn"></button>' +
+                    '<button type="button" class="btn btn-grey" id="add-btn">' +
+                        '<i class="fas fa-plus"></i>' +
+                    '</button>' +
                 '</td>' +
             '</tr>'
         );

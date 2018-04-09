@@ -1036,7 +1036,7 @@
                                     '</th>' +
                                     '<th>' +
                                         '<a class="modal-toggler" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#add-ticket-modal">' +
-                                            '<span class="fa fa-plus fa-fw"></span>新增待辦' +
+                                            '<span class="fas fa-plus fa-fw"></span>新增待辦' +
                                         '</a>' +
                                     '</th>' +
                                 '</tr>' +
@@ -1124,7 +1124,7 @@
                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                 '<span class="caret"></span>' +
                             '</button>' +
-                            '<ul class="multi-select-container dropdown-menu">' +
+                            '<div class="multi-select-container dropdown-menu">' +
                                 (function(sets) {
                                     var checkboxes = '';
                                     for (var i in sets) {
@@ -1134,19 +1134,19 @@
 
                                         if ('assigned' === field.alias) {
                                             checkboxes +=
-                                                '<li class="dropdown-item">' +
+                                                '<span class="dropdown-item">' +
                                                     '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                '</li>';
+                                                '</span>';
                                         } else {
                                             checkboxes +=
-                                                '<li class="dropdown-item">' +
+                                                '<span class="dropdown-item">' +
                                                     '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                '</li>';
+                                                '</span>';
                                         }
                                     }
                                     return checkboxes;
                                 })(field.sets) +
-                            '</ul>' +
+                            '</div>' +
                         '</div>' +
                     '</td>';
                 case setsTypeEnums.CHECKBOX:
@@ -2023,7 +2023,7 @@
             var $checkbox = $(this);
             if ($checkbox.is(':checked')) {
                 valArr.push($checkbox.val());
-                textArr.push($checkbox.parents('li').text());
+                textArr.push($checkbox.parents('.dropdown-item').text());
             }
         });
 

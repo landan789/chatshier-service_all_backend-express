@@ -18,6 +18,12 @@
     }
 }
 
+.border-info > .card-header {
+    color: #ffffff;
+    background-color: #33CCFF;
+    border-color: #33CCFF;
+}
+
 .left {
     position: fixed;
     left: 0;

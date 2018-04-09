@@ -291,9 +291,9 @@
             }
             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
 
             if (!nowSelectAppId && !modelSelectAppId) {
                 nowSelectAppId = appId;
@@ -304,7 +304,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadComposes(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
 
         if (modelSelectAppId) {
@@ -313,7 +313,7 @@
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
+        nowSelectAppId = $(ev.target).attr('app-id');
         $appDropdown.find('.dropdown-text').text(ev.target.text);
         loadComposes(nowSelectAppId, userId);
     }
