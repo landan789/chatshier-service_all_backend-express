@@ -12,7 +12,6 @@
     <link rel="icon" href="image/favicon.ico" />
     
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/sb-admin-2.css" />
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/chat.css" />
     <link rel="stylesheet" href="css/partials/ticket_info_modal.css" />
@@ -57,7 +56,7 @@
                     <ol class="list-group" id="clients"></ol>
                 </div>
             </div>
-            <div id="chat-content-panel" class="column">
+            <div class="chat-content-panel column">
                 <div class="chat-prof">
                     <h4 class="prof-nick"></h4>
                 </div>
@@ -100,7 +99,6 @@
 
     <% include ../views/partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="js/sb-admin-2.js"></script>
     <script src="js/chat.js"></script>
 </body>
 

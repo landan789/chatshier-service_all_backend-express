@@ -462,13 +462,13 @@
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
-    $(document).on('focus', '#chat-content-panel input#message', readClientMsg); // 已讀客戶訊息
-    $(document).on('click', '#chat-content-panel input#submitMsg', submitMessage); // 訊息送出
+    $(document).on('focus', '.chat-content-panel input#message', readClientMsg); // 已讀客戶訊息
+    $(document).on('click', '.chat-content-panel input#submitMsg', submitMessage); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
     messageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        (13 === ev.keyCode) && $('#chat-content-panel input#submitMsg').click();
+        (13 === ev.keyCode) && $('.chat-content-panel input#submitMsg').click();
     });
     // =====end chat event=====
 
@@ -1310,7 +1310,7 @@
             $unReadElem.text(messagerSelf.unRead).hide();
         }
 
-        $('#chat-content-panel .chat-prof .prof-nick').text(appName);
+        $('.chat-content-panel .chat-prof .prof-nick').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
@@ -1378,7 +1378,7 @@
     function submitMessage(ev) {
         ev.preventDefault();
         var $evElem = $(ev.target);
-        var $contentPanel = $evElem.parentsUntil('#chat-content-panel');
+        var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
         var $messageView = $contentPanel.siblings('#canvas').find('.tabcontent.shown');
 
         var appId = $messageView.attr('app-id');
@@ -1434,7 +1434,7 @@
             return;
         }
 
-        var $contentPanel = $(_this).parents('#chat-content-panel');
+        var $contentPanel = $(_this).parents('.chat-content-panel');
         var $messageView = $contentPanel.find('#canvas .tabcontent.shown');
         var appId = $messageView.attr('app-id');
         var chatroomId = $messageView.attr('chatroom-id');

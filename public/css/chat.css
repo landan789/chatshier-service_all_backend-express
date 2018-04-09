@@ -24,9 +24,7 @@ input[type="datetime-local"][disabled]::-webkit-calendar-picker-indicator {
         font-family: Microsoft JhengHei;
         overflow: hidden;
     }
-    #wrapper {
-        height: 7%;
-    }
+
     #chat-Home {
         position: relative;
         left: 0;
@@ -366,13 +364,22 @@ div.loading-img {
 
 /*message panel*/
 @media all {
-    #chat-content-panel {
+    .chat-content-panel {
         position: relative;
         width: 40%;
         height: 100%;
         background-color: #f7f8f9;
-        resize: both;
-    }
+        resize: both; }
+        .chat-content-panel::after {
+            content: "";
+            position: absolute;
+            left: 25%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            opacity: .5;
+            background: transparent url("../image/logo.png") center/contain no-repeat; }
+
     .chat-prof {
         display: flex;
         align-items: center;
@@ -814,33 +821,4 @@ img[alt="無法顯示相片"] {
 .multi-select-values {
     white-space: normal;
     word-wrap: break-word;
-}
-
-.chsr .nav>li>a:focus,
-.chsr .nav>li>a:hover {
-    text-decoration: none;
-    background-color: rgb(47, 191, 240);
-}
-
-.chsr a:focus,
-.chsr a:hover {
-    color: #ffffff;
-}
-
-.chsr .nav .open>a,
-.chsr .nav .open>a:focus,
-.chsr .nav .open>a:hover {
-    background-color: rgb(47, 191, 240);
-}
-
-.chsr .dropdown-menu .divider {
-    margin: 0px;
-}
-
-.chsr .dropdown-menu {
-    padding: 0px;
-}
-
-.chsr .dropdown-menu>li>a {
-    padding: 10px 20px;
 }

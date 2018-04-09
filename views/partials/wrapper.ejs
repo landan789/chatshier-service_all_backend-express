@@ -1,49 +1,81 @@
-<div id="wrapper">
+<div class="chsr toolbar">
     <nav class="chsr navbar navbar-default navbar-static-top" role="navigation">
         <div class="navbar-header">
             <a class="navbar-brand white" href="/"> Chatshier </a>
         </div>
         <ul class="nav navbar-top-links navbar-left">
-            <li>
-                <a href="/chat"> <i class="fa fa-commenting fa-fw"></i> 聊天室</a>
-            </li>
-            <li>
-                <a href="/calendar"> <i class="fa fa-calendar fa-fw"></i> 行事曆</a>
-            </li>
-            <li>
-                <a href="/ticket"> <i class="fa fa-list-ul fa-fw"></i> 待辦事項</a>
-            </li>
-            <li>
-                <a href="/analyze"> <i class="fa fa-bar-chart fa-fw"></i> 訊息分析</a>
-            </li>
-            <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i class="fa fa-envelope" aria-hidden="true"></i> 訊息</a>
+            <li class="nav-item">
+                <a class="nav-link" href="/chat">
+                    <i class="fas fa-comment-dots fa-fw"></i>
+                    聊天室
                 </a>
-
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/calendar">
+                    <i class="far fa-calendar-alt fa-fw"></i>
+                    行事曆
                 </a>
-                <ul class="dropdown-menu ">
-
-                    <li><a href="/compose"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;群發</a></li>
-                    <li class="divider"></li>
-                    <li><a href="/autoreply"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;自動回覆</a></li>
-                    <li class="divider"></li>
-                    <li><a href="/keywordsreply"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;關鍵字回覆</a></li>
-                    <li class="divider"></li>
-                    <li><a href="/greeting"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;加好友回覆</a></li>
-                    <!-- <li class="divider"></li>
-                    <li><a href="/template"><i class="fa fa-comments" aria-hidden="true"></i>&nbsp;&nbsp;自訂Line樣板</a></li> -->
-                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/ticket">
+                    <i class="fa fa-list-ul fa-fw"></i>
+                    待辦事項
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/analyze">
+                    <i class="fa fa-chart-bar fa-fw"></i>
+                    訊息分析
+                </a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="messagesDropdownMenuButton" data-toggle="dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                    訊息
+                </a>
+                <div class="dropdown-menu" aria-labelledby="messagesDropdownMenuButton">
+                    <a class="dropdown-item" href="/compose">
+                        <i class="fa fa-comments" aria-hidden="true"></i>
+                        群發
+                    </a>
+                    <hr class="divider">
+                    <a class="dropdown-item" href="/autoreply">
+                        <i class="fa fa-comments" aria-hidden="true"></i>
+                        自動回覆
+                    </a>
+                    <hr class="divider">
+                    <a class="dropdown-item" href="/keywordsreply">
+                        <i class="fa fa-comments" aria-hidden="true"></i>
+                        關鍵字回覆
+                    </a>
+                    <hr class="divider">
+                    <a class="dropdown-item" href="/greeting">
+                        <i class="fa fa-comments" aria-hidden="true"></i>
+                        加好友回覆
+                    </a>
+                    <!-- <hr class="divider">
+                    <a class="dropdown-item" href="/template">
+                        <i class="fa fa-comments" aria-hidden="true"></i>
+                        自訂Line樣板
+                    </a> -->
+                </div>
             </li>
         </ul>
         <ul class="nav navbar-top-links navbar-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="settingsDropdownMenuButton" data-toggle="dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fa fa-cog fa-lg"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-user">
-                    <li><a href="/setting"><i class="fa fa-user fa-fw"></i> 設定</a></li>
-                    <li class="divider"></li>
-                    <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> 登出</a></li>
+                    <a class="dropdown-item" href="/setting">
+                        <i class="fa fa-user fa-fw"></i>
+                        設定
+                    </a>
+                    <hr class="divider">
+                    <a class="dropdown-item" href="/logout">
+                        <i class="fa fa-sign-out-alt fa-fw"></i>
+                        登出
+                    </a>
                 </ul>
             </li>
         </ul>
