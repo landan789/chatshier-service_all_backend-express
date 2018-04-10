@@ -411,7 +411,7 @@
 
             var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val(), 10);
             var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val(), 10);
-            var ticketDescription = $modifyTable.find('th.description').parent().find('td.edit textarea').val();
+            var ticketDescription = $modifyTable.find('th.description').parent().find('td textarea').val();
             var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
 
             var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
@@ -419,7 +419,7 @@
             var assignedName = $assignedElem.text();
 
             // 準備要修改的 ticket json 資料
-            var modifiedTicket = {
+            var ticket = {
                 description: ticketDescription,
                 dueTime: new Date(ticketDueTime).getTime(),
                 priority: ticketPriority,
@@ -428,7 +428,7 @@
             };
 
             // 發送修改請求 api 至後端進行 ticket 修改
-            return api.appsTickets.update(appId, ticketId, userId, modifiedTicket).then(function() {
+            return api.appsTickets.update(appId, ticketId, userId, ticket).then(function() {
                 $.notify('待辦事項已更新，指派人: ' + assignedName, { type: 'success' });
                 instance.loadTickets(appId, userId);
             }).catch(function() {

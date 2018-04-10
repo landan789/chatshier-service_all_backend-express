@@ -447,7 +447,7 @@
 
         var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val());
         var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val());
-        var ticketDescription = $modifyTable.find('th.description').parent().find('td.edit textarea').val();
+        var ticketDescription = $modifyTable.find('th.description').parent().find('td textarea').val();
         var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
 
         var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
