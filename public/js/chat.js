@@ -42,10 +42,10 @@
 
     // selectors
     var $profilePanel = $('.profile-panel');
-    var messageInput = $('#submitMessageInput'); // 訊息欄
-    var canvas = $('#canvas'); // 聊天室空間
+    var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
+    var $chatroomBody = $('#chatroomBody'); // 聊天室空間
     var $profileWrapper = $('.profile-wrapper'); // 個人資料空間
-    var ocClickShow = $('.media-btn');
+    var $mediaBtns = $('.media-btn');
 
     var transJson = {};
     window.translate.ready.then(function(json) {
@@ -373,9 +373,7 @@
             var platformUid = $ticketAddModal.find('select#add-form-name option:selected').val();
             var assignedId = $ticketAddModal.find('select#assigned-name option:selected').val();
             var description = $ticketAddModal.find('textarea#add_form_description').val();
-            var $errorElem = $ticketAddModal.find('#error');
 
-            $errorElem.empty();
             if (!description) {
                 $.notify('請輸入說明內容', { type: 'danger' });
             } else if (!platformUid) {
@@ -470,10 +468,10 @@
     $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
-    ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
+    $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
-    messageInput.on('keydown', function(ev) { // 按enter可以發送訊息
+    $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
     });
     // =====end chat event=====
@@ -553,14 +551,6 @@
         }
         return Promise.all(socketRegPromises);
     }).then(function() {
-        if (!apps) {
-            if ('1' !== window.sessionStorage.notifyModal) { // 網頁refresh不會出現errorModal(但另開tab會)
-                $('#notifyModal').modal('show');
-                window.sessionStorage.notifyModal = 1;
-            }
-            return;
-        }
-
         generateAppsIcons(apps);
         responseChatData(apps);
     });
@@ -732,14 +722,14 @@
     }
 
     function generateAppsIcons(apps) {
-        var $chatApp = $('#chat_App');
+        var $chatAppList = $('#chatAppList');
 
         for (var appId in apps) {
-            var appData = apps[appId];
+            var app = apps[appId];
 
             var buildHtml = function(type, imgSrc) {
                 var html =
-                    '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + appData.name + '">' +
+                    '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + app.name + '">' +
                         '<img class="software-icon" src="' + imgSrc + '">' +
                         '<div class="unread-count"></div>' +
                     '</div>';
@@ -747,20 +737,20 @@
             };
 
             var appItem = '';
-            switch (appData.type) {
+            switch (app.type) {
                 case LINE:
-                    appItem = buildHtml(appData.type, LINE_LOGO);
+                    appItem = buildHtml(app.type, LINE_LOGO);
                     break;
                 case FACEBOOK:
-                    appItem = buildHtml(appData.type, FACEBOOK_LOGO);
+                    appItem = buildHtml(app.type, FACEBOOK_LOGO);
                     break;
                 case WECHAT:
-                    appItem = buildHtml(appData.type, WECHAT_LOGO);
+                    appItem = buildHtml(app.type, WECHAT_LOGO);
                     break;
                 default:
                     break;
             }
-            appItem && $chatApp.prepend(appItem);
+            appItem && $chatAppList.prepend(appItem);
         }
     }
 
@@ -807,7 +797,7 @@
             return tA < tB;
         };
 
-        var $tablinksArea = $('#user .tablinks-area');
+        var $tablinksArea = $('#person .tablinks-area');
         var $clients = $tablinksArea.find('#clients');
         var $clientTabs = $clients.find('.tablinks');
         $clientTabs.sort(sortByMessageTime);
@@ -830,7 +820,7 @@
             '<button class="tablinks"' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
                     '<img class="consumer-avatar" src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
-                    '<img class="small-software-icon" src="' + opts.iconSrc + '">' +
+                    '<img class="software-icon" src="' + opts.iconSrc + '">' +
                 '</div>' +
                 '<div class="msg-holder">' +
                     '<b><span class="client-name">' + opts.clientName + '</span>' + opts.messageHtml + '</b>' +
@@ -926,14 +916,14 @@
             messageText += NO_HISTORY_MSG;
         }
         messageText += historyMsgToStr(messages, messagers, appType);
-        canvas.append(
-            '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
+        $chatroomBody.append(
+            '<div class="chat-content" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
                 '<div class="message-panel">' + messageText + '</div>' +
             '</div>'
         );
 
         // if (requireData.position) {
-        //     $('.tabcontent[app-id="' + appId + '"]' + '[chatroom-id="' + requireData.chatroomId + '"]').on('scroll', function() {
+        //     $('.chat-content[app-id="' + appId + '"]' + '[chatroom-id="' + requireData.chatroomId + '"]').on('scroll', function() {
         //         detectScrollTop($(this));
         //     });
         // }
@@ -1241,7 +1231,7 @@
     // =====start chat function=====
     function showChatApp() {
         var selectRel = $(this).attr('rel');
-        var $tablinksArea = $('#user .tablinks-area');
+        var $tablinksArea = $('#person .tablinks-area');
         var $allTablinks = $tablinksArea.find('.tablinks');
 
         switch (selectRel) {
@@ -1316,12 +1306,12 @@
             $unReadElem.text(messagerSelf.unRead).hide();
         }
 
-        var $chatPanel = $('#chat-Home .chat-content-panel');
+        var $chatPanel = $('#chatWrapper .chat-content-panel');
         !$chatPanel.hasClass('open') && $chatPanel.addClass('open');
-        $chatPanel.find('.chat-prof .prof-nick').text(appName);
+        $chatPanel.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
-        var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         $messageInputContainer.show();
         $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
@@ -1387,14 +1377,14 @@
         ev.preventDefault();
         var $evElem = $(ev.target);
         var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
-        var $messageView = $contentPanel.siblings('#canvas').find('.tabcontent.shown');
+        var $messageView = $contentPanel.siblings('#chatroomBody').find('.chat-content.shown');
 
         var appId = $messageView.attr('app-id');
         var appType = apps[appId].type;
         var chatroomId = $messageView.attr('chatroom-id');
         var platformMessager = findChatroomMessager(appId, chatroomId, appType);
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var msgText = messageInput.val();
+        var msgText = $submitMessageInput.val();
 
         if (!(appId && chatroomId && msgText)) {
             return;
@@ -1425,7 +1415,7 @@
         scrollMessagePanelToBottom(appId, chatroomId);
 
         return new Promise(function(resolve) {
-            messageInput.val('');
+            $submitMessageInput.val('');
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
                 $loadingElem.remove();
                 $loadingElem = void 0;
@@ -1443,7 +1433,7 @@
         }
 
         var $contentPanel = $(_this).parents('.chat-content-panel');
-        var $messageView = $contentPanel.find('#canvas .tabcontent.shown');
+        var $messageView = $contentPanel.find('#chatroomBody .chat-content.shown');
         var appId = $messageView.attr('app-id');
         var chatroomId = $messageView.attr('chatroom-id');
 
@@ -1490,7 +1480,7 @@
             recipientUid: platformMessager.platformUid,
             messages: [messageToSend]
         };
-        messageInput.val('');
+        $submitMessageInput.val('');
         chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
             $loadingElem.remove();
             $loadingElem = void 0;
@@ -1552,7 +1542,7 @@
     }
 
     function scrollMessagePanelToBottom(appId, chatroomId) {
-        var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $messagePanel = $messageWrapper.find('.message-panel');
         $messagePanel.scrollTop($messagePanel.prop('scrollHeight'));
     }
@@ -1579,8 +1569,8 @@
             var historyMsgStr = NO_HISTORY_MSG;
             historyMsgStr += generateMessageHtml(srcHtml, _message, messager, appType);
 
-            canvas.append(
-                '<div class="tabcontent" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
+            $chatroomBody.append(
+                '<div class="chat-content" app-id="' + appId + '" chatroom-id="' + chatroomId + '">' +
                     '<div class="message-panel">' + historyMsgStr + '</div>' +
                 '</div>'
             );
@@ -1769,8 +1759,7 @@
             let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
             Object.assign(messager, messagerUiData);
             $.notify('用戶資料更新成功', { type: 'success' });
-        }).catch(function(err) {
-            console.error(err);
+        }).catch(function() {
             $.notify('用戶資料更新失敗', { type: 'danger' });
         });
     }
@@ -1803,19 +1792,19 @@
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    var $searchWapper = $('#user .search');
-    var $searchInput = $searchWapper.find('input.search-box');
+    var $searchWapper = $('#person .message-search');
+    var $searchInput = $searchWapper.find('.search-box');
 
     $searchInput.on('keyup', function(ev) {
         var searchStr = $(ev.target).val().toLowerCase();
         if (!searchStr) {
-            $searchWapper.find('.search-results').addClass('invisible');
+            $searchWapper.find('.search-results').addClass('d-none');
             displayAll();
 
             $('.tablinks').each(function() {
                 var appId = $(this).attr('app-id');
                 var chatroomId = $(this).attr('chatroom-id');
-                var panel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+                var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
                 panel.find('.message .content').removeClass('found');
             });
         }
@@ -1837,7 +1826,7 @@
             var $tablinkElem = $(this);
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');
-            var panel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+            var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
             var color = '';
             var display = false;
 
@@ -1889,9 +1878,9 @@
             });
 
             if (1 <= count) {
-                $('#this-number').html(1);
-                $('#total-number').html(count);
-                $searchWapper.find('.search-results').removeClass('invisible');
+                $('#currentNumber').html(1);
+                $('#totalNumber').html(count);
+                $searchWapper.find('.search-results').removeClass('d-none');
                 $(this).css('color', color);
             }
 
@@ -1904,8 +1893,8 @@
             return;
         }
 
-        var i = parseInt($('#this-number').html(), 10);
-        var total = parseInt($('#total-number').html(), 10);
+        var i = parseInt($('#currentNumber').html(), 10);
+        var total = parseInt($('#totalNumber').html(), 10);
 
         if (i <= 1) {
             i = total;
@@ -1921,7 +1910,7 @@
             var offsetTop = $clientNameOrText.prop('offsetTop') - $clientNameOrText.height();
             $panel.scrollTop(offsetTop);
         }
-        $('#this-number').html(i);
+        $('#currentNumber').html(i);
     });
 
     $searchWapper.on('click', '.fa-chevron-down', function() {
@@ -1929,8 +1918,8 @@
             return;
         }
 
-        var i = parseInt($('#this-number').html(), 10);
-        var total = parseInt($('#total-number').html(), 10);
+        var i = parseInt($('#currentNumber').html(), 10);
+        var total = parseInt($('#totalNumber').html(), 10);
 
         if (i >= total) {
             i = 1;
@@ -1946,7 +1935,7 @@
             var offsetTop = $clientNameOrText.prop('offsetTop') - $clientNameOrText.height();
             $panel.scrollTop(offsetTop);
         }
-        $('#this-number').html(i);
+        $('#currentNumber').html(i);
     });
 
     function displayAll() {
@@ -1959,7 +1948,7 @@
 
             var appId = $tablinkElem.attr('app-id');
             var chatroomId = $tablinkElem.attr('chatroom-id');
-            var $MessagePanel = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+            var $MessagePanel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
             var $tablinkMsg = $tablinkElem.find('.client-message');
             var $lastMessage = $MessagePanel.find('.message').last();
 

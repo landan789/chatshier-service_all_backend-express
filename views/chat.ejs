@@ -20,9 +20,10 @@
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div id="chat-Home">
+
+    <div class="chat-wrapper" id="chatWrapper">
         <div class="chat-area">
-            <div id="chat_App">
+            <div class="chat-app-list" id="chatAppList">
                 <div class="chat-app-item" open="true" rel="group" data-toggle="tooltip" data-placement="right" title="內部群組">
                     <img class="software-icon" src="image/logo-no-transparent.png">
                 </div>
@@ -39,14 +40,14 @@
                     <img class="software-icon" src="image/close.png">
                 </div>
             </div>
-            <div id="user" class="column">
-                <div class="search">
+            <div class="person column" id="person">
+                <div class="search message-search">
                     <input type="text" class="search-box" placeholder="搜尋文字訊息...">
-                    <div class="invisible search-results">
+                    <div class="search-results d-none">
                         <div class="number">
-                            <span id="this-number" class="this-number">0</span>
+                            <span class="current-number" id="currentNumber">0</span>
                             <span class="slash-number">/</span>
-                            <span id="total-number" class="total-number">0</span>
+                            <span class="total-number" id="totalNumber">0</span>
                         </div>
                         <i class="fas fa-chevron-up grey" aria-hidden="true"></i>
                         <i class="fas fa-chevron-down grey" aria-hidden="true"></i>
@@ -57,10 +58,10 @@
                 </div>
             </div>
             <div class="chat-content-panel column">
-                <div class="chat-prof">
-                    <h4 class="prof-nick"></h4>
+                <div class="consumer-profile">
+                    <h4 class="display-name"></h4>
                 </div>
-                <div id="canvas"></div>
+                <div class="chatroom-body" id="chatroomBody"></div>
                 <div class="message-input-container">
                     <div class="message-input form-upper">
                         <div class="media-container">
