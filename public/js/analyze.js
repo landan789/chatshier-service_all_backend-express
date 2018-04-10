@@ -189,7 +189,7 @@
         var msgCount = 0; // 當前月份的訊息數
 
         var xAxisLabalMap = {};
-        while (timeData.length) {
+        while (nowSeg < endTime) {
             var msgTime = timeData.shift();
             if (msgTime <= nextSeg) {
                 // 若這筆資料的時間還沒到下個月，則當前月份訊息數++
@@ -211,6 +211,7 @@
             nextDate.setMonth(nextDate.getMonth() + 1);
             nextSeg = nextDate.getTime();
             msgCount = 0;
+            timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
@@ -237,11 +238,12 @@
         var timeData = getSelecedTimeData();
 
         var chartData = [];
+        var xAxisLabalMap = {};
         var nowSeg = Math.floor(startTime / DATE) * DATE; // 取得第一天的00:00的時間
         var nextSeg = nowSeg + DATE;
         var magCount = 0;
 
-        while (timeData.length) {
+        while (nowSeg < endTime) {
             var msgTime = timeData.shift();
             if (msgTime <= nextSeg) {
                 magCount++;
@@ -250,6 +252,7 @@
 
             var date = new Date(nowSeg);
             var xAxisLabal = getDateStr(date);
+            xAxisLabalMap[xAxisLabal] = true;
             chartData.push({
                 time: xAxisLabal,
                 messages: magCount
@@ -261,16 +264,17 @@
             timeData.unshift(msgTime); // 把第一筆不符合判斷式的data加回陣列
         }
 
-        // 將起始時間與結束時間加入資料內以便顯示時間區間
+        // 將開始時間與結束時間加入資料內以便顯示時間區間
         var beginDate = new Date(startTime);
         var endDate = new Date(endTime);
         var beginLabel = getDateStr(beginDate);
         var endLabel = getDateStr(endDate);
 
-        beginLabel !== endLabel && chartData.push({
+        !xAxisLabalMap[endLabel] && chartData.push({
             time: endLabel,
             messages: magCount
         });
+        xAxisLabalMap[endLabel] = true;
 
         generateChart(chartData);
     }
@@ -280,10 +284,11 @@
         var timeData = getSelecedTimeData();
 
         var chartData = [];
+        var xAxisLabalMap = {};
         var nowSeg = Math.floor(startTime / HOUR) * HOUR;
         var magCount = 0;
 
-        while (timeData.length) {
+        while (nowSeg < endTime) {
             var msgTime = timeData.shift();
             if (msgTime <= (nowSeg + HOUR)) {
                 magCount++;
@@ -292,6 +297,7 @@
 
             var date = new Date(nowSeg);
             var xAxisLabal = getDateStr(date) + ' ' + getTimeStr(date);
+            xAxisLabalMap[xAxisLabal] = true;
 
             chartData.push({
                 time: xAxisLabal,
@@ -308,10 +314,11 @@
         var beginLabel = getDateStr(beginDate) + ' ' + getTimeStr(beginDate);
         var endLabel = getDateStr(endDate) + ' ' + getTimeStr(endDate);
 
-        beginLabel !== endLabel && chartData.push({
+        !xAxisLabalMap[endLabel] && chartData.push({
             time: endLabel,
             messages: magCount
         });
+        xAxisLabalMap[endLabel] = true;
 
         generateChart(chartData);
     }
