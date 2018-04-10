@@ -12,36 +12,35 @@
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
+    <link rel="stylesheet" href="css/richmenu.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div id="home">
-        <div class="container margin-top">
-            <div class="row chsr panel">
-                <!-- <div class="col-md-6" id="view-all"> -->
-                <div class="title title-top">
+    <div class="page-wrapper">
+        <div class="container mt-5">
+            <div class="chsr card">
+                <div class="title">
                     <h3 class="padding-lr h3-padding"> 圖文選單</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr"> 首頁 / 訊息 / 圖文選單</p>
-
                 </div>
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="dropdown-text">請選擇應用程式</span>
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
-                    <div class="search-add">
+                    <div class="search-add mb-2">
                         <span class="icon"><i class="fa fa-search"></i></span>
                         <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="disabled"></button>
+                        <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="padding-lr chsr table">
@@ -69,7 +68,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>
@@ -101,7 +102,7 @@
                         <!-- title -->
                         <div class="form-group col-sm-12">
                             <label class="col-form-label"><strong>標題:</strong></label>
-                            <input class="form-control" type="text" id="title">
+                            <input class="form-control mb-2" type="text" id="title">
                         </div>
                         <div class="form-group col-sm-12">
                             <label class="col-form-label"><strong>聊天室選單文字:</strong></label>
@@ -164,7 +165,7 @@
                         <!-- 內容設定 -->
                             <div class="col-sm-12">
                                 <label class="col-form-label"><strong>內容設定:</strong></label>
-                                <label class="col-form-label btn btn-default">
+                                <label class="col-form-label btn btn-light btn-border">
                                     <strong>上傳圖片</strong>
                                     <input type="file" class="image-ghost" id="photo" accept="image/png|image/jpg"/>
                                 </label>
@@ -243,7 +244,6 @@
     <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://mermaidjs.github.io/scripts/mermaid.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/richmenu.js"></script>
 </body>
 

@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-
     var nowSelectAppId = '';
     var appsData = {};
     var keywordreplies = {};
@@ -145,7 +144,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadKeywordsReplies(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -176,8 +175,8 @@
                         '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
                     if (!keywordreply.status) {

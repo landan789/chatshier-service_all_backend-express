@@ -37,9 +37,6 @@ router.get('/calendar', function(req, res, next) {
 router.get('/ticket', function(req, res, next) {
     res.render('ticket', { title: '待辦事項' });
 });
-router.get('/ticket_form', function(req, res, next) {
-    res.render('ticket_form', { title: '新增待辦事項' });
-});
 // authentication
 router.get('/logout', function(req, res, next) {
     res.render('logout', { title: '登出' });

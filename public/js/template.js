@@ -54,7 +54,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadTemplates(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -77,8 +77,8 @@
                         '<td id="type">' + template.template.type + '</td>' +
                         '<td id="keyword">' + template.keyword + '</td>' +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>'
                 );
@@ -96,8 +96,8 @@
 
     //     function appendToView(id, name) {
     //         let select = $('.channel-select');
-    //         let navTabs = $('#view-all>.nav-tabs');
-    //         let tabContent = $('#view-all>.tab-content');
+    //         let navTabs = $('#appSelector>.nav-tabs');
+    //         let tabContent = $('#appSelector>.tab-content');
     //         select.append('<option value="' + id + '">' + name + '</option>');
     //         navTabs.append('<li><a data-toggle="tab" href="#' + id + '">' + name + '</a></li>');
     //         tabContent.append('<div class="tab-pane fade" id="' + id + '"></div>');

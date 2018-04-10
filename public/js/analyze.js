@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var AnalyzeType = Object.freeze({
         0: 'MONTH',
         1: 'DAY',
@@ -30,7 +28,6 @@
     var api = window.restfulAPI;
     var analyzeType = AnalyzeType.MONTH; // 預設從每日單位顯示分析
 
-    var $chartWrapper = $('#chartdiv');
     var $buttonGroup = $('.button-group');
     var $analyzeSdtPicker = $('#start_datetime_picker');
     var $analyzeEdtPicker = $('#end_datetime_picker');
@@ -55,8 +52,24 @@
 
     // 初始化 modal 裡的 datetime picker
     // 使用 moment.js 的 locale 設定 i18n 日期格式
-    $analyzeSdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
-    $analyzeEdtPicker.datetimepicker({ locale: 'zh-tw', defaultDate: date });
+    var datetimePickerInitOpts = {
+        sideBySide: true,
+        locale: 'zh-tw',
+        defaultDate: date,
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
+    };
+    $analyzeSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $analyzeEdtPicker.datetimepicker(datetimePickerInitOpts);
     sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
     eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
 
@@ -75,8 +88,10 @@
         messagesDataArray = {};
         for (var appId in appsData) {
             messagesDataArray[appId] = [];
-            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $dropdownMenu.append(
+                '<a class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</a>'
+            );
+            $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
 
             if (messagesData[appId]) {
@@ -102,14 +117,14 @@
             startTime = ev.date.toDate().getTime();
             renderChart();
         });
-        $analyzeEdtPicker.on('dp.change', function(ev) {  
+        $analyzeEdtPicker.on('dp.change', function(ev) {
             endTime = ev.date.toDate().getTime();
             renderChart();
         });
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
+        nowSelectAppId = $(ev.target).attr('app-id');
         $appDropdown.find('.dropdown-text').text(ev.target.text);
         messageDataPreprocess(messagesDataArray[nowSelectAppId]);
     }
@@ -339,13 +354,13 @@
             weightFactor: 32, // 文字雲字體大小
             clearCanvas: true
         };
-        window.WordCloud($chartWrapper[0], cloudOptions);
+        window.WordCloud(document.getElementById('chartBody'), cloudOptions);
     }
 
     function generateChart(chartData, cursorProvider) {
         chartInstance && chartInstance.clear();
 
-        chartInstance = window.AmCharts.makeChart('chartdiv', {
+        chartInstance = window.AmCharts.makeChart('chartBody', {
             type: 'serial',
             theme: 'light',
             zoomOutButton: {

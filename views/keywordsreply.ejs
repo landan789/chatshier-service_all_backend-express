@@ -12,7 +12,6 @@
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
 </head>
@@ -21,28 +20,31 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div id="home">
-        <div class="container margin-top">
-            <div class="row chsr panel">
-                <div class="title title-top">
+    <div class="page-wrapper">
+        <div class="container mt-5">
+            <div class="chsr card">
+                <div class="title">
                     <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
                     <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
                 </div>
 
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    <span class="dropdown-text">請選擇應用程式</span>
-                    <span class="caret"></span>
-                </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                            <span class="dropdown-text">請選擇應用程式</span>
+                            <span class="caret"></span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
-                    <div class="search-add">
-                        <span class="icon"><i class="fa fa-search"></i></span>
+                    <div class="search-add mb-2">
+                        <span class="icon">
+                            <i class="fa fa-search"></i>
+                        </span>
                         <input type="text" class="search-bar" placeholder="搜尋   輸入完請按Enter鍵" aria-hidden="true">
-                        <button type="button" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="disabled"></button>
+                        <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="true">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="padding-lr chsr table">
@@ -82,8 +84,8 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="keywordreply_edit_modal_title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <div class="modal-body">
@@ -125,44 +127,43 @@
         </div>
     </div>
     <div class="modal fade" id="keywordreply_add_modal" tabindex="-1" role="dialog" aria-labelledby="keywordreply_add_modal_title" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="keywordreply_add_modal_title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <div class="modal-body">
                     <!-- Form Content -->
                     <div class="form-group">
-                        <label for="keywordreply-app-name" class="col-2 col-form-label">目標App:</label>
-                        <div class="col-4">
+                        <label for="keywordreply-app-name" class="col-form-label">目標App:</label>
+                        <div class="select-container">
                             <select class="form-control" name="keywordreply-app-name">
-                        <option value=''>載入中...</option>
-                    </select>
+                                <option value=''>載入中...</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="keywordreply-keyword" class="col-2 col-form-label">關鍵字:</label>
-                        <div class="col-4">
+                        <label for="keywordreply-keyword" class="col-form-label">關鍵字:</label>
+                        <div class="input-container">
                             <input class="form-control" type="text" name="keywordreply-keyword">
                         </div>
                     </div>
 
                     <!-- <div class="form-group">
-                <label for="modal-task-name" class="col-2 col-form-label">
-                    副關鍵字:
-                    <p>可設定多個關鍵字，請用 ',' 隔開，不需空格。範例：你好,哈囉,嗨</p>
-                </label>
+                        <label for="modal-task-name" class="col-form-label">
+                            副關鍵字:
+                            <p>可設定多個關鍵字，請用 ',' 隔開，不需空格。範例：你好,哈囉,嗨</p>
+                        </label>
 
-                <div class="col-4">
-                    <div class="col-4" id="subKeyCanvas"></div>
-                    <input class="form-control" type="text" value="" id="modal-subKey" />
-                </div>
-            </div> -->
+                        <div class="input-container">
+                            <input class="form-control" type="text" value="" id="keywordSubKey" />
+                        </div>
+                    </div> -->
 
                     <div class="form-group">
                         <label for="modal-text">回覆內容:  </label>
@@ -173,9 +174,9 @@
 
                     <div class="form-check">
                         <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
-                    是否儲存為草稿？
-                </label>
+                            <input class="form-check-input" type="checkbox" name="keywordreply-is-draft">
+                            是否儲存為草稿？
+                        </label>
                     </div>
 
                     <span class="text-danger error-msg"></span>
@@ -190,7 +191,7 @@
     </div>
 
     <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     <h4 id="textContent"></h4>
@@ -204,7 +205,6 @@
     </div>
 
     <% include ../views/partials/require_js.ejs %>
-    <script src="js/navigation.js"></script>
     <script src="js/keywordsreply.js"></script>
 </body>
 

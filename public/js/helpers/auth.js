@@ -66,7 +66,7 @@
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
         // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
         $(document).ready(function() {
-            $('#loading').fadeOut();
+            $('#loadingWrapper').fadeOut();
             jwtRefresh();
         });
     } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {

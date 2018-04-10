@@ -1,11 +1,3 @@
-#home {
-    margin-bottom: 50px;
-}
-
-#title {
-    margin-bottom: 10px;
-}
-
 .tab-pane {
     padding: 20px;
 }
@@ -65,15 +57,11 @@ label *:not(strong) {
     border-top: 1px solid #888;
 }
 
-.line-action * {
-    display: inline-block;
-    width: 49%;
-    text-align: right;
-}
-
 .search-add {
-    text-align: right;
-}
+    text-align: right; }
+    .search-add .search-bar {
+        min-width: 25%;
+    }
 
 .operating-btn {
     padding: 5px;
@@ -85,10 +73,9 @@ label *:not(strong) {
     background-color: #F4F4F4;
 }
 
-.chsr.panel {
-    background-color: #ffffff;
-    margin-top: 30px;
-    box-shadow: 1px 1px 1px 3px #dddddd;
+.chsr.card {
+    background-color: #fff;
+    box-shadow: 1px 1px 1px 3px #ddd;
 }
 
 .chsr.table {
@@ -100,16 +87,8 @@ label *:not(strong) {
     text-align: right;
 }
 
-.margin-top {
-    margin-top: 30px;
-}
-
 .padding-lr {
     padding: 0px 50px;
-}
-
-#view-all {
-    margin-bottom: 2%;
 }
 
 tr:nth-child(even) {
@@ -118,14 +97,6 @@ tr:nth-child(even) {
 
 .address {
     padding-bottom: 20px;
-}
-
-.title-top {
-    margin-top: -20px;
-}
-
-.hr-margin-bottom {
-    margin: 0;
 }
 
 .h3-padding {

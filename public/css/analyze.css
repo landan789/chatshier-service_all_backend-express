@@ -34,10 +34,7 @@
 /******************/
 
 .chart-container {
-    height: 400px;
-}
-
-#chartdiv {
-    width: 100%;
-    height: 100%;
-}
+    height: 400px; }
+    .chart-container .chart-body {
+        width: 100%;
+        height: 100%; }
