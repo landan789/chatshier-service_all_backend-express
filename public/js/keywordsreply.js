@@ -38,11 +38,11 @@
             // enter鍵
             var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
             if(0 === target.length){
-                $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
+                $('tbody > tr ').hide();
             }
             else{
-                target.siblings().hide();
-                target.show();
+            $('.table>tbody > tr').hide();
+            target.show();
             }
             return;
         } 
