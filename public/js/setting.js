@@ -1243,6 +1243,7 @@ function insertOneGroup() {
     return api.groups.insert(userId, groupName).then(function(resJson) {
         let groupData = resJson.data;
         $('#add_group_name_app_modal').modal('hide');
+        $('[name="add_group_name_app"]').val('');
         for (let groupId in groupData) {
             loadGroups(groupData[groupId], groupId);
         }
