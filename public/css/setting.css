@@ -89,7 +89,8 @@ p:empty:not(:focus)::before {
     border-top-right-radius: .5rem;
 }
 
-.group-tab .group-name, .group-app .group-name {
+.group-tab .group-name,
+.group-app .group-name {
     padding: 10px 15px;
     text-decoration: none;
     color: #33ccff;
@@ -141,6 +142,11 @@ p:empty:not(:focus)::before {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.card-collapse {
+    background-color: white;
+    border: 1px solid #ddd;
 }
 
 .chsr-group {

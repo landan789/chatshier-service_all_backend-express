@@ -538,16 +538,20 @@
                 api.apps.findAll(userId),
                 api.appsFields.findAll(userId)
             ]).then(function(resJsons) {
-                var appsData = resJsons.shift().data;
-                var appsFieldsData = resJsons.shift().data;
+                var apps = resJsons.shift().data;
+                var appsFields = resJsons.shift().data;
 
                 fieldPanelCtrl.saveListeners.length = 0;
                 fieldPanelCtrl.deleteListeners.length = 0;
 
-                for (var appId in appsData) {
-                    var appData = appsData[appId] || {};
-                    var fields = appsFieldsData[appId].fields || {};
-                    fieldPanelCtrl.addAppItem(appId, appData);
+                for (var appId in apps) {
+                    var app = apps[appId] || {};
+                    if (CHATSHIER === app.type) {
+                        continue;
+                    }
+
+                    var fields = appsFields[appId].fields || {};
+                    fieldPanelCtrl.addAppItem(appId, app);
                     firstAppId = firstAppId || appId;
 
                     // 將客戶分類條件資料依照設定的 order 進行排序，根據順序擺放到 UI 上
@@ -571,7 +575,7 @@
                 // 檢查哪些資料需要更新哪些資料需要新增
                 fieldPanelCtrl.onSave(function(ev, args) {
                     $(ev.target).attr('disabled', true);
-                    var fieldsOrg = appsFieldsData[args.appId].fields;
+                    var fieldsOrg = appsFields[args.appId].fields;
                     var fieldIds = Object.keys(fieldsOrg);
 
                     /**
@@ -622,7 +626,7 @@
                             return api.appsFields.update(args.appId, fieldId, userId, fieldOrg);
                         } else if (fieldOrg.isDeleted) {
                             return api.appsFields.remove(args.appId, fieldId, userId).then(function() {
-                                delete appsFieldsData[args.appId].fields[fieldId];
+                                delete appsFields[args.appId].fields[fieldId];
                             });
                         }
                         return Promise.resolve();
@@ -647,7 +651,7 @@
                                 // 完成資料庫儲存後，將暫時使用的 fieldId 替換成真正資料庫的 fieldId
                                 var insertFields = resJson.data;
                                 var newFieldId = Object.keys(insertFields[args.appId].fields).shift();
-                                appsFieldsData[args.appId].fields[newFieldId] = insertFields[args.appId].fields[newFieldId];
+                                appsFields[args.appId].fields[newFieldId] = insertFields[args.appId].fields[newFieldId];
                                 $('#' + fieldId + '.field-content').attr('id', newFieldId);
                             });
                         }));
@@ -660,7 +664,7 @@
 
                 // 監聽每行客戶分類條件的刪除事件，刪除時在原始資料上標記刪除
                 fieldPanelCtrl.onDelete(function(ev) {
-                    var field = appsFieldsData[ev.appId].fields[ev.fieldId];
+                    var field = appsFields[ev.appId].fields[ev.fieldId];
                     if (!field) {
                         return;
                     }
