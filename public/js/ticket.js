@@ -123,7 +123,7 @@
                     if (CHATSHIER === messager.type) {
                         continue;
                     }
-                    var consumer = consumers[messager.platformUid];
+                    var consumer = Object.assign({}, consumers[messager.platformUid]);
                     consumer.phone = messager.phone;
                     consumer.email = messager.email;
                     appsConsumers[appId].consumers[messager.platformUid] = consumer;
