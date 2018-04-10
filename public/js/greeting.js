@@ -96,7 +96,7 @@
                 '<th></th>' +
                 '<td></td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-grey" id="add-btn">' +
+                    '<button type="button" class="btn btn-border" id="add-btn">' +
                         '<i class="fas fa-plus"></i>' +
                     '</button>' +
                 '</td>' +
@@ -115,8 +115,12 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-light fa fa-check" id="check-btn"></button>' +
-                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="check-btn">' +
+                        '<i class="fa fa-check"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                        '<i class="fas fa-trash-alt"></i>' +
+                    '</button>' +
                 '</td>' +
             '</tr>'
         );

@@ -23,7 +23,7 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div id="home">
+    <div class="page-wrapper">
         <!-- [status filter] -->
         <div class="container mt-5">
             <div class="chsr card">
@@ -42,10 +42,10 @@
                     </div>
                 </div>
                 <div class="px-5 my-3" id="searchWidget">
-                    <div class="search-add">
+                    <div class="search-add mb-2">
                         <span class="icon"><i class="fa fa-search"></i></span>
                         <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" id="add-btn" class="btn btn-light inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                        <button type="button" id="add-btn" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -155,7 +155,7 @@
                         <td class="add-msg-btn-padding">
                             <p>一次可以發送三則訊息</p>
                             <p class="error-msg"><b>超過訊息上限</b></p>
-                            <button class="btn btn-light add-text-btn-style" id="addComposeText">
+                            <button class="btn btn-light btn-border add-text-btn-style" id="addComposeText">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </td>
@@ -244,7 +244,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/compose.js"></script>
 </body>
 

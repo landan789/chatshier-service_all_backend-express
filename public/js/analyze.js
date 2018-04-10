@@ -1,8 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    $('#loading').fadeOut();
-
     var AnalyzeType = Object.freeze({
         0: 'MONTH',
         1: 'DAY',

@@ -14,12 +14,13 @@
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
+    <link rel="stylesheet" href="css/richmenu.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div id="home">
+    <div class="page-wrapper">
         <div class="container mt-5">
             <div class="chsr card">
                 <div class="title">
@@ -34,10 +35,10 @@
                         </button>
                         <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
-                    <div class="search-add">
+                    <div class="search-add mb-2">
                         <span class="icon"><i class="fa fa-search"></i></span>
                         <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" class="btn btn-light inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                        <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -164,7 +165,7 @@
                         <!-- 內容設定 -->
                             <div class="col-sm-12">
                                 <label class="col-form-label"><strong>內容設定:</strong></label>
-                                <label class="col-form-label btn btn-light">
+                                <label class="col-form-label btn btn-light btn-border">
                                     <strong>上傳圖片</strong>
                                     <input type="file" class="image-ghost" id="photo" accept="image/png|image/jpg"/>
                                 </label>
@@ -243,7 +244,6 @@
     <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://mermaidjs.github.io/scripts/mermaid.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/richmenu.js"></script>
 </body>
 

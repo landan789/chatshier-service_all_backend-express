@@ -86,7 +86,7 @@
     var calendarEventMap = {};
     var api = window.restfulAPI;
 
-    var $calendar = $('#calendar');
+    var $calendar = $('#calendarBody');
     var $calendarModal = $('.modal.calendar-modal');
     var $calendarSdtPicker = $('#start_datetime_picker');
     var $calendarEdtPicker = $('#end_datetime_picker');
@@ -420,10 +420,6 @@
             });
         }
 
-        // 隱藏錯誤訊息
-        $('#cal-error-msg').hide();
-        $('#tim-error-msg').hide();
-
         $eventIsAllday.on('change', function(ev) {
             var dayBegin;
             var dayEnd;
@@ -450,29 +446,19 @@
     /**
      * 檢查要傳至 server 的行事曆資料是否正確
      *
-     * @param {*} calendarData
+     * @param {any} calendar
      */
-    function calendarDataIsOK(calendarData) {
-        if (!calendarData) {
+    function calendarDataIsOK(calendar) {
+        if (!calendar) {
+            return false;
+        } else if (!calendar.title || !calendar.startedTime || !calendar.endedTime) {
+            $.notify('請輸入事件名稱、開始時間、結束時間', { type: 'warning' });
+            return false;
+        } else if (calendar.startedTime > calendar.endedTime) {
+            // 開始時間需早於結束時間
+            $.notify('開始時間不能晚於結束時間', { type: 'warning' });
             return false;
         }
-
-        var $eventErrorMsg = $('#cal-error-msg');
-        var $eventTimeErrorMsg = $('#tim-error-msg');
-        $eventErrorMsg.hide();
-        $eventTimeErrorMsg.hide();
-
-        if (!calendarData.title || !calendarData.startedTime || !calendarData.endedTime) {
-            $eventErrorMsg.show();
-            return false;
-        }
-
-        // 開始時間需早於結束時間
-        if (calendarData.startedTime > calendarData.endedTime) {
-            $eventTimeErrorMsg.show();
-            return false;
-        }
-
         return true;
     }
 
@@ -506,7 +492,7 @@
         }).catch(function(error) {
             console.trace(error);
         });
-    };
+    }
 
     function updateCalendarEvent(event, calendar, shouldReRender) {
         if (calendar.startedTime > calendar.endedTime) {

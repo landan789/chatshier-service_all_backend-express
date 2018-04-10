@@ -14,7 +14,6 @@
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="css/_main.css" />
-    <link rel="stylesheet" href="css/field.css" />
     <link rel="stylesheet" href="css/setting.css" />
 </head>
 
@@ -36,7 +35,7 @@
             <div id="apps" class="tab-pane fade">
                 <h3 class="ml-3">
                     <span>聊天應用程式</span>
-                    <button type="button" class="btn btn-light" id="add-group-name-app-btn" data-toggle="modal" data-target="#add_group_name_app_modal" disabled="true">
+                    <button type="button" class="btn btn-light btn-border" id="add-group-name-app-btn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
                         <i class="fas fa-plus fa-fw"></i>
                         <span>新增群組</span>
                     </button>
@@ -59,7 +58,7 @@
             <div id="settings" class="tab-pane fade">
                 <h3 class="ml-3">
                     <span>基本設定</span>
-                    <button type="button" class="btn btn-grey" id="profile" data-toggle="modal" data-target="#setting-modal">
+                    <button type="button" class="btn btn-border" id="userProfileEdit" data-toggle="modal" data-target="#setting-modal">
                         <i class="fas fa-edit fa-fw"></i>
                         <span>編輯</span>
                     </button>
@@ -125,7 +124,7 @@
 
                 <div class="card prof-wid">
                     <div class="float-down">
-                        <div id="field-tab" class="col-12 border-info prof-wid p-0">
+                        <div class="col-12 border-info prof-wid p-0 field-tab">
                             <div class="user-name card-header">
                                 <span class="card-title"></span>
                             </div>
@@ -144,7 +143,7 @@
             <div id="internal-group" class="tab-pane fade">
                 <h3 class="ml-3">
                     <span>內部群組</span>
-                    <button class="btn btn-light group-insert" data-toggle="modal" data-target="#add_group_modal">
+                    <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
                         <i class="fas fa-plus fa-fw"></i>
                         <span>新增</span>
                     </button>
@@ -176,8 +175,7 @@
         </div>
     </div>
 
-    <% include ../views/partials/modals/add_group_modal.ejs %>
-    <% include ../views/partials/modals/add_group_name_app_modal.ejs %>
+    <% include ../views/partials/modals/group_add_modal.ejs %>
     <% include ../views/partials/modals/setting_modal.ejs %>
 
     <% include ../views/partials/require_js.ejs %>

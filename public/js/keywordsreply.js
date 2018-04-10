@@ -175,7 +175,7 @@
                         '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
                             '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';

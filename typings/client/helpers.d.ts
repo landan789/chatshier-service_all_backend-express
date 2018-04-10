@@ -166,8 +166,8 @@ interface GroupsMembersAPI {
 
 interface GroupsAPI {
     findAll: (userId: string) => Promise<any>;
-    insert: (userId: string) => Promise<any>;
-    update: (groupId: string, userId: string, groupData: any) => Promise<any>;
+    insert: (userId: string, group: any) => Promise<any>;
+    update: (groupId: string, userId: string, group: any) => Promise<any>;
 }
 
 interface UsersAPI {

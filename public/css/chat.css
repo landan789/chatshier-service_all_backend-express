@@ -409,27 +409,23 @@ div.loading-img {
         overflow-y: scroll;
         clear: right;
         display: flex;
-        flex-direction: column;
-    }
+        flex-direction: column; }
+        .message-panel .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center; }
+        .message-panel .loading-container img {
+            width: 48px;
+            height: 48px; }
+        .message-panel .send-time {
+            margin: 0 .5rem;
+            color: grey;
+            font-size: 10px;
+            vertical-align: bottom; }
+        .message-panel .message-time {
+            text-align: center; }
 
-    .message-panel .loading-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .message-panel .loading-container img {
-        width: 48px;
-        height: 48px;
-    }
-
-    .send-time {
-        margin: 0 .5rem;
-        color: grey;
-        font-size: 10px;
-        vertical-align: bottom;
-    }
-    #send-message {
+    .message-input-container {
         position: absolute;
         bottom: 0;
         width: 100%;
@@ -437,207 +433,148 @@ div.loading-img {
         min-height: 100px;
         border-top: 1px solid lightgray;
         background-color: lightgray;
-        display: none;
-    }
-    #submitMsg {
-        width: 30px;
-        height: 30px;
-        background-image: url("https://image.flaticon.com/icons/svg/60/60525.svg");
-        background-size: cover;
-        color: transparent;
-        background-color: rgba(255, 255, 255, .7);
-        background-blend-mode: color;
-        border: 0;
-    }
-    #submitMsg:hover {
-        background-color: rgba(255, 255, 255, .5);
-    }
-    .user-room-container {
-        display: none;
-    }
-    /*input檔案區塊*/
+        display: none; }
     .message-input {
         display: flex;
-        align-items: center;
-    }
-
-    .form-upper {
-        height: 50%;
-        background-color: white;
-        width: 100%;
-        z-index: 1;
-    }
-    .on-click-show {
-        height: 40px;
-        font-size: 24px;
-        width: 40px;
-        border-radius: 50%;
-        background-color: transparent;
-    }
-    .on-click-show:hover,
-    .on-click-show[active~='true'] {
-        background-color: #ccc;
-    }
-    .insert-media {
-        position: absolute;
-        display: block;
-    }
-    .send-file {
-        display: none;
-    }
-
-    .form-lower {
-        height: 50%;
-        padding: 0 1rem;
-        background-color: white;
-        width: 100%;
-        z-index: 1;
-    }
-    .form-lower #message {
-        width: 100%;
-        height: 50px;
-        border: 0;
-    }
+        align-items: center; }
+        .message-input.form-upper {
+            height: 50%;
+            background-color: white;
+            width: 100%;
+            z-index: 1; }
+        .message-input.form-lower {
+            height: 50%;
+            padding: 0 1rem;
+            background-color: white;
+            width: 100%;
+            z-index: 1; }
+            .message-input.form-lower .submit-message-input {
+                width: 100%;
+                height: 50px;
+                border: 0; }
+        .message-input .submit-message-btn {
+            width: 30px;
+            height: 30px;
+            background-image: url("https://image.flaticon.com/icons/svg/60/60525.svg");
+            background-size: cover;
+            color: transparent;
+            background-color: rgba(255, 255, 255, .7);
+            background-blend-mode: color;
+            border: 0; }
+            .message-input .submit-message-btn:hover {
+                background-color: rgba(255, 255, 255, .5); }
+        .message-input .media-btn {
+            height: 40px;
+            font-size: 24px;
+            width: 40px;
+            border-radius: 50%;
+            background-color: transparent; }
+            .message-input .media-btn:hover,
+            .message-input .media-btn[active~='true'] {
+                background-color: #ccc; }
 }
 
 /*profile*/
-@media all {
-    .profile-panel {
-        border: 1px solid lightgray;
-        border-radius: 5px;
-        width: 30%;
-        position: relative;
-        background-color: #f7f8f9;
-    }
+.profile-panel {
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    width: 30%;
+    position: relative;
+    background-color: #f7f8f9; }
     .profile-panel td {
-        word-wrap: break-word;
-    }
-
-    .person-chip {
+        word-wrap: break-word; }
+    .profile-panel .person-chip {
         margin: .5rem .5rem .5rem 0;
         padding: 0 .5rem;
         line-height: 2rem;
         border-radius: .5rem;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .person-chip .person-avatar {
-        width: 2rem;
-        height: 2rem;
-        float: left;
-        margin-right: .5rem;
-        border-radius: 50%;
-    }
-
-    .td-inner:not(.btn-group) {
+        text-overflow: ellipsis; }
+        .profile-panel .person-chip .person-avatar {
+            width: 2rem;
+            height: 2rem;
+            float: left;
+            margin-right: .5rem;
+            border-radius: 50%; }
+    .profile-panel .td-inner:not(.btn-group) {
         width: 100%;
-        margin: 0px auto;
-    }
-    .td-inner[type="datetime-local"] {
-        margin-top: 2px;
-    }
-    .photo-container {
+        margin: 0 auto; }
+    .profile-panel .td-inner[type="datetime-local"] {
+        margin-top: 2px; }
+    .profile-panel .photo-container {
         text-align: center;
-        margin: 5% 0;
-    }
-    .photo-container img {
-        border-radius: 50%;
-    }
-}
+        margin: 5% 0; }
+        .profile-panel .photo-container img {
+            border-radius: 50%; }
 
 /*ticket*/
-@media all {
-    .ticket-search-bar {
-        border-radius: 5px;
-    }
-    .ticket .ticket-description { 
+.chsr-ticket {
+    display: flex;
+    justify-content: center;
+    margin: 0% 0%;
+    border: 1px solid gray;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 12px;
+    padding: 0; }
+    .chsr-ticket table {
+        table-layout: fixed;
+        width: 100%; }
+    .chsr-ticket .ticket-search-bar {
+        border-radius: 5px; }
+    .chsr-ticket .ticket-description { 
         max-width: 50px; 
         overflow: hidden; 
         text-overflow: ellipsis; 
-        white-space: nowrap; 
-    } 
-    .ticket {
-        display: flex;
-        justify-content: center;
-        margin: 0% 0%;
-        border: 1px solid gray;
-        border-radius: 5px;
-        width: 100%;
-        font-size: 12px;
-        padding: 0;
-    }
-    .ticket td,
-    .ticket th {
+        white-space: nowrap;  } 
+    .chsr-ticket td,
+    .chsr-ticket th {
         border-bottom: 1px solid rgb(5, 82, 87);
         text-align: left;
         padding: .25rem;
         margin: 2px 0;
-        max-height: 24px;
-    }
-    .ticket tr:nth-child(even) {
+        max-height: 24px; }
+    .chsr-ticket tr:nth-child(even) {
         background-color: #33ccff;
-        color: white;
-    }
-    .ticket .ticket-row {
-        cursor: pointer;
-    }
-    .ticket table {
-        width: 100%;
-    }
-    .select {
-        width: 70%;
-    }
-    .inner {
-        margin: 0 15px;
-        position: relative;
-        float: left;
-        width: 80%;
-    }
-    .ticket-content:hover {
-        cursor: pointer;
-        /*background-color: rgba(183, 208, 181, 0.77);*/
-        transition: .3s ease-in-out;
-    }
-    .overdue {
+        color: white; }
+    .chsr-ticket .ticket-row {
+        cursor: pointer; }
+    .chsr-ticket .overdue {
         padding: 1px 10px;
         margin: 1px;
         border-radius: 8px;
         background-color: rgb(227, 79, 79);
         color: white;
-        font-weight: bold;
-    }
-    .non {
-        background-color: rgb(91, 195, 92)
-    }
-    #ID-num {
-        display: flex;
-        width: 45px;
-        height: 40px;
-        justify-content: center;
-        align-items: center;
-        font-size: 20px;
-        margin-right: 10px;
-        font-weight: bold;
-        color: white;
-        border-radius: 50%;
-    }
-    .modal-title {
-        font-size: 1.5em;
-        font-weight: bolder;
-        border-bottom: none;
-        display: flex;
-        align-items: flex-end;
-    }
-    textarea {
-        /* will prevent resizing horizontally */
-        resize: vertical;
-    }
-    .display-date-input {
-        width: 75%;
-    }
-}
+        font-weight: bold; }
+    .chsr-ticket .non {
+        background-color: rgb(91, 195, 92); }
+    .chsr-ticket .ticket-add {
+        cursor: pointer;
+        color: #33ccff; }
+
+.ticket-info-modal .id-number {
+    display: flex;
+    width: 45px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    margin-right: 10px;
+    font-weight: bold;
+    color: white;
+    border-radius: 50%; }
+.ticket-info-modal .modal-title {
+    font-size: 1.5em;
+    font-weight: bolder;
+    border-bottom: none;
+    display: flex;
+    align-items: flex-end; }
+.ticket-info-modal textarea {
+    /* will prevent resizing horizontally */
+    resize: vertical; }
+.ticket-info-modal .display-date-input {
+    width: 75%; }
 
 /*todo: below*/
 .edit-button {
@@ -704,13 +641,6 @@ div.loading-img {
     background-color: lightgray;
 }
 
-
-/*聊天室訊息*/
-
-.message-day {
-    text-align: center;
-}
-
 .profile-wrapper {
     overflow-y: scroll;
     overflow-x: hidden;
@@ -735,66 +665,41 @@ div.loading-img {
     .profile-group button {
         font-size: .85rem; }
 
-img[alt="無法顯示相片"] {
-    width: 65px;
-    height: 65px;
-}
+.consumer-avatar {
+    width: 64px;
+    height: 64px; }
+    .consumer-avatar.larger {
+        width: 128px;
+        height: 128px; }
 
 .found {
     color: #ff0000;
     background-color: #ffff00 !important;
 }
 
-.click-here a[href="/setting"] {
-    color: red;
-    text-decoration: none;
-}
-
 .click-here {
     margin-left: 10px;
-    margin-right: 8px;
-}
+    margin-right: 8px; }
+    .click-here a[href="/setting"] {
+        color: red;
+        text-decoration: none; }
 
 .message {
     width: 100%;
     padding: 0 10px;
-    line-height: normal;
-}
-
-.message .messager-name {
-    margin-bottom: .25rem;
-}
-
-.message .messager-name span {
-    font-size: 1rem;
-    padding: .25rem;
-    color: #aaa;
-}
+    line-height: normal; }
+    .message .messager-name {
+        margin-bottom: .25rem; }
+        .message .messager-name span {
+            font-size: 1rem;
+            padding: .25rem;
+            color: #aaa; }
 
 .message-group {
     display: flex;
-    align-items: flex-end;
-}
-
-.message-group.align-right {
-    flex-direction: row-reverse;
-}
-
-[data-target="#add-ticket-modal"],
-.show-option {
-    color: #33ccff;
-}
-
-[data-target="#add-ticket-modal"]:hover {
-    text-decoration: none;
-    color: #33ccff;
-    cursor: pointer;
-}
-
-.padding-side {
-    padding-left: 10px;
-    padding-right: 10px;
-}
+    align-items: flex-end; }
+    .message-group.align-right {
+        flex-direction: row-reverse; }
 
 .multi-select-wrapper .dropdown-menu input[type="checkbox"] {
     width: auto;

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="css/_main.css">
     <link rel='stylesheet' href='css/ticket.css' />
-    <link rel="stylesheet" href="css/partials/ticket_info_modal.css" />
+    <link rel="stylesheet" href="css/partials/ticket_edit_modal.css" />
 </head>
 
 <body>
@@ -31,8 +31,8 @@
     </div>
     <div id="alert-warning" class="chsr alert alert-warning alert-dismissible" role="alert">
         <p></p>
-        <button type="button" id="no" class="btn-light">否</button>
-        <button type="button" id="yes" class="btn-danger">是</button>
+        <button type="button" id="no" class="btn btn-light btn-border">否</button>
+        <button type="button" id="yes" class="btn btn-danger">是</button>
     </div>
     <div id="alert-danger" class="chsr alert alert-danger alert-dismissible" role="alert">
         <span></span>
@@ -43,14 +43,15 @@
     <!--alert bar end-->
 
     <div class="main">
-        <div class="view-ticket top-toolbar">
-            <a href="/ticket_form" class="btn btn-light ticket-add">
-                <i class="fas fa-plus fa-fw"></i><span>新增待辦</span>
-            </a>
-            <input type="text" class="ticket-search-bar" id="ticket_search_bar" value="" placeholder="搜尋">
+        <div class="top-toolbar">
+            <button class="btn btn-light btn-border ticket-add" data-toggle="modal" data-target="#ticketAddModal">
+                <i class="fas fa-plus fa-fw"></i>
+                <span>新增待辦</span>
+            </button>
+            <input type="text" class="ticket-search-bar" id="ticket_search_bar" placeholder="搜尋">
         </div>
 
-        <div class="ticket">
+        <div class="chsr-ticket">
             <table>
                 <thead>
                     <tr>
@@ -68,12 +69,11 @@
         </div>
     </div>
 
-    <% include ../views/partials/modals/ticket_info_modal.ejs %>
+    <% include ../views/partials/modals/ticket_add_modal.ejs %>
+    <% include ../views/partials/modals/ticket_edit_modal.ejs %>
 
     <% include ../views/partials/require_js.ejs %>
-    <script src="js/navigation.js"></script>
     <script src="js/ticket.js"></script>
-    <script src="js/navigation.js"></script>
 </body>
 
 </html>

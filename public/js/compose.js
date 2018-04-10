@@ -64,7 +64,7 @@
         let btnName = $fieldBtn.attr('name');
 
         $fieldBtn.removeClass();
-        $fieldBtn.attr('class', 'btn btn-grey');
+        $fieldBtn.attr('class', 'btn btn-border');
         $fieldBtn.text(btnName);
         $fieldBtn.show();
         $conditionDiv.remove();
@@ -186,8 +186,12 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="年齡" data-type="' + field.setsType + '" id="field">年齡:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="年齡" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-close"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -202,8 +206,12 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="性別" data-type="' + field.setsType + '" id="field">性別:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="性別" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-close"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -218,8 +226,12 @@
                             '<button type="button" rel="' + fieldId + '" class="btn btn-info" name="' + field.text + '" data-type="' + field.setsType + '" id="field">' + field.text + ':' + customFields[fieldId] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + fieldId + '" data-type="' + field.setsType + '" placeholder="' + field.text + '" id="condition-input" value="' + customFields[fieldId] + '">' +
-                                '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-close"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -353,7 +365,7 @@
         let div = $('<div>').attr('class', 'form-group col-sm-6');
         let btn = $('<button>').attr('type', 'button')
             .attr('rel', id)
-            .attr('class', 'btn btn-grey')
+            .attr('class', 'btn btn-border')
             .attr('name', text)
             .attr('data-type', type)
             .attr('id', 'field')
@@ -386,7 +398,7 @@
                         '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
                         appendFields(composeData) +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                             '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
@@ -516,8 +528,12 @@
             $fieldDiv.append(
                 '<div id="condition">' +
                     '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
-                    '<button type="button" class="btn btn-light fa fa-check" id="condition-check-btn"></button>' +
-                    '<button type="button" class="btn btn-light fa fa-close" id="condition-close-btn"></button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                        '<i class="fa fa-check"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                        '<i class="fa fa-close"></i>' +
+                    '</button>' +
                 '</div>'
             );
         }
@@ -651,7 +667,7 @@
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
-                                '<button type="button" class="btn btn-grey fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';

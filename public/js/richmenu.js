@@ -270,7 +270,7 @@
         this.td5 = $('<td>');
         this.td6 = $('<td>');
         this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-light fas fa-edit')
+            .addClass('btn btn-light btn-border fas fa-edit')
             .attr('id', 'edit')
             .attr('data-toggle', 'modal')
             .attr('data-target', '#richmenu-modal')

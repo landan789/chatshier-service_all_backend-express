@@ -1,12 +1,12 @@
-<div class="modal fade" id="ticket_info_modal" role="dialog">
+<div class="modal fade ticket-modal" id="ticketEditModal" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <div style="display:flex">
-                    <span id="ID-num"></span>
+                <div class="d-flex">
+                    <span class="id-number"></span>
                     <table>
-                        <th style="display:none">subject</th>
-                        <td class="modal-title edit">檢視待辦事項</td>
+                        <th class="d-none"></th>
+                        <td class="modal-title">檢視待辦事項</td>
                     </table>
                 </div>
             </div>
@@ -15,7 +15,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" id="ticket_info_delete" class="btn btn-danger" data-dismiss="modal">刪除</button>
-                <button type="button" class="btn btn-light" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-light btn-border" data-dismiss="modal">取消</button>
                 <button type="button" id="ticket_info_modify" class="btn btn-success" data-dismiss="modal">修改</button>
             </div>
         </div>

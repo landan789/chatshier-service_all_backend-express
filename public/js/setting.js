@@ -262,7 +262,7 @@
         }
     });
 
-    $('#profile').click(function() {
+    $('#userProfileEdit').click(function() {
         let company = $('#prof-company').text();
         let phone = $('#prof-phonenumber').text();
         let location = $('#prof-address').text();
@@ -290,8 +290,6 @@
             '</div>';
         $appModal.append(str);
     });
-
-    $('#add_group_app_submit').click(insertOneGroup);
 
     findAllGroups();
     findAllApps(); // 列出所有設定的APPs
@@ -336,7 +334,7 @@
                     '</div>' +
                     '<div id="' + fieldCollapseId + '" class="card-collapse collapse" aria-labelledby="' + appId + '">' +
                         '<div class="card-body">' +
-                            '<button type="button" class="btn btn-light add-field mb-3">' +
+                            '<button type="button" class="btn btn-light btn-border add-field mb-3">' +
                                 '<i class="fas fa-plus fa-fw"></i>新增' +
                             '</button>' +
                             '<table class="table table-striped">' +
@@ -352,7 +350,7 @@
                                 '<tbody></tbody>' +
                             '</table>' +
                             '<div class="text-center">' +
-                                '<button type="button" class="btn btn-light all-confirm font-weight-bold">儲存設定</button>' +
+                                '<button type="button" class="btn btn-light btn-border all-confirm font-weight-bold">儲存設定</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>'
@@ -687,34 +685,18 @@
         var searchCache = {};
         var keyinWaitTimer = null;
 
+        var $groupAddModal = $('#groupAddModal');
+        var $groupAddSubmit = $groupAddModal.find('#groupAddSubmit');
+        var $internalGroupPanel = $('#internal-group');
+        var $groupBody = $internalGroupPanel.find('.card-body');
+        var $groupElems = {};
+
+        $groupAddModal.on('show.bs.modal', function() {
+            // 新增群組 modal 顯示時，清空上一次輸入的名稱
+            $groupAddModal.find('input[name="groupAddName"]').val('');
+        });
+
         var groupCtrl = (function() {
-            var $addGroupModal = $('#add_group_modal');
-            var $groupElems = {};
-
-            var $internalGroupPanel = $('#internal-group');
-            var $groupBody = $internalGroupPanel.find('.card-body');
-
-            $addGroupModal.on('click', '#add_group_submit', function() {
-                $addGroupModal.modal('hide');
-
-                var groupName = $addGroupModal.find('input').val();
-                if (!groupName) {
-                    return;
-                }
-
-                var groupData = {
-                    name: groupName
-                };
-
-                return api.groups.insert(userId, groupData).then(function(resJson) {
-                    var groupId = Object.keys(resJson.data).shift();
-                    groups[groupId] = resJson.data[groupId];
-                    instance.addGroup(groupId, groups[groupId]);
-                    instance.showCollapse(groupId);
-                    $addGroupModal.find('input').val('');
-                });
-            });
-
             function GroupPanelCtrl() {}
 
             GroupPanelCtrl.prototype.clearAll = function() {
@@ -765,7 +747,7 @@
                         //     '<div class="input-container">' +
                         //         '<div class="input-group file-container" id="group_photo">' +
                         //             '<span class="input-group-btn">' +
-                        //                 '<button class="btn btn-light file-choose">' +
+                        //                 '<button class="btn btn-light btn-border file-choose">' +
                         //                     '<i class="fa fa-upload"></i>' +
                         //                 '</button>' +
                         //             '</span>' +
@@ -792,7 +774,7 @@
                                     '<td class="permission">' +
                                         '<div class="input-group text-right">' +
                                             '<div class="input-group-btn">' +
-                                                '<button class="btn btn-light btn-block outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                                '<button class="btn btn-light btn-block btn-border outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                                                     '<span class="permission-text">Permission</span>' +
                                                 '</button>' +
                                                 '<div class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
@@ -810,7 +792,7 @@
                                     '</td>' +
                                     '<td class="actions">' +
                                         '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<button class="btn btn-light btn-block outline add-button">' +
+                                            '<button class="btn btn-light btn-block btn-border outline add-button">' +
                                                 '新增' +
                                                 '<i class="fa fa-user-plus"></i>' +
                                             '</button>' +
@@ -877,9 +859,9 @@
                 return html;
             };
 
-            GroupPanelCtrl.prototype.addGroup = function(groupId, groupData) {
+            GroupPanelCtrl.prototype.addGroup = function(groupId, group) {
                 instance.hideCollapseAll(groupId);
-                var members = groupData.members;
+                var members = group.members;
                 var userIds = Object.keys(members).map((memberId) => {
                     if (!members[memberId].isDeleted) {
                         return members[memberId].user_id;
@@ -891,7 +873,7 @@
                 };
 
                 var memberSelf = members[Object.keys(members)[index]];
-                $groupBody.append(instance.generateGroupHtml(groupId, groupData.name, memberSelf));
+                $groupBody.append(instance.generateGroupHtml(groupId, group.name, memberSelf));
 
                 // #region 每個群組相關事件宣告
                 // 將群組中經常取用的 element 一次抓取出來，方便存取
@@ -1101,8 +1083,8 @@
                 // #endregion
 
                 // 將群組內的成員資料載入至畫面上
-                for (var memberId in groupData.members) {
-                    instance.addMemberToList(groupId, memberId, groupData.members[memberId], memberSelf);
+                for (var memberId in group.members) {
+                    instance.addMemberToList(groupId, memberId, group.members[memberId], memberSelf);
                 }
             };
 
@@ -1196,8 +1178,30 @@
         $('.nav-link[data-toggle="pill"]').on('shown.bs.tab', function(ev) {
             if ('#internal-group' !== ev.target.hash) {
                 // 非內部群組頁面不處理
+                $groupAddSubmit.off('click').on('click', insertOneGroup);
                 return;
             }
+
+            $groupAddSubmit.off('click').on('click', function() {
+                var $groupNameElem = $groupAddModal.find('input[name="groupAddName"]');
+                var groupName = $groupNameElem.val();
+                if (!groupName) {
+                    return;
+                }
+
+                var group = {
+                    name: groupName
+                };
+
+                return api.groups.insert(userId, group).then(function(resJson) {
+                    var groupId = Object.keys(resJson.data).shift();
+                    groups[groupId] = resJson.data[groupId];
+                    groupCtrl.addGroup(groupId, groups[groupId]);
+                    groupCtrl.showCollapse(groupId);
+                    $groupNameElem.val('');
+                    $groupAddModal.modal('hide');
+                });
+            });
 
             groupCtrl.clearAll();
             return Promise.all([
@@ -1243,11 +1247,11 @@
     }
 
     function insertOneGroup() {
-        let name = $('[name="add_group_name_app"]').val();
+        let name = $('input[name="groupAddName"]').val();
         let groupName = { name };
         return api.groups.insert(userId, groupName).then(function(resJson) {
             let groups = resJson.data;
-            $('#add_group_name_app_modal').modal('hide');
+            $('#groupAddModal').modal('hide');
             for (let groupId in groups) {
                 loadGroups(groups[groupId], groupId);
             }
@@ -1322,8 +1326,8 @@
         return app;
     }
 
-    function insertOneApp(appData) {
-        return api.apps.insert(userId, appData).then(function(resJson) {
+    function insertOneApp(app) {
+        return api.apps.insert(userId, app).then(function(resJson) {
             $('#setting-modal').modal('hide');
             clearAppModalBody();
 
@@ -1459,7 +1463,7 @@
             '</div>' +
             '<div id="' + groupId + '-group" class="card-collapse collapse">' +
                 '<div class="app-table-space">' +
-                    '<button type="button" class="btn btn-light mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
+                    '<button type="button" class="btn btn-light btn-border mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
                         '<i class="fas fa-plus fa-fw"></i>新增APP' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
@@ -1484,7 +1488,7 @@
                                 '<button type="button" class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-grey mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>編輯' +
                                 '</button>' +
                             '</div>' +
@@ -1522,7 +1526,7 @@
                                 '<button class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-grey mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>編輯' +
                                 '</button>' +
                             '</div>' +
@@ -1568,7 +1572,7 @@
                                 '<button class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-grey mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<span class="fas fa-edit fa-fw"></span>編輯' +
                                 '</button>' +
                             '</div>' +

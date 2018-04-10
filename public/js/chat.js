@@ -1,8 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var LOADING_MSG_AND_ICON = '<p class="message-day"><strong><i>' + 'Loading History Messages...' + '</i></strong><span class="loadingIcon"></span></p>';
-    var NO_HISTORY_MSG = '<p class="message-day"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
+    var LOADING_MSG_AND_ICON = '<p class="message-time"><strong><i>' + 'Loading History Messages...' + '</i></strong><span class="loadingIcon"></span></p>';
+    var NO_HISTORY_MSG = '<p class="message-time"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
     var COLOR = {
         FIND: '#ff0000',
         CLICKED: '#ccc',
@@ -42,10 +42,10 @@
 
     // selectors
     var $profilePanel = $('.profile-panel');
-    var messageInput = $('#message'); // 訊息欄
+    var messageInput = $('#submitMessageInput'); // 訊息欄
     var canvas = $('#canvas'); // 聊天室空間
     var $profileWrapper = $('.profile-wrapper'); // 個人資料空間
-    var ocClickShow = $('.on-click-show');
+    var ocClickShow = $('.media-btn');
 
     var transJson = {};
     window.translate.ready.then(function(json) {
@@ -90,8 +90,8 @@
         var instance = new TicketTableCtrl();
         var tickets = null;
 
-        var $addTicketModal = $('#add-ticket-modal');
-        var $ticketInfoModal = $('#ticket_info_modal');
+        var $ticketAddModal = $('#ticketAddModal');
+        var $ticketEditModal = $('#ticketEditModal');
 
         // ==========
         // #region 通用函式宣告
@@ -195,8 +195,10 @@
         TicketTableCtrl.prototype.show = function() {
             $('.nav li.active').removeClass('active');
             $(this).parent().addClass('active');
-            $('.profile-wrapper #profile').hide();
-            $('.profile-wrapper #todo').show();
+
+            var $profileWrappers = $('.profile-wrapper');
+            $profileWrappers.find('.profile-content').addClass('d-none');
+            $profileWrappers.find('.todo-tickets').removeClass('d-none');
         };
 
         TicketTableCtrl.prototype.ticketSearch = function() {
@@ -235,7 +237,7 @@
 
                         var dueTimeDateStr = new Date(new Date(ticket.dueTime) - timezoneGap).toJSON().split('T').shift();
                         $ticketBody.prepend(
-                            '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticket_info_modal">' +
+                            '<tr ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticketEditModal">' +
                                 '<td class="status" style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + statusNumberToText(ticket.status) + '</td>' +
                                 '<td>' + dueTimeDateStr + '</td>' +
                                 '<td class="ticket-description">' + ticket.description + '</td>' +
@@ -246,17 +248,21 @@
                 }
 
                 // 待辦事項載入完成後，由於相依的 appId 可能變更，因此將以下的事件重新綁定
-                $addTicketModal.find('#form-submit').off('click').on('click', function() {
+                $ticketAddModal.find('#addTicketBtn').off('click').on('click', function() {
                     instance.addTicket(appId);
                 });
 
-                $addTicketModal.off('show.bs.modal').on('show.bs.modal', function() {
+                $ticketAddModal.off('show.bs.modal').on('show.bs.modal', function() {
                     var agents = appsAgents[appId].agents;
-                    var $consumerNameSelect = $addTicketModal.find('select#add-form-name');
-                    var $platformUidElem = $addTicketModal.find('input#add-form-uid');
-                    var $messagerEmailElem = $addTicketModal.find('input#add-form-email');
-                    var $messagerPhoneElem = $addTicketModal.find('input#add-form-phone');
-                    var $assignedSelectElem = $addTicketModal.find('select#assigned-name');
+                    var $consumerNameSelect = $ticketAddModal.find('select#add-form-name');
+                    var $platformUidElem = $ticketAddModal.find('input#add-form-uid');
+                    var $messagerEmailElem = $ticketAddModal.find('input#add-form-email');
+                    var $messagerPhoneElem = $ticketAddModal.find('input#add-form-phone');
+                    var $assignedSelectElem = $ticketAddModal.find('select#assigned-name');
+
+                    // 在聊天室中的代辦事項已經知道所屬的 app 因此不需要讓使用者選擇 app
+                    var $appContainerElem = $ticketAddModal.find('.select-app-container');
+                    !$appContainerElem.hasClass('d-none') && $appContainerElem.addClass('d-none');
 
                     var consumer = consumers[clientPlatformUid];
                     $consumerNameSelect.empty();
@@ -313,12 +319,12 @@
             var infoInputTable = $('.info-input-table').empty();
             var consumer = consumers[platformUid];
 
-            $ticketInfoModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
+            $ticketEditModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
 
             var moreInfoHtml =
                 '<tr>' +
                     '<th>客戶姓名</th>' +
-                    '<td class="edit">' + (consumer.name || '') + '</td>' +
+                    '<td>' + (consumer.name || '') + '</td>' +
                 '</tr>' +
                 '<tr>' +
                     '<th class="priority">優先</th>' +
@@ -330,8 +336,8 @@
                 '</tr>' +
                 '<tr>' +
                     '<th class="description">描述</th>' +
-                    '<td class="edit form-group">' +
-                        '<textarea class="inner-text form-control">' + ticket.description + '</textarea>' +
+                    '<td class="form-group">' +
+                        '<textarea class="form-control">' + ticket.description + '</textarea>' +
                     '</td>' +
                 '</tr>' +
                 '<tr class="assigned">' +
@@ -354,20 +360,20 @@
                 '</tr>';
             infoInputTable.append(moreInfoHtml);
 
-            $ticketInfoModal.find('#ticket_info_modify').off('click').on('click', function() {
+            $ticketEditModal.find('#ticket_info_modify').off('click').on('click', function() {
                 instance.updateTicket(appId, ticketId);
             });
 
-            $ticketInfoModal.find('#ticket_info_delete').off('click').on('click', function() {
+            $ticketEditModal.find('#ticket_info_delete').off('click').on('click', function() {
                 instance.deleteTicket(appId, ticketId);
             });
         };
 
         TicketTableCtrl.prototype.addTicket = function(appId) {
-            var platformUid = $addTicketModal.find('select#add-form-name option:selected').val();
-            var assignedId = $addTicketModal.find('select#assigned-name option:selected').val();
-            var description = $addTicketModal.find('textarea#add_form_description').val();
-            var $errorElem = $addTicketModal.find('#error');
+            var platformUid = $ticketAddModal.find('select#add-form-name option:selected').val();
+            var assignedId = $ticketAddModal.find('select#assigned-name option:selected').val();
+            var description = $ticketAddModal.find('textarea#add_form_description').val();
+            var $errorElem = $ticketAddModal.find('#error');
 
             $errorElem.empty();
             if (!description) {
@@ -377,9 +383,9 @@
             } else if (!assignedId) {
                 $.notify('請選擇指派人', { type: 'danger' });
             } else {
-                var status = parseInt($addTicketModal.find('#add-form-status option:selected').val(), 10);
-                var priority = parseInt($addTicketModal.find('#add-form-priority option:selected').val(), 10);
-                var assignedName = $addTicketModal.find('select#assigned-name option:selected').text();
+                var status = parseInt($ticketAddModal.find('#add-form-status option:selected').val(), 10);
+                var priority = parseInt($ticketAddModal.find('#add-form-priority option:selected').val(), 10);
+                var assignedName = $ticketAddModal.find('select#assigned-name option:selected').text();
 
                 var newTicket = {
                     description: description || '',
@@ -396,13 +402,13 @@
                 }).catch(function() {
                     $.notify('待辦事項新增失敗，請重試', { type: 'danger' });
                 }).then(function() {
-                    $addTicketModal.modal('hide');
+                    $ticketAddModal.modal('hide');
                 });
             }
         };
 
         TicketTableCtrl.prototype.updateTicket = function(appId, ticketId) {
-            var $modifyTable = $('#ticket_info_modal .info-input-table');
+            var $modifyTable = $ticketEditModal.find('.info-input-table');
             $modifyTable.find('input').blur();
 
             var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val(), 10);
@@ -462,13 +468,13 @@
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
-    $(document).on('focus', '.chat-content-panel input#message', readClientMsg); // 已讀客戶訊息
-    $(document).on('click', '.chat-content-panel input#submitMsg', submitMessage); // 訊息送出
+    $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
+    $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     ocClickShow.on('click', triggerFileUpload); // 傳圖，音，影檔功能
-    $('.send-file').on('change', fileUpload); // 傳圖，音，影檔功能
+    $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
     messageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        (13 === ev.keyCode) && $('.chat-content-panel input#submitMsg').click();
+        (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
     });
     // =====end chat event=====
 
@@ -823,7 +829,7 @@
         var html =
             '<button class="tablinks"' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
-                    '<img src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
+                    '<img class="consumer-avatar" src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
                     '<img class="small-software-icon" src="' + opts.iconSrc + '">' +
                 '</div>' +
                 '<div class="msg-holder">' +
@@ -980,11 +986,11 @@
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
-                returnStr += '<p class="message-day"><strong>' + nowDateStr + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
             }
             if (messages[i].time - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-day"><strong>' + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time"><strong>' + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
             }
             prevTime = messages[i].time;
 
@@ -1004,9 +1010,9 @@
 
         var profilePanelHtml =
             '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
-                '<div class="person-profile table-responsive" id="profile">' +
+                '<div class="person-profile profile-content table-responsive">' +
                     '<div class="photo-container">' +
-                        '<img src="' + person.photo + '" alt="無法顯示相片" style="width:128px;height:128px;" />' +
+                        '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
                     '</div>' +
                     (function generateProfileHtml() {
                         var html = '';
@@ -1023,21 +1029,21 @@
                         return html;
                     })() +
                 '</div>' +
-                '<div class="person-profile" id="ticket" style="display:none;"></div>' +
-                '<div class="person-profile" id="todo" style="display:none; ">' +
-                    '<div class="ticket">' +
+                '<div class="person-profile todo-tickets d-none">' +
+                    '<div class="chsr-ticket">' +
                         '<table class="ticket-table">' +
                             '<thead>' +
                                 '<tr>' +
                                     '<th class="sortable">狀態</th>' +
                                     '<th class="sortable">到期</th>' +
                                     '<th>' +
-                                        '<input type="text" class="ticket-search-bar" placeholder="搜尋" />' +
+                                        '<input type="text" class="w-100 ticket-search-bar" placeholder="搜尋" />' +
                                     '</th>' +
                                     '<th>' +
-                                        '<a class="modal-toggler" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#add-ticket-modal">' +
-                                            '<span class="fas fa-plus fa-fw"></span>新增待辦' +
-                                        '</a>' +
+                                        '<span class="modal-toggler ticket-add" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#ticketAddModal">' +
+                                            '<i class="fas fa-plus fa-fw"></i>' +
+                                            '<span>新增待辦</span>' +
+                                        '</span>' +
                                     '</th>' +
                                 '</tr>' +
                             '</thead>' +
@@ -1120,7 +1126,7 @@
 
                     return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
                         '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                            '<button class="btn btn-light btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                 '<span class="caret"></span>' +
                             '</button>' +
@@ -1283,7 +1289,7 @@
 
     function clickUserTablink() {
         var $userTablink = $(this);
-        var $messageInputPanel = $('#send-message');
+        var $messageInputContainer = $('.message-input-container');
 
         var appId = $userTablink.attr('app-id');
         var appName = apps[appId].name;
@@ -1317,7 +1323,7 @@
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.tabcontent[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        $messageInputPanel.show();
+        $messageInputContainer.show();
         $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
         $profileGroup.show().siblings().hide();
         scrollMessagePanelToBottom(appId, chatroomId);
@@ -1563,7 +1569,7 @@
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
             if (_message.time - lastMessageTime >= 900000) {
-                $messagePanel.append('<p class="message-day"><strong>-新訊息-</strong></p>');
+                $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
             $messagePanel.append(messageHtml);
@@ -1617,8 +1623,10 @@
     function showProfile() {
         $('.nav li.active').removeClass('active');
         $(this).parent().addClass('active');
-        $('.profile-wrapper #profile').show();
-        $('.profile-wrapper #todo').hide();
+
+        var $profileWrappers = $('.profile-wrapper');
+        $profileWrappers.find('.profile-content').removeClass('d-none');
+        $profileWrappers.find('.todo-tickets').addClass('d-none');
     }
 
     // function userInfoClick() {

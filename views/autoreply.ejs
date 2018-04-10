@@ -23,7 +23,7 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div id="home">
+    <div class="page-wrapper">
         <div class="container mt-5">
             <div class="chsr card">
                 <div class="title">
@@ -40,12 +40,12 @@
                         </button>
                         <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
-                    <div class="search-add">
+                    <div class="search-add mb-2">
                         <span class="icon">
                             <i class="fa fa-search"></i>
                         </span>
                         <input type="text" class="search-bar" placeholder="搜尋   輸入完請按Enter鍵" aria-hidden="true">
-                        <button type="button" class="btn btn-light inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                        <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -213,7 +213,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/autoreply.js"></script>
 </body>
 
