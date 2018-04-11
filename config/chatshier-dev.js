@@ -37,7 +37,7 @@ module.exports = {
     CORS: {
         origin: [
             'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
-            // http://service.fea.chatshier.com:3002  website always allow itself
+            // http://service.fea.chatshier.com:3002  website always allows itself
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: ['Content-Type', 'Authorization']
