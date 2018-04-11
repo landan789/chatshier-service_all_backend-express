@@ -49,11 +49,11 @@
     $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
         let id = $(this).attr('rel');
-        $('#' + id).hide();
+        $('#' + id).addClass('d-none');
     });
     $(document).on('click', '#send-somebody', function () {
         let id = $(this).attr('rel');
-        $('#' + id).show();
+        $('#' + id).removeClass('d-none');
     });
     $(document).on('click', 'button#field', appendInput);
     $(document).on('change paste keyup', '.search-bar', dataSearch);
@@ -190,7 +190,7 @@
                                     '<i class="fa fa-check"></i>' +
                                 '</button>' +
                                 '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-close"></i>' +
+                                    '<i class="fa fa-times"></i>' +
                                 '</button>' +
                             '</div>' +
                         '</div>'
@@ -210,7 +210,7 @@
                                     '<i class="fa fa-check"></i>' +
                                 '</button>' +
                                 '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-close"></i>' +
+                                    '<i class="fa fa-times"></i>' +
                                 '</button>' +
                             '</div>' +
                         '</div>'
@@ -230,7 +230,7 @@
                                     '<i class="fa fa-check"></i>' +
                                 '</button>' +
                                 '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-close"></i>' +
+                                    '<i class="fa fa-times"></i>' +
                                 '</button>' +
                             '</div>' +
                         '</div>'
@@ -511,7 +511,7 @@
         $('.error-input').hide();
         $('.textinput').val('');
         $('#send-all').prop('checked', true);
-        $('div#limit-user').hide();
+        $('div#limit-user').addClass('d-none');
         $('div#condition').remove();
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
@@ -544,7 +544,7 @@
                         '<i class="fa fa-check"></i>' +
                     '</button>' +
                     '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                        '<i class="fa fa-close"></i>' +
+                        '<i class="fa fa-times"></i>' +
                     '</button>' +
                 '</div>'
             );
