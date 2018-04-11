@@ -380,7 +380,7 @@ body {
         .profile-panel .photo-container img {
             border-radius: 50%; }
 
-.chsr-ticket {
+.chsr.ticket {
     display: flex;
     justify-content: center;
     margin: 0% 0%;
@@ -389,38 +389,38 @@ body {
     width: 100%;
     font-size: 12px;
     padding: 0; }
-    .chsr-ticket table {
+    .chsr.ticket table {
         table-layout: fixed;
         width: 100%; }
-    .chsr-ticket .ticket-search-bar {
+    .chsr.ticket .ticket-search-bar {
         border-radius: 5px; }
-    .chsr-ticket .ticket-description { 
+    .chsr.ticket .ticket-description { 
         max-width: 50px; 
         overflow: hidden; 
         text-overflow: ellipsis; 
         white-space: nowrap;  } 
-    .chsr-ticket td,
-    .chsr-ticket th {
+    .chsr.ticket td,
+    .chsr.ticket th {
         border-bottom: 1px solid rgb(5, 82, 87);
         text-align: left;
         padding: .25rem;
         margin: 2px 0;
         max-height: 24px; }
-    .chsr-ticket tr:nth-child(even) {
+    .chsr.ticket tr:nth-child(even) {
         background-color: #33ccff;
         color: white; }
-    .chsr-ticket .ticket-row {
+    .chsr.ticket .ticket-row {
         cursor: pointer; }
-    .chsr-ticket .overdue {
+    .chsr.ticket .overdue {
         padding: 1px 10px;
         margin: 1px;
         border-radius: 8px;
         background-color: rgb(227, 79, 79);
         color: white;
         font-weight: bold; }
-    .chsr-ticket .non {
+    .chsr.ticket .non {
         background-color: rgb(91, 195, 92); }
-    .chsr-ticket  th.chsr .ticket-add{
+    .chsr.ticket  th.chsr .ticket-add{
         clear: both;
         float:right;
         cursor: pointer;
