@@ -420,7 +420,9 @@ body {
         font-weight: bold; }
     .chsr-ticket .non {
         background-color: rgb(91, 195, 92); }
-    .chsr-ticket .ticket-add {
+    .chsr-ticket  th.chsr .ticket-add{
+        clear: both;
+        float:right;
         cursor: pointer;
         color: #33ccff; }
 

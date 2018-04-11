@@ -1027,10 +1027,10 @@
                                     '<th class="sortable">狀態</th>' +
                                     '<th class="sortable">到期</th>' +
                                     '<th>' +
-                                        '<input type="text" class="w-100 ticket-search-bar" placeholder="搜尋" />' +
+                                        '<input type="text" class="w-130 ticket-search-bar" placeholder="搜尋  請按Enter鍵" />' +
                                     '</th>' +
-                                    '<th>' +
-                                        '<span class="modal-toggler ticket-add" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#ticketAddModal">' +
+                                    '<th class="chsr">' +
+                                        '<span class="modal-toggler ticket-add chsr" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#ticketAddModal">' +
                                             '<i class="fas fa-plus fa-fw"></i>' +
                                             '<span>新增待辦</span>' +
                                         '</span>' +
