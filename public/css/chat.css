@@ -89,13 +89,9 @@ body {
         text-align: center; }
 
 .person {
-    display: flex;
-    flex-direction: column;
-    float: left;
     border: 1px solid #ccc;
     background-color: #f7f8f9;
     width: 30%;
-    text-align: center;
     padding-left: 60px;
     transition: .5s ease-in-out; }
     .person hr {
@@ -236,14 +232,14 @@ body {
     .message-group.align-right {
         flex-direction: row-reverse; }
 
-.chat-content-panel {
+.chatroom-container {
     position: relative;
-    width: 40%;
-    height: 100%;
-    resize: both; }
-    .chat-content-panel.open::after {
+    display: inherit;
+    width: 70%;
+    height: 100%; }
+    .chatroom-container.open::after {
         display: none; }
-    .chat-content-panel::after {
+    .chatroom-container::after {
         content: "";
         position: absolute;
         left: 25%;
@@ -252,6 +248,45 @@ body {
         height: 100%;
         opacity: .5;
         background: transparent url("../image/logo.png") center/contain no-repeat; }
+    .chatroom-container .chat-content-panel {
+        position: relative;
+        width: 50%;
+        height: 100%;
+        resize: both; }
+    .chatroom-container .profile-panel {
+        position: relative;
+        width: 50%; }
+
+.profile-panel {
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    background-color: #f7f8f9; }
+    .profile-panel td {
+        word-wrap: break-word; }
+    .profile-panel .person-chip {
+        margin: .5rem .5rem .5rem 0;
+        padding: 0 .5rem;
+        line-height: 2rem;
+        border-radius: .5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; }
+        .profile-panel .person-chip .person-avatar {
+            width: 2rem;
+            height: 2rem;
+            float: left;
+            margin-right: .5rem;
+            border-radius: 50%; }
+    .profile-panel .td-inner:not(.btn-group) {
+        width: 100%;
+        margin: 0 auto; }
+    .profile-panel .td-inner[type="datetime-local"] {
+        margin-top: 2px; }
+    .profile-panel .photo-container {
+        text-align: center;
+        margin: 5% 0; }
+        .profile-panel .photo-container img {
+            border-radius: 50%; }
 
 .consumer-profile {
     display: flex;
@@ -346,39 +381,6 @@ body {
         .message-input .media-btn:hover,
         .message-input .media-btn[active~='true'] {
             background-color: #ccc; }
-
-.profile-panel {
-    border: 1px solid lightgray;
-    border-radius: 5px;
-    width: 30%;
-    position: relative;
-    background-color: #f7f8f9; }
-    .profile-panel td {
-        word-wrap: break-word; }
-    .profile-panel .person-chip {
-        margin: .5rem .5rem .5rem 0;
-        padding: 0 .5rem;
-        line-height: 2rem;
-        border-radius: .5rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; }
-        .profile-panel .person-chip .person-avatar {
-            width: 2rem;
-            height: 2rem;
-            float: left;
-            margin-right: .5rem;
-            border-radius: 50%; }
-    .profile-panel .td-inner:not(.btn-group) {
-        width: 100%;
-        margin: 0 auto; }
-    .profile-panel .td-inner[type="datetime-local"] {
-        margin-top: 2px; }
-    .profile-panel .photo-container {
-        text-align: center;
-        margin: 5% 0; }
-        .profile-panel .photo-container img {
-            border-radius: 50%; }
 
 .chsr.ticket {
     display: flex;
