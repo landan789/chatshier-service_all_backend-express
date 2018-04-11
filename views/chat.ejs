@@ -2,13 +2,8 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
     
     <% include ../views/partials/require_css.ejs %>
@@ -42,7 +37,7 @@
                     <img class="software-icon" src="image/close.png">
                 </div>
             </div>
-            <div class="person column" id="person">
+            <div class="d-flex flex-column text-center person column" id="person">
                 <div class="search message-search">
                     <input type="text" class="search-box" placeholder="搜尋文字訊息...">
                     <div class="search-results d-none">
@@ -59,44 +54,47 @@
                     <ol class="list-group" id="clients"></ol>
                 </div>
             </div>
-            <div class="chat-content-panel column">
-                <div class="consumer-profile">
-                    <h4 class="display-name"></h4>
-                </div>
-                <div class="chatroom-body" id="chatroomBody"></div>
-                <div class="message-input-container">
-                    <div class="message-input form-upper">
-                        <div class="media-container">
-                            <button data-id="file-image" data-type="image" id="attImg" class="media-btn">
-                                <i class="far fa-file-image" aria-hidden="true"></i>
-                            </button>
-                            <button data-id="file-video" data-type="video" id="attVid" class="media-btn">
-                                <i class="far fa-file-video" aria-hidden="true"></i>
-                            </button>
-                            <button data-id="file-audio" data-type="audio" id="attAud" class="media-btn">
-                                <i class="far fa-file-audio" aria-hidden="true"></i>
-                            </button>
-                            <input class="ghost-file d-none" type="file" id="file-image" data-type="image" accept="image/*" />
-                            <input class="ghost-file d-none" type="file" id="file-video" data-type="video" accept="video/mp4,video/mpeg4" />
-                            <input class="ghost-file d-none" type="file" id="file-audio" data-type="audio" accept="audio/mp3,video/mpeg3" />
+
+            <div class="chatroom-container">
+                <div class="chat-content-panel column">
+                    <div class="consumer-profile">
+                        <h4 class="display-name"></h4>
+                    </div>
+                    <div class="chatroom-body" id="chatroomBody"></div>
+                    <div class="message-input-container">
+                        <div class="message-input form-upper">
+                            <div class="media-container">
+                                <button data-id="file-image" data-type="image" id="attImg" class="media-btn">
+                                    <i class="far fa-file-image" aria-hidden="true"></i>
+                                </button>
+                                <button data-id="file-video" data-type="video" id="attVid" class="media-btn">
+                                    <i class="far fa-file-video" aria-hidden="true"></i>
+                                </button>
+                                <button data-id="file-audio" data-type="audio" id="attAud" class="media-btn">
+                                    <i class="far fa-file-audio" aria-hidden="true"></i>
+                                </button>
+                                <input class="ghost-file d-none" type="file" id="file-image" data-type="image" accept="image/*" />
+                                <input class="ghost-file d-none" type="file" id="file-video" data-type="video" accept="video/mp4,video/mpeg4" />
+                                <input class="ghost-file d-none" type="file" id="file-audio" data-type="audio" accept="audio/mp3,video/mpeg3" />
+                            </div>
+                        </div>
+                        <div class="message-input form-lower">
+                            <input class="submit-message-input" type="text" placeholder="輸入訊息..." size="35" id="submitMessageInput" />
+                            <input class="submit-message-btn" type="button" id="submitMessageBtn" />
                         </div>
                     </div>
-                    <div class="message-input form-lower">
-                        <input class="submit-message-input" type="text" placeholder="輸入訊息..." size="35" id="submitMessageInput" />
-                        <input class="submit-message-btn" type="button" id="submitMessageBtn" />
-                    </div>
                 </div>
-            </div>
-            <div class="profile-panel" class="column">
-                <ul class="nav nav-pills nav-fill">
-                    <li class="nav-item active">
-                        <a class="nav-link show-option" id="show_profile">用戶資料</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link show-option" id="show_todo">待辦事項</a>
-                    </li>
-                </ul>
-                <div class="profile-wrapper"></div>
+                <div class="profile-panel" class="column">
+                    <ul class="nav nav-pills nav-fill">
+                        <li class="nav-item active">
+                            <a class="nav-link show-option" id="show_profile">用戶資料</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link show-option" id="show_todo">待辦事項</a>
+                        </li>
+                    </ul>
+                    <div class="profile-wrapper"></div>
+                </div>
             </div>
         </div>
     </div>

@@ -1282,9 +1282,9 @@
             $unReadElem.text(messagerSelf.unRead).hide();
         }
 
-        var $chatPanel = $('#chatWrapper .chat-content-panel');
-        !$chatPanel.hasClass('open') && $chatPanel.addClass('open');
-        $chatPanel.find('.consumer-profile .display-name').text(appName);
+        var $chatroomContainer = $('#chatWrapper .chatroom-container');
+        !$chatroomContainer.hasClass('open') && $chatroomContainer.addClass('open');
+        $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
