@@ -48,15 +48,16 @@
     .chsr-ticket tr:nth-child(even) {
         background-color: #ddd;
         color: #333; }
-    .chsr-ticket .overdue {
-        padding: 1px 10px;
-        margin: 1px;
-        border-radius: 8px;
-        background-color: rgb(227, 79, 79);
-        color: white;
-        font-weight: bold; }
-    .chsr-ticket .non {
-        background-color: rgb(91, 195, 92); }
+
+.due-time-text .overdue {
+    padding: 1px 10px;
+    margin: 1px;
+    border-radius: 8px;
+    background-color: rgb(227, 79, 79);
+    color: white;
+    font-weight: bold; }
+.due-time-text .non {
+    background-color: rgb(91, 195, 92); }
 
 .inner {
   margin: 0 15px ;
