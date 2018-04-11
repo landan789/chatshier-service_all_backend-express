@@ -8,6 +8,14 @@ module.exports = (function() {
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
 
+        /**
+         * 輸入全部的 appId 取得該 App 所有自動回覆的資料
+         *
+         * @param {string|string[]} appIds
+         * @param {any|string|string[]} autoreplyIds
+         * @param {(appsAutoreplies: any) => any} [callback]
+         * @return {Promise<any>}
+         */
         find(appIds, autoreplyIds, callback) {
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
@@ -94,6 +102,14 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * 輸入指定的 appId 新增一筆自動回覆的資料
+         *
+         * @param {string} appId
+         * @param {any} postAutoreply
+         * @param {(appsAutoreplies: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
         insert(appId, postAutoreply, callback) {
             let autoreplyId = this.Types.ObjectId();
             postAutoreply._id = autoreplyId;
@@ -111,6 +127,15 @@ module.exports = (function() {
             });
         };
 
+        /**
+         * 輸入指定的 appId 修改一筆自動回覆的資料
+         *
+         * @param {string} appId
+         * @param {string} autoreplyId
+         * @param {any} putAutoreply
+         * @param {(appsAutoreplies: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
         update(appId, autoreplyId, putAutoreply, callback) {
             let query = {
                 '_id': appId,
@@ -134,11 +159,11 @@ module.exports = (function() {
         };
 
         /**
-         * 刪除指定的 messager 資料 (只限內部聊天室 App)
+         * 輸入指定的 appId 刪除一筆自動回覆的資料
          *
          * @param {string|string[]} appIds
          * @param {string} autoreplyId
-         * @param {(appsMessagers: any) => any} [callback]
+         * @param {(appsAutoreplies: any) => any} [callback]
          * @returns {Promise<any>}
          */
         remove(appIds, autoreplyId, callback) {
@@ -198,6 +223,13 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * 找到 自動回覆未刪除的資料包，不含 apps 結構
+         *
+         * @param {string|string[]} appIds
+         * @param {(appsAutoreplies: any) => any} [callback]
+         * @return {Promise<any>}
+         */
         findAutoreplies(appIds, callback) {
             if ('string' === typeof appIds) {
                 appIds = [appIds];
