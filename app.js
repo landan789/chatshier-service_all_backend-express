@@ -14,8 +14,15 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
-
-app.use(cors());
+let corsOptions = {
+    origin: [
+        'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier 
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+  
+app.use(cors(corsOptions));
 app.use(cookieParser());
 
 // API JWT 權限驗證
