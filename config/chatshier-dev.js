@@ -33,5 +33,13 @@ module.exports = {
     COOKIE: {
         DOMAIN: '.fea.chatshier.com',
         EXPIRES: EXPIRES
+    },
+    CORS: {
+        origin: [
+            'http://service.fea.chatshier.com:8080' // allow the website of client can access back-end service.chatshier
+            // http://service.fea.chatshier.com:3002  website always allow itself
+        ],
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: ['Content-Type', 'Authorization']
     }
 };
