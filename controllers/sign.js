@@ -55,7 +55,7 @@ module.exports = (function() {
                 userId = Object.keys(users).shift();
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
-            }).then(() => {
+            }).then((token) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNIN.MSG,
@@ -68,6 +68,7 @@ module.exports = (function() {
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
+
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
             }).catch((ERROR) => {
