@@ -433,7 +433,17 @@
                 continue;
             }
         }
-        let composeGender = composeData.gender || '';
+        let composeGender;
+        switch (composeData.gender) {
+            case 'MALE':
+                composeGender = '男';
+                break;
+            case 'FEMALE':
+                composeGender = '女';
+                break;
+            default:
+                composeGender = '';
+        }
         if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
             fieldsTd += '<snap id="sendAll" data-title="無">無</snap>';
             return fieldsTd;
@@ -446,7 +456,7 @@
             if (!composeTag.value) {
                 continue;
             }
-            fieldsTd += '<snap id="field" data-title="'+ composeTag.value+'" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
+            fieldsTd += '<snap id="field" data-title="' + composeTag.value + '" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
         }
         fieldsTd += '</td>';
         return fieldsTd;
@@ -464,8 +474,8 @@
         }
         var code = ev.keyCode || ev.which;
         if (13 === code) {
-            //按下enter鍵
-            if(0 === target.length){
+            // 按下enter鍵
+            if (0 === target.length) {
                 $('tbody > tr ').hide();
             }
             $('.table>tbody > tr').hide();
@@ -518,12 +528,15 @@
         $('#send-time').val('');
         $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
+
         inputObj = {};
         inputNum = 0;
         deleteNum = 0;
         ageRange = [];
         gender = '';
         field_ids = {};
+
+        appCustomerTagChanged();
     }
 
     function appendInput() {
@@ -725,10 +738,10 @@
                 case 'gender':
                     switch (conditionVal) {
                         case '男':
-                            gender = 'male';
+                            gender = 'MALE';
                             break;
                         case '女':
-                            gender = 'female';
+                            gender = 'FEMALE';
                             break;
                         default:
                             gender = conditionVal;
