@@ -132,8 +132,7 @@
                 delete appsData[appId];
                 continue;
             }
-
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<a class="dropdown-item" id="' + appId + '">' + app.name + '</a>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
