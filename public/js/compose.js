@@ -10,7 +10,7 @@
     var inputObj = {};
     var ageRange = [];
     var gender = '';
-    var field_ids = {};
+    var fieldIds = {};
     var appsFields = '';
     var deleteNum = 0;
     var nowSelectAppId = '';
@@ -256,7 +256,7 @@
             targetData.time = $composesDtPicker.data('DateTimePicker').date().toDate().getTime();
             targetData.ageRange = ageRange;
             targetData.gender = gender;
-            targetData.field_ids = 0 === Object.keys(field_ids).length ? {} : field_ids;
+            targetData.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
@@ -265,7 +265,7 @@
             return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
                 ageRange = [];
                 gender = '';
-                field_ids = {};
+                fieldIds = {};
                 $composeEditModal.modal('hide');
                 $.notify('修改成功！', { type: 'success' });
                 $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -534,7 +534,7 @@
         deleteNum = 0;
         ageRange = [];
         gender = '';
-        field_ids = {};
+        fieldIds = {};
 
         appCustomerTagChanged();
     }
@@ -593,7 +593,7 @@
             isDraft: isDraft,
             ageRange: ageRange,
             gender: gender,
-            field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+            field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
         };
 
         let messages = [];
@@ -606,7 +606,7 @@
                     time: Date.now() - 60000,
                     ageRange: ageRange,
                     gender: gender,
-                    field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+                    field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
                 };
                 messages.push(compose);
             }
@@ -748,7 +748,7 @@
                     }
                     break;
                 default:
-                    field_ids[conditionRel] = {
+                    fieldIds[conditionRel] = {
                         value: conditionVal
                     };
             }
@@ -813,16 +813,5 @@
                 }
             });
         });
-    }
-
-    function ISODateTimeString(d) {
-        d = new Date(d);
-
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        return d.getFullYear() + '-' +
-            pad(d.getMonth() + 1) + '-' +
-            pad(d.getDate()) + 'T' +
-            pad(d.getHours()) + ':' +
-            pad(d.getMinutes());
     }
 })();
