@@ -10,7 +10,7 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let app = express();
 
-const CHATSHIER = require('../config/chatshier');
+const CHATSHIER = require('./config/chatshier');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
