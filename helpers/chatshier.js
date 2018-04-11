@@ -17,8 +17,8 @@ module.exports = (function() {
         getRepliedMessages(messages, appId, app) {
             let greetings = {};
             let grettingsPromise = Promise.all(messages.map((message) => {
-                let eventType = message.eventType;
-                if ('follow' !== eventType || 0 === messages.length) {
+                let eventType = message.eventType || null;
+                if (eventType && 'follow' !== eventType) {
                     return Promise.resolve();
                 };
 
@@ -49,21 +49,30 @@ module.exports = (function() {
                 return Promise.resolve(keywordreplies);
             });
 
-            let autorepliesPromise = new Promise((resolve, reject) => {
-                appsAutorepliesMdl.findAutoreplies(appId, (autoreplies) => {
-                    autoreplies = autoreplies || {};
-                    let timeNow = Date.now();
+            let autoreplies = {};
+            let autorepliesPromise = Promise.all(messages.map((message) => {
+                let eventType = message.eventType || null;
+                if (eventType && ('follow' === eventType || 'unfollow' === eventType)) {
+                    return Promise.resolve();
+                };
+                return new Promise((resolve, reject) => {
+                    appsAutorepliesMdl.findAutoreplies(appId, (_autoreplies) => {
+                        autoreplies = Object.assign(autoreplies, _autoreplies);
+                        let timeNow = Date.now();
 
-                    for (let key in autoreplies) {
-                        let endedTime = autoreplies[key].endedTime;
-                        let startedTime = autoreplies[key].startedTime;
-                        if (startedTime <= timeNow && timeNow < endedTime) {
-                            continue;
+                        for (let key in autoreplies) {
+                            let endedTime = autoreplies[key].endedTime;
+                            let startedTime = autoreplies[key].startedTime;
+                            if (startedTime <= timeNow && timeNow < endedTime) {
+                                continue;
+                            }
+                            delete autoreplies[key];
                         }
-                        delete autoreplies[key];
-                    }
-                    resolve(autoreplies);
+                        resolve(autoreplies);
+                    });
                 });
+            })).then(() => {
+                return Promise.resolve(autoreplies);
             });
 
             // let templates = {};
