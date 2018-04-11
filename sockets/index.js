@@ -463,7 +463,6 @@ function init(server) {
             let appId = data.appId;
             let messages = data.composes;
             let appsInsertedComposes = '';
-            let appType = '';
             let req = {
                 method: 'POST',
                 params: {
@@ -471,9 +470,8 @@ function init(server) {
                     userid: userId
                 }
             };
-            let consumers = {};
+            let messagers = {};
             let chatrooms = {};
-            let platformUids = [];
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
@@ -493,35 +491,27 @@ function init(server) {
                 });
             }).then((_app) => {
                 app = _app;
-                appType = app.type;
                 return botSvc.create(appId, app);
             }).then(() => {
                 return appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
                     chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     for (let chatroomId in chatrooms) {
-                        let messagers = chatrooms[chatroomId].messagers;
-                        for (let messagerId in messagers) {
-                            let messager = messagers[messagerId];
-                            platformUids.push(messager.platformUid);
+                        let chatroomMessagers = chatrooms[chatroomId].messagers;
+                        for (let messagerId in chatroomMessagers) {
+                            let messager = chatroomMessagers[messagerId];
+                            messagers[messager.platformUid] = messager;
                         }
                     }
-                    return consumersMdl.find(platformUids);
-                }).then((_consumers) => {
-                    if (!_consumers) {
-                        return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
-                    }
-                    consumers = _consumers;
-                    return consumers;
                 });
             }).then(() => {
-                let originConsumers = consumers;
+                let originMessagers = messagers;
                 return new Promise((resolve, reject) => {
-                    Object.keys(originConsumers).map((platformUid) => {
+                    Object.keys(originMessagers).map((platformUid) => {
                         messages.forEach((message) => {
-                            let originConsumer = originConsumers[platformUid];
-                            let originConsumerAge = originConsumer.age || '';
-                            let originConsumerGender = originConsumer.gender || '';
-                            let originConsumerFields = originConsumer.custom_fields || {};
+                            let originMessager = originMessagers[platformUid];
+                            let originMessagerAge = originMessager.age || '';
+                            let originMessagerGender = originMessager.gender || '';
+                            let originMessagerFields = originMessager.custom_fields || {};
 
                             let messageAgeRange = message.ageRange || '';
                             let messageGender = message.gender || '';
@@ -529,45 +519,45 @@ function init(server) {
 
                             for (let i = 0; i < messageAgeRange.length; i++) {
                                 if (i % 2) {
-                                    if (originConsumerAge > messageAgeRange[i] && '' !== messageAgeRange[i]) {
-                                        delete consumers[platformUid];
+                                    if (originMessagerAge > messageAgeRange[i] && '' !== messageAgeRange[i]) {
+                                        delete messagers[platformUid];
                                         continue;
                                     }
                                 } else {
-                                    if (originConsumerAge < messageAgeRange[i] && '' !== messageAgeRange[i]) {
-                                        delete consumers[platformUid];
+                                    if (originMessagerAge < messageAgeRange[i] && '' !== messageAgeRange[i]) {
+                                        delete messagers[platformUid];
                                         continue;
                                     }
                                 }
                             }
-                            if (originConsumerGender !== messageGender && '' !== messageGender) {
-                                delete consumers[platformUid];
+                            if (originMessagerGender !== messageGender && '' !== messageGender) {
+                                delete messagers[platformUid];
                             }
                             Object.keys(messageFields).map((fieldId) => {
-                                let originMessagerFieldValue = originConsumerFields[fieldId].value || '';
+                                let originMessagerFieldValue = originMessagerFields[fieldId].value || '';
                                 let messageFieldValue = messageFields[fieldId].value || '';
                                 if (originMessagerFieldValue instanceof Array) {
                                     for (let i in originMessagerFieldValue) {
                                         if (originMessagerFieldValue[i] !== messageFieldValue && '' !== messageFieldValue) {
-                                            delete consumers[platformUid];
+                                            delete messagers[platformUid];
                                         }
                                     }
                                 } else {
                                     if (originMessagerFieldValue !== messageFieldValue && '' !== messageFieldValue) {
-                                        delete consumers[platformUid];
+                                        delete messagers[platformUid];
                                     }
                                 }
                             });
                         });
                     });
-                    if (0 === Object.keys(consumers).length) {
+                    if (0 === Object.keys(messagers).length) {
                         reject(API_ERROR.APP_COMPOSE_DID_NOT_HAVE_THESE_FIELDS);
                         return;
                     }
                     resolve();
                 });
             }).then(() => {
-                return botSvc.multicast(Object.keys(consumers), messages, appId, app);
+                return botSvc.multicast(Object.keys(messagers), messages, appId, app);
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
@@ -614,7 +604,7 @@ function init(server) {
                         /** @type {ChatshierChatSocketBody} */
                         let socketBody = {
                             app_id: appId,
-                            type: appType,
+                            type: app.type,
                             chatroom_id: chatroomId,
                             senderUid: '',
                             recipientUid: messager.platformUid,
