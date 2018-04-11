@@ -11,7 +11,7 @@ router.get(reactReadyPaths, function(req, res, next) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Chatshier' });
+    res.redirect('/chat');
 });
 router.get('/chat', function(req, res, next) {
     res.render('chat', { title: 'Chatshier聊天室' });

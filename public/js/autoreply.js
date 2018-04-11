@@ -109,8 +109,12 @@
                     '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                     '<td id="text">' + autoreply.text + '</td>' +
                     '<td>' +
-                        '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                        '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                        '<button type="button" class="btn btn-border" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                            '<i class="fas fa-trash-alt"></i>' +
+                        '</button>' +
                     '</td>' +
                 '</tr>'
             );
@@ -160,8 +164,12 @@
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                             '<td id="text" data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-border" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                                    '<i class="fas fa-edit"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                                    '<i class="fas fa-trash-alt"></i>' +
+                                '</button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -196,8 +204,12 @@
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-border" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                        '<i class="fas fa-edit"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                        '<i class="fas fa-trash-alt"></i>' +
+                    '</button>' +
                 '</td>'
             );
 
@@ -280,16 +292,14 @@
         var code = ev.keyCode || ev.which;
         if (13 === code) {
             // enter鍵
-           var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
-            if(0 === target.length){
+            var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+            if (0 === target.length) {
                 $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
+            } else {
+                target.siblings().hide();
+                target.show();
             }
-           else{
-               target.siblings().hide();
-               target.show();
-         }
-           return;
-        } 
+        }
     }
 
     function showDialog(textContent) {

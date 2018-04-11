@@ -411,20 +411,21 @@ body {
         color: white; }
     .chsr.ticket .ticket-row {
         cursor: pointer; }
-    .chsr.ticket .overdue {
-        padding: 1px 10px;
-        margin: 1px;
-        border-radius: 8px;
-        background-color: rgb(227, 79, 79);
-        color: white;
-        font-weight: bold; }
-    .chsr.ticket .non {
-        background-color: rgb(91, 195, 92); }
-    .chsr.ticket  th.chsr .ticket-add{
+    .chsr.ticket  th.chsr .ticket-add {
         clear: both;
         float:right;
         cursor: pointer;
         color: #33ccff; }
+
+.due-time-text .overdue {
+    padding: 1px 10px;
+    margin: 1px;
+    border-radius: 8px;
+    background-color: rgb(227, 79, 79);
+    color: white;
+    font-weight: bold; }
+.due-time-text .non {
+    background-color: rgb(91, 195, 92); }
 
 .ticket-info-modal .id-number {
     display: flex;
