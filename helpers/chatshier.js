@@ -18,7 +18,7 @@ module.exports = (function() {
             let greetings = {};
             let grettingsPromise = Promise.all(messages.map((message) => {
                 let eventType = message.eventType || null;
-                if (eventType && 'follow' !== eventType) {
+                if ('follow' !== eventType) {
                     return Promise.resolve();
                 };
 
@@ -52,7 +52,7 @@ module.exports = (function() {
             let autoreplies = {};
             let autorepliesPromise = Promise.all(messages.map((message) => {
                 let eventType = message.eventType || null;
-                if (eventType && ('follow' === eventType || 'unfollow' === eventType)) {
+                if ('follow' === eventType || 'unfollow' === eventType) {
                     return Promise.resolve();
                 };
                 return new Promise((resolve, reject) => {

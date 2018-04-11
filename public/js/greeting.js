@@ -40,7 +40,7 @@
                 continue;
             }
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {

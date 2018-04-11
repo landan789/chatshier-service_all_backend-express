@@ -85,13 +85,13 @@
      * 所有有關待辦事項的處理皆寫於此閉包內。
      */
     var ticketTableCtrl = (function() {
+        var $ticketAddModal = $('#ticketAddModal');
+        var $ticketEditModal = $('#ticketEditModal');
+
         var api = window.restfulAPI;
         var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
         var instance = new TicketTableCtrl();
         var tickets = null;
-
-        var $ticketAddModal = $('#ticketAddModal');
-        var $ticketEditModal = $('#ticketEditModal');
 
         // ==========
         // #region 通用函式宣告
@@ -126,7 +126,7 @@
             return statusText[status] ? statusText[status] : '未知';
         };
 
-        var showSelect = function(prop, n, val) {
+        var generateSelect = function(prop, n, val) {
             var i = 0;
             var html = '<select class="selected form-control">';
             if ('priority' === prop) {
@@ -167,18 +167,6 @@
             return yy + '/' + MM + '/' + dd + ' ' + hh + ':' + mm + ':' + ss;
         };
 
-        var displayDateInput = function(d) {
-            d = new Date(d);
-            var pad = function(n) {
-                return n < 10 ? '0' + n : n;
-            };
-            return d.getFullYear() + '-' +
-                pad(d.getMonth() + 1) + '-' +
-                pad(d.getDate()) + 'T' +
-                pad(d.getHours()) + ':' +
-                pad(d.getMinutes());
-        };
-
         var dueDate = function(day) {
             var nowTime = Date.now();
             var dueday = Date.parse(displayDate(day));
@@ -190,7 +178,26 @@
         // #endregion
         // ==========
 
-        function TicketTableCtrl() {}
+        function TicketTableCtrl() {
+            var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
+            var $dueDatetimePicker = $ticketEditTable.find('.ticket-due-time .datetime-picker');
+            var datetimePickerInitOpts = {
+                sideBySide: true,
+                locale: 'zh-tw',
+                icons: {
+                    time: 'far fa-clock',
+                    date: 'far fa-calendar-alt',
+                    up: 'fas fa-chevron-up',
+                    down: 'fas fa-chevron-down',
+                    previous: 'fas fa-chevron-left',
+                    next: 'fas fa-chevron-right',
+                    today: 'fas fa-sun',
+                    clear: 'far fa-trash-alt',
+                    close: 'fas fa-times'
+                }
+            };
+            $dueDatetimePicker.datetimepicker(datetimePickerInitOpts);
+        }
 
         TicketTableCtrl.prototype.show = function() {
             $('.nav li.active').removeClass('active');
@@ -315,50 +322,21 @@
 
             var ticketId = $(this).attr('ticket-id');
             var ticket = tickets[ticketId];
-
-            var infoInputTable = $('.info-input-table').empty();
             var consumer = consumers[platformUid];
 
+            $ticketEditModal.find('.id-number').css('background-color', priorityColor(ticket.priority));
             $ticketEditModal.find('.modal-header').css('border-bottom', '3px solid ' + priorityColor(ticket.priority));
 
-            var moreInfoHtml =
-                '<tr>' +
-                    '<th>客戶姓名</th>' +
-                    '<td>' + (consumer.name || '') + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="priority">優先</th>' +
-                    '<td class="form-group">' + showSelect('priority', ticket.priority) + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="status">狀態</th>' +
-                    '<td class="form-group">' + showSelect('status', ticket.status) + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="description">描述</th>' +
-                    '<td class="form-group">' +
-                        '<textarea class="form-control">' + ticket.description + '</textarea>' +
-                    '</td>' +
-                '</tr>' +
-                '<tr class="assigned">' +
-                    '<th>指派人</th>' +
-                    '<td class="form-group">' + showSelect('assigned', appsAgents[appId].agents, ticket.assigned_id) + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="time-edit">到期時間' + dueDate(ticket.dueTime) + '</th>' +
-                    '<td class="form-group">' +
-                        '<input class="display-date-input form-control" type="datetime-local" value="' + displayDateInput(ticket.dueTime) + '">' +
-                    '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th>建立日期</th>' +
-                    '<td>' + displayDate(ticket.createdTime) + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th>最後更新</th>' +
-                    '<td>' + displayDate(ticket.updatedTime) + '</td>' +
-                '</tr>';
-            infoInputTable.append(moreInfoHtml);
+            var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
+            $ticketEditTable.find('.consumer-name').text(consumer.name || '');
+            $ticketEditTable.find('.ticket-priority').html(generateSelect('priority', ticket.priority));
+            $ticketEditTable.find('.ticket-status').html(generateSelect('status', ticket.status));
+            $ticketEditTable.find('.ticket-description textarea').val(ticket.description);
+            $ticketEditTable.find('.ticket-assigned').html(generateSelect('assigned', appsAgents[appId].agents, ticket.assigned_id));
+            $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date(new Date(ticket.dueTime));
+            $ticketEditTable.find('.due-time-text').html('到期時間' + dueDate(ticket.dueTime));
+            $ticketEditTable.find('.ticket-created-time').text(displayDate(ticket.createdTime));
+            $ticketEditTable.find('.ticket-updated-time').text(displayDate(ticket.updatedTime));
 
             $ticketEditModal.find('#ticket_info_modify').off('click').on('click', function() {
                 instance.updateTicket(appId, ticketId);
@@ -406,24 +384,22 @@
         };
 
         TicketTableCtrl.prototype.updateTicket = function(appId, ticketId) {
-            var $modifyTable = $ticketEditModal.find('.info-input-table');
-            $modifyTable.find('input').blur();
+            var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
+            var priority = parseInt($ticketEditTable.find('.ticket-priority select option:selected').val());
+            var status = parseInt($ticketEditTable.find('.ticket-status select option:selected').val());
+            var description = $ticketEditTable.find('.ticket-description textarea').val();
+            var dueTime = $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date().toDate().getTime();
 
-            var ticketPriority = parseInt($modifyTable.find('th.priority').parent().find('td select').val(), 10);
-            var ticketStatus = parseInt($modifyTable.find('th.status').parent().find('td select').val(), 10);
-            var ticketDescription = $modifyTable.find('th.description').parent().find('td textarea').val();
-            var ticketDueTime = $modifyTable.find('th.time-edit').parent().find('td input').val();
-
-            var $assignedElem = $modifyTable.find('tr.assigned select option:selected');
+            var $assignedElem = $ticketEditTable.find('.ticket-assigned select option:selected');
             var assignedId = $assignedElem.val();
             var assignedName = $assignedElem.text();
 
             // 準備要修改的 ticket json 資料
             var ticket = {
-                description: ticketDescription,
-                dueTime: new Date(ticketDueTime).getTime(),
-                priority: ticketPriority,
-                status: ticketStatus,
+                description: description,
+                dueTime: dueTime,
+                priority: priority,
+                status: status,
                 assigned_id: assignedId
             };
 
@@ -1027,7 +1003,7 @@
                                     '<th class="sortable">狀態</th>' +
                                     '<th class="sortable">到期</th>' +
                                     '<th>' +
-                                        '<input type="text" class="w-130 ticket-search-bar" placeholder="搜尋  請按Enter鍵" />' +
+                                        '<input type="text" class="w-100 ticket-search-bar" placeholder="搜尋" />' +
                                     '</th>' +
                                     '<th class="chsr">' +
                                         '<span class="modal-toggler ticket-add" platform-uid="' + platformUid + '" data-toggle="modal" data-target="#ticketAddModal">' +
