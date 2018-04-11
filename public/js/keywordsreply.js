@@ -36,16 +36,13 @@
         if (13 === code) {
             // enter鍵
             var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
-            if(0 === target.length){
+            if (0 === target.length) {
                 $('tbody > tr ').hide();
+            } else {
+                $('.table>tbody > tr').hide();
+                target.show();
             }
-            else{
-            $('.table>tbody > tr').hide();
-            target.show();
-            }
-            return;
-        } 
-       
+        }
     });
     // ==========
     // 設定關鍵字新增 modal 相關 element 與事件

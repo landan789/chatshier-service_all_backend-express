@@ -66,12 +66,12 @@ button:focus {
     .chsr.navbar .nav-link,
     .chsr.navbar .nav-link:hover {
         color: white; }
-    .chsr.navbar .nav-link:focus,
-    .chsr.navbar .nav-link:hover {
-        text-decoration: none;
-        background-color: rgb(47, 191, 240); }
     .chsr.navbar .nav-item {
         font-size: .85rem; }
+    .chsr.navbar .nav-item:focus,
+    .chsr.navbar .nav-item:hover {
+        text-decoration: none;
+        background-color: rgb(47, 191, 240); }
     .chsr.navbar .navbar-left {
         margin-right: auto; }
     .chsr.navbar .navbar-right {
