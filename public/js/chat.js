@@ -803,8 +803,7 @@
                 '</div>' +
                 '<div class="app-name"><snap>' + opts.appName + '</snap></div>' +
                 '<div class="chsr unread-msg badge badge-pill"' + (!opts.unRead ? ' style="display: none"' : '') + '>' + unReadStr + '</div>' +
-            '</button>' +
-            '<hr/>';
+            '</button>';
         return html;
     }
 
@@ -884,7 +883,7 @@
                 break;
         }
         var tablinkHtml = generateClientHtml(clientUiOpts);
-        $('#clients').append(tablinkHtml);
+        $('#clients').prepend(tablinkHtml);
 
         // 中間聊天室
         var messageText = '';
