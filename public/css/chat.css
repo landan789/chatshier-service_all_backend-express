@@ -1,7 +1,5 @@
 html,
 body {
-    height: 100%;
-    font-family: Microsoft JhengHei;
     overflow: hidden;
 }
 
@@ -40,6 +38,7 @@ body {
 
 .chat-wrapper {
     width: 100%;
+    font-family: Microsoft JhengHei;
     height: calc(100% - 50px); }
     .chat-wrapper .chat-area {
         display: flex;
