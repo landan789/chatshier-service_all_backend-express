@@ -1,3 +1,11 @@
+ = Release 1.2.0 =
+Released: 2018-04-12
+== Features ==
+ * changed database from Firebase to MongoDB
+
+== Bug Fixes ==
+ 
+ 
  = Release 1.1.0 =
 Released: 2018-03-14
 
