@@ -20,7 +20,6 @@ Released: 2018-04-12
  * Fixed : T7-1-4-1 [MASTER 1.2.0][設定][新增內部群組 : 第二次新增時會有前一次的名稱]
  * Fixed : changed database schema of `composes` with `fields` (customized fields)
  
- 
  = Release 1.1.0 =
 Released: 2018-03-14
 
