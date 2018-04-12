@@ -17,7 +17,7 @@ module.exports = (function() {
                 status: 0,
                 msg: API_ERROR.REQUESTED_NOT_EXISTENT_API.MSG
             };
-            res.status(500).json(json);
+            res.status(400).json(json);
         }
     };
     return new RouterHelper();
