@@ -105,7 +105,7 @@ function init(server) {
             }).then((profile) => {
                 // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
                 // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
-                return platformUid && consumersMdl.replace(platformUid, profile);
+                return platformUid && profile && consumersMdl.replace(platformUid, profile);
             }).then(() => {
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
@@ -413,12 +413,12 @@ function init(server) {
             });
         });
 
-        socket.on(SOCKET_EVENTS.UPDATE_CONSUMER_TO_SERVER, (req, callback) => {
+        socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, (req, callback) => {
             let appId = req.params.appid;
             let chatroomId = req.params.chatroomid;
             let platformUid = req.params.platformuid;
 
-            let consumerToSocket = {
+            let messagerToSocket = {
                 appId: appId,
                 platformUid: platformUid,
                 chatroomId: chatroomId
@@ -430,30 +430,26 @@ function init(server) {
                 }
 
                 // 只允許更新 API 可編輯的屬性
-                let consumer = {};
-                ('string' === typeof req.body.photo) && (consumer.photo = req.body.photo);
-                ('number' === typeof req.body.age) && (consumer.age = req.body.age);
-                ('string' === typeof req.body.email) && (consumer.email = req.body.email);
-                ('string' === typeof req.body.phone) && (consumer.phone = req.body.phone);
-                ('string' === typeof req.body.gender) && (consumer.gender = req.body.gender);
-                ('string' === typeof req.body.remark) && (consumer.remark = req.body.remark);
-                req.body.custom_fields && (consumer.custom_fields = req.body.custom_fields);
+                let messager = {};
+                ('number' === typeof req.body.age) && (messager.age = req.body.age);
+                ('string' === typeof req.body.email) && (messager.email = req.body.email);
+                ('string' === typeof req.body.phone) && (messager.phone = req.body.phone);
+                ('string' === typeof req.body.gender) && (messager.gender = req.body.gender);
+                ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
+                req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
+                req.body.assigned_ids && (messager.assigned_ids = req.body.assigned_ids);
 
-                return consumersMdl.replace(platformUid, consumer);
-            }).then((consumers) => {
-                if (!consumers) {
-                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-                }
-                let consumer = consumers[platformUid];
-                consumerToSocket.consumer = consumer;
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid);
+                return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                 }
-                let messager = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[platformUid];
-                consumerToSocket.messager = messager;
-                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_CONSUMER_TO_CLIENT, consumerToSocket);
+
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                let messagers = chatrooms[chatroomId].messagers;
+                let messager = messagers[platformUid];
+                messagerToSocket.messager = messager;
+                return socketHlp.emitToAll(appId, SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, messagerToSocket);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
@@ -466,9 +462,7 @@ function init(server) {
             let userId = data.userId;
             let appId = data.appId;
             let messages = data.composes;
-            let consumers;
             let appsInsertedComposes = '';
-            let appType = '';
             let req = {
                 method: 'POST',
                 params: {
@@ -476,6 +470,8 @@ function init(server) {
                     userid: userId
                 }
             };
+            let messagers = {};
+            let chatrooms = {};
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
@@ -495,28 +491,27 @@ function init(server) {
                 });
             }).then((_app) => {
                 app = _app;
-                appType = app.type;
                 return botSvc.create(appId, app);
             }).then(() => {
-                return appsChatroomsMessagersMdl.findPlatformUids(appId, app.type).then((platformUids) => {
-                    platformUids = platformUids || [];
-                    return consumersMdl.find(platformUids);
-                }).then((_consumers) => {
-                    if (!_consumers) {
-                        return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);
+                return appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
+                    chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    for (let chatroomId in chatrooms) {
+                        let chatroomMessagers = chatrooms[chatroomId].messagers;
+                        for (let messagerId in chatroomMessagers) {
+                            let messager = chatroomMessagers[messagerId];
+                            messagers[messager.platformUid] = messager;
+                        }
                     }
-                    consumers = _consumers;
-                    return consumers;
                 });
             }).then(() => {
-                let originConsumers = consumers;
+                let originMessagers = messagers;
                 return new Promise((resolve, reject) => {
-                    Object.keys(originConsumers).map((platformUid) => {
+                    Object.keys(originMessagers).map((platformUid) => {
                         messages.forEach((message) => {
-                            let originConsumer = originConsumers[platformUid];
-                            let originConsumerAge = originConsumer.age || '';
-                            let originConsumerGender = originConsumer.gender || '';
-                            let originConsumerFields = originConsumer.custom_fields || {};
+                            let originMessager = originMessagers[platformUid];
+                            let originMessagerAge = originMessager.age || '';
+                            let originMessagerGender = originMessager.gender || '';
+                            let originMessagerFields = originMessager.custom_fields || {};
 
                             let messageAgeRange = message.ageRange || '';
                             let messageGender = message.gender || '';
@@ -524,45 +519,45 @@ function init(server) {
 
                             for (let i = 0; i < messageAgeRange.length; i++) {
                                 if (i % 2) {
-                                    if (originConsumerAge > messageAgeRange[i] && '' !== messageAgeRange[i]) {
-                                        delete consumers[platformUid];
+                                    if (originMessagerAge > messageAgeRange[i] && '' !== messageAgeRange[i]) {
+                                        delete messagers[platformUid];
                                         continue;
                                     }
                                 } else {
-                                    if (originConsumerAge < messageAgeRange[i] && '' !== messageAgeRange[i]) {
-                                        delete consumers[platformUid];
+                                    if (originMessagerAge < messageAgeRange[i] && '' !== messageAgeRange[i]) {
+                                        delete messagers[platformUid];
                                         continue;
                                     }
                                 }
                             }
-                            if (originConsumerGender !== messageGender && '' !== messageGender) {
-                                delete consumers[platformUid];
+                            if (originMessagerGender !== messageGender && '' !== messageGender) {
+                                delete messagers[platformUid];
                             }
                             Object.keys(messageFields).map((fieldId) => {
-                                let originMessagerFieldValue = originConsumerFields[fieldId].value || '';
+                                let originMessagerFieldValue = originMessagerFields[fieldId].value || '';
                                 let messageFieldValue = messageFields[fieldId].value || '';
                                 if (originMessagerFieldValue instanceof Array) {
                                     for (let i in originMessagerFieldValue) {
                                         if (originMessagerFieldValue[i] !== messageFieldValue && '' !== messageFieldValue) {
-                                            delete consumers[platformUid];
+                                            delete messagers[platformUid];
                                         }
                                     }
                                 } else {
                                     if (originMessagerFieldValue !== messageFieldValue && '' !== messageFieldValue) {
-                                        delete consumers[platformUid];
+                                        delete messagers[platformUid];
                                     }
                                 }
                             });
                         });
                     });
-                    if (0 === Object.keys(consumers).length) {
+                    if (0 === Object.keys(messagers).length) {
                         reject(API_ERROR.APP_COMPOSE_DID_NOT_HAVE_THESE_FIELDS);
                         return;
                     }
                     resolve();
                 });
             }).then(() => {
-                return botSvc.multicast(Object.keys(consumers), messages, appId, app);
+                return botSvc.multicast(Object.keys(messagers), messages, appId, app);
             }).then(() => {
                 return Promise.all(messages.map((message) => {
                     return new Promise((resolve, reject) => {
@@ -578,52 +573,47 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                let platformUids = Object.keys(consumers);
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUids).then((appsChatroomsMessagers) => {
-                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                    let chatroomIds = Object.keys(chatrooms);
+                let chatroomIds = Object.keys(chatrooms);
+                return Promise.all(chatroomIds.map((chatroomId) => {
+                    let messagers = chatrooms[chatroomId].messagers;
+                    let messager = Object.values(messagers).shift();
 
-                    return Promise.all(chatroomIds.map((chatroomId) => {
-                        let messagers = chatrooms[chatroomId].messagers;
-                        let messager = Object.values(messagers).shift();
+                    return Promise.all(messages.map((message) => {
+                        let _message = {
+                            from: SYSTEM,
+                            messager_id: '',
+                            text: message.text,
+                            src: '',
+                            time: Date.now(),
+                            type: 'text'
+                        };
 
-                        return Promise.all(messages.map((message) => {
-                            let _message = {
-                                from: SYSTEM,
-                                messager_id: '',
-                                text: message.text,
-                                src: '',
-                                time: Date.now(),
-                                type: 'text'
-                            };
+                        return new Promise((resolve, reject) => {
+                            appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (appsChatroomsMessages) => {
+                                if (!appsChatroomsMessages) {
+                                    reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                    return;
+                                };
 
-                            return new Promise((resolve, reject) => {
-                                appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (appsChatroomsMessages) => {
-                                    if (!appsChatroomsMessages) {
-                                        reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                                        return;
-                                    };
-
-                                    let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
-                                    let messageId = Object.keys(messagesInDB).shift() || '';
-                                    resolve(messagesInDB[messageId]);
-                                });
+                                let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                                let messageId = Object.keys(messagesInDB).shift() || '';
+                                resolve(messagesInDB[messageId]);
                             });
-                        })).then((_messages) => {
-                            /** @type {ChatshierChatSocketBody} */
-                            let socketBody = {
-                                app_id: appId,
-                                type: appType,
-                                chatroom_id: chatroomId,
-                                senderUid: '',
-                                recipientUid: messager.platformUid,
-                                messages: _messages
-                            };
-                            // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                            return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
                         });
-                    }));
-                });
+                    })).then((_messages) => {
+                        /** @type {ChatshierChatSocketBody} */
+                        let socketBody = {
+                            app_id: appId,
+                            type: app.type,
+                            chatroom_id: chatroomId,
+                            senderUid: '',
+                            recipientUid: messager.platformUid,
+                            messages: _messages
+                        };
+                        // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                    });
+                }));
             }).then(() => {
                 let result = appsInsertedComposes !== undefined ? appsInsertedComposes : {};
                 let json = {

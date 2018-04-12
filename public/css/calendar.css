@@ -1,8 +1,7 @@
-#calendar-wrap {
+.calendar-wrapper {
     position: relative;
     padding: 5%;
 }
-
 
 .chsr .ui-state-highlight,
 .chsr .ui-widget-content .ui-state-highlight,

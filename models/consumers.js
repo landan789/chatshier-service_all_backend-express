@@ -8,17 +8,12 @@ module.exports = (function() {
             this.Model = this.model(CONSUMERS, this.ConsumersSchema);
             this.project = {
                 platformUid: true,
-                age: true,
-                email: true,
                 isDeleted: true,
                 updatedTime: true,
                 createdTime: true,
-                chatroom_ids: true,
-                gender: true,
                 name: true,
                 photo: true,
-                remark: true,
-                custom_fields: true
+                type: true
             };
         }
 

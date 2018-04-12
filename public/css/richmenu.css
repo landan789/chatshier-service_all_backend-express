@@ -1,7 +1,3 @@
-#home {
-    margin-bottom: 50px;
-}
-
 #title {
     margin-bottom: 10px;
 }
@@ -65,16 +61,6 @@ label *:not(strong) {
     border-top: 1px solid #888;
 }
 
-.line-action * {
-    display: inline-block;
-    width: 49%;
-    text-align: right;
-}
-
-.search-add {
-    text-align: right;
-}
-
 .operating-btn {
     padding: 5px;
     margin-left: 10px;
@@ -85,7 +71,7 @@ label *:not(strong) {
     background-color: #F4F4F4;
 }
 
-.panel {
+.card {
     background-color: #ffffff;
     margin-top: 30px;
     box-shadow: 1px 1px 1px 3px #dddddd;
@@ -122,10 +108,6 @@ tr:nth-child(even) {
     margin-top: -20px;
 }
 
-.hr-margin-bottom {
-    margin: 0;
-}
-
 .h3-padding {
     padding-top: 15px;
 }
@@ -134,13 +116,13 @@ tr:nth-child(even) {
     margin-top: 0px;
 }
 
-.richmenu-type-label{
+.richmenu-type-label {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.box{
+.box {
     background-color: rgba(158,158,158);
     width: 180px;
     height: 180px;
@@ -148,11 +130,11 @@ tr:nth-child(even) {
     float: left;
 }
 
-.box:hover{
+.box:hover {
     background-color: rgba(158,158,158,0.7);
     cursor: pointer;
 }
 
-.linebar{
+.linebar {
     border: 1px solid;
 }

@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-
     var nowSelectAppId = '';
     var appsData = {};
     var keywordreplies = {};
@@ -27,13 +26,23 @@
         userId = '';
     }
 
-    $searchBar.on('change paste keyup', function() {
+    $searchBar.on('keyup', function(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
-            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
             return;
         }
-        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        var code = ev.keyCode || ev.which;
+        if (13 === code) {
+            // enter鍵
+            var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+            if (0 === target.length) {
+                $('tbody > tr ').hide();
+            } else {
+                $('.table>tbody > tr').hide();
+                target.show();
+            }
+        }
     });
     // ==========
     // 設定關鍵字新增 modal 相關 element 與事件
@@ -120,8 +129,7 @@
                 delete appsData[appId];
                 continue;
             }
-
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<a class="dropdown-item" id="' + appId + '">' + app.name + '</a>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -132,7 +140,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadKeywordsReplies(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -160,11 +168,11 @@
                     var trGrop =
                     '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
                         '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
-                        '<td>' + keywordreply.text + '</td>' +
+                        '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
                     if (!keywordreply.status) {

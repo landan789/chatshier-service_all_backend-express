@@ -2,52 +2,47 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-        <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
-        <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
-        <link rel="stylesheet" href="css/sb-admin-2.css" />
-        <link rel="stylesheet" href="css/_main.css" />
-        <link rel="stylesheet" href="css/table.css" />
-        <link rel="stylesheet" href="css/compose.css" />
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
+    <link rel="stylesheet" href="css/_main.css" />
+    <link rel="stylesheet" href="css/table.css" />
+    <link rel="stylesheet" href="css/compose.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div id="home">
+    <div class="page-wrapper">
         <!-- [status filter] -->
-        <div class="container margin-top">
-            <div class="row chsr panel">
-                <div class="title title-top">
+        <div class="container mt-5">
+            <div class="chsr card">
+                <div class="title">
                     <h3 class="padding-lr h3-padding">預約群發</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr">首頁 / 訊息 /群發 </p>
                     <p class="address padding-lr">新增、編輯傳送到LINE@的訊息</p>
                 </div>
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="dropdown-text">請選擇應用程式</span>
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
                 </div>
-                <div class="padding-lr" id="view-all">
-                    <div class="search-add">
+                <div class="px-5 my-3" id="searchWidget">
+                    <div class="search-add mb-2">
                         <span class="icon"><i class="fa fa-search"></i></span>
-                        <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" id="add-btn" class="btn btn-default fa fa-plus inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="disabled"></button>
+                        <input type="text" class="search-bar" placeholder="搜尋    輸入完請按Enter鍵" aria-hidden="true">
+                        <button type="button" id="add-btn" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
 
                     <div class="chsr table">
@@ -97,35 +92,33 @@
 
     <!-- Modal -->
     <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="modal-body">
                     <!-- Form Content -->
                     <div class="form-group">
-                        <label class="col-2 col-form-label">App:</label>
-                        <div class="col-4">
+                        <label class="col-form-label">App:</label>
+                        <div class="select-container">
                             <select class="form-control" id="app-select"></select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>篩選發送:</label>
-                        <div class="col-4">
-                            <div>
-                                <input type="radio" name="who-send" id="send-all" checked="true" rel="limit-user"> <label for="send-all">全部發送</label>
-                                <input type="radio" name="who-send" id="send-somebody" rel="limit-user"> <label for="send-somebody">限制發送對象</label>
-                            </div>
+                        <div class="radio-container">
+                            <input type="radio" name="who-send" id="send-all" checked="true" rel="limit-user"> <label for="send-all">全部發送</label>
+                            <input type="radio" name="who-send" id="send-somebody" rel="limit-user"> <label for="send-somebody">限制發送對象</label>
                         </div>
                     </div>
                     <!-- LIMIT USER -->
-                    <div id="limit-user" class="panel panel-default" hidden>
-                        <div class="panel-heading">條件</div>
-                        <div class="panel-body" id="custom-fields"></div>
+                    <div id="limit-user" class="card d-none">
+                        <div class="card-header">條件</div>
+                        <div class="card-body" id="custom-fields"></div>
                     </div>
                     <!-- 時間 -->
                     <div class="form-group">
@@ -137,8 +130,10 @@
                             <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
                             <div class="input-group date" id="send-datetime-picker">
                                 <input type="text" class="form-control" name="end_datetime" id="send-time" value="Time" required="">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
                                 </span>
                             </div>
                         </div>
@@ -155,7 +150,9 @@
                         <td class="add-msg-btn-padding">
                             <p>一次可以發送三則訊息</p>
                             <p class="error-msg"><b>超過訊息上限</b></p>
-                            <button class="add-text-btn-style" id="btn-text">文字</button>
+                            <button class="btn btn-light btn-border add-text-btn-style" id="addComposeText">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </td>
                     </table>
                     <div class="form-check">
@@ -175,12 +172,12 @@
     </div>
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -190,15 +187,17 @@
                             <div class="input-group date" id="start_datetime_picker">
                                 <span class="input-group-addon">時間</span>
                                 <input type="text" class="form-control" name="start_datetime" id="edit-time" value=""/>
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
                                 </span>
                             </div>
                         </div>
                         <label for="custom-fields">篩選條件: </label>
-                        <div id="edit-limit-user" class="panel panel-default">
-                            <div class="panel-heading">條件</div>
-                            <div class="panel-body" id="edit-custom-fields"></div>
+                        <div id="edit-limit-user" class="card">
+                            <div class="card-header">條件</div>
+                            <div class="card-body" id="edit-custom-fields"></div>
                         </div>
                         <div class="form-group">
                             <label for="text">訊息: </label>
@@ -240,7 +239,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/compose.js"></script>
 </body>
 

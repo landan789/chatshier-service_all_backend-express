@@ -2,46 +2,41 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
+    <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/template.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div id="home">
-        <div class="container margin-top">
-            <div class="row chsr panel">
-                <!-- <div class="col-md-6" id="view-all"> -->
-                <div class="title title-top">
+    <div class="page-wrapper">
+        <div class="container mt-5">
+            <div class="chsr card">
+                <div class="title">
                     <h3 class="padding-lr h3-padding"> 自訂Line Template</h3>
-                    <hr class="hr-margin-bottom">
                     <p class="address padding-lr"> 首頁 / 訊息 / 自訂聊天模板</p>
 
                 </div>
-                <div class="padding-lr" id="view-all">
+                <div class="px-5 my-3" id="appSelector">
                     <div class="dropdown app-dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span class="dropdown-text">請選擇應用程式</span>
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
-                    <div class="search-add">
+                    <div class="search-add mb-2">
                         <span class="icon"><i class="fa fa-search"></i></span>
                         <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" class="btn btn-default fa fa-plus" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>
+                        <button type="button" class="btn btn-light btn-border" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="padding-lr chsr table">
@@ -67,12 +62,14 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <!-- 編號 -->
-                        <div class="form-group" hidden>
+                        <div class="form-group d-none">
                             <label for="template-id" class="col-2 col-form-label">ID</label>
                             <input id="template-id"></span>
                         </div>
@@ -227,11 +224,11 @@
                             <!-- Left and right controls -->
                             <div class="template-view" rel="carousel">
                                 <a class="left carousel-control" href="#carousel-container" data-slide="prev">
-                                    <span class="glyphicon glyphicon-chevron-left"></span>
+                                    <span class="fas fa-chevron-left"></span>
                                     <span class="sr-only">Previous</span>
                                 </a>
                                 <a class="right carousel-control" href="#carousel-container" data-slide="next">
-                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                    <span class="fas fa-chevron-right"></span>
                                     <span class="sr-only">Next</span>
                                 </a>
                             </div>
@@ -286,7 +283,6 @@
     <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://mermaidjs.github.io/scripts/mermaid.min.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/template.js"></script>
 </body>
 

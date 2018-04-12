@@ -56,7 +56,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadRichmenus(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -270,13 +270,13 @@
         this.td5 = $('<td>');
         this.td6 = $('<td>');
         this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-default fa fa-pencil')
+            .addClass('btn btn-light btn-border fas fa-edit')
             .attr('id', 'edit')
             .attr('data-toggle', 'modal')
             .attr('data-target', '#richmenu-modal')
             .attr('aria-hidden', 'true');
         this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fa fa-trash-o')
+            .addClass('btn btn-danger fas fa-trash-alt')
             .attr('id', 'del');
     }
 

@@ -13,7 +13,7 @@
     const REFRESH_TIME = 5 * 1000;
 
     /**
-     * automatically refresh when the time before jwt expired time 10 minutes
+     * jwt automatically refreshes 10 minutes before jwt expires
      */
     function jwtRefresh() {
         return nextPromise().then(() => {
@@ -66,7 +66,10 @@
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
         // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
         $(document).ready(function() {
-            $('#loading').fadeOut();
+            $('#loadingWrapper').fadeOut(function() {
+                // 淡出後，此元素已不需要，從 DOM 上移除
+                document.body.removeChild(this);
+            });
             jwtRefresh();
         });
     } else if (state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {

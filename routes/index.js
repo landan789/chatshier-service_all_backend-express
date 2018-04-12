@@ -11,7 +11,7 @@ router.get(reactReadyPaths, function(req, res, next) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Chatshier' });
+    res.redirect('/chat');
 });
 router.get('/chat', function(req, res, next) {
     res.render('chat', { title: 'Chatshier聊天室' });
@@ -36,9 +36,6 @@ router.get('/calendar', function(req, res, next) {
 });
 router.get('/ticket', function(req, res, next) {
     res.render('ticket', { title: '待辦事項' });
-});
-router.get('/ticket_form', function(req, res, next) {
-    res.render('ticket_form', { title: '新增待辦事項' });
 });
 // authentication
 router.get('/logout', function(req, res, next) {

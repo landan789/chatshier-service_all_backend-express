@@ -10,21 +10,28 @@
     var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
     var $autoreplyEditSdtPicker = $('#editModal #start_datetime_picker');
     var $autoreplyEditEdtPicker = $('#editModal #end_datetime_picker');
+
     var datetimePickerInitOpts = {
         sideBySide: true,
-        defaultDate: date,
-        locale: 'zh-tw'
+        locale: 'zh-tw',
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
     };
-    var datetimePickerInitOptsToEdit = {
-        sideBySide: true,
-        locale: 'zh-tw'
-    };
-   
-   
     $autoreplyAddSdtPicker.datetimepicker(datetimePickerInitOpts);
     $autoreplyAddEdtPicker.datetimepicker(datetimePickerInitOpts);
-    $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
-    $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOptsToEdit);
+
+    datetimePickerInitOpts.defaultDate = date;
+    $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOpts);
+    $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOpts);
 
     var api = window.restfulAPI;
     var nowSelectAppId = '';
@@ -55,17 +62,17 @@
                 delete appsData[appId];
                 continue;
             }
-
-            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
+            $dropdownMenu.append('<a class="dropdown-item" id="' + appId + '">' + app.name + '</a>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
+
             nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadAutoreplies(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
@@ -77,7 +84,7 @@
 
     function dataInsert() {
         $('#modal-submit').attr('disabled', 'disabled');
-        let appId = $('#app-select option:selected').attr('id');
+        let appId = $appSelector.find('option:selected').val();
         let startedTime = $autoreplyAddSdtPicker.data('DateTimePicker').date().toDate().getTime();
         let endedTime = $autoreplyAddEdtPicker.data('DateTimePicker').date().toDate().getTime();
 
@@ -95,18 +102,6 @@
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
 
-            $('#autoreply-tables').append(
-                '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                    '<th id="title">' + autoreply.title + '</th>' +
-                    '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
-                    '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
-                    '<td id="text">' + autoreply.text + '</td>' +
-                    '<td>' +
-                        '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                        '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
-                    '</td>' +
-                '</tr>'
-            );
             $('#quickAdd').modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
@@ -148,13 +143,17 @@
 
                     $('#autoreply-tables').append(
                         '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                            '<th id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
+                            '<th class="mb-2" id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
                             '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
-                            '<td id="text">' + autoreply.text + '</td>' +
+                            '<td id="text" data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-border" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                                    '<i class="fas fa-edit"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                                    '<i class="fas fa-trash-alt"></i>' +
+                                '</button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -184,13 +183,17 @@
 
             $('#' + autoreplyId).empty();
             $('#' + autoreplyId).append(
-                '<th id="title">' + autoreply.title + '</th>' +
+                '<th class="mb-2" id="title">' + autoreply.title + '</th>' +
                 '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-border" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                        '<i class="fas fa-edit"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                        '<i class="fas fa-trash-alt"></i>' +
+                    '</button>' +
                 '</td>'
             );
 
@@ -225,7 +228,7 @@
             userId = payload.uid;
         } catch (ex) {
             userId = '';
-        }        
+        }
         let appId = $(this).parent().parent().attr('rel');
         let autoreplyId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {
@@ -264,13 +267,23 @@
         $('#edit-taskContent').val(text); // 任務內容
     } // end open edit
 
-    function dataSearch() {
+    function dataSearch(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
             $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
             return;
         }
-        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        var code = ev.keyCode || ev.which;
+        if (13 === code) {
+            // enter鍵
+            var target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+            if (0 === target.length) {
+                $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().hide();
+            } else {
+                target.siblings().hide();
+                target.show();
+            }
+        }
     }
 
     function showDialog(textContent) {

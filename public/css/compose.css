@@ -19,11 +19,12 @@ table {
     padding: 0.5%;
     float: left;
 }
+
 .remove-btn {
     float: right;
     cursor: pointer;
-    font-size: 11px;
     color: red;
+    padding: .5rem;
 }
 
 .textinput {

@@ -1,0 +1,69 @@
+<div class="modal fade ticket-modal" id="ticketEditModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex">
+                    <span class="id-number"></span>
+                    <table>
+                        <th class="d-none"></th>
+                        <td class="modal-title">檢視待辦事項</td>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-body">
+                <table class="ticket-edit-table" id="ticketEditTable">
+                    <tbody>
+                        <tr class="ticket-row">
+                            <th class="ticket-col">客戶姓名</th>
+                            <td class="ticket-col consumer-name"></td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col priority">優先</th>
+                            <td class="ticket-col form-group ticket-priority"></td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col status">狀態</th>
+                            <td class="ticket-col form-group ticket-status"></td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col description">描述</th>
+                            <td class="ticket-col form-group ticket-description">
+                                <textarea class="form-control"></textarea>
+                            </td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col">指派人</th>
+                            <td class="ticket-col form-group ticket-assigned"></td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col due-time-text">到期時間</th>
+                            <td class="ticket-col form-group ticket-due-time">
+                                <div class="input-group date datetime-picker">
+                                    <input type="text" class="form-control display-date-input" name="dueDatetime" required />
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col">建立日期</th>
+                            <td class="ticket-col ticket-created-time"></td>
+                        </tr>
+                        <tr class="ticket-row">
+                            <th class="ticket-col">最後更新</th>
+                            <td class="ticket-col ticket-updated-time"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="ticket_info_delete" class="btn btn-danger" data-dismiss="modal">刪除</button>
+                <button type="button" class="btn btn-light btn-border" data-dismiss="modal">取消</button>
+                <button type="button" id="ticket_info_modify" class="btn btn-success" data-dismiss="modal">修改</button>
+            </div>
+        </div>
+    </div>
+</div>

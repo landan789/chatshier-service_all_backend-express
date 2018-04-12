@@ -65,6 +65,7 @@ interface AppsChatroomsAPI {
 }
 
 interface AppsChatroomsMessagersAPI {
+    findAll: (userId: string) => Promise<any>;
     findOne: (appId: string, chatroomId: string, messagerId: string, userId: string) => Promise<any>;
     update: (appId: string, chatroomId: string, messagerId: string, userId: string, messager: any) => Promise<any>;
     updateByPlatformUid: (appId: string, chatroomId: string, platformUid: string, userId: string, messager: any) => Promise<any>;
@@ -165,8 +166,8 @@ interface GroupsMembersAPI {
 
 interface GroupsAPI {
     findAll: (userId: string) => Promise<any>;
-    insert: (userId: string) => Promise<any>;
-    update: (groupId: string, userId: string, groupData: any) => Promise<any>;
+    insert: (userId: string, group: any) => Promise<any>;
+    update: (groupId: string, userId: string, group: any) => Promise<any>;
 }
 
 interface UsersAPI {

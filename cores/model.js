@@ -41,11 +41,17 @@ module.exports = (function() {
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},
             'type': {type: String, default: 'CHATSHIER'},
+            'age': {type: Number, default: 0},
+            'custom_fields': {type: Object, default: {}},
+            'email': {type: String, default: ''},
+            'gender': {type: String, default: ''},
+            'phone': {type: String, default: ''},
             'platformUid': {type: String, default: ''},
             'isDeleted': {type: Boolean, default: false},
             'lastTime': {type: Date, default: Date.now()},
             'chatCount': {type: Number, default: 0},
             'unRead': {type: Number, default: 0},
+            'remark': {type: String, default: ''},
             'assigned_ids': {type: [{type: String}], default: []}
         }],
         'messages': [{
@@ -57,7 +63,7 @@ module.exports = (function() {
             'time': {type: Date, default: Date.now()},
             'type': {type: String, default: 'text'}
         }]
-    });
+    }, { minimize: false });
 
     const KeywordrepliesSchema = new mongoose.Schema({
         'createdTime': {type: Date, default: Date.now()},
@@ -177,7 +183,6 @@ module.exports = (function() {
         'updatedTime': {type: Date, default: Date.now()},
         'address': {type: String, default: ''},
         'calendar_ids': {type: [{type: String}], default: []},
-        'chatroom_ids': {type: [{type: String}], default: []},
         'company': {type: String, default: ''},
         'email': {type: String, default: ''},
         'phone': {type: String, default: ''},
@@ -190,18 +195,12 @@ module.exports = (function() {
     const ConsumersSchema = new mongoose.Schema({
         'type': {type: String, default: ''},
         'platformUid': {type: String, default: ''},
-        'age': {type: Number, default: 0},
-        'chatroom_ids': {type: [{type: String}], default: []},
-        'custom_fields': {type: Object, default: {}},
-        'email': {type: String, default: ''},
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()},
-        'gender': {type: String, default: ''},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
-        'photo': {type: String, default: ''},
-        'remark': {type: String, default: ''}
-    }, { minimize: false });
+        'photo': {type: String, default: ''}
+    });
 
     // endregion
 

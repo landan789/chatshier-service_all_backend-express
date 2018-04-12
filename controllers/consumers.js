@@ -13,9 +13,20 @@ module.exports = (function() {
     ConsumersController.prototype.getAll = (req, res, next) => {
         return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
             let appIds = checkedAppIds;
-            return appsChatroomsMessagersMdl.findPlatformUids(appIds);
-        }).then((platformUids) => {
-            platformUids = platformUids || [];
+            return appsChatroomsMessagersMdl.find(appIds);
+        }).then((appsChatroomsMessagers) => {
+            let platformUids = [];
+            for (let appId in appsChatroomsMessagers) {
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                for (let chatroomId in chatrooms) {
+                    let messagers = chatrooms[chatroomId].messagers;
+                    for (let messagerId in messagers) {
+                        let messager = messagers[messagerId];
+                        platformUids.push(messager.platformUid);
+                    }
+                }
+            }
+
             return consumersMdl.find(platformUids).then((consumers) => {
                 if (!consumers) {
                     return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_FIND);

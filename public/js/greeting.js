@@ -40,7 +40,7 @@
                 continue;
             }
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
 
             if (!nowSelectAppId) {
@@ -51,13 +51,14 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadGreetings(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
+        findedGreetingIds = {};
         loadGreetings(nowSelectAppId, userId);
     }
 
@@ -71,10 +72,10 @@
                 for (let greetingId in greeting) {
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<th>' + greeting[greetingId].text + '</th>' +
-                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
+                            '<th>' + greeting[greetingId].text +'</th>' +
+                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime)+'</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -96,7 +97,9 @@
                 '<th></th>' +
                 '<td></td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-grey fa fa-plus" id="add-btn"></button>' +
+                    '<button type="button" class="btn btn-border" id="add-btn">' +
+                        '<i class="fas fa-plus"></i>' +
+                    '</button>' +
                 '</td>' +
             '</tr>'
         );
@@ -113,8 +116,12 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-default fa fa-check" id="check-btn"></button>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="check-btn">' +
+                        '<i class="fa fa-check"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                        '<i class="fas fa-trash-alt"></i>' +
+                    '</button>' +
                 '</td>' +
             '</tr>'
         );
@@ -175,7 +182,7 @@
         let greetingData = {
             type: 'text',
             text: $textarea.val(),
-            createdTime : Date.now()
+            createdTime: Date.now()
         };
         return api.appsGreetings.insert(appId, userId, greetingData).then(function(resJson) {
             $('#' + trId).remove();
@@ -187,7 +194,7 @@
                 '<th>' + greeting[greetingId].text + '</th>' +
                 '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                 '</td>' +
             '</tr>';
             if (0 === greetingIdsLength) {

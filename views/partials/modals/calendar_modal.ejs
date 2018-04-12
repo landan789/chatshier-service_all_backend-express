@@ -16,8 +16,10 @@
                         <label for="start_datetime">開始時間</label>
                         <div class="input-group date" id="start_datetime_picker">
                             <input type="text" class="form-control" name="start_datetime" required />
-                            <span class="input-group-addon">
-                                <span class="glyphicon glyphicon-calendar"></span>
+                            <span class="input-group-addon input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-alt"></i>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -26,8 +28,10 @@
                         <label for="end_datetime">結束時間</label>
                         <div class="input-group date" id="end_datetime_picker">
                             <input type="text" class="form-control" name="end_datetime" required />
-                            <span class="input-group-addon">
-                                <span class="glyphicon glyphicon-calendar"></span>
+                            <span class="input-group-addon input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-alt"></i>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -40,9 +44,6 @@
                     </div>
 
                     <textarea class="form-control event-content" type="text" placeholder="描述" rows="6"></textarea>
-
-                    <div id="cal-error-msg" hidden>請輸入事件名稱、開始時間、結束時間</div>
-                    <div id="tim-error-msg" hidden>開始時間不能晚於結束時間</div>
                 </div>
             </div>
 

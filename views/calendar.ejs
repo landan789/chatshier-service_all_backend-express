@@ -2,22 +2,16 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css" />
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
-    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
     <link rel="stylesheet" href="lib/css/fullcalendar.min.css" />
     <link rel="stylesheet" href="lib/css/fullcalendar.print.min.css" media="print" />
-    <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css">
     <link rel="stylesheet" href="css/calendar.css">
 </head>
@@ -26,8 +20,8 @@
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div id="calendar-wrap">
-        <div id="calendar"></div>
+    <div class="calendar-wrapper">
+        <div class="calendar-body" id="calendarBody"></div>
     </div>
 
     <% include ../views/partials/modals/calendar_modal.ejs %>
@@ -40,7 +34,6 @@
     <script src="js/helpers/google_client.js"></script>
     <script src="js/helpers/google_calendar.js"></script>
     <script src="js/calendar.js"></script>
-    <script src="js/sb-admin-2.js"></script>
 </body>
 
 </html>

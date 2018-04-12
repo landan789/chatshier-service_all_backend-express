@@ -2,19 +2,13 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
-    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-standalone.css">
-    <link rel="stylesheet" href="css/sb-admin-2.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
     <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/analyze.css" />
 </head>
@@ -22,36 +16,48 @@
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div id="home">
+    <div class="page-wrapper">
         <h3 class="page-title">分析頁面</h3>
-        <div class="chsr panel panel-default">
-            <div class="panel-body">
+        <div class="card">
+            <div class="card-body">
                 <div class="tooltip-container">
                     <div class="dropdown app-dropdown app-view">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
                             <span class="dropdown-text">請選擇分析來源</span>
                             <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="apps_dropdown"></ul>
+                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
                     </div>
 
                     <div class="date-wrapper">
                         <div class="date-group">
                             <div class="input-group date" id="start_datetime_picker">
-                                <span class="input-group-addon">開始時間</span>
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        開始時間
+                                    </span>
+                                </span>
                                 <input type="text" class="form-control" name="start_datetime" />
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
                                 </span>
                             </div>
                         </div>
 
                         <div class="date-group">
                             <div class="input-group date" id="end_datetime_picker">
-                                <span class="input-group-addon">結束時間</span>
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        結束時間
+                                    </span>
+                                </span>
                                 <input type="text" class="form-control" name="end_datetime_picker" />
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
                                 </span>
                             </div>
                         </div>
@@ -67,7 +73,7 @@
                 </div>
 
                 <div class="chart-container">
-                    <div id="chartdiv"></div>
+                    <div class="chart-body" id="chartBody"></div>
                 </div>
             </div>
         </div>
@@ -82,7 +88,6 @@
     <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
     <script src="lib/js/wordfreq.worker.js"></script>
     <script src="lib/js/wordcloud2.js"></script>
-    <script src="js/navigation.js"></script>
     <script src="js/analyze.js"></script>
 </body>
 

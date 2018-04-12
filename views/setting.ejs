@@ -2,50 +2,71 @@
 <html>
 
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <title>
-        <%= title %>
-    </title>
+    <% include ../views/partials/meta_tags.ejs %>
+    <title><%= title %></title>
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="css/sb-admin-2.css">
     <link rel="stylesheet" href="css/_main.css" />
-    <link rel="stylesheet" href="css/field.css" />
     <link rel="stylesheet" href="css/setting.css" />
 </head>
 
 <body>
     <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div class="container-fluid">
-        <div class="col-md-2 left margin-top-twenty">
-            <ul class="nav nav-pills nav-stacked">
-                <li class="active"><a data-toggle="pill" href="#menu2">聊天應用程式</a></li>
-                <li><a data-toggle="pill" href="#menu0">基本設定</a></li>
-                <li><a data-toggle="pill" href="#menu3">客戶分類條件</a></li>
-                <li><a data-toggle="pill" href="#create-internal-room">內部群組</a></li>
-            </ul>
+
+    <div class="container-fluid d-flex mt-4">
+        <div class="col-md-2 d-sm-block">
+            <nav class="chsr nav nav-pills nav-fill flex-column">
+                <a class="nav-item nav-link text-left" data-toggle="pill" href="#apps">聊天應用程式</a>
+                <a class="nav-item nav-link text-left" data-toggle="pill" href="#settings">基本設定</a>
+                <a class="nav-item nav-link text-left" data-toggle="pill" href="#fields">客戶分類條件</a>
+                <a class="nav-item nav-link text-left" data-toggle="pill" href="#internal-group">內部群組</a>
+            </nav>
         </div>
 
-        <div class="tab-content">
-            <div id="menu0" class="tab-pane fade">
-                <h3>基本設定
-                    <button type="button" class="btn btn-grey" id="profile" data-toggle="modal" data-target="#setting-modal">
-                    <span class="fa fa-pencil"></span>編輯
+        <div class="col-md-10 tab-content">
+            <div id="apps" class="tab-pane fade">
+                <h3 class="ml-3">
+                    <span>聊天應用程式</span>
+                    <button type="button" class="btn btn-light btn-border" id="add-group-name-app-btn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
+                        <i class="fas fa-plus fa-fw"></i>
+                        <span>新增群組</span>
                     </button>
                 </h3>
-                <div class="col-md-10 col-lg-10 panel-info prof-wid">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"></h3>
+
+                <div class="col-12 border-info prof-wid">
+                    <div class="user-name card-header">
+                        <span class="card-title"></span>
                     </div>
-                    <div class="panel-body">
+                    <div class="card prof-wid">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 app-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings" class="tab-pane fade">
+                <h3 class="ml-3">
+                    <span>基本設定</span>
+                    <button type="button" class="btn btn-border" id="userProfileEdit" data-toggle="modal" data-target="#setting-modal">
+                        <i class="fas fa-edit fa-fw"></i>
+                        <span>編輯</span>
+                    </button>
+                </h3>
+
+                <div class="col-12 border-info prof-wid">
+                    <div class="user-name card-header">
+                        <span class="card-title"></span>
+                    </div>
+
+                    <div class="card-body">
                         <div class="row">
-                            <div class="col-md-12 col-lg-12 ">
+                            <div class="col-12">
                                 <table class="table table-user-information">
                                     <tbody>
                                         <tr>
@@ -69,7 +90,7 @@
                                             <td>地址: </td>
                                             <td class="long-token" id="prof-address"></td>
                                         </tr>
-                                        <tr class="hide" id="gcalendar_row">
+                                        <tr class="d-none" id="gcalendar_row">
                                             <td>
                                                 <div class="feature-icon">
                                                     <img src="image/google_calendar.png" alt="Google Calendar Logo" />
@@ -90,41 +111,22 @@
                     </div>
                 </div>
             </div>
-            <div id="menu2" class="tab-pane fade in active">
-                <h3 class="margin-left-15">聊天應用程式
-                <button type="button" class="btn btn-default" id="add-group-name-app-btn" data-toggle="modal" data-target="#add_group_name_app_modal" disabled="true">
-                <span class="fa fa-plus"></span> 新增群組
-                </button>
+
+            <div id="fields" class="tab-pane fade">
+                <h3 class="ml-3">
+                    <span>客戶分類條件</span>
                 </h3>
-                <div class="col-md-10 col-lg-10 panel-info prof-wid">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"></h3>
-                    </div>
-                    <div id="error-message" hidden>
-                        請按編輯帳戶資料按鈕編輯檔案
-                    </div>
-                    <div class="col-md-12 col-lg-12 panel-info prof-wid">
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-md-12 col-lg-12">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="menu3" class="tab-pane fade">
-                <h3 class="margin-left-15">客戶分類條件</h3>
-                <div class="col-md-10 col-lg-10 panel-info prof-wid">
+
+                <div class="card prof-wid">
                     <div class="float-down">
-                        <div id="field-tab" class="col-md-12 col-lg-12 panel-info prof-wid padding-zero">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"></h3>
+                        <div class="col-12 border-info prof-wid p-0 field-tab">
+                            <div class="user-name card-header">
+                                <span class="card-title"></span>
                             </div>
-                            <div class="panel-body">
+                            <div class="card-body">
                                 <div class="row">
-                                    <div class="chsr-fields panel-group col-md-12 col-lg-12" role="tablist" id="apps_fields_wapper">
-                                        <div class="panel panel-default"></div>
+                                    <div class="chsr-fields card-group col-12" role="tablist" id="apps_fields_wapper">
+                                        <div class="card"></div>
                                     </div>
                                 </div>
                             </div>
@@ -133,42 +135,42 @@
                 </div>
             </div>
 
-            <div id="create-internal-room" class="tab-pane fade">
-                <h3 class="margin-left-15">內部群組
-                    <button class="btn btn-default group-insert" data-toggle="modal" data-target="#add_group_modal">
-                        <span class="fa fa-plus fa-fw"></span>新增
+            <div id="internal-group" class="tab-pane fade">
+                <h3 class="ml-3">
+                    <span>內部群組</span>
+                    <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
+                        <i class="fas fa-plus fa-fw"></i>
+                        <span>新增</span>
                     </button>
                 </h3>
 
-                <div class="group-wrapper">
-                    <div class="col-md-10 col-lg-10 panel-info prof-wid padding-zero">
-                        <div class="panel-heading">
-                            <h3 class="panel-title"></h3>
-                        </div>
+                <div class="col-12 border-info prof-wid p-0">
+                    <div class="user-name card-header">
+                        <span class="card-title"></span>
+                    </div>
 
 
-                        <div class="panel-body group-body"></div>
-                    </div>
-                </div>
-            </div>
-            <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-body">
-                            <h4 id="textContent"></h4>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary">確定</button>
-                            <button type="button" class="btn btn-secondary">取消</button>
-                        </div>
-                    </div>
+                    <div class="card-body group-body"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <% include ../views/partials/modals/add_group_modal.ejs %>
-    <% include ../views/partials/modals/add_group_name_app_modal.ejs %>
+    <div id="dialog_modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 id="textContent"></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">確定</button>
+                    <button type="button" class="btn btn-secondary">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% include ../views/partials/modals/group_add_modal.ejs %>
     <% include ../views/partials/modals/setting_modal.ejs %>
 
     <% include ../views/partials/require_js.ejs %>
@@ -179,7 +181,6 @@
     <script src="js/helpers/google_client.js"></script>
     <script src="js/helpers/google_calendar.js"></script>
     <script src="js/setting.js"></script>
-    <script src="js/sb-admin-2.js"></script>
 </body>
 
 </html>

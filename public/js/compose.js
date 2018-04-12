@@ -10,7 +10,7 @@
     var inputObj = {};
     var ageRange = [];
     var gender = '';
-    var field_ids = {};
+    var fieldIds = {};
     var appsFields = '';
     var deleteNum = 0;
     var nowSelectAppId = '';
@@ -42,18 +42,18 @@
     // ACTIONS
     $(document).on('change', '#app-select', storeApp);
     $(document).on('click', '.tablinks', clickMsg);
-    $(document).on('click', '#btn-text', btnText);
+    $(document).on('click', '#addComposeText', addComposeText);
     $(document).on('click', '.remove-btn', removeInput);
     $(document).on('click', '#delete-btn', dataRemove);
     $(document).on('click', '#modal-submit', insertSubmit);
     $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
         let id = $(this).attr('rel');
-        $('#' + id).hide();
+        $('#' + id).addClass('d-none');
     });
     $(document).on('click', '#send-somebody', function () {
         let id = $(this).attr('rel');
-        $('#' + id).show();
+        $('#' + id).removeClass('d-none');
     });
     $(document).on('click', 'button#field', appendInput);
     $(document).on('change paste keyup', '.search-bar', dataSearch);
@@ -64,7 +64,7 @@
         let btnName = $fieldBtn.attr('name');
 
         $fieldBtn.removeClass();
-        $fieldBtn.attr('class', 'btn btn-grey');
+        $fieldBtn.attr('class', 'btn btn-border');
         $fieldBtn.text(btnName);
         $fieldBtn.show();
         $conditionDiv.remove();
@@ -87,14 +87,24 @@
     $historyTableElem = $('#composes_history_table tbody');
     $reservationTableElem = $('#composes_reservation_table tbody');
     $draftTableElem = $('#composes_draft_table tbody');
-    var dateNow = Date.now();
-    let options = {
-        locale: 'zh-tw',
+
+    var datetimePickerInitOpts = {
         sideBySide: true,
-        defaultDate: dateNow
+        locale: 'zh-tw',
+        defaultDate: Date.now(),
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
     };
-    $sendDatetimePicker.datetimepicker(options);
-   
+    $sendDatetimePicker.datetimepicker(datetimePickerInitOpts);
 
     // FUNCTIONs
 
@@ -116,17 +126,17 @@
         $('#' + target).show().siblings().hide();
     }
 
-    function btnText() {
+    function addComposeText() {
         inputNum++;
         if (inputNum - deleteNum > 3) {
             $('.error-msg').show();
             inputNum--;
         } else {
             $('#inputText').append(
-                '<div style="margin:2%">' +
-                    '<span class="remove-btn">刪除</span>' +
+                '<div class="m-3">' +
+                    '<i class="fas fa-times remove-btn"></i>' +
                     '<tr>' +
-                        '<th style="padding:1.5%; background-color: #ddd">輸入文字:</th>' +
+                        '<th class="p-3" style="background-color: #ddd">輸入文字:</th>' +
                     '</tr>' +
                     '<tr>' +
                         '<td style="background-color: #ddd">' +
@@ -176,8 +186,12 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="年齡" data-type="' + field.setsType + '" id="field">年齡:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="年齡" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-times"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -192,8 +206,12 @@
                             '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="性別" data-type="' + field.setsType + '" id="field">性別:' + customFields[field.alias] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="性別" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-times"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -208,8 +226,12 @@
                             '<button type="button" rel="' + fieldId + '" class="btn btn-info" name="' + field.text + '" data-type="' + field.setsType + '" id="field">' + field.text + ':' + customFields[fieldId] + '</button>' +
                             '<div id="condition" style="display: none;">' +
                                 '<input type="text" class="form-gruop" rel="' + fieldId + '" data-type="' + field.setsType + '" placeholder="' + field.text + '" id="condition-input" value="' + customFields[fieldId] + '">' +
-                                '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                                '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                                    '<i class="fa fa-check"></i>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                                    '<i class="fa fa-times"></i>' +
+                                '</button>' +
                             '</div>' +
                         '</div>'
                     );
@@ -234,7 +256,7 @@
             targetData.time = $composesDtPicker.data('DateTimePicker').date().toDate().getTime();
             targetData.ageRange = ageRange;
             targetData.gender = gender;
-            targetData.field_ids = 0 === Object.keys(field_ids).length ? {} : field_ids;
+            targetData.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
             if (true === isDraft) {
                 targetData.status = 0;
             } else {
@@ -243,7 +265,7 @@
             return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
                 ageRange = [];
                 gender = '';
-                field_ids = {};
+                fieldIds = {};
                 $composeEditModal.modal('hide');
                 $.notify('修改成功！', { type: 'success' });
                 $composeEditModal.find('#edit-submit').removeAttr('disabled');
@@ -281,9 +303,9 @@
             }
             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + app.name + '</a></li>');
+            $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
 
             if (!nowSelectAppId && !modelSelectAppId) {
                 nowSelectAppId = appId;
@@ -294,7 +316,7 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadComposes(nowSelectAppId, userId);
-            $jqDoc.find('button.btn-default.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
 
         if (modelSelectAppId) {
@@ -303,7 +325,7 @@
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
+        nowSelectAppId = $(ev.target).attr('app-id');
         $appDropdown.find('.dropdown-text').text(ev.target.text);
         loadComposes(nowSelectAppId, userId);
     }
@@ -343,7 +365,7 @@
         let div = $('<div>').attr('class', 'form-group col-sm-6');
         let btn = $('<button>').attr('type', 'button')
             .attr('rel', id)
-            .attr('class', 'btn btn-grey')
+            .attr('class', 'btn btn-border')
             .attr('name', text)
             .attr('data-type', type)
             .attr('id', 'field')
@@ -376,8 +398,8 @@
                         '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
                         appendFields(composeData) +
                         '<td>' +
-                            '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
                 if (!composeData.status) {
@@ -411,9 +433,19 @@
                 continue;
             }
         }
-        let composeGender = composeData.gender || '';
+        let composeGender;
+        switch (composeData.gender) {
+            case 'MALE':
+                composeGender = '男';
+                break;
+            case 'FEMALE':
+                composeGender = '女';
+                break;
+            default:
+                composeGender = '';
+        }
         if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll">無</snap>';
+            fieldsTd += '<snap id="sendAll" data-title="無">無</snap>';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
@@ -424,19 +456,31 @@
             if (!composeTag.value) {
                 continue;
             }
-            fieldsTd += '<snap id="field" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
+            fieldsTd += '<snap id="field" data-title="' + composeTag.value + '" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
         }
         fieldsTd += '</td>';
         return fieldsTd;
     }
 
-    function dataSearch() {
+    function dataSearch(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
+        let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
+        if (0 === target.length) {
+            target = $('tbody > tr > td>[data-title*="' + searchText + '"]').parent().parent();
+        }
         if (!searchText) {
-            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
             return;
         }
-        $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().css('display', 'none');
+        var code = ev.keyCode || ev.which;
+        if (13 === code) {
+            // 按下enter鍵
+            if (0 === target.length) {
+                $('tbody > tr ').hide();
+            }
+            $('.table>tbody > tr').hide();
+            target.show();
+        }
     }
 
     function ToLocalTimeString(millisecond) {
@@ -477,19 +521,22 @@
         $('.error-input').hide();
         $('.textinput').val('');
         $('#send-all').prop('checked', true);
-        $('div#limit-user').hide();
+        $('div#limit-user').addClass('d-none');
         $('div#condition').remove();
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
         $('#send-time').val('');
         $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
+
         inputObj = {};
         inputNum = 0;
         deleteNum = 0;
         ageRange = [];
         gender = '';
-        field_ids = {};
+        fieldIds = {};
+
+        appCustomerTagChanged();
     }
 
     function appendInput() {
@@ -506,8 +553,12 @@
             $fieldDiv.append(
                 '<div id="condition">' +
                     '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
-                    '<button type="button" class="btn btn-default fa fa-check" id="condition-check-btn"></button>' +
-                    '<button type="button" class="btn btn-default fa fa-close" id="condition-close-btn"></button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
+                        '<i class="fa fa-check"></i>' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
+                        '<i class="fa fa-times"></i>' +
+                    '</button>' +
                 '</div>'
             );
         }
@@ -542,7 +593,7 @@
             isDraft: isDraft,
             ageRange: ageRange,
             gender: gender,
-            field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+            field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
         };
 
         let messages = [];
@@ -555,7 +606,7 @@
                     time: Date.now() - 60000,
                     ageRange: ageRange,
                     gender: gender,
-                    field_ids: 0 === Object.keys(field_ids).length ? {} : field_ids
+                    field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
                 };
                 messages.push(compose);
             }
@@ -641,8 +692,8 @@
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
-                                '<button type="button" class="btn btn-grey fa fa-pencil" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fa fa-trash-o" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';
                     if (!compose.status) {
@@ -676,6 +727,8 @@
                     }
                     conditionVal = ageRange;
                     break;
+                default:
+                    break;
             }
 
             switch (conditionRel) {
@@ -695,7 +748,7 @@
                     }
                     break;
                 default:
-                    field_ids[conditionRel] = {
+                    fieldIds[conditionRel] = {
                         value: conditionVal
                     };
             }
@@ -740,7 +793,7 @@
             userId = payload.uid;
         } catch (ex) {
             userId = '';
-        }        
+        }
         var targetRow = $(event.target).parent().parent();
         var appId = targetRow.attr('text');
         var composeId = targetRow.attr('id');
@@ -760,16 +813,5 @@
                 }
             });
         });
-    }
-
-    function ISODateTimeString(d) {
-        d = new Date(d);
-
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        return d.getFullYear() + '-' +
-            pad(d.getMonth() + 1) + '-' +
-            pad(d.getDate()) + 'T' +
-            pad(d.getHours()) + ':' +
-            pad(d.getMinutes());
     }
 })();

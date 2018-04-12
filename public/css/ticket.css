@@ -1,276 +1,80 @@
-.chsr.alert{
+.chsr.alert {
     display: none;
     position: fixed;
     top: 30%;
     right: 44%;
-    z-index: 99;
-}
+    z-index: 99; }
+    .chsr.alert-warning {
+        padding-right: 15px; }
+    .chsr.alert-warning > button {
+        margin: 10px 10px 5px 10px; }
 
-.chsr.alert-warning {
-    padding-right: 15px;
-}
+.form-wrapper {
+    position: relative;
+    margin: 5% auto 0;
+    width: 40%; }
+    .form-wrapper textarea {
+        /* will prevent resizing horizontally */
+        resize: vertical; }
 
-.chsr.alert-warning > button {
-    margin: 10px 10px 5px 10px;
-}
+.top-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 2% 10% 0; }
+    .top-toolbar .ticket-add {
+        margin-right: 2.5%; }
+    .top-toolbar .ticket-search-bar {
+        width: 25%; }
 
-#form-wrap {
-  position: relative;
-  padding: 0 30%;
-  top: 10%;
-}
+.chsr.ticket {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5%;
+    padding: 0 10%;
+    width: 100% }
+    .chsr.ticket table {
+        width: 100%;
+        border: 1px solid gray;
+        border-radius: 5px; }
+    .chsr.ticket td,
+    .chsr.ticket th {
+        border-bottom:  1px solid rgb(5, 82, 87);
+        text-align: left;
+        padding: 8px;
+        margin: 2px 0;
+        width: 115px; }
+    .chsr.ticket tr {
+        cursor: pointer; }
+    .chsr.ticket tr:nth-child(even) {
+        background-color: #ddd;
+        color: #333; }
 
-#edit-subt, #view-subt {
-  list-style: none;
-  position: relative;
-  left: -5%;
-}
+.due-time-text .overdue {
+    padding: 1px 10px;
+    margin: 1px;
+    border-radius: 8px;
+    background-color: rgb(227, 79, 79);
+    color: white;
+    font-weight: bold; }
+.due-time-text .non {
+    background-color: rgb(91, 195, 92); }
 
-.bigFont {
-  font-size: 2em;
-}
-
-#header-left {
-  position: absolute;
-  left: 0;
-  /*border: solid 5px red;*/
-  width: 50%;
-  height: 50px;
-}
-
-#header-right {
-  position: absolute;
-  right: 0;
-  /*border: solid 5px orange;*/
-  width: 50%;
-  height: 50px;
-}
-
-.add-btn {
-  position: relative;
-}
-
-.inner-add {
-  position: absolute;
-  right: 0;
-}
-
-/* ticket 上端工具欄 */
-.view-ticket.top-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin: 2% 10% 0;
-}
-
-.view-ticket .btn.ticket-add {
-  margin-right: 2.5%;
-}
-
-.view-ticket .ticket-search-bar {
-  width: 25%;
-}
-
-/*Tabs*/
-/* Style the tab */
-div.tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-}
-
-/* Style the buttons inside the tab */
-div.tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-}
-
-/* Change background color of buttons on hover */
-div.tab button:hover {
-    background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-div.tab button.active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-}
-
-/*ticket form*/
-#task-list {
-  list-style: none;
-  border: solid 1px black;
-}
-
-h1 {
-  color: white ;
-  background-color: black;
-  padding: 1% 5%;
-  margin: 0;
-}
-
-h2 {
-  font-size: 16px ;
-  margin: 0;
-  color: white;
-  background-color: rgb(4, 92, 76);
-  padding: 1% 5%;
-}
-
-.ticket {
-  display: flex;
-  justify-content: center;
-  margin-top: 2.5%;
-  padding: 0 10%;
-  width: 100%
-}
-
-.ticket table {
-  width: 100%;
-  border: 1px solid gray;
-  border-radius: 5px;
-}
-
-td, th {
-    border-bottom:  1px solid rgb(5, 82, 87);
-    text-align: left;
-    padding: 8px;
-    margin: 2px 0 ;
-    width: 115px;
-}
-
-tr {
-    cursor: pointer;
-}
-
-tr:nth-child(even) {
-    background-color: #ddd;
-    color: #333;
-}
-
-.sidebar {
-  width: 20%;
-}
-
-.select {
-  width : 70%;
-}
-
-.inner {
-  margin: 0 15px ;
-  position: relative;
-  float: left;
-  width: 80%;
-}
-
-.ticket-content:hover{
-  cursor:  pointer;
-  /* background-color: rgba(183, 208, 181, 0.77) ; */
-  transition: .3s ease-in-out ;
-
-}
-.overdue{
-  padding: 1px 10px;
-  margin: 1px;
-  border-radius: 8px ;
-  background-color: rgb(227, 79, 79) ;
-  color: white ;
-  font-weight: bold;
-}
-
-.non{
-  background-color: rgb(91, 195, 92)
-}
-#ID-num{
-  display: flex;
-  width: 45px;
-  height: 40px;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px ;
-  margin-right: 10px;
-  font-weight: bold;
-  color: white;
-  border-radius: 50%;
-}
-.modal-title{
-  font-size: 1.5em;
-  font-weight: bolder;
-  border-bottom: none;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-}
-textarea {
-   /* will prevent resizing horizontally */
-   resize:vertical;
-}
-input[type="range"]{
-  -webkit-appearance: none;
-  overflow:hidden;     /* 限定範圍 */
-  width:200px;
-  height:20px;
-  outline : none;      /* 避免點選會有藍線或虛線 */
-  background:none;
-}
-input[type="range"]::-webkit-slider-thumb{
-  -webkit-appearance: none;
-  position: relative;    /* 設為相對位置，為了前後區塊的絕對位置而設定 */
-  width:10px;
-  height:10px;
-  background:#f22;
-  border-radius:50%;
-  transition:.2s;        /* 點選放大時候的漸變時間 */
-}
-input[type="range"]::-webkit-slider-thumb:before,
-input[type="range"]::-webkit-slider-thumb:after
-{
-  position: absolute;
-  top: 3px;
-  width: 2000px;          /* 長度很長沒關係，因為剛剛有用 overflow:hidden 了 */
-  height: 4px;
-  content:"";
-  pointer-events: none;   /* 讓滑鼠可以點擊穿透偽元素，不然會點不到下面 */
-  transition:.2s;
-}
-
-input[type="range"]::-webkit-slider-thumb:before{
-  left: -1997px;
-  background: #f22;
-}
-input[type="range"]::-webkit-slider-thumb:after {
-  left: 10px;
-  background: #edc;
-}
-input[type="range"]:active::-webkit-slider-thumb:before,
-input[type="range"]:active::-webkit-slider-thumb:after
-{
-  top: 6px;
-}
-
-input[type="range"]:active::-webkit-slider-thumb{
-  width:16px;
-  height:16px;
-}
-
-input[type="range"]:active::-webkit-slider-thumb:after {
-  left: 16px;
-}
-
-#description { 
-  max-width: 50px; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  white-space: nowrap; 
+.ticket-modal .id-number {
+    display: flex;
+    width: 45px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px ;
+    margin-right: 10px;
+    font-weight: bold;
+    color: white;
+    border-radius: 50%; }
+.ticket-modal .modal-title {
+    font-size: 1.5em;
+    font-weight: bolder;
+    border-bottom: none;
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
 }

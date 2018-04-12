@@ -699,6 +699,18 @@ window.restfulAPI = (function() {
         };
 
         /**
+         * @param {string} userId
+         */
+        AppsChatroomsMessagersAPI.prototype.findAll = function(userId) {
+            var destUrl = this.urlPrefix + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
          * @param {string} appId
          * @param {string} chatroomId
          * @param {string} messagerId
