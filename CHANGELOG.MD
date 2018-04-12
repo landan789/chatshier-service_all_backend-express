@@ -2,7 +2,7 @@
 Released: 2018-04-12
 == Features ==
  * changed database from Firebase to MongoDB
- * upgraded bootstrap from v3 to v4
+ * upgraded Bootstrap from v3 to v4
 
 == Bug Fixes ==
  * Fixed : T2-7     [MASTER 1.2.0][聊天室][更新用戶資料 : 個人資料電話欄位更新refresh會消失]
@@ -28,9 +28,9 @@ Released: 2018-03-14
  * created compose with fields (customized fields)
  * created google calandar
  * created storage via Dropbox
- * changed signup page from jQuery to react
- * changed signin page from jQuery to react
- * changed ticket page from jQuery to react
+ * changed signup page from jQuery to React
+ * changed signin page from jQuery to React
+ * changed ticket page from jQuery to React
 
 = Release 1.0.1 =
 Released: 2018-03-5
@@ -42,21 +42,21 @@ Released: 2018-03-5
 Released: 2018-03-5
 
 == Features ==
- * chat one on one
- * internal chat group
- * indivisiual calendar
- * ticket
- * analysis 
- * compose messages to customers
- * autoreply messages to customers
- * keywordreply messages to customers
- * greeting messages to customers
- * app setting
- * group setting
- * user setting
- * signout
- * signup
- * signin
+ * created chat one on one page
+ * created internal chat group page
+ * created indivisiual calendar page
+ * created ticket page
+ * created analysis page
+ * created compose page
+ * created autoreply page
+ * created keywordreply page
+ * created greeting page
+ * created app setting
+ * created group setting page
+ * created user setting page
+ * created signout page
+ * created signup page
+ * created signin page
 
 == Bug Fixes ==
  * Fixed issue #0039: [MASTER 1.0.0] 若有兩個群組以上，聊天室中內部群組成員會顯示所有群組成員
