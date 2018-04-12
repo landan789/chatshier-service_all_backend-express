@@ -8,149 +8,153 @@
 
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/setting.css" />
 </head>
 
 <body>
-    <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div class="container-fluid d-flex mt-4">
-        <div class="col-md-2 d-sm-block">
-            <nav class="chsr nav nav-pills nav-fill flex-column">
-                <a class="nav-item nav-link text-left" data-toggle="pill" href="#apps">聊天應用程式</a>
-                <a class="nav-item nav-link text-left" data-toggle="pill" href="#settings">基本設定</a>
-                <a class="nav-item nav-link text-left" data-toggle="pill" href="#fields">客戶分類條件</a>
-                <a class="nav-item nav-link text-left" data-toggle="pill" href="#internal-group">內部群組</a>
-            </nav>
-        </div>
+    <div class="root d-flex w-100 h-100">
+        <% include ../views/partials/sidemenu.ejs %>
 
-        <div class="col-md-10 tab-content">
-            <div id="apps" class="tab-pane fade">
-                <h3 class="ml-3">
-                    <span>聊天應用程式</span>
-                    <button type="button" class="btn btn-light btn-border" id="add-group-name-app-btn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
-                        <i class="fas fa-plus fa-fw"></i>
-                        <span>新增群組</span>
-                    </button>
-                </h3>
+        <div class="d-flex ml-auto w-100 pt-4 page-wrapper">
+            <% include ../views/partials/toolbar.ejs %>
 
-                <div class="col-12 border-info prof-wid">
-                    <div class="user-name card-header">
-                        <span class="card-title"></span>
-                    </div>
-                    <div class="card prof-wid">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12 app-container"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-md-2 d-sm-block">
+                <nav class="chsr nav nav-pills nav-fill flex-column">
+                    <a class="nav-item nav-link text-left" data-toggle="pill" href="#apps">聊天應用程式</a>
+                    <a class="nav-item nav-link text-left" data-toggle="pill" href="#settings">基本設定</a>
+                    <a class="nav-item nav-link text-left" data-toggle="pill" href="#fields">客戶分類條件</a>
+                    <a class="nav-item nav-link text-left" data-toggle="pill" href="#internal-group">內部群組</a>
+                </nav>
             </div>
 
-            <div id="settings" class="tab-pane fade">
-                <h3 class="ml-3">
-                    <span>基本設定</span>
-                    <button type="button" class="btn btn-border" id="userProfileEdit" data-toggle="modal" data-target="#setting-modal">
-                        <i class="fas fa-edit fa-fw"></i>
-                        <span>編輯</span>
-                    </button>
-                </h3>
+            <div class="col-md-10 tab-content">
+                <div id="apps" class="tab-pane fade">
+                    <h3 class="ml-3">
+                        <span>聊天應用程式</span>
+                        <button type="button" class="btn btn-light btn-border" id="add-group-name-app-btn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
+                            <i class="fas fa-plus fa-fw"></i>
+                            <span>新增群組</span>
+                        </button>
+                    </h3>
 
-                <div class="col-12 border-info prof-wid">
-                    <div class="user-name card-header">
-                        <span class="card-title"></span>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <table class="table table-user-information">
-                                    <tbody>
-                                        <tr>
-                                            <td>ID: </td>
-                                            <td class="long-token" id="prof-IDnumber"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>公司: </td>
-                                            <td class="long-token" id="prof-company"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>手機: </td>
-                                            <td id="prof-phonenumber"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Email: </td>
-                                            <td class="long-token" id="prof-email"></td>
-
-                                        </tr>
-                                        <tr>
-                                            <td>地址: </td>
-                                            <td class="long-token" id="prof-address"></td>
-                                        </tr>
-                                        <tr class="d-none" id="gcalendar_row">
-                                            <td>
-                                                <div class="feature-icon">
-                                                    <img src="image/google_calendar.png" alt="Google Calendar Logo" />
-                                                </div>
-                                                Google 行事曆:
-                                            </td>
-                                            <td>
-                                                <div class="form-check setting-cbx">
-                                                    <input class="form-check-input" type="checkbox" id="gcalendar_cbx">
-                                                    <label class="form-check-label" for="gcalendar_cbx">啟用</label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="col-12 border-info prof-wid">
+                        <div class="user-name card-header">
+                            <span class="card-title"></span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="fields" class="tab-pane fade">
-                <h3 class="ml-3">
-                    <span>客戶分類條件</span>
-                </h3>
-
-                <div class="card prof-wid">
-                    <div class="float-down">
-                        <div class="col-12 border-info prof-wid p-0 field-tab">
-                            <div class="user-name card-header">
-                                <span class="card-title"></span>
-                            </div>
+                        <div class="card prof-wid">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="chsr-fields card-group col-12" role="tablist" id="apps_fields_wapper">
-                                        <div class="card"></div>
+                                    <div class="col-12 app-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings" class="tab-pane fade">
+                    <h3 class="ml-3">
+                        <span>基本設定</span>
+                        <button type="button" class="btn btn-border" id="userProfileEdit" data-toggle="modal" data-target="#setting-modal">
+                            <i class="fas fa-edit fa-fw"></i>
+                            <span>編輯</span>
+                        </button>
+                    </h3>
+
+                    <div class="col-12 border-info prof-wid">
+                        <div class="user-name card-header">
+                            <span class="card-title"></span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <table class="table table-user-information">
+                                        <tbody>
+                                            <tr>
+                                                <td>ID: </td>
+                                                <td class="long-token" id="prof-IDnumber"></td>
+                                            </tr>
+                                            <tr>
+                                                <td>公司: </td>
+                                                <td class="long-token" id="prof-company"></td>
+                                            </tr>
+                                            <tr>
+                                                <td>手機: </td>
+                                                <td id="prof-phonenumber"></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Email: </td>
+                                                <td class="long-token" id="prof-email"></td>
+
+                                            </tr>
+                                            <tr>
+                                                <td>地址: </td>
+                                                <td class="long-token" id="prof-address"></td>
+                                            </tr>
+                                            <tr class="d-none" id="gcalendar_row">
+                                                <td>
+                                                    <div class="feature-icon">
+                                                        <img src="image/google_calendar.png" alt="Google Calendar Logo" />
+                                                    </div>
+                                                    Google 行事曆:
+                                                </td>
+                                                <td>
+                                                    <div class="form-check setting-cbx">
+                                                        <input class="form-check-input" type="checkbox" id="gcalendar_cbx">
+                                                        <label class="form-check-label" for="gcalendar_cbx">啟用</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fields" class="tab-pane fade">
+                    <h3 class="ml-3">
+                        <span>客戶分類條件</span>
+                    </h3>
+
+                    <div class="card prof-wid">
+                        <div class="float-down">
+                            <div class="col-12 border-info prof-wid p-0 field-tab">
+                                <div class="user-name card-header">
+                                    <span class="card-title"></span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="chsr-fields card-group col-12" role="tablist" id="apps_fields_wapper">
+                                            <div class="card"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="internal-group" class="tab-pane fade">
-                <h3 class="ml-3">
-                    <span>內部群組</span>
-                    <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
-                        <i class="fas fa-plus fa-fw"></i>
-                        <span>新增</span>
-                    </button>
-                </h3>
+                <div id="internal-group" class="tab-pane fade">
+                    <h3 class="ml-3">
+                        <span>內部群組</span>
+                        <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
+                            <i class="fas fa-plus fa-fw"></i>
+                            <span>新增</span>
+                        </button>
+                    </h3>
 
-                <div class="col-12 border-info prof-wid p-0">
-                    <div class="user-name card-header">
-                        <span class="card-title"></span>
+                    <div class="col-12 border-info prof-wid p-0">
+                        <div class="user-name card-header">
+                            <span class="card-title"></span>
+                        </div>
+
+
+                        <div class="card-body group-body"></div>
                     </div>
-
-
-                    <div class="card-body group-body"></div>
                 </div>
             </div>
         </div>

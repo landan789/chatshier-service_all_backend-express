@@ -1,0 +1,48 @@
+<section class="chsr side-menu d-none d-sm-block" id="sideMenu">
+    <ul class="list-group">
+        <li class="text-light list-group-item">
+            <span class="side-menu-title">Chatshier</span>
+            <i class="float-right py-1 fas fa-bars d-sm-none menu-toggle"></i>
+        </li>
+        <li class="text-light list-group-item" onclick="window.location.assign('/chat')">
+            <i class="fas fa-comment-dots fa-fw"></i>
+            <span>聊天室</span>
+        </li>
+        <li class="text-light list-group-item" onclick="window.location.assign('/calendar')">
+            <i class="far fa-calendar-alt fa-fw"></i>
+            <span>行事曆</span>
+        </li>
+        <li class="text-light list-group-item" onclick="window.location.assign('/ticket')">
+            <i class="fa fa-list-ul fa-fw"></i>
+            <span>待辦事項</span>
+        </li>
+        <li class="text-light list-group-item" onclick="window.location.assign('/analyze')">
+            <i class="fa fa-chart-bar fa-fw"></i>
+            <span>訊息分析</span>
+        </li>
+        <li class="text-light list-group-item" id="sideMenuMessages">
+            <i class="fa fa-envelope fa-fw"></i>
+            <span>訊息</span>
+            <i class="float-right py-1 fas fa-chevron-down"></i>
+        </li>
+        <div class="collapse show" id="sideMenuMessagesCollapse">
+            <li class="text-light nested list-group-item" onclick="window.location.assign('/compose')">
+                <i class="fa fa-comments"></i>
+                <span>群發</span>
+            </li>
+            <li class="text-light nested list-group-item" onclick="window.location.assign('/autoreply')">
+                <i class="fa fa-comments"></i>
+                <span>自動回覆</span>
+            </li>
+            <li class="text-light nested list-group-item" onclick="window.location.assign('/keywordsreply')">
+                <i class="fa fa-comments"></i>
+                <span>關鍵字回覆</span>
+            </li>
+            <li class="text-light nested list-group-item" onclick="window.location.assign('/greeting')">
+                <i class="fa fa-comments"></i>
+                <span>加好友回覆</span>
+            </li>
+        </div>
+    </ul>
+</section>
+<div class="d-none side-menu-backdrop" id="sideMenuBackdrop"></div>

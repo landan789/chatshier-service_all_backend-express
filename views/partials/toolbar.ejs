@@ -1,0 +1,23 @@
+<header class="chsr toolbar w-100">
+    <nav class="navbar px-1">
+        <button type="button" class="btn text-light transparent d-sm-none" id="sideMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-title text-light d-flex m-auto" id="navTitle"></div>
+        <div class="dropdown" id="toolbarOptionsDropdown">
+            <button type="button" aria-haspopup="true" aria-expanded="false" class="text-light transparent btn" data-toggle="dropdown">
+                <i class="fa fa-cog fa-lg"></i>
+            </button>
+            <div tabindex="-1" role="menu" aria-hidden="true" class="dropdown-menu right-side">
+                <button type="button" tabindex="0" class="dropdown-item" onclick="window.location.assign('/setting')">
+                    <i class="fa fa-user"></i>
+                    <span>設定</span>
+                </button>
+                <button type="button" tabindex="0" class="dropdown-item" onclick="window.location.assign('/logout')">
+                    <i class="fa fa-sign-out-alt"></i>
+                    <span>登出</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+</header>

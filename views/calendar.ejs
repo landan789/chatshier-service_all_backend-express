@@ -12,16 +12,20 @@
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
     <link rel="stylesheet" href="lib/css/fullcalendar.min.css" />
     <link rel="stylesheet" href="lib/css/fullcalendar.print.min.css" media="print" />
-    <link rel="stylesheet" href="css/_main.css">
     <link rel="stylesheet" href="css/calendar.css">
 </head>
 
 <body>
-    <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div class="calendar-wrapper">
-        <div class="calendar-body" id="calendarBody"></div>
+    <div class="root d-flex w-100 h-100">
+        <% include ../views/partials/sidemenu.ejs %>
+
+        <div class="ml-auto w-100 page-wrapper calendar-wrapper">
+            <% include ../views/partials/toolbar.ejs %>
+
+            <div class="calendar-body" id="calendarBody"></div>
+        </div>
     </div>
 
     <% include ../views/partials/modals/calendar_modal.ejs %>
