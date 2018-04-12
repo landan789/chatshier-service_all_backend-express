@@ -2,7 +2,7 @@
 Released: 2018-04-12
 == Features ==
  * changed database from Firebase to MongoDB
- * upgrade bootstrap v4
+ * upgraded bootstrap v4
 
 == Bug Fixes ==
  * Fixed : T2-7 [MASTER 1.2.0][聊天室][更新用戶資料 : 個人資料電話欄位更新refresh會消失]
