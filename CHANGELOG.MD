@@ -2,36 +2,36 @@
 Released: 2018-04-12
 == Features ==
  * changed database from Firebase to MongoDB
- * upgraded bootstrap v4
+ * upgraded bootstrap from v3 to v4
 
 == Bug Fixes ==
- * Fixed : T2-7 [MASTER 1.2.0][聊天室][更新用戶資料 : 個人資料電話欄位更新refresh會消失]
- * Fixed : T2-8 [MASTER 1.2.0][聊天室][搜尋待辦事項 : 打中文無法搜尋]
- * Fixed : T2-8 [MASTER 1.2.0][聊天室][新增待辦事項 : 新增完再按一下新增 欄位沒清空]
- * Fixed : T2-8 [MASTER 1.2.0][新增待辦事項][新增待辦事項 : 電話欄位沒顯示]
- * Fixed : T4-2 [MASTER 1.2.0][新增待辦事項][新增待辦事項 : 客戶會撈出所有客戶]
- * Fixed : T5-1-1 [MASTER 1.2.0][訊息分析][選擇時間範圍 : 當開始時間及結束時間，未超過一天或未超過一小時，不會顯示資料]
- * Fixed : T5-1-2 [MASTER 1.2.0][訊息分析][瀏覽單位月、日、小時 : 開始時間及結束時間，會影響“單位：日“ 及 ”單位：小時”的資料顯示]
- * Fixed : T6-3-2 [MASTER 1.2.0][訊息][搜尋關鍵字回覆 : 無法搜尋]
- * Fixed : T6-2-2 [MASTER 1.2.0][訊息][搜尋自動回覆 : 打中文無法搜尋]
- * Fixed : T6-1-2 [MASTER 1.2.0][訊息][搜尋群發 : 打中文無法搜尋]
- * Fixed : T6-4-2 [MASTER 1.2.0][訊息][新增加好友回覆 : 加好友回覆會連同自動回覆訊息一起回]
+ * Fixed : T2-7     [MASTER 1.2.0][聊天室][更新用戶資料 : 個人資料電話欄位更新refresh會消失]
+ * Fixed : T2-8     [MASTER 1.2.0][聊天室][搜尋待辦事項 : 打中文無法搜尋]
+ * Fixed : T2-8     [MASTER 1.2.0][聊天室][新增待辦事項 : 新增完再按一下新增 欄位沒清空]
+ * Fixed : T2-8     [MASTER 1.2.0][新增待辦事項][新增待辦事項 : 電話欄位沒顯示]
+ * Fixed : T4-2     [MASTER 1.2.0][新增待辦事項][新增待辦事項 : 客戶會撈出所有客戶]
+ * Fixed : T5-1-1   [MASTER 1.2.0][訊息分析][選擇時間範圍 : 當開始時間及結束時間，未超過一天或未超過一小時，不會顯示資料]
+ * Fixed : T5-1-2   [MASTER 1.2.0][訊息分析][瀏覽單位月、日、小時 : 開始時間及結束時間，會影響“單位：日“ 及 ”單位：小時”的資料顯示]
+ * Fixed : T6-3-2   [MASTER 1.2.0][訊息][搜尋關鍵字回覆 : 無法搜尋]
+ * Fixed : T6-2-2   [MASTER 1.2.0][訊息][搜尋自動回覆 : 打中文無法搜尋]
+ * Fixed : T6-1-2   [MASTER 1.2.0][訊息][搜尋群發 : 打中文無法搜尋]
+ * Fixed : T6-4-2   [MASTER 1.2.0][訊息][新增加好友回覆 : 加好友回覆會連同自動回覆訊息一起回]
  * Fixed : T7-1-4-2 [MASTER 1.2.0][設定][更新內部群組名稱 : 聊天室中的名稱無改變]
  * Fixed : T7-1-4-1 [MASTER 1.2.0][設定][新增內部群組 : 第二次新增時會有前一次的名稱]
- * Fixed : the changed of database schema made compose with fields (customized fields) failed
+ * Fixed : changed database schema of `composes` with `fields` (customized fields)
  
  
  = Release 1.1.0 =
 Released: 2018-03-14
 
 == Features ==
- * keywordreply with fizzy searching
- * compose with fields (customized fields)
- * google calandar
- * storage via Dropbox
- * signup page changes to react.js
- * signin page changes to react.js
- * ticket page changes to react.js
+ * created keywordreply with fizzy searching
+ * created compose with fields (customized fields)
+ * created google calandar
+ * created storage via Dropbox
+ * changed signup page from jQuery to react
+ * changed signin page from jQuery to react
+ * changed ticket page from jQuery to react
 
 = Release 1.0.1 =
 Released: 2018-03-5
