@@ -74,12 +74,14 @@ module.exports = (function() {
                 this.noRedis = false;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
+                console.log('[SUCCEEDED] the pub of service.chatshier is connecting to Redis !!');
             });
 
             this.publisher.on('error', () => {
                 this.noRedis = true;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
+                console.log('[FAILED] the pub of service.chatshier is not connecting to Redis !!');
             });
 
             this.publisher.on('end', () => {
@@ -93,18 +95,22 @@ module.exports = (function() {
                     publisherReadyPromise,
                     subscriberReadyPromise
                 ]);
+
             });
 
             this.subscriber.on('connect', () => {
                 this.noRedis = false;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
+                console.log('[SUCCEEDED] the sub of service.chatshier is connecting to Redis !!');
             });
 
-            this.subscriber.on('error', () => {
+            this.subscriber.on('error', (s) => {
                 this.noRedis = true;
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
+                console.log('[FAILED] the sub of service.chatshier is not connecting to Redis !!');
+
             });
 
             this.subscriber.on('end', () => {
@@ -118,6 +124,7 @@ module.exports = (function() {
                     publisherReadyPromise,
                     subscriberReadyPromise
                 ]);
+
             });
 
             return redisReady;
