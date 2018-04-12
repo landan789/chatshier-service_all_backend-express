@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
-const express = require('express');
-const path = require('path');
-const index = require('../routes/index');
-
 var app = require('../app');
 var http = require('http');
 var server = http.createServer(app);
+var io = require('../sockets/index')(server);
+
 var port = process.env.PORT || '3002';
+
 server.listen(port);
 
 server.on('error', (error) => {
@@ -31,21 +30,4 @@ server.on('listening', (event) => {
     var addr = server.address();
     var bind = 'string' === typeof addr ? 'pipe ' + addr : 'port ' + addr.port;
     console.log('[SUCCEEDED] service.chatshier is listening on ' + bind + ' !!');
-});
-var sockets = require('../sockets/index')(server);
-
-app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/', index);
-
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-app.use(function(err, req, res, next) {
-    res.locals.message = err.message;
-
-    console.log(err);
-    res.status(500);
-    res.send('error');
 });
