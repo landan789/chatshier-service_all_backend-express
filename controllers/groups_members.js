@@ -123,7 +123,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findMembers(groupId, null, (groupsMembers) => {
                     if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
-                        reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(groupsMembers);
@@ -267,8 +267,8 @@ module.exports = (function() {
 
             return new Promise((resolve, reject) => {
                 groupsMembersMdl.findMembers(groupId, null, (members) => {
-                    if (!members) {
-                        reject(members);
+                    if (!members || (members && 0 === Object.keys(members).length)) {
+                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                         return;
                     }
                     resolve(members);
@@ -389,6 +389,9 @@ module.exports = (function() {
         let groupId = req.params.groupid;
         let memberId = req.params.memberid;
 
+        let groupsMembers;
+        let deletedMember;
+        let memberUserId;
         let proceed = Promise.resolve();
 
         proceed.then(() => {
@@ -416,19 +419,12 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
             }
 
-            return new Promise((resolve, reject) => {
-                groupsMembersMdl.findMembers(groupId, null, (members) => {
-                    if (null === members || undefined === members || '' === members) {
-                        reject(members);
-                        return;
-                    }
-                    resolve({ userGroupIds, members });
-                });
-            });
-        }).then((promiseData) => {
-            let userGroupIds = promiseData.userGroupIds;
-            let members = promiseData.members;
-
+            return groupsMembersMdl.findMembers(groupId, null);
+        }).then((members) => {
+            if (!members || (members && 0 === Object.keys(members).length)) {
+                Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
+                return;
+            }
             // 該群組下的所有使用者 IDs
             let groupUserIds = Object.values(members).map((member) => {
                 let userId = member.user_id;
@@ -451,43 +447,51 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_REMOVE_GROUP_MEMBER);
             }
 
-            return groupsMembersMdl.remove(groupId, memberId).then((groupsMembers) => {
-                if (!groupsMembers) {
-                    return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
+            return groupsMembersMdl.remove(groupId, memberId);
+        }).then((result) => {
+            groupsMembers = result;
+            if (!groupsMembers) {
+                return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
+            };
+
+            // 群組成員的 userId 即是內部聊天室的 messagerId
+            deletedMember = groupsMembers[groupId].members[memberId];
+            memberUserId = deletedMember.user_id;
+
+            return usersMdl.find(memberUserId, null);
+        }).then((users) => {
+            // 群組成員 user 資料中的 groups 也須一併移除 group
+            if (!users) {
+                Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                return;
+            }
+            let userGroupIds = users[memberUserId].group_ids;
+
+            let idx = userGroupIds.indexOf(groupId);
+            userGroupIds.splice(idx, 1);
+
+            let updateUser = {
+                group_ids: userGroupIds
+            };
+
+            return usersMdl.update(memberUserId, updateUser);
+        }).then((users) => {
+            // 群組成員刪除後，也需要刪除內部聊天室的 messager
+            if (!users) {
+                return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+            }
+
+            return groupsMdl.findAppIds(groupId, memberUserId);
+        }).then((appIds) => {
+            appIds = appIds || [];
+
+            return appsChatroomsMessagersMdl.remove(appIds, null, memberUserId).then((appsChatroomsMessagers) => {
+                if (!appsChatroomsMessagers) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
                 };
-
-                // 群組成員 user 資料中的 groups 也須一併移除 group
-                // 群組成員刪除後，也需要刪除內部聊天室的 messager
-                // 群組成員的 userId 即是內部聊天室的 messagerId
-                let deletedMember = groupsMembers[groupId].members[memberId];
-                let memberUserId = deletedMember.user_id;
-
-                let idx = userGroupIds.indexOf(groupId);
-                userGroupIds.splice(idx, 1);
-
-                let updateUser = {
-                    group_ids: userGroupIds
-                };
-
-                return usersMdl.update(memberUserId, updateUser).then((users) => {
-                    if (!users) {
-                        return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
-                    }
-
-                    // 抓取出 group 裡的 app_ids 清單
-                    // 將此 group member 從所有 app 裡的 chatrooms messagers 刪除
-                    return groupsMdl.findAppIds(groupId, memberUserId).then((appIds) => {
-                        appIds = appIds || [];
-                        return appsChatroomsMessagersMdl.remove(appIds, null, memberUserId).then((appsChatroomsMessagers) => {
-                            if (!appsChatroomsMessagers) {
-                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE);
-                            };
-                            return appsChatroomsMessagers;
-                        });
-                    });
-                }).then(() => {
-                    return groupsMembers;
-                });
+                return appsChatroomsMessagers;
+            }).then(() => {
+                return groupsMembers;
             });
         }).then((groupsMembers) => {
             let json = {
