@@ -58,6 +58,7 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
+        findedGreetingIds = {};
         loadGreetings(nowSelectAppId, userId);
     }
 
@@ -71,8 +72,8 @@
                 for (let greetingId in greeting) {
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<th>' + greeting[greetingId].text + '</th>' +
-                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
+                            '<th>' + greeting[greetingId].text +'</th>' +
+                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime)+'</td>' +
                             '<td>' +
                                 '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +

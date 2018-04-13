@@ -471,7 +471,6 @@ function init(server) {
                 }
             };
             let messagers = {};
-            let chatrooms = {};
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
@@ -494,14 +493,20 @@ function init(server) {
                 return botSvc.create(appId, app);
             }).then(() => {
                 return appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
-                    chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    if (!appsChatroomsMessagers) {
+                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    }
+
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     for (let chatroomId in chatrooms) {
                         let chatroomMessagers = chatrooms[chatroomId].messagers;
                         for (let messagerId in chatroomMessagers) {
                             let messager = chatroomMessagers[messagerId];
+                            messager.chatroomId = chatroomId; // 紀錄 messager 所在的 chatroom，才能知道要將訊息 insert 到哪些 chatroom 中
                             messagers[messager.platformUid] = messager;
                         }
                     }
+                    return appsChatroomsMessagers;
                 });
             }).then(() => {
                 let originMessagers = messagers;
@@ -573,10 +578,10 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                let chatroomIds = Object.keys(chatrooms);
-                return Promise.all(chatroomIds.map((chatroomId) => {
-                    let messagers = chatrooms[chatroomId].messagers;
-                    let messager = Object.values(messagers).shift();
+                let platformUids = Object.keys(messagers);
+                return Promise.all(platformUids.map((platformUid) => {
+                    let messager = messagers[platformUid];
+                    let chatroomId = messager.chatroomId;
 
                     return Promise.all(messages.map((message) => {
                         let _message = {
