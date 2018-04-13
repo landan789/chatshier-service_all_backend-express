@@ -291,8 +291,10 @@
         $appModal.append(str);
     });
 
-    findAllGroups();
-    findAllApps(); // 列出所有設定的APPs
+    findAllGroups().then(() => {
+        return findAllApps(); 
+    });
+   // 列出所有設定的APPs
     findUserProfile();
 
     // ===============
@@ -1270,10 +1272,10 @@
                 if (apps[appId].isDeleted || CHATSHIER === apps[appId].type) {
                     continue;
                 }
-                groupType(appId, apps[appId]);
+                 groupType(appId, apps[appId]);
             }
-            $('.chsr.nav-pills .nav-link:first-child').tab('show');
-            $('#add-new-btn').attr('disabled', false);
+             $('.chsr.nav-pills .nav-link:first-child').tab('show');
+             $('#add-new-btn').attr('disabled', false);
         });
     }
 
