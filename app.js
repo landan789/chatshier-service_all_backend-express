@@ -22,7 +22,7 @@ app.use(cors(CHATSHIER['CORS']));
 app.use(cookieParser());
 
 // API JWT 權限驗證
-app.use('/api/*/users/:userid', jwtHlp.authenticate('HEADER', null));
+app.use('/api/*/users/:userid', jwtHlp.authenticate);
 app.use('/api/database', apiDatabase);
 app.use('/api/sign', apiSign);
 app.use('/api/*', routerHlp.requestNotExistentApi);
