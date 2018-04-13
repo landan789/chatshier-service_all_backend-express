@@ -437,11 +437,12 @@
     });
 
     // start the loading works
-    $profilePanel.hide();
+    $profilePanel.addClass('d-none');
 
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
-    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    // $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    $(document).on('click', '.side-menu .tablinks', clickUserTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
@@ -699,6 +700,11 @@
 
     function generateAppsIcons(apps) {
         var $chatAppList = $('#chatAppList');
+        var $sideMenu = $('#sideMenu');
+        var $lineSideCollapse = $sideMenu.find('.line-collapse').empty();
+        var $fbSideCollapse = $sideMenu.find('.fb-collapse').empty();
+        var $wechatSideCollapse = $sideMenu.find('.wechat-collapse').empty();
+        var $chatshierSideCollapse = $sideMenu.find('.chatshier-collapse').empty();
 
         for (var appId in apps) {
             var app = apps[appId];
@@ -712,21 +718,31 @@
                 return html;
             };
 
-            var appItem = '';
+            var tabAppItem = '';
+            var collapseAppItem =
+                '<li class="text-light nested list-group-item">' +
+                    '<span>' + app.name + '</span>' +
+                '</li>';
             switch (app.type) {
                 case LINE:
-                    appItem = buildHtml(app.type, LINE_LOGO);
+                    tabAppItem = buildHtml(app.type, LINE_LOGO);
+                    $lineSideCollapse.append(collapseAppItem);
                     break;
                 case FACEBOOK:
-                    appItem = buildHtml(app.type, FACEBOOK_LOGO);
+                    tabAppItem = buildHtml(app.type, FACEBOOK_LOGO);
+                    $fbSideCollapse.append(collapseAppItem);
                     break;
                 case WECHAT:
-                    appItem = buildHtml(app.type, WECHAT_LOGO);
+                    tabAppItem = buildHtml(app.type, WECHAT_LOGO);
+                    $wechatSideCollapse.append(collapseAppItem);
+                    break;
+                case CHATSHIER:
+                    $chatshierSideCollapse.append(collapseAppItem);
                     break;
                 default:
                     break;
             }
-            appItem && $chatAppList.prepend(appItem);
+            tabAppItem && $chatAppList.prepend(tabAppItem);
         }
     }
 
@@ -790,10 +806,22 @@
         ).shift());
     }
 
+    function generateChatroomItemHtml(opts) {
+        var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
+        var html = (
+            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
+                '<i class="' + opts.icon + '"></i>' +
+                '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + opts.clientName + '</span>' +
+                '<span class="unread-msg badge badge-pill' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+            '</li>'
+        );
+        return html;
+    }
+
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
         var html =
-            '<button class="tablinks"' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
+            '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
                     '<img class="consumer-avatar" src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
                     '<img class="software-icon" src="' + opts.iconSrc + '">' +
@@ -867,23 +895,43 @@
             messageHtml: messageToClientHtml(lastMessage)
         };
 
+        // switch (appType) {
+        //     case LINE:
+        //         clientUiOpts.iconSrc = LINE_LOGO;
+        //         break;
+        //     case FACEBOOK:
+        //         clientUiOpts.iconSrc = FACEBOOK_LOGO;
+        //         break;
+        //     case WECHAT:
+        //         clientUiOpts.iconSrc = WECHAT_LOGO;
+        //         break;
+        //     case CHATSHIER:
+        //     default:
+        //         clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
+        //         break;
+        // }
+        // var tablinkHtml = generateClientHtml(clientUiOpts);
+        // $('#clients').prepend(tablinkHtml);
+
         switch (appType) {
             case LINE:
-                clientUiOpts.iconSrc = LINE_LOGO;
+                clientUiOpts.icon = 'fab fa-line';
                 break;
             case FACEBOOK:
-                clientUiOpts.iconSrc = FACEBOOK_LOGO;
+                clientUiOpts.icon = 'fab fa-facebook-messenger';
                 break;
             case WECHAT:
-                clientUiOpts.iconSrc = WECHAT_LOGO;
+                clientUiOpts.icon = 'fab fa-weixin';
                 break;
             case CHATSHIER:
             default:
-                clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
+                clientUiOpts.icon = 'fas fa-comment-dots';
                 break;
         }
-        var tablinkHtml = generateClientHtml(clientUiOpts);
-        $('#clients').prepend(tablinkHtml);
+        var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
+        var $sideMenuChatroomCollapse = $('#sideMenuChatroomCollapse');
+        $sideMenuChatroomCollapse.prepend(chatroomItemHtml);
+        $sideMenuChatroomCollapse.find('')
 
         // 中間聊天室
         var messageText = '';
@@ -1283,7 +1331,7 @@
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
         !$chatroomContainer.hasClass('open') && $chatroomContainer.addClass('open');
-        $chatroomContainer.find('.consumer-profile .display-name').text(appName);
+        // $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
@@ -1295,7 +1343,7 @@
 
         var $profileTab = $('#show_profile');
         var $ticketTodoPanel = $('#show_todo');
-        $profilePanel.show();
+        $profilePanel.removeClass('d-none');
         if (CHATSHIER !== appType) {
             $profileTab.text('用戶資料');
             $ticketTodoPanel.show();

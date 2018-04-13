@@ -234,7 +234,7 @@ body {
 .chatroom-container {
     position: relative;
     display: inherit;
-    width: 70%;
+    width: 100%;
     height: 100%; }
     .chatroom-container.open::after {
         display: none; }
@@ -249,12 +249,13 @@ body {
         background: transparent url("../image/logo.png") center/contain no-repeat; }
     .chatroom-container .chat-content-panel {
         position: relative;
-        width: 50%;
+        /* width: 50%; */
+        width: 100%;
         height: 100%;
         resize: both; }
-    .chatroom-container .profile-panel {
+    /* .chatroom-container .profile-panel {
         position: relative;
-        width: 50%; }
+        width: 50%; } */
 
 .profile-panel {
     border: 1px solid lightgray;
@@ -294,12 +295,13 @@ body {
     height: 10%;
     background-color: #f7f8f9;
     position: relative; }
-    .consumer-profile .display-name {
+    /* .consumer-profile .display-name {
         font-size: 100%;
-        padding: 2%; }
+        padding: 2%; } */
 
 .chatroom-body {
-    height: 75%;
+    /* height: 75%; */
+    height: 85%;
     width: 100%; }
     .chatroom-body .chat-content {
         float: left;
