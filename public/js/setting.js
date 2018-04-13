@@ -291,8 +291,10 @@
         $appModal.append(str);
     });
 
-    findAllGroups();
-    findAllApps(); // 列出所有設定的APPs
+    findAllGroups().then(() => {
+        return findAllApps(); 
+    });
+   // 列出所有設定的APPs
     findUserProfile();
 
     // ===============
