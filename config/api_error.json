@@ -1,7 +1,7 @@
 {
     "REQUESTED_NOT_EXISTENT_API": { "MSG": "requested not existent api", "CODE": "-4" },
-    "JWT_HAD_EXPIRED": { "MSG": "jwt had expired", "CODE": "-3" },
-    "USER_WAS_NOT_PERMITTED": { "MSG": "user was not permitted", "CODE": "-2" },
+    "USER_WAS_NOT_PERMITTED": { "MSG": "user was not permitted", "CODE": "-3" },
+    "JWT_HAD_EXPIRED": { "MSG": "jwt had expired", "CODE": "-2" },
     "USER_WAS_NOT_AUTHORIZED": { "MSG": "user was not authorized", "CODE": "-1" },
 
     "UNKNOWN": { "MSG": "unknown", "CODE": "0" },
