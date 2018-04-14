@@ -3,14 +3,23 @@
     var $sideMenu = $('#sideMenu');
     var $sideMenuBackdrop = $('#sideMenuBackdrop');
     $toolbar.on('click', '.side-menu-toggle', toggleSideMenu);
-    $sideMenu.find('.menu-toggle').on('click', toggleSideMenu);
+    $sideMenu.on('click', '.menu-toggle', toggleSideMenu);
+    $sideMenu.on('click', '.has-collapse', toggleCollapse);
     $sideMenuBackdrop.on('click', closeSideMenu);
-
-    var $sideMenuCollapses = $sideMenu.find('.has-collapse');
-    $sideMenuCollapses.on('click', toggleCollapse);
 
     var $sideMenuAddApp = $('#sideMenuAddApp');
     $sideMenuAddApp.on('click', showAppInsertModal);
+
+    if ('/chat' !== window.location.pathname) {
+        var $sideMenuChatroomItem = $('#sideMenuChatroomItem');
+        $sideMenuChatroomItem.removeClass('has-collapse');
+        $sideMenuChatroomItem.find('.collapse-icon').remove();
+        $sideMenuChatroomItem.on('click', function() {
+            window.location.assign('/chat');
+        });
+        $sideMenuChatroomItem.siblings('#sideMenuChatroomCollapse').remove();
+        $sideMenuChatroomItem = void 0;
+    }
 
     var Swiper = window.Swiper;
     var sideMenuSwiper = new Swiper('#sideMenu.swiper-container', {
@@ -63,6 +72,6 @@
     }
 
     function showAppInsertModal() {
-        console.log(this);
+
     }
 })();
