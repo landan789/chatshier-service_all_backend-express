@@ -1,9 +1,9 @@
 (function() {
-    var $sideMenuToggle = $('#sideMenuToggle');
+    var $toolbar = $('.toolbar');
     var $sideMenu = $('#sideMenu');
     var $sideMenuBackdrop = $('#sideMenuBackdrop');
-    $sideMenuToggle.on('click', toggleSideMenu);
-    $sideMenu.find('.menu-toggle').on('click', closeSideMenu);
+    $toolbar.on('click', '.side-menu-toggle', toggleSideMenu);
+    $sideMenu.find('.menu-toggle').on('click', toggleSideMenu);
     $sideMenuBackdrop.on('click', closeSideMenu);
 
     var $sideMenuCollapses = $sideMenu.find('.has-collapse');
@@ -13,7 +13,7 @@
     $sideMenuAddApp.on('click', showAppInsertModal);
 
     var Swiper = window.Swiper;
-    var sideMenuSwiper = new Swiper('.swiper-container#sideMenu', {
+    var sideMenuSwiper = new Swiper('#sideMenu.swiper-container', {
         loop: false,
         initialSlide: 1,
         threshold: 10, // 撥動超過 10px 才進行 slide 動作
@@ -21,11 +21,6 @@
             el: '#sideMenu .swiper-pagination'
         }
     });
-
-    function toggleSideMenu() {
-        $sideMenu.toggleClass('d-none').toggleClass('sm');
-        $sideMenuBackdrop.toggleClass('d-none');
-    }
 
     function toggleCollapse() {
         $(this).next().collapse('toggle');
@@ -38,9 +33,33 @@
         }
     }
 
+    function toggleSideMenu() {
+        $sideMenu.hasClass('d-none') ? openSideMenu() : closeSideMenu();
+    }
+
+    function openSideMenu() {
+        if ($sideMenu.hasClass('animating')) {
+            return;
+        }
+        $sideMenu.removeClass('d-none').addClass(['animated', 'animating', 'slide-in']);
+        $sideMenuBackdrop.removeClass('d-none');
+        sideMenuSwiper.update();
+        $sideMenu.on('animationend oAnimationEnd webkitAnimationEnd', function() {
+            $sideMenu.off('animationend oAnimationEnd webkitAnimationEnd');
+            $sideMenu.removeClass(['animating', 'slide-in']);
+        });
+    }
+
     function closeSideMenu() {
-        $sideMenu.addClass('d-none').removeClass('sm');
+        if ($sideMenu.hasClass('animating')) {
+            return;
+        }
+        $sideMenu.addClass(['animating', 'slide-out']);
         $sideMenuBackdrop.addClass('d-none');
+        $sideMenu.on('animationend oAnimationEnd webkitAnimationEnd', function() {
+            $sideMenu.off('animationend oAnimationEnd webkitAnimationEnd');
+            $sideMenu.removeClass(['animated', 'animating', 'slide-out']).addClass('d-none');
+        });
     }
 
     function showAppInsertModal() {

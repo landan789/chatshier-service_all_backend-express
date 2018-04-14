@@ -203,19 +203,19 @@ module.exports = (function() {
             });
         }).then(() => {
             return new Promise((resolve, reject) => {
-                appsTicketsMdl.remove(appId, ticketId, (result) => {
-                    if (false === result || null === result || undefined === result) {
-                        reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
+                appsTicketsMdl.remove(appId, ticketId, (appsTickets) => {
+                    if (!appsTickets) {
+                        reject(API_ERROR.APP_TICKET_FAILED_TO_REMOVE);
                         return;
                     }
-
-                    resolve();
+                    resolve(appsTickets);
                 });
             });
-        }).then(() => {
+        }).then((data) => {
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERROR) => {

@@ -1,58 +1,59 @@
-.has-toolbar {
-    margin-top: 50px; }
-  
-  .chsr.toolbar {
-    background-color: #33ccff;
-    height: 50px;
-    font-size: .9rem;
-    z-index: 1050; }
-    .chsr.toolbar .navbar-header {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      height: 100%; }
-    .chsr.toolbar > .navbar {
-      display: flex;
-      justify-content: flex-start;
-      height: 100%; }
-    .chsr.toolbar > nav > .navbar-header > a, .chsr.toolbar > nav > .navbar-header > a:hover {
-      color: white; }
-    .chsr.toolbar .transparent {
-      background-color: transparent;
-      border: none;
-      box-shadow: none; }
-  
-  .chsr .dropdown-menu {
-    color: black;
-    padding: 0;
-    box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.175); }
-    .chsr .dropdown-menu.right-side {
-      left: initial;
-      right: 0; }
-    .chsr .dropdown-menu.open {
-      display: block;
-      background-color: #fefefe; }
-    .chsr .dropdown-menu.closed {
-      display: none; }
-    .chsr .dropdown-menu .dropdown-item {
-      display: block;
-      width: 100%;
-      padding-top: .5rem;
-      padding-bottom: .5rem;
-      font-size: .85rem;
-      letter-spacing: 1px;
-      cursor: pointer; }
-      .chsr .dropdown-menu .dropdown-item i {
-        padding-right: .25rem; }
-      .chsr .dropdown-menu .dropdown-item:focus, .chsr .dropdown-menu .dropdown-item:hover {
-        background-color: #f8f9fa;
-        text-decoration: none;
-        color: black;
-        transition: all .2s ease-in-out; }
-  
-  @keyframes scaleYGrowUp {
-    from {
-      transform: scaleY(0); }
-    to {
-      transform: scaleY(1); } }
-  
+.chsr.toolbar {
+  background-color: #33ccff;
+  height: 50px;
+  font-size: .9rem;
+  z-index: 1050; }
+  .chsr.toolbar .navbar-header {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    height: 100%; }
+  .chsr.toolbar > .navbar {
+    display: flex;
+    justify-content: flex-start;
+    height: 100%; }
+  .chsr.toolbar > nav > .navbar-header > a, .chsr.toolbar > nav > .navbar-header > a:hover {
+    color: white; }
+  .chsr.toolbar .btn {
+    border: none;
+    box-shadow: none; }
+    .chsr.toolbar .btn.active {
+      color: #343a40; }
+    .chsr.toolbar .btn:not(.active) {
+      color: #f8f9fa; }
+      .chsr.toolbar .btn:not(.active).transparent {
+        background-color: transparent; }
+
+.chsr .dropdown-menu {
+  color: black;
+  padding: 0;
+  box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.175); }
+  .chsr .dropdown-menu.right-side {
+    left: initial;
+    right: 0; }
+  .chsr .dropdown-menu.open {
+    display: block;
+    background-color: #fefefe; }
+  .chsr .dropdown-menu.closed {
+    display: none; }
+  .chsr .dropdown-menu .dropdown-item {
+    display: block;
+    width: 100%;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    font-size: .85rem;
+    letter-spacing: 1px;
+    cursor: pointer; }
+    .chsr .dropdown-menu .dropdown-item i {
+      padding-right: .25rem; }
+    .chsr .dropdown-menu .dropdown-item:focus, .chsr .dropdown-menu .dropdown-item:hover {
+      background-color: #f8f9fa;
+      text-decoration: none;
+      color: black;
+      transition: all .2s ease-in-out; }
+
+@keyframes scaleYGrowUp {
+  from {
+    transform: scaleY(0); }
+  to {
+    transform: scaleY(1); } }

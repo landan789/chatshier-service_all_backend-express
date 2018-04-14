@@ -59,11 +59,11 @@
                 </div> -->
     
                 <div class="chatroom-container">
-                    <div class="chat-content-panel column col-12 col-lg-7 px-0">
+                    <div class="chat-content-panel col px-0" id="chatContentPanel">
                         <!-- <div class="consumer-profile">
                             <h4 class="display-name"></h4>
                         </div> -->
-                        <div class="chatroom-body" id="chatroomBody"></div>
+                        <div class="chatroom-body"></div>
                         <div class="message-input-container">
                             <div class="message-input form-upper">
                                 <div class="media-container">
@@ -87,16 +87,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="profile-panel d-none col col-lg-5 px-0">
-                        <ul class="nav nav-pills nav-fill">
-                            <li class="nav-item active">
-                                <a class="nav-link show-option" id="show_profile">用戶資料</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link show-option" id="show_todo">待辦事項</a>
-                            </li>
-                        </ul>
-                        <div class="profile-wrapper"></div>
+
+                    <div class="profile-panel d-none col px-0" id="profilePanel">
+                        <div class="profile-wrapper p-2"></div>
+                    </div>
+
+                    <div class="ticket-panel d-none col px-0" id="ticketPanel">
+                        <div class="ticket-wrapper p-2"></div>
                     </div>
                 </div>
             </div>
