@@ -42,13 +42,13 @@ module.exports = (function() {
                 Promise.resolve().then(() => {
                     return new Promise((resolve, reject) => {
                         let userId = payload.uid;
-                        // jwt has expired !
+                        
                         if (payload.exp < Date.now()) {
                             reject(API_ERROR.JWT_HAD_EXPIRED);
                             return;
                         };
                         if (payload.uid !== req.params.userid) {
-                            reject(API_ERROR.USER_WAS_NOT_PERMITTED); // USER_WAS_NOT_PERMITTED
+                            reject(API_ERROR.USER_WAS_NOT_PERMITTED);
                             return;
                         }
                         usersMdl.find(userId, null, (users) => {
