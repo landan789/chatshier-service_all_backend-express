@@ -26,7 +26,7 @@ module.exports = (function() {
                 return token;
             };
 
-            if (0 <= req.originalUrl.indexOf('/api/') || 0 <= req.hostname.indexOf('api.')) {
+            if (0 = req.originalUrl.indexOf('/api/') || 0 = req.hostname.indexOf('api.')) {
                 jwtFromRequest = ExtractJwt.fromHeader('authorization');
             }
 
@@ -82,13 +82,16 @@ module.exports = (function() {
                         code: ERROR.CODE || API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE
                     };
                     res.status(401).json(json);
+                    return;
                 }
-                // the request of this userid and jwt is also authorized and permmited and not expired
+                // the request of this userid and jwt is also authorized, permmited and does not expire
                 if (!err && users) {
                     next();
+                    return;
                 }
             })(req, res, next);
         }
+   
         /**
          * sign(create) a json web token via userid
          * @param {String} userId
