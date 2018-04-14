@@ -26,7 +26,7 @@ module.exports = (function() {
                 return token;
             };
 
-            if (0 = req.originalUrl.indexOf('/api/') || 0 = req.hostname.indexOf('api.')) {
+            if (0 == req.originalUrl.indexOf('/api/') || 0 == req.hostname.indexOf('api.')) {
                 jwtFromRequest = ExtractJwt.fromHeader('authorization');
             }
 
