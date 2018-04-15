@@ -1,5 +1,7 @@
 (function() {
     var BREAKPOINT_SM = 576;
+    var BREAKPOINT_MD = 768;
+    var BREAKPOINT_LG = 992;
     var $navTitle = $('#navTitle');
     $navTitle.text(document.title.replace(' | Chatshier', ''));
 
@@ -42,12 +44,14 @@
                 $ticketPanel.addClass('d-none');
                 $profilePanel.toggleClass('d-none');
 
-                if (window.innerWidth <= BREAKPOINT_SM) {
+                if (window.innerWidth <= BREAKPOINT_LG) {
                     if ($profilePanel.hasClass('d-none')) {
                         $chatContentPanel.removeClass('d-none');
                     } else {
                         $chatContentPanel.addClass('d-none');
                     }
+                } else {
+                    $chatContentPanel.removeClass('d-none');
                 }
 
                 $profilePanel.find('.profile-group').hide();
@@ -58,12 +62,14 @@
                 $profilePanel.addClass('d-none');
                 $ticketPanel.toggleClass('d-none');
 
-                if (window.innerWidth <= BREAKPOINT_SM) {
+                if (window.innerWidth <= BREAKPOINT_LG) {
                     if ($ticketPanel.hasClass('d-none')) {
                         $chatContentPanel.removeClass('d-none');
                     } else {
                         $chatContentPanel.addClass('d-none');
                     }
+                } else {
+                    $chatContentPanel.removeClass('d-none');
                 }
 
                 $ticketPanel.find('.ticket-group').hide();

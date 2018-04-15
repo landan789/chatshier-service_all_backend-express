@@ -17,16 +17,22 @@
   .chsr.side-menu .side-menu-title {
     font-size: 1.25rem; }
   .chsr.side-menu .list-group-item {
+    display: flex;
+    align-items: center;
     background-color: #4d394b;
     cursor: pointer;
     border: none; }
     .chsr.side-menu .list-group-item span {
-      padding-left: .25rem; }
+      padding-left: .25rem;
+      max-width: 60%;
+      white-space: nowrap;
+      overflow-x: hidden;
+      text-overflow: ellipsis; }
   .chsr.side-menu .nested > :first-child {
-    padding-left: 1rem;
-    padding-right: .25rem; }
+    margin-left: 1rem;
+    margin-right: .25rem; }
   .chsr.side-menu .nested .nested > :first-child {
-    padding-left: 2.5rem; }
+    margin-left: 2rem; }
   .chsr.side-menu .swiper-wrapper {
     height: 90%; }
   .chsr.side-menu .swiper-slide {
@@ -36,6 +42,10 @@
     background-color: white; }
   .chsr.side-menu .swiper-pagination-bullet-active {
     background-color: #33ccff; }
+  .chsr.side-menu .app-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: .5rem; }
 
 .side-menu-backdrop {
   position: absolute;

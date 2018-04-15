@@ -18,6 +18,7 @@
     var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
     var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
     var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
+    var CHATSHIER_LOGO = '/image/logo-no-transparent.png';
 
     var SOCKET_NAMESPACE = '/chatshier';
     var BREAKPOINT_SM = 576;
@@ -800,9 +801,10 @@
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '" platform-uid="' + opts.platformUid + '">' +
-                '<i class="' + opts.icon + '"></i>' +
+                // '<i class="' + opts.icon + '"></i>' +
+                '<img class="app-icon" src="' + opts.iconSrc + '" />' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + opts.clientName + '</span>' +
-                '<span class="unread-msg badge badge-pill' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+                '<span class="unread-msg badge badge-pill ml-auto' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
         );
         return html;
@@ -908,16 +910,20 @@
         switch (appType) {
             case LINE:
                 clientUiOpts.icon = 'fab fa-line';
+                clientUiOpts.iconSrc = LINE_LOGO;
                 break;
             case FACEBOOK:
                 clientUiOpts.icon = 'fab fa-facebook-messenger';
+                clientUiOpts.iconSrc = FACEBOOK_LOGO;
                 break;
             case WECHAT:
                 clientUiOpts.icon = 'fab fa-weixin';
+                clientUiOpts.iconSrc = WECHAT_LOGO;
                 break;
             case CHATSHIER:
             default:
                 clientUiOpts.icon = 'fas fa-comment-dots';
+                clientUiOpts.iconSrc = CHATSHIER_LOGO;
                 break;
         }
         var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);

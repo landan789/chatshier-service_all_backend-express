@@ -24,6 +24,10 @@ button:focus {
     outline: none !important;
 }
 
+.root .animated {
+    animation-duration: 300ms;
+}
+
 .page-wrapper {
     position: relative;
 }
