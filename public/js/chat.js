@@ -856,6 +856,8 @@
 
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
+        opts.clientPhoto = opts.clientPhoto || '/image/user_large.png';
+
         var html =
             '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
@@ -1066,6 +1068,7 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
         var person = requireData.person;
+        person.photo = person.photo || '/image/user_large.png';
 
         var profilePanelHtml = (
             '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
