@@ -44,6 +44,7 @@
 
     // selectors
     var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
+    var $sideMenuChatroomCollapse = $('#sideMenuChatroomCollapse');
     var $chatroomBody = $('#chatContentPanel .chatroom-body'); // 聊天室空間
     var $profilePanel = $('#profilePanel');
     var $profileWrapper = $profilePanel.find('.profile-wrapper');
@@ -207,10 +208,10 @@
             var $ticketTable = $(this).parentsUntil('.ticket').last();
             var $tableRows = $ticketTable.find('.ticket-body tr');
             var searchStr = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $tableRows.show().filter(function() {
+            $tableRows.removeClass('d-none').filter(function() {
                 var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
                 return !~text1.indexOf(searchStr);
-            }).hide();
+            }).addClass('d-none');
         };
 
         TicketTableCtrl.prototype.loadTickets = function(appId, userId, platformUid) {
@@ -644,7 +645,7 @@
                         createTicketPanel(uiRequireData);
                         return;
                     }
-                    updateClientTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     // 更新 consumer chat information 資料
@@ -737,6 +738,34 @@
     }
 
     function responseChatData(apps) {
+        // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
+        $sideMenuChatroomCollapse.append(
+            '<li class="text-light nested list-group-item has-collapse unread">' +
+                '<i class="fas fa-user-times"></i>' +
+                '<span>未讀</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested unread show"></div>' +
+            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + LINE + '">' +
+                '<img class="app-icon" src="' + LINE_LOGO + '" />' +
+                '<span>' + LINE + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested show" app-type="' + LINE + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + FACEBOOK + '">' +
+                '<img class="app-icon" src="' + FACEBOOK_LOGO + '" />' +
+                '<span>' + FACEBOOK + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested show" app-type="' + FACEBOOK + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + CHATSHIER + '">' +
+                '<img class="app-icon" src="' + CHATSHIER_LOGO + '" />' +
+                '<span>' + CHATSHIER + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested show" app-type="' + CHATSHIER + '"></div>'
+        );
+
         for (var appId in apps) {
             var app = apps[appId];
             var chatrooms = appsChatrooms[appId].chatrooms;
@@ -801,10 +830,9 @@
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '" platform-uid="' + opts.platformUid + '">' +
-                // '<i class="' + opts.icon + '"></i>' +
-                '<img class="app-icon" src="' + opts.iconSrc + '" />' +
+                '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + opts.clientName + '</span>' +
-                '<span class="unread-msg badge badge-pill ml-auto' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+                '<span class="unread-msg badge badge-pill ml-auto bg-info' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
         );
         return html;
@@ -822,7 +850,7 @@
                     '<b><span class="client-name">' + opts.clientName + '</span>' + opts.messageHtml + '</b>' +
                 '</div>' +
                 '<div class="app-name"><snap>' + opts.appName + '</snap></div>' +
-                '<div class="chsr unread-msg badge badge-pill"' + (!opts.unRead ? ' style="display: none"' : '') + '>' + unReadStr + '</div>' +
+                '<div class="chsr unread-msg badge badge-pill bg-info' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</div>' +
             '</button>';
         return html;
     }
@@ -841,17 +869,19 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
-        return '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
-            '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
-                '<span>' + (senderrName || '') + '</span>' +
-            '</div>' +
-            '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
-                '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
-                '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
-                '<strong></strong>' +
-            '</span>' +
-            '<br/>' +
-        '</div>';
+        return (
+            '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
+                '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
+                    '<span>' + (senderrName || '') + '</span>' +
+                '</div>' +
+                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
+                    '<strong></strong>' +
+                '</span>' +
+                '<br/>' +
+            '</div>'
+        );
     }
 
     function createChatroom(requireData) {
@@ -922,13 +952,32 @@
                 break;
             case CHATSHIER:
             default:
-                clientUiOpts.icon = 'fas fa-comment-dots';
+                clientUiOpts.icon = 'fas fa-warehouse';
                 clientUiOpts.iconSrc = CHATSHIER_LOGO;
                 break;
         }
         var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
-        var $sideMenuChatroomCollapse = $('#sideMenuChatroomCollapse');
-        $sideMenuChatroomCollapse.prepend(chatroomItemHtml);
+
+        var $appCollapse = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"]');
+        var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
+        if (0 === $chatroomCollapse.length) {
+            $appCollapse.append(
+                '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
+                    '<i class="' + clientUiOpts.icon + '"></i>' +
+                    '<span>' + appName + '</span>' +
+                    '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '</li>' +
+                '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
+                    chatroomItemHtml +
+                '</div>'
+            );
+        } else {
+            $chatroomCollapse.prepend(chatroomItemHtml);
+        }
+
+        if (messagerSelf.unRead) {
+            $sideMenuChatroomCollapse.find('.collapse.unread').append(chatroomItemHtml);
+        }
 
         // 中間聊天室
         var messageText = '';
@@ -1268,11 +1317,11 @@
 
         switch (selectRel) {
             case 'all':
-                $allTablinks.show();
+                $allTablinks.removeClass('d-none');
                 break;
             case 'group':
-                $allTablinks.hide();
-                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').show();
+                $allTablinks.addClass('d-none');
+                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').removeClass('d-none');
                 break;
             case 'unread':
                 $tablinksArea.find('.unread-msg').each(function() {
@@ -1280,15 +1329,15 @@
                     var $tablinkWrapper = $unReadElem.parentsUntil('.list-group').last();
 
                     if (!parseInt($unReadElem.text(), 10)) {
-                        $tablinkWrapper.hide();
+                        $tablinkWrapper.addClass('d-none');
                     } else {
-                        $tablinkWrapper.show();
+                        $tablinkWrapper.removeClass('d-none');
                     }
                 });
                 break;
             case 'assigned':
             case 'unassigned':
-                $allTablinks.hide();
+                $allTablinks.addClass('d-none');
                 var isFindAssigned = ('assigned' === selectRel);
                 $('[alias="assigned"] .td-inner .multi-select-values').each(function() {
                     var assignedText = $(this).text();
@@ -1298,33 +1347,41 @@
                         (!isFindAssigned && !assignedUsers.length)) {
                         var $parentCard = $(this).parents('.profile-group');
                         var appId = $parentCard.attr('app-id');
-                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').show();
+                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').removeClass('d-none');
                     }
                 });
                 break;
             default:
-                $allTablinks.hide();
-                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').show();
+                $allTablinks.addClass('d-none');
+                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').removeClass('d-none');
                 break;
         }
     }
 
     function clickUserTablink() {
-        var $userTablink = $(this);
+        var $targetTablink = $(this);
         var $messageInputContainer = $('.message-input-container');
 
-        var appId = $userTablink.attr('app-id');
+        var appId = $targetTablink.attr('app-id');
         var appName = apps[appId].name;
-        var appType = $userTablink.attr('app-type');
-        var chatroomId = $userTablink.attr('chatroom-id');
-        var platformUid = $userTablink.attr('platform-uid');
+        var appType = $targetTablink.attr('app-type');
+        var chatroomId = $targetTablink.attr('chatroom-id');
+        var platformUid = $targetTablink.attr('platform-uid');
+        var $chatroomTablink = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"] .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
+
+        var $navTitle = $('#navTitle');
+        var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
+        if (CHATSHIER !== appType) {
+            chatroomTitle += ' (' + consumers[platformUid].name + ')';
+        }
+        $navTitle.text(chatroomTitle);
 
         $('.tablinks.selected').removeClass('selected').css('background-color', '');
-        $userTablink.addClass('selected').css('background-color', COLOR.CLICKED);
+        $chatroomTablink.addClass('selected').css('background-color', COLOR.CLICKED);
 
         ticketTableCtrl.loadTickets(appId, userId, platformUid);
 
-        var $unReadElem = $userTablink.find('.unread-msg');
+        var $unReadElem = $chatroomTablink.find('.unread-msg');
         if (parseInt($unReadElem.text(), 10)) {
             chatshierSocket.emit(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, {
                 appId: appId,
@@ -1335,20 +1392,24 @@
             messagerSelf.unRead = 0;
 
             // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
-            $userTablink.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
-            $unReadElem.text(messagerSelf.unRead).hide();
+            $chatroomTablink.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
+            $unReadElem.text(messagerSelf.unRead).addClass('d-none');
+            $sideMenuChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
         }
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
-        !$chatroomContainer.hasClass('open') && $chatroomContainer.addClass('open');
+        $chatroomContainer.addClass('open');
+        $chatroomContainer.find('.chat-content-panel').removeClass('d-none');
         // $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        $messageInputContainer.show();
-        $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
-        $profileGroup.show().siblings().hide();
+        $messageInputContainer.removeClass('d-none');
+        $messageWrapper.addClass('shown').removeClass('d-none');
+        $messageWrapper.siblings().removeClass('shown').addClass('d-none');
+        $profileGroup.removeClass('d-none');
+        $profileGroup.siblings().addClass('d-none');
         scrollMessagePanelToBottom(appId, chatroomId);
 
         var $ticketToggle = $('.toolbar #ticketToggle');
@@ -1417,6 +1478,7 @@
         if (parseInt($unReadElem.text(), 10)) {
             var appId = $tablinksSelected.attr('app-id');
             var chatroomId = $tablinksSelected.attr('chatroom-id');
+            var platformUid = $tablinksSelected.attr('platform-uid');
 
             chatshierSocket.emit(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, {
                 appId: appId,
@@ -1425,7 +1487,8 @@
             });
             var messagerSelf = findMessagerSelf(appId, chatroomId);
             messagerSelf.unRead = 0;
-            $unReadElem.text(messagerSelf.unRead).hide();
+            $unReadElem.text(messagerSelf.unRead).addClass('d-none');
+            $sideMenuChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
         }
     }
 
@@ -1641,7 +1704,7 @@
         var senderName = SYSTEM === message.from ? 'Chatshier' : sender.name;
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
-        var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
+        var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         $selectedTablinks.find('.client-name').text(senderName);
 
         /** @type {ChatshierMessage} */
@@ -1654,15 +1717,37 @@
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var currentUnread = messagerSelf.unRead;
         var $unreadMsgElem = $selectedTablinks.find('.unread-msg');
-        if (currentUnread > 99) {
-            $unreadMsgElem.text('99+').css('display', '');
+
+        if (!currentUnread) {
+            $unreadMsgElem.text(0).addClass('d-none');
         } else {
-            $unreadMsgElem.text(currentUnread).css('display', !currentUnread ? 'none' : ''); // 未讀訊息數顯示出來
+            $unreadMsgElem.text(currentUnread > 99 ? '99+' : currentUnread).removeClass('d-none');
         }
 
         $selectedTablinks.remove();
         $('.tablinks-area>#clients').prepend($selectedTablinks);
     }
+
+    function updateChatroomTab(messager, message, appId, chatroomId) {
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var currentUnread = messagerSelf.unRead;
+
+        var $selectedTablinks = $('#sideMenuChatroomCollapse .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $unreadMsgElem = $selectedTablinks.find('.unread-msg');
+
+        if (!currentUnread) {
+            $unreadMsgElem.text(0).addClass('d-none');
+        } else {
+            $unreadMsgElem.text(currentUnread > 99 ? '99+' : currentUnread).removeClass('d-none');
+        }
+
+        var $unreadCollapse = $sideMenuChatroomCollapse.find('.collapse.unread');
+        var $unreadChatroomTab = $unreadCollapse.find('.list-group-item[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        if (currentUnread && 0 === $unreadChatroomTab.length) {
+            $unreadCollapse.prepend($selectedTablinks.clone());
+        }
+    }
+
     // =====end chat function=====
 
     // =====start profile function=====
@@ -1848,7 +1933,7 @@
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    var $searchWapper = $('#person .message-search');
+    var $searchWapper = $('#sideMenu .message-search');
     var $searchInput = $searchWapper.find('.search-box');
 
     $searchInput.on('keyup', function(ev) {
@@ -1858,10 +1943,12 @@
             displayAll();
 
             $('.tablinks').each(function() {
-                var appId = $(this).attr('app-id');
-                var chatroomId = $(this).attr('chatroom-id');
-                var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-                panel.find('.message .content').removeClass('found');
+                var $tablink = $(this);
+                var appId = $tablink.attr('app-id');
+                var chatroomId = $tablink.attr('chatroom-id');
+                var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+                $chatContent.find('.message .content').removeClass('found');
+                $tablink.removeClass('d-none');
             });
         }
 
@@ -1940,7 +2027,7 @@
                 $(this).css('color', color);
             }
 
-            $(this).css('display', display ? '' : 'none');
+            display ? $(this).removeClass('d-none') : $(this).addClass('d-none');
         });
     });
 
@@ -1997,8 +2084,8 @@
     function displayAll() {
         $('.tablinks-area .tablinks').each(function() {
             var $tablinkElem = $(this);
+            $tablinkElem.removeClass('d-none');
             $tablinkElem.css({
-                display: '',
                 'background-color': ''
             });
 

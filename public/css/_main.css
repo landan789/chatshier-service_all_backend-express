@@ -30,7 +30,15 @@ button:focus {
 
 .page-wrapper {
     position: relative;
+    max-width: calc(100% - 16rem);
 }
+
+@media (max-width: 576px) {
+    .page-wrapper {
+        max-width: 100%;
+    }
+}
+
 
 .btn-border {
     border: 1px solid #bbb;

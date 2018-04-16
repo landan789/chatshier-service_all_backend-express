@@ -19,6 +19,9 @@
         });
         $sideMenuChatroomItem.siblings('#sideMenuChatroomCollapse').remove();
         $sideMenuChatroomItem = void 0;
+
+        // 聊天室其他頁面不需要顯示聊天室訊息搜尋功能
+        $sideMenu.find('.message-search').remove();
     }
 
     var Swiper = window.Swiper;
