@@ -175,8 +175,8 @@
                             '<td class="description d-none d-sm-table-cell">' + ticket.description + '</td>' +
                             '<td class="status">' + statusNumberToText(ticket.status) + '</td>' +
                             '<td class="priority">' + priorityNumberToText(ticket.priority) + '</td>' +
-                            '<td class="due-time d-none d-md-table-cell">' + toLocalTimeString(ticket.dueTime) + '</td>' +
-                            '<td class="assigened d-none d-md-table-cell">' + (agent ? agent.name : '無') + '</td>' +
+                            '<td class="due-time d-none d-lg-table-cell">' + toLocalTimeString(ticket.dueTime) + '</td>' +
+                            '<td class="assigened d-none d-lg-table-cell">' + (agent ? agent.name : '無') + '</td>' +
                             '<td class="due-time-text">' + dueDate(ticket.dueTime) + '</td>' +
                         '</tr>');
                 }
