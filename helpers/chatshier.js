@@ -138,9 +138,9 @@ module.exports = (function() {
         getKeywordreplies(messages, appId, app) {
             let keywordreplies = {};
             return Promise.all(messages.map((message) => {
-                let eventType = message.eventType;
+                let eventType = message.eventType || message.type;
                 let text = message.text;
-                if ('message' !== eventType || '' === message.text) {
+                if (('text' !== eventType && 'message' !== eventType) || '' === message.text) {
                     return Promise.resolve();
                 }
                 return new Promise((resolve, reject) => {

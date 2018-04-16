@@ -8,9 +8,10 @@ module.exports = (function() {
 
         requestNotExistentPath(req, res, next) {
             res.redirect('/signin');
+            return;
         }
         /**
-         * middleware: respone 500
+         * middleware: respone 400
          */
         requestNotExistentApi(req, res, next) {
             let json = {
@@ -18,6 +19,7 @@ module.exports = (function() {
                 msg: API_ERROR.REQUESTED_NOT_EXISTENT_API.MSG
             };
             res.status(400).json(json);
+            return;
         }
     };
     return new RouterHelper();

@@ -20,7 +20,7 @@ router.use(
 
 router.post('/signup/', signCtl.postSignup);
 router.post('/signin/', signCtl.postSignin);
-router.post('/signout/', jwtHlp.authenticate('HEADER', null), signCtl.postSignout);
-router.post('/refresh/users/:userid', jwtHlp.authenticate('HEADER', null), signCtl.postRefresh);
+router.post('/signout/', jwtHlp.authenticate, signCtl.postSignout);
+router.post('/refresh/users/:userid', jwtHlp.authenticate, signCtl.postRefresh);
 
 module.exports = router;

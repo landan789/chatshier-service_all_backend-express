@@ -45,7 +45,7 @@ function init(server) {
     let chatshierNsp = socketIOServer.of('/chatshier');
     let webhookProcQueue = [];
 
-    app.get('/webhook/:webhookId', function(req, res) {
+    app.get('/webhook/:webhookid', function(req, res) {
         // Facebook
         if (req.query['hub.verify_token']) {
             if (FACEBOOK_WEBHOOK_VERIFY_TOKEN === req.query['hub.verify_token']) {

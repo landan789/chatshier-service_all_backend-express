@@ -83,7 +83,6 @@ module.exports = (function() {
 
         postSignout(req, res, next) {
             let token;
-            let users;
             return Promise.resolve().then(() => {
                 let json = {
                     status: 1,
