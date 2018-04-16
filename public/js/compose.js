@@ -78,12 +78,24 @@
         let conditionValue = $conditionInput.val();
 
         $conditionDiv.hide();
+
+        if (!conditionValue) {
+            $fieldBtn.show();
+            return;
+        }
+
+        let checkResult = fieldsCheck(btnName, conditionValue);
+
+        if (!checkResult) {
+            $fieldBtn.show();
+            return;
+        }
         $conditionInput.attr('value', conditionValue);
         $fieldBtn.removeClass();
         $fieldBtn.attr('class', 'btn btn-info');
         $fieldBtn.text(btnName + ':' + conditionValue).show();
     });
-    $composesAddModal.find('#quickAdd').on('click', insertSubmit);
+
     $historyTableElem = $('#composes_history_table tbody');
     $reservationTableElem = $('#composes_reservation_table tbody');
     $draftTableElem = $('#composes_draft_table tbody');
@@ -286,6 +298,7 @@
             });
         });
     });
+
     return api.apps.findAll(userId).then(function(respJson) {
         appsData = respJson.data;
 
@@ -412,6 +425,7 @@
             }
         });
     }
+
     function appendFields(composeData) {
         let composeFields = {
             'ageRange': {
@@ -710,6 +724,7 @@
             });
         }
     }
+
     function fieldsObjCompose(conditionInputElement) {
         conditionInputElement.each(function () {
             var conditionVal = $(this).val();
@@ -744,7 +759,7 @@
                             gender = 'FEMALE';
                             break;
                         default:
-                            gender = conditionVal;
+                            gender = conditionVal.toUpperCase();
                     }
                     break;
                 default:
@@ -754,6 +769,37 @@
             }
         });
     }
+
+    function fieldsCheck(btnName, value) {
+        switch (btnName) {
+            case '年齡':
+                if (value && !value.includes('~')) {
+                    $.notify('請輸入兩數字區間 e.g.10~20', { type: 'warning' });
+                    return false;
+                }
+                let ageRange = value.split('~');
+                for (let i in ageRange) {
+                    ageRange[i] = parseInt(ageRange[i]);
+                    if (ageRange[i] < 0 && ageRange[i] > 130) {
+                        $.notify('請輸入 0 到 130 之間的數字區間', { type: 'warning' });
+                        return false;
+                    }
+                }
+                return true;
+            case '性別':
+                if (value && ('男' === value || '女' === value ||
+                'MALE' === value.toUpperCase() || 'FEMALE' === value.toUpperCase()
+                )) {
+                    return true;
+                }
+
+                $.notify('請輸入 男/女 或 male/female', { type: 'warning' });
+                return false;
+            default:
+                return true;
+        }
+    }
+
     function insert(appId, userId, messages, options) {
         options = options || {};
 

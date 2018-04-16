@@ -291,8 +291,10 @@
         $appModal.append(str);
     });
 
-    findAllGroups();
-    findAllApps(); // 列出所有設定的APPs
+    findAllGroups().then(() => {
+        return findAllApps(); 
+    });
+   // 列出所有設定的APPs
     findUserProfile();
 
     // ===============
@@ -1371,23 +1373,23 @@
 
             switch (app.type) {
                 case LINE:
-                    $('[app-id=["' + appId + '"] #prof-name1').html(app.name);
-                    $('[app-id=["' + appId + '"] #prof-channelId_1').html(app.id1);
-                    $('[app-id=["' + appId + '"] #prof-channelSecret_1').html(app.secret);
-                    $('[app-id=["' + appId + '"] #prof-channelAccessToken_1').html(app.token1);
+                    $('[app-id="' + appId + '"] #prof-name1').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-channelId_1').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-channelSecret_1').html(app.secret);
+                    $('[app-id="' + appId + '"] #prof-channelAccessToken_1').html(app.token1);
                     break;
                 case FACEBOOK:
-                    $('[app-id=["' + appId + '"] #prof-fbPageName').html(app.name);
-                    $('[app-id=["' + appId + '"] #prof-fbPageId').html(app.id1);
-                    $('[app-id=["' + appId + '"] #prof-fbAppId').html(app.id2);
-                    $('[app-id=["' + appId + '"] #prof-fbAppSecret').html(app.secret);
-                    $('[app-id=["' + appId + '"] #prof-fbValidToken').html(app.token1);
-                    $('[app-id=["' + appId + '"] #prof-fbPageToken').html(app.token2);
+                    $('[app-id="' + appId + '"] #prof-fbPageName').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-fbPageId').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-fbAppId').html(app.id2);
+                    $('[app-id="' + appId + '"] #prof-fbAppSecret').html(app.secret);
+                    $('[app-id="' + appId + '"] #prof-fbValidToken').html(app.token1);
+                    $('[app-id="' + appId + '"] #prof-fbPageToken').html(app.token2);
                     break;
                 case WECHAT:
-                    $('[app-id=["' + appId + '"] #prof-wechat-app-name').html(app.name);
-                    $('[app-id=["' + appId + '"] #prof-wechat-app-id').html(app.id1);
-                    $('[app-id=["' + appId + '"] #prof-wechat-app-secret').html(app.secret);
+                    $('[app-id="' + appId + '"] #prof-wechat-app-name').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-wechat-app-id').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-wechat-app-secret').html(app.secret);
                     break;
                 default:
                     break;
@@ -1416,7 +1418,32 @@
                 let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
                 $('#app-group').html(str);
                 $.notify('成功刪除!', { type: 'success' });
-                $('tr.' + appId).remove();
+                var apps = resJson.data;
+                var app = apps[appId];
+    
+                switch (app.type) {
+                    case LINE:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    case FACEBOOK:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    case WECHAT:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    default:
+                        break;
+                };
             }).catch((resJson) => {
                 if (!resJson.status) {
                     $.notify('失敗', { type: 'danger' });
@@ -1614,7 +1641,7 @@
                 appStr =
                     '<form>' +
                         '<div id="type" class="d-none">updateApp</div>' +
-                        '<div class="form-group" class="d-none">' +
+                        '<div class="form-group d-none" >' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
@@ -1651,7 +1678,7 @@
                 appStr =
                     '<form>' +
                         '<div id="type" class="d-none">updateApp</div>' +
-                        '<div class="form-group" class="d-none">' +
+                        '<div class="form-group d-none">' +
                             '<label class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
@@ -1700,7 +1727,7 @@
                 appStr =
                     '<form>' +
                         '<div id="type" class="d-none">updateApp</div>' +
-                        '<div class="form-group" class="d-none">' +
+                        '<div class="form-group d-none">' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
