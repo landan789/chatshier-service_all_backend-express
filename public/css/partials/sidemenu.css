@@ -2,8 +2,8 @@
   min-width: 16rem;
   max-width: 16rem;
   min-height: 100%;
-  background-color: #0a1f42;
-  z-index: 1060; }
+  background-color: #4a8998;
+  z-index: 1040; }
   .chsr.side-menu.animated {
     position: absolute;
     left: 0;
@@ -19,9 +19,11 @@
   .chsr.side-menu .list-group-item {
     display: flex;
     align-items: center;
-    background-color: #0a1f42;
+    background-color: #4a8998;
     cursor: pointer;
-    border: none; }
+    border: none;
+    letter-spacing: 1.2px;
+    font-weight: 300; }
     .chsr.side-menu .list-group-item > :first-child {
       margin-right: .5rem; }
     .chsr.side-menu .list-group-item span {
@@ -51,7 +53,7 @@
   .chsr.side-menu .app-icon {
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: .5rem; }
+    border-radius: .25rem; }
 
 .side-menu-backdrop {
   position: absolute;
@@ -59,7 +61,7 @@
   top: 0;
   width: calc(100vw - 16rem);
   height: 100vh;
-  z-index: 1059;
+  z-index: 1039;
   background-color: transparent; }
 
 @keyframes sideMenuSlideIn {

@@ -1,6 +1,6 @@
 <div class="chsr side-menu swiper-container h-100 d-none d-sm-block" id="sideMenu">
     <div class="swiper-wrapper">
-        <div class="swiper-slide">
+        <div class="swiper-slide" id="appsSlide">
             <ul class="list-group">
                 <li class="text-light list-group-item">
                     <span class="side-menu-title">Chatshier</span>
@@ -11,19 +11,19 @@
                 </li>
                 <div class="collapse show">
                     <li class="text-light nested list-group-item has-collapse">
-                        <i class="fab fa-line"></i>
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" />
                         <span>LINE</span>
                         <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                     </li>
                     <div class="nested collapse line-collapse show"></div>
                     <li class="text-light nested list-group-item has-collapse">
-                        <i class="fab fa-facebook-messenger"></i>
+                        <img class="app-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png" />
                         <span>FACEBOOK</span>
                         <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                     </li>
                     <div class="nested collapse fb-collapse show"></div>
                     <li class="text-light nested list-group-item has-collapse">
-                        <i class="fas fa-comment-dots"></i>
+                        <img class="app-icon" src="/image/logo-no-transparent.png" />
                         <span>CHATSHIER</span>
                         <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                     </li>
@@ -42,7 +42,7 @@
                     <span class="side-menu-title">Chatshier</span>
                     <i class="ml-auto py-1 fas fa-bars d-sm-none menu-toggle"></i>
                 </li>
-                <li class="search message-search text-light list-group-item">
+                <li class="search message-search text-light list-group-item" id="messageSearch">
                     <input type="text" class="search-box" placeholder="搜尋文字訊息...">
                     <div class="search-results d-none">
                         <div class="number">
@@ -100,4 +100,7 @@
     </div>
     <div class="swiper-pagination"></div>
 </div>
-<div class="d-none side-menu-backdrop" id="sideMenuBackdrop"></div>
+
+<div class="side-menu-backdrop d-none" id="sideMenuBackdrop"></div>
+
+<% include ./modals/setting_modal.ejs %>

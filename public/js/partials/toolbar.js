@@ -1,6 +1,6 @@
 (function() {
-    var BREAKPOINT_SM = 576;
-    var BREAKPOINT_MD = 768;
+    // var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
     var $navTitle = $('#navTitle');
     $navTitle.text(document.title.replace(' | Chatshier', ''));
@@ -27,7 +27,6 @@
 
         var appId = $selectedTablink.attr('app-id');
         var chatroomId = $selectedTablink.attr('chatroom-id');
-        var appType = $selectedTablink.attr('app-type');
 
         var $shownChatroom = $('.chat-content.shown[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         if (0 === $shownChatroom.length) {

@@ -1,4 +1,14 @@
 (function() {
+    // var chatshier = window.chatshier || {};
+    // var api = window.restfulAPI;
+    // var userId;
+    // try {
+    //     var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+    //     userId = payload.uid;
+    // } catch (ex) {
+    //     userId = '';
+    // }
+
     var $toolbar = $('.toolbar');
     var $sideMenu = $('#sideMenu');
     var $sideMenuBackdrop = $('#sideMenuBackdrop');
@@ -21,8 +31,15 @@
         $sideMenuChatroomItem = void 0;
 
         // 聊天室其他頁面不需要顯示聊天室訊息搜尋功能
-        $sideMenu.find('.message-search').remove();
+        $sideMenu.find('#messageSearch').remove();
+
+        // // 聊天室其他頁面關閉新增，編輯 apps 功能
+        // $sideMenu.find('#appsSlide').remove();
+        // $sideMenu.find('.swiper-pagination').remove();
     }
+    // Todo: 功能尚未完成，關閉新增，編輯 apps 功能
+    $sideMenu.find('#appsSlide').remove();
+    $sideMenu.find('.swiper-pagination').remove();
 
     var Swiper = window.Swiper;
     var sideMenuSwiper = new Swiper('#sideMenu.swiper-container', {

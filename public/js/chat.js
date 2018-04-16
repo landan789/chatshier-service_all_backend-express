@@ -24,7 +24,6 @@
     var BREAKPOINT_SM = 576;
 
     var api = window.restfulAPI;
-
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -439,6 +438,7 @@
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.side-menu .tablinks', clickUserTablink);
+    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
@@ -704,31 +704,47 @@
                 var html =
                     '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + app.name + '">' +
                         '<img class="software-icon" src="' + imgSrc + '">' +
-                        '<div class="unread-count"></div>' +
+                        '<div class="unread-count d-none"></div>' +
                     '</div>';
                 return html;
             };
 
             var tabAppItem = '';
-            var collapseAppItem =
-                '<li class="text-light nested list-group-item">' +
-                    '<span>' + app.name + '</span>' +
-                '</li>';
             switch (app.type) {
                 case LINE:
                     tabAppItem = buildHtml(app.type, LINE_LOGO);
-                    $lineSideCollapse.append(collapseAppItem);
+                    $lineSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-line"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 case FACEBOOK:
                     tabAppItem = buildHtml(app.type, FACEBOOK_LOGO);
-                    $fbSideCollapse.append(collapseAppItem);
+                    $fbSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-facebook-messenger"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 case WECHAT:
                     tabAppItem = buildHtml(app.type, WECHAT_LOGO);
-                    $wechatSideCollapse.append(collapseAppItem);
+                    $wechatSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-weixin"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 case CHATSHIER:
-                    $chatshierSideCollapse.append(collapseAppItem);
+                    $chatshierSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fas fa-copyright"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 default:
                     break;
@@ -832,7 +848,7 @@
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '" platform-uid="' + opts.platformUid + '">' +
                 '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + opts.clientName + '</span>' +
-                '<span class="unread-msg badge badge-pill ml-auto bg-info' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+                '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
         );
         return html;
@@ -841,7 +857,7 @@
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
         var html =
-            '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
+            '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
                     '<img class="consumer-avatar" src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
                     '<img class="software-icon" src="' + opts.iconSrc + '">' +
@@ -850,7 +866,7 @@
                     '<b><span class="client-name">' + opts.clientName + '</span>' + opts.messageHtml + '</b>' +
                 '</div>' +
                 '<div class="app-name"><snap>' + opts.appName + '</snap></div>' +
-                '<div class="chsr unread-msg badge badge-pill bg-info' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</div>' +
+                '<div class="chsr unread-msg badge badge-pill bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</div>' +
             '</button>';
         return html;
     }
@@ -919,24 +935,6 @@
             messageHtml: messageToClientHtml(lastMessage)
         };
 
-        // switch (appType) {
-        //     case LINE:
-        //         clientUiOpts.iconSrc = LINE_LOGO;
-        //         break;
-        //     case FACEBOOK:
-        //         clientUiOpts.iconSrc = FACEBOOK_LOGO;
-        //         break;
-        //     case WECHAT:
-        //         clientUiOpts.iconSrc = WECHAT_LOGO;
-        //         break;
-        //     case CHATSHIER:
-        //     default:
-        //         clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
-        //         break;
-        // }
-        // var tablinkHtml = generateClientHtml(clientUiOpts);
-        // $('#clients').prepend(tablinkHtml);
-
         switch (appType) {
             case LINE:
                 clientUiOpts.icon = 'fab fa-line';
@@ -952,12 +950,14 @@
                 break;
             case CHATSHIER:
             default:
-                clientUiOpts.icon = 'fas fa-warehouse';
+                clientUiOpts.icon = 'fas fa-copyright';
                 clientUiOpts.iconSrc = CHATSHIER_LOGO;
                 break;
         }
-        var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
+        var tablinkHtml = generateClientHtml(clientUiOpts);
+        $('#clients').prepend(tablinkHtml);
 
+        var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
         var $appCollapse = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"]');
         var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
         if (0 === $chatroomCollapse.length) {
@@ -1447,30 +1447,6 @@
         });
     }
 
-    function detectScrollTop(ele) {
-        if (!ele.scrollTop()) {
-            var tail = parseInt(ele.attr('data-position'), 10);
-            var head = parseInt(ele.attr('data-position'), 10) - 20;
-            if (head < 0) {
-                head = 0;
-            }
-
-            var request = {
-                appId: ele.parent().attr('app-id'),
-                chatroomId: ele.parent().attr('chatroom-id'),
-                head: head,
-                tail: tail
-            };
-
-            if (!head) {
-                ele.off('scroll');
-            }
-
-            ele.attr('data-position', head);
-            // chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
-        }
-    }
-
     function readClientMsg() {
         var $tablinksSelected = $('.tablinks.selected');
         var $unReadElem = $tablinksSelected.find('.unread-msg');
@@ -1560,14 +1536,15 @@
         var file = _this.files[0];
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        if (file.type.indexOf('image') >= 0 && file.size > window.chatshierConfig.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.imageFileMaxSize / (1024 * 1000)) + ' MB');
+        var config = window.chatshier.config;
+        if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
             return;
-        } else if (file.type.indexOf('video') >= 0 && file.size > window.chatshierConfig.videoFileMaxSize) {
-            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.videoFileMaxSize / (1024 * 1000)) + ' MB');
+        } else if (file.type.indexOf('video') >= 0 && file.size > config.videoFileMaxSize) {
+            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / (1024 * 1000)) + ' MB');
             return;
-        } else if (file.type.indexOf('audio') >= 0 && file.size > window.chatshierConfig.audioFileMaxSize) {
-            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.audioFileMaxSize / (1024 * 1000)) + ' MB');
+        } else if (file.type.indexOf('audio') >= 0 && file.size > config.audioFileMaxSize) {
+            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / (1024 * 1000)) + ' MB');
             return;
         }
 
@@ -1751,33 +1728,12 @@
     // =====end chat function=====
 
     // =====start profile function=====
-    function showProfile() {
-        $('.nav li.active').removeClass('active');
-        $(this).parent().addClass('active');
-
-        var $profileWrappers = $('#profilePanel .profile-wrapper');
-        $profileWrappers.find('.profile-content').removeClass('d-none');
-        $profileWrappers.find('.todo-tickets').addClass('d-none');
-    }
-
-    // function userInfoClick() {
-    //     var val = $(this).text(); //抓目前的DATA
-    //     var td = $(this).parents('.user-info-td');
-    //     td.html('<input class="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
-    //     td.find('input').select(); //自動FOCUS該INPUT
-    // }
-
     function userInfoKeyPress(e) {
         var code = (e.keyCode ? e.keyCode : e.which);
         if (13 === code) {
             $(this).blur(); // 如果按了ENTER就離開此INPUT，觸發on blur事件
         }
     }
-
-    // function userInfoBlur() {
-    //     var val = $(this).val() || '尚未輸入'; // 抓INPUT裡的資料
-    //     $(this).parent().html('<p class="td-inner">' + val + '</p>'); // 將INPUT元素刪掉，把資料直接放上去
-    // }
 
     function userInfoConfirm(ev) {
         if (!confirm('確定要更新對象用戶的個人資料嗎？')) {
@@ -2112,22 +2068,6 @@
                 'background-color': ''
             });
         });
-    }
-
-    function sortUsers(ref, upOrDown, operate) {
-        var arr = $('#clients .tablinks');
-        for (var i = 0; i < arr.length - 1; i++) {
-            for (var j = i + 1; j < arr.length; j++) {
-                var a = arr.eq(i).attr('data-' + ref) - '0';
-                var b = arr.eq(j).attr('data-' + ref) - '0';
-                if (upOrDown === operate(a, b)) {
-                    var tmp = arr[i];
-                    arr[i] = arr[j];
-                    arr[j] = tmp;
-                }
-            }
-        }
-        $('#clients').append(arr);
     }
     // =====end search input change func=====
 
