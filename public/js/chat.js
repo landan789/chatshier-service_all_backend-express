@@ -5,7 +5,7 @@
     var NO_HISTORY_MSG = '<p class="message-time"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
     var COLOR = {
         FIND: '#ff0000',
-        CLICKED: '#ccc',
+        CLICKED: '#2e555f',
         FINDBACK: '#ffff00'
     };
 
