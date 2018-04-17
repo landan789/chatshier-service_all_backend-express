@@ -300,9 +300,9 @@
         eventDurationEditable: true,
 
         // 長壓時間 for mobile 選取事件
-        longPressDelay: 400,
-        eventLongPressDelay: 400,
-        selectLongPressDelay: 400
+        longPressDelay: 200,
+        eventLongPressDelay: 200,
+        selectLongPressDelay: 200
     });
 
     return Promise.all([
