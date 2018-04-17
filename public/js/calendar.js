@@ -170,7 +170,7 @@
             center: 'title',
             right: 'month,agendaWeek,agendaDay'
         },
-
+        height: 'auto',
         defaultDate: new Date(), // The initial date displayed when the calendar first loads.
         editable: true, // true allow user to edit events.
         eventLimit: true, // allow "more" link when too many events
