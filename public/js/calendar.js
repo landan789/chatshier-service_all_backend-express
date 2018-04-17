@@ -156,14 +156,17 @@
     $calendar.fullCalendar({
         locale: 'zh-tw',
         timezone: 'local',
-        theme: true, // fullcalendar的介面主題，啟用 jQuery-UI
-        buttonIcons: {
-            prev: 'circle-triangle-w',
-            next: 'circle-triangle-e'
+        themeSystem: 'bootstrap4',
+        bootstrapFontAwesome: {
+            close: 'fa-times',
+            prev: 'fa-chevron-left',
+            next: 'fa-chevron-right',
+            prevYear: 'fa-angle-double-left',
+            nextYear: 'fa-angle-double-right'
         },
         // Defines the buttons and title position which is at the top of the calendar.
         header: {
-            left: 'prev,next today',
+            left: 'prev,next,today',
             center: 'title',
             right: 'month,agendaWeek,agendaDay'
         },
@@ -281,7 +284,7 @@
         // execute after user drag and drop an event.
         eventDrop: function(event, delta, revertFunc) {
             var startDate = event.start.toDate();
-            var endDate = event.end.toDate();
+            var endDate = event.end ? event.end.toDate() : new Date(startDate);
 
             var calendar = {
                 title: event.title,
@@ -294,7 +297,12 @@
                 revertFunc();
             });
         },
-        eventDurationEditable: true
+        eventDurationEditable: true,
+
+        // 長壓時間 for mobile 選取事件
+        longPressDelay: 200,
+        eventLongPressDelay: 200,
+        selectLongPressDelay: 200
     });
 
     return Promise.all([

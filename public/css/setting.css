@@ -1,3 +1,18 @@
+.tabs-container {
+    position: relative;
+    height: 100%;
+    max-height: calc(100% - 50px);
+    font-size: .85rem; }
+    .tabs-container .prof-wid {
+        overflow-y: auto;
+        height: 85%; }
+
+.tabs-mobile {
+    position: absolute;
+    bottom: 0;
+    font-size: .85rem;
+    background-color: #f8f8f8; }
+
 .border-info > .card-header {
     color: #ffffff;
     background-color: #33ccff;
@@ -6,7 +21,7 @@
 
 .tab-content {
     position: relative;
-    padding: 0 50px; }
+    height: 100%; }
     .tab-content .field-name {
         width: 30%; }
     .tab-content .field-type {

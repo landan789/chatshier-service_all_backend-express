@@ -53,8 +53,8 @@
                     $chatContentPanel.removeClass('d-none');
                 }
 
-                $profilePanel.find('.profile-group').hide();
-                $profilePanel.find('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').show();
+                $profilePanel.find('.profile-group').addClass('d-none');
+                $profilePanel.find('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').removeClass('d-none');
                 break;
             case 'ticketToggle':
                 $profileToggle.removeClass('active');
@@ -71,8 +71,8 @@
                     $chatContentPanel.removeClass('d-none');
                 }
 
-                $ticketPanel.find('.ticket-group').hide();
-                $ticketPanel.find('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').show();
+                $ticketPanel.find('.ticket-group').addClass('d-none');
+                $ticketPanel.find('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]').removeClass('d-none');
                 break;
             default:
                 break;
