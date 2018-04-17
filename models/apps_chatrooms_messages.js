@@ -93,7 +93,9 @@ module.exports = (function() {
                             messages: {}
                         };
                     }
-
+                    app.chatrooms.messages.sort((a, b) => {
+                        return a.time > b.time;
+                    });
                     Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
                     return output;
                 }, {});
@@ -121,7 +123,7 @@ module.exports = (function() {
                 messages = [messages];
             };
 
-            return Promise.all(messages.map((message) => {
+            return Promise.all(messages.map((message, i) => {
                 let messageId = this.Types.ObjectId();
                 let _message = {
                     _id: messageId,
@@ -129,7 +131,7 @@ module.exports = (function() {
                     from: message.from,
                     messager_id: message.messager_id,
                     text: message.text || (message.altText ? message.altText + '請至智慧手機上確認訊息內容。' + '\n' : ''),
-                    time: Date.now(),
+                    time: Date.now() + i,
                     type: message.type,
                     src: message.src || ''
                 };
