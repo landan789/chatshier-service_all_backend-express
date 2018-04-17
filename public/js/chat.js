@@ -793,9 +793,9 @@
             '<li class="text-light nested list-group-item has-collapse unassigned">' +
                 '<i class="fas fa-times-circle"></i>' +
                 '<span>未指派</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested unassigned show"></div>' +
+            '<div class="collapse nested unassigned"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
                 '<img class="app-icon" src="' + LINE_LOGO + '" />' +
                 '<span>' + LINE + '</span>' +
@@ -914,7 +914,7 @@
             var platformUid = messager.platformUid;
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
-        var senderrName = SYSTEM === message.from ? '由系統發送' : (messager.name || '');
+        var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
         var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
@@ -926,7 +926,7 @@
         return (
             '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
-                    '<span>' + (senderrName || '') + '</span>' +
+                    '<span>' + senderrName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
@@ -1097,19 +1097,22 @@
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
             var srcHtml = messageToPanelHtml(message);
+            var messageDate = new Date(message.time);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
-            var d = new Date(message.time).toDateString(); // get msg's date
+            var d = messageDate.toDateString(); // get msg's date
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
                 returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
             }
-            if (message.time - prevTime > 15 * 60 * 1000) {
+
+            var messageTime = messageDate.getTime();
+            if (messageTime - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(message.time) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time"><strong>' + toDateStr(messageTime) + '</strong></p>'; // plus date info
             }
-            prevTime = message.time;
+            prevTime = messageTime;
 
             var messagerId = message.messager_id;
             var messager = messagers[messagerId];
@@ -1721,12 +1724,12 @@
         var appType = apps[appId].type;
         var srcHtml = messageToPanelHtml(_message);
         var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-        $messagePanel.find('.messager-name span').text(messager.name);
+
         if (chatroomList.indexOf(chatroomId) >= 0) {
-            var lastMessageTime = parseInt($messagePanel.find('.message:last').attr('message-time'), 10);
+            var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
-            if (_message.time - lastMessageTime >= 900000) {
+            if (new Date(_message.time).getTime() - lastMessageTime >= 900000) {
                 $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
