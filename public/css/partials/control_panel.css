@@ -34,9 +34,11 @@
   .chsr.ctrl-panel .nested > :first-child,
   .chsr.ctrl-panel .nested.list-group-item {
     margin-left: .5rem; }
-  .chsr.ctrl-panel .nested .nested > :first-child {
+  .chsr.ctrl-panel .nested .nested > :first-child,
+  .chsr.ctrl-panel .nested .nested.list-group-item {
     margin-left: 1rem; }
-  .chsr.ctrl-panel .nested .nested .nested > :first-child {
+  .chsr.ctrl-panel .nested .nested .nested > :first-child,
+  .chsr.ctrl-panel .nested .nested .nested.list-group-item {
     margin-left: 1.25rem; }
   .chsr.ctrl-panel .swiper-wrapper {
     height: 90%; }

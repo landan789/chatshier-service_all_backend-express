@@ -799,7 +799,7 @@
                                     '<td class="actions">' +
                                         '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
                                             '<button class="btn btn-light btn-block btn-border outline add-button">' +
-                                                '新增' +
+                                                '邀請' +
                                                 '<i class="fa fa-user-plus"></i>' +
                                             '</button>' +
                                         '</div>' +

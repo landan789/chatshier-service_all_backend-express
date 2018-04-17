@@ -567,7 +567,8 @@
             var messages = socketBody.messages;
             var senderUid = socketBody.senderUid;
             var recipientUid = socketBody.recipientUid;
-            var consumerinfo = socketBody.consumerinfo;
+            var consumersFromSocket = socketBody.consumers;
+            consumersFromSocket && Object.assign(consumers, consumersFromSocket);
             var senderMsger;
 
             // 根據發送的時間從早到晚排序
@@ -594,7 +595,7 @@
                 if (i >= messages.length) {
                     return Promise.resolve();
                 }
-                
+
                 var message = messages[i];
                 var senderMsgerId = message.messager_id;
                 senderMsger = messagers[senderMsgerId];
@@ -643,8 +644,7 @@
                         createTicketPanel(uiRequireData);
                         return;
                     }
-                    senderMsger = Object.assign(senderMsger,consumerinfo);
-                    updateClientTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     // 更新 consumer chat information 資料
@@ -653,11 +653,8 @@
                         var consumerUid = consumer.platformUid;
                         var $profileCard = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
                         $profileCard.find('.panel-table').remove();
-                        consumer.name = consumerinfo.name;
-                        consumer.photo = consumerinfo.photo;
                         var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newProfileNode.shift()).insertAfter($profileCard.find('.photo-container'));
-                        $profileCard.find('.consumer-avatar.larger').attr('src',consumer.photo);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -796,9 +793,9 @@
             '<li class="text-light nested list-group-item has-collapse unassigned">' +
                 '<i class="fas fa-times-circle"></i>' +
                 '<span>未指派</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested unassigned show"></div>' +
+            '<div class="collapse nested unassigned"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
                 '<img class="app-icon" src="' + LINE_LOGO + '" />' +
                 '<span>' + LINE + '</span>' +
@@ -917,7 +914,7 @@
             var platformUid = messager.platformUid;
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
-        var senderrName = SYSTEM === message.from ? '由系統發送' : (messager.name || '');
+        var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
         var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
 
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
@@ -929,7 +926,7 @@
         return (
             '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
-                    '<span>' + (senderrName || '') + '</span>' +
+                    '<span>' + senderrName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
@@ -1100,19 +1097,22 @@
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
             var srcHtml = messageToPanelHtml(message);
+            var messageDate = new Date(message.time);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
-            var d = new Date(message.time).toDateString(); // get msg's date
+            var d = messageDate.toDateString(); // get msg's date
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
                 returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
             }
-            if (message.time - prevTime > 15 * 60 * 1000) {
+
+            var messageTime = messageDate.getTime();
+            if (messageTime - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(message.time) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time"><strong>' + toDateStr(messageTime) + '</strong></p>'; // plus date info
             }
-            prevTime = message.time;
+            prevTime = messageTime;
 
             var messagerId = message.messager_id;
             var messager = messagers[messagerId];
@@ -1724,12 +1724,12 @@
         var appType = apps[appId].type;
         var srcHtml = messageToPanelHtml(_message);
         var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-        $messagePanel.find('.messager-name span').text(messager.name);
+
         if (chatroomList.indexOf(chatroomId) >= 0) {
-            var lastMessageTime = parseInt($messagePanel.find('.message:last').attr('message-time'), 10);
+            var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
-            if (_message.time - lastMessageTime >= 900000) {
+            if (new Date(_message.time).getTime() - lastMessageTime >= 900000) {
                 $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
@@ -1756,9 +1756,9 @@
         var senderName = SYSTEM === message.from ? 'Chatshier' : sender.name;
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
-        var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
+        var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         $selectedTablinks.find('.client-name').text(messager.name);
-        $selectedTablinks.find('.consumer-avatar').attr("src",messager.photo);
+        $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
 
         /** @type {ChatshierMessage} */
         var _message = message;
@@ -1778,15 +1778,23 @@
         }
 
         $selectedTablinks.remove();
-        $('.tablinks-area>#clients').prepend($selectedTablinks);
+        $('.tablinks-area #clients').prepend($selectedTablinks);
     }
 
     function updateChatroomTab(messager, message, appId, chatroomId) {
-        var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var currentUnread = messagerSelf.unRead;
-
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
+
+        if (messager && messager.platformUid) {
+            var platformUid = messager.platformUid;
+            var consumer = consumers[platformUid];
+            if (consumer && consumer.photo) {
+                $chatroomTablinks.find('app-icon').attr('src', consumer.photo);
+            }
+        }
+
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var currentUnread = messagerSelf.unRead;
         var $unreadMsgElem = $chatroomTablinks.find('.unread-msg');
 
         if (!currentUnread) {
