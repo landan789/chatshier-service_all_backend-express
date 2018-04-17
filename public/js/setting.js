@@ -292,9 +292,9 @@
     });
 
     findAllGroups().then(() => {
-        return findAllApps(); 
+        return findAllApps();
     });
-   // 列出所有設定的APPs
+    // 列出所有設定的APPs
     findUserProfile();
 
     // ===============
@@ -1420,7 +1420,7 @@
                 $.notify('成功刪除!', { type: 'success' });
                 var apps = resJson.data;
                 var app = apps[appId];
-    
+
                 switch (app.type) {
                     case LINE:
                         $('[app-id="' + appId + '"]').remove();

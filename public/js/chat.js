@@ -1460,11 +1460,10 @@
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $ticketGroup = $('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         $messageInputContainer.removeClass('d-none');
         $messageWrapper.addClass('shown').removeClass('d-none');
         $messageWrapper.siblings().removeClass('shown').addClass('d-none');
-        $profileGroup.removeClass('d-none');
-        $profileGroup.siblings().addClass('d-none');
         scrollMessagePanelToBottom(appId, chatroomId);
 
         ticketTableCtrl.loadTickets(appId, userId, platformUid);
@@ -1481,11 +1480,17 @@
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
             $ticketPanel.addClass('d-none');
+
+            $profileGroup.removeClass('d-none');
+            $profileGroup.siblings().addClass('d-none');
         }
 
         if ($ticketToggle.hasClass('active')) {
             $profilePanel.addClass('d-none');
             $ticketPanel.removeClass('d-none');
+
+            $ticketGroup.removeClass('d-none');
+            $ticketGroup.siblings().addClass('d-none');
         }
 
         if (CHATSHIER === appType) {
