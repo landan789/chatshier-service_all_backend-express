@@ -94,7 +94,7 @@ module.exports = (function() {
                         };
                     }
                     app.chatrooms.messages.sort((a, b) => {
-                        return a.time > b.time;
+                        return a.time > b.time; // 由小到大排列
                     });
                     Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
                     return output;
