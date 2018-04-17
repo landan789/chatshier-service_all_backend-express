@@ -40,13 +40,14 @@ body {
 }
 
 .chat-wrapper {
-    width: 100%;
     font-family: Microsoft JhengHei;
-    height: calc(100% - 50px); }
+    height: 100%;
+    overflow-y: hidden; }
     .chat-wrapper .chat-area {
         display: flex;
         width: 100%;
         height: 100%;
+        max-height: calc(100% - 50px);
         background-color: #f7f8f9; }
 
 .chat-app-list {
@@ -236,7 +237,8 @@ body {
     position: relative;
     display: inherit;
     width: 100%;
-    height: 100%; }
+    height: 100%;
+    overflow: hidden; }
     .chatroom-container.open::after {
         display: none; }
     .chatroom-container::after {
@@ -334,11 +336,8 @@ body {
         text-align: center; }
 
 .message-input-container {
-    position: absolute;
-    bottom: 0;
     width: 100%;
     height: 15%;
-    min-height: 100px;
     border-top: 1px solid lightgray;
     background-color: lightgray; }
 .message-input {

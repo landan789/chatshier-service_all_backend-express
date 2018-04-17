@@ -882,7 +882,8 @@
         var chatroomName = CHATSHIER === opts.appType ? '群組聊天室' : opts.clientName;
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '" platform-uid="' + opts.platformUid + '">' +
-                '<i class="fas fa-comment-dots"></i>' +
+                '<img class="app-icon" src="' + opts.clientPhoto + '" />' +
+                // '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
