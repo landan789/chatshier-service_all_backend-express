@@ -676,6 +676,29 @@
             var consumer = consumers[platformUid];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messager._id] = messager;
 
+            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
+            // 有的話檢查此聊天室是否已有被加入至已指派
+            // 沒有的話複製聊天室的 tablink 至已指派中
+            var app = apps[appId];
+            var assignedIds = messager.assigned_ids;
+            var $assignedCollapse = $sideMenuChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $sideMenuChatroomCollapse.find('.collapse.unassigned');
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            var $appChatroom = $sideMenuChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            if (assignedIds.indexOf(userId) >= 0) {
+                $unassignedCollapse.find(tablinksSelectQuery).remove();
+                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
+                if (0 === $assignedChatroom.length) {
+                    $assignedCollapse.prepend($appChatroom.clone());
+                }
+            } else {
+                $assignedCollapse.find(tablinksSelectQuery).remove();
+                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
+                if (0 === $unassignedChatroom.length) {
+                    $unassignedCollapse.prepend($appChatroom.clone());
+                }
+            }
+
             // 更新 UI 資料
             var $profileCards = $('.profile-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
             $profileCards.find('.panel-table').remove();
@@ -762,24 +785,36 @@
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested unread show"></div>' +
-            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + LINE + '">' +
+            '<li class="text-light nested list-group-item has-collapse assigned">' +
+                '<i class="fas fa-check-circle"></i>' +
+                '<span>已指派</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested assigned show"></div>' +
+            '<li class="text-light nested list-group-item has-collapse unassigned">' +
+                '<i class="fas fa-times-circle"></i>' +
+                '<span>未指派</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested unassigned show"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
                 '<img class="app-icon" src="' + LINE_LOGO + '" />' +
                 '<span>' + LINE + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested show" app-type="' + LINE + '"></div>' +
-            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + FACEBOOK + '">' +
+            '<div class="collapse nested app-types show" app-type="' + LINE + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
                 '<img class="app-icon" src="' + FACEBOOK_LOGO + '" />' +
                 '<span>' + FACEBOOK + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested show" app-type="' + FACEBOOK + '"></div>' +
-            '<li class="text-light nested list-group-item has-collapse app-types" app-type="' + CHATSHIER + '">' +
+            '<div class="collapse nested app-types show" app-type="' + FACEBOOK + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
                 '<img class="app-icon" src="' + CHATSHIER_LOGO + '" />' +
                 '<span>' + CHATSHIER + '</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested show" app-type="' + CHATSHIER + '"></div>'
+            '<div class="collapse nested app-types show" app-type="' + CHATSHIER + '"></div>'
         );
 
         for (var appId in apps) {
@@ -978,11 +1013,25 @@
             $chatroomCollapse.prepend(chatroomItemHtml);
         }
 
+        // 如果此聊天室有未讀訊息的話將此聊天室新增至未讀列表
         if (messagerSelf.unRead) {
             $sideMenuChatroomCollapse.find('.collapse.unread').append(chatroomItemHtml);
         }
 
-        // 中間聊天室
+        // 如果非 Chatshier 內部聊天室，代表為平台聊天室
+        // 檢查此聊天室的平台客戶是否有指派給自己
+        // 將已指派與未指派的聊天室分門別類
+        if (CHATSHIER !== appType) {
+            var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
+            var assignedIds = messagerConsumer.assigned_ids;
+            if (assignedIds.indexOf(userId) >= 0) {
+                $sideMenuChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
+            } else {
+                $sideMenuChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
+            }
+        }
+
+        // 聊天室訊息內容處理
         var messageText = '';
         if (messageIds.length < 10) {
             messageText += NO_HISTORY_MSG;
@@ -1371,7 +1420,12 @@
         var appType = $targetTablink.attr('app-type');
         var chatroomId = $targetTablink.attr('chatroom-id');
         var platformUid = $targetTablink.attr('platform-uid');
-        var $chatroomTablink = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"] .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
+
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+        var $chatroomTablink = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"] ' + tablinksSelectQuery);
+
+        $('.tablinks.selected').removeClass('selected').css('background-color', '');
+        $sideMenuChatroomCollapse.find(tablinksSelectQuery).addClass('selected').css('background-color', COLOR.CLICKED);
 
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
@@ -1379,11 +1433,6 @@
             chatroomTitle += ' (' + consumers[platformUid].name + ')';
         }
         $navTitle.text(chatroomTitle);
-
-        $('.tablinks.selected').removeClass('selected').css('background-color', '');
-        $chatroomTablink.addClass('selected').css('background-color', COLOR.CLICKED);
-
-        ticketTableCtrl.loadTickets(appId, userId, platformUid);
 
         var $unReadElem = $chatroomTablink.find('.unread-msg');
         if (parseInt($unReadElem.text(), 10)) {
@@ -1415,6 +1464,8 @@
         $profileGroup.removeClass('d-none');
         $profileGroup.siblings().addClass('d-none');
         scrollMessagePanelToBottom(appId, chatroomId);
+
+        ticketTableCtrl.loadTickets(appId, userId, platformUid);
 
         var $ticketToggle = $('.toolbar #ticketToggle');
         var $profileToggle = $('.toolbar #profileToggle');
@@ -1859,6 +1910,30 @@
             // 將成功更新的資料覆蓋前端本地端的全域 app 資料
             let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
             Object.assign(messager, messagerUiData);
+
+            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
+            // 有的話檢查此聊天室是否已有被加入至已指派
+            // 沒有的話複製聊天室的 tablink 至已指派中
+            var app = apps[appId];
+            var assignedIds = messager.assigned_ids;
+            var $assignedCollapse = $sideMenuChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $sideMenuChatroomCollapse.find('.collapse.unassigned');
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            var $appChatroom = $sideMenuChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            if (assignedIds.indexOf(userId) >= 0) {
+                $unassignedCollapse.find(tablinksSelectQuery).remove();
+                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
+                if (0 === $assignedChatroom.length) {
+                    $assignedCollapse.prepend($appChatroom.clone());
+                }
+            } else {
+                $assignedCollapse.find(tablinksSelectQuery).remove();
+                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
+                if (0 === $unassignedChatroom.length) {
+                    $unassignedCollapse.prepend($appChatroom.clone());
+                }
+            }
+
             $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function() {
             $.notify('用戶資料更新失敗', { type: 'danger' });
