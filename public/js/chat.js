@@ -571,7 +571,7 @@
 
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
-                return a.time - b.time;
+                return new Date(a.time).getTime() - new Date(b.time).getTime();
             });
 
             var chatrooms = appsChatrooms[appId].chatrooms;
@@ -1089,25 +1089,32 @@
         var nowDateStr = '';
         var prevTime = 0;
 
-        for (var i in messages) {
-            var srcHtml = messageToPanelHtml(messages[i]);
+        // 根據發送的時間從早到晚排序
+        var messageIds = Object.keys(messages);
+        messageIds.sort(function(idA, idB) {
+            return new Date(messages[idA].time).getTime() - new Date(messages[idB].time).getTime();
+        });
+
+        for (var i in messageIds) {
+            var message = messages[messageIds[i]];
+            var srcHtml = messageToPanelHtml(message);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
-            var d = new Date(messages[i].time).toDateString(); // get msg's date
+            var d = new Date(message.time).toDateString(); // get msg's date
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
                 returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
             }
-            if (messages[i].time - prevTime > 15 * 60 * 1000) {
+            if (message.time - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time"><strong>' + toDateStr(message.time) + '</strong></p>'; // plus date info
             }
-            prevTime = messages[i].time;
+            prevTime = message.time;
 
-            var messagerId = messages[i].messager_id;
+            var messagerId = message.messager_id;
             var messager = messagers[messagerId];
-            returnStr += generateMessageHtml(srcHtml, messages[i], messager, appType);
+            returnStr += generateMessageHtml(srcHtml, message, messager, appType);
         }
         return returnStr;
     }
