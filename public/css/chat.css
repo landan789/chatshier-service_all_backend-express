@@ -239,17 +239,21 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden; }
-    .chatroom-container.open::after {
+    .chatroom-container.open::before {
         display: none; }
-    .chatroom-container::after {
-        content: "";
+    .chatroom-container::before {
+        content: "歡迎使用 錢掌櫃 平台";
         position: absolute;
         left: calc(50% - 8rem);
-        top: 0;
+        top: 10%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 16rem;
         height: 100%;
+        color: #cfcfcf;
         opacity: .5;
-        background: transparent url("../image/logo.png") center/contain no-repeat; }
+        background: transparent url(../image/logo.png) center 15%/contain no-repeat; }
     .chatroom-container .chat-content-panel {
         position: relative;
         height: 100%;

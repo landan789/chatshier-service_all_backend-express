@@ -19,8 +19,8 @@
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
 
-            <div class="d-flex mt-4 tabs-container">
-                <div class="col-md-2 d-sm-block">
+            <div class="d-flex pt-4 tabs-container">
+                <div class="col-2 d-none d-lg-block tabs-desktop">
                     <nav class="chsr nav nav-pills nav-fill flex-column">
                         <a class="nav-item nav-link text-left" data-toggle="pill" href="#apps">聊天應用程式</a>
                         <a class="nav-item nav-link text-left" data-toggle="pill" href="#settings">基本設定</a>
@@ -29,8 +29,8 @@
                     </nav>
                 </div>
 
-                <div class="col-md-10 tab-content">
-                    <div id="apps" class="tab-pane fade">
+                <div class="col-12 col-lg-10 tab-content">
+                    <div id="apps" class="tab-pane h-100 fade">
                         <h3 class="ml-3">
                             <span>聊天應用程式</span>
                             <button type="button" class="btn btn-light btn-border" id="add-group-name-app-btn" data-toggle="modal" data-target="#groupAddModal" disabled="true">
@@ -53,7 +53,7 @@
                         </div>
                     </div>
 
-                    <div id="settings" class="tab-pane fade">
+                    <div id="settings" class="tab-pane h-100 fade">
                         <h3 class="ml-3">
                             <span>基本設定</span>
                             <button type="button" class="btn btn-border" id="userProfileEdit" data-toggle="modal" data-target="#setting-modal">
@@ -115,7 +115,7 @@
                         </div>
                     </div>
 
-                    <div id="fields" class="tab-pane fade">
+                    <div id="fields" class="tab-pane h-100 fade">
                         <h3 class="ml-3">
                             <span>客戶分類條件</span>
                         </h3>
@@ -138,7 +138,7 @@
                         </div>
                     </div>
 
-                    <div id="internal-group" class="tab-pane fade">
+                    <div id="internal-group" class="tab-pane h-100 fade">
                         <h3 class="ml-3">
                             <span>內部群組</span>
                             <button class="btn btn-light btn-border group-insert" data-toggle="modal" data-target="#groupAddModal">
@@ -157,6 +157,32 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+
+            <div class="col-12 d-lg-none p-0 tabs-mobile">
+                <nav class="chsr nav nav-pills nav-fill">
+                    <a class="nav-item nav-link col-3" data-toggle="pill" href="#apps">
+                        <i class="fas fa-user-secret"></i>
+                        <br class="d-none d-sm-block"/>
+                        <span class="d-none d-sm-block">聊天應用程式</span>
+                    </a>
+                    <a class="nav-item nav-link col-3" data-toggle="pill" href="#settings">
+                        <i class="fas fa-id-card"></i>
+                        <br class="d-none d-sm-block"/>
+                        <span class="d-none d-sm-block">基本設定</span>
+                    </a>
+                    <a class="nav-item nav-link col-3" data-toggle="pill" href="#fields">
+                        <i class="fas fa-filter"></i>
+                        <br class="d-none d-sm-block" />
+                        <span class="d-none d-sm-block">客戶分類條件</span>
+                    </a>
+                    <a class="nav-item nav-link col-3" data-toggle="pill" href="#internal-group">
+                        <i class="fas fa-users"></i>
+                        <br class="d-none d-sm-block" />
+                        <span class="d-none d-sm-block">內部群組</span>
+                    </a>
+                </nav>
             </div>
         </div>
     </div>

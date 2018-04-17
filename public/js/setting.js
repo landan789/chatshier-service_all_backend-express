@@ -84,25 +84,25 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="line-name"/>' +
+                            '<input class="form-control" type="text" value="" id="line-name"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">ID: </label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-token"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-token"/>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -110,37 +110,37 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">Facebook粉絲頁名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-name">' +
+                            '<input class="form-control" type="text" value="" id="facebook-name">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Page ID: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
+                            '<input class="form-control" type="text" value="" id="facebook-page-id">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">App ID: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
+                            '<input class="form-control" type="text" value="" id="facebook-app-id">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">App Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
+                            '<input class="form-control" type="text" value="" id="facebook-app-secret">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Validation Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
+                            '<input class="form-control" type="text" value="" id="facebook-valid-token">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Page Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
+                            '<input class="form-control" type="text" value="" id="facebook-page-token">' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -148,19 +148,19 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="wechat-name"/>' +
+                            '<input class="form-control" type="text" value="" id="wechat-name"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">ID: </label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -272,7 +272,7 @@
                 '<div class="form-group">' +
                     '<label class="col-form-label">公司名稱: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
+                        '<input class="form-control" type="text" value="' + company + '" id="company"/>' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
@@ -284,7 +284,7 @@
                 '<div class="form-group">' +
                     '<label class="col-form-label">地址: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
+                        '<input class="form-control" type="text" value="' + location + '" id="location"/>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -1650,25 +1650,25 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Channel Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelId_1" class="col-form-label">Channel ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelSecret_1" class="col-form-label">Channel Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelAccessToken_1" class="col-form-label">Channel Access Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
+                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -1687,37 +1687,37 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Facebook Page Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Page Id: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="facebook-page-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
+                                    '<input class="form-control" type="text" value="' + app.id2 + '" id="facebook-app-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="facebook-app-secret">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Validation Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
+                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="facebook-valid-token">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Page Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
+                                    '<input class="form-control" type="text" value="' + app.token2 + '" id="facebook-page-token">' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -1736,19 +1736,19 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="wechat-app-name"/>' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelId_1" class="col-form-label">App ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="wechat-app-id"/>' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelSecret_1" class="col-form-label">App Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="wechat-app-secret"/>' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
