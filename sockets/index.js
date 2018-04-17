@@ -83,6 +83,7 @@ function init(server) {
             let platformUid;
             let chatroomId = '';
             let platformMessager;
+            let consumerinfo = {};
 
             let fromPath;
             let toPath;
@@ -106,7 +107,11 @@ function init(server) {
                 // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
                 // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
                 return platformUid && profile && consumersMdl.replace(platformUid, profile);
-            }).then(() => {
+            }).then((consumer) => {
+                consumerinfo = {
+                    name: consumer[platformUid].name,
+                    photo: consumer[platformUid].photo
+                }
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
                     if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
                         return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
@@ -264,6 +269,7 @@ function init(server) {
                         // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                         recipientUid: '',
                         messagers: messagers,
+                        consumerinfo: consumerinfo,
                         messages: Object.values(_messages)
                     };
                     return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
