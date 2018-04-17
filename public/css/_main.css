@@ -24,11 +24,21 @@ button:focus {
     outline: none !important;
 }
 
+.root .animated {
+    animation-duration: 300ms;
+}
+
 .page-wrapper {
     position: relative;
-    padding: 0 3rem;
-    margin-bottom: 3rem;
+    max-width: calc(100% - 16rem);
 }
+
+@media (max-width: 576px) {
+    .page-wrapper {
+        max-width: 100%;
+    }
+}
+
 
 .btn-border {
     border: 1px solid #bbb;

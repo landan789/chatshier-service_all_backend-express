@@ -114,18 +114,19 @@ let jobProcess = () => {
                     }
                 }
                 // 沒有訊息對象 或 沒有群發訊息 就不做處理
-                if (0 === Object.keys(messagers).length || 0 === messages.length) {
+                let platformUids = Object.keys(messagers);
+                if (0 === platformUids.length || 0 === messages.length) {
                     return Promise.resolve(null);
                 };
                 return Promise.all([
                     messagers,
-                    botSvc.multicast(Object.keys(messagers), messages, appId, app)
+                    botSvc.multicast(platformUids, messages, appId, app)
                 ]);
-            }).then((result) => {
-                if (!result) {
+            }).then((results) => {
+                if (!results) {
                     return Promise.resolve(null);
                 }
-                let messagers = result[0];
+                let messagers = results[0];
                 let platformUids = Object.keys(messagers);
                 // 將所有已發送的訊息加到隸屬於 consumer 的 chatroom 中
                 return Promise.all(platformUids.map((platformUid) => {

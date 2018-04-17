@@ -1,5 +1,6 @@
-.page-title {
-    margin: 2.5% 0;
+.analyze-wrapper .page-title,
+.analyze-wrapper .analyze-body {
+    margin: 2.5%;
 }
 
 .tooltip-container,
@@ -15,23 +16,14 @@
   margin: 2.5% 0;
 }
 
-/******************/
-/* 日期容器樣式設定 */
 .date-wrapper {
     display: inherit;
-    width: 80%;
-}
-
-.date-group:not(:last-child) {
-    margin-right: 1rem;
-    margin-left: auto;
-}
-
-.date-group {
-    width: 40%;
-}
-/* 日期容器樣式設定 */
-/******************/
+    width: 80%; }
+    .date-wrapper .date-group {
+        width: 40%; }
+    .date-wrapper .date-group:not(:last-child) {
+        margin-right: 1rem;
+        margin-left: auto; }
 
 .chart-container {
     height: 400px; }

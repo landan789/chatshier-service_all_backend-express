@@ -493,6 +493,10 @@ function init(server) {
                 return botSvc.create(appId, app);
             }).then(() => {
                 return appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
+                    if (!appsChatroomsMessagers) {
+                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                    }
+
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                     for (let chatroomId in chatrooms) {
                         let chatroomMessagers = chatrooms[chatroomId].messagers;
@@ -502,9 +506,7 @@ function init(server) {
                             messagers[messager.platformUid] = messager;
                         }
                     }
-                    if (!messagers) {
-                        Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
-                    }
+                    return appsChatroomsMessagers;
                 });
             }).then(() => {
                 let originMessagers = messagers;

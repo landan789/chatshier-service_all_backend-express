@@ -7,67 +7,71 @@
     <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
 </head>
 
 <body>
-    <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div class="page-wrapper">
-        <div class="container mt-5">
-            <div class="chsr card">
-                <div class="title">
-                    <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
-                    <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
-                    <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
-                </div>
+    <div class="root d-flex w-100 h-100">
+        <% include ../views/partials/control_panel.ejs %>
 
-                <div class="px-5 my-3" id="appSelector">
-                    <div class="dropdown app-dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="dropdown-text">請選擇應用程式</span>
-                            <span class="caret"></span>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
-                    </div>
-                    <div class="search-add mb-2">
-                        <span class="icon">
-                            <i class="fa fa-search"></i>
-                        </span>
-                        <input type="text" class="search-bar" placeholder="搜尋   輸入完請按Enter鍵" aria-hidden="true">
-                        <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="true">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="padding-lr chsr table">
-                    <table class="chsr table" id="keywordreply_open_table">
-                        <caption>開放</caption>
-                        <thead>
-                            <tr>
-                                <th>關鍵字</th>
-                                <th>內容</th>
-                                <th>回應次數</th>
-                                <th>編輯</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+        <div class="ml-auto w-100 page-wrapper">
+            <% include ../views/partials/toolbar.ejs %>
 
-                    <table class="chsr table" id="keywordreply_draft_table">
-                        <caption>草稿</caption>
-                        <thead>
-                            <tr>
-                                <th>關鍵字</th>
-                                <th>內容</th>
-                                <th>回應次數</th>
-                                <th>編輯</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            <div class="container mt-5">
+                <div class="chsr card">
+                    <div class="title">
+                        <h3 class="padding-lr h3-padding">關鍵字回覆訊息</h3>
+                        <p class="address padding-lr">首頁 / 訊息 / 關鍵字回覆</p>
+                        <p class="address padding-lr">當用戶傳送訊息時，符合設定之關鍵字訊息將自動回覆</p>
+                    </div>
+
+                    <div class="px-5 my-3" id="appSelector">
+                        <div class="dropdown app-dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <span class="dropdown-text">請選擇應用程式</span>
+                                <span class="caret"></span>
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+                        </div>
+                        <div class="search-add mb-2">
+                            <span class="icon">
+                                <i class="fa fa-search"></i>
+                            </span>
+                            <input type="text" class="search-bar" placeholder="搜尋   輸入完請按Enter鍵" aria-hidden="true">
+                            <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#keywordreply_add_modal" aria-hidden="true" disabled="true">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="padding-lr chsr table">
+                        <table class="chsr table" id="keywordreply_open_table">
+                            <caption>開放</caption>
+                            <thead>
+                                <tr>
+                                    <th>關鍵字</th>
+                                    <th>內容</th>
+                                    <th>回應次數</th>
+                                    <th>編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+
+                        <table class="chsr table" id="keywordreply_draft_table">
+                            <caption>草稿</caption>
+                            <thead>
+                                <tr>
+                                    <th>關鍵字</th>
+                                    <th>內容</th>
+                                    <th>回應次數</th>
+                                    <th>編輯</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

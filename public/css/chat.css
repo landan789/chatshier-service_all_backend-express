@@ -15,7 +15,8 @@ body {
 
 .tablinks-area::-webkit-scrollbar-track,
 .message-panel::-webkit-scrollbar-track,
-.profile-wrapper::-webkit-scrollbar-track {
+.profile-wrapper::-webkit-scrollbar-track,
+.ticket-wrapper::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     background-color: transparent;
@@ -23,14 +24,16 @@ body {
 
 .tablinks-area::-webkit-scrollbar,
 .message-panel::-webkit-scrollbar,
-.profile-wrapper::-webkit-scrollbar {
+.profile-wrapper::-webkit-scrollbar,
+.ticket-wrapper::-webkit-scrollbar {
     width: 4px;
     background-color: transparent;
 }
 
 .tablinks-area::-webkit-scrollbar-thumb,
 .message-panel::-webkit-scrollbar-thumb,
-.profile-wrapper::-webkit-scrollbar-thumb {
+.profile-wrapper::-webkit-scrollbar-thumb,
+.ticket-wrapper::-webkit-scrollbar-thumb {
     border-radius: 3px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
     background-color: white;
@@ -83,8 +86,6 @@ body {
         width: 20px;
         background-color: red;
         border-radius: 50%;
-        /*z-index: 999;*/
-        display: none;
         text-align: center; }
 
 .person {
@@ -234,32 +235,33 @@ body {
 .chatroom-container {
     position: relative;
     display: inherit;
-    width: 70%;
+    width: 100%;
     height: 100%; }
     .chatroom-container.open::after {
         display: none; }
     .chatroom-container::after {
         content: "";
         position: absolute;
-        left: 25%;
+        left: calc(50% - 8rem);
         top: 0;
-        width: 50%;
+        width: 16rem;
         height: 100%;
         opacity: .5;
         background: transparent url("../image/logo.png") center/contain no-repeat; }
     .chatroom-container .chat-content-panel {
         position: relative;
-        width: 50%;
         height: 100%;
+        min-width: 60%;
         resize: both; }
     .chatroom-container .profile-panel {
         position: relative;
-        width: 50%; }
+        height: 100%; }
 
 .profile-panel {
-    border: 1px solid lightgray;
     border-radius: 5px;
     background-color: #f7f8f9; }
+    .profile-panel:not(.d-none) {
+        border: 1px solid lightgray; }
     .profile-panel td {
         word-wrap: break-word; }
     .profile-panel .person-chip {
@@ -299,14 +301,13 @@ body {
         padding: 2%; }
 
 .chatroom-body {
-    height: 75%;
+    height: 85%;
     width: 100%; }
     .chatroom-body .chat-content {
         float: left;
         border: 1px solid #ccc;
         height: 100%;
         border-left: none;
-        display: none;
         width: 100%;
     }
 
@@ -339,8 +340,7 @@ body {
     height: 15%;
     min-height: 100px;
     border-top: 1px solid lightgray;
-    background-color: lightgray;
-    display: none; }
+    background-color: lightgray; }
 .message-input {
     display: flex;
     align-items: center; }
@@ -357,23 +357,32 @@ body {
         z-index: 1; }
         .message-input.form-lower .submit-message-input {
             width: 100%;
-            height: 50px;
-            border: 0; }
+            height: 80%;
+            border: none; }
     .message-input .submit-message-btn {
-        width: 30px;
-        height: 30px;
-        background-image: url("https://image.flaticon.com/icons/svg/60/60525.svg");
-        background-size: cover;
+        position: relative;
+        width: 2rem;
+        height: 2rem;
+        cursor: pointer;
         color: transparent;
-        background-color: rgba(255, 255, 255, .7);
-        background-blend-mode: color;
-        border: 0; }
+        border: none; }
+        .message-input .submit-message-btn::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, .7);
+            background-blend-mode: color;
+            background-size: cover;
+            background-image: url("https://image.flaticon.com/icons/svg/60/60525.svg"); }
         .message-input .submit-message-btn:hover {
             background-color: rgba(255, 255, 255, .5); }
     .message-input .media-btn {
-        height: 40px;
-        font-size: 24px;
-        width: 40px;
+        height: 3.5rem;
+        width: 3.5rem;
+        font-size: 1.5rem;
         border: none;
         border-radius: 50%;
         background-color: transparent; }
@@ -451,14 +460,14 @@ body {
 .ticket-info-modal .display-date-input {
     width: 75%; }
 
-.profile-wrapper {
+.profile-wrapper,
+.ticket-wrapper {
     overflow-y: scroll;
     overflow-x: hidden;
     width: 100%;
-    height: 100%;
-    padding-top: .5rem; }
+    height: 100%; }
+
 .profile-group {
-    display: none;
     font-size: .85rem;
     min-height: 102.5%; }
     .profile-group .panel-table {
