@@ -20,7 +20,7 @@
     var $ticketPanel = $('#ticketPanel');
 
     function togglePanel() {
-        var $selectedTablink = $('#sideMenu .tablinks.selected');
+        var $selectedTablink = $('#ctrlPanel .tablinks.selected');
         if (0 === $selectedTablink.length) {
             return;
         }

@@ -43,7 +43,7 @@
 
     // selectors
     var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
-    var $sideMenuChatroomCollapse = $('#sideMenuChatroomCollapse');
+    var $ctrlPanelChatroomCollapse = $('#ctrlPanelChatroomCollapse');
     var $chatroomBody = $('#chatContentPanel .chatroom-body'); // 聊天室空間
     var $profilePanel = $('#profilePanel');
     var $profileWrapper = $profilePanel.find('.profile-wrapper');
@@ -437,7 +437,7 @@
 
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
-    $(document).on('click', '.side-menu .tablinks', clickUserTablink);
+    $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
     $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
@@ -681,10 +681,10 @@
             // 沒有的話複製聊天室的 tablink 至已指派中
             var app = apps[appId];
             var assignedIds = messager.assigned_ids;
-            var $assignedCollapse = $sideMenuChatroomCollapse.find('.collapse.assigned');
-            var $unassignedCollapse = $sideMenuChatroomCollapse.find('.collapse.unassigned');
+            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
             var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
-            var $appChatroom = $sideMenuChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
             if (assignedIds.indexOf(userId) >= 0) {
                 $unassignedCollapse.find(tablinksSelectQuery).remove();
                 var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
@@ -714,11 +714,11 @@
 
     function generateAppsIcons(apps) {
         var $chatAppList = $('#chatAppList');
-        var $sideMenu = $('#sideMenu');
-        var $lineSideCollapse = $sideMenu.find('.line-collapse').empty();
-        var $fbSideCollapse = $sideMenu.find('.fb-collapse').empty();
-        var $wechatSideCollapse = $sideMenu.find('.wechat-collapse').empty();
-        var $chatshierSideCollapse = $sideMenu.find('.chatshier-collapse').empty();
+        var $ctrlPanel = $('#ctrlPanel');
+        var $lineSideCollapse = $ctrlPanel.find('.line-collapse').empty();
+        var $fbSideCollapse = $ctrlPanel.find('.fb-collapse').empty();
+        var $wechatSideCollapse = $ctrlPanel.find('.wechat-collapse').empty();
+        var $chatshierSideCollapse = $ctrlPanel.find('.chatshier-collapse').empty();
 
         for (var appId in apps) {
             var app = apps[appId];
@@ -778,7 +778,7 @@
 
     function responseChatData(apps) {
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
-        $sideMenuChatroomCollapse.append(
+        $ctrlPanelChatroomCollapse.append(
             '<li class="text-light nested list-group-item has-collapse unread">' +
                 '<i class="fas fa-user-times"></i>' +
                 '<span>未讀</span>' +
@@ -996,7 +996,7 @@
         $('#clients').prepend(tablinkHtml);
 
         var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
-        var $appCollapse = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"]');
+        var $appCollapse = $ctrlPanelChatroomCollapse.find('.collapse[app-type="' + appType + '"]');
         var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
         if (0 === $chatroomCollapse.length) {
             $appCollapse.append(
@@ -1015,7 +1015,7 @@
 
         // 如果此聊天室有未讀訊息的話將此聊天室新增至未讀列表
         if (messagerSelf.unRead) {
-            $sideMenuChatroomCollapse.find('.collapse.unread').append(chatroomItemHtml);
+            $ctrlPanelChatroomCollapse.find('.collapse.unread').append(chatroomItemHtml);
         }
 
         // 如果非 Chatshier 內部聊天室，代表為平台聊天室
@@ -1025,9 +1025,9 @@
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
             var assignedIds = messagerConsumer.assigned_ids;
             if (assignedIds.indexOf(userId) >= 0) {
-                $sideMenuChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
+                $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {
-                $sideMenuChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
+                $ctrlPanelChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
             }
         }
 
@@ -1422,10 +1422,10 @@
         var platformUid = $targetTablink.attr('platform-uid');
 
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
-        var $chatroomTablink = $sideMenuChatroomCollapse.find('.collapse[app-type="' + appType + '"] ' + tablinksSelectQuery);
+        var $chatroomTablink = $ctrlPanelChatroomCollapse.find('.collapse[app-type="' + appType + '"] ' + tablinksSelectQuery);
 
         $('.tablinks.selected').removeClass('selected').css('background-color', '');
-        $sideMenuChatroomCollapse.find(tablinksSelectQuery).addClass('selected').css('background-color', COLOR.CLICKED);
+        $ctrlPanelChatroomCollapse.find(tablinksSelectQuery).addClass('selected').css('background-color', COLOR.CLICKED);
 
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
@@ -1447,7 +1447,7 @@
             // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
             $chatroomTablink.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
             $unReadElem.text(messagerSelf.unRead).addClass('d-none');
-            $sideMenuChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
+            $ctrlPanelChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
         }
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
@@ -1493,12 +1493,12 @@
             $ticketToggle.removeClass('d-none');
         }
 
-        $('#sideMenuBackdrop').addClass('d-none');
-        var $sideMenu = $('#sideMenu');
-        $sideMenu.addClass(['animating', 'slide-out']);
-        $sideMenu.on('animationend oAnimationEnd webkitAnimationEnd', function() {
-            $sideMenu.off('animationend oAnimationEnd webkitAnimationEnd');
-            $sideMenu.removeClass(['animating', 'slide-out', 'animated']).addClass('d-none');
+        $('#ctrlPanelBackdrop').addClass('d-none');
+        var $ctrlPanel = $('#ctrlPanel');
+        $ctrlPanel.addClass(['animating', 'slide-out']);
+        $ctrlPanel.on('animationend oAnimationEnd webkitAnimationEnd', function() {
+            $ctrlPanel.off('animationend oAnimationEnd webkitAnimationEnd');
+            $ctrlPanel.removeClass(['animating', 'slide-out', 'animated']).addClass('d-none');
         });
     }
 
@@ -1519,7 +1519,7 @@
             var messagerSelf = findMessagerSelf(appId, chatroomId);
             messagerSelf.unRead = 0;
             $unReadElem.text(messagerSelf.unRead).addClass('d-none');
-            $sideMenuChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
+            $ctrlPanelChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
         }
     }
 
@@ -1764,7 +1764,7 @@
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var currentUnread = messagerSelf.unRead;
 
-        var $selectedTablinks = $('#sideMenuChatroomCollapse .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        var $selectedTablinks = $('#ctrlPanelChatroomCollapse .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $unreadMsgElem = $selectedTablinks.find('.unread-msg');
 
         if (!currentUnread) {
@@ -1773,7 +1773,7 @@
             $unreadMsgElem.text(currentUnread > 99 ? '99+' : currentUnread).removeClass('d-none');
         }
 
-        var $unreadCollapse = $sideMenuChatroomCollapse.find('.collapse.unread');
+        var $unreadCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unread');
         var $unreadChatroomTab = $unreadCollapse.find('.list-group-item[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         if (currentUnread && 0 === $unreadChatroomTab.length) {
             $unreadCollapse.prepend($selectedTablinks.clone());
@@ -1916,10 +1916,10 @@
             // 沒有的話複製聊天室的 tablink 至已指派中
             var app = apps[appId];
             var assignedIds = messager.assigned_ids;
-            var $assignedCollapse = $sideMenuChatroomCollapse.find('.collapse.assigned');
-            var $unassignedCollapse = $sideMenuChatroomCollapse.find('.collapse.unassigned');
+            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
             var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
-            var $appChatroom = $sideMenuChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
             if (assignedIds.indexOf(userId) >= 0) {
                 $unassignedCollapse.find(tablinksSelectQuery).remove();
                 var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
@@ -1968,7 +1968,7 @@
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    var $searchWapper = $('#sideMenu .message-search');
+    var $searchWapper = $('#ctrlPanel .message-search');
     var $searchInput = $searchWapper.find('.search-box');
 
     $searchInput.on('keyup', function(ev) {

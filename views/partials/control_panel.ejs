@@ -1,9 +1,9 @@
-<div class="chsr side-menu swiper-container h-100 d-none d-sm-block" id="sideMenu">
+<div class="chsr ctrl-panel swiper-container h-100 d-none d-sm-block" id="ctrlPanel">
     <div class="swiper-wrapper">
         <div class="swiper-slide" id="appsSlide">
             <ul class="list-group">
                 <li class="text-light list-group-item">
-                    <span class="side-menu-title">Chatshier</span>
+                    <span class="ctrl-panel-title">Chatshier</span>
                     <i class="ml-auto py-1 fas fa-bars d-sm-none menu-toggle"></i>
                 </li>
                 <li class="text-light list-group-item">
@@ -29,7 +29,7 @@
                     </li>
                     <div class="nested collapse chatshier-collapse show"></div>
                 </div>
-                <li class="text-light list-group-item" id="sideMenuAddApp">
+                <li class="text-light list-group-item" id="ctrlPanelAddApp">
                     <i class="fas fa-plus"></i>
                     <span>新增</span>
                 </li>
@@ -39,7 +39,7 @@
         <div class="swiper-slide">
             <ul class="list-group">
                 <li class="text-light list-group-item">
-                    <span class="side-menu-title">Chatshier</span>
+                    <span class="ctrl-panel-title">Chatshier</span>
                     <i class="ml-auto py-1 fas fa-bars d-sm-none menu-toggle"></i>
                 </li>
                 <li class="search message-search text-light list-group-item" id="messageSearch">
@@ -54,12 +54,12 @@
                         <i class="fas fa-chevron-down grey" aria-hidden="true"></i>
                     </div>
                 </li>
-                <li class="text-light list-group-item has-collapse" id="sideMenuChatroomItem">
+                <li class="text-light list-group-item has-collapse" id="ctrlPanelChatroomItem">
                     <i class="fas fa-comment-dots fa-fw"></i>
                     <span>聊天室</span>
                     <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                 </li>
-                <div class="collapse show" id="sideMenuChatroomCollapse"></div>
+                <div class="collapse show" id="ctrlPanelChatroomCollapse"></div>
                 <li class="text-light list-group-item" onclick="window.location.assign('/calendar')">
                     <i class="far fa-calendar-alt fa-fw"></i>
                     <span>行事曆</span>
@@ -72,12 +72,12 @@
                     <i class="fa fa-chart-bar fa-fw"></i>
                     <span>訊息分析</span>
                 </li>
-                <li class="text-light list-group-item has-collapse" id="sideMenuMessages">
+                <li class="text-light list-group-item has-collapse" id="ctrlPanelMessages">
                     <i class="fa fa-envelope fa-fw"></i>
                     <span>訊息</span>
                     <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                 </li>
-                <div class="collapse show" id="sideMenuMessagesCollapse">
+                <div class="collapse show" id="ctrlPanelMessagesCollapse">
                     <li class="text-light nested list-group-item" onclick="window.location.assign('/compose')">
                         <i class="fa fa-comments"></i>
                         <span>群發</span>
@@ -101,6 +101,6 @@
     <div class="swiper-pagination"></div>
 </div>
 
-<div class="side-menu-backdrop d-none" id="sideMenuBackdrop"></div>
+<div class="ctrl-panel-backdrop d-none" id="ctrlPanelBackdrop"></div>
 
 <% include ./modals/setting_modal.ejs %>
