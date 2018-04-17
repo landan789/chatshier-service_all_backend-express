@@ -1782,18 +1782,20 @@
     }
 
     function updateChatroomTab(messager, message, appId, chatroomId) {
-        var platformUid = messager.platformUid;
-        var consumer = consumers[platformUid];
-        var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var currentUnread = messagerSelf.unRead;
-
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
-        var $unreadMsgElem = $chatroomTablinks.find('.unread-msg');
 
-        if (consumer && consumer.photo) {
-            $chatroomTablinks.find('app-icon').attr('src', consumer.photo);
+        if (messager && messager.platformUid) {
+            var platformUid = messager.platformUid;
+            var consumer = consumers[platformUid];
+            if (consumer && consumer.photo) {
+                $chatroomTablinks.find('app-icon').attr('src', consumer.photo);
+            }
         }
+
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var currentUnread = messagerSelf.unRead;
+        var $unreadMsgElem = $chatroomTablinks.find('.unread-msg');
 
         if (!currentUnread) {
             $unreadMsgElem.text(0).addClass('d-none');
