@@ -31,8 +31,9 @@
       white-space: nowrap;
       overflow-x: hidden;
       text-overflow: ellipsis; }
-  .chsr.ctrl-panel .nested > :first-child {
-    margin-left: .75rem; }
+  .chsr.ctrl-panel .nested > :first-child,
+  .chsr.ctrl-panel .nested.list-group-item {
+    margin-left: .5rem; }
   .chsr.ctrl-panel .nested .nested > :first-child {
     margin-left: 1rem; }
   .chsr.ctrl-panel .nested .nested .nested > :first-child {
