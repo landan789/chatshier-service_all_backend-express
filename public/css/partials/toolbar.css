@@ -21,7 +21,8 @@
     color: white; }
   .chsr.toolbar .btn {
     border: none;
-    box-shadow: none; }
+    box-shadow: none;
+    background-color: #f7f8f9; }
     .chsr.toolbar .btn.active {
       color: #343a40; }
     .chsr.toolbar .btn:not(.active) {
