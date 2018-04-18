@@ -242,3 +242,19 @@ button:focus {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+@media (min-width: 576px) {
+    .loading-wrapper .loading-text {
+        font-size: 4rem; }
+    .loading-wrapper .loader-container {
+        width: 8rem;
+        height: 8rem; }
+}
+
+@media (min-width: 992px) {
+    .loading-wrapper .loading-text {
+        font-size: 6rem; }
+    .loading-wrapper .loader-container {
+        width: 12rem;
+        height: 12rem; }
+}
