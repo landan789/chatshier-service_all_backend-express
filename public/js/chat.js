@@ -644,9 +644,7 @@
                         createTicketPanel(uiRequireData);
                         return;
                     }
-                    // if(senderMsger){
-                    //   senderMsger = Object.assign(senderMsger,consumerinfo);
-                    //                     }
+                    
                     updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
@@ -1728,7 +1726,7 @@
         var appType = apps[appId].type;
         var srcHtml = messageToPanelHtml(_message);
         var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-        if (messager && messager.platformUid && messager.type != 'CHATSHIER') {
+        if (messager && messager.platformUid && 'CHATSHIER' !== messager.type) {
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
             $messagePanel.find('.messager-nameleftside span').text(consumer.name);
