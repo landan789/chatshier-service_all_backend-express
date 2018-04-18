@@ -166,9 +166,9 @@
         },
         // Defines the buttons and title position which is at the top of the calendar.
         header: {
-            left: 'prev,next,today',
+            left: 'prev, today, next',
             center: 'title',
-            right: 'month,agendaWeek,agendaDay'
+            right: 'month, agendaWeek, agendaDay'
         },
         height: 'auto',
         defaultDate: new Date(), // The initial date displayed when the calendar first loads.
@@ -177,6 +177,7 @@
         selectable: true, // allows a user to highlight multiple days or timeslots by clicking and dragging.
         selectHelper: true, // whether to draw a "placeholder" event while the user is dragging.
         allDaySlot: false,
+        titleFormat: 'YYYY-MM',
         // events is the main option for calendar.
         events: [],
         // execute after user select timeslots.
