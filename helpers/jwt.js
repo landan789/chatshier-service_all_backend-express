@@ -42,7 +42,7 @@ module.exports = (function() {
                 Promise.resolve().then(() => {
                     return new Promise((resolve, reject) => {
                         let userId = payload.uid;
-                        
+
                         if (payload.exp < Date.now()) {
                             reject(API_ERROR.JWT_HAD_EXPIRED);
                             return;
@@ -91,7 +91,7 @@ module.exports = (function() {
                 }
             })(req, res, next);
         }
-   
+
         /**
          * sign(create) a json web token via userid
          * @param {String} userId
