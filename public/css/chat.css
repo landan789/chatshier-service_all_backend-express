@@ -383,10 +383,9 @@ body {
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, .7);
             background-blend-mode: color;
             background-size: cover;
-            background-image: url("https://image.flaticon.com/icons/svg/60/60525.svg"); }
+            background-image: url("./../image/send-btn.svg"); }
         .message-input .submit-message-btn:hover {
             background-color: rgba(255, 255, 255, .5); }
     .message-input .media-btn {
