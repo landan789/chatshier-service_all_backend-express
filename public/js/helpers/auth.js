@@ -19,7 +19,7 @@
         return nextPromise().then(() => {
             // nothing to do
         }).catch(() => {
-            window.location.replace('/logout');
+            window.location.replace('/signout');
         });
 
         function nextPromise() {
@@ -62,7 +62,7 @@
         state === (IS_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||
         state === (IS_LOGIN_SIGNUP_PAGE | HAS_USER | NO_COOKIES)) {
         // 登入資訊不齊全，一律進行登出動作
-        window.location.replace('/logout');
+        window.location.replace('/signout');
     } else if (state === (NOT_LOGIN_SIGNUP_PAGE | HAS_USER | HAS_COOKIES)) {
         // 使用者已進入登入後的其他頁面，並且依舊是登入狀態
         $(document).ready(function() {

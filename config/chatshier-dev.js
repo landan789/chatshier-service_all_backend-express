@@ -40,6 +40,7 @@ module.exports = {
             // http://service.fea.chatshier.com:3002  website always allows itself
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: ['Content-Type', 'Authorization']
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
     }
 };

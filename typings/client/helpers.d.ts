@@ -17,6 +17,7 @@ interface Window {
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
         users: UsersAPI,
+        sign: SignAPI,
         bot: BotAPI
     },
     translate: {
@@ -173,6 +174,11 @@ interface GroupsAPI {
 interface UsersAPI {
     find: (userId: string, email?: string, useFuzzy = false) => Promise<any>;
     update: (userId: string, userData: any) => Promise<any>;
+}
+
+interface SignAPI {
+    refresh: (userId: string) => Promise<any>;
+    signOut: () => Promise<any>;
 }
 
 interface BotAPI {

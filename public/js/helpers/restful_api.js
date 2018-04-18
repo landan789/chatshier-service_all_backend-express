@@ -24,7 +24,8 @@ window.restfulAPI = (function() {
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
-        signRefresh: apiSignUrl + 'refresh/'
+        signRefresh: apiSignUrl + 'refresh/',
+        signOut: apiSignUrl + 'signout/'
     });
 
     // ======================
@@ -83,6 +84,9 @@ window.restfulAPI = (function() {
                         return Promise.resolve(resJsons);
                     }
                     var _reqInit = reqInits[i];
+                    _reqInit.cache = 'no-cache';
+                    _reqInit.mode = 'cors';
+                    _reqInit.credentials = 'include';
 
                     return window.fetch(reqInfo, _reqInit).then(function(res) {
                         return responseChecking(res);
@@ -94,12 +98,18 @@ window.restfulAPI = (function() {
                 return nextPromise(0);
             } else {
                 return Promise.all(reqInits.map((_reqInit) => {
+                    _reqInit.cache = 'no-cache';
+                    _reqInit.mode = 'cors';
+                    _reqInit.credentials = 'include';
                     return window.fetch(reqInfo, _reqInit).then(function(res) {
                         return responseChecking(res);
                     });
                 }));
             }
         }
+        reqInit.cache = 'no-cache';
+        reqInit.mode = 'cors';
+        reqInit.credentials = 'include';
 
         return window.fetch(reqInfo, reqInit).then(function(res) {
             return responseChecking(res);
@@ -1187,10 +1197,19 @@ window.restfulAPI = (function() {
     })();
 
     var SignAPI = (function() {
-        function SignAPI() {
-        };
+        function SignAPI() {};
+
         SignAPI.prototype.refresh = function(userId) {
             var destUrl = apiUrlTable.signRefresh + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        SignAPI.prototype.signOut = function() {
+            var destUrl = apiUrlTable.signOut;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders

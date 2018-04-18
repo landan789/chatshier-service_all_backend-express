@@ -40,8 +40,8 @@ router.get('/ticket', function(req, res, next) {
     res.render('ticket', { title: '待辦事項' + titlePostfix });
 });
 // authentication
-router.get('/logout', function(req, res, next) {
-    res.render('logout', { title: '登出' + titlePostfix });
+router.get('/signout', function(req, res, next) {
+    res.render('signout', { title: '登出' + titlePostfix });
 });
 
 router.get('/analyze', function(req, res, next) {
