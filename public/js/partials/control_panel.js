@@ -68,6 +68,7 @@
 
     function openSideMenu() {
         if ($ctrlPanel.hasClass('animating')) {
+            $ctrlPanel.removeClass('animating');
             return;
         }
         $ctrlPanel.removeClass('d-none').addClass(['animated', 'animating', 'slide-in']);
@@ -81,6 +82,7 @@
 
     function closeSideMenu() {
         if ($ctrlPanel.hasClass('animating')) {
+            $ctrlPanel.removeClass('animating');
             return;
         }
         $ctrlPanel.addClass(['animating', 'slide-out']);
