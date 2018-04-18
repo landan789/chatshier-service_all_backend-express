@@ -15,6 +15,9 @@
             return;
         }
         return window.googleClientHelper.signOut();
+    }).then(function() {
+        var api = window.restfulAPI;
+        return api.sign.signOut();
     }).catch(function(err) {
         console.error(err);
         // catch google auth 登出
