@@ -314,7 +314,7 @@ body {
         padding: 2%; }
 
 .chatroom-body {
-    height: 85%;
+    height: calc(100% - 8rem);
     width: 100%; }
     .chatroom-body .chat-content {
         float: left;
@@ -348,7 +348,7 @@ body {
 
 .message-input-container {
     width: 100%;
-    height: 15%;
+    height: 8rem;
     border-top: 1px solid lightgray;
     background-color: lightgray; }
 .message-input {
