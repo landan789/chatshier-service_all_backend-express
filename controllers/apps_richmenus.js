@@ -102,11 +102,13 @@ module.exports = (function() {
         res.setHeader('Content-Type', 'application/json');
 
         var postRichmenu = {
-            size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
-            name: undefined === req.body.name ? '' : req.body.name,
-            selected: undefined === req.body.name ? '' : req.body.name,
-            chatBarText: undefined === req.body.chatBarText ? '' : req.body.chatBarText,
-            areas: undefined === req.body.areas ? '' : JSON.parse(req.body.areas)
+            size: req.body.size || '',
+            name: req.body.name || '',
+            selected: req.body.selected || '',
+            chatBarText: req.body.chatBarText || '',
+            areas: req.body.areas || '',
+            src: '',
+            platformMenuId: ''
         };
 
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {

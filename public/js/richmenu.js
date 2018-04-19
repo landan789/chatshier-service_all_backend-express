@@ -7,6 +7,10 @@
 
     var api = window.restfulAPI;
     var nowSelectAppId = '';
+    var size = {};
+    var imageFile = '';
+    var imgWidth = '';
+    var imgHeight = '';
 
     var $modal = $('#richmenu-modal');
 
@@ -29,14 +33,14 @@
     $('.content-bar').hide();
     $('.content-input').hide();
     $jqDoc.on('click', '#modal-save', saveRichMenus);
-    $jqDoc.on('click', '#show-richmenu-modal', clearModal);
+    $jqDoc.on('click', '#add-btn', cleanmodal);
     $jqDoc.on('change', '.image-ghost', uploadImage);
     $jqDoc.on('click', 'input[name = richmenu-type]', photoTypeShow);
     $jqDoc.on('click', 'input[name = content]', contentInputShow);
     $jqDoc.on('click', '.box', contentBarShow);
 
-    return api.apps.findAll(userId).then(function(respJson) {
-        var appsData = respJson.data;
+    return api.apps.findAll(userId).then(function(resJson) {
+        var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         nowSelectAppId = '';
@@ -47,8 +51,8 @@
                 continue;
             }
 
-            $dropdownMenu.append('<li><a id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
+            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + appsData[appId].name + '</a></li>');
+            $appSelector.append('<option value="' + appId + '">' + appsData[appId].name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
@@ -68,75 +72,112 @@
 
     function uploadImage() {
         let input = this;
-        if (input.files && input.files[0]) {
-            let file = input.files[0];
-            // let reader = new FileReader();
-            // console.log(file.width);           //圖片寬
-            // console.log(file.height);          //圖片高
-            // console.log(file.size + 'kB');     //圖片大小
-            // console.log(file.type);            //圖片檔名
-            // reader.onloadend = function(e){
-            //     console.log(e);
-            //     console.log(e.target.result);
-            //     var image = new Image();
-            //     image.onload = function(){
-            //         console.log(image.width);
-            //         console.log(image.height);
-            //     }
-            //     $('.show-richmenu-type').css('background','url('+ e.target.result +') center no-repeat').css('background-size', 'cover');
-            // }
-            let storageRef = firebase.storage().ref();
-            let fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
-                let url = snapshot.downloadURL;
-                $('.show-richmenu-type').css('background', 'url(' + url + ') center no-repeat').css('background-size', 'cover');
-            });
+        let reader = new FileReader();
+        if (!input.files.length) {
+            input.value = '';
+            return;
         }
+
+        /** @type {File} */
+        let file = input.files[0];
+        input.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
+
+        let config = window.chatshier.config;
+        if (file.type.indexOf('image') < 0) {
+            $.notify('請上傳圖檔');
+            return;
+        }
+        if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
+            return;
+        }
+
+        // 將檔案轉 base64 的 URL 
+        reader.onload = function(e) {
+            let url = e.target.result;
+            // 取得圖檔的長 寬
+            let image = new Image();
+            image.onload = function() {
+                imgWidth = image.width;
+                imgHeight = image.height;
+                size.width = imgWidth;
+                size.height = imgHeight;
+            };
+            image.src = url;
+
+            $('.show-richmenu-type')
+                .css('background', 'url(' + url + ') center no-repeat')
+                .css('background-size', 'cover')
+                .css('background-color', 'none');
+            imageFile = file;
+        };
+        reader.readAsDataURL(file);
     }
 
     function photoTypeShow() {
+        let width = $modal.find('.show-richmenu-type').width();
+        let height = $modal.find('.show-richmenu-type').height();
+        let boxWidth = width / 3;
+        let boxHeight = height / 2;
         $('.content-bar').hide();
         $('.content-input').hide();
+        $modal.find('.show-richmenu-type').css('background-color', 'rgba(158,158,158)');
         $modal.find('.show-richmenu-type').find('.box').remove();
-        var checked = $(this).val();
-        var typeBox = new TypeObject();
-        var box1 = typeBox.box1;
-        var box2 = typeBox.box2;
-        var box3 = typeBox.box3;
-        var box4 = typeBox.box4;
-        var box5 = typeBox.box5;
-        var box6 = typeBox.box6;
+        let checked = $(this).val();
+        let box1 = '';
+        let box2 = '';
+        let box3 = '';
+        let box4 = '';
+        let box5 = '';
+        let box6 = '';
         switch (checked) {
             case 'type1':
-                $modal.find('.show-richmenu-type').append(box1, box2, box3, box4, box5, box6);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>';
+                box4 = '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>';
+                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
+                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2 + box3 + box4 + box5 + box6);
                 break;
             case 'type2':
-                box1.css('width', '270px');
-                box2.css('width', '270px');
-                box3.css('width', '270px');
-                box4.css('width', '270px');
-                $modal.find('.show-richmenu-type').append(box1, box2, box3, box4);
+                let widthType2 = boxWidth;
+                widthType2 = (widthType2 * 3) / 2;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthType2 + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthType2 + '" data-y="0" style="width:' + widthType2 + 'px"></div>';
+                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthType2 + 'px"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + widthType2 + '" data-y="' + boxHeight + '" style="width:' + widthType2 + 'px"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2 + box3 + box4);
                 break;
             case 'type3':
-                box1.css('width', '540px');
-                $modal.find('.show-richmenu-type').append(box1, box2, box3, box4);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2 + box3 + box4);
                 break;
             case 'type4':
-                box1.css('width', '360px').css('height', '360px');
-                $modal.find('.show-richmenu-type').append(box1, box2, box3);
+                let widthType4 = boxWidth;
+                widthType4 = widthType4 * 2;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthType4 + 'px; height:' + height + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthType4 + '" data-y="0"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + widthType4 + '" data-y="' + boxHeight + '"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2 + box3);
                 break;
             case 'type5':
-                box1.css('width', '540px');
-                box2.css('width', '540px');
-                $modal.find('.show-richmenu-type').append(box1, box2);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2);
                 break;
             case 'type6':
-                box1.css('width', '270px').css('height', '360px');
-                box2.css('width', '270px').css('height', '360px');
-                $modal.find('.show-richmenu-type').append(box1, box2);
+                let widthType6 = boxWidth;
+                widthType6 = (widthType6 * 3) / 2;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthType6 + 'px; height:' + height + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthType6 + '" data-y="0" style="width:' + widthType6 + 'px; height:' + height + 'px"></div>';
+                $modal.find('.show-richmenu-type').append(box1 + box2);
                 break;
             case 'type7':
-                box1.css('width', '540px').css('height', '360px');
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>';
                 $modal.find('.show-richmenu-type').append(box1);
                 break;
             default:
@@ -168,126 +209,134 @@
         $(this).addClass('checked');
     }
 
-    function clearModal() {
+    function cleanmodal() {
         console.log('clear');
         $modal.find('input[type = text]').val('');
         $modal.find('input[type = datetime-local]').val('');
         $modal.find('input[type = url]').val('');
+        $modal.find('input[type = file]').val('');
         $modal.find('select').val('');
         $modal.find('.show-richmenu-type').removeAttr('style');
+        $modal.find('.show-richmenu-type').css('background-color', 'rgba(158,158,158)');
         $modal.find('.show-richmenu-type').find('.box').remove();
         appenedBox();
     }
 
     function appenedBox() {
-        var typeBox = new TypeObject();
-        var box1 = typeBox.box1;
-        var box2 = typeBox.box2;
-        var box3 = typeBox.box3;
-        var box4 = typeBox.box4;
-        var box5 = typeBox.box5;
-        var box6 = typeBox.box6;
-        $modal.find('.show-richmenu-type').append(box1, box2, box3, box4, box5, box6);
+        var box1 = '<div class="box" id="box1"></div>';
+        var box2 = '<div class="box" id="box2"></div>';
+        var box3 = '<div class="box" id="box3"></div>';
+        var box4 = '<div class="box" id="box4"></div>';
+        var box5 = '<div class="box" id="box5"></div>';
+        var box6 = '<div class="box" id="box6"></div>';
+        $modal.find('.show-richmenu-type').append(box1 + box2 + box3 + box4 + box5 + box6);
     }
 
     function saveRichMenus() {
-        let richmenuId = $('#richmenu-id').val();
-        let appId = $('#richmenu-appId').val();
+        let appId = $appSelector.find('option:selected').val();
         let status = $('#richmenu-status').val();
-        let startTime = $('#start-time').val();
-        let endTime = $('#end-time').val();
+        let startedTime = $('#start-time').val();
+        let endedTime = $('#end-time').val();
         let title = $('#title').val();
         let chatBarText = $('#chatbar-text').val();
-        let type = $('input[name = richmenu-type]:checked').val();
-        let typeNo = typeNum(type);
-        let area = [];
-        for (let i = 0; i <= typeNo - 1; i++) {
-            area[i] = {
+
+        let width = $modal.find('.show-richmenu-type').width();
+        let height = $modal.find('.show-richmenu-type').height();
+
+        // 取得 長 寬 比例尺
+        let widthRate = imgWidth / width;
+        let heightRate = imgHeight / height;
+
+        let boxElements = $('.box');
+        let areas = [];
+        boxElements.each(function() {
+            let boxWidth = $(this).width();
+            let bixHeight = $(this).height();
+            let x = parseInt($(this).attr('data-x'));
+            let y = parseInt($(this).attr('data-y'));
+            let text = $(this).attr('ref');
+
+            // 將 長寬 及 座標 依圖片大小縮放並四捨五入
+            let sacledWidth = Math.round(boxWidth * widthRate);
+            let scaledHeight = Math.round(bixHeight * heightRate);
+            let scaledX = Math.round(x * widthRate);
+            let scaledY = Math.round(y * heightRate);
+
+            let areaDataObj = {
                 'bounds': {
-                    x: 0,
-                    y: 0,
-                    width: $('#box' + (i + 1)).width(),
-                    height: $('#box' + (i + 1)).height()
+                    x: scaledX,
+                    y: scaledY,
+                    width: sacledWidth,
+                    height: scaledHeight
                 },
                 'action': {
-                    type: 'Message',
-                    text: $('#box' + (i + 1)).attr('ref')
+                    type: 'message',
+                    text: text
                 }
             };
-        }
+            areas.push(areaDataObj);
+        });
 
-        // if (!channelId || !keyword || !type) {
-        if (!appId || !type) {
-            $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
-        } else {
-            let template = createTemplate(type);
-            if (template) {
-                let data = {
-                    appId: appId,
-                    keyword: keyword,
-                    status: status,
-                    template: template
+        let postRichmenu = {
+            selected: 'false',
+            startedTime: startedTime,
+            endedTime: endedTime,
+            name: title,
+            chatBarText: chatBarText,
+            size: size,
+            areas: areas
+        };
+        let richmenuId = '';
+        return api.appsRichmenus.insert(appId, userId, postRichmenu).then((resJson) => {
+            return api.bot.createRichMenu(appId, postRichmenu).then((resJson) => {
+                richmenuId = resJson.data;
+                let reader = new FileReader();
+                let postImage = '';
+                reader.onload = function() {
+                    postImage = reader.result;
                 };
-                console.log(data);
-                if (propId) {
-                    socket.emit('change template', userId, propId, data, loadTemplate);
-                } else {
-                    socket.emit('create template', userId, data, loadTemplate);
-                }
-                $('#template-modal').modal('toggle');
-            }
-        }
+                reader.readAsArrayBuffer(imageFile);
+                return api.bot.setRichMenuImage(appId, richmenuId, postImage).then((resJson) => {
+                    console.log(resJson);
+                    return api.bot.linkRichMenuToUser(appId, richmenuId, 'U50ea41570f6f8dd8ba41e236268914b7').then((resJson) => {
+                        console.log(resJson);
+                    });
+                });
+            });
+        });
+        // if (!appId) {
+        //     $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
+        // }
     }
 
-    function typeNum(type) {
-        switch (type) {
-            case 'type1':
-                return 6;
-            case 'type2':
-                return 4;
-            case 'type3':
-                return 4;
-            case 'type4':
-                return 3;
-            case 'type5':
-                return 2;
-            case 'type6':
-                return 2;
-            case 'type7':
-                return 1;
-            default:
-                return 0;
-        }
-    }
+    // function TableObject() {
+    //     this.tr = $('<tr>');
+    //     this.th = $('<th>');
+    //     this.td1 = $('<td>');
+    //     this.td2 = $('<td>');
+    //     this.td3 = $('<td>');
+    //     this.td4 = $('<td>');
+    //     this.td5 = $('<td>');
+    //     this.td6 = $('<td>');
+    //     this.UpdateBtn = $('<button>').attr('type', 'button')
+    //         .addClass('btn btn-light btn-border fas fa-edit')
+    //         .attr('id', 'edit')
+    //         .attr('data-toggle', 'modal')
+    //         .attr('data-target', '#richmenu-modal')
+    //         .attr('aria-hidden', 'true');
+    //     this.DeleteBtn = $('<button>').attr('type', 'button')
+    //         .addClass('btn btn-danger fas fa-trash-alt')
+    //         .attr('id', 'del');
+    // }
 
-    function TableObject() {
-        this.tr = $('<tr>');
-        this.th = $('<th>');
-        this.td1 = $('<td>');
-        this.td2 = $('<td>');
-        this.td3 = $('<td>');
-        this.td4 = $('<td>');
-        this.td5 = $('<td>');
-        this.td6 = $('<td>');
-        this.UpdateBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-light btn-border fas fa-edit')
-            .attr('id', 'edit')
-            .attr('data-toggle', 'modal')
-            .attr('data-target', '#richmenu-modal')
-            .attr('aria-hidden', 'true');
-        this.DeleteBtn = $('<button>').attr('type', 'button')
-            .addClass('btn btn-danger fas fa-trash-alt')
-            .attr('id', 'del');
-    }
-
-    function TypeObject() {
-        this.box1 = $('<div>').addClass('box').attr('id', 'box1');
-        this.box2 = $('<div>').addClass('box').attr('id', 'box2');
-        this.box3 = $('<div>').addClass('box').attr('id', 'box3');
-        this.box4 = $('<div>').addClass('box').attr('id', 'box4');
-        this.box5 = $('<div>').addClass('box').attr('id', 'box5');
-        this.box6 = $('<div>').addClass('box').attr('id', 'box6');
-    }
+    // function TypeObject() {
+    //     this.box1 = $('<div>').addClass('box').attr('id', 'box1');
+    //     this.box2 = $('<div>').addClass('box').attr('id', 'box2');
+    //     this.box3 = $('<div>').addClass('box').attr('id', 'box3');
+    //     this.box4 = $('<div>').addClass('box').attr('id', 'box4');
+    //     this.box5 = $('<div>').addClass('box').attr('id', 'box5');
+    //     this.box6 = $('<div>').addClass('box').attr('id', 'box6');
+    // }
 
     function loadRichmenus(appId, userId) {
         $('#richmenu').empty();
@@ -306,19 +355,32 @@
         var linkText = '';
         for (let i = 0; i < richmenu.areas.length; i++) {
             if (0 === i) {
-                linkText = linkText + richmenu.areas[i].action.type;
+                linkText = linkText + richmenu.areas[i].action.text;
             } else {
-                linkText = linkText + '，' + richmenu.areas[i].action.type;
+                linkText = linkText + '，' + richmenu.areas[i].action.text;
             }
         }
-        var list = new TableObject();
-        var title = list.th.text(richmenu.name);
-        var chatBarText = list.td1.text(richmenu.chatBarText);
-        var link = list.td3.text(linkText);
-        var time = list.td4.text(richmenu.delete);
-        var status = list.td5.text('開放');
-        var btns = list.td6.append(list.UpdateBtn, list.DeleteBtn);
-        var trGrop = list.tr.attr('id', richmenuId).attr('rel', appId).append(title, chatBarText, link, time, status, btns);
+
+        var trGrop =
+            '<tr id="' + richmenuId + '" rel="' + appId + '">' +
+                '<th>' + richmenu.name + '</th>' +
+                '<td>' + richmenu.chatBarText + '</td>' +
+                '<td>' + linkText + '</td>' +
+                '<td>' + new Date(richmenu.startedTime).toLocaleString() + '-' + new Date(richmenu.endedTime).toLocaleString() + '</td>' +
+                '<td>' + richmenu.status + '</td>' +
+                '<td>' +
+                    '<button type="button" id="edit" class="btn btn-light btn-border fas fa-edit" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
+                    '<button type="button" id="del" class="btn btn-danger fas fa-trash-alt"></button>' +
+                '</td>' +
+            '</tr>';
+        // var list = new TableObject();
+        // var title = list.th.text(richmenu.name);
+        // var chatBarText = list.td1.text(richmenu.chatBarText);
+        // var link = list.td3.text(linkText);
+        // var time = list.td4.text(richmenu.delete);
+        // var status = list.td5.text('開放');
+        // var btns = list.td6.append(list.UpdateBtn, list.DeleteBtn);
+        // var trGrop = list.tr.attr('id', richmenuId).attr('rel', appId).append(title, chatBarText, link, time, status, btns);
         $('table.table').append(trGrop);
     }
 
