@@ -120,45 +120,5 @@ module.exports = (function() {
         });
     };
 
-    ConsumersController.prototype.refreshProfile = (req, res, next) => {
-        let platformUid = req.params.platformuid;
-        let appId = req.body.appId;
-        let app = {};
-
-        return controllerCre.AppsRequestVerify(req).then(() => {
-            if (!appId) {
-                return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
-            }
-            return appsMdl.find(appId, null);
-        }).then((apps) => {
-            if (!apps) {
-                return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-            }
-            app = apps[appId];
-            return botSvc.create(appId, app);
-        }).then(() => {
-            return botSvc.getProfile(platformUid, appId, app);
-        }).then((profile) => {
-            if (!profile) {
-                return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-            }
-            return consumersMdl.replace(platformUid, profile);
-        }).then((data) => {
-            let json = {
-                status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                data: data
-            };
-            res.status(200).json(json);
-        }).catch((ERROR) => {
-            let json = {
-                status: 0,
-                msg: ERROR.MSG,
-                code: ERROR.CODE
-            };
-            res.status(500).json(json);
-        });
-    };
-
     return new ConsumersController();
 })();

@@ -19,6 +19,7 @@ window.restfulAPI = (function() {
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
+        bot: apiDatabaseUrl + 'bot/',
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
         consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
@@ -339,21 +340,6 @@ window.restfulAPI = (function() {
                 method: 'PUT',
                 headers: reqHeaders,
                 body: JSON.stringify(consumer)
-            };
-            return sendRequest(destUrl, reqInit);
-        };
-
-        /**
-         * @param {string} platformUid
-         * @param {string} userId
-         * @param {string} appId
-         */
-        ConsumersAPI.prototype.refreshProfile = function(platformUid, userId, appId) {
-            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
-            var reqInit = {
-                method: 'POST',
-                headers: reqHeaders,
-                body: JSON.stringify({ appId: appId })
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -1257,7 +1243,7 @@ window.restfulAPI = (function() {
          * @param {string} richmenuId - 目標Richmenu的 ID
          */
         BotAPI.prototype.getRichMenu = function(appId, richmenuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + 'richmenus' + richmenuId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus' + richmenuId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -1271,7 +1257,20 @@ window.restfulAPI = (function() {
          * @param {string} richmenuId - 目標Richmenu的 ID
          */
         BotAPI.prototype.getRichMenuImage = function(appId, richmenuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + 'richmenus' + richmenuId + '/content';
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/content';
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} platformUid
+         */
+        BotAPI.prototype.getProfile = function(appId, platformUid) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -1371,6 +1370,7 @@ window.restfulAPI = (function() {
         appsRichmenus: new AppsRichmenusAPI(),
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
+        bot: new BotAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
         consumers: new ConsumersAPI(),
         groupsMembers: new GroupsMembersAPI(),
