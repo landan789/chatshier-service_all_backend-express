@@ -1764,8 +1764,8 @@
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
         var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         if(messager){
-        $selectedTablinks.find('.client-name').text(messager.name);
-        $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
+            $selectedTablinks.find('.client-name').text(messager.name);
+            $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
         }
         /** @type {ChatshierMessage} */
         var _message = message;
