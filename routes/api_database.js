@@ -130,7 +130,6 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 router.get('/consumers/users/:userid', consumersCtl.getAll);
 router.get('/consumers/consumers/:platformuid/users/:userid', consumersCtl.getOne);
 router.put('/consumers/consumers/:platformuid/users/:userid', consumersCtl.update);
-router.post('/consumers/consumers/:platformuid/users/:userid', consumersCtl.refreshProfile);
 // ===============
 
 // vendor 的個人資料
@@ -156,6 +155,7 @@ router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid',
 router.get('/bot/apps/:appid', botCtl.getRichMenuList);
 router.get('/bot/apps/:appid/richmenus/:richmenuid', botCtl.getRichmenu);
 router.get('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.getRichMenuImage);
+router.get('/bot/apps/:appid/consumers/:platformuid', botCtl.getProfile);
 router.post('/bot/apps/:appid', botCtl.createRichMenu);
 router.post('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.setRichMenuImage);
 router.post('/bot/apps/:appid/richmenus/:richmenuid/senders/:senderid', botCtl.linkRichMenuToUser);

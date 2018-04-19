@@ -1050,13 +1050,14 @@
 
         // 監聽 tablinks 底下的圖像是否載入失敗
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
-        var $consumerPhoto = $chatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+        var $consumerPhoto = $appCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
         $consumerPhoto.on('error', function() {
+            var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+            $consumerPhotos.attr('src', '/image/user_large.png');
+
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
-            return api.consumers.refreshProfile(platformUid, userId, appId).then((resJson) => {
-                var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+            return api.bot.getProfile(appId, platformUid).then((resJson) => {
                 if (!(resJson && resJson.data)) {
-                    $consumerPhotos.attr('src', '/image/user_large.png');
                     return;
                 }
                 var _consumers = resJson.data;
