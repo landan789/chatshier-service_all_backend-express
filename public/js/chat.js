@@ -1054,14 +1054,16 @@
         $consumerPhoto.on('error', function() {
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
             return api.consumers.refreshProfile(platformUid, userId, appId).then((resJson) => {
+                var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
                 if (!(resJson && resJson.data)) {
+                    $consumerPhotos.attr('src', '/image/user_large.png');
                     return;
                 }
                 var _consumers = resJson.data;
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
                 consumer.photo = consumer.photo || '/image/user_large.png';
-                $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo').attr('src', consumer.photo);
+                $consumerPhotos.attr('src', consumer.photo);
                 Object.assign(consumers, _consumers);
             });
         });
