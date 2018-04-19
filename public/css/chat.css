@@ -200,9 +200,6 @@ body {
     width: 100%;
     padding: 0 10px;
     line-height: normal; }
-    .message .location-icon {
-        margin-right: .5rem;
-        color: red; }
     .message .content {
         max-width: 60%; }
         .message .content.words {
@@ -219,7 +216,11 @@ body {
         .message .content img,
         .message .content video {
             width: 100%;
+            height: auto;
             border-radius: .5rem; }
+        .message .content .location-icon {
+            margin-right: .5rem;
+            color: red; }
     .message .messager-name {
         margin-bottom: .25rem; }
         .message .messager-name span {
