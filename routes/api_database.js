@@ -17,7 +17,7 @@ const consumersCtl = require('../controllers/consumers');
 const usersCtl = require('../controllers/users');
 const groupsCtl = require('../controllers/groups');
 const groupsMembersCtl = require('../controllers/groups_members');
-const botCtl = require('../controllers/bot');
+
 const appsChatroomsCtl = require('../controllers/apps_chatrooms');
 const appsChatroomsMessagersCtl = require('../controllers/apps_chatrooms_messagers');
 const appsKeywordrepliesCtl = require('../controllers/apps_keywordreplies');
@@ -150,17 +150,5 @@ router.get('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.get
 router.post('/groups-members/groups/:groupid/users/:userid', groupsMembersCtl.postOne);
 router.put('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.putOne);
 router.delete('/groups-members/groups/:groupid/members/:memberid/users/:userid', groupsMembersCtl.deleteOne);
-
-// ==========
-// bot
-router.get('/bot/apps/:appid', botCtl.getRichMenuList);
-router.get('/bot/apps/:appid/richmenus/:richmenuid', botCtl.getRichmenu);
-router.get('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.getRichMenuImage);
-router.post('/bot/apps/:appid', botCtl.createRichMenu);
-router.post('/bot/apps/:appid/richmenus/:richmenuid/content', botCtl.setRichMenuImage);
-router.post('/bot/apps/:appid/richmenus/:richmenuid/senders/:senderid', botCtl.linkRichMenuToUser);
-router.delete('/bot/apps/:appid/richmenus/:richmenuid', botCtl.deleteRichMenu);
-router.delete('/bot/apps/:appid/richmenus/:richmenuid/senders/:senderid', botCtl.unlinkRichMenuFromUser);
-// ==========
 
 module.exports = router;
