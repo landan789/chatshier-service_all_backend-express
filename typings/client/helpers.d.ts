@@ -12,13 +12,13 @@ interface Window {
         appsRichmenus: AppsRichmenusAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
+        bot: BotAPI,
         calendarsEvents: CalendarsEventsAPI,
         consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
         users: UsersAPI,
-        sign: SignAPI,
-        bot: BotAPI
+        sign: SignAPI
     },
     translate: {
         ready: Promise<{ [key: string]: string }>,
@@ -148,7 +148,6 @@ interface ConsumersAPI {
     findAll: (userId: string) => Promise<any>;
     findOne: (platformUid: string, userId: string) => Promise<any>;
     update: (platformUid: string, userId: string, consumer: any) => Promise<any>;
-    refreshProfile: (platformUid: string, userId: string, appId: string) => Promise<any>;
 }
 
 interface GroupsMembersAPI {
@@ -186,6 +185,7 @@ interface BotAPI {
     getRichMenuList: (appId: string) => Promise<any>;
     getRichMenu: (appId: string, richmenuId: string) => Promise<any>;
     getRichMenuImage: (appId: string, richmenuId: string) => Promise<any>;
+    getProfile: (appId: string, platformUid: string) => Promise<any>;
     createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
     setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
     linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;

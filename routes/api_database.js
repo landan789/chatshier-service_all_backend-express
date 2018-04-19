@@ -130,7 +130,6 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 router.get('/consumers/users/:userid', consumersCtl.getAll);
 router.get('/consumers/consumers/:platformuid/users/:userid', consumersCtl.getOne);
 router.put('/consumers/consumers/:platformuid/users/:userid', consumersCtl.update);
-router.post('/consumers/consumers/:platformuid/users/:userid', consumersCtl.refreshProfile);
 // ===============
 
 // vendor 的個人資料
