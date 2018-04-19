@@ -1054,6 +1054,9 @@
         $consumerPhoto.on('error', function() {
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
             return api.consumers.refreshProfile(platformUid, userId, appId).then((resJson) => {
+                if (!(resJson && resJson.data)) {
+                    return;
+                }
                 var _consumers = resJson.data;
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
