@@ -644,6 +644,7 @@
                         createTicketPanel(uiRequireData);
                         return;
                     }
+                    
                     updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
@@ -655,6 +656,7 @@
                         $profileCard.find('.panel-table').remove();
                         var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newProfileNode.shift()).insertAfter($profileCard.find('.photo-container'));
+                        $profileCard.find('.consumer-avatar').attr('src',consumer.photo);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -925,7 +927,7 @@
 
         return (
             '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
-                '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
+                '<div class="messager-name' + (shouldRightSide ? ' text-right' : 'leftside') + '">' +
                     '<span>' + senderrName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
@@ -1724,7 +1726,11 @@
         var appType = apps[appId].type;
         var srcHtml = messageToPanelHtml(_message);
         var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-
+        if (messager && messager.platformUid && 'CHATSHIER' !== messager.type) {
+            var platformUid = messager.platformUid;
+            var consumer = consumers[platformUid];
+            $messagePanel.find('.messager-nameleftside span').text(consumer.name);
+        }   
         if (chatroomList.indexOf(chatroomId) >= 0) {
             var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
 
@@ -1757,9 +1763,10 @@
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
         var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        $selectedTablinks.find('.client-name').text(messager.name);
-        $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
-
+        if(messager){
+            $selectedTablinks.find('.client-name').text(messager.name);
+            $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
+        }
         /** @type {ChatshierMessage} */
         var _message = message;
         var $msgElem = $selectedTablinks.find('.client-message');
@@ -1785,11 +1792,16 @@
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
 
+       
         if (messager && messager.platformUid) {
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
             if (consumer && consumer.photo) {
-                $chatroomTablinks.find('app-icon').attr('src', consumer.photo);
+                $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
+               
+            }
+            if (consumer && consumer.name) {
+                $chatroomTablinks.find('.app-name').text(consumer.name);
             }
         }
 
