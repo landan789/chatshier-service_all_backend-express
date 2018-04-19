@@ -907,7 +907,7 @@
     function generateLoadingJqElem() {
         return $($.parseHTML(
             '<div class="loading-container">' +
-                '<img src="image/loading.gif" alt="loading..." />' +
+                '<img src="/image/loading.gif" alt="loading..." />' +
             '</div>'
         ).shift());
     }
@@ -916,8 +916,8 @@
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
         var chatroomName = CHATSHIER === opts.appType ? '群組聊天室' : opts.clientName;
         var html = (
-            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '" platform-uid="' + opts.platformUid + '">' +
-                '<img class="app-icon" src="' + opts.clientPhoto + '" />' +
+            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
+                '<img class="app-icon consumer-photo" src="' + opts.clientPhoto + '" />' +
                 // '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
@@ -1047,6 +1047,21 @@
         } else {
             $chatroomCollapse.append(chatroomItemHtml);
         }
+
+        // 監聽 tablinks 底下的圖像是否載入失敗
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+        var $consumerPhoto = $chatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+        $consumerPhoto.on('error', function() {
+            // 當載入失敗時發 api 通知後端更新 consumer 的頭像
+            return api.consumers.refreshProfile(platformUid, userId, appId).then((resJson) => {
+                var _consumers = resJson.data;
+                var consumer = _consumers[platformUid] || {};
+                // 如果取得 photo 失敗則使用預設頭像
+                consumer.photo = consumer.photo || '/image/user_large.png';
+                $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo').attr('src', consumer.photo);
+                Object.assign(consumers, _consumers);
+            });
+        });
 
         // 如果此聊天室有未讀訊息的話將此聊天室新增至未讀列表
         if (messagerSelf.unRead) {
@@ -1407,7 +1422,7 @@
 
                                 html +=
                                     '<div class="person-chip">' +
-                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
+                                        '<img src="' + (memberUser.photo || '/image/avatar-default.png') + '" class="person-avatar" alt="">' +
                                         '<span>' + memberUser.name + '</span>' +
                                     '</div>';
                             }

@@ -343,6 +343,21 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
+        /**
+         * @param {string} platformUid
+         * @param {string} userId
+         * @param {string} appId
+         */
+        ConsumersAPI.prototype.refreshProfile = function(platformUid, userId, appId) {
+            var destUrl = this.urlPrefix + 'consumers/' + platformUid + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify({ appId: appId })
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
         return ConsumersAPI;
     })();
 

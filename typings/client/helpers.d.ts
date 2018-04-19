@@ -148,6 +148,7 @@ interface ConsumersAPI {
     findAll: (userId: string) => Promise<any>;
     findOne: (platformUid: string, userId: string) => Promise<any>;
     update: (platformUid: string, userId: string, consumer: any) => Promise<any>;
+    refreshProfile: (platformUid: string, userId: string, appId: string) => Promise<any>;
 }
 
 interface GroupsMembersAPI {
