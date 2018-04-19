@@ -447,6 +447,40 @@
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
     });
+    // 偵測 video 變成全螢幕時，把 control panel 及 toobar 進行顯示及隱藏切換
+    $chatroomBody.on('fullscreenchange webkitfullscreenchange mozfullscreenchange', '.message video', function(ev) {
+        var isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        var $toolbar = $('.chsr.toolbar');
+        var $ctrlPanel = $('.chsr.ctrl-panel');
+        var $chatWrapper = $('.chat-wrapper');
+        var $chatArea = $chatWrapper.find('.chat-area');
+
+        if (isFullscreen) {
+            $toolbar.css({
+                willChange: 'height',
+                transitionDuration: '150ms',
+                height: '0',
+                display: 'none'
+            });
+            $ctrlPanel.css({
+                willChange: 'width',
+                transitionDuration: '150ms',
+                width: '0',
+                display: 'none'
+            }).removeClass('d-sm-block');
+            $chatWrapper.css({
+                maxWidth: '100%'
+            });
+            $chatArea.css({
+                maxHeight: '100%'
+            });
+        } else {
+            $toolbar.removeAttr('style');
+            $ctrlPanel.removeAttr('style').addClass('d-sm-block');
+            $chatWrapper.removeAttr('style');
+            $chatArea.removeAttr('style');
+        }
+    });
     // =====end chat event=====
 
     // =====start profile event=====
@@ -1054,15 +1088,30 @@
     function messageToPanelHtml(message) {
         switch (message.type) {
             case 'image':
-                return '<img src="' + message.src + '" style="width: 100%; max-width: 500px;" />';
+                return (
+                    '<img class="image-content" src="' + message.src + '" />'
+                );
             case 'audio':
-                return '<audio controls><source src="' + message.src + '" type="audio/mpeg"></audio>';
+                return (
+                    '<audio class="audio-content" controls>' +
+                        '<source src="' + message.src + '" type="audio/mpeg">' +
+                    '</audio>'
+                );
             case 'video':
-                return '<video controls><source src="' + message.src + '" type="video/mp4"></video>';
+                return (
+                    '<video class="video-content" controls playsinline webkit-playsinline>' +
+                        '<source src="' + message.src + '" type="video/mp4">' +
+                    '</video>'
+                );
             case 'sticker':
-                return '<img src="' + message.src + '" style="width: 100%; max-width: 200px;" />';
+                return (
+                    '<img class="sticker-content" src="' + message.src + '" style="width: 100%; max-width: 200px;" />'
+                );
             case 'location':
-                return '<i class="fa fa-location-arrow location-icon"></i><span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>';
+                return (
+                    '<i class="fa fa-location-arrow location-icon"></i>' +
+                    '<span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>'
+                );
             default:
                 return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
         }
