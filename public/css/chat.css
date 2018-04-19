@@ -182,7 +182,7 @@ body {
         align-items: center;
         position: absolute;
         top: 0;
-        right: 20%;
+        right: 1.4rem;
         height: 100%; }
         .message-search .search-results > :not(:last-child) {
             margin-right: .5rem; }
@@ -212,8 +212,8 @@ body {
             word-wrap: break-word;
             text-align: left; }
         .message .content.found {
-            color: red;
-            background-color: yellow !important; }
+            color:white;
+            background-color: #33ccff !important; }
         .message .content img,
         .message .content video {
             width: 100%;
