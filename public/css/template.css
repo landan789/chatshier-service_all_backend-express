@@ -150,10 +150,6 @@ label *:not(strong) {
     margin-top: 30px;
 }
 
-.padding-lr {
-    padding: 0px 50px;
-}
-
 tr:nth-child(even) {
     background: #F4F4F4;
 }
@@ -164,10 +160,6 @@ tr:nth-child(even) {
 
 .title-top {
     margin-top: -20px;
-}
-
-.h3-padding {
-    padding-top: 15px;
 }
 
 .chsr.pagination {

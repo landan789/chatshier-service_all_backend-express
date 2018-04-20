@@ -29,7 +29,7 @@
     } catch (ex) {
         userId = '';
     }
-    $autoreplyAddModal.on('click', '#addSubmitBtn', dataInsert); // 新增
+    $autoreplyAddModal.on('click', '#addSubmitBtn', dataInsert);
     $autoreplyEditModal.on('click', '#editSubmitBtn', dataUpdate);
     $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
     $(document).on('click', '#delete-btn', dataRemove); // 刪除
@@ -58,6 +58,11 @@
         delete datetimePickerInitOpts.defaultDate;
         $autoreplyEditSdtPicker.datetimepicker(datetimePickerInitOpts);
         $autoreplyEditEdtPicker.datetimepicker(datetimePickerInitOpts);
+
+        $autoreplyAddModal.on('show.bs.modal', function() {
+            $autoreplyAddSdtPicker.data('DateTimePicker').date(new Date());
+            $autoreplyAddEdtPicker.data('DateTimePicker').clear();
+        });
     } else {
         $autoreplyAddSdtInput.attr('type', 'datetime-local');
         $autoreplyAddEdtInput.attr('type', 'datetime-local');
@@ -78,7 +83,7 @@
 
         $autoreplyAddModal.on('show.bs.modal', function() {
             $autoreplyAddSdtInput.val(toDatetimeLocal(new Date()));
-            $autoreplyAddEdtInput.val(toDatetimeLocal(new Date()));
+            $autoreplyAddEdtInput.val();
         });
     }
 
@@ -149,8 +154,8 @@
             $('#endtime').val('');
             $('#enter-text').val('');
             $appDropdown.find('#' + appId).click();
-            $.notify('新增成功！', { type: 'success' });
             $('#addSubmitBtn').removeAttr('disabled');
+            $.notify('新增成功！', { type: 'success' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
                 $autoreplyAddModal.modal('hide');
@@ -158,8 +163,9 @@
                 $('#starttime').val('');
                 $('#endtime').val('');
                 $('#enter-text').val('');
-                $.notify('失敗', { type: 'danger' });
                 $('#addSubmitBtn').removeAttr('disabled');
+                $.notify('失敗', { type: 'danger' });
+                return;
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $autoreplyAddModal.modal('hide');
@@ -167,9 +173,18 @@
                 $('#starttime').val('');
                 $('#endtime').val('');
                 $('#enter-text').val('');
-                $.notify('無此權限', { type: 'danger' });
                 $('#addSubmitBtn').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return;
             }
+
+            $autoreplyAddModal.modal('hide');
+            $('#modal-task-name').val('');
+            $('#starttime').val('');
+            $('#endtime').val('');
+            $('#enter-text').val('');
+            $('#addSubmitBtn').removeAttr('disabled');
+            $.notify('失敗', { type: 'danger' });
         });
     }
 
@@ -258,14 +273,28 @@
         }).catch((resJson) => {
             if (undefined === resJson.status) {
                 $('#autoreplyEditModal').modal('hide');
+                $('#editSubmitBtn').removeAttr('disabled');
                 $.notify('失敗', { type: 'danger' });
-                $('#editSubmitBtn').removeAttr('disabled');
+                return;
             }
+
             if (NO_PERMISSION_CODE === resJson.code) {
-                $('#autoreplyEditModal').modal('hide');
-                $.notify('無此權限', { type: 'danger' });
+                $autoreplyEditModal.modal('hide');
                 $('#editSubmitBtn').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return;
             }
+
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $autoreplyEditModal.modal('hide');
+                $('#editSubmitBtn').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return;
+            }
+
+            $autoreplyEditModal.modal('hide');
+            $('#editSubmitBtn').removeAttr('disabled');
+            $.notify('失敗', { type: 'danger' });
         });
     }
 
@@ -284,10 +313,14 @@
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
+                    return;
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
+                    return;
                 }
+
+                $.notify('失敗', { type: 'danger' });
             });
         });
     }
