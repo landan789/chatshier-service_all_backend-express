@@ -190,7 +190,7 @@
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-border upadte" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                    '<button type="button" class="btn btn-border updadte" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
                         '<i class="fas fa-edit"></i>' +
                     '</button>' +
                     '<button type="button" class="btn btn-danger remove" id="delete-btn">' +
