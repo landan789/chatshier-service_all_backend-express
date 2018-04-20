@@ -31,7 +31,7 @@ router.get('/greeting', function(req, res, next) {
     res.render('greeting', { title: '加好友回覆' + titlePostfix });
 });
 router.get('/compose', function(req, res, next) {
-    res.render('compose', { title: '訊息群發' + titlePostfix });
+    res.render('compose', { title: '群發' + titlePostfix });
 });
 router.get('/calendar', function(req, res, next) {
     res.render('calendar', { title: '行事曆' + titlePostfix });
