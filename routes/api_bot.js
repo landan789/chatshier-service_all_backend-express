@@ -23,6 +23,7 @@ router.use(
 router.post('/bot/apps/:appid/menus/:menuid', botCtl.activateMenu);
 router.delete('/bot/apps/:appid/menus/:menuid', botCtl.deactivateMenu);
 router.delete('/bot/apps/:appid/menus/:menuid/content/', botCtl.deleteMenu);
+router.post('/upload-file/users/:userid', botCtl.uploadFile);
 // ==========
 
 module.exports = router;

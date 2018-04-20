@@ -3,7 +3,7 @@ module.exports = (function() {
     var API_SUCCESS = require('../config/api_success');
 
     const storageHlp = require('../helpers/storage');
-
+    const controllerCre = require('../cores/controller');
     const botSvc = require('../services/bot');
 
     const consumersMdl = require('../models/consumers');
@@ -217,6 +217,40 @@ module.exports = (function() {
                 return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
             }
             return consumersMdl.replace(platformUid, profile);
+        }).then((data) => {
+            let json = {
+                status: 1,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                data: data
+            };
+            res.status(200).json(json);
+        }).catch((ERROR) => {
+            let json = {
+                status: 0,
+                msg: ERROR.MSG,
+                code: ERROR.CODE
+            };
+            res.status(500).json(json);
+        });
+    };
+
+    BotController.prototype.uploadFile = function(req, res) {
+        let file = req.body.file;
+        let fileName = req.body.fileName;
+        let ext = fileName.split('.').pop();
+        let originalFilePath = `/temp/${Date.now()}.${ext}`;
+
+        return controllerCre.AppsRequestVerify(req).then(() => {
+            if (!(file && fileName)) {
+                return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+            }
+            return storageHlp.filesUpload(originalFilePath, file);
+        }).then((response) => {
+            return storageHlp.sharingCreateSharedLink(originalFilePath);
+        }).then((response) => {
+            let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+            let url = wwwurl.replace('?dl=0', '');
+            return url;
         }).then((data) => {
             let json = {
                 status: 1,

@@ -136,5 +136,7 @@
     "APP_TEMPLATE_FAILED_TO_UPDATE": { "MSG": "app template failed to update", "CODE": "17.3" },
     "APP_TEMPLATE_FAILED_TO_REMOVE": { "MSG": "app template failed to remove", "CODE": "17.4" },
 
-    "BOT_FAILED_TO_CREATE": {"MSG": "bot failed to create", "CODE": "18.1"}
+    "BOT_FAILED_TO_CREATE": {"MSG": "bot failed to create", "CODE": "18.1"},
+
+    "BOT_FAILED_TO_UPLOAD_IMAGE": {"MSG": "bot failed to upload image", "CODE": "19.1"}
 }

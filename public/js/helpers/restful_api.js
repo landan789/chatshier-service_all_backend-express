@@ -20,15 +20,14 @@ window.restfulAPI = (function() {
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
-        bot: apiDatabaseUrl + 'bot/',
+        bot: apiBotUrl,
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
         consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
         signRefresh: apiSignUrl + 'refresh/',
-        signOut: apiSignUrl + 'signout/',
-        bot: apiBotUrl + 'bot/'
+        signOut: apiSignUrl + 'signout/'
     });
 
     // ======================
@@ -1272,6 +1271,40 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
+        /**
+         * @param {string} appId
+         * @param {string} platformUid
+         */
+        BotAPI.prototype.getProfile = function(appId, platformUid) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} userId
+         * @param {File} file
+         */
+        BotAPI.prototype.uploadFile = function(userId, file) {
+            var destUrl = this.urlPrefix + 'upload-file/users/' + userId;
+            var formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+
+            var _reqHeaders = new Headers();
+            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
+
+            var reqInit = {
+                method: 'POST',
+                headers: _reqHeaders,
+                body: formData
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
         return BotAPI;
     })();
 
@@ -1294,7 +1327,6 @@ window.restfulAPI = (function() {
         groupsMembers: new GroupsMembersAPI(),
         groups: new GroupsAPI(),
         users: new UsersAPI(),
-        sign: new SignAPI(),
-        bot: new BotAPI()
+        sign: new SignAPI()
     };
 })();
