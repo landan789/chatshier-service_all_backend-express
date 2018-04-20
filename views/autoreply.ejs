@@ -83,7 +83,7 @@
                         </div>
                         <div class="form-group">
                             <div class="input-container">
-                                <input class="form-control" type="text" id="modal-task-name" placeholder="事件名稱" />
+                                <input class="form-control" type="text" id="modal-task-name" placeholder="標題" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -106,7 +106,7 @@
                         </div>
                         <div class="form-group">
                             <div id="text" class="textarea-container">
-                                <textarea class="form-control" id="enter-text" placeholder="自動回覆訊息"></textarea>
+                                <textarea class="form-control" id="enter-text" placeholder="內容"></textarea>
                             </div>
                         </div>
                     </form>
@@ -120,7 +120,7 @@
     </div>
 
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalTitle"></h5>
@@ -139,13 +139,11 @@
                             <span id="edit-autoreplyid"></span>
                         </div>
                         <div class="form-group">
-                            <label for="edit-task-title" class="col-2 col-form-label">標題:  </label>
                             <div class="col-4">
                                 <input class="form-control" type="text" value="" id="edit-taskTitle">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-datetime">傳送日期:</label><br>
                             <div class="date-group">
                                 <div class="input-group date" id="start_datetime_picker">
                                     <span class="input-group-addon">開始日期</span>
