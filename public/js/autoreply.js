@@ -45,6 +45,8 @@
     } catch (ex) {
         userId = '';
     }
+
+    $(document).on('click', '#insert-btn', openInsert);
     $(document).on('click', '#modal-submit', dataInsert); // 新增
     $(document).on('click', '#edit-btn', openEdit); // 打開編輯modal
     $(document).on('click', '#edit-submit', dataUpdate);
@@ -188,7 +190,7 @@
                 '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                 '<td id="text">' + autoreply.text + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-border upadte" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
+                    '<button type="button" class="btn btn-border update" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true">' +
                         '<i class="fas fa-edit"></i>' +
                     '</button>' +
                     '<button type="button" class="btn btn-danger remove" id="delete-btn">' +
@@ -267,6 +269,10 @@
         $('#edit-taskContent').val(text); // 任務內容
     } // end open edit
 
+    function openInsert() {
+        $autoreplyAddSdtPicker.data('DateTimePicker').date(new Date());
+        $autoreplyAddEdtPicker.data('DateTimePicker').clear();
+    }
     function dataSearch(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
