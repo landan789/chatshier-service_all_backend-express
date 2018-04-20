@@ -121,6 +121,7 @@
                 $('#enter-text').val('');
                 $.notify('失敗', { type: 'danger' });
                 $('#modal-submit').removeAttr('disabled');
+                return;
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $('#quickAdd').modal('hide');
@@ -130,7 +131,17 @@
                 $('#enter-text').val('');
                 $.notify('無此權限', { type: 'danger' });
                 $('#modal-submit').removeAttr('disabled');
+                return;
             }
+
+            $('#quickAdd').modal('hide');
+            $('#modal-task-name').val('');
+            $('#starttime').val('');
+            $('#endtime').val('');
+            $('#enter-text').val('');
+            $.notify('失敗', { type: 'danger' });
+            $('#modal-submit').removeAttr('disabled');
+
         });
     }
 
@@ -214,12 +225,26 @@
                 $('#editModal').modal('hide');
                 $.notify('失敗', { type: 'danger' });
                 $('#edit-submit').removeAttr('disabled');
+                return;
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $('#editModal').modal('hide');
                 $.notify('無此權限', { type: 'danger' });
                 $('#edit-submit').removeAttr('disabled');
+                return;
             }
+
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $('#editModal').modal('hide');
+                $('#edit-submit').removeAttr('disabled');
+                $.notify('無此權限', { type: 'danger' });
+                return;
+            }
+
+            $('#editModal').modal('hide');
+            $.notify('失敗', { type: 'danger' });
+            $('#edit-submit').removeAttr('disabled');
+
         });
     }
 
@@ -243,10 +268,15 @@
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
                     $.notify('失敗', { type: 'danger' });
+                    return;
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
+                    return;
                 }
+
+                $.notify('失敗', { type: 'danger' });
+
             });
         });
     }
