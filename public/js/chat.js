@@ -173,7 +173,7 @@
 
         var dueDate = function(day) {
             var nowTime = Date.now();
-            var dueday = Date.parse(displayDate(day));
+            var dueday = new Date(displayDate(day));
             var hr = dueday - nowTime;
             hr /= 1000 * 60 * 60;
             return hr < 0 ? '<span class="overdue">過期</span>' : '<span class="non overdue">即期</span>';

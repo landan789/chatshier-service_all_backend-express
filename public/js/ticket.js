@@ -348,7 +348,7 @@
     function dueDate(day) {
         var html = '';
         var nowTime = Date.now();
-        var dueday = Date.parse(displayDate(day));
+        var dueday = new Date(displayDate(day));
         var hr = dueday - nowTime;
         hr /= 1000 * 60 * 60;
         // hr = Math.round(hr) ;
