@@ -88,24 +88,23 @@
 
     var $calendar = $('#calendarBody');
     var $calendarModal = $('.modal.calendar-modal');
-    var $calendarSdtPicker = $('#start_datetime_picker');
-    var $calendarEdtPicker = $('#end_datetime_picker');
     var $calendarModalTitle = $calendarModal.find('.modal-title');
     var $calendarModalForm = $calendarModal.find('.input-wrapper');
     var $eventTitle = $calendarModalForm.find('input.event-title');
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
 
-    var $addCalendarBtn = $('#add-cal-btn');
-    var $saveCalendarBtn = $('#save-cal-btn');
-    var $delCalendarBtn = $('#del-cal-btn');
+    var $addCalendarBtn = $('#addCalendarBtn');
+    var $saveCalendarBtn = $('#saveCalendarBtn');
+    var $delCalendarBtn = $('#delCalendarBtn');
     var $formCheckLabel = $('.form-check-label');
-    var $startDatetime = $('[for="start_datetime"]');
-    var $endDatetime = $('[for="end_datetime"]');
-    var $startDatetimePicker = $('[name="start_datetime"]');
-    var $endDatetimePicker = $('[name="end_datetime"]');
-    var sTimePickerData = null;
-    var eTimePickerData = null;
+
+    var $calendarSdtPicker = $('#startDatetimePicker');
+    var $calendarEdtPicker = $('#endDatetimePicker');
+    var $startDatetimeLabel = $calendarSdtPicker.find('label[for="startDatetime"]');
+    var $startDatetimeInput = $calendarSdtPicker.find('input[name="startDatetime"]');
+    var $endDatetimeLabel = $calendarEdtPicker.find('label[for="endDatetime"]');
+    var $endDatetimeInput = $calendarEdtPicker.find('input[name="endDatetime"]');
 
     var gCalendarPromise = window.googleClientHelper.loadAPI().then(function() {
         var url = window.googleCalendarHelper.configJsonUrl;
@@ -129,27 +128,36 @@
 
     calendarEventMap = {};
 
-    // 初始化 modal 裡的 datetime picker
-    // 使用 moment.js 的 locale 設定 i18n 日期格式
-    var datetimePickerInitOpts = {
-        sideBySide: true,
-        locale: 'zh-tw',
-        icons: {
-            time: 'far fa-clock',
-            date: 'far fa-calendar-alt',
-            up: 'fas fa-chevron-up',
-            down: 'fas fa-chevron-down',
-            previous: 'fas fa-chevron-left',
-            next: 'fas fa-chevron-right',
-            today: 'fas fa-sun',
-            clear: 'far fa-trash-alt',
-            close: 'fas fa-times'
-        }
-    };
-    $calendarSdtPicker.datetimepicker(datetimePickerInitOpts);
-    $calendarEdtPicker.datetimepicker(datetimePickerInitOpts);
-    sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
-    eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
+    if (!window.isMobileBrowser()) {
+        // 初始化 modal 裡的 datetime picker
+        // 使用 moment.js 的 locale 設定 i18n 日期格式
+        var datetimePickerInitOpts = {
+            sideBySide: true,
+            locale: 'zh-tw',
+            icons: {
+                time: 'far fa-clock',
+                date: 'far fa-calendar-alt',
+                up: 'fas fa-chevron-up',
+                down: 'fas fa-chevron-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'fas fa-sun',
+                clear: 'far fa-trash-alt',
+                close: 'fas fa-times'
+            }
+        };
+        $calendarSdtPicker.datetimepicker(datetimePickerInitOpts);
+        $calendarEdtPicker.datetimepicker(datetimePickerInitOpts);
+    } else {
+        $startDatetimeInput.attr('type', 'datetime-local');
+        $endDatetimeInput.attr('type', 'datetime-local');
+        $calendarSdtPicker.on('click', '.input-group-prepend', function() {
+            $startDatetimeInput.focus();
+        });
+        $calendarEdtPicker.on('click', '.input-group-prepend', function() {
+            $endDatetimeInput.focus();
+        });
+    }
 
     // 初始化 fullCalendar 元件
     $calendar.addClass('chsr'); // 加入自訂的 css class 前綴
@@ -189,20 +197,36 @@
             updateCalendarModal(beginDate, endDate);
 
             $calendarModalTitle.text(CalendarEventTitles.CREATECALENDAR);
-            $endDatetimePicker.parent().parent().show();
+            $endDatetimeInput.parent().parent().show();
+            $formCheckLabel.removeClass('d-none');
             $eventTitle.removeAttr('disabled');
-            $formCheckLabel.attr('style', 'display: block');
-            $startDatetimePicker.removeAttr('disabled');
-            $endDatetimePicker.removeAttr('disabled');
+            $startDatetimeInput.removeAttr('disabled');
+            $endDatetimeInput.removeAttr('disabled');
             $eventIsAllday.removeAttr('disabled');
             $eventContent.removeAttr('disabled');
 
             // 新增行事曆事件處理，先 off 再 on 避免事件疊加
             $addCalendarBtn.off('click').on('click', function() {
+                var startedTime;
+                var sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
+                if (sTimePickerData) {
+                    startedTime = sTimePickerData.date().toDate().getTime();
+                } else {
+                    startedTime = new Date($startDatetimeInput.val()).getTime();
+                }
+
+                var endedTime;
+                var eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
+                if (eTimePickerData) {
+                    endedTime = eTimePickerData.date().toDate().getTime();
+                } else {
+                    endedTime = new Date($endDatetimeInput.val()).getTime();
+                }
+
                 var calendarData = {
                     title: $eventTitle.val(),
-                    startedTime: sTimePickerData.date().toDate().getTime(),
-                    endedTime: eTimePickerData.date().toDate().getTime(),
+                    startedTime: startedTime,
+                    endedTime: endedTime,
                     description: $eventContent.val(),
                     isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                 };
@@ -233,37 +257,53 @@
             switch (event.eventType) {
                 case CalendarEventTypes.Ticket:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
-                    $delCalendarBtn.attr('style', 'display: none');
-                    $formCheckLabel.hide();
-                    $startDatetime.text(CalendarEventLabels.TICKETENDEDTIME);
-                    $endDatetimePicker.parent().parent().hide();
+                    $delCalendarBtn.addClass('d-none');
+                    $formCheckLabel.addClass('d-none');
+                    $startDatetimeLabel.text(CalendarEventLabels.TICKETENDEDTIME);
+                    $endDatetimeInput.parent().parent().hide();
                     $eventTitle.attr('disabled', true);
-                    $startDatetimePicker.attr('disabled', true);
-                    $endDatetimePicker.attr('disabled', true);
+                    $startDatetimeInput.attr('disabled', true);
+                    $endDatetimeInput.attr('disabled', true);
                     $eventIsAllday.attr('disabled', true);
                     $eventContent.attr('disabled', true);
                     break;
                 case CalendarEventTypes.Calendar:
                 default:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
-                    $delCalendarBtn.attr('style', '');
-                    $formCheckLabel.attr('style', 'display: block');
-                    $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
-                    $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
-                    $endDatetimePicker.parent().parent().show();
+                    $delCalendarBtn.removeClass('d-none');
+                    $formCheckLabel.removeClass('d-none');
+                    $startDatetimeLabel.text(CalendarEventLabels.CALENDARSTARTEDTIME);
+                    $endDatetimeLabel.text(CalendarEventLabels.CALENDARENDEDTIME);
+                    $endDatetimeInput.parent().parent().show();
                     $eventTitle.removeAttr('disabled');
-                    $startDatetimePicker.removeAttr('disabled');
-                    $endDatetimePicker.removeAttr('disabled');
+                    $startDatetimeInput.removeAttr('disabled');
+                    $endDatetimeInput.removeAttr('disabled');
                     $eventIsAllday.removeAttr('disabled');
                     $eventContent.removeAttr('disabled');
                     break;
             }
             // 更新事件
             $saveCalendarBtn.off('click').on('click', function() {
+                var startedTime;
+                var sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
+                if (sTimePickerData) {
+                    startedTime = sTimePickerData.date().toDate().getTime();
+                } else {
+                    startedTime = new Date($startDatetimeInput.val()).getTime();
+                }
+
+                var endedTime;
+                var eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
+                if (eTimePickerData) {
+                    endedTime = eTimePickerData.date().toDate().getTime();
+                } else {
+                    endedTime = new Date($endDatetimeInput.val()).getTime();
+                }
+
                 var calendar = {
                     title: $eventTitle.val(),
-                    startedTime: sTimePickerData.date().toDate().getTime(),
-                    endedTime: eTimePickerData.date().toDate().getTime(),
+                    startedTime: startedTime,
+                    endedTime: endedTime,
                     description: $eventContent.val(),
                     isAllDay: $eventIsAllday.prop('checked') ? 1 : 0
                 };
@@ -400,7 +440,14 @@
         $eventTitle.val('');
         $eventContent.val('');
         $eventIsAllday.off('change').prop('checked', false);
-        sTimePickerData.date(start);
+
+        var sTimePickerData = $calendarSdtPicker.data('DateTimePicker');
+        var eTimePickerData = $calendarEdtPicker.data('DateTimePicker');
+        if (sTimePickerData) {
+            sTimePickerData.date(start);
+        } else {
+            $startDatetimeInput.val(toDatetimeLocal(new Date(start)));
+        }
 
         // 日期選擇器日期變更時，將前一個時間記錄下來，以便取消全天時可以恢復前一個時間
         $calendarSdtPicker.off('dp.change').on('dp.change', function(ev) {
@@ -416,7 +463,12 @@
 
         if (end) {
             var endDateTimePrev = new Date(end);
-            eTimePickerData.date(end);
+            if (eTimePickerData) {
+                eTimePickerData.date(end);
+            } else {
+                $endDatetimeInput.val(toDatetimeLocal(new Date(end)));
+            }
+
             $calendarEdtPicker.off('dp.change').on('dp.change', function(ev) {
                 if (preventPickerChange) {
                     return;
@@ -446,8 +498,16 @@
             }
 
             preventPickerChange = true;
-            sTimePickerData.date(dayBegin);
-            eTimePickerData.date(dayEnd);
+            if (sTimePickerData) {
+                sTimePickerData.date(dayBegin);
+            } else {
+                $startDatetimeInput.val(toDatetimeLocal(new Date(dayBegin)));
+            }
+            if (eTimePickerData) {
+                eTimePickerData.date(dayEnd);
+            } else {
+                $endDatetimeInput.val(toDatetimeLocal(new Date(dayEnd)));
+            }
             preventPickerChange = false;
         });
     }
@@ -648,5 +708,24 @@
         }).catch(function(error) {
             console.trace(error);
         });
+    }
+
+    /**
+     * @param {Date} date
+     */
+    function toDatetimeLocal(date) {
+        var YYYY = date.getFullYear();
+        var MM = ten(date.getMonth() + 1);
+        var DD = ten(date.getDate());
+        var hh = ten(date.getHours());
+        var mm = ten(date.getMinutes());
+        var ss = ten(date.getSeconds());
+
+        function ten(i) {
+            return (i < 10 ? '0' : '') + i;
+        }
+
+        return YYYY + '-' + MM + '-' + DD + 'T' +
+                hh + ':' + mm + ':' + ss;
     }
 })();
