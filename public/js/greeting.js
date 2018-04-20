@@ -75,7 +75,7 @@
                             '<th>' + greeting[greetingId].text + '</th>' +
                             '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                             '<td>' +
-                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                                '<button type="button" class="btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>'
                     );
@@ -97,7 +97,7 @@
                 '<th></th>' +
                 '<td></td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-border" id="add-btn">' +
+                    '<button type="button" class="btn btn-border btn-light insert" id="add-btn">' +
                         '<i class="fas fa-plus"></i>' +
                     '</button>' +
                 '</td>' +
@@ -116,10 +116,10 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="m-1 btn btn-light btn-border" id="check-btn">' +
+                    '<button type="button" class="btn btn-light btn-border check" id="check-btn">' +
                         '<i class="fa fa-check"></i>' +
                     '</button>' +
-                    '<button type="button" class="m-1 btn btn-danger" id="delete-btn">' +
+                    '<button type="button" class="btn btn-danger remove" id="delete-btn">' +
                         '<i class="fas fa-trash-alt"></i>' +
                     '</button>' +
                 '</td>' +
