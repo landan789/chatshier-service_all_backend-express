@@ -23,3 +23,9 @@
 .calendar-modal .modal-header .modal-title {
     margin: 0px 27px;
 }
+
+@media (max-width: 576px) {
+    .chsr .fc-center h2 {
+        font-size: 1.2rem;
+    }
+}

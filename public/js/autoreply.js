@@ -238,13 +238,13 @@
         }
 
         let textInput = $('#edit-taskContent').val(); // 任務內容
-        var data = {
+        var autoreply = {
             title: name,
             startedTime: startedTime,
             endedTime: endedTime,
             text: textInput
         };
-        return api.appsAutoreplies.update(appId, autoreplyId, userId, data).then(function(resJson) {
+        return api.appsAutoreplies.update(appId, autoreplyId, userId, autoreply).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
