@@ -678,7 +678,7 @@
                         createTicketPanel(uiRequireData);
                         return;
                     }
-                    
+
                     updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
@@ -690,7 +690,7 @@
                         $profileCard.find('.panel-table').remove();
                         var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newProfileNode.shift()).insertAfter($profileCard.find('.photo-container'));
-                        $profileCard.find('.consumer-avatar').attr('src',consumer.photo);
+                        $profileCard.find('.consumer-avatar').attr('src', consumer.photo);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -813,7 +813,7 @@
 
     function responseChatData(apps) {
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
-        $ctrlPanelChatroomCollapse.append(
+        $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
                 '<i class="fas fa-user-times"></i>' +
                 '<span>未讀</span>' +
@@ -1800,7 +1800,8 @@
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
             $messagePanel.find('.messager-nameleftside span').text(consumer.name);
-        }   
+        }
+
         if (chatroomList.indexOf(chatroomId) >= 0) {
             var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
 
@@ -1833,7 +1834,7 @@
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
         var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        if(messager){
+        if (messager) {
             $selectedTablinks.find('.client-name').text(messager.name);
             $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
         }
@@ -1862,14 +1863,13 @@
         var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
         var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
 
-       
         if (messager && messager.platformUid) {
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
             if (consumer && consumer.photo) {
                 $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
-               
             }
+
             if (consumer && consumer.name) {
                 $chatroomTablinks.find('.app-name').text(consumer.name);
             }
