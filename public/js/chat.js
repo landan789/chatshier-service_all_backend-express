@@ -1307,17 +1307,19 @@
 
             switch (field.setsType) {
                 case setsTypeEnums.SELECT:
-                    return '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<select class="form-control td-inner" value="' + fieldValue + '">' +
-                            (function(sets) {
-                                var opts = '<option value="">未選擇</option>';
-                                for (var i in sets) {
-                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                }
-                                return opts;
-                            })(field.sets) +
-                        '</select>' +
-                    '</td>';
+                    return (
+                        '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<select class="form-control td-inner" value="' + fieldValue + '">' +
+                                (function(sets) {
+                                    var opts = '<option value="">未選擇</option>';
+                                    for (var i in sets) {
+                                        opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                                    }
+                                    return opts;
+                                })(field.sets) +
+                            '</select>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.MULTI_SELECT:
                     var selectValues = fieldValue instanceof Array ? fieldValue : [];
                     var multiSelectText = selectValues.reduce(function(output, value, i) {
@@ -1329,53 +1331,63 @@
                         return output;
                     }, []).join(',');
 
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
-                                '<span class="caret"></span>' +
-                            '</button>' +
-                            '<div class="multi-select-container dropdown-menu">' +
-                                (function(sets) {
-                                    var checkboxes = '';
-                                    for (var i in sets) {
-                                        if (!sets[i]) {
-                                            continue;
-                                        }
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
+                                '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                    '<span class="multi-select-values">' + multiSelectText + '</span>' +
+                                    '<span class="caret"></span>' +
+                                '</button>' +
+                                '<div class="multi-select-container dropdown-menu">' +
+                                    (function(sets) {
+                                        var checkboxes = '';
+                                        for (var i in sets) {
+                                            if (!sets[i]) {
+                                                continue;
+                                            }
 
-                                        if ('assigned' === field.alias) {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                '</span>';
-                                        } else {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                '</span>';
+                                            if ('assigned' === field.alias) {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
+                                                    '</span>';
+                                            } else {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
+                                                    '</span>';
+                                            }
                                         }
-                                    }
-                                    return checkboxes;
-                                })(field.sets) +
+                                        return checkboxes;
+                                    })(field.sets) +
+                                '</div>' +
                             '</div>' +
-                        '</div>' +
-                    '</td>';
+                        '</td>'
+                    );
                 case setsTypeEnums.CHECKBOX:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
+                    inputType = 'email' === field.alias ? 'email' : inputType;
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                        '</td>'
+                    );
             }
         };
 
