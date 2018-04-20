@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
     <link rel="stylesheet" href="css/table.css" />
-    <link rel="stylesheet" href="css/autoreply.css" />
 </head>
 
 <body>
@@ -42,7 +41,7 @@
                                 <i class="fa fa-search"></i>
                             </span>
                             <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#autoreplyAddModal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -66,11 +65,11 @@
         </div>
     </div>
 
-    <div class="autoreply-add modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
+    <div class="modal autoreply-add fade" id="autoreplyAddModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyAddModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="quickAddTitle"></h5>
+                    <h5 class="modal-title" id="autoreplyAddModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
                 <div class="modal-body">
@@ -82,20 +81,20 @@
                         </div>
                         <div class="form-group">
                             <div class="input-container">
-                                <input class="form-control" type="text" id="modal-task-name" placeholder="事件名稱" />
+                                <input class="form-control" type="text" id="modal-task-name" placeholder="標題" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="input-group date" id="startDatetimePicker">
-                                <input type="text" class="form-control" name="startDatetime" placeholder="開始時間"/>
+                            <div class="my-2 input-group date" id="startDatetimePicker">
+                                <input type="text" class="form-control" name="startDatetime" placeholder="開始時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
                             </div>
-                            <div class="input-group date" id="endDatetimePicker">
-                                <input type="text" class="form-control" name="endDatetime" placeholder="結束時間"/>
+                            <div class="my-2 input-group date" id="endDatetimePicker">
+                                <input type="text" class="form-control" name="endDatetime" placeholder="結束時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
@@ -104,7 +103,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <div id="text" class="textarea-container">
+                            <div id="text" class="input-container">
                                 <textarea class="form-control" id="enter-text" placeholder="自動回覆訊息"></textarea>
                             </div>
                         </div>
@@ -112,17 +111,17 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="modal-submit">確認</button>
+                    <button type="button" class="btn btn-primary" id="addSubmitBtn">確認</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+    <div class="modal autoreply-edit fade" id="autoreplyEditModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyEditTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editModalTitle"></h5>
+                    <h5 class="modal-title" id="autoreplyEditTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
@@ -138,45 +137,40 @@
                             <span id="edit-autoreplyid"></span>
                         </div>
                         <div class="form-group">
-                            <label for="edit-task-title" class="col-2 col-form-label">標題:  </label>
-                            <div class="col-4">
+                            <label for="edit-task-title" class="col-form-label">標題:  </label>
+                            <div class="input-container">
                                 <input class="form-control" type="text" value="" id="edit-taskTitle">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-datetime">傳送日期:</label><br>
-                            <div class="date-group">
-                                <div class="input-group date" id="startDatetimePicker">
-                                    <span class="input-group-addon">開始日期</span>
-                                    <input type="text" class="form-control" name="startDatetime" id="edit-taskStart"/>
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                            <div class="my-2 input-group date" id="startDatetimePicker">
+                                <input type="text" class="form-control" name="startDatetime" id="edit-taskStart" placeholder="開始時間" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
-                                <div class="input-group date" id="endDatetimePicker">
-                                    <span class="input-group-addon">結束日期</span>
-                                    <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd"/>
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                                </span>
+                            </div>
+                            <div class="my-2 input-group date" id="endDatetimePicker">
+                                <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="結束時間" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
+                                </span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="edit-task-content" class="col-2 col-form-label">訊息內容:  </label>
-                            <div class="col-4">
-                                <input class="form-control" type="text" value="" id="edit-taskContent">
+                            <label for="edit-task-content" class="col-form-label">訊息內容:  </label>
+                            <div class="input-container">
+                                <textarea class="form-control" type="text" id="edit-taskContent"></textarea>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="edit-submit">更改</button>
+                    <button type="button" class="btn btn-primary" id="editSubmitBtn">更改</button>
                 </div>
             </div>
         </div>
