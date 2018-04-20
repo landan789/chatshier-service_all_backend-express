@@ -142,10 +142,6 @@ label *:not(strong) {
     padding-right: 20px;
 }
 
-.pagebtn {
-    text-align: right;
-}
-
 .margin-top {
     margin-top: 30px;
 }
@@ -154,14 +150,6 @@ tr:nth-child(even) {
     background: #F4F4F4;
 }
 
-.address {
-    padding-bottom: 20px;
-}
-
 .title-top {
     margin-top: -20px;
-}
-
-.chsr.pagination {
-    margin-top: 0px;
 }

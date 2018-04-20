@@ -83,16 +83,8 @@ label *:not(strong) {
     word-wrap: break-word;
 }
 
-.pagebtn {
-    text-align: right;
-}
-
 tr:nth-child(even) {
     background: #F4F4F4;
-}
-
-.chsr.pagination {
-    margin-top: 0px;
 }
 
 .greeting-textarea {
@@ -127,6 +119,7 @@ tr:nth-child(even) {
     float: left;
 }
 
-.float-left{
-    float: left;
+.chsr .text-remark {
+    font-size: .85em;
+    color: #909090;
 }

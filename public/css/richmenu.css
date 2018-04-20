@@ -84,10 +84,6 @@ label *:not(strong) {
     padding-right: 20px;
 }
 
-.pagebtn {
-    text-align: right;
-}
-
 .margin-top {
     margin-top: 30px;
 }
@@ -102,10 +98,6 @@ tr:nth-child(even) {
 
 .title-top {
     margin-top: -20px;
-}
-
-.chsr.pagination {
-    margin-top: 0px;
 }
 
 .richmenu-type-label {

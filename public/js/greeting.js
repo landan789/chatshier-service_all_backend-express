@@ -116,10 +116,10 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-light btn-border" id="check-btn">' +
+                    '<button type="button" class="mx-1 btn btn-light btn-border" id="check-btn">' +
                         '<i class="fa fa-check"></i>' +
                     '</button>' +
-                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                    '<button type="button" class="mx-1 btn btn-danger" id="delete-btn">' +
                         '<i class="fas fa-trash-alt"></i>' +
                     '</button>' +
                 '</td>' +
