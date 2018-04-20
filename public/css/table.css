@@ -110,12 +110,14 @@ tr:nth-child(even) {
 .greeting-textarea {
     resize: none;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     width: 95%;
 }
 
 .compose-textarea {
     resize: none;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
 }
 

@@ -27,7 +27,7 @@
                     <div class="title">
                         <h3 class="px-3 h3-padding"> 自動回覆訊息</h3>
                         <p class="pl-3"> 首頁 / 訊息 / 自動回覆</p>
-                        <p class="address pl-3">當用戶對LINE@傳送訊息，訊息將自動回覆</p>
+                        <p class="address pl-3">當用戶對LINE@傳送訊息，訊息將自動回覆(同一時段自動回覆訊息請勿超過五筆)</p>
 
                     </div>
                     <div class="px-3 my-3" id="appSelector">
@@ -42,7 +42,7 @@
                             <span class="icon">
                                 <i class="fa fa-search"></i>
                             </span>
-                            <input type="text" class="search-bar" placeholder="搜尋   輸入完請按Enter鍵" aria-hidden="true">
+                            <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
                             <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
@@ -68,7 +68,7 @@
     </div>
 
     <div class="autoreply-add modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
@@ -77,50 +77,37 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label class="col-form-label">App:</label>
                             <div class="select-container">
                                 <select class="form-control" id="app-select"></select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-task-name" class="col-form-label">事件名稱(不可重複):</label>
                             <div class="input-container">
-                                <input class="form-control" type="text" id="modal-task-name">
+                                <input class="form-control" type="text" id="modal-task-name" placeholder="事件名稱" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-datetime">傳送日期:</label><br>
-                            <div class="date-group">
-                                <div class="input-group date" id="start_datetime_picker">
-                                    <span class="input-group-prepend">
-                                        <span class="input-group-text">開始日期</span>
+                            <div class="input-group date" id="start_datetime_picker">
+                                <input type="text" class="form-control" name="start_datetime" placeholder="開始時間"/>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                    <input type="text" class="form-control" name="start_datetime" />
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                                </span>
+                            </div>
+                            <div class="input-group date" id="end_datetime_picker">
+                                <input type="text" class="form-control" name="end_datetime" placeholder="結束時間"/>
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
-                                <div class="input-group date" id="end_datetime_picker">
-                                    <span class="input-group-prepend">
-                                        <span class="input-group-text">結束日期</span>
-                                    </span>
-                                    <input type="text" class="form-control" name="end_datetime" />
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
-                                    </span>
-                                </div>
+                                </span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="modal-text">自動回覆訊息:  </label>
                             <div id="text" class="textarea-container">
-                                <textarea class="form-control" id="enter-text" style="width:50%; height:5rem"></textarea>
+                                <textarea class="form-control" id="enter-text" placeholder="自動回覆訊息"></textarea>
                             </div>
-                            <span class="text-danger">同一時段自動回覆訊息請勿超過五筆</span>
                         </div>
                     </form>
                 </div>
