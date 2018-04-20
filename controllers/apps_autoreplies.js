@@ -130,7 +130,7 @@ module.exports = (function() {
             appId = checkedAppId;
 
             if (!autoreplyId) {
-                return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
             };
 
             if ('' === autoreply.tittle) {
@@ -194,7 +194,7 @@ module.exports = (function() {
             appId = checkedAppId;
 
             if (!autoreplyId) {
-                return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
