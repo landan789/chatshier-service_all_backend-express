@@ -80,8 +80,10 @@ label *:not(strong) {
 
 .chsr.table {
     table-layout: fixed;
-    word-wrap: break-word;
-}
+    word-wrap: break-word; }
+    .chsr.table td,
+    .chsr.table th {
+        vertical-align: middle; }
 
 tr:nth-child(even) {
     background: #F4F4F4;
