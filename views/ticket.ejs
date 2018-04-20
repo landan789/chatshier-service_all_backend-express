@@ -43,9 +43,10 @@
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
 
-            <div class="chsr top-toolbar">
-                <button class="btn btn-light btn-border ticket-add insert" data-toggle="modal" data-target="#ticketAddModal">
+            <div class="top-toolbar">
+                <button class="btn btn-light btn-border ticket-add" data-toggle="modal" data-target="#ticketAddModal">
                     <i class="fas fa-plus fa-fw"></i>
+                    <span>新增待辦</span>
                 </button>
                 <input type="text" class="ticket-search-bar" id="ticket_search_bar" placeholder="搜尋">
             </div>
@@ -54,13 +55,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>姓名</th>
+                            <th>客戶姓名</th>
                             <th class="d-none d-sm-table-cell">描述</th>
                             <th>狀態</th>
                             <th>優先</th>
                             <th class="d-none d-lg-table-cell">到期時間</th>
                             <th class="d-none d-lg-table-cell">指派人</th>
-                            <th>狀態</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody class="ticket-body"></tbody>

@@ -109,7 +109,7 @@ button:focus {
         letter-spacing: 1px; }
 
 
-.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove, .chsr .btn.check {
+.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove {
     height: 2rem;
     width: 2rem;
     margin-bottom: 0.3rem;
@@ -274,8 +274,4 @@ button:focus {
     .loading-wrapper .loader-container {
         width: 12rem;
         height: 12rem; }
-}
-
-.chsr caption{
-    caption-side: top;
 }
