@@ -183,13 +183,13 @@
         let starttime = $autoreplyEditSdtPicker.data('DateTimePicker').date(); // 開始時間
         let endtime = $autoreplyEditEdtPicker.data('DateTimePicker').date(); // 結束時間
         let textInput = $('#edit-taskContent').val(); // 任務內容
-        var data = {
+        var autoreply = {
             title: name,
             startedTime: starttime,
             endedTime: endtime,
             text: textInput
         };
-        return api.appsAutoreplies.update(appId, autoreplyId, userId, data).then(function(resJson) {
+        return api.appsAutoreplies.update(appId, autoreplyId, userId, autoreply).then(function(resJson) {
             let autoreplies = resJson.data[appId].autoreplies;
             let autoreplyId = Object.keys(autoreplies);
             let autoreply = autoreplies[autoreplyId[0]];
