@@ -184,7 +184,7 @@
 
         function TicketTableCtrl() {
             var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
-            var $dueDatetimePicker = $ticketEditTable.find('.ticket-due-time .datetime-picker');
+            var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
             var datetimePickerInitOpts = {
                 sideBySide: true,
                 locale: 'zh-tw',
@@ -325,7 +325,7 @@
             $ticketEditTable.find('.ticket-status').html(generateSelect('status', ticket.status));
             $ticketEditTable.find('.ticket-description textarea').val(ticket.description);
             $ticketEditTable.find('.ticket-assigned').html(generateSelect('assigned', appsAgents[appId].agents, ticket.assigned_id));
-            $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date(new Date(ticket.dueTime));
+            $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date(new Date(ticket.dueTime));
             $ticketEditTable.find('.due-time-text').html('到期時間' + dueDate(ticket.dueTime));
             $ticketEditTable.find('.ticket-created-time').text(displayDate(ticket.createdTime));
             $ticketEditTable.find('.ticket-updated-time').text(displayDate(ticket.updatedTime));
@@ -380,7 +380,7 @@
             var priority = parseInt($ticketEditTable.find('.ticket-priority select option:selected').val());
             var status = parseInt($ticketEditTable.find('.ticket-status select option:selected').val());
             var description = $ticketEditTable.find('.ticket-description textarea').val();
-            var dueTime = $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date().toDate().getTime();
+            var dueTime = $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date().toDate().getTime();
 
             var $assignedElem = $ticketEditTable.find('.ticket-assigned select option:selected');
             var assignedId = $assignedElem.val();
