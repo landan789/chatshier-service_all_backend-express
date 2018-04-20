@@ -6,9 +6,11 @@ module.exports = (function() {
 
     const botSvc = require('../services/bot');
 
-    const appsMdl = require('../models/apps');
     const consumersMdl = require('../models/consumers');
+
+    const appsMdl = require('../models/apps');
     const appsRichmenusMdl = require('../models/apps_richmenus');
+    const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 
     function BotController() {};
 
@@ -32,12 +34,15 @@ module.exports = (function() {
     BotController.prototype.activateMenu = function(req, res) {
         let appId = req.params.appid;
         let menuId = req.params.menuid;
+        let appType = '';
+        let postMenu = {};
 
         return BotController.prototype._createBot(appId).then((app) => {
             if (!app) {
                 Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 return;
             }
+            appType = app.type;
             return Promise.all([
                 appsRichmenusMdl.find(appId, menuId),
                 app
@@ -49,32 +54,69 @@ module.exports = (function() {
                 Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 return;
             }
-            let postMenu = appsRichmenu[appId].richmenus;
-            return botSvc.createMenu(postMenu, appId, app);
-        }).then((result) => {
+            postMenu = appsRichmenu[appId].richmenus;
+
+            let imageUrl = postMenu.src;
+            imageUrl = imageUrl.slice('/');
+
+            let imagePath = imageUrl[imageUrl.length - 1];
+            let path = `/apps/${appId}/richmenus/${menuId}/src/${imagePath}`;
+            return Promise.all([
+                botSvc.createMenu(postMenu, appId, app),
+                storageHlp.filesDownload(path)
+            ]);
+        }).then((results) => {
+            let response = results[0];
+            let image = results[1];
             let botMenuId = '';
-            let path = `/apps/${appId}/richmenus/${menuId}/src/`;
-            if (result instanceof Object) {
+
+            if (response instanceof Object) {
                 // wechat create success response {"errcode":0,"errmsg":"ok"}
-                if (!result.errcode && 'ok' === result.errmsg) {
+                if (!response.errcode && 'ok' === response.errmsg) {
                     botMenuId = 'true';
                 }
                 Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_INSERT);
                 return;
             }
-            botMenuId = result;
+            botMenuId = response;
 
-            return botSvc.setRichMenuImage();
-
-        }).then((result) => {
-            if (!result) {
-                return Promise.reject(API_ERROR.BOT_RICHMENU_FAILED_TO_FIND);
-            }
-            return result;
+            return botSvc.setRichMenuImage(botMenuId, image, appId).then((result) => {
+                if (!result) {
+                    Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
+                    return;
+                }
+                return appsChatroomsMessagersMdl.find(appId, null, null, appType).then((appsChatroomsMessagers) => {
+                    let platformUids = [];
+                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                    for (let chatroomId in chatrooms) {
+                        let chatroomMessagers = chatrooms[chatroomId].messagers;
+                        for (let messagerId in chatroomMessagers) {
+                            let messager = chatroomMessagers[messagerId];
+                            platformUids.push(messager.platformUid);
+                        }
+                    }
+                    return platformUids;
+                }).then((platformUids) => {
+                    return Promise.all(platformUids.map((platformUid) => {
+                        return botSvc.linkRichMenuToUser(platformUid, botMenuId, appId).then((result) => {
+                            if (!result) {
+                                Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                                return;
+                            }
+                            return platformUid;
+                        });
+                    })).then(() => {
+                        postMenu.platformMenuId = botMenuId;
+                        return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
+                            return appsRichemnu;
+                        });
+                    });
+                });
+            });
         }).then((data) => {
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                 data: data
             };
             res.status(200).json(json);
