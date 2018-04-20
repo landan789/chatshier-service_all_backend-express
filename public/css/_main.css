@@ -112,9 +112,7 @@ button:focus {
 .chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove {
     height: 2rem;
     width: 2rem;
-    margin-bottom: 0.3rem;
     padding: .175rem .475rem;
-    margin-right: 0.4rem;
 }
 
 /*start of search bar*/
