@@ -24,60 +24,57 @@
             <h3 class="page-title">分析頁面</h3>
             <div class="card analyze-body">
                 <div class="card-body">
-                    <div class="tooltip-container">
-                        <div class="dropdown app-dropdown app-view">
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
-                                <span class="dropdown-text">請選擇分析來源</span>
-                                <span class="caret"></span>
-                            </button>
-                            <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+                    <div class="dropdown app-dropdown app-view" id="appDropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
+                            <span class="dropdown-text">請選擇分析來源</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
+                    </div>
+
+                    <div class="my-4 px-0 col-12 col-lg-6 date-wrapper">
+                        <div class="mb-2 date-group">
+                            <div class="input-group date" id="startDatetimePicker">
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        開始時間
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" name="startDatetime" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </span>
+                            </div>
                         </div>
 
-                        <div class="date-wrapper">
-                            <div class="date-group">
-                                <div class="input-group date" id="start_datetime_picker">
-                                    <span class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            開始時間
-                                        </span>
+                        <div class="mt-2 date-group">
+                            <div class="input-group date" id="endDatetimePicker">
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        結束時間
                                     </span>
-                                    <input type="text" class="form-control" name="start_datetime" />
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                                </span>
+                                <input type="text" class="form-control" name="endDatetime" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
-                            </div>
-
-                            <div class="date-group">
-                                <div class="input-group date" id="end_datetime_picker">
-                                    <span class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            結束時間
-                                        </span>
-                                    </span>
-                                    <input type="text" class="form-control" name="end_datetime_picker" />
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
-                                    </span>
-                                </div>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="button-group">
-                        <button class="btn btn-info btn-view view-month" disabled>單位：月</button>
-                        <button class="btn btn-info btn-view view-date" disabled>單位：日</button>
-                        <button class="btn btn-info btn-view view-hour" disabled>單位：小時</button>
-                        <button class="btn btn-info btn-view view-time" disabled>每時段總訊息數</button>
-                        <button class="btn btn-info btn-view view-cloud" disabled>文字頻率分析</button>
+                    <div class="my-4 d-flex flex-wrap justify-content-around button-group">
+                        <button class="mb-2 btn btn-info view-month" disabled>單位：月</button>
+                        <button class="mb-2 btn btn-info view-date" disabled>單位：日</button>
+                        <button class="mb-2 btn btn-info view-hour" disabled>單位：小時</button>
+                        <button class="mb-2 btn btn-info view-time" disabled>每時段總訊息數</button>
+                        <button class="mb-2 btn btn-info view-cloud" disabled>文字頻率分析</button>
                     </div>
 
                     <div class="chart-container">
-                        <div class="chart-body" id="chartBody"></div>
+                        <div class="mx-auto chart-body" id="chartBody"></div>
                     </div>
                 </div>
             </div>

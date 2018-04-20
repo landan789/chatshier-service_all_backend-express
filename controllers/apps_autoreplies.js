@@ -114,10 +114,10 @@ module.exports = (function() {
         var appId = req.params.appid;
         var autoreplyId = req.params.autoreplyid;
         var autoreply = {
-            title: undefined === req.body.title ? '' : req.body.title,
+            title: undefined === req.body.title ? null : req.body.title,
             startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
             endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-            text: undefined === req.body.text ? '' : req.body.text
+            text: undefined === req.body.text ? null : req.body.text
         };
 
         // 前端未填入的訊息，不覆蓋
@@ -130,7 +130,15 @@ module.exports = (function() {
             appId = checkedAppId;
 
             if (!autoreplyId) {
-                return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
+            };
+
+            if ('' === autoreply.tittle) {
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
+            };
+
+            if ('' === autoreply.text) {
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_TEXT_WAS_EMPTY);
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
@@ -186,7 +194,7 @@ module.exports = (function() {
             appId = checkedAppId;
 
             if (!autoreplyId) {
-                return Promise.reject(API_ERROR.AUTOREPLYID_WAS_EMPTY);
+                return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
             };
 
             return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies

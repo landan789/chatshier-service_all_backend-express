@@ -173,7 +173,7 @@
 
         var dueDate = function(day) {
             var nowTime = Date.now();
-            var dueday = Date.parse(displayDate(day));
+            var dueday = new Date(displayDate(day));
             var hr = dueday - nowTime;
             hr /= 1000 * 60 * 60;
             return hr < 0 ? '<span class="overdue">過期</span>' : '<span class="non overdue">即期</span>';
@@ -184,7 +184,7 @@
 
         function TicketTableCtrl() {
             var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
-            var $dueDatetimePicker = $ticketEditTable.find('.ticket-due-time .datetime-picker');
+            var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
             var datetimePickerInitOpts = {
                 sideBySide: true,
                 locale: 'zh-tw',
@@ -325,7 +325,7 @@
             $ticketEditTable.find('.ticket-status').html(generateSelect('status', ticket.status));
             $ticketEditTable.find('.ticket-description textarea').val(ticket.description);
             $ticketEditTable.find('.ticket-assigned').html(generateSelect('assigned', appsAgents[appId].agents, ticket.assigned_id));
-            $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date(new Date(ticket.dueTime));
+            $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date(new Date(ticket.dueTime));
             $ticketEditTable.find('.due-time-text').html('到期時間' + dueDate(ticket.dueTime));
             $ticketEditTable.find('.ticket-created-time').text(displayDate(ticket.createdTime));
             $ticketEditTable.find('.ticket-updated-time').text(displayDate(ticket.updatedTime));
@@ -380,7 +380,7 @@
             var priority = parseInt($ticketEditTable.find('.ticket-priority select option:selected').val());
             var status = parseInt($ticketEditTable.find('.ticket-status select option:selected').val());
             var description = $ticketEditTable.find('.ticket-description textarea').val();
-            var dueTime = $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date().toDate().getTime();
+            var dueTime = $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date().toDate().getTime();
 
             var $assignedElem = $ticketEditTable.find('.ticket-assigned select option:selected');
             var assignedId = $assignedElem.val();
@@ -1307,17 +1307,19 @@
 
             switch (field.setsType) {
                 case setsTypeEnums.SELECT:
-                    return '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<select class="form-control td-inner" value="' + fieldValue + '">' +
-                            (function(sets) {
-                                var opts = '<option value="">未選擇</option>';
-                                for (var i in sets) {
-                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                }
-                                return opts;
-                            })(field.sets) +
-                        '</select>' +
-                    '</td>';
+                    return (
+                        '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<select class="form-control td-inner" value="' + fieldValue + '">' +
+                                (function(sets) {
+                                    var opts = '<option value="">未選擇</option>';
+                                    for (var i in sets) {
+                                        opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                                    }
+                                    return opts;
+                                })(field.sets) +
+                            '</select>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.MULTI_SELECT:
                     var selectValues = fieldValue instanceof Array ? fieldValue : [];
                     var multiSelectText = selectValues.reduce(function(output, value, i) {
@@ -1329,53 +1331,63 @@
                         return output;
                     }, []).join(',');
 
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
-                                '<span class="caret"></span>' +
-                            '</button>' +
-                            '<div class="multi-select-container dropdown-menu">' +
-                                (function(sets) {
-                                    var checkboxes = '';
-                                    for (var i in sets) {
-                                        if (!sets[i]) {
-                                            continue;
-                                        }
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
+                                '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                    '<span class="multi-select-values">' + multiSelectText + '</span>' +
+                                    '<span class="caret"></span>' +
+                                '</button>' +
+                                '<div class="multi-select-container dropdown-menu">' +
+                                    (function(sets) {
+                                        var checkboxes = '';
+                                        for (var i in sets) {
+                                            if (!sets[i]) {
+                                                continue;
+                                            }
 
-                                        if ('assigned' === field.alias) {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                '</span>';
-                                        } else {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                '</span>';
+                                            if ('assigned' === field.alias) {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
+                                                    '</span>';
+                                            } else {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
+                                                    '</span>';
+                                            }
                                         }
-                                    }
-                                    return checkboxes;
-                                })(field.sets) +
+                                        return checkboxes;
+                                    })(field.sets) +
+                                '</div>' +
                             '</div>' +
-                        '</div>' +
-                    '</td>';
+                        '</td>'
+                    );
                 case setsTypeEnums.CHECKBOX:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
+                    inputType = 'email' === field.alias ? 'email' : inputType;
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + ' autocapitalize="none" />' +
+                        '</td>'
+                    );
             }
         };
 

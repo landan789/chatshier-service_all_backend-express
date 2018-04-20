@@ -828,7 +828,7 @@
                                 '<tr>' +
                                     '<td class="user">' +
                                         '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
+                                            '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                                         '</div>' +
                                     '</td>' +
                                     '<td class="permission">' +
@@ -846,14 +846,12 @@
                                         '</div>' +
                                     '</td>' +
                                     '<td class="status">' +
-                                        '<div">' +
-                                            '狀態' +
-                                        '</div>' +
+                                        '<div>狀態</div>' +
                                     '</td>' +
                                     '<td class="actions">' +
                                         '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
                                             '<button class="btn btn-light btn-block btn-border outline add-button">' +
-                                                '邀請' +
+                                                '<span>邀請</span>' +
                                                 '<i class="fa fa-user-plus"></i>' +
                                             '</button>' +
                                         '</div>' +
@@ -1292,7 +1290,7 @@
         return api.groups.findAll(userId).then(function(resJson) {
             let groups = resJson.data;
             if (groups && 0 === Object.keys(groups).length) {
-                $('#add-group-name-app-btn').attr('disabled', false);
+                $('#addGroupNameAppBtn').attr('disabled', false);
                 return;
             };
 
@@ -1302,7 +1300,7 @@
                 }
                 loadGroups(groups[groupId], groupId);
             }
-            $('#add-group-name-app-btn').attr('disabled', false);
+            $('#addGroupNameAppBtn').attr('disabled', false);
         });
     }
 
@@ -1700,7 +1698,6 @@
             case LINE:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none" >' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
@@ -1737,7 +1734,6 @@
             case FACEBOOK:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none">' +
                             '<label class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
@@ -1786,7 +1782,6 @@
             case WECHAT:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none">' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +

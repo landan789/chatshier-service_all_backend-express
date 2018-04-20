@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
     <link rel="stylesheet" href="css/table.css" />
-    <link rel="stylesheet" href="css/autoreply.css" />
 </head>
 
 <body>
@@ -25,30 +24,32 @@
             <div class="container mt-5">
                 <div class="chsr card mb-5">
                     <div class="title">
-                        <h3 class="px-3 h3-padding"> 自動回覆訊息</h3>
-                        <p class="pl-3"> 首頁 / 訊息 / 自動回覆</p>
-                        <p class="address pl-3">當用戶對LINE@傳送訊息，訊息將自動回覆&nbsp;&nbsp;(同一時段自動回覆訊息請勿超過五筆)</p>
-
+                        <h3 class="mb-4 pt-3 px-3">自動回覆訊息</h3>
+                        <p class="mb-3 pt-0 px-3"> 首頁 / 訊息 / 自動回覆</p>
+                        <p class="mb-3 pt-0 px-3">
+                            <span>當用戶對LINE@傳送訊息，訊息將自動回覆</span>
+                            <br/>
+                            <span class="text-remark">(同一時段自動回覆訊息請勿超過五筆)</span>
+                        </p>
                     </div>
                     <div class="px-3 my-3" id="appSelector">
                         <div class="dropdown app-dropdown mb-4">
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 <span class="dropdown-text">請選擇應用程式</span>
-                                <span class="caret"></span>
                             </button>
-                            <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                         <div class="search-add mb-2">
                             <span class="icon">
                                 <i class="fa fa-search"></i>
                             </span>
                             <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" id="insert-btn" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <button type="button" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#autoreplyAddModal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="chsr table px-1">
+                    <div class="px-3 my-3 chsr table">
                         <table class="chsr table">
                             <thead>
                                 <tr>
@@ -67,11 +68,11 @@
         </div>
     </div>
 
-    <div class="autoreply-add modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
+    <div class="modal autoreply-add fade" id="autoreplyAddModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyAddModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="quickAddTitle"></h5>
+                    <h5 class="modal-title" id="autoreplyAddModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
                 <div class="modal-body">
@@ -87,16 +88,16 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="input-group date" id="start_datetime_picker">
-                                <input type="text" class="form-control" name="start_datetime" placeholder="開始時間"/>
+                            <div class="my-2 input-group date" id="startDatetimePicker">
+                                <input type="text" class="form-control" name="startDatetime" placeholder="開始時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
                             </div>
-                            <div class="input-group date" id="end_datetime_picker">
-                                <input type="text" class="form-control" name="end_datetime" placeholder="結束時間"/>
+                            <div class="my-2 input-group date" id="endDatetimePicker">
+                                <input type="text" class="form-control" name="endDatetime" placeholder="結束時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
@@ -113,17 +114,17 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="modal-submit">確認</button>
+                    <button type="button" class="btn btn-primary" id="addSubmitBtn">確認</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
+    <div class="modal autoreply-edit fade" id="autoreplyEditModal" tabindex="-1" role="dialog" aria-labelledby="autoreplyEditTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editModalTitle"></h5>
+                    <h5 class="modal-title" id="autoreplyEditTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
@@ -139,40 +140,38 @@
                             <span id="edit-autoreplyid"></span>
                         </div>
                         <div class="form-group">
-                            <div class="">
-                                <input class="form-control" type="text" value="" id="edit-taskTitle">
+                            <div class="input-container">
+                                <input class="form-control" type="text" id="edit-taskTitle">
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="date-group">
-                                <div class="input-group date" id="start_datetime_picker">
-                                    <input type="text" class="form-control" name="start_datetime" id="edit-taskStart" placeholder="開始時間"/>
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                            <div class="my-2 input-group date" id="startDatetimePicker">
+                                <input type="text" class="form-control" name="startDatetime" id="edit-taskStart" placeholder="開始時間" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
-                                <div class="input-group date" id="end_datetime_picker">
-                                    <input type="text" class="form-control" name="end_datetime" id="edit-taskEnd" placeholder="結束時間"/>
-                                    <span class="input-group-addon input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="far fa-calendar-alt"></i>
-                                        </span>
+                                </span>
+                            </div>
+                            <div class="my-2 input-group date" id="endDatetimePicker">
+                                <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="結束時間" />
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
                                     </span>
-                                </div>
+                                </span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="">
-                                <input class="form-control" type="text" value="" id="edit-taskContent" placeholder="內容">
+                            <div class="textarea-container">
+                                <textarea class="form-control" id="edit-taskContent" placeholder="內容"></textarea>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="edit-submit">更改</button>
+                    <button type="button" class="btn btn-primary" id="editSubmitBtn">更改</button>
                 </div>
             </div>
         </div>

@@ -2,7 +2,7 @@
 
 (function() {
     var appsData = {};
-    var composesData = {};
+    var appsComposes = {};
     var api = window.restfulAPI;
     var SOCKET_NAMESPACE = '/chatshier';
     const socket = io(SOCKET_NAMESPACE);
@@ -17,20 +17,25 @@
     var modelSelectAppId = '';
     var $jqDoc = $(document);
     var $appDropdown = $('.app-dropdown');
-    var $composeEditModal = $('#editModal');
-    var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
     var $customFields = $('#custom-fields');
-    var $composesDtPicker = $('#start_datetime_picker');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;
     var timeInMs = (Date.now() + 1000);
     var fieldEnums = api.appsFields.enums;
+
+    var $composeAddModal = $('#composeAddModal');
+    var $composesAddDtPicker = $composeAddModal.find('#sendDatetimePicker');
+    var $composesAddDtInput = $composesAddDtPicker.find('input[name="sendDatetime"]');
+
+    var $composeEditModal = $('#composeEditModal');
+    var $composesEditDtPicker = $composeEditModal.find('#sendDatetimePicker');
+    var $composesEditDtInput = $composesEditDtPicker.find('input[name="sendDatetime"]');
+
     const NO_PERMISSION_CODE = '3.16';
     const DID_NOT_HAVE_TAGS = '15.6';
 
-    var $sendDatetimePicker = $('#send-datetime-picker');
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -40,13 +45,12 @@
     }
 
     // ACTIONS
+    $composeAddModal.on('click', '#composeAddSubmitBtn', insertSubmit);
     $(document).on('change', '#app-select', storeApp);
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#addComposeText', addComposeText);
     $(document).on('click', '.remove-btn', removeInput);
     $(document).on('click', '#delete-btn', dataRemove);
-    $(document).on('click', '#modal-submit', insertSubmit);
-    $(document).on('click', '#add-btn', cleanmodal);
     $(document).on('click', '#send-all', function () {
         let id = $(this).attr('rel');
         $('#' + id).addClass('d-none');
@@ -100,23 +104,36 @@
     $reservationTableElem = $('#composes_reservation_table tbody');
     $draftTableElem = $('#composes_draft_table tbody');
 
-    var datetimePickerInitOpts = {
-        sideBySide: true,
-        locale: 'zh-tw',
-        defaultDate: Date.now(),
-        icons: {
-            time: 'far fa-clock',
-            date: 'far fa-calendar-alt',
-            up: 'fas fa-chevron-up',
-            down: 'fas fa-chevron-down',
-            previous: 'fas fa-chevron-left',
-            next: 'fas fa-chevron-right',
-            today: 'fas fa-sun',
-            clear: 'far fa-trash-alt',
-            close: 'fas fa-times'
-        }
-    };
-    $sendDatetimePicker.datetimepicker(datetimePickerInitOpts);
+    if (!window.isMobileBrowser()) {
+        var datetimePickerInitOpts = {
+            sideBySide: true,
+            locale: 'zh-tw',
+            icons: {
+                time: 'far fa-clock',
+                date: 'far fa-calendar-alt',
+                up: 'fas fa-chevron-up',
+                down: 'fas fa-chevron-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'fas fa-sun',
+                clear: 'far fa-trash-alt',
+                close: 'fas fa-times'
+            }
+        };
+        $composesAddDtPicker.datetimepicker(datetimePickerInitOpts);
+        $composesEditDtPicker.datetimepicker(datetimePickerInitOpts);
+    } else {
+        $composesAddDtInput.attr('type', 'datetime-local');
+        $composesEditDtInput.attr('type', 'datetime-local');
+        $composesAddDtPicker.on('click', '.input-group-prepend', function() {
+            $composesAddDtInput.focus();
+        });
+        $composesEditDtPicker.on('click', '.input-group-prepend', function() {
+            $composesEditDtInput.focus();
+        });
+    }
+
+    $composeAddModal.on('show.bs.modal', resetAddModal);
 
     // FUNCTIONs
 
@@ -169,8 +186,8 @@
         var appId = targetRow.attr('text');
         var composeId = targetRow.attr('id');
         var $editForm = $composeEditModal.find('.modal-body form');
-        var targetData = composesData[composeId];
-        var customFieldsElement = targetRow.find('#fields>#field');
+        var targetCompose = appsComposes[appId].composes[composeId];
+        var customFieldsElement = targetRow.find('#fields > #field');
         var customFields = {};
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
@@ -252,29 +269,29 @@
                     break;
             }
         }
-        let editOptions = {
-            sideBySide: true,
-            locale: 'zh-tw',
-            defaultDate: targetData.time
-        };
-        $composesDtPicker.datetimepicker(editOptions);
-        $editForm.find('#edutinput').val(targetData.text);
+
+        var composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
+        if (composesEditDtPickerData) {
+            composesEditDtPickerData.date(new Date(targetCompose.time));
+        } else {
+            $composesEditDtInput.val(toDatetimeLocal(new Date(targetCompose.time)));
+        }
+
+        $editForm.find('#edutinput').val(targetCompose.text);
         $composeEditModal.find('#edit-submit').off('click').on('click', function() {
             $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
             var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
             var conditionInputElement = $composeEditModal.find('input#condition-input');
+
             fieldsObjCompose(conditionInputElement);
-            targetData.text = $editForm.find('#edutinput').val();
-            targetData.time = $composesDtPicker.data('DateTimePicker').date().toDate().getTime();
-            targetData.ageRange = ageRange;
-            targetData.gender = gender;
-            targetData.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
-            if (true === isDraft) {
-                targetData.status = 0;
-            } else {
-                targetData.status = 1;
-            }
-            return api.appsComposes.update(appId, composeId, userId, targetData).then((resJson) => {
+            targetCompose.text = $editForm.find('#edutinput').val();
+            targetCompose.time = composesEditDtPickerData ? composesEditDtPickerData.date().toDate().getTime() : new Date($composesEditDtInput.val()).getTime();
+            targetCompose.ageRange = ageRange;
+            targetCompose.gender = gender;
+            targetCompose.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
+            targetCompose.status = isDraft ? 1 : 0;
+
+            return api.appsComposes.update(appId, composeId, userId, targetCompose).then((resJson) => {
                 ageRange = [];
                 gender = '';
                 fieldIds = {};
@@ -397,36 +414,36 @@
                 return;
             }
 
-            composesData = resJson.data[appId].composes;
-            for (var composeId in composesData) {
-                var composeData = composesData[composeId];
-
-                if (composeData.isDeleted) {
+            appsComposes = resJson.data;
+            var composes = appsComposes[appId].composes;
+            for (var composeId in composes) {
+                var compose = composes[composeId];
+                if (compose.isDeleted) {
                     continue;
                 }
 
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
-                        '<th id="text" data-title="' + composeData.text + '">' + composeData.text + '</th>' +
-                        '<td id="time">' + ToLocalTimeString(composeData.time) + '</td>' +
-                        appendFields(composeData) +
+                        '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
+                        '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
+                        appendFields(compose) +
                         '<td>' +
-                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                            '<button type="button" class="m-1 btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="m-1 btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
-                if (!composeData.status) {
+                if (!compose.status) {
                     $draftTableElem.append(trGrop);
-                } else if (composeData.status && Date.parse(composeData.time) > timeInMs) {
+                } else if (compose.status && new Date(compose.time) > timeInMs) {
                     $reservationTableElem.append(trGrop);
-                } else if (composeData.status && Date.parse(composeData.time) <= timeInMs) {
+                } else if (compose.status && new Date(compose.time) <= timeInMs) {
                     $historyTableElem.append(trGrop);
                 }
             }
         });
     }
 
-    function appendFields(composeData) {
+    function appendFields(compose) {
         let composeFields = {
             'ageRange': {
                 'value': ''
@@ -436,7 +453,7 @@
             }
         };
         let fieldsTd = '<td id="fields">';
-        let composeAgeRange = composeData.ageRange || '';
+        let composeAgeRange = compose.ageRange || '';
         let composeAgeString = '';
         for (let i = 0; i < composeAgeRange.length; i++) {
             if (i % 2) {
@@ -448,7 +465,7 @@
             }
         }
         let composeGender;
-        switch (composeData.gender) {
+        switch (compose.gender) {
             case 'MALE':
                 composeGender = '男';
                 break;
@@ -458,11 +475,11 @@
             default:
                 composeGender = '';
         }
-        if (0 === Object.keys(composeData.field_ids).length && 0 === composeData.ageRange.length && '' === composeGender) {
+        if (0 === Object.keys(compose.field_ids).length && 0 === compose.ageRange.length && '' === composeGender) {
             fieldsTd += '<snap id="sendAll" data-title="無">無</snap>';
             return fieldsTd;
         }
-        composeFields = Object.assign(composeFields, composeData.field_ids) || composeFields;
+        composeFields = Object.assign(composeFields, compose.field_ids) || composeFields;
         composeFields['ageRange'].value = composeAgeString;
         composeFields['gender'].value = composeGender;
         for (var fieldId in composeFields) {
@@ -530,18 +547,26 @@
         });
     }
 
-    function cleanmodal() {
+    function resetAddModal() {
         $('.error-msg').hide();
         $('.error-input').hide();
         $('.textinput').val('');
         $('#send-all').prop('checked', true);
-        $('div#limit-user').addClass('d-none');
-        $('div#condition').remove();
+        $('#limit-user').addClass('d-none');
+        $('#condition').remove();
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
-        $('#send-time').val('');
         $('#checkbox_value').prop('checked', false);
         $('#inputText').empty();
+
+        var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
+        // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
+        var dateNowLater = Date.now() + (5 * 60 * 1000);
+        if (composesAddDtPickerData) {
+            composesAddDtPickerData.date(new Date(dateNowLater));
+        } else {
+            $composesAddDtInput.val(toDatetimeLocal(new Date(dateNowLater)));
+        }
 
         inputObj = {};
         inputNum = 0;
@@ -580,11 +605,19 @@
     }
 
     function insertSubmit() {
-        var $errorMsgElem = $composesAddModal.find('.error-input');
+        var $errorMsgElem = $composeAddModal.find('.error-input');
         var appId = $appSelector.find('option:selected').val();
-        var isDraft = $composesAddModal.find('input[name="modal-draft"]').prop('checked');
-        var sendTime = $composesAddModal.find('#send-time').val();
-        var conditionInputElement = $composesAddModal.find('input#condition-input');
+        var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
+
+        var sendTime;
+        var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
+        if (composesAddDtPickerData) {
+            sendTime = composesAddDtPickerData.date().toDate().getTime();
+        } else {
+            sendTime = new Date($composesAddDtInput.val()).getTime();
+        }
+
+        var conditionInputElement = $composeAddModal.find('input#condition-input');
         fieldsObjCompose(conditionInputElement);
         $errorMsgElem.empty().hide();
 
@@ -592,7 +625,7 @@
         $('.textinput').each(function() {
             isTextVaild &= !!$(this).val();
         });
-        if (new Date(sendTime).getTime() < Date.now()) {
+        if (sendTime < Date.now()) {
             $errorMsgElem.text('群發時間必須大於現在時間').show();
             return;
         };
@@ -629,15 +662,16 @@
             // 將群發訊息存入資料庫，等待使用者再行編輯
             if (isDraft) {
                 return insert(appId, userId, messages, options).then(() => {
-                    $composesAddModal.modal('hide');
+                    $composeAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
-                    $('#send-time').val('');
                     $('#inputText').empty();
+                    $composesAddDtInput.val('');
+
                     inputNum = 0;
                     $.notify('新增成功', { type: 'success' });
                     $appDropdown.find('.dropdown-text').text(appsData[appId].name);
-                    $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                    $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 });
             }
@@ -652,13 +686,13 @@
                 };
 
                 socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, emitData, (json) => {
-                    $composesAddModal.modal('hide');
-                    $composesAddModal.find('button.btn-update-submit').removeAttr('disabled');
+                    $composeAddModal.modal('hide');
+                    $composeAddModal.find('button.btn-update-submit').removeAttr('disabled');
                     if (1 === json.status) {
                         $('.form-control').val(appsData[appId].name);
                         $('.textinput').val('');
-                        $('#send-time').val('');
                         $('#inputText').empty();
+                        $composesAddDtInput.val('');
                         inputNum = 0;
 
                         $.notify('發送成功', { type: 'success' });
@@ -706,20 +740,22 @@
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
-                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#editModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
                                 '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';
                     if (!compose.status) {
                         $draftTableElem.append(trGrop);
-                    } else if (compose.status && Date.parse(compose.time) > timeInMs) {
+                    } else if (compose.status && new Date(compose.time) > timeInMs) {
                         $reservationTableElem.append(trGrop);
-                    } else if (compose.status && Date.parse(compose.time) <= timeInMs) {
+                    } else if (compose.status && new Date(compose.time) <= timeInMs) {
                         $historyTableElem.append(trGrop);
                     }
-                    composesData[composeId] = compose;
+                    appsComposes[appId] = appsComposes[appId] || {};
+                    appsComposes[appId].composes = appsComposes[appId].composes || {};
+                    appsComposes[appId].composes[composeId] = compose;
                 });
-                $composesAddModal.modal('hide');
+                $composeAddModal.modal('hide');
                 $.notify('新增成功', { type: 'success' });
             });
         }
@@ -808,7 +844,7 @@
                 type: message.type,
                 text: message.text,
                 status: options.isDraft ? 0 : 1,
-                time: options.isDraft ? Date.now() : Date.parse(options.sendTime),
+                time: options.isDraft ? Date.now() : options.sendTime,
                 ageRange: options.ageRange,
                 gender: options.gender,
                 field_ids: options.field_ids
@@ -818,14 +854,14 @@
 
         return api.appsComposes.insert(appId, userId, composes, true).catch((resJson) => {
             if (undefined === resJson.status) {
-                $composesAddModal.modal('hide');
-                $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                $composeAddModal.modal('hide');
+                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $.notify('失敗', { type: 'danger' });
                 return loadComposes(appId, userId);
             }
             if (NO_PERMISSION_CODE === resJson.code) {
-                $composesAddModal.modal('hide');
-                $composesAddModal.find('#modal-submit').removeAttr('disabled');
+                $composeAddModal.modal('hide');
+                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $.notify('無此權限', { type: 'danger' });
                 return loadComposes(appId, userId);
             }
@@ -859,5 +895,24 @@
                 }
             });
         });
+    }
+
+    /**
+     * @param {Date} date
+     */
+    function toDatetimeLocal(date) {
+        var YYYY = date.getFullYear();
+        var MM = ten(date.getMonth() + 1);
+        var DD = ten(date.getDate());
+        var hh = ten(date.getHours());
+        var mm = ten(date.getMinutes());
+        var ss = ten(date.getSeconds());
+
+        function ten(i) {
+            return (i < 10 ? '0' : '') + i;
+        }
+
+        return YYYY + '-' + MM + '-' + DD + 'T' +
+                hh + ':' + mm + ':' + ss;
     }
 })();
