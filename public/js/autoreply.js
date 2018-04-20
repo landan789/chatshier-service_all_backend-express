@@ -6,10 +6,10 @@
     var $appSelector = $('#app-select');
 
     var date = Date.now();
-    var $autoreplyAddSdtPicker = $('.autoreply-add.modal #start_datetime_picker');
-    var $autoreplyAddEdtPicker = $('.autoreply-add.modal #end_datetime_picker');
-    var $autoreplyEditSdtPicker = $('#editModal #start_datetime_picker');
-    var $autoreplyEditEdtPicker = $('#editModal #end_datetime_picker');
+    var $autoreplyAddSdtPicker = $('.autoreply-add.modal #startDatetimePicker');
+    var $autoreplyAddEdtPicker = $('.autoreply-add.modal #endDatetimePicker');
+    var $autoreplyEditSdtPicker = $('#editModal #startDatetimePicker');
+    var $autoreplyEditEdtPicker = $('#editModal #endDatetimePicker');
 
     var datetimePickerInitOpts = {
         sideBySide: true,

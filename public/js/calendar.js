@@ -88,22 +88,22 @@
 
     var $calendar = $('#calendarBody');
     var $calendarModal = $('.modal.calendar-modal');
-    var $calendarSdtPicker = $('#start_datetime_picker');
-    var $calendarEdtPicker = $('#end_datetime_picker');
+    var $calendarSdtPicker = $('#startDatetimePicker');
+    var $calendarEdtPicker = $('#endDatetimePicker');
     var $calendarModalTitle = $calendarModal.find('.modal-title');
     var $calendarModalForm = $calendarModal.find('.input-wrapper');
     var $eventTitle = $calendarModalForm.find('input.event-title');
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
 
-    var $addCalendarBtn = $('#add-cal-btn');
-    var $saveCalendarBtn = $('#save-cal-btn');
-    var $delCalendarBtn = $('#del-cal-btn');
+    var $addCalendarBtn = $('#addCalendarBtn');
+    var $saveCalendarBtn = $('#saveCalendarBtn');
+    var $delCalendarBtn = $('#delCalendarBtn');
     var $formCheckLabel = $('.form-check-label');
-    var $startDatetime = $('[for="start_datetime"]');
-    var $endDatetime = $('[for="end_datetime"]');
-    var $startDatetimePicker = $('[name="start_datetime"]');
-    var $endDatetimePicker = $('[name="end_datetime"]');
+    var $startDatetimeLabel = $calendarSdtPicker.find('label[for="startDatetime"]');
+    var $startDatetimeInput = $calendarSdtPicker.find('input[name="startDatetime"]');
+    var $endDatetimeLabel = $calendarEdtPicker.find('label[for="endDatetime"]');
+    var $endDatetimeInput = $calendarEdtPicker.find('input[name="endDatetime"]');
     var sTimePickerData = null;
     var eTimePickerData = null;
 
@@ -189,11 +189,11 @@
             updateCalendarModal(beginDate, endDate);
 
             $calendarModalTitle.text(CalendarEventTitles.CREATECALENDAR);
-            $endDatetimePicker.parent().parent().show();
+            $endDatetimeInput.parent().parent().show();
+            $formCheckLabel.removeClass('d-none');
             $eventTitle.removeAttr('disabled');
-            $formCheckLabel.attr('style', 'display: block');
-            $startDatetimePicker.removeAttr('disabled');
-            $endDatetimePicker.removeAttr('disabled');
+            $startDatetimeInput.removeAttr('disabled');
+            $endDatetimeInput.removeAttr('disabled');
             $eventIsAllday.removeAttr('disabled');
             $eventContent.removeAttr('disabled');
 
@@ -233,27 +233,27 @@
             switch (event.eventType) {
                 case CalendarEventTypes.Ticket:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
-                    $delCalendarBtn.attr('style', 'display: none');
-                    $formCheckLabel.hide();
-                    $startDatetime.text(CalendarEventLabels.TICKETENDEDTIME);
-                    $endDatetimePicker.parent().parent().hide();
+                    $delCalendarBtn.addClass('d-none');
+                    $formCheckLabel.addClass('d-none');
+                    $startDatetimeLabel.text(CalendarEventLabels.TICKETENDEDTIME);
+                    $endDatetimeInput.parent().parent().hide();
                     $eventTitle.attr('disabled', true);
-                    $startDatetimePicker.attr('disabled', true);
-                    $endDatetimePicker.attr('disabled', true);
+                    $startDatetimeInput.attr('disabled', true);
+                    $endDatetimeInput.attr('disabled', true);
                     $eventIsAllday.attr('disabled', true);
                     $eventContent.attr('disabled', true);
                     break;
                 case CalendarEventTypes.Calendar:
                 default:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
-                    $delCalendarBtn.attr('style', '');
-                    $formCheckLabel.attr('style', 'display: block');
-                    $startDatetime.text(CalendarEventLabels.CALENDARSTARTEDTIME);
-                    $endDatetime.text(CalendarEventLabels.CALENDARENDEDTIME);
-                    $endDatetimePicker.parent().parent().show();
+                    $delCalendarBtn.removeClass('d-none');
+                    $formCheckLabel.removeClass('d-none');
+                    $startDatetimeLabel.text(CalendarEventLabels.CALENDARSTARTEDTIME);
+                    $endDatetimeLabel.text(CalendarEventLabels.CALENDARENDEDTIME);
+                    $endDatetimeInput.parent().parent().show();
                     $eventTitle.removeAttr('disabled');
-                    $startDatetimePicker.removeAttr('disabled');
-                    $endDatetimePicker.removeAttr('disabled');
+                    $startDatetimeInput.removeAttr('disabled');
+                    $endDatetimeInput.removeAttr('disabled');
                     $eventIsAllday.removeAttr('disabled');
                     $eventContent.removeAttr('disabled');
                     break;

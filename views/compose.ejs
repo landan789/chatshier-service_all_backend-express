@@ -32,11 +32,10 @@
                     </div>
                     <div class="px-5 my-3" id="appSelector">
                         <div class="dropdown app-dropdown">
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                 <span class="dropdown-text">請選擇應用程式</span>
-                                <span class="caret"></span>
                             </button>
-                            <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
                     </div>
                     <div class="px-5 my-3" id="searchWidget">
@@ -133,7 +132,7 @@
                         <div>
                             <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
                             <div class="input-group date" id="send-datetime-picker">
-                                <input type="text" class="form-control" name="end_datetime" id="send-time" value="Time" required="">
+                                <input type="text" class="form-control" name="endDatetime" id="send-time" value="Time" required="">
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
@@ -188,9 +187,9 @@
                     <form>
                         <!-- 時間 -->
                         <div class="date-group">
-                            <div class="input-group date" id="start_datetime_picker">
+                            <div class="input-group date" id="startDatetimePicker">
                                 <span class="input-group-addon">時間</span>
-                                <input type="text" class="form-control" name="start_datetime" id="edit-time" value=""/>
+                                <input type="text" class="form-control" name="startDatetime" id="edit-time" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>

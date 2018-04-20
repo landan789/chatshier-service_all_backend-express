@@ -21,7 +21,7 @@
     var $composesAddModal = $('#quickAdd');
     var $appSelector = $('#app-select');
     var $customFields = $('#custom-fields');
-    var $composesDtPicker = $('#start_datetime_picker');
+    var $composesDtPicker = $('#startDatetimePicker');
     var $historyTableElem = null;
     var $draftTableElem = null;
     var $reservationTableElem = null;

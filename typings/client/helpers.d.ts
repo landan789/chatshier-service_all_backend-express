@@ -19,12 +19,14 @@ interface Window {
         groups: GroupsAPI,
         users: UsersAPI,
         sign: SignAPI
-    },
+    };
+
     translate: {
         ready: Promise<{ [key: string]: string }>,
         get: (key: string) => Promise<string>,
         json: () => { [key: string]: string }
-    },
+    };
+
     chatshierCookie: {
         CHSR_COOKIE: {
             USER_EMAIL: '_chsr_email',
@@ -35,7 +37,9 @@ interface Window {
             getCookie: (name: string) => string,
             deleteCookie: (name: string) => string
         }
-    }
+    };
+
+    isMobileBrowser: () => boolean;
 }
 
 interface AppAPI {

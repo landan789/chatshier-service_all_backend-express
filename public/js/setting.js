@@ -828,7 +828,7 @@
                                 '<tr>' +
                                     '<td class="user">' +
                                         '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="off" autocorrect="off" autofocus="false" />' +
+                                            '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                                         '</div>' +
                                     '</td>' +
                                     '<td class="permission">' +

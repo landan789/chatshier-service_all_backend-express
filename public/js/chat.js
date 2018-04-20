@@ -1385,7 +1385,7 @@
                     inputType = 'email' === field.alias ? 'email' : inputType;
                     return (
                         '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + ' autocapitalize="none" />' +
                         '</td>'
                     );
             }
