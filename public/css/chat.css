@@ -248,7 +248,7 @@ body {
         width: 100%;
         text-indent: 1rem;
         text-align: center;
-        top: calc(50% + 8rem);
+        top: calc(50% + 4rem);
         transform: translate3d(0, -50%, 0);
     }
     .chatroom-container.open::before,
@@ -262,7 +262,11 @@ body {
         width: 16rem;
         height: 100%;
         opacity: .5;
-        background: transparent url(../image/logo.png) center/contain no-repeat; }
+        background-color: transparent;
+        background-image: url(../image/logo.png);
+        background-position: center calc(50% - 4rem);
+        background-size: contain;
+        background-repeat: no-repeat; }
     .chatroom-container .chat-content-panel {
         position: relative;
         height: 100%;
