@@ -21,7 +21,7 @@ module.exports = (function() {
      * @returns {Promise<string[]>}
      */
     ControllerCore.prototype.AppsRequestVerify = function(req) {
-        let appId = req.params.appid;
+        let appId = req.params.appid || req.query.appid;
         let userId = req.params.userid;
         let method = req.method;
 
