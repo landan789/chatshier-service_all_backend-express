@@ -132,23 +132,33 @@
         }
     }).then(function() {
         var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
-        var $dueDatetimePicker = $ticketEditTable.find('.ticket-due-time .datetime-picker');
-        var datetimePickerInitOpts = {
-            sideBySide: true,
-            locale: 'zh-tw',
-            icons: {
-                time: 'far fa-clock',
-                date: 'far fa-calendar-alt',
-                up: 'fas fa-chevron-up',
-                down: 'fas fa-chevron-down',
-                previous: 'fas fa-chevron-left',
-                next: 'fas fa-chevron-right',
-                today: 'fas fa-sun',
-                clear: 'far fa-trash-alt',
-                close: 'fas fa-times'
-            }
-        };
-        $dueDatetimePicker.datetimepicker(datetimePickerInitOpts);
+        var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
+        var $dueDatetimeInput = $dueDatetimePicker.find('input[name="dueDatetime"]');
+
+        if (!window.isMobileBrowser()) {
+            var datetimePickerInitOpts = {
+                sideBySide: true,
+                locale: 'zh-tw',
+                icons: {
+                    time: 'far fa-clock',
+                    date: 'far fa-calendar-alt',
+                    up: 'fas fa-chevron-up',
+                    down: 'fas fa-chevron-down',
+                    previous: 'fas fa-chevron-left',
+                    next: 'fas fa-chevron-right',
+                    today: 'fas fa-sun',
+                    clear: 'far fa-trash-alt',
+                    close: 'fas fa-times'
+                }
+            };
+            $dueDatetimePicker.datetimepicker(datetimePickerInitOpts);
+        } else {
+            $dueDatetimeInput.attr('type', 'datetime-local');
+            $dueDatetimePicker.on('click', '.input-group-prepend', function() {
+                $dueDatetimeInput.focus();
+            });
+        }
+
         return loadTable();
     });
 
@@ -171,12 +181,12 @@
                     // 將每筆 ticket 資料反映於 html DOM 上
                     $ticketBody.append(
                         '<tr app-id=' + appId + ' ticket-id="' + ticketId + '" class="ticket-row" data-toggle="modal" data-target="#ticketEditModal">' +
-                            '<td style="border-left: 5px solid ' + priorityColor(ticket.priority) + '">' + (consumer.name || '') + '</td>' +
-                            '<td class="description">' + ticket.description + '</td>' +
+                            '<td style="border-left: .25rem solid ' + priorityColor(ticket.priority) + '">' + (consumer.name || '') + '</td>' +
+                            '<td class="description d-none d-sm-table-cell">' + ticket.description + '</td>' +
                             '<td class="status">' + statusNumberToText(ticket.status) + '</td>' +
                             '<td class="priority">' + priorityNumberToText(ticket.priority) + '</td>' +
-                            '<td class="due-time">' + toLocalTimeString(ticket.dueTime) + '</td>' +
-                            '<td class="assigened">' + (agent ? agent.name : '無') + '</td>' +
+                            '<td class="due-time d-none d-lg-table-cell">' + toLocalTimeString(ticket.dueTime) + '</td>' +
+                            '<td class="assigened d-none d-lg-table-cell">' + (agent ? agent.name : '無') + '</td>' +
                             '<td class="due-time-text">' + dueDate(ticket.dueTime) + '</td>' +
                         '</tr>');
                 }
@@ -235,7 +245,15 @@
         $ticketEditTable.find('.ticket-status').html(generateSelect('status', ticket.status));
         $ticketEditTable.find('.ticket-description textarea').val(ticket.description);
         $ticketEditTable.find('.ticket-assigned').html(generateSelect('assigned', appsAgents[appId].agents, ticket.assigned_id));
-        $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date(new Date(ticket.dueTime));
+
+        var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
+        var dueDatetimePickerData = $dueDatetimePicker.data('DateTimePicker');
+        if (dueDatetimePickerData) {
+            dueDatetimePickerData.date(new Date(ticket.dueTime));
+        } else {
+            $dueDatetimePicker.find('input[name="dueDatetime"]').val(toDatetimeLocal(new Date(ticket.dueTime)));
+        }
+
         $ticketEditTable.find('.due-time-text').html('到期時間' + dueDate(ticket.dueTime));
         $ticketEditTable.find('.ticket-created-time').text(displayDate(ticket.createdTime));
         $ticketEditTable.find('.ticket-updated-time').text(displayDate(ticket.updatedTime));
@@ -348,15 +366,15 @@
     function dueDate(day) {
         var html = '';
         var nowTime = Date.now();
-        var dueday = Date.parse(displayDate(day));
+        var dueday = new Date(displayDate(day));
         var hr = dueday - nowTime;
         hr /= 1000 * 60 * 60;
         // hr = Math.round(hr) ;
         // return hr ;
         if (hr < 0) {
-            html = '<span class="overdue">過期</span>';
+            html = '<span class="overdue text-nowrap">過期</span>';
         } else {
-            html = '<span class="non overdue">即期</span>';
+            html = '<span class="non overdue text-nowrap">即期</span>';
         }
         return html;
     }
@@ -424,7 +442,15 @@
         var priority = parseInt($ticketEditTable.find('.ticket-priority select option:selected').val());
         var status = parseInt($ticketEditTable.find('.ticket-status select option:selected').val());
         var description = $ticketEditTable.find('.ticket-description textarea').val();
-        var dueTime = $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date().toDate().getTime();
+
+        var dueTime;
+        var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
+        var dueDatetimePickerData = $dueDatetimePicker.data('DateTimePicker');
+        if (dueDatetimePickerData) {
+            dueTime = dueDatetimePickerData.date().toDate().getTime();
+        } else {
+            dueTime = new Date($dueDatetimePicker.find('input[name="dueDatetime"]').val());
+        }
 
         var $assignedElem = $ticketEditTable.find('.ticket-assigned select option:selected');
         var assignedId = $assignedElem.val();
@@ -544,5 +570,24 @@
                 }
             }
         }
-    };
+    }
+
+    /**
+     * @param {Date} date
+     */
+    function toDatetimeLocal(date) {
+        var YYYY = date.getFullYear();
+        var MM = ten(date.getMonth() + 1);
+        var DD = ten(date.getDate());
+        var hh = ten(date.getHours());
+        var mm = ten(date.getMinutes());
+        var ss = ten(date.getSeconds());
+
+        function ten(i) {
+            return (i < 10 ? '0' : '') + i;
+        }
+
+        return YYYY + '-' + MM + '-' + DD + 'T' +
+                hh + ':' + mm + ':' + ss;
+    }
 })();

@@ -19,12 +19,14 @@ window.restfulAPI = (function() {
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
+        bot: apiDatabaseUrl + 'bot/',
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
         consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
-        signRefresh: apiSignUrl + 'refresh/'
+        signRefresh: apiSignUrl + 'refresh/',
+        signOut: apiSignUrl + 'signout/'
     });
 
     // ======================
@@ -83,6 +85,9 @@ window.restfulAPI = (function() {
                         return Promise.resolve(resJsons);
                     }
                     var _reqInit = reqInits[i];
+                    _reqInit.cache = 'no-cache';
+                    _reqInit.mode = 'cors';
+                    _reqInit.credentials = 'include';
 
                     return window.fetch(reqInfo, _reqInit).then(function(res) {
                         return responseChecking(res);
@@ -94,12 +99,18 @@ window.restfulAPI = (function() {
                 return nextPromise(0);
             } else {
                 return Promise.all(reqInits.map((_reqInit) => {
+                    _reqInit.cache = 'no-cache';
+                    _reqInit.mode = 'cors';
+                    _reqInit.credentials = 'include';
                     return window.fetch(reqInfo, _reqInit).then(function(res) {
                         return responseChecking(res);
                     });
                 }));
             }
         }
+        reqInit.cache = 'no-cache';
+        reqInit.mode = 'cors';
+        reqInit.credentials = 'include';
 
         return window.fetch(reqInfo, reqInit).then(function(res) {
             return responseChecking(res);
@@ -1187,10 +1198,19 @@ window.restfulAPI = (function() {
     })();
 
     var SignAPI = (function() {
-        function SignAPI() {
-        };
+        function SignAPI() {};
+
         SignAPI.prototype.refresh = function(userId) {
             var destUrl = apiUrlTable.signRefresh + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        SignAPI.prototype.signOut = function() {
+            var destUrl = apiUrlTable.signOut;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders
@@ -1223,7 +1243,7 @@ window.restfulAPI = (function() {
          * @param {string} richmenuId - 目標Richmenu的 ID
          */
         BotAPI.prototype.getRichMenu = function(appId, richmenuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + 'richmenus' + richmenuId;
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus' + richmenuId;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -1237,7 +1257,20 @@ window.restfulAPI = (function() {
          * @param {string} richmenuId - 目標Richmenu的 ID
          */
         BotAPI.prototype.getRichMenuImage = function(appId, richmenuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + 'richmenus' + richmenuId + '/content';
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/content';
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} platformUid
+         */
+        BotAPI.prototype.getProfile = function(appId, platformUid) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/consumers/' + platformUid;
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
@@ -1337,6 +1370,7 @@ window.restfulAPI = (function() {
         appsRichmenus: new AppsRichmenusAPI(),
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
+        bot: new BotAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
         consumers: new ConsumersAPI(),
         groupsMembers: new GroupsMembersAPI(),

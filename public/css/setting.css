@@ -1,22 +1,59 @@
-.border-info > .card-header {
-    color: #ffffff;
+.tabs-container {
+    position: relative;
+    height: 100%;
+    max-height: calc(100% - 50px);
+    font-size: .85rem; }
+    .tabs-container .prof-wid {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        height: 80%; }
+
+.tabs-mobile {
+    position: absolute;
+    bottom: 0;
+    font-size: .85rem;
+    background-color: #f8f8f8; }
+
+.tab-content {
+    position: relative;
+    height: 100%;
+}
+
+.card > .card-header {
+    color: #fff;
     background-color: #33ccff;
     border-color: #33ccff;
 }
 
-.tab-content {
-    position: relative;
-    padding: 0 50px; }
-    .tab-content .field-name {
-        width: 30%; }
-    .tab-content .field-type {
-        width: 15%; }
-    .tab-content .field-sets {
-        width: 30%; }
-    .tab-content .field-delete {
-        width: 15%; }
-    .tab-content .field-drag-icon {
-        width: 10%; }
+.chsr.fields .app-name {
+    cursor: pointer;
+    color: #33ccff;
+    text-decoration: none;
+    padding: 1rem;
+    border: 1px solid #ddd; }
+    .chsr.fields .app-name:first-of-type {
+        border-top-left-radius: .5rem;
+        border-top-right-radius: .5rem; }
+
+.field-content {
+    display: inherit;
+    margin: .5rem auto;
+    padding: .5rem;
+    border: 1px solid #ddd;
+    border-radius: .5rem; }
+    .field-content .field-drag-icon i {
+        color: #c0c0c0; }
+
+/* .chsr.fields .field-name {
+    width: 22.5%; }
+.chsr.fields .field-type {
+    width: 17.5%; }
+.chsr.fields .field-sets {
+    width: 30%; }
+.chsr.fields .field-delete {
+    width: 15%; }
+.chsr.fields .field-drag-icon {
+    width: 10%; } */
 
 .long-token {
     max-width: 600px;
@@ -59,16 +96,6 @@ p:empty:not(:focus)::before {
 
 .app-table-space {
     padding: 1%;
-}
-
-.chsr-fields .card-header {
-    border-bottom: 1px solid #ddd;
-}
-
-.chsr-fields .app-name {
-    cursor: pointer;
-    color: #33ccff;
-    text-decoration: none;
 }
 
 /*******************/
@@ -149,9 +176,12 @@ p:empty:not(:focus)::before {
     border: 1px solid #ddd;
 }
 
+.chsr.table,
 .chsr-group {
-    width: 100%;
     table-layout: fixed;
+}
+
+.chsr-group {
     border-collapse: collapse;
     background-color: white;
     margin-bottom: 0; }

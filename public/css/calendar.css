@@ -1,5 +1,4 @@
-.calendar-wrapper {
-    position: relative;
+.calendar-wrapper .calendar-body {
     padding: 5%;
 }
 
@@ -12,13 +11,10 @@
 
 .input-wrapper {
     width: 90%;
-    margin: 0 auto;
-}
-
-.input-wrapper textarea.event-content {
-    margin: 1em 0;
-    resize: vertical;
-}
+    margin: 0 auto; }
+    .input-wrapper textarea.event-content {
+        margin: 1em 0;
+        resize: vertical; }
 
 .font-red {
     color: red;
@@ -26,4 +22,10 @@
 
 .calendar-modal .modal-header .modal-title {
     margin: 0px 27px;
+}
+
+@media (max-width: 576px) {
+    .chsr .fc-center h2 {
+        font-size: 1.2rem;
+    }
 }

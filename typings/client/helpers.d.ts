@@ -12,18 +12,21 @@ interface Window {
         appsRichmenus: AppsRichmenusAPI,
         appsFields: AppsFieldsAPI,
         appsTickets: AppsTicketsAPI,
+        bot: BotAPI,
         calendarsEvents: CalendarsEventsAPI,
         consumers: ConsumersAPI,
         groupsMembers: GroupsMembersAPI,
         groups: GroupsAPI,
         users: UsersAPI,
-        bot: BotAPI
-    },
+        sign: SignAPI
+    };
+
     translate: {
         ready: Promise<{ [key: string]: string }>,
         get: (key: string) => Promise<string>,
         json: () => { [key: string]: string }
-    },
+    };
+
     chatshierCookie: {
         CHSR_COOKIE: {
             USER_EMAIL: '_chsr_email',
@@ -34,7 +37,9 @@ interface Window {
             getCookie: (name: string) => string,
             deleteCookie: (name: string) => string
         }
-    }
+    };
+
+    isMobileBrowser: () => boolean;
 }
 
 interface AppAPI {
@@ -175,10 +180,16 @@ interface UsersAPI {
     update: (userId: string, userData: any) => Promise<any>;
 }
 
+interface SignAPI {
+    refresh: (userId: string) => Promise<any>;
+    signOut: () => Promise<any>;
+}
+
 interface BotAPI {
     getRichMenuList: (appId: string) => Promise<any>;
     getRichMenu: (appId: string, richmenuId: string) => Promise<any>;
     getRichMenuImage: (appId: string, richmenuId: string) => Promise<any>;
+    getProfile: (appId: string, platformUid: string) => Promise<any>;
     createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
     setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
     linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;

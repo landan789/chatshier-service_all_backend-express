@@ -72,8 +72,8 @@
                 for (let greetingId in greeting) {
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<th>' + greeting[greetingId].text +'</th>' +
-                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime)+'</td>' +
+                            '<th>' + greeting[greetingId].text + '</th>' +
+                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                             '<td>' +
                                 '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
                             '</td>' +
@@ -116,10 +116,10 @@
                 '<th><textarea class="greeting-textarea"></textarea></th>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-light btn-border" id="check-btn">' +
+                    '<button type="button" class="m-1 btn btn-light btn-border" id="check-btn">' +
                         '<i class="fa fa-check"></i>' +
                     '</button>' +
-                    '<button type="button" class="btn btn-danger" id="delete-btn">' +
+                    '<button type="button" class="m-1 btn btn-danger" id="delete-btn">' +
                         '<i class="fas fa-trash-alt"></i>' +
                     '</button>' +
                 '</td>' +

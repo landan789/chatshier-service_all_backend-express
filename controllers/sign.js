@@ -52,7 +52,7 @@ module.exports = (function() {
                 users[userId].password = '';
                 return Promise.resolve();
             }).then(() => {
-                userId = Object.keys(users).shift();
+                userId = Object.keys(users).shift() || '';
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then((token) => {
@@ -82,7 +82,6 @@ module.exports = (function() {
         }
 
         postSignout(req, res, next) {
-            let token;
             return Promise.resolve().then(() => {
                 let json = {
                     status: 1,
@@ -94,9 +93,9 @@ module.exports = (function() {
                     domain: CHATSHIER.COOKIE.DOMAIN,
                     maxAge: 0,
                     httpOnly: true,
-                    expires: new Date(Date.now() - CHATSHIER.JWT.EXPIRES)
+                    expires: Date.now()
                 };
-                res.cookie('jwt', token, options);
+                res.cookie('jwt', '', options);
                 res.status(200).json(json);
             }).catch((ERROR) => {
                 let json = {
@@ -107,6 +106,7 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         }
+
         postSignup(req, res, next) {
             let token;
             let users;
@@ -236,7 +236,6 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         }
-
     };
     return new SignController();
 })();

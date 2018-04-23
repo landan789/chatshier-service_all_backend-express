@@ -5,7 +5,7 @@
     var NO_HISTORY_MSG = '<p class="message-time"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
     var COLOR = {
         FIND: '#ff0000',
-        CLICKED: '#ccc',
+        CLICKED: '#2e555f',
         FINDBACK: '#ffff00'
     };
 
@@ -18,11 +18,12 @@
     var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
     var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
     var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
+    var CHATSHIER_LOGO = '/image/logo-no-transparent.png';
 
     var SOCKET_NAMESPACE = '/chatshier';
+    var BREAKPOINT_SM = 576;
 
     var api = window.restfulAPI;
-
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -41,10 +42,13 @@
     var users = {};
 
     // selectors
-    var $profilePanel = $('.profile-panel');
     var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
-    var $chatroomBody = $('#chatroomBody'); // 聊天室空間
-    var $profileWrapper = $('.profile-wrapper'); // 個人資料空間
+    var $ctrlPanelChatroomCollapse = $('#ctrlPanelChatroomCollapse');
+    var $chatroomBody = $('#chatContentPanel .chatroom-body'); // 聊天室空間
+    var $profilePanel = $('#profilePanel');
+    var $profileWrapper = $profilePanel.find('.profile-wrapper');
+    var $ticketPanel = $('#ticketPanel');
+    var $ticketWrapper = $ticketPanel.find('.ticket-wrapper');
     var $mediaBtns = $('.media-btn');
 
     var transJson = {};
@@ -169,7 +173,7 @@
 
         var dueDate = function(day) {
             var nowTime = Date.now();
-            var dueday = Date.parse(displayDate(day));
+            var dueday = new Date(displayDate(day));
             var hr = dueday - nowTime;
             hr /= 1000 * 60 * 60;
             return hr < 0 ? '<span class="overdue">過期</span>' : '<span class="non overdue">即期</span>';
@@ -180,7 +184,7 @@
 
         function TicketTableCtrl() {
             var $ticketEditTable = $ticketEditModal.find('#ticketEditTable');
-            var $dueDatetimePicker = $ticketEditTable.find('.ticket-due-time .datetime-picker');
+            var $dueDatetimePicker = $ticketEditTable.find('#dueDatetimePicker');
             var datetimePickerInitOpts = {
                 sideBySide: true,
                 locale: 'zh-tw',
@@ -199,45 +203,33 @@
             $dueDatetimePicker.datetimepicker(datetimePickerInitOpts);
         }
 
-        TicketTableCtrl.prototype.show = function() {
-            $('.nav li.active').removeClass('active');
-            $(this).parent().addClass('active');
-
-            var $profileWrappers = $('.profile-wrapper');
-            $profileWrappers.find('.profile-content').addClass('d-none');
-            $profileWrappers.find('.todo-tickets').removeClass('d-none');
-        };
-
         TicketTableCtrl.prototype.ticketSearch = function() {
             var $ticketTable = $(this).parentsUntil('.ticket').last();
             var $tableRows = $ticketTable.find('.ticket-body tr');
             var searchStr = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $tableRows.show().filter(function() {
+            $tableRows.removeClass('d-none').filter(function() {
                 var text1 = $(this).text().replace(/\s+/g, ' ').toLowerCase();
                 return !~text1.indexOf(searchStr);
-            }).hide();
+            }).addClass('d-none');
         };
 
-        TicketTableCtrl.prototype.loadTickets = function(appId, userId) {
-            var $cardGroup = $('.profile-group[app-id="' + appId + '"]');
-            var $ticketTable = $cardGroup.find('.ticket-table');
+        TicketTableCtrl.prototype.loadTickets = function(appId, userId, platformUid) {
+            var $ticketGroup = $('.ticket-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
+            var $ticketTable = $ticketGroup.find('.ticket-table');
             var $ticketBody = $ticketTable.find('.ticket-body');
             $ticketBody.empty();
 
             return api.appsTickets.findAll(appId, userId).then(function(resJson) {
-                var appData = resJson.data;
+                var appsTickets = resJson.data;
+                var chatroomId = $ticketGroup.attr('chatroom-id');
 
-                $cardGroup = $('.profile-group[app-id="' + appId + '"][style="display: block;"]');
-                var chatroomId = $cardGroup.attr('chatroom-id');
-                var clientPlatformUid = $cardGroup.attr('platform-uid');
-
-                if (appData && appData[appId] && appData[appId].tickets) {
-                    tickets = appData[appId].tickets;
+                if (appsTickets[appId]) {
+                    tickets = appsTickets[appId].tickets || {};
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
                         if (ticket.isDeleted ||
-                            clientPlatformUid !== ticket.platformUid ||
+                            platformUid !== ticket.platformUid ||
                             (ticket.assigned_id && ticket.assigned_id !== userId)) {
                             continue;
                         }
@@ -271,9 +263,9 @@
                     var $appContainerElem = $ticketAddModal.find('.select-app-container');
                     !$appContainerElem.hasClass('d-none') && $appContainerElem.addClass('d-none');
 
-                    var consumer = consumers[clientPlatformUid];
+                    var consumer = consumers[platformUid];
                     $consumerNameSelect.empty();
-                    $consumerNameSelect.append('<option value=' + clientPlatformUid + '>' + consumer.name + '</option>');
+                    $consumerNameSelect.append('<option value=' + platformUid + '>' + consumer.name + '</option>');
 
                     $assignedSelectElem.empty();
                     if (agents && Object.keys(agents).length > 0) {
@@ -317,8 +309,8 @@
             var $ticketBody = $(this).parentsUntil('table').last();
             var platformUid = $ticketBody.attr('platform-uid');
 
-            var $cardGroup = $ticketBody.parentsUntil('.profile-wrapper').last();
-            var appId = $cardGroup.attr('app-id');
+            var $ticketGroup = $ticketBody.parentsUntil('.ticket-wrapper').last();
+            var appId = $ticketGroup.attr('app-id');
 
             var ticketId = $(this).attr('ticket-id');
             var ticket = tickets[ticketId];
@@ -333,7 +325,7 @@
             $ticketEditTable.find('.ticket-status').html(generateSelect('status', ticket.status));
             $ticketEditTable.find('.ticket-description textarea').val(ticket.description);
             $ticketEditTable.find('.ticket-assigned').html(generateSelect('assigned', appsAgents[appId].agents, ticket.assigned_id));
-            $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date(new Date(ticket.dueTime));
+            $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date(new Date(ticket.dueTime));
             $ticketEditTable.find('.due-time-text').html('到期時間' + dueDate(ticket.dueTime));
             $ticketEditTable.find('.ticket-created-time').text(displayDate(ticket.createdTime));
             $ticketEditTable.find('.ticket-updated-time').text(displayDate(ticket.updatedTime));
@@ -374,7 +366,7 @@
 
                 return api.appsTickets.insert(appId, userId, newTicket).then(function() {
                     $.notify('待辦事項已新增，指派人: ' + assignedName, { type: 'success' });
-                    instance.loadTickets(appId, userId);
+                    instance.loadTickets(appId, userId, platformUid);
                 }).catch(function() {
                     $.notify('待辦事項新增失敗，請重試', { type: 'danger' });
                 }).then(function() {
@@ -388,7 +380,7 @@
             var priority = parseInt($ticketEditTable.find('.ticket-priority select option:selected').val());
             var status = parseInt($ticketEditTable.find('.ticket-status select option:selected').val());
             var description = $ticketEditTable.find('.ticket-description textarea').val();
-            var dueTime = $ticketEditTable.find('.ticket-due-time .datetime-picker').data('DateTimePicker').date().toDate().getTime();
+            var dueTime = $ticketEditTable.find('#dueDatetimePicker').data('DateTimePicker').date().toDate().getTime();
 
             var $assignedElem = $ticketEditTable.find('.ticket-assigned select option:selected');
             var assignedId = $assignedElem.val();
@@ -404,9 +396,11 @@
             };
 
             // 發送修改請求 api 至後端進行 ticket 修改
-            return api.appsTickets.update(appId, ticketId, userId, ticket).then(function() {
+            return api.appsTickets.update(appId, ticketId, userId, ticket).then(function(resJson) {
                 $.notify('待辦事項已更新，指派人: ' + assignedName, { type: 'success' });
-                instance.loadTickets(appId, userId);
+                var appsTickets = resJson.data;
+                var platformUid = appsTickets[appId].tickets[ticketId].platformUid;
+                instance.loadTickets(appId, userId, platformUid);
             }).catch(function() {
                 $.notify('待辦事項更新失敗，請重試', { type: 'danger' });
             });
@@ -414,9 +408,11 @@
 
         TicketTableCtrl.prototype.deleteTicket = function(appId, ticketId) {
             if (confirm('確認刪除表單？')) {
-                return api.appsTickets.remove(appId, ticketId, userId).then(function() {
+                return api.appsTickets.remove(appId, ticketId, userId).then(function(resJson) {
                     $.notify('待辦事項已刪除', { type: 'success' });
-                    instance.loadTickets(appId, userId);
+                    var appsTickets = resJson.data;
+                    var platformUid = appsTickets[appId].tickets[ticketId].platformUid;
+                    instance.loadTickets(appId, userId, platformUid);
                 }).catch(function() {
                     $.notify('待辦事項刪除失敗，請重試', { type: 'danger' });
                 });
@@ -437,11 +433,12 @@
     });
 
     // start the loading works
-    $profilePanel.hide();
+    $profilePanel.addClass('d-none');
 
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
-    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink); // 群組清單裡面選擇客戶
+    $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
+    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
@@ -450,22 +447,50 @@
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
         (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
     });
+    // 偵測 video 變成全螢幕時，把 control panel 及 toobar 進行顯示及隱藏切換
+    $chatroomBody.on('fullscreenchange webkitfullscreenchange mozfullscreenchange', '.message video', function(ev) {
+        var isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        var $toolbar = $('.chsr.toolbar');
+        var $ctrlPanel = $('.chsr.ctrl-panel');
+        var $chatWrapper = $('.chat-wrapper');
+        var $chatArea = $chatWrapper.find('.chat-area');
+
+        if (isFullscreen) {
+            $toolbar.css({
+                willChange: 'height',
+                transitionDuration: '150ms',
+                height: '0',
+                display: 'none'
+            });
+            $ctrlPanel.css({
+                willChange: 'width',
+                transitionDuration: '150ms',
+                width: '0',
+                display: 'none'
+            }).removeClass('d-sm-block');
+            $chatWrapper.css({
+                maxWidth: '100%'
+            });
+            $chatArea.css({
+                maxHeight: '100%'
+            });
+        } else {
+            $toolbar.removeAttr('style');
+            $ctrlPanel.removeAttr('style').addClass('d-sm-block');
+            $chatWrapper.removeAttr('style');
+            $chatArea.removeAttr('style');
+        }
+    });
     // =====end chat event=====
 
     // =====start profile event=====
-    $(document).on('click', '#show_profile', showProfile);
     $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
     $(document).on('click', '.profile-confirm button', userInfoConfirm);
     $(document).on('click', '.photo-choose', groupPhotoChoose);
     $(document).on('change', '.photo-ghost', groupPhotoUpload);
     // =====end profile event=====
 
-    // =====start ticket event=====
-    $(document).on('click', '#show_todo', ticketTableCtrl.show);
-    // =====end ticket event=====
-
     // =====start utility event=====
-
     $(document).on('click', '.multi-select-container input[type="checkbox"]', multiSelectChange);
     $.extend($.expr[':'], {
         'containsi': function(elem, i, match, array) {
@@ -576,11 +601,13 @@
             var messages = socketBody.messages;
             var senderUid = socketBody.senderUid;
             var recipientUid = socketBody.recipientUid;
+            var consumersFromSocket = socketBody.consumers;
+            consumersFromSocket && Object.assign(consumers, consumersFromSocket);
             var senderMsger;
 
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
-                return a.time - b.time;
+                return new Date(a.time).getTime() - new Date(b.time).getTime();
             });
 
             var chatrooms = appsChatrooms[appId].chatrooms;
@@ -606,12 +633,10 @@
                 var message = messages[i];
                 var senderMsgerId = message.messager_id;
                 senderMsger = messagers[senderMsgerId];
-
                 return Promise.resolve().then(function() {
                     if (SYSTEM === message.from) {
                         return users[userId];
                     }
-
                     !senderUid && senderMsger && (senderUid = senderMsger.platformUid);
                     var sender = CHATSHIER === message.from ? users[senderUid] : consumers[senderUid];
 
@@ -638,7 +663,6 @@
                     chatroom.messages = chatroom.messages || {};
                     chatroom.messages[message._id] = message;
                     senderUid !== userId && CHATSHIER === message.from && messagerSelf.unRead++;
-
                     if (chatroomList.indexOf(chatroomId) < 0) {
                         var uiRequireData = {
                             appId: appId,
@@ -651,9 +675,11 @@
                         };
                         createChatroom(uiRequireData);
                         createProfilePanel(uiRequireData);
+                        createTicketPanel(uiRequireData);
                         return;
                     }
-                    updateClientTab(senderMsger, message, appId, chatroomId); // update 客戶清單
+
+                    updateChatroomTab(senderMsger, message, appId, chatroomId); // update 客戶清單
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     // 更新 consumer chat information 資料
@@ -664,6 +690,7 @@
                         $profileCard.find('.panel-table').remove();
                         var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newProfileNode.shift()).insertAfter($profileCard.find('.photo-container'));
+                        $profileCard.find('.consumer-avatar').attr('src', consumer.photo);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -684,6 +711,29 @@
             var consumer = consumers[platformUid];
             appsChatrooms[appId].chatrooms[chatroomId].messagers[messager._id] = messager;
 
+            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
+            // 有的話檢查此聊天室是否已有被加入至已指派
+            // 沒有的話複製聊天室的 tablink 至已指派中
+            var app = apps[appId];
+            var assignedIds = messager.assigned_ids;
+            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            if (assignedIds.indexOf(userId) >= 0) {
+                $unassignedCollapse.find(tablinksSelectQuery).remove();
+                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
+                if (0 === $assignedChatroom.length) {
+                    $assignedCollapse.prepend($appChatroom.clone());
+                }
+            } else {
+                $assignedCollapse.find(tablinksSelectQuery).remove();
+                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
+                if (0 === $unassignedChatroom.length) {
+                    $unassignedCollapse.prepend($appChatroom.clone());
+                }
+            }
+
             // 更新 UI 資料
             var $profileCards = $('.profile-group[app-id="' + appId + '"][platform-uid="' + platformUid + '"]');
             $profileCards.find('.panel-table').remove();
@@ -699,6 +749,11 @@
 
     function generateAppsIcons(apps) {
         var $chatAppList = $('#chatAppList');
+        var $ctrlPanel = $('#ctrlPanel');
+        var $lineSideCollapse = $ctrlPanel.find('.line-collapse').empty();
+        var $fbSideCollapse = $ctrlPanel.find('.fb-collapse').empty();
+        var $wechatSideCollapse = $ctrlPanel.find('.wechat-collapse').empty();
+        var $chatshierSideCollapse = $ctrlPanel.find('.chatshier-collapse').empty();
 
         for (var appId in apps) {
             var app = apps[appId];
@@ -707,30 +762,96 @@
                 var html =
                     '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + app.name + '">' +
                         '<img class="software-icon" src="' + imgSrc + '">' +
-                        '<div class="unread-count"></div>' +
+                        '<div class="unread-count d-none"></div>' +
                     '</div>';
                 return html;
             };
 
-            var appItem = '';
+            var tabAppItem = '';
             switch (app.type) {
                 case LINE:
-                    appItem = buildHtml(app.type, LINE_LOGO);
+                    tabAppItem = buildHtml(app.type, LINE_LOGO);
+                    $lineSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-line"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 case FACEBOOK:
-                    appItem = buildHtml(app.type, FACEBOOK_LOGO);
+                    tabAppItem = buildHtml(app.type, FACEBOOK_LOGO);
+                    $fbSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-facebook-messenger"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 case WECHAT:
-                    appItem = buildHtml(app.type, WECHAT_LOGO);
+                    tabAppItem = buildHtml(app.type, WECHAT_LOGO);
+                    $wechatSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fab fa-weixin"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
+                    break;
+                case CHATSHIER:
+                    $chatshierSideCollapse.append(
+                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
+                            '<i class="fas fa-copyright"></i>' +
+                            '<span>' + app.name + '</span>' +
+                        '</li>'
+                    );
                     break;
                 default:
                     break;
             }
-            appItem && $chatAppList.prepend(appItem);
+            tabAppItem && $chatAppList.prepend(tabAppItem);
         }
     }
 
     function responseChatData(apps) {
+        // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
+        $ctrlPanelChatroomCollapse.html(
+            '<li class="text-light nested list-group-item has-collapse unread">' +
+                '<i class="fas fa-user-times"></i>' +
+                '<span>未讀</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested unread show"></div>' +
+            '<li class="text-light nested list-group-item has-collapse assigned">' +
+                '<i class="fas fa-check-circle"></i>' +
+                '<span>已指派</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested assigned show"></div>' +
+            '<li class="text-light nested list-group-item has-collapse unassigned">' +
+                '<i class="fas fa-times-circle"></i>' +
+                '<span>未指派</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested unassigned"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
+                '<img class="app-icon" src="' + LINE_LOGO + '" />' +
+                '<span>' + LINE + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested app-types show" app-type="' + LINE + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
+                '<img class="app-icon" src="' + FACEBOOK_LOGO + '" />' +
+                '<span>' + FACEBOOK + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested app-types show" app-type="' + FACEBOOK + '"></div>' +
+            '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
+                '<img class="app-icon" src="' + CHATSHIER_LOGO + '" />' +
+                '<span>' + CHATSHIER + '</span>' +
+                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+            '</li>' +
+            '<div class="collapse nested app-types show" app-type="' + CHATSHIER + '"></div>'
+        );
+
         for (var appId in apps) {
             var app = apps[appId];
             var chatrooms = appsChatrooms[appId].chatrooms;
@@ -763,6 +884,7 @@
 
                 createChatroom(uiRequireData);
                 createProfilePanel(uiRequireData);
+                createTicketPanel(uiRequireData);
             }
         }
 
@@ -785,17 +907,31 @@
     function generateLoadingJqElem() {
         return $($.parseHTML(
             '<div class="loading-container">' +
-                '<img src="image/loading.gif" alt="loading..." />' +
+                '<img src="/image/loading.gif" alt="loading..." />' +
             '</div>'
         ).shift());
     }
 
+    function generateChatroomItemHtml(opts) {
+        var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
+        var chatroomName = CHATSHIER === opts.appType ? '群組聊天室' : opts.clientName;
+        var html = (
+            '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
+                '<img class="app-icon consumer-photo" src="' + opts.clientPhoto + '" />' +
+                // '<i class="fas fa-comment-dots"></i>' +
+                '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + chatroomName + '</span>' +
+                '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
+            '</li>'
+        );
+        return html;
+    }
+
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
-        opts.clientPhoto = opts.clientPhoto || '../image/user_large.png';
+        opts.clientPhoto = opts.clientPhoto || '/image/user_large.png';
 
         var html =
-            '<button class="tablinks"' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" app-type="' + opts.appType + '">' +
+            '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
                 '<div class="img-holder">' +
                     '<img class="consumer-avatar" src="' + opts.clientPhoto + '" alt="無法顯示相片" />' +
                     '<img class="software-icon" src="' + opts.iconSrc + '">' +
@@ -804,7 +940,7 @@
                     '<b><span class="client-name">' + opts.clientName + '</span>' + opts.messageHtml + '</b>' +
                 '</div>' +
                 '<div class="app-name"><snap>' + opts.appName + '</snap></div>' +
-                '<div class="chsr unread-msg badge badge-pill"' + (!opts.unRead ? ' style="display: none"' : '') + '>' + unReadStr + '</div>' +
+                '<div class="chsr unread-msg badge badge-pill bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</div>' +
             '</button>';
         return html;
     }
@@ -823,17 +959,19 @@
             (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
-        return '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
-            '<div class="messager-name' + (shouldRightSide ? ' text-right' : '') + '">' +
-                '<span>' + (senderrName || '') + '</span>' +
-            '</div>' +
-            '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
-                '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
-                '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
-                '<strong></strong>' +
-            '</span>' +
-            '<br/>' +
-        '</div>';
+        return (
+            '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
+                '<div class="messager-name' + (shouldRightSide ? ' text-right' : 'leftside') + '">' +
+                    '<span>' + senderrName + '</span>' +
+                '</div>' +
+                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
+                    '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
+                    '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
+                    '<strong></strong>' +
+                '</span>' +
+                '<br/>' +
+            '</div>'
+        );
     }
 
     function createChatroom(requireData) {
@@ -843,6 +981,7 @@
         var person = requireData.person;
         var chatroom = requireData.chatroom;
         var chatroomId = requireData.chatroomId;
+        var platformUid = requireData.platformUid;
 
         if (!(requireData && requireData.chatroom)) {
             return;
@@ -856,12 +995,12 @@
         // 左邊的客戶清單排列
         var messagers = chatroom.messagers || {};
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-
         var clientUiOpts = {
             appId: appId,
             appName: appName,
             appType: appType,
             chatroomId: chatroomId,
+            platformUid: platformUid,
             clientName: person.name,
             clientPhoto: person.photo,
             iconSrc: '',
@@ -871,23 +1010,84 @@
 
         switch (appType) {
             case LINE:
+                clientUiOpts.icon = 'fab fa-line';
                 clientUiOpts.iconSrc = LINE_LOGO;
                 break;
             case FACEBOOK:
+                clientUiOpts.icon = 'fab fa-facebook-messenger';
                 clientUiOpts.iconSrc = FACEBOOK_LOGO;
                 break;
             case WECHAT:
+                clientUiOpts.icon = 'fab fa-weixin';
                 clientUiOpts.iconSrc = WECHAT_LOGO;
                 break;
             case CHATSHIER:
             default:
-                clientUiOpts.iconSrc = '/image/logo-no-transparent.png';
+                clientUiOpts.icon = 'fas fa-copyright';
+                clientUiOpts.iconSrc = CHATSHIER_LOGO;
                 break;
         }
         var tablinkHtml = generateClientHtml(clientUiOpts);
         $('#clients').prepend(tablinkHtml);
 
-        // 中間聊天室
+        var chatroomItemHtml = generateChatroomItemHtml(clientUiOpts);
+        var $appCollapse = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + appType + '"]');
+        var $chatroomCollapse = $appCollapse.find('.collapse[app-id="' + appId + '"]');
+        if (0 === $chatroomCollapse.length) {
+            $appCollapse.append(
+                '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
+                    '<i class="' + clientUiOpts.icon + '"></i>' +
+                    '<span>' + appName + '</span>' +
+                    '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '</li>' +
+                '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
+                    chatroomItemHtml +
+                '</div>'
+            );
+        } else {
+            $chatroomCollapse.append(chatroomItemHtml);
+        }
+
+        // 監聽 tablinks 底下的圖像是否載入失敗
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+        var $consumerPhoto = $appCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+        $consumerPhoto.on('error', function() {
+            var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
+            $consumerPhotos.attr('src', '/image/user_large.png');
+
+            // 當載入失敗時發 api 通知後端更新 consumer 的頭像
+            return api.bot.getProfile(appId, platformUid).then((resJson) => {
+                if (!(resJson && resJson.data)) {
+                    return;
+                }
+                var _consumers = resJson.data;
+                var consumer = _consumers[platformUid] || {};
+                // 如果取得 photo 失敗則使用預設頭像
+                consumer.photo = consumer.photo || '/image/user_large.png';
+                $consumerPhotos.attr('src', consumer.photo);
+                Object.assign(consumers, _consumers);
+            });
+        });
+
+        // 如果此聊天室有未讀訊息的話將此聊天室新增至未讀列表
+        if (messagerSelf.unRead) {
+            $ctrlPanelChatroomCollapse.find('.collapse.unread').append(chatroomItemHtml);
+        }
+
+        // 如果非 Chatshier 內部聊天室，代表為平台聊天室
+        // 檢查此聊天室的平台客戶是否有指派給自己
+        // 將已指派與未指派的聊天室分門別類
+        if (CHATSHIER !== appType) {
+            var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
+            var assignedIds = messagerConsumer.assigned_ids;
+            if (assignedIds.indexOf(userId) >= 0) {
+                $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
+            } else {
+                $ctrlPanelChatroomCollapse.find('.collapse.unassigned').append(chatroomItemHtml);
+            }
+        }
+
+        // 聊天室訊息內容處理
         var messageText = '';
         if (messageIds.length < 10) {
             messageText += NO_HISTORY_MSG;
@@ -909,15 +1109,30 @@
     function messageToPanelHtml(message) {
         switch (message.type) {
             case 'image':
-                return '<img src="' + message.src + '" style="width: 100%; max-width: 500px;" />';
+                return (
+                    '<img class="image-content" src="' + message.src + '" />'
+                );
             case 'audio':
-                return '<audio controls><source src="' + message.src + '" type="audio/mpeg"></audio>';
+                return (
+                    '<audio class="audio-content" controls>' +
+                        '<source src="' + message.src + '" type="audio/mpeg">' +
+                    '</audio>'
+                );
             case 'video':
-                return '<video controls><source src="' + message.src + '" type="video/mp4"></video>';
+                return (
+                    '<video class="video-content" controls playsinline webkit-playsinline>' +
+                        '<source src="' + message.src + '" type="video/mp4">' +
+                    '</video>'
+                );
             case 'sticker':
-                return '<img src="' + message.src + '" style="width: 100%; max-width: 200px;" />';
+                return (
+                    '<img class="sticker-content" src="' + message.src + '" style="width: 100%; max-width: 200px;" />'
+                );
             case 'location':
-                return '<i class="fa fa-location-arrow location-icon"></i><span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>';
+                return (
+                    '<i class="fa fa-location-arrow location-icon"></i>' +
+                    '<span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>'
+                );
             default:
                 return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
         }
@@ -945,25 +1160,35 @@
         var nowDateStr = '';
         var prevTime = 0;
 
-        for (var i in messages) {
-            var srcHtml = messageToPanelHtml(messages[i]);
+        // 根據發送的時間從早到晚排序
+        var messageIds = Object.keys(messages);
+        messageIds.sort(function(idA, idB) {
+            return new Date(messages[idA].time).getTime() - new Date(messages[idB].time).getTime();
+        });
+
+        for (var i in messageIds) {
+            var message = messages[messageIds[i]];
+            var srcHtml = messageToPanelHtml(message);
+            var messageDate = new Date(message.time);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
-            var d = new Date(messages[i].time).toDateString(); // get msg's date
+            var d = messageDate.toDateString(); // get msg's date
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
                 returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
             }
-            if (messages[i].time - prevTime > 15 * 60 * 1000) {
-                // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(messages[i].time) + '</strong></p>'; // plus date info
-            }
-            prevTime = messages[i].time;
 
-            var messagerId = messages[i].messager_id;
+            var messageTime = messageDate.getTime();
+            if (messageTime - prevTime > 15 * 60 * 1000) {
+                // if out of 15min section, new a section
+                returnStr += '<p class="message-time"><strong>' + toDateStr(messageTime) + '</strong></p>'; // plus date info
+            }
+            prevTime = messageTime;
+
+            var messagerId = message.messager_id;
             var messager = messagers[messagerId];
-            returnStr += generateMessageHtml(srcHtml, messages[i], messager, appType);
+            returnStr += generateMessageHtml(srcHtml, message, messager, appType);
         }
         return returnStr;
     }
@@ -974,9 +1199,9 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
         var person = requireData.person;
-            person.photo = person.photo || '../image/user_large.png';
+        person.photo = person.photo || '/image/user_large.png';
 
-        var profilePanelHtml =
+        var profilePanelHtml = (
             '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
                 '<div class="person-profile profile-content table-responsive">' +
                     '<div class="photo-container">' +
@@ -997,7 +1222,19 @@
                         return html;
                     })() +
                 '</div>' +
-                '<div class="person-profile todo-tickets d-none">' +
+            '</div>'
+        );
+        $profileWrapper.append(profilePanelHtml);
+    }
+
+    function createTicketPanel(requireData) {
+        var appId = requireData.appId;
+        var chatroomId = requireData.chatroomId;
+        var platformUid = requireData.platformUid;
+
+        var ticketPanelHtml = (
+            '<div class="ticket-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
+                '<div class="person-ticket todo-tickets">' +
                     '<div class="chsr ticket">' +
                         '<table class="ticket-table">' +
                             '<thead>' +
@@ -1019,9 +1256,9 @@
                         '</table>' +
                     '</div>' +
                 '</div>' +
-            '</div>';
-
-        $profileWrapper.append(profilePanelHtml);
+            '</div>'
+        );
+        $ticketWrapper.append(ticketPanelHtml);
     }
 
     function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
@@ -1070,17 +1307,19 @@
 
             switch (field.setsType) {
                 case setsTypeEnums.SELECT:
-                    return '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<select class="form-control td-inner" value="' + fieldValue + '">' +
-                            (function(sets) {
-                                var opts = '<option value="">未選擇</option>';
-                                for (var i in sets) {
-                                    opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                }
-                                return opts;
-                            })(field.sets) +
-                        '</select>' +
-                    '</td>';
+                    return (
+                        '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<select class="form-control td-inner" value="' + fieldValue + '">' +
+                                (function(sets) {
+                                    var opts = '<option value="">未選擇</option>';
+                                    for (var i in sets) {
+                                        opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
+                                    }
+                                    return opts;
+                                })(field.sets) +
+                            '</select>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.MULTI_SELECT:
                     var selectValues = fieldValue instanceof Array ? fieldValue : [];
                     var multiSelectText = selectValues.reduce(function(output, value, i) {
@@ -1092,53 +1331,63 @@
                         return output;
                     }, []).join(',');
 
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
-                                '<span class="caret"></span>' +
-                            '</button>' +
-                            '<div class="multi-select-container dropdown-menu">' +
-                                (function(sets) {
-                                    var checkboxes = '';
-                                    for (var i in sets) {
-                                        if (!sets[i]) {
-                                            continue;
-                                        }
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
+                                '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                    '<span class="multi-select-values">' + multiSelectText + '</span>' +
+                                    '<span class="caret"></span>' +
+                                '</button>' +
+                                '<div class="multi-select-container dropdown-menu">' +
+                                    (function(sets) {
+                                        var checkboxes = '';
+                                        for (var i in sets) {
+                                            if (!sets[i]) {
+                                                continue;
+                                            }
 
-                                        if ('assigned' === field.alias) {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                '</span>';
-                                        } else {
-                                            checkboxes +=
-                                                '<span class="dropdown-item">' +
-                                                    '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                '</span>';
+                                            if ('assigned' === field.alias) {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
+                                                    '</span>';
+                                            } else {
+                                                checkboxes +=
+                                                    '<span class="dropdown-item">' +
+                                                        '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
+                                                    '</span>';
+                                            }
                                         }
-                                    }
-                                    return checkboxes;
-                                })(field.sets) +
+                                        return checkboxes;
+                                    })(field.sets) +
+                                '</div>' +
                             '</div>' +
-                        '</div>' +
-                    '</td>';
+                        '</td>'
+                    );
                 case setsTypeEnums.CHECKBOX:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.DATE:
                     fieldValue = fieldValue || 0;
                     var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
+                        '</td>'
+                    );
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.NUMBER:
                 default:
-                    return '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                        '<input class="form-control td-inner" type="text" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                    '</td>';
+                    var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
+                    inputType = 'email' === field.alias ? 'email' : inputType;
+                    return (
+                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
+                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + ' autocapitalize="none" />' +
+                        '</td>'
+                    );
             }
         };
 
@@ -1191,7 +1440,7 @@
 
                                 html +=
                                     '<div class="person-chip">' +
-                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
+                                        '<img src="' + (memberUser.photo || '/image/avatar-default.png') + '" class="person-avatar" alt="">' +
                                         '<span>' + memberUser.name + '</span>' +
                                     '</div>';
                             }
@@ -1214,11 +1463,11 @@
 
         switch (selectRel) {
             case 'all':
-                $allTablinks.show();
+                $allTablinks.removeClass('d-none');
                 break;
             case 'group':
-                $allTablinks.hide();
-                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').show();
+                $allTablinks.addClass('d-none');
+                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').removeClass('d-none');
                 break;
             case 'unread':
                 $tablinksArea.find('.unread-msg').each(function() {
@@ -1226,15 +1475,15 @@
                     var $tablinkWrapper = $unReadElem.parentsUntil('.list-group').last();
 
                     if (!parseInt($unReadElem.text(), 10)) {
-                        $tablinkWrapper.hide();
+                        $tablinkWrapper.addClass('d-none');
                     } else {
-                        $tablinkWrapper.show();
+                        $tablinkWrapper.removeClass('d-none');
                     }
                 });
                 break;
             case 'assigned':
             case 'unassigned':
-                $allTablinks.hide();
+                $allTablinks.addClass('d-none');
                 var isFindAssigned = ('assigned' === selectRel);
                 $('[alias="assigned"] .td-inner .multi-select-values').each(function() {
                     var assignedText = $(this).text();
@@ -1244,32 +1493,42 @@
                         (!isFindAssigned && !assignedUsers.length)) {
                         var $parentCard = $(this).parents('.profile-group');
                         var appId = $parentCard.attr('app-id');
-                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').show();
+                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').removeClass('d-none');
                     }
                 });
                 break;
             default:
-                $allTablinks.hide();
-                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').show();
+                $allTablinks.addClass('d-none');
+                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').removeClass('d-none');
                 break;
         }
     }
 
     function clickUserTablink() {
-        var $userTablink = $(this);
+        var $eventTablink = $(this);
         var $messageInputContainer = $('.message-input-container');
 
-        var appId = $userTablink.attr('app-id');
+        var appId = $eventTablink.attr('app-id');
         var appName = apps[appId].name;
-        var chatroomId = $userTablink.attr('chatroom-id');
-        var appType = $userTablink.attr('app-type');
+        var appType = $eventTablink.attr('app-type');
+        var chatroomId = $eventTablink.attr('chatroom-id');
+        var platformUid = $eventTablink.attr('platform-uid');
 
-        $('.tablinks.selected').removeClass('selected').css('background-color', '');
-        $userTablink.addClass('selected').css('background-color', COLOR.CLICKED);
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+        var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
+        var $selectedTablinks = $('.tablinks.selected');
+        $selectedTablinks.removeClass('selected').css('background-color', '');
+        $chatroomTablinks.addClass('selected').css('background-color', COLOR.CLICKED);
 
-        ticketTableCtrl.loadTickets(appId, userId);
+        var $navTitle = $('#navTitle');
+        var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
+        if (CHATSHIER !== appType) {
+            chatroomTitle += ' (' + consumers[platformUid].name + ')';
+        }
+        $navTitle.text(chatroomTitle);
 
-        var $unReadElem = $userTablink.find('.unread-msg');
+        var $targetTablink = $ctrlPanelChatroomCollapse.find('.collapse[app-type="' + appType + '"] ' + tablinksSelectQuery);
+        var $unReadElem = $targetTablink.find('.unread-msg');
         if (parseInt($unReadElem.text(), 10)) {
             chatshierSocket.emit(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, {
                 appId: appId,
@@ -1280,66 +1539,80 @@
             messagerSelf.unRead = 0;
 
             // 如果有未讀的話，將未讀數設為0之後，把未讀的區塊隱藏
-            $userTablink.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
-            $unReadElem.text(messagerSelf.unRead).hide();
+            $chatroomTablinks.find('.client-message').css('font-weight', 'normal'); // 取消未讀粗體
+            $chatroomTablinks.find('.unread-msg').text(messagerSelf.unRead).addClass('d-none');
+            $ctrlPanelChatroomCollapse.find('.collapse.unread .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]').remove();
         }
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
-        !$chatroomContainer.hasClass('open') && $chatroomContainer.addClass('open');
-        $chatroomContainer.find('.consumer-profile .display-name').text(appName);
+        $chatroomContainer.addClass('open');
+        $chatroomContainer.find('.chat-content-panel').removeClass('d-none');
+        // $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
         var $messageWrapper = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
         var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-        $messageInputContainer.show();
-        $messageWrapper.addClass('shown').show().siblings().removeClass('shown').hide();
-        $profileGroup.show().siblings().hide();
+        var $ticketGroup = $('.ticket-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        $messageInputContainer.removeClass('d-none');
+        $messageWrapper.addClass('shown').removeClass('d-none');
+        $messageWrapper.siblings().removeClass('shown').addClass('d-none');
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        var $profileTab = $('#show_profile');
-        var $ticketTodoPanel = $('#show_todo');
-        $profilePanel.show();
-        if (CHATSHIER !== appType) {
-            $profileTab.text('用戶資料');
-            $ticketTodoPanel.show();
+        ticketTableCtrl.loadTickets(appId, userId, platformUid);
+
+        var $ticketToggle = $('.toolbar #ticketToggle');
+        var $profileToggle = $('.toolbar #profileToggle');
+        $profileToggle.removeClass('d-none');
+
+        if (window.innerWidth <= BREAKPOINT_SM) {
+            $profileToggle.removeClass('active');
+            $profilePanel.addClass('d-none');
+        }
+
+        if ($profileToggle.hasClass('active')) {
+            $profilePanel.removeClass('d-none');
+            $ticketPanel.addClass('d-none');
+
+            $profileGroup.removeClass('d-none');
+            $profileGroup.siblings().addClass('d-none');
+        }
+
+        if ($ticketToggle.hasClass('active')) {
+            $profilePanel.addClass('d-none');
+            $ticketPanel.removeClass('d-none');
+
+            $ticketGroup.removeClass('d-none');
+            $ticketGroup.siblings().addClass('d-none');
+        }
+
+        if (CHATSHIER === appType) {
+            $ticketToggle.addClass('d-none');
+            $ticketPanel.addClass('d-none');
         } else {
-            $profileTab.text('群組資料').trigger('click');
-            $ticketTodoPanel.hide();
+            $ticketToggle.removeClass('d-none');
         }
-    }
 
-    function detectScrollTop(ele) {
-        if (!ele.scrollTop()) {
-            var tail = parseInt(ele.attr('data-position'), 10);
-            var head = parseInt(ele.attr('data-position'), 10) - 20;
-            if (head < 0) {
-                head = 0;
-            }
-
-            var request = {
-                appId: ele.parent().attr('app-id'),
-                chatroomId: ele.parent().attr('chatroom-id'),
-                head: head,
-                tail: tail
-            };
-
-            if (!head) {
-                ele.off('scroll');
-            }
-
-            ele.attr('data-position', head);
-            // chatshierSocket.emit('upload history msg from front', request, responseHistoryMsg);
-        }
+        $('#ctrlPanelBackdrop').addClass('d-none');
+        var $ctrlPanel = $('#ctrlPanel');
+        $ctrlPanel.addClass(['animating', 'slide-out']);
+        $ctrlPanel.on('animationend oAnimationEnd webkitAnimationEnd', function() {
+            $ctrlPanel.off('animationend oAnimationEnd webkitAnimationEnd');
+            $ctrlPanel.removeClass(['animating', 'slide-out', 'animated']).addClass('d-none');
+        });
     }
 
     function readClientMsg() {
-        var $tablinksSelected = $('.tablinks.selected');
-        var $unReadElem = $tablinksSelected.find('.unread-msg');
+        var $selectedTablinks = $('.tablinks.selected').first();
+        var appId = $selectedTablinks.attr('app-id');
+        var chatroomId = $selectedTablinks.attr('chatroom-id');
+        var platformUid = $selectedTablinks.attr('platform-uid');
+
+        var app = apps[appId];
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+        var $targetTablink = $ctrlPanelChatroomCollapse.find('.collapse[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+        var $unReadElem = $targetTablink.find('.unread-msg');
 
         if (parseInt($unReadElem.text(), 10)) {
-            var appId = $tablinksSelected.attr('app-id');
-            var chatroomId = $tablinksSelected.attr('chatroom-id');
-
             chatshierSocket.emit(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, {
                 appId: appId,
                 chatroomId: chatroomId,
@@ -1347,7 +1620,10 @@
             });
             var messagerSelf = findMessagerSelf(appId, chatroomId);
             messagerSelf.unRead = 0;
-            $unReadElem.text(messagerSelf.unRead).hide();
+
+            var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
+            $chatroomTablinks.find('.unread-msg').text(messagerSelf.unRead).addClass('d-none');
+            $ctrlPanelChatroomCollapse.find('.collapse.unread ' + tablinksSelectQuery).remove();
         }
     }
 
@@ -1355,7 +1631,7 @@
         ev.preventDefault();
         var $evElem = $(ev.target);
         var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
-        var $messageView = $contentPanel.siblings('#chatroomBody').find('.chat-content.shown');
+        var $messageView = $contentPanel.siblings('.chatroom-body').find('.chat-content.shown');
 
         var appId = $messageView.attr('app-id');
         var appType = apps[appId].type;
@@ -1410,8 +1686,8 @@
             return;
         }
 
-        var $contentPanel = $(_this).parents('.chat-content-panel');
-        var $messageView = $contentPanel.find('#chatroomBody .chat-content.shown');
+        var $chatContentPanel = $(_this).parents('.chat-content-panel');
+        var $messageView = $chatContentPanel.find('.chatroom-body .chat-content.shown');
         var appId = $messageView.attr('app-id');
         var chatroomId = $messageView.attr('chatroom-id');
 
@@ -1419,14 +1695,15 @@
         var file = _this.files[0];
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
-        if (file.type.indexOf('image') >= 0 && file.size > window.chatshierConfig.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.imageFileMaxSize / (1024 * 1000)) + ' MB');
+        var config = window.chatshier.config;
+        if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
             return;
-        } else if (file.type.indexOf('video') >= 0 && file.size > window.chatshierConfig.videoFileMaxSize) {
-            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.videoFileMaxSize / (1024 * 1000)) + ' MB');
+        } else if (file.type.indexOf('video') >= 0 && file.size > config.videoFileMaxSize) {
+            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / (1024 * 1000)) + ' MB');
             return;
-        } else if (file.type.indexOf('audio') >= 0 && file.size > window.chatshierConfig.audioFileMaxSize) {
-            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(window.chatshierConfig.audioFileMaxSize / (1024 * 1000)) + ' MB');
+        } else if (file.type.indexOf('audio') >= 0 && file.size > config.audioFileMaxSize) {
+            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / (1024 * 1000)) + ' MB');
             return;
         }
 
@@ -1531,12 +1808,17 @@
         var appType = apps[appId].type;
         var srcHtml = messageToPanelHtml(_message);
         var $messagePanel = $('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+        if (messager && messager.platformUid && 'CHATSHIER' !== messager.type) {
+            var platformUid = messager.platformUid;
+            var consumer = consumers[platformUid];
+            $messagePanel.find('.messager-nameleftside span').text(consumer.name);
+        }
 
         if (chatroomList.indexOf(chatroomId) >= 0) {
-            var lastMessageTime = parseInt($messagePanel.find('.message:last').attr('message-time'), 10);
+            var lastMessageTime = new Date($messagePanel.find('.message:last').attr('message-time')).getTime();
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
-            if (_message.time - lastMessageTime >= 900000) {
+            if (new Date(_message.time).getTime() - lastMessageTime >= 900000) {
                 $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
@@ -1563,9 +1845,11 @@
         var senderName = SYSTEM === message.from ? 'Chatshier' : sender.name;
 
         // 收到 socket 訊息後，左側用戶列表更新發送者名稱及未讀數
-        var $selectedTablinks = $('.tablinks-area').find(".tablinks[app-id='" + appId + "'][chatroom-id='" + chatroomId + "']");
-        $selectedTablinks.find('.client-name').text(senderName);
-
+        var $selectedTablinks = $('.tablinks-area .tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        if (messager) {
+            $selectedTablinks.find('.client-name').text(messager.name);
+            $selectedTablinks.find('.consumer-avatar').attr('src', messager.photo);
+        }
         /** @type {ChatshierMessage} */
         var _message = message;
         var $msgElem = $selectedTablinks.find('.client-message');
@@ -1576,45 +1860,59 @@
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var currentUnread = messagerSelf.unRead;
         var $unreadMsgElem = $selectedTablinks.find('.unread-msg');
-        if (currentUnread > 99) {
-            $unreadMsgElem.text('99+').css('display', '');
+
+        if (!currentUnread) {
+            $unreadMsgElem.text(0).addClass('d-none');
         } else {
-            $unreadMsgElem.text(currentUnread).css('display', !currentUnread ? 'none' : ''); // 未讀訊息數顯示出來
+            $unreadMsgElem.text(currentUnread > 99 ? '99+' : currentUnread).removeClass('d-none');
         }
 
         $selectedTablinks.remove();
-        $('.tablinks-area>#clients').prepend($selectedTablinks);
+        $('.tablinks-area #clients').prepend($selectedTablinks);
     }
+
+    function updateChatroomTab(messager, message, appId, chatroomId) {
+        var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
+        var $chatroomTablinks = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery);
+
+        if (messager && messager.platformUid) {
+            var platformUid = messager.platformUid;
+            var consumer = consumers[platformUid];
+            if (consumer && consumer.photo) {
+                $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
+            }
+
+            if (consumer && consumer.name) {
+                $chatroomTablinks.find('.app-name').text(consumer.name);
+            }
+        }
+
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var currentUnread = messagerSelf.unRead;
+        var $unreadMsgElem = $chatroomTablinks.find('.unread-msg');
+
+        if (!currentUnread) {
+            $unreadMsgElem.text(0).addClass('d-none');
+        } else {
+            $unreadMsgElem.text(currentUnread > 99 ? '99+' : currentUnread).removeClass('d-none');
+        }
+
+        var $unreadCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unread');
+        var $unreadChatroomTab = $unreadCollapse.find('.list-group-item[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+        if (currentUnread && 0 === $unreadChatroomTab.length) {
+            $unreadCollapse.prepend($chatroomTablinks.first().clone());
+        }
+    }
+
     // =====end chat function=====
 
     // =====start profile function=====
-    function showProfile() {
-        $('.nav li.active').removeClass('active');
-        $(this).parent().addClass('active');
-
-        var $profileWrappers = $('.profile-wrapper');
-        $profileWrappers.find('.profile-content').removeClass('d-none');
-        $profileWrappers.find('.todo-tickets').addClass('d-none');
-    }
-
-    // function userInfoClick() {
-    //     var val = $(this).text(); //抓目前的DATA
-    //     var td = $(this).parents('.user-info-td');
-    //     td.html('<input class="td-inner" type="text" value="' + val + '"></input>'); //把element改成input，放目前的DATA進去
-    //     td.find('input').select(); //自動FOCUS該INPUT
-    // }
-
     function userInfoKeyPress(e) {
         var code = (e.keyCode ? e.keyCode : e.which);
         if (13 === code) {
             $(this).blur(); // 如果按了ENTER就離開此INPUT，觸發on blur事件
         }
     }
-
-    // function userInfoBlur() {
-    //     var val = $(this).val() || '尚未輸入'; // 抓INPUT裡的資料
-    //     $(this).parent().html('<p class="td-inner">' + val + '</p>'); // 將INPUT元素刪掉，把資料直接放上去
-    // }
 
     function userInfoConfirm(ev) {
         if (!confirm('確定要更新對象用戶的個人資料嗎？')) {
@@ -1736,6 +2034,30 @@
             // 將成功更新的資料覆蓋前端本地端的全域 app 資料
             let messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
             Object.assign(messager, messagerUiData);
+
+            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
+            // 有的話檢查此聊天室是否已有被加入至已指派
+            // 沒有的話複製聊天室的 tablink 至已指派中
+            var app = apps[appId];
+            var assignedIds = messager.assigned_ids;
+            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
+            if (assignedIds.indexOf(userId) >= 0) {
+                $unassignedCollapse.find(tablinksSelectQuery).remove();
+                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
+                if (0 === $assignedChatroom.length) {
+                    $assignedCollapse.prepend($appChatroom.clone());
+                }
+            } else {
+                $assignedCollapse.find(tablinksSelectQuery).remove();
+                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
+                if (0 === $unassignedChatroom.length) {
+                    $unassignedCollapse.prepend($appChatroom.clone());
+                }
+            }
+
             $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function() {
             $.notify('用戶資料更新失敗', { type: 'danger' });
@@ -1770,7 +2092,7 @@
     var $tablinks = [];
     var $panels = [];
     var $clientNameOrTexts = [];
-    var $searchWapper = $('#person .message-search');
+    var $searchWapper = $('#ctrlPanel .message-search');
     var $searchInput = $searchWapper.find('.search-box');
 
     $searchInput.on('keyup', function(ev) {
@@ -1780,10 +2102,12 @@
             displayAll();
 
             $('.tablinks').each(function() {
-                var appId = $(this).attr('app-id');
-                var chatroomId = $(this).attr('chatroom-id');
-                var panel = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-                panel.find('.message .content').removeClass('found');
+                var $tablink = $(this);
+                var appId = $tablink.attr('app-id');
+                var chatroomId = $tablink.attr('chatroom-id');
+                var $chatContent = $('.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+                $chatContent.find('.message .content').removeClass('found');
+                $tablink.removeClass('d-none');
             });
         }
 
@@ -1862,7 +2186,7 @@
                 $(this).css('color', color);
             }
 
-            $(this).css('display', display ? '' : 'none');
+            display ? $(this).removeClass('d-none') : $(this).addClass('d-none');
         });
     });
 
@@ -1919,8 +2243,8 @@
     function displayAll() {
         $('.tablinks-area .tablinks').each(function() {
             var $tablinkElem = $(this);
+            $tablinkElem.removeClass('d-none');
             $tablinkElem.css({
-                display: '',
                 'background-color': ''
             });
 
@@ -1947,22 +2271,6 @@
                 'background-color': ''
             });
         });
-    }
-
-    function sortUsers(ref, upOrDown, operate) {
-        var arr = $('#clients .tablinks');
-        for (var i = 0; i < arr.length - 1; i++) {
-            for (var j = i + 1; j < arr.length; j++) {
-                var a = arr.eq(i).attr('data-' + ref) - '0';
-                var b = arr.eq(j).attr('data-' + ref) - '0';
-                if (upOrDown === operate(a, b)) {
-                    var tmp = arr[i];
-                    arr[i] = arr[j];
-                    arr[j] = tmp;
-                }
-            }
-        }
-        $('#clients').append(arr);
     }
     // =====end search input change func=====
 

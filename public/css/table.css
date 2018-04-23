@@ -60,7 +60,7 @@ label *:not(strong) {
 .search-add {
     text-align: right; }
     .search-add .search-bar {
-        min-width: 25%;
+        width: 30%;
     }
 
 .operating-btn {
@@ -80,42 +80,26 @@ label *:not(strong) {
 
 .chsr.table {
     table-layout: fixed;
-    word-wrap: break-word;
-}
-
-.pagebtn {
-    text-align: right;
-}
-
-.padding-lr {
-    padding: 0px 50px;
-}
+    word-wrap: break-word; }
+    .chsr.table td,
+    .chsr.table th {
+        vertical-align: middle; }
 
 tr:nth-child(even) {
     background: #F4F4F4;
 }
 
-.address {
-    padding-bottom: 20px;
-}
-
-.h3-padding {
-    padding-top: 15px;
-}
-
-.chsr.pagination {
-    margin-top: 0px;
-}
-
 .greeting-textarea {
     resize: none;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     width: 95%;
 }
 
 .compose-textarea {
     resize: none;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
 }
 
@@ -137,6 +121,7 @@ tr:nth-child(even) {
     float: left;
 }
 
-.float-left{
-    float: left;
+.chsr .text-remark {
+    font-size: .85em;
+    color: #909090;
 }

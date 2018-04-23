@@ -84,25 +84,25 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="line-name"/>' +
+                            '<input class="form-control" type="text" value="" id="line-name"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">ID: </label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-token"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-token"/>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -110,37 +110,37 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">Facebook粉絲頁名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-name">' +
+                            '<input class="form-control" type="text" value="" id="facebook-name">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Page ID: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-page-id">' +
+                            '<input class="form-control" type="text" value="" id="facebook-page-id">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">App ID: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-app-id">' +
+                            '<input class="form-control" type="text" value="" id="facebook-app-id">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">App Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-app-secret">' +
+                            '<input class="form-control" type="text" value="" id="facebook-app-secret">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Validation Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-valid-token">' +
+                            '<input class="form-control" type="text" value="" id="facebook-valid-token">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Page Token: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="facebook-page-token">' +
+                            '<input class="form-control" type="text" value="" id="facebook-page-token">' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -148,19 +148,19 @@
                     '<div class="form-group">' +
                         '<label class="col-form-label">名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="wechat-name"/>' +
+                            '<input class="form-control" type="text" value="" id="wechat-name"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">ID: </label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
                         '<label class="col-form-label">Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="tel" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -272,7 +272,7 @@
                 '<div class="form-group">' +
                     '<label class="col-form-label">公司名稱: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="tel" value="' + company + '" id="company"/>' +
+                        '<input class="form-control" type="text" value="' + company + '" id="company"/>' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
@@ -284,7 +284,7 @@
                 '<div class="form-group">' +
                     '<label class="col-form-label">地址: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="tel" value="' + location + '" id="location"/>' +
+                        '<input class="form-control" type="text" value="' + location + '" id="location"/>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -292,9 +292,9 @@
     });
 
     findAllGroups().then(() => {
-        return findAllApps(); 
+        return findAllApps();
     });
-   // 列出所有設定的APPs
+    // 列出所有設定的APPs
     findUserProfile();
 
     // ===============
@@ -310,7 +310,7 @@
             function FieldPanelCtrl() {
                 this.saveListeners = [];
                 this.deleteListeners = [];
-                this.$fieldPanel = $('.chsr-fields.card-group .card');
+                this.$appsFieldsWapper = $('#appsFieldsWapper');
             }
 
             /**
@@ -318,7 +318,7 @@
              */
             FieldPanelCtrl.prototype.toggleItem = function(appId) {
                 var fieldCollapseId = appId + '_collapse';
-                this.$fieldPanel.find('#' + fieldCollapseId).collapse();
+                this.$appsFieldsWapper.find('#' + fieldCollapseId).collapse();
             };
 
             /**
@@ -328,38 +328,55 @@
             FieldPanelCtrl.prototype.addAppItem = function(appId, app) {
                 var _this = this;
                 var fieldCollapseId = appId + '_collapse';
-                _this.$fieldPanel.append(
-                    '<div class="card-header" role="tab" id="' + appId + '">' +
-                        '<div class="app-name collapsed" role="button" data-toggle="collapse" data-parent="#apps_fields_wapper" href="#' + fieldCollapseId + '" aria-expanded="true" aria-controls="' + fieldCollapseId + '">' +
-                            (app.name || '') +
-                        '</div>' +
+
+                // _this.$appsFieldsWapper.append(
+                //     '<div class="card-header" role="tab" id="' + appId + '">' +
+                //         '<div class="app-name collapsed" role="button" data-toggle="collapse" data-parent="#appsFieldsWapper" href="#' + fieldCollapseId + '" aria-expanded="true" aria-controls="' + fieldCollapseId + '">' +
+                //             (app.name || '') +
+                //         '</div>' +
+                //     '</div>' +
+                //     '<div id="' + fieldCollapseId + '" class="card-collapse collapse" aria-labelledby="' + appId + '">' +
+                //         '<div class="card-body">' +
+                //             '<button type="button" class="btn btn-light btn-border add-field mb-3">' +
+                //                 '<i class="fas fa-plus fa-fw"></i>新增' +
+                //             '</button>' +
+                //             '<table class="chsr table table-striped">' +
+                //                 '<thead>' +
+                //                     '<tr>' +
+                //                         '<th>欄位名稱</th>' +
+                //                         '<th>欄位類別</th>' +
+                //                         '<th>欄位設定</th>' +
+                //                         '<th>刪除</th>' +
+                //                         '<th></th>' +
+                //                     '</tr>' +
+                //                 '</thead>' +
+                //                 '<tbody></tbody>' +
+                //             '</table>' +
+                //             '<div class="text-center">' +
+                //                 '<button type="button" class="btn btn-light btn-border all-confirm font-weight-bold">儲存設定</button>' +
+                //             '</div>' +
+                //         '</div>' +
+                //     '</div>'
+                // );
+
+                _this.$appsFieldsWapper.append(
+                    '<div class="app-name collapsed" role="button" data-toggle="collapse" data-parent="#appsFieldsWapper" href="#' + fieldCollapseId + '" aria-expanded="true" aria-controls="' + fieldCollapseId + '">' +
+                        (app.name || '') +
                     '</div>' +
                     '<div id="' + fieldCollapseId + '" class="card-collapse collapse" aria-labelledby="' + appId + '">' +
-                        '<div class="card-body">' +
-                            '<button type="button" class="btn btn-light btn-border add-field mb-3">' +
-                                '<i class="fas fa-plus fa-fw"></i>新增' +
-                            '</button>' +
-                            '<table class="table table-striped">' +
-                                '<thead>' +
-                                    '<tr>' +
-                                        '<th>欄位名稱</th>' +
-                                        '<th>欄位類別</th>' +
-                                        '<th>欄位設定</th>' +
-                                        '<th>刪除</th>' +
-                                        '<th></th>' +
-                                    '</tr>' +
-                                '</thead>' +
-                                '<tbody></tbody>' +
-                            '</table>' +
-                            '<div class="text-center">' +
-                                '<button type="button" class="btn btn-light btn-border all-confirm font-weight-bold">儲存設定</button>' +
-                            '</div>' +
+                        '<button type="button" class="btn btn-light btn-border add-field m-3">' +
+                            '<i class="fas fa-plus fa-fw"></i>' +
+                            '<span>新增</span>' +
+                        '</button>' +
+                        '<div class="card-body pt-0 d-flex flex-wrap"></div>' +
+                        '<div class="text-center my-3">' +
+                            '<button type="button" class="btn btn-light btn-border all-confirm font-weight-bold">儲存設定</button>' +
                         '</div>' +
                     '</div>'
                 );
 
-                var $fieldCollapse = _this.$fieldPanel.find('#' + fieldCollapseId);
-                var $fieldTableBody = $fieldCollapse.find('.card-body table tbody');
+                var $fieldCollapse = _this.$appsFieldsWapper.find('#' + fieldCollapseId);
+                var $fieldTableBody = $fieldCollapse.find('.card-body');
                 $fieldTableBody.sortable(); // 使 jquery ui 的 sortable 的功能作動，讓 table 內的項目可以被拖曳移動
 
                 $fieldCollapse.find('.btn.add-field').on('click', function() {
@@ -370,7 +387,7 @@
                 });
 
                 $fieldCollapse.find('.btn.all-confirm').on('click', function(ev) {
-                    var $fieldRows = $fieldTableBody.find('tr.field-content');
+                    var $fieldRows = $fieldTableBody.find('.field-content');
                     var uiFields = {};
 
                     for (var i = 0; i < $fieldRows.length; i++) {
@@ -423,40 +440,75 @@
             FieldPanelCtrl.prototype.addFieldItem = function(appId, fieldId, field) {
                 var _this = this;
                 var fieldCollapseId = appId + '_collapse';
-                var $fieldTableBody = this.$fieldPanel.find('#' + fieldCollapseId + ' .card-body table tbody');
+                var $fieldTableBody = this.$appsFieldsWapper.find('#' + fieldCollapseId + ' .card-body');
 
                 var getSetsHtml = function(setsType, setsData) {
                     switch (setsType) {
                         case fieldEnums.setsType.SELECT:
                         case fieldEnums.setsType.MULTI_SELECT:
-                            return '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
-                                (function(sets) {
-                                    var transStrs = [];
-                                    for (var i in sets) {
-                                        transStrs.push(transJson[sets[i]] ? transJson[sets[i]] : (sets[i] || ''));
-                                    }
-                                    return transStrs;
-                                })(setsData).join('\n') +
-                            '</textarea>';
+                            return (
+                                '<textarea class= "sets-item form-control" rows="3" columns="10" style="resize: vertical" placeholder="以換行區隔資料">' +
+                                    (function(sets) {
+                                        var transStrs = [];
+                                        for (var i in sets) {
+                                            transStrs.push(transJson[sets[i]] ? transJson[sets[i]] : (sets[i] || ''));
+                                        }
+                                        return transStrs;
+                                    })(setsData).join('\n') +
+                                '</textarea>'
+                            );
                         case fieldEnums.setsType.CHECKBOX:
-                            return '<input type="text" class="sets-item form-control" value="無設定" disabled />';
+                            return (
+                                '<input type="text" class="sets-item form-control" value="無設定" disabled />'
+                            );
                         case fieldEnums.setsType.TEXT:
                         case fieldEnums.setsType.DATE:
                         case fieldEnums.setsType.NUMBER:
                         default:
-                            return '<select class="sets-item form-control">' +
-                                '<option value="0">單行</option>' +
-                                '<option value="1">段落</option>' +
-                            '</select>';
+                            return (
+                                '<select class="sets-item form-control">' +
+                                    '<option value="0">單行</option>' +
+                                    '<option value="1">段落</option>' +
+                                '</select>'
+                            );
                     }
                 };
 
+                // $fieldTableBody.append(
+                //     '<tr class="field-content" id="' + fieldId + '">' +
+                //         '<td class="field-name long-token">' +
+                //             '<input class="form-control" type="text" value="' + (transJson[field.text] ? transJson[field.text] : (field.text || '')) + '" />' +
+                //         '</td>' +
+                //         '<td class="field-type">' +
+                //             '<select class="form-control">' +
+                //                 '<option value="' + fieldEnums.setsType.TEXT + '">文字</option>' +
+                //                 '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
+                //                 '<option value="' + fieldEnums.setsType.DATE + '">時間</option>' +
+                //                 '<option value="' + fieldEnums.setsType.SELECT + '">單項選擇</option>' +
+                //                 '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
+                //                 '<option value="' + fieldEnums.setsType.CHECKBOX + '">單項勾選</option>' +
+                //             '</select>' +
+                //         '</td>' +
+                //         '<td class="field-sets">' +
+                //             getSetsHtml(field.setsType, field.sets) +
+                //         '</td>' +
+                //         '<td class="field-delete">' +
+                //             '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' d-none' : '') + '">' +
+                //                 '<i class="fas fa-times"></i>&nbsp刪除' +
+                //             '</button>' +
+                //         '</td>' +
+                //         '<td class="field-drag-icon">' +
+                //             '<i class="fas fa-bars" style="color:#C0C0C0;"></i>' +
+                //         '</td>' +
+                //     '</tr>'
+                // );
+
                 $fieldTableBody.append(
-                    '<tr class="field-content" id="' + fieldId + '">' +
-                        '<td class="field-name long-token">' +
+                    '<div class="field-content col-12 flex-column flex-nowrap flex-lg-row flex-lg-wrap" id="' + fieldId + '">' +
+                        '<div class="field-item field-name mb-1 col-lg-4">' +
                             '<input class="form-control" type="text" value="' + (transJson[field.text] ? transJson[field.text] : (field.text || '')) + '" />' +
-                        '</td>' +
-                        '<td class="field-type">' +
+                        '</div>' +
+                        '<div class="field-item field-type my-1 col-lg-3">' +
                             '<select class="form-control">' +
                                 '<option value="' + fieldEnums.setsType.TEXT + '">文字</option>' +
                                 '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
@@ -465,19 +517,21 @@
                                 '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
                                 '<option value="' + fieldEnums.setsType.CHECKBOX + '">單項勾選</option>' +
                             '</select>' +
-                        '</td>' +
-                        '<td class="field-sets">' +
+                        '</div>' +
+                        '<div class="field-item field-sets my-1 col-lg-5">' +
                             getSetsHtml(field.setsType, field.sets) +
-                        '</td>' +
-                        '<td class="field-delete">' +
+                        '</div>' +
+                        '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-center">' +
                             '<button type="button" class="btn btn-danger btn-sm btn-danger field-delete-btn' + (fieldEnums.type.SYSTEM === field.type ? ' d-none' : '') + '">' +
-                                '<span class="fas fa-times"></span>&nbsp刪除' +
+                                '<i class="fas fa-times fa-fw"></i>' +
+                                '<span>刪除</span>' +
                             '</button>' +
-                        '</td>' +
-                        '<td class="field-drag-icon">' +
-                            '<span class="fas fa-bars" style="color:#C0C0C0;"></span>' +
-                        '</td>' +
-                    '</tr>');
+                        '</div>' +
+                        '<div class="field-item field-drag-icon mt-1 w-100 text-center">' +
+                            '<i class="fas fa-bars"></i>' +
+                        '</div>' +
+                    '</div>'
+                );
                 var $fieldRow = $fieldTableBody.find('#' + fieldId);
                 var $fieldTypeSelect = $fieldRow.find('.field-type select');
                 $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
@@ -495,7 +549,7 @@
                 });
 
                 $fieldRow.find('.btn.field-delete-btn').on('click', function(ev) {
-                    $(ev.target).parentsUntil('tbody').remove();
+                    $(ev.target).parents('.field-content').remove();
                     for (var idx in _this.deleteListeners) {
                         _this.deleteListeners[idx]({
                             appId: appId,
@@ -535,7 +589,7 @@
             }
 
             var firstAppId = '';
-            fieldPanelCtrl.$fieldPanel.empty();
+            fieldPanelCtrl.$appsFieldsWapper.empty();
             return Promise.all([
                 api.apps.findAll(userId),
                 api.appsFields.findAll(userId)
@@ -769,12 +823,12 @@
                         //     '</div>' +
                         // '</div>' +
 
-                        '<table class="table table-responsive chsr-group chsr-table">' +
+                        '<table class="chsr table table-responsive chsr-group">' +
                             '<thead>' +
                                 '<tr>' +
                                     '<td class="user">' +
                                         '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<input id="group_add_user" type="text" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off">' +
+                                            '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
                                         '</div>' +
                                     '</td>' +
                                     '<td class="permission">' +
@@ -792,14 +846,12 @@
                                         '</div>' +
                                     '</td>' +
                                     '<td class="status">' +
-                                        '<div">' +
-                                            '狀態' +
-                                        '</div>' +
+                                        '<div>狀態</div>' +
                                     '</td>' +
                                     '<td class="actions">' +
                                         '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
                                             '<button class="btn btn-light btn-block btn-border outline add-button">' +
-                                                '新增' +
+                                                '<span>邀請</span>' +
                                                 '<i class="fa fa-user-plus"></i>' +
                                             '</button>' +
                                         '</div>' +
@@ -1238,7 +1290,7 @@
         return api.groups.findAll(userId).then(function(resJson) {
             let groups = resJson.data;
             if (groups && 0 === Object.keys(groups).length) {
-                $('#add-group-name-app-btn').attr('disabled', false);
+                $('#addGroupNameAppBtn').attr('disabled', false);
                 return;
             };
 
@@ -1248,7 +1300,7 @@
                 }
                 loadGroups(groups[groupId], groupId);
             }
-            $('#add-group-name-app-btn').attr('disabled', false);
+            $('#addGroupNameAppBtn').attr('disabled', false);
         });
     }
 
@@ -1420,7 +1472,7 @@
                 $.notify('成功刪除!', { type: 'success' });
                 var apps = resJson.data;
                 var app = apps[appId];
-    
+
                 switch (app.type) {
                     case LINE:
                         $('[app-id="' + appId + '"]').remove();
@@ -1502,7 +1554,7 @@
                     '</table>' +
                 '</div>' +
             '</div>';
-        $('#apps .card-body .app-container').append(groupStr);
+        $('#apps .app-container').append(groupStr);
     }
 
     function groupType(appId, app) {
@@ -1516,11 +1568,13 @@
                         '<th>LINE</th>' +
                         '<th class="text-right">' +
                             '<div id="group1" class="line">' +
-                                '<button type="button" class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
+                                '<button type="button" class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>編輯' +
+                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
                                 '</button>' +
                             '</div>' +
                         '</th>' +
@@ -1554,11 +1608,13 @@
                         '<th>Facebook</th>' +
                         '<th class="text-right">' +
                             '<div id="group3" class="fb">' +
-                                '<button class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
+                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>編輯' +
+                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
                                 '</button>' +
                             '</div>' +
                         '</th>' +
@@ -1600,11 +1656,13 @@
                         '<th>Wechat</th>' +
                         '<th class="text-right">' +
                             '<div id="group1" class="wechat">' +
-                                '<button class="btn btn-danger mr-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>刪除' +
+                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border mr-0" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<span class="fas fa-edit fa-fw"></span>編輯' +
+                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
                                 '</button>' +
                             '</div>' +
                         '</th>' +
@@ -1640,7 +1698,6 @@
             case LINE:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none" >' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
@@ -1650,25 +1707,25 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Channel Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="name"/>' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelId_1" class="col-form-label">Channel ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="channel-id"/>' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelSecret_1" class="col-form-label">Channel Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="channel-secret"/>' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelAccessToken_1" class="col-form-label">Channel Access Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token1 + '" id="channel-token"/>' +
+                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -1677,7 +1734,6 @@
             case FACEBOOK:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none">' +
                             '<label class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
@@ -1687,37 +1743,37 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Facebook Page Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="facebook-name">' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Page Id: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="facebook-page-id">' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="facebook-page-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id2 + '" id="facebook-app-id">' +
+                                    '<input class="form-control" type="text" value="' + app.id2 + '" id="facebook-app-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="facebook-app-secret">' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="facebook-app-secret">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Validation Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token1 + '" id="facebook-valid-token">' +
+                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="facebook-valid-token">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label class="col-form-label">Page Token: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.token2 + '" id="facebook-page-token">' +
+                                    '<input class="form-control" type="text" value="' + app.token2 + '" id="facebook-page-token">' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
@@ -1726,7 +1782,6 @@
             case WECHAT:
                 appStr =
                     '<form>' +
-                        '<div id="type" class="d-none">updateApp</div>' +
                         '<div class="form-group d-none">' +
                             '<label for="edit-id" class="col-form-label">ID</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
@@ -1736,19 +1791,19 @@
                             '<div class="form-group">' +
                                 '<label class="col-form-label">App Name: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.name + '" id="wechat-app-name"/>' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelId_1" class="col-form-label">App ID: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.id1 + '" id="wechat-app-id"/>' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
                                 '<label for="prof-edit-channelSecret_1" class="col-form-label">App Secret: </label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="tel" value="' + app.secret + '" id="wechat-app-secret"/>' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +

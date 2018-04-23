@@ -3,8 +3,8 @@
 
 <head>
     <% include ../views/partials/meta_tags.ejs %>
+    <% include ../views/partials/favicon.ejs %>
     <title><%= title %></title>
-    <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/_main.css" />
@@ -13,47 +13,51 @@
 </head>
 
 <body>
-    <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
-    <div class="page-wrapper">
-        <div class="container mt-5">
-            <div class="chsr card">
-                <div class="title">
-                    <h3 class="padding-lr h3-padding"> 自訂Line Template</h3>
-                    <p class="address padding-lr"> 首頁 / 訊息 / 自訂聊天模板</p>
 
-                </div>
-                <div class="px-5 my-3" id="appSelector">
-                    <div class="dropdown app-dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="dropdown-text">請選擇應用程式</span>
-                            <span class="caret"></span>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+    <div class="root d-flex w-100 h-100">
+        <% include ../views/partials/control_panel.ejs %>
+
+        <div class="ml-auto w-100 page-wrapper">
+            <% include ../views/partials/toolbar.ejs %>
+
+            <div class="container mt-5">
+                <div class="chsr card">
+                    <div class="title">
+                        <h3 class="pt-3 pb-0 px-5">自訂 Line Template</h3>
+                        <p class="pt-0 pb-4 px-5">首頁 / 訊息 / 自訂聊天模板</p>
                     </div>
-                    <div class="search-add mb-2">
-                        <span class="icon"><i class="fa fa-search"></i></span>
-                        <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                        <button type="button" class="btn btn-light btn-border" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
-                            <i class="fas fa-plus"></i>
-                        </button>
+                    <div class="px-5 my-3" id="appSelector">
+                        <div class="dropdown app-dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <span class="dropdown-text">請選擇應用程式</span>
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
+                        </div>
+                        <div class="search-add mb-2">
+                            <span class="icon"><i class="fa fa-search"></i></span>
+                            <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
+                            <button type="button" class="btn btn-light btn-border" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="py-0 px-5 chsr table">
+                        <table class="chsr table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">標題</th>
+                                    <th scope="col">類型</th>
+                                    <th scope="col">關鍵字</th>
+                                    <th scope="col">編輯/刪除</th>
+                                </tr>
+                            </thead>
+                            <tbody id="template-tables"></tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="padding-lr chsr table">
-                    <table class="chsr table">
-                        <thead>
-                            <tr>
-                                <th scope="col">標題</th>
-                                <th scope="col">類型</th>
-                                <th scope="col">關鍵字</th>
-                                <th scope="col">編輯/刪除</th>
-                            </tr>
-                        </thead>
-                        <tbody id="template-tables"></tbody>
-                    </table>
-                </div>
+                </duv>
             </div>
-            </duv>
         </div>
     </div>
 

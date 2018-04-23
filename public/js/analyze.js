@@ -26,15 +26,18 @@
 
     var nowSelectAppId = '';
     var api = window.restfulAPI;
-    var analyzeType = AnalyzeType.MONTH; // 預設從每日單位顯示分析
+    var analyzeType = AnalyzeType.TIME;
 
-    var $buttonGroup = $('.button-group');
-    var $analyzeSdtPicker = $('#start_datetime_picker');
-    var $analyzeEdtPicker = $('#end_datetime_picker');
-    var $appDropdown = $('.tooltip-container .app-dropdown');
+    var $chartBody = $('#chartBody');
+    var $analyzeSdtPicker = $('#startDatetimePicker');
+    var $analyzeEdtPicker = $('#endDatetimePicker');
+    var $startDatetimeInput = $analyzeSdtPicker.find('input[name="startDatetime"]');
+    var $endDatetimeInput = $analyzeEdtPicker.find('input[name="endDatetime"]');
+    var $appDropdown = $('#appDropdown');
+    var $chartDropdown = $('#chartDropdown');
     var sTimePickerData = null;
     var eTimePickerData = null;
-    var date = Date.now();
+    var wordfreq = null;
 
     var userId;
     try {
@@ -44,34 +47,64 @@
         userId = '';
     }
 
-    $buttonGroup.find('.view-month').on('click', viewMonth);
-    $buttonGroup.find('.view-date').on('click', viewDay);
-    $buttonGroup.find('.view-hour').on('click', viewHour);
-    $buttonGroup.find('.view-time').on('click', viewTime);
-    $buttonGroup.find('.view-cloud').on('click', viewWordCloud);
+    $chartDropdown.find('.view-month').on('click', viewMonth);
+    $chartDropdown.find('.view-date').on('click', viewDay);
+    $chartDropdown.find('.view-hour').on('click', viewHour);
+    $chartDropdown.find('.view-time').on('click', viewTime);
+    $chartDropdown.find('.view-cloud').on('click', viewWordCloud);
 
-    // 初始化 modal 裡的 datetime picker
-    // 使用 moment.js 的 locale 設定 i18n 日期格式
-    var datetimePickerInitOpts = {
-        sideBySide: true,
-        locale: 'zh-tw',
-        defaultDate: date,
-        icons: {
-            time: 'far fa-clock',
-            date: 'far fa-calendar-alt',
-            up: 'fas fa-chevron-up',
-            down: 'fas fa-chevron-down',
-            previous: 'fas fa-chevron-left',
-            next: 'fas fa-chevron-right',
-            today: 'fas fa-sun',
-            clear: 'far fa-trash-alt',
-            close: 'fas fa-times'
-        }
-    };
-    $analyzeSdtPicker.datetimepicker(datetimePickerInitOpts);
-    $analyzeEdtPicker.datetimepicker(datetimePickerInitOpts);
-    sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
-    eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
+    if (!window.isMobileBrowser()) {
+        // 初始化 modal 裡的 datetime picker
+        // 使用 moment.js 的 locale 設定 i18n 日期格式
+        var dateNow = Date.now();
+        var datetimePickerInitOpts = {
+            sideBySide: true,
+            locale: 'zh-tw',
+            defaultDate: dateNow,
+            icons: {
+                time: 'far fa-clock',
+                date: 'far fa-calendar-alt',
+                up: 'fas fa-chevron-up',
+                down: 'fas fa-chevron-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'fas fa-sun',
+                clear: 'far fa-trash-alt',
+                close: 'fas fa-times'
+            }
+        };
+        $analyzeSdtPicker.datetimepicker(datetimePickerInitOpts);
+        $analyzeEdtPicker.datetimepicker(datetimePickerInitOpts);
+        sTimePickerData = $analyzeSdtPicker.data('DateTimePicker');
+        eTimePickerData = $analyzeEdtPicker.data('DateTimePicker');
+
+        // 綁定日期變更時的事件
+        $analyzeSdtPicker.on('dp.change', function(ev) {
+            startTime = ev.date.toDate().getTime();
+            renderChart();
+        });
+        $analyzeEdtPicker.on('dp.change', function(ev) {
+            endTime = ev.date.toDate().getTime();
+            renderChart();
+        });
+    } else {
+        $startDatetimeInput.attr('type', 'datetime-local');
+        $endDatetimeInput.attr('type', 'datetime-local');
+        $analyzeSdtPicker.on('click', '.input-group-prepend', function() {
+            $startDatetimeInput.focus();
+        });
+        $analyzeEdtPicker.on('click', '.input-group-prepend', function() {
+            $endDatetimeInput.focus();
+        });
+        $startDatetimeInput.on('change', function(ev) {
+            startTime = new Date(ev.target.value).getTime();
+            renderChart();
+        });
+        $endDatetimeInput.on('change', function(ev) {
+            endTime = new Date(ev.target.value).getTime();
+            renderChart();
+        });
+    }
 
     return Promise.all([
         api.apps.findAll(userId),
@@ -89,7 +122,7 @@
         for (var appId in appsData) {
             messagesDataArray[appId] = [];
             $dropdownMenu.append(
-                '<a class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</a>'
+                '<span class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</span>'
             );
             $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
@@ -109,18 +142,10 @@
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             messageDataPreprocess(messagesDataArray[nowSelectAppId]);
-            $('.app-view .dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
-            $('div.button-group .btn-view').removeAttr('disabled');
+
+            $appDropdown.find('.dropdown-toggle').removeAttr('disabled'); // 有資料，才開放USER按按鈕
+            $('.button-group .btn').removeAttr('disabled');
         }
-        // 綁定日期變更時的事件
-        $analyzeSdtPicker.on('dp.change', function(ev) {
-            startTime = ev.date.toDate().getTime();
-            renderChart();
-        });
-        $analyzeEdtPicker.on('dp.change', function(ev) {
-            endTime = ev.date.toDate().getTime();
-            renderChart();
-        });
     });
 
     function appSourceChanged(ev) {
@@ -130,6 +155,7 @@
     }
 
     function messageDataPreprocess(messages) {
+        var dateNow = Date.now();
         if (messages.length > 0) {
             messages.sort(function(a, b) {
                 return new Date(a.time).getTime() - new Date(b.time).getTime(); // 以時間排序，最早的在前
@@ -137,13 +163,18 @@
             FIRST_MSG_TIME = new Date(messages[0].time).getTime(); // 預設的 startTime 為最早的訊息的時間
             LAST_MSG_TIME = new Date(messages[messages.length - 1].time).getTime();
         } else {
-            FIRST_MSG_TIME = LAST_MSG_TIME = date;
+            FIRST_MSG_TIME = LAST_MSG_TIME = dateNow;
         }
         startTime = FIRST_MSG_TIME;
         endTime = LAST_MSG_TIME;
 
-        sTimePickerData.date(new Date(startTime));
-        eTimePickerData.date(new Date(endTime));
+        if (sTimePickerData && eTimePickerData) {
+            sTimePickerData.date(new Date(startTime));
+            eTimePickerData.date(new Date(endTime));
+        } else {
+            $startDatetimeInput.val(toDatetimeLocal(new Date(startTime)));
+            $endDatetimeInput.val(toDatetimeLocal(new Date(endTime)));
+        }
 
         renderChart();
     }
@@ -170,10 +201,14 @@
         }
     }
 
-    function viewMonth() {
+    function viewMonth(ev) {
         analyzeType = AnalyzeType.MONTH;
-        var timeData = getSelecedTimeData();
+        $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+        wordfreq && wordfreq.stop() && wordfreq.empty();
+        wordfreq = void 0;
 
+        var timeData = getSelecedTimeData();
         var chartData = []; // 要餵給AmCharts的資料
         var beginDate = new Date(startTime);
         var endDate = new Date(endTime);
@@ -233,10 +268,14 @@
         generateChart(chartData); // 將資料餵給AmCharts
     }
 
-    function viewDay() {
+    function viewDay(ev) {
         analyzeType = AnalyzeType.DAY;
-        var timeData = getSelecedTimeData();
+        $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+        wordfreq && wordfreq.stop() && wordfreq.empty();
+        wordfreq = void 0;
 
+        var timeData = getSelecedTimeData();
         var chartData = [];
         var xAxisLabalMap = {};
         var nowSeg = Math.floor(startTime / DATE) * DATE; // 取得第一天的00:00的時間
@@ -265,9 +304,9 @@
         }
 
         // 將開始時間與結束時間加入資料內以便顯示時間區間
-        var beginDate = new Date(startTime);
+        // var beginDate = new Date(startTime);
+        // var beginLabel = getDateStr(beginDate);
         var endDate = new Date(endTime);
-        var beginLabel = getDateStr(beginDate);
         var endLabel = getDateStr(endDate);
 
         !xAxisLabalMap[endLabel] && chartData.push({
@@ -279,10 +318,14 @@
         generateChart(chartData);
     }
 
-    function viewHour() {
+    function viewHour(ev) {
         analyzeType = AnalyzeType.HOUR;
-        var timeData = getSelecedTimeData();
+        $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+        wordfreq && wordfreq.stop() && wordfreq.empty();
+        wordfreq = void 0;
 
+        var timeData = getSelecedTimeData();
         var chartData = [];
         var xAxisLabalMap = {};
         var nowSeg = Math.floor(startTime / HOUR) * HOUR;
@@ -309,9 +352,9 @@
         }
 
         // 將起始時間與結束時間加入資料內以便顯示時間區間
-        var beginDate = new Date(startTime);
+        // var beginDate = new Date(startTime);
+        // var beginLabel = getDateStr(beginDate) + ' ' + getTimeStr(beginDate);
         var endDate = new Date(endTime);
-        var beginLabel = getDateStr(beginDate) + ' ' + getTimeStr(beginDate);
         var endLabel = getDateStr(endDate) + ' ' + getTimeStr(endDate);
 
         !xAxisLabalMap[endLabel] && chartData.push({
@@ -323,11 +366,15 @@
         generateChart(chartData);
     }
 
-    function viewTime() {
+    function viewTime(ev) {
         analyzeType = AnalyzeType.TIME;
+        $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+        wordfreq && wordfreq.stop() && wordfreq.empty();
+        wordfreq = void 0;
+
         // 將所有資料彙整成以小時表示
         var timeData = getSelecedTimeData();
-
         var timeArr = Array(24).fill(0); // 建立陣列，儲存不同小時的訊息數
         var chartData = [];
         var i = 0;
@@ -347,27 +394,33 @@
         generateChart(chartData);
     }
 
-    function viewWordCloud() {
+    function viewWordCloud(ev) {
         analyzeType = AnalyzeType.WORDCLOUR;
-        var msgData = getSelecedMsgData();
-
-        var text = msgData.join(',');
-        var wordfreq = new window.WordFreqSync({
+        $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
+        wordfreq && wordfreq.stop() && wordfreq.empty();
+        wordfreq = new window.WordFreqSync({
             workerUrl: '/lib/js/wordfreq.worker.js',
             minimumCount: 1 // 過濾文字出現的最小次數最小
         });
+
+        var msgData = getSelecedMsgData();
+        var text = msgData.join(',');
         var cloudOptions = {
             list: wordfreq.process(text),
-            weightFactor: 32, // 文字雲字體大小
-            clearCanvas: true
+            // 文字雲字體基本大小
+            weightFactor: 24,
+            minSize: 8,
+            clearCanvas: true,
+            backgroundColor: '#eafaff'
         };
-        window.WordCloud(document.getElementById('chartBody'), cloudOptions);
+        window.WordCloud($chartBody.get(0), cloudOptions);
     }
 
     function generateChart(chartData, cursorProvider) {
         chartInstance && chartInstance.clear();
 
-        chartInstance = window.AmCharts.makeChart('chartBody', {
+        chartInstance = window.AmCharts.makeChart($chartBody.get(0), {
             type: 'serial',
             theme: 'light',
             zoomOutButton: {
@@ -412,11 +465,15 @@
                 minimum: 0,
                 baseValue: 999,
                 includeAllValues: true
+            }],
+            listeners: [{
+                event: 'rendered',
+                method: function() {
+                    // chart 渲染完後，移除 AmCharts 的廣告文字
+                    $chartBody.find('a[href="http://www.amcharts.com"]').remove();
+                }
             }]
         });
-
-        // chart 建立完後，移除 AmCharts 的廣告文字
-        $('a[href="http://www.amcharts.com"]').remove();
     }
 
     function getSelecedTimeData() {
@@ -456,5 +513,24 @@
 
     function minTwoDigits(n) {
         return (n < 10 ? '0' : '') + n;
+    }
+
+    /**
+     * @param {Date} date
+     */
+    function toDatetimeLocal(date) {
+        var YYYY = date.getFullYear();
+        var MM = ten(date.getMonth() + 1);
+        var DD = ten(date.getDate());
+        var hh = ten(date.getHours());
+        var mm = ten(date.getMinutes());
+        var ss = ten(date.getSeconds());
+
+        function ten(i) {
+            return (i < 10 ? '0' : '') + i;
+        }
+
+        return YYYY + '-' + MM + '-' + DD + 'T' +
+                hh + ':' + mm + ':' + ss;
     }
 })();

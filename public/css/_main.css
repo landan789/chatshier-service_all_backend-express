@@ -1,7 +1,9 @@
-body, html{
+body, html {
+    position: fixed;
+    width: 100%;
     height: 100%;
     background-color: #f8f8f8;
-    overflow: auto;
+    overflow: hidden;
 }
 
 /* disable input 時間元素時一併隱藏內建按鈕 */
@@ -24,10 +26,24 @@ button:focus {
     outline: none !important;
 }
 
+.root .animated {
+    animation-duration: 300ms;
+}
+
 .page-wrapper {
     position: relative;
-    padding: 0 3rem;
-    margin-bottom: 3rem;
+    max-width: calc(100% - 16rem);
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: max-width 200ms; }
+    .page-wrapper.full-width {
+        max-width: 100%; }
+
+@media (max-width: 576px) {
+    .page-wrapper {
+        max-width: 100%;
+    }
 }
 
 .btn-border {
@@ -87,6 +103,13 @@ button:focus {
         padding-top: .5rem;
         padding-bottom: .5rem;
         letter-spacing: 1px; }
+
+
+.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove {
+    height: 2rem;
+    width: 2rem;
+    padding: .175rem .475rem;
+}
 
 /*start of search bar*/
 .search {
@@ -192,12 +215,12 @@ button:focus {
         font-weight: 200; }
 
 /*end of search bar*/
-    
+
 .loading-wrapper {
+    position: fixed;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -211,22 +234,42 @@ button:focus {
         align-items: center;
         height: 50%; }
     .loading-wrapper .loading-text {
-        font-size: 6rem;
+        font-size: 3rem;
         font-family: Helvetica;
         font-weight: 900;
         color: #33ccff; }
     .loading-wrapper .loader-container {
-        width: 128px;
-        height: 128px; }
+        width: 6rem;
+        height: 6rem; }
     .loading-wrapper .loader {
         width: 100%;
         height: 100%;
-        border: 16px solid #f3f3f3;
+        border: 1rem solid #f3f3f3;
         border-radius: 50%;
-        border-top: 16px solid #3498db;
+        border-top: 1rem solid #3498db;
         animation: spin 1s linear infinite; }
 
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@media (min-width: 576px) {
+    .loading-wrapper .loading-text {
+        font-size: 4rem; }
+    .loading-wrapper .loader-container {
+        width: 8rem;
+        height: 8rem; }
+}
+
+@media (min-width: 992px) {
+    .loading-wrapper .loading-text {
+        font-size: 6rem; }
+    .loading-wrapper .loader-container {
+        width: 12rem;
+        height: 12rem; }
+}
+
+.chsr caption {
+    caption-side: top;
 }

@@ -4,8 +4,10 @@ module.exports = (function() {
     const util = require('util');
 
     const controllerCre = require('../cores/controller');
+    const appsMdl = require('../models/apps');
     const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     const consumersMdl = require('../models/consumers');
+    const botSvc = require('../services/bot');
 
     function ConsumersController() {}
     util.inherits(ConsumersController, controllerCre.constructor);

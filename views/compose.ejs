@@ -3,87 +3,90 @@
 
 <head>
     <% include ../views/partials/meta_tags.ejs %>
+    <% include ../views/partials/favicon.ejs %>
     <title><%= title %></title>
-    <link rel="icon" href="image/favicon.ico" />
 
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="lib/css/bootstrap-datetimepicker-fixbs4.css">
-    <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/compose.css" />
 </head>
 
 <body>
-    <% include ../views/partials/wrapper.ejs %>
     <% include ../views/partials/loading.ejs %>
 
-    <div class="page-wrapper">
-        <!-- [status filter] -->
-        <div class="container mt-5">
-            <div class="chsr card">
-                <div class="title">
-                    <h3 class="padding-lr h3-padding">預約群發</h3>
-                    <p class="address padding-lr">首頁 / 訊息 /群發 </p>
-                    <p class="address padding-lr">新增、編輯傳送到LINE@的訊息</p>
-                </div>
-                <div class="px-5 my-3" id="appSelector">
-                    <div class="dropdown app-dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="apps_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            <span class="dropdown-text">請選擇應用程式</span>
-                            <span class="caret"></span>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="apps_dropdown"></div>
+    <div class="root d-flex w-100 h-100">
+        <% include ../views/partials/control_panel.ejs %>
+
+        <div class="ml-auto w-100 page-wrapper">
+            <% include ../views/partials/toolbar.ejs %>
+
+            <!-- [status filter] -->
+            <div class="container mt-5">
+                <div class="chsr card">
+                    <div class="title">
+                        <h3 class="mb-4 pt-3 px-3">群發訊息</h3>
+                        <p class="mb-3 pt-0 px-3">首頁 / 訊息 /群發 </p>
+                        <p class="mb-3 pt-0 px-3">新增、編輯傳送到LINE@的訊息</p>
                     </div>
-                </div>
-                <div class="px-5 my-3" id="searchWidget">
-                    <div class="search-add mb-2">
-                        <span class="icon"><i class="fa fa-search"></i></span>
-                        <input type="text" class="search-bar" placeholder="搜尋    輸入完請按Enter鍵" aria-hidden="true">
-                        <button type="button" id="add-btn" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
-                            <i class="fas fa-plus"></i>
-                        </button>
+                    <div class="px-3 my-3" id="appSelector">
+                        <div class="dropdown app-dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <span class="dropdown-text">請選擇應用程式</span>
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
+                        </div>
                     </div>
+                    <div class="px-3 my-3" id="searchWidget">
+                        <div class="search-add mb-2">
+                            <span class="icon"><i class="fa fa-search"></i></span>
+                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
+                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#composeAddModal" aria-hidden="true" disabled="true">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
 
-                    <div class="chsr table">
-                        <table class="chsr table" id="composes_reservation_table">
-                            <caption>預約</caption>
-                            <thead>
-                                <tr>
-                                    <th>內容</th>
-                                    <th>時間</th>
-                                    <th>分類項目</th>
-                                    <th>編輯</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="chsr table">
+                            <table class="chsr table" id="composes_reservation_table">
+                                <caption>預約</caption>
+                                <thead>
+                                    <tr>
+                                        <th>內容</th>
+                                        <th>時間</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
 
-                        <table class="chsr table" id="composes_history_table">
-                            <caption>歷史</caption>
-                            <thead>
-                                <tr>
-                                    <th>內容</th>
-                                    <th>時間</th>
-                                    <th>分類項目</th>
-                                    <th>編輯</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                            <table class="chsr table" id="composes_history_table">
+                                <caption>歷史</caption>
+                                <thead>
+                                    <tr>
+                                        <th>內容</th>
+                                        <th>時間</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
 
-                        <table class="chsr table" id="composes_draft_table">
-                            <caption>草稿</caption>
-                            <thead>
-                                <tr>
-                                    <th>內容</th>
-                                    <th>時間</th>
-                                    <th>分類項目</th>
-                                    <th>編輯</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                            <table class="chsr table" id="composes_draft_table">
+                                <caption>草稿</caption>
+                                <thead>
+                                    <tr>
+                                        <th>內容</th>
+                                        <th>時間</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,11 +94,11 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="quickAdd" tabindex="-1" role="dialog" aria-labelledby="quickAddTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+    <div class="modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="quickAddTitle"></h5>
+                    <h5 class="modal-title" id="composeAddModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
@@ -128,13 +131,13 @@
                         </div>
                         <div>
                             <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
-                            <div class="input-group date" id="send-datetime-picker">
-                                <input type="text" class="form-control" name="end_datetime" id="send-time" value="Time" required="">
+                            <div class="input-group date" id="sendDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="sendDatetime" required>
                             </div>
                         </div>
 
@@ -155,27 +158,30 @@
                             </button>
                         </td>
                     </table>
-                    <div class="form-check">
+                    <div class="form-group">
                         <label class="form-check-label">
-                            <input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft">
-                            是否儲存為草稿？
+                            存為草稿:
                         </label>
+                            <div>
+                                <span>是</span>
+                                <span><input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft" /></span>
+                            </div>
                     </div>
                     <p class="error-input"></p>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-info" id="modal-submit">確認</button>
+                        <button type="button" class="btn btn-info" id="composeAddSubmitBtn">確認</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- Edit Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
+    <div class="modal fade" id="composeEditModal" tabindex="-1" role="dialog" aria-labelledby="composeEditModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editModalTitle"></h5>
+                    <h5 class="modal-title" id="composeEditModalTitle"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
@@ -183,31 +189,37 @@
                 <div class="modal-body">
                     <form>
                         <!-- 時間 -->
-                        <div class="date-group">
-                            <div class="input-group date" id="start_datetime_picker">
-                                <span class="input-group-addon">時間</span>
-                                <input type="text" class="form-control" name="start_datetime" id="edit-time" value=""/>
+                        <div class="form-group date-group">
+                            <div class="input-group date" id="sendDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="sendDatetime" id="edit-time" />
                             </div>
                         </div>
-                        <label for="custom-fields">篩選條件: </label>
-                        <div id="edit-limit-user" class="card">
-                            <div class="card-header">條件</div>
-                            <div class="card-body" id="edit-custom-fields"></div>
+
+                        <div class="form-group">
+                            <label for="custom-fields">篩選條件: </label>
+                            <div id="edit-limit-user" class="card">
+                                <div class="card-header">條件</div>
+                                <div class="card-body" id="edit-custom-fields"></div>
+                            </div>
                         </div>
+
                         <div class="form-group">
                             <label for="text">訊息: </label>
                             <textarea class="compose-textarea" id="edutinput"></textarea>
                         </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" name="modal-draft">
-                                是否儲存為草稿？
-                            </label>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" name="modal-draft">
+                                    是否儲存為草稿？
+                                </label>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -238,7 +250,7 @@
     <% include ../views/partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
-    <script src="lib/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
     <script src="js/compose.js"></script>
 </body>
 

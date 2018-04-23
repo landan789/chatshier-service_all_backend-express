@@ -1,0 +1,114 @@
+<div class="chsr ctrl-panel swiper-container h-100 d-none d-sm-block" id="ctrlPanel">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide" id="appsSlide">
+            <ul class="list-group">
+                <li class="text-light list-group-item">
+                    <span class="ctrl-panel-title">Chatshier</span>
+                    <i class="ml-auto p-2 fas fa-times d-sm-none menu-toggle"></i>
+                </li>
+                <li class="text-light list-group-item">
+                    <span>機器人</span>
+                </li>
+                <div class="collapse show">
+                    <li class="text-light nested list-group-item has-collapse">
+                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" />
+                        <span>LINE</span>
+                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                    </li>
+                    <div class="nested collapse line-collapse show"></div>
+                    <li class="text-light nested list-group-item has-collapse">
+                        <img class="app-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png" />
+                        <span>FACEBOOK</span>
+                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                    </li>
+                    <div class="nested collapse fb-collapse show"></div>
+                    <li class="text-light nested list-group-item has-collapse">
+                        <img class="app-icon" src="/image/logo-no-transparent.png" />
+                        <span>CHATSHIER</span>
+                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                    </li>
+                    <div class="nested collapse chatshier-collapse show"></div>
+                </div>
+                <li class="text-light list-group-item" id="ctrlPanelAddApp">
+                    <i class="fas fa-plus"></i>
+                    <span>新增</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="swiper-slide">
+            <ul class="list-group">
+                <li class="text-light list-group-item">
+                    <span class="ctrl-panel-title">Chatshier</span>
+                    <i class="ml-auto p-2 fas fa-times d-sm-none menu-toggle"></i>
+                </li>
+                <li class="search message-search text-light list-group-item" id="messageSearch">
+                    <input type="text" class="search-box" placeholder="搜尋文字訊息...">
+                    <div class="search-results d-none">
+                        <div class="number">
+                            <span class="current-number" id="currentNumber">0</span>
+                            <span class="slash-number">/</span>
+                            <span class="total-number" id="totalNumber">0</span>
+                        </div>
+                        <i class="fas fa-chevron-up grey" aria-hidden="true"></i>
+                        <i class="fas fa-chevron-down grey" aria-hidden="true"></i>
+                    </div>
+                </li>
+                <li class="text-light list-group-item has-collapse" id="ctrlPanelChatroomItem">
+                    <i class="fas fa-comment-dots fa-fw"></i>
+                    <span>聊天室</span>
+                    <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                </li>
+                <div class="collapse show" id="ctrlPanelChatroomCollapse">
+                    <li class="text-light list-group-item justify-content-center">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                    </li>
+                </div>
+                <li class="text-light list-group-item" onclick="window.location.assign('/calendar')">
+                    <i class="far fa-calendar-alt fa-fw"></i>
+                    <span>行事曆</span>
+                </li>
+                <li class="text-light list-group-item" onclick="window.location.assign('/ticket')">
+                    <i class="fa fa-list-ul fa-fw"></i>
+                    <span>待辦事項</span>
+                </li>
+                <li class="text-light list-group-item" onclick="window.location.assign('/analyze')">
+                    <i class="fa fa-chart-bar fa-fw"></i>
+                    <span>訊息分析</span>
+                </li>
+                <li class="text-light list-group-item has-collapse" id="ctrlPanelMessages">
+                    <i class="fa fa-envelope fa-fw"></i>
+                    <span>訊息</span>
+                    <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
+                </li>
+                <div class="collapse show" id="ctrlPanelMessagesCollapse">
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/compose')">
+                        <i class="fa fa-comments"></i>
+                        <span>群發</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/autoreply')">
+                        <i class="fa fa-comments"></i>
+                        <span>自動回覆</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/keywordsreply')">
+                        <i class="fa fa-comments"></i>
+                        <span>關鍵字回覆</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/greeting')">
+                        <i class="fa fa-comments"></i>
+                        <span>加好友回覆</span>
+                    </li>
+                </div>
+            </ul>
+        </div>
+    </div>
+    <div class="swiper-pagination"></div>
+</div>
+
+<div class="d-none d-sm-block edge-toggle-container" id="edgeToggleContainer">
+    <button class="edge-toggle-btn"></button>
+</div>
+
+<div class="ctrl-panel-backdrop d-none" id="ctrlPanelBackdrop"></div>
+
+<% include ./modals/setting_modal.ejs %>

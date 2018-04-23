@@ -21,7 +21,6 @@
     "GROUPID_WAS_EMPTY": { "MSG": "groupid was empty", "CODE": "1.13" },
     "MEMBERID_WAS_EMPTY": { "MSG": "memberid was empty", "CODE": "1.14" },
     "PLATFORMUID_WAS_EMPTY": { "MSG": "platformuid was empty", "CODE": "1.15" },
-    "AUTOREPLYID_WAS_EMPTY": {"MSG": "autoreplyid was empty", "CODE": "1.16"},
     "GREETINGID_WAS_EMPTY": {"MSG": "greetingid was empty", "CODE": "1.17"},
     "COMPOSEID_WAS_EMPTY": {"MSG": "composeid was empty", "CODE": "1.18"},
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
@@ -93,6 +92,9 @@
     "APP_AUTOREPLY_FAILED_TO_INSERT": { "MSG": "app autorelpy failed to insert", "CODE": "10.2" },
     "APP_AUTOREPLY_FAILED_TO_UPDATE": { "MSG": "app autorelpy failed to update", "CODE": "10.3" },
     "APP_AUTOREPLY_FAILED_TO_REMOVE": { "MSG": "app autorelpy failed to remove", "CODE": "10.4" },
+    "APP_AUTOREPLY_TITLE_WAS_EMPTY": { "MSG": "app autorelpy title was empty", "CODE": "10.5" },
+    "APP_AUTOREPLY_TEXT_WAS_EMPTY": { "MSG": "app autorelpy text was empty", "CODE": "10.6" },
+    "APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY": {"MSG": "app autorelpy autoreplyid was empty", "CODE": "10.7"},
 
     "APP_CHATROOMS_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.11" },
     "APP_CHATROOMS_FAILED_TO_INSERT": { "MSG": "app chatroom failed to insert", "CODE": "11.12" },
