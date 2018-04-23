@@ -137,10 +137,6 @@ p:empty:not(:focus)::before {
     width: 20%;
 }
 
-.email-input-container {
-    position: relative;
-}
-
 .file-container .img-preview {
     min-width: 32px;
     width: 32px;
@@ -151,10 +147,6 @@ p:empty:not(:focus)::before {
 .file-ghost {
     visibility: hidden;
     height: 0;
-}
-
-.form-group-row {
-    padding: 8px;
 }
 
 .avatar-container .member-avatar {
@@ -185,36 +177,38 @@ p:empty:not(:focus)::before {
     border-collapse: collapse;
     background-color: white;
     margin-bottom: 0; }
+    .chsr-group .group-member {
+        min-height: 10rem; }
+    .chsr-group .btn.outline {
+        text-align: left; }
+    .chsr-group .permission-item {
+        position: relative;
+        border: 1px solid #2e6da4;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        margin: 0 1px;
+        cursor: pointer; }
+    .chsr-group .permission-item .permission-text {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate3d(-50%, -50%, 0); }
     .chsr-group .status {
         line-height: 2.4; }
-    .chsr-group tbody td {
-        vertical-align: middle; }
-    .chsr-group .user {
-        width: 40%; }
-    .chsr-group .permission {
-        width: 20%; }
-    .chsr-group .status {
-        width: 20%; }
     .chsr-group .actions {
-        width: 10%;
         text-align: right; }
     .chsr-group .outline {
         border: none;
         background-color: transparent; }
-    .chsr-group .outline i.fa {
+    .chsr-group .outline i {
         margin-left: .5rem; }
 
-.permission {
-    width: 30%; }
-    .permission .btn.outline {
-        text-align: left; }
-    .permission .permission-group .permission-item {
-        border: 1px solid #2e6da4;
-        padding: .5rem; }
-
-.group-member .user .chips {
-    display: flex;
-    align-items: center;
+@media (min-width: 992px) {
+    .chsr-group .group-member {
+        -ms-flex: 0 0 calc(50% - 1rem);
+        flex: 0 0 calc(50% - 1rem);
+        max-width: calc(50% - 1rem); }
 }
 
 .actions .action-icon {
