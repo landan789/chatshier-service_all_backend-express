@@ -105,10 +105,14 @@ button:focus {
         letter-spacing: 1px; }
 
 
-.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove {
+.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove, .chsr .btn.check {
     height: 2rem;
     width: 2rem;
     padding: .175rem .475rem;
+}
+
+input[type=checkbox] {
+    zoom: 1.5;
 }
 
 .font-weight-900 {
