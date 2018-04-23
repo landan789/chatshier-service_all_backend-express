@@ -54,7 +54,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
+                                        <th>分類</th>
                                         <th>編輯</th>
                                     </tr>
                                 </thead>
@@ -67,7 +67,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
+                                        <th>分類</th>
                                         <th>編輯</th>
                                     </tr>
                                 </thead>
@@ -80,7 +80,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
+                                        <th>分類</th>
                                         <th>編輯</th>
                                     </tr>
                                 </thead>
@@ -95,7 +95,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="composeAddModalTitle"></h5>
@@ -158,11 +158,14 @@
                             </button>
                         </td>
                     </table>
-                    <div class="form-check">
+                    <div class="form-group">
                         <label class="form-check-label">
-                            <input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft">
-                            是否儲存為草稿？
+                            存為草稿:
                         </label>
+                            <div>
+                                <span>是</span>
+                                <span><input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft" /></span>
+                            </div>
                     </div>
                     <p class="error-input"></p>
                     <div class="modal-footer">
