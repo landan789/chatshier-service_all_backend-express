@@ -111,6 +111,10 @@ button:focus {
     padding: .175rem .475rem;
 }
 
+.font-weight-900 {
+    font-weight: 900;
+}
+
 /*start of search bar*/
 .search {
     position: relative;
