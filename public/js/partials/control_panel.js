@@ -9,16 +9,20 @@
     //     userId = '';
     // }
 
+    var $pageWrappers = $('.page-wrapper');
     var $toolbar = $('.toolbar');
     var $ctrlPanel = $('#ctrlPanel');
     var $ctrlPanelBackdrop = $('#ctrlPanelBackdrop');
-    $toolbar.on('click', '.ctrl-panel-toggle', toggleSideMenu);
-    $ctrlPanel.on('click', '.menu-toggle', toggleSideMenu);
+    $toolbar.on('click', '.ctrl-panel-toggle', toggleCtrlPanel);
+    $ctrlPanel.on('click', '.menu-toggle', toggleCtrlPanel);
     $ctrlPanel.on('click', '.has-collapse', toggleCollapse);
-    $ctrlPanelBackdrop.on('click', closeSideMenu);
+    $ctrlPanelBackdrop.on('click', closeCtrlPanel);
 
     var $ctrlPanelAddApp = $('#ctrlPanelAddApp');
     $ctrlPanelAddApp.on('click', showAppInsertModal);
+
+    var $edgeToggleContainer = $('#edgeToggleContainer');
+    $edgeToggleContainer.on('click', '.edge-toggle-btn', switchCtrlPanel);
 
     if ('/chat' !== window.location.pathname) {
         var $ctrlPanelChatroomItem = $('#ctrlPanelChatroomItem');
@@ -62,15 +66,24 @@
         }
     }
 
-    function toggleSideMenu() {
-        $ctrlPanel.hasClass('d-none') ? openSideMenu() : closeSideMenu();
+    function toggleCtrlPanel() {
+        $ctrlPanel.hasClass('d-none') ? openCtrlPanel() : closeCtrlPanel();
     }
 
-    function openSideMenu() {
+    /**
+     * 開啟 controll panel (only sm)
+     */
+    function openCtrlPanel() {
+        // 確保移除 switchCtrlPanel 套用的樣式，確保 style 動作正常
+        $ctrlPanel.removeClass('put-away');
+        $edgeToggleContainer.removeClass('put-away');
+        $pageWrappers.removeClass('full-width');
+
         if ($ctrlPanel.hasClass('animating')) {
             $ctrlPanel.removeClass('animating');
             return;
         }
+
         $ctrlPanel.removeClass('d-none').addClass(['animated', 'animating', 'slide-in']);
         $ctrlPanelBackdrop.removeClass('d-none');
         ctrlPanelSwiper.update();
@@ -80,7 +93,15 @@
         });
     }
 
-    function closeSideMenu() {
+    /**
+     * 關閉 controll panel (only sm)
+     */
+    function closeCtrlPanel() {
+        // 確保移除 switchCtrlPanel 套用的樣式，確保 style 動作正常
+        $ctrlPanel.removeClass('put-away');
+        $edgeToggleContainer.removeClass('put-away');
+        $pageWrappers.removeClass('full-width');
+
         if ($ctrlPanel.hasClass('animating')) {
             $ctrlPanel.removeClass('animating');
             return;
@@ -91,6 +112,15 @@
             $ctrlPanel.off('animationend oAnimationEnd webkitAnimationEnd');
             $ctrlPanel.removeClass(['animated', 'animating', 'slide-out']).addClass('d-none');
         });
+    }
+
+    /**
+     * 用來切換 controll panel 顯示與否 (only md,lg,xl)
+     */
+    function switchCtrlPanel() {
+        $ctrlPanel.toggleClass('put-away');
+        $edgeToggleContainer.toggleClass('put-away');
+        $pageWrappers.toggleClass('full-width');
     }
 
     function showAppInsertModal() {
