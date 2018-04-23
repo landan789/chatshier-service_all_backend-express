@@ -1288,8 +1288,8 @@ window.restfulAPI = (function() {
          * @param {string} userId
          * @param {File} file
          */
-        BotAPI.prototype.uploadFile = function(userId, file) {
-            var destUrl = this.urlPrefix + 'upload-file/users/' + userId;
+        BotAPI.prototype.uploadFile = function(appId, userId, file) {
+            var destUrl = this.urlPrefix + 'upload-file/users/' + userId + '?appid=' + appId;
             var formData = new FormData();
             formData.append('file', file);
             formData.append('fileName', file.name);
