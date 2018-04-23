@@ -14,6 +14,8 @@
     //     userId = '';
     // }
 
+    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
+    // 如果 control panel 使處於 收起 狀態，則將之復原
     window.addEventListener('resize', function(ev) {
         if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
             return switchCtrlPanel();
