@@ -78,10 +78,14 @@
     "APP_RICHMENU_FAILED_TO_INSERT": { "MSG": "app richmenu failed to insert", "CODE": "8.2" },
     "APP_RICHMENU_FAILED_TO_UPDATE": { "MSG": "app richmenu failed to update", "CODE": "8.3" },
     "APP_RICHMENU_FAILED_TO_REMOVE": { "MSG": "app richmenu failed to remove", "CODE": "8.4" },
-    "BOT_RICHMENU_FAILED_TO_FIND": { "MSG": "bot richmenu failed to find", "CODE": "8.5" },
-    "BOT_RICHMENU_FAILED_TO_INSERT": { "MSG": "bot richmenu failed to insert", "CODE": "8.6" },
-    "BOT_RICHMENU_FAILED_TO_UPDATE": { "MSG": "bot richmenu failed to update", "CODE": "8.7" },
-    "BOT_RICHMENU_FAILED_TO_REMOVE": { "MSG": "bot richmenu failed to remove", "CODE": "8.8" },
+    
+    "BOT_MENU_FAILED_TO_FIND": { "MSG": "bot menu failed to find", "CODE": "8.5" },
+    "BOT_MENU_FAILED_TO_INSERT": { "MSG": "bot menu failed to insert", "CODE": "8.6" },
+    "BOT_MENU_IMAGE_FAILED_TO_INSERT": { "MSG": "bot menu image failed to insert", "CODE": "8.61" },
+    "BOT_MENU_FAILED_TO_UPDATE": { "MSG": "bot menu failed to update", "CODE": "8.7" },
+    "BOT_MENU_FAILED_TO_REMOVE": { "MSG": "bot menu failed to remove", "CODE": "8.8" },
+    "BOT_MENU_FAILED_TO_LINK": { "MSG": "bot menu failed to link", "CODE": "8.9" },
+    
 
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "9.1" },
     "CALENDAR_EVENT_FAILED_TO_INSERT": { "MSG": "calendar event failed to insert", "CODE": "9.2" },
@@ -130,5 +134,9 @@
     "APP_TEMPLATE_FAILED_TO_FIND": { "MSG": "app template failed to find", "CODE": "17.1" },
     "APP_TEMPLATE_FAILED_TO_INSERT": { "MSG": "app template failed to insert", "CODE": "17.2" },
     "APP_TEMPLATE_FAILED_TO_UPDATE": { "MSG": "app template failed to update", "CODE": "17.3" },
-    "APP_TEMPLATE_FAILED_TO_REMOVE": { "MSG": "app template failed to remove", "CODE": "17.4" }
+    "APP_TEMPLATE_FAILED_TO_REMOVE": { "MSG": "app template failed to remove", "CODE": "17.4" },
+
+    "BOT_FAILED_TO_CREATE": {"MSG": "bot failed to create", "CODE": "18.1"},
+
+    "BOT_FAILED_TO_UPLOAD_IMAGE": {"MSG": "bot failed to upload image", "CODE": "19.1"}
 }

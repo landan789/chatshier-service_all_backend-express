@@ -2,9 +2,11 @@ module.exports = (function() {
     var API_ERROR = require('../config/api_error');
     var API_SUCCESS = require('../config/api_success');
 
-    let util = require('util');
+    let util = require('util')
 
     let controllerCre = require('../cores/controller');
+
+    const storageHlp = require('../helpers/storage');
 
     const appsRichmenusMdl = require('../models/apps_richmenus');
 
@@ -100,31 +102,52 @@ module.exports = (function() {
 
     AppsRichmenusController.prototype.postOne = (req, res, next) => {
         res.setHeader('Content-Type', 'application/json');
+        let appId = '';
+        let originalFilePath = '';
 
         var postRichmenu = {
-            size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
-            name: undefined === req.body.name ? '' : req.body.name,
-            selected: undefined === req.body.name ? '' : req.body.name,
-            chatBarText: undefined === req.body.chatBarText ? '' : req.body.chatBarText,
-            areas: undefined === req.body.areas ? '' : JSON.parse(req.body.areas)
+            size: req.body.size || '',
+            name: req.body.name || '',
+            selected: req.body.selected || '',
+            chatBarText: req.body.chatBarText || '',
+            areas: req.body.areas || '',
+            src: req.body.src || '',
+            platformMenuId: ''
         };
 
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            let appId = checkedAppIds;
-            return new Promise((resolve, reject) => {
-                appsRichmenusMdl.insert(appId, postRichmenu, (richmenu) => {
-                    if (false === richmenu) {
-                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
-                        return;
-                    }
-                    resolve(richmenu);
-                });
-            });
-        }).then((richmenu) => {
+            appId = checkedAppIds;
+            let src = postRichmenu.src;
+            originalFilePath = `/${Date.now()}.png`;
+            let srcBuffer = src;
+            return storageHlp.filesUpload(originalFilePath, srcBuffer);
+        }).then((response) => {
+            return storageHlp.sharingCreateSharedLink(originalFilePath);
+        }).then((response) => {
+            let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+            let url = wwwurl.replace('?dl=0', '');
+            postRichmenu.src = url;
+        }).then(() => {
+            return appsRichmenusMdl.insert(appId, postRichmenu);
+        }).then((appsRichmenu) => {
+            if (!appsRichmenu) {
+                Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
+                return;
+            }
+
+            let richmenu = appsRichmenu[appId].richemnus;
+            let richmenuId = Object.keys(richmenu);
+            let newFilePath = `/apps/${appId}/richmenus/${richmenuId}/src/${originalFilePath}`;
+            return Promise.all([
+                appsRichmenu,
+                storageHlp.filesMoveV2(originalFilePath, newFilePath)
+            ]);
+        }).then((results) => {
+            let appsRichmenu = results[0];
             var json = {
                 status: 1,
                 msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                data: richmenu
+                data: appsRichmenu
             };
             res.status(200).json(json);
         }).catch((ERR) => {

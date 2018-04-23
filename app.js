@@ -9,6 +9,7 @@ let routerHlp = require('./helpers/router');
 let index = require('./routes/index');
 let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
+let apiBot = require('./routes/api_bot');
 
 const CHATSHIER = require('./config/chatshier');
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use('/api/*/users/:userid', jwtHlp.authenticate);
 app.use('/api/database', apiDatabase);
 app.use('/api/sign', apiSign);
+app.use('/api/bot', apiBot);
 app.use('/api/*', routerHlp.requestNotExistentApi);
 
 app.use(express.static(path.join(__dirname, 'public')));

@@ -1,3 +1,48 @@
+@media (min-width: 992px) {
+    .chsr.carousel-inner {
+        width: 43.125rem;
+        height: 33.125rem;
+    }
+    .show-richmenu-type {
+        width: 43.125rem;
+        height: 28.75rem;
+    }
+    .box {
+        width: 14.375rem;
+        height: 14.375rem;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 991px) {
+    .chsr.carousel-inner {
+        width: 26.25rem;
+        height: 21.875rem;
+    }
+    .show-richmenu-type {
+        width: 26.25rem;
+        height: 17.5rem;
+    }
+    .box {
+        width: 8.75rem;
+        height: 8.75rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .chsr.carousel-inner {
+        width: 18.75rem;
+        height: 16.875rem;
+    }
+    .show-richmenu-type {
+        width: 18.75rem;
+        height: 12.5rem;
+    }
+    .box {
+        width: 6.25rem;
+        height: 6.25rem;
+    }
+}
+
 #title {
     margin-bottom: 10px;
 }
@@ -26,14 +71,10 @@ label *:not(strong) {
 
 .chsr.carousel-inner {
     left: 3%;
-    width: 540px;
-    height: 430px;
 }
 
 .show-richmenu-type {
     position: relative;
-    width: 540px;
-    height: 360px;
 }
 
 .image-ghost {
@@ -75,7 +116,6 @@ label *:not(strong) {
     background-color: #ffffff;
     margin-top: 30px;
     box-shadow: 1px 1px 1px 3px #dddddd;
-    height: 950px;
 }
 
 .chsr.table {
@@ -107,9 +147,6 @@ tr:nth-child(even) {
 }
 
 .box {
-    background-color: rgba(158,158,158);
-    width: 180px;
-    height: 180px;
     border:1px solid;
     float: left;
 }

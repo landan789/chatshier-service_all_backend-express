@@ -33,5 +33,13 @@ module.exports = (function() {
         return dbx.sharingCreateSharedLink({path: path});
     };
 
+    /**
+     * @param {string} path
+     * @returns {any}
+     */
+    StorageHelper.prototype.filesDownload = function(path) {
+        return dbx.filesDownload({path: path});
+    };
+
     return new StorageHelper();
 })();
