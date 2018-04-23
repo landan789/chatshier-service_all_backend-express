@@ -1,7 +1,8 @@
 (function() {
-    // var BREAKPOINT_SM = 576;
+    var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
+
     var $navTitle = $('#navTitle');
     $navTitle.text(document.title.replace(' | Chatshier', ''));
 
@@ -18,6 +19,19 @@
     var $chatContentPanel = $('#chatContentPanel');
     var $profilePanel = $('#profilePanel');
     var $ticketPanel = $('#ticketPanel');
+
+    // 監聽 window resize 事件，監聽當有 用戶資料 或 待辦事項被開啟時
+    // 視窗有變更時的邏輯處理
+    window.addEventListener('resize', function(ev) {
+        if ($profileToggle.hasClass('active') || $ticketToggle.hasClass('active')) {
+            if (ev.target.innerWidth < BREAKPOINT_LG) {
+                $chatContentPanel.addClass('d-none');
+            } else if (ev.target.innerWidth >= BREAKPOINT_LG &&
+                $chatContentPanel.hasClass('d-none')) {
+                $chatContentPanel.removeClass('d-none');
+            }
+        }
+    });
 
     function togglePanel() {
         var $selectedTablink = $('#ctrlPanel .tablinks.selected');
@@ -37,13 +51,15 @@
         var toggleElemId = $toggleElem.attr('id');
         $toggleElem.toggleClass('active');
 
+        // 切換 用戶資料 或 待辦事項 時，如果視窗寬度小於 lg 尺寸時
+        // 將聊天室視窗關閉，使用戶資料 或 待辦事項的視窗佔全寬度
         switch (toggleElemId) {
             case 'profileToggle':
                 $ticketToggle.removeClass('active');
                 $ticketPanel.addClass('d-none');
                 $profilePanel.toggleClass('d-none');
 
-                if (window.innerWidth <= BREAKPOINT_LG) {
+                if (window.innerWidth < BREAKPOINT_LG) {
                     if ($profilePanel.hasClass('d-none')) {
                         $chatContentPanel.removeClass('d-none');
                     } else {
@@ -61,7 +77,7 @@
                 $profilePanel.addClass('d-none');
                 $ticketPanel.toggleClass('d-none');
 
-                if (window.innerWidth <= BREAKPOINT_LG) {
+                if (window.innerWidth < BREAKPOINT_LG) {
                     if ($ticketPanel.hasClass('d-none')) {
                         $chatContentPanel.removeClass('d-none');
                     } else {

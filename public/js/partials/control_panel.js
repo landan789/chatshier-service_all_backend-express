@@ -1,4 +1,9 @@
 (function() {
+    var PUT_ANINATE_DRATION = 200;
+    var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_MD = 768;
+    // var BREAKPOINT_LG = 992;
+
     // var chatshier = window.chatshier || {};
     // var api = window.restfulAPI;
     // var userId;
@@ -8,6 +13,14 @@
     // } catch (ex) {
     //     userId = '';
     // }
+
+    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
+    // 如果 control panel 使處於 收起 狀態，則將之復原
+    window.addEventListener('resize', function(ev) {
+        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
+            return switchCtrlPanel();
+        }
+    });
 
     var $pageWrappers = $('.page-wrapper');
     var $toolbar = $('.toolbar');
@@ -40,7 +53,18 @@
         // // 聊天室其他頁面關閉新增，編輯 apps 功能
         // $ctrlPanel.find('#appsSlide').remove();
         // $ctrlPanel.find('.swiper-pagination').remove();
+        $ctrlPanel.on('click', '.simple-list .chatroom-item', function() {
+            window.location.assign('/chat');
+        });
+    } else {
+        $ctrlPanel.on('click', '.simple-list .chatroom-item', switchCtrlPanel);
     }
+    $ctrlPanel.on('click', '.simple-list .messages-item', function() {
+        return switchCtrlPanel().then(function() {
+            $ctrlPanel.find('.swiper-slide-active').animate({ scrollTop: window.innerHeight }, 300);
+        });
+    });
+
     // Todo: 功能尚未完成，關閉新增，編輯 apps 功能
     $ctrlPanel.find('#appsSlide').remove();
     $ctrlPanel.find('.swiper-pagination').remove();
@@ -77,7 +101,7 @@
         // 確保移除 switchCtrlPanel 套用的樣式，確保 style 動作正常
         $ctrlPanel.removeClass('put-away');
         $edgeToggleContainer.removeClass('put-away');
-        $pageWrappers.removeClass('full-width');
+        $pageWrappers.removeClass('put-away');
 
         if ($ctrlPanel.hasClass('animating')) {
             $ctrlPanel.removeClass('animating');
@@ -100,7 +124,7 @@
         // 確保移除 switchCtrlPanel 套用的樣式，確保 style 動作正常
         $ctrlPanel.removeClass('put-away');
         $edgeToggleContainer.removeClass('put-away');
-        $pageWrappers.removeClass('full-width');
+        $pageWrappers.removeClass('put-away');
 
         if ($ctrlPanel.hasClass('animating')) {
             $ctrlPanel.removeClass('animating');
@@ -120,7 +144,15 @@
     function switchCtrlPanel() {
         $ctrlPanel.toggleClass('put-away');
         $edgeToggleContainer.toggleClass('put-away');
-        $pageWrappers.toggleClass('full-width');
+        $pageWrappers.toggleClass('put-away');
+
+        return new Promise(function(resolve) {
+            window.setTimeout(resolve, PUT_ANINATE_DRATION + 1);
+        }).then(function() {
+            $ctrlPanel.find('.detail-list').toggle();
+            $ctrlPanel.find('.simple-list').toggle();
+            ctrlPanelSwiper.update();
+        });
     }
 
     function showAppInsertModal() {

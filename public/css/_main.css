@@ -37,8 +37,8 @@ button:focus {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     transition: max-width 200ms; }
-    .page-wrapper.full-width {
-        max-width: 100%; }
+    .page-wrapper.put-away  {
+        max-width: calc(100% - 4rem); }
 
 @media (max-width: 576px) {
     .page-wrapper {
@@ -105,10 +105,18 @@ button:focus {
         letter-spacing: 1px; }
 
 
-.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove {
+.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove, .chsr .btn.check {
     height: 2rem;
     width: 2rem;
     padding: .175rem .475rem;
+}
+
+input[type=checkbox] {
+    zoom: 1.5;
+}
+
+.font-weight-900 {
+    font-weight: 900;
 }
 
 /*start of search bar*/

@@ -37,18 +37,18 @@
     </div>
     <!--alert bar end-->
 
-    <div class="root d-flex w-100 h-100">
+    <div class="root chsr d-flex w-100 h-100">
         <% include ../views/partials/control_panel.ejs %>
 
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
 
             <div class="top-toolbar">
-                <button class="btn btn-light btn-border ticket-add" data-toggle="modal" data-target="#ticketAddModal">
-                    <i class="fas fa-plus fa-fw"></i>
-                    <span>新增待辦</span>
-                </button>
+                <span class="icon"><i class="fa fa-search"></i></span>
                 <input type="text" class="ticket-search-bar" id="ticket_search_bar" placeholder="搜尋">
+                <button class="btn btn-light btn-border ticket-add insert" data-toggle="modal" data-target="#ticketAddModal">
+                        <i class="fas fa-plus fa-fw"></i>
+                </button>
             </div>
 
             <div class="chsr ticket">
