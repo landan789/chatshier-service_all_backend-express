@@ -73,7 +73,7 @@
                     '<div id="groupId" class="d-none">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">新增APP: </label>' +
+                    '<label class="col-form-label">新增機器人: </label>' +
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
@@ -1589,7 +1589,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>LINE應用程式名稱:</td>' +
+                        '<td>LINE機器人名稱:</td>' +
                         '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
@@ -1629,7 +1629,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Facebook應用程式名稱:</td>' +
+                        '<td>Facebook機器人名稱:</td>' +
                         '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
@@ -1677,7 +1677,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Wechat應用程式名稱:</td>' +
+                        '<td>Wechat機器人名稱:</td>' +
                         '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
