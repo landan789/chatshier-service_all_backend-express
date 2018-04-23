@@ -6,10 +6,6 @@
     background-color: #eee;
 }
 
-.modal-body {
-    margin-bottom: 20px;
-}
-
 label *:not(strong) {
     font-weight: normal;
 }

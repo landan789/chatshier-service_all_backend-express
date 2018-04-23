@@ -106,49 +106,51 @@
                 <div class="modal-body">
                     <!-- Form Content -->
                     <div class="form-group">
-                        <label class="col-form-label">App:</label>
+                        <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
                         <div class="select-container">
                             <select class="form-control" id="app-select"></select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>篩選發送:</label>
-                        <div class="radio-container">
-                            <input type="radio" name="who-send" id="send-all" checked="true" rel="limit-user"> <label for="send-all">全部發送</label>
-                            <input type="radio" name="who-send" id="send-somebody" rel="limit-user"> <label for="send-somebody">限制發送對象</label>
+                        <label class="col-form-label font-weight-bold">篩選發送:</label>
+                        <br/>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" name="who-send" id="send-all" checked="true" rel="limit-user">
+                            <label for="send-all" class="form-check-label">全部發送</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="form-check-input" name="who-send" id="send-somebody" rel="limit-user">
+                            <label for="send-somebody" class="form-check-label">限制發送對象</label>
                         </div>
                     </div>
-                    <!-- LIMIT USER -->
+
                     <div id="limit-user" class="card d-none">
                         <div class="card-header">條件</div>
                         <div class="card-body" id="custom-fields"></div>
                     </div>
-                    <!-- 時間 -->
+
                     <div class="form-group">
-                        <label>設定傳送時間:</label><br>
-                        <div>
-                            <input type="radio" name="when-send" id="send-now" checked='true'> <label for="send-now">立刻傳送</label>
+                        <label class="col-form-label font-weight-bold">設定傳送時間:</label>
+                        <br>
+                        <div class="my-1 form-check">
+                            <input type="radio" class="form-check-input" name="when-send" id="send-now" checked="true">
+                            <label for="send-now" class="form-check-label">立刻傳送</label>
                         </div>
-                        <div>
-                            <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
-                            <div class="input-group date" id="sendDatetimePicker">
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
-                                    </span>
+                        <div class="my-1 form-check">
+                            <input type="radio" class="form-check-input" name="when-send" id="send-sometime">
+                            <label for="send-sometime" class="form-check-label">傳送時間:</label>
+                        </div>
+                        <div class="input-group date" id="sendDatetimePicker">
+                            <span class="input-group-addon input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="far fa-calendar-alt"></i>
                                 </span>
-                                <input type="text" class="form-control" name="sendDatetime" required>
-                            </div>
+                            </span>
+                            <input type="text" class="form-control" name="sendDatetime" required>
                         </div>
-
-
                     </div>
-                    <section>
-                        <!--TEXT AREA -->
-                        <div>
-                            <table id="inputText"></table>
-                        </div>
-                    </section>
+
+                    <div class="form-group" id="inputText"></div>
                     <table>
                         <td class="add-msg-btn-padding">
                             <p>一次可以發送三則訊息</p>
@@ -158,15 +160,15 @@
                             </button>
                         </td>
                     </table>
+
                     <div class="form-group">
-                        <label class="form-check-label">
-                            存為草稿:
-                        </label>
-                            <div>
-                                <span>是</span>
-                                <span><input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft" /></span>
-                            </div>
+                        <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
+                        <div class="input-container form-check">
+                            <input class="form-check-input" id="checkbox_value" type="checkbox" name="modal-draft" />
+                            <span>是</span>
+                        </div>
                     </div>
+
                     <p class="error-input"></p>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -188,7 +190,7 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        <!-- 時間 -->
+                        <label for="edit-time" class="col-form-label font-weight-bold">傳送時間:</label>
                         <div class="form-group date-group">
                             <div class="input-group date" id="sendDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
@@ -201,7 +203,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="custom-fields">篩選條件: </label>
+                            <label for="edit-custom-fields" class="col-form-label font-weight-bold">篩選條件: </label>
                             <div id="edit-limit-user" class="card">
                                 <div class="card-header">條件</div>
                                 <div class="card-body" id="edit-custom-fields"></div>
@@ -209,16 +211,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="text">訊息: </label>
-                            <textarea class="compose-textarea" id="edutinput"></textarea>
+                            <label for="edutinput" class="col-form-label font-weight-bold">訊息: </label>
+                            <textarea class="px-2 compose-textarea" id="edutinput"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="modal-draft">
-                                    是否儲存為草稿？
-                                </label>
+                            <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
+                            <div class="input-container form-check">
+                                <input class="form-check-input" type="checkbox" name="modal-draft" />
+                                <span>是</span>
                             </div>
                         </div>
                     </form>
