@@ -115,10 +115,6 @@ input[type=checkbox] {
     zoom: 1.5;
 }
 
-.font-weight-900 {
-    font-weight: 900;
-}
-
 /*start of search bar*/
 .search {
     position: relative;
