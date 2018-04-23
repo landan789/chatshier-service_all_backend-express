@@ -54,8 +54,8 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
-                                        <th>編輯</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -67,8 +67,8 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
-                                        <th>編輯</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -80,8 +80,8 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類項目</th>
-                                        <th>編輯</th>
+                                        <th>分類</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -95,7 +95,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="composeAddModalTitle"></h5>
@@ -132,12 +132,12 @@
                         <div>
                             <input type="radio" name="when-send" id="send-sometime"> <label for="send-sometime">傳送時間:</label>
                             <div class="input-group date" id="sendDatetimePicker">
-                                <input type="text" class="form-control" name="sendDatetime" required>
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="sendDatetime" required>
                             </div>
                         </div>
 
@@ -158,11 +158,14 @@
                             </button>
                         </td>
                     </table>
-                    <div class="form-check">
+                    <div class="form-group">
                         <label class="form-check-label">
-                            <input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft">
-                            是否儲存為草稿？
+                            存為草稿:
                         </label>
+                            <div>
+                                <span>是</span>
+                                <span><input id="checkbox_value" class="form-check-input" type="checkbox" name="modal-draft" /></span>
+                            </div>
                     </div>
                     <p class="error-input"></p>
                     <div class="modal-footer">
@@ -188,15 +191,12 @@
                         <!-- 時間 -->
                         <div class="form-group date-group">
                             <div class="input-group date" id="sendDatetimePicker">
-                                <span class="input-group-prepend">
-                                    <span class="input-group-text">時間</span>
-                                </span>
-                                <input type="text" class="form-control" name="sendDatetime" id="edit-time" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="sendDatetime" id="edit-time" />
                             </div>
                         </div>
 

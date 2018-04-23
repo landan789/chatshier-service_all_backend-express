@@ -26,15 +26,15 @@
 
     var nowSelectAppId = '';
     var api = window.restfulAPI;
-    var analyzeType = AnalyzeType.MONTH; // 預設從每日單位顯示分析
+    var analyzeType = AnalyzeType.TIME;
 
     var $chartBody = $('#chartBody');
-    var $buttonGroup = $('.button-group');
     var $analyzeSdtPicker = $('#startDatetimePicker');
     var $analyzeEdtPicker = $('#endDatetimePicker');
     var $startDatetimeInput = $analyzeSdtPicker.find('input[name="startDatetime"]');
     var $endDatetimeInput = $analyzeEdtPicker.find('input[name="endDatetime"]');
     var $appDropdown = $('#appDropdown');
+    var $chartDropdown = $('#chartDropdown');
     var sTimePickerData = null;
     var eTimePickerData = null;
     var wordfreq = null;
@@ -47,11 +47,11 @@
         userId = '';
     }
 
-    $buttonGroup.find('.view-month').on('click', viewMonth);
-    $buttonGroup.find('.view-date').on('click', viewDay);
-    $buttonGroup.find('.view-hour').on('click', viewHour);
-    $buttonGroup.find('.view-time').on('click', viewTime);
-    $buttonGroup.find('.view-cloud').on('click', viewWordCloud);
+    $chartDropdown.find('.view-month').on('click', viewMonth);
+    $chartDropdown.find('.view-date').on('click', viewDay);
+    $chartDropdown.find('.view-hour').on('click', viewHour);
+    $chartDropdown.find('.view-time').on('click', viewTime);
+    $chartDropdown.find('.view-cloud').on('click', viewWordCloud);
 
     if (!window.isMobileBrowser()) {
         // 初始化 modal 裡的 datetime picker
@@ -122,7 +122,7 @@
         for (var appId in appsData) {
             messagesDataArray[appId] = [];
             $dropdownMenu.append(
-                '<a class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</a>'
+                '<span class="dropdown-item" app-id="' + appId + '">' + appsData[appId].name + '</span>'
             );
             $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
@@ -201,9 +201,10 @@
         }
     }
 
-    function viewMonth() {
+    function viewMonth(ev) {
         analyzeType = AnalyzeType.MONTH;
         $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -267,9 +268,10 @@
         generateChart(chartData); // 將資料餵給AmCharts
     }
 
-    function viewDay() {
+    function viewDay(ev) {
         analyzeType = AnalyzeType.DAY;
         $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -316,9 +318,10 @@
         generateChart(chartData);
     }
 
-    function viewHour() {
+    function viewHour(ev) {
         analyzeType = AnalyzeType.HOUR;
         $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -363,9 +366,10 @@
         generateChart(chartData);
     }
 
-    function viewTime() {
+    function viewTime(ev) {
         analyzeType = AnalyzeType.TIME;
         $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = void 0;
 
@@ -390,9 +394,10 @@
         generateChart(chartData);
     }
 
-    function viewWordCloud() {
+    function viewWordCloud(ev) {
         analyzeType = AnalyzeType.WORDCLOUR;
         $chartBody.removeAttr('style');
+        ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = new window.WordFreqSync({
             workerUrl: '/lib/js/wordfreq.worker.js',
@@ -460,11 +465,15 @@
                 minimum: 0,
                 baseValue: 999,
                 includeAllValues: true
+            }],
+            listeners: [{
+                event: 'rendered',
+                method: function() {
+                    // chart 渲染完後，移除 AmCharts 的廣告文字
+                    $chartBody.find('a[href="http://www.amcharts.com"]').remove();
+                }
             }]
         });
-
-        // chart 建立完後，移除 AmCharts 的廣告文字
-        $('a[href="http://www.amcharts.com"]').remove();
     }
 
     function getSelecedTimeData() {

@@ -6,12 +6,6 @@ body, html {
     overflow: hidden;
 }
 
-@media (max-width: 576px) {
-    body, html {
-        font-size: 85%;
-    }
-}
-
 /* disable input 時間元素時一併隱藏內建按鈕 */
 input[type="datetime-local"][disabled]::-webkit-inner-spin-button,
 input[type="datetime-local"][disabled]::-webkit-clear-button,
@@ -43,8 +37,8 @@ button:focus {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     transition: max-width 200ms; }
-    .page-wrapper.full-width {
-        max-width: 100%; }
+    .page-wrapper.put-away  {
+        max-width: calc(100% - 4rem); }
 
 @media (max-width: 576px) {
     .page-wrapper {
@@ -115,6 +109,10 @@ button:focus {
     height: 2rem;
     width: 2rem;
     padding: .175rem .475rem;
+}
+
+.font-weight-900 {
+    font-weight: 900;
 }
 
 /*start of search bar*/
