@@ -24,53 +24,50 @@
             <h3 class="page-title">分析頁面</h3>
             <div class="card analyze-body">
                 <div class="card-body">
-                    <div class="dropdown app-dropdown app-view" id="appDropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
-                            <span class="dropdown-text">請選擇分析來源</span>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
-                    </div>
+                    <div class="d-flex flex-wrap">
+                        <div class="col-12 col-lg-6 mb-3 dropdown app-dropdown app-view" id="appDropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" disabled>
+                                <span class="dropdown-text">請選擇分析來源</span>
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
+                        </div>
 
-                    <div class="my-4 px-0 col-12 col-lg-6 date-wrapper">
-                        <div class="mb-2 date-group">
-                            <div class="input-group date" id="startDatetimePicker">
-                                <span class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        開始時間
-                                    </span>
-                                </span>
-                                <input type="text" class="form-control" name="startDatetime" />
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
-                                    </span>
-                                </span>
+                        <div class="col-12 col-lg-6 mb-3 dropdown chart-dropdown" id="chartDropdown">
+                            <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <span class="dropdown-text">每時段總訊息數</span>
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="chartDropdown">
+                                <span class="dropdown-item view-time">每時段總訊息數</span>
+                                <span class="dropdown-item view-month">單位：月</span>
+                                <span class="dropdown-item view-date">單位：日</span>
+                                <span class="dropdown-item view-hour">單位：小時</span>
+                                <span class="dropdown-item view-cloud">文字頻率分析</span>
                             </div>
                         </div>
 
-                        <div class="mt-2 date-group">
-                            <div class="input-group date" id="endDatetimePicker">
-                                <span class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        結束時間
+                        <div class="mt-3 mb-4 px-0 flex-wrap date-wrapper">
+                            <div class="col-12 col-lg-6 mb-2 date-group">
+                                <div class="input-group date" id="startDatetimePicker">
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
                                     </span>
-                                </span>
-                                <input type="text" class="form-control" name="endDatetime" />
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
+                                    <input type="text" class="form-control" name="startDatetime" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-6 mb-2 date-group">
+                                <div class="input-group date" id="endDatetimePicker">
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
                                     </span>
-                                </span>
+                                    <input type="text" class="form-control" name="endDatetime" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="my-4 d-flex flex-wrap justify-content-around button-group">
-                        <button class="mb-2 btn btn-info view-month" disabled>單位：月</button>
-                        <button class="mb-2 btn btn-info view-date" disabled>單位：日</button>
-                        <button class="mb-2 btn btn-info view-hour" disabled>單位：小時</button>
-                        <button class="mb-2 btn btn-info view-time" disabled>每時段總訊息數</button>
-                        <button class="mb-2 btn btn-info view-cloud" disabled>文字頻率分析</button>
                     </div>
 
                     <div class="chart-container">
