@@ -376,15 +376,11 @@ function init(server) {
             }).then(() => {
                 // 根據 app 內的 group_id 找到群組內所有成員
                 let groupId = app.group_id;
-                return new Promise((resolve) => {
-                    groupsMdl.findUserIds(groupId, (memberUserIds) => {
-                        resolve(memberUserIds);
-                    });
-                });
+                return groupsMdl.findUserIds(groupId);
             }).then((memberUserIds) => {
                 // 將聊天室內所有的群組成員的未讀數加上訊息總數
                 // 不需更新發送者的未讀數
-                memberUserIds = memberUserIds.filter((memberUserId) => memberUserId !== senderUid);
+                memberUserIds = memberUserIds ? memberUserIds.filter((memberUserId) => memberUserId !== senderUid) : [];
                 return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, memberUserIds, messages.length);
             }).then(() => {
                 // 更新發送者的聊天狀態

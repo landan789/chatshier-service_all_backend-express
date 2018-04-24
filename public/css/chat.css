@@ -233,7 +233,7 @@ body {
 .message-group {
     display: flex;
     align-items: flex-end; }
-    .message-group.align-right {
+    .message-group.right-side {
         flex-direction: row-reverse; }
 
 .chatroom-container {
