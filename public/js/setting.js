@@ -1563,7 +1563,7 @@
             '<div id="' + groupId + '-group" class="card-collapse collapse">' +
                 '<div class="app-table-space">' +
                     '<button type="button" class="btn btn-light btn-border mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                        '<i class="fas fa-plus fa-fw"></i>新增APP' +
+                        '<i class="fas fa-plus fa-fw"></i>新增聊天機器人' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
                         '<tbody id="' + groupId + '-body"></tbody>' +
@@ -1588,7 +1588,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -1656,7 +1656,7 @@
                         '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Page Token:</td>' +
+                        '<td class="font-weight-bold">Page Access Token:</td>' +
                         '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
@@ -1676,7 +1676,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
