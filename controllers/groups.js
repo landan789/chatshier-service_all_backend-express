@@ -41,7 +41,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 groupsMdl.find(groupIds, req.params.userid, (groups) => {
                     if (null === groups || undefined === groups || '' === groups) {
-                        reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
+                        reject(API_ERROR.GROUP_FAILED_TO_FIND);
                         return;
                     }
                     resolve(groups);
