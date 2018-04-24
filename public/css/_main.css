@@ -112,8 +112,10 @@ button:focus {
 }
 
 input[type=checkbox] {
-    zoom: 1.5;
-}
+    -webkit-transform: translate3d(25%, 0, 0) scale(1.5);
+    transform: translate3d(25%, 0, 0) scale(1.5); }
+    input[type=checkbox] + label {
+        margin-left: .25rem; }
 
 /*start of search bar*/
 .search {

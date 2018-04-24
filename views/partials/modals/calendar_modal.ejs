@@ -6,10 +6,10 @@
             </div>
 
             <div class="modal-body">
-                <!-- 內容 -->
-                <div class="input-wrapper">
+                <div class="px-3 input-wrapper">
                     <div class="form-group">
-                        <input class="form-control event-title" type="text" placeholder="標題" required />
+                        <label class="form-check-label col-form-label font-weight-bold">標題</label>
+                        <input class="form-control event-title" type="text" placeholder="請輸入標題" required />
                     </div>
 
                     <div class="form-group">
@@ -36,14 +36,18 @@
                         </div>
                     </div>
 
-                    <div class="form-check checkbox-is-draft">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" id="event_is_allday">
-                            是否為全天？
-                        </label>
+                    <div class="form-group checkbox-is-draft">
+                        <label class="form-check-label col-form-label font-weight-bold">是否為全天？</label>
+                        <div class="input-container form-check">
+                            <input class="form-check-input" type="checkbox" id="event_is_allday" />
+                            <label class="form-check-label">是</label>
+                        </div>
                     </div>
 
-                    <textarea class="form-control event-content" type="text" placeholder="描述" rows="6"></textarea>
+                    <div class="form-group">
+                        <label class="col-form-label font-weight-bold">描述</label>
+                        <textarea class="form-control event-content" type="text" placeholder="請輸入描述內容" rows="6"></textarea>
+                    </div>
                 </div>
             </div>
 
