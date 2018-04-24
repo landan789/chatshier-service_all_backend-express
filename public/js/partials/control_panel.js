@@ -1,5 +1,5 @@
 (function() {
-    var PUT_ANINATE_DRATION = 200;
+    var PUT_ANINATE_DRATION = 300;
     var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     // var BREAKPOINT_LG = 992;
@@ -13,14 +13,6 @@
     // } catch (ex) {
     //     userId = '';
     // }
-
-    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
-    // 如果 control panel 使處於 收起 狀態，則將之復原
-    window.addEventListener('resize', function(ev) {
-        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
-            return switchCtrlPanel();
-        }
-    });
 
     var $pageWrappers = $('.page-wrapper');
     var $toolbar = $('.toolbar');
@@ -36,6 +28,7 @@
 
     var $edgeToggleContainer = $('#edgeToggleContainer');
     $edgeToggleContainer.on('click', '.edge-toggle-btn', switchCtrlPanel);
+    window.isMobileBrowser() && $edgeToggleContainer.addClass('hover');
 
     if ('/chat' !== window.location.pathname) {
         var $ctrlPanelChatroomItem = $('#ctrlPanelChatroomItem');
@@ -69,6 +62,7 @@
     $ctrlPanel.find('#appsSlide').remove();
     $ctrlPanel.find('.swiper-pagination').remove();
 
+    var isCtrlPanelPutAway = 'true' === window.localStorage.getItem('isCtrlPanelPutAway');
     var Swiper = window.Swiper;
     var ctrlPanelSwiper = new Swiper('#ctrlPanel.swiper-container', {
         loop: false,
@@ -76,6 +70,20 @@
         threshold: 10, // 撥動超過 10px 才進行 slide 動作
         pagination: {
             el: '#ctrlPanel .swiper-pagination'
+        },
+        on: {
+            init: function() {
+                // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
+                isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+            }
+        }
+    });
+
+    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
+    // 如果 control panel 使處於 收起 狀態，則將之復原
+    window.addEventListener('resize', function(ev) {
+        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
+            return switchCtrlPanel();
         }
     });
 
@@ -146,12 +154,15 @@
         $edgeToggleContainer.toggleClass('put-away');
         $pageWrappers.toggleClass('put-away');
 
+        isCtrlPanelPutAway = $ctrlPanel.hasClass('put-away');
+        window.localStorage.setItem('isCtrlPanelPutAway', isCtrlPanelPutAway);
+
         return new Promise(function(resolve) {
-            window.setTimeout(resolve, PUT_ANINATE_DRATION + 1);
+            window.setTimeout(resolve, PUT_ANINATE_DRATION + 50);
         }).then(function() {
+            ctrlPanelSwiper.update();
             $ctrlPanel.find('.detail-list').toggle();
             $ctrlPanel.find('.simple-list').toggle();
-            ctrlPanelSwiper.update();
         });
     }
 

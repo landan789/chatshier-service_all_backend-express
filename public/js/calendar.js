@@ -94,10 +94,10 @@
     var $eventContent = $calendarModalForm.find('textarea.event-content');
     var $eventIsAllday = $calendarModalForm.find('input#event_is_allday');
 
-    var $addCalendarBtn = $('#addCalendarBtn');
-    var $saveCalendarBtn = $('#saveCalendarBtn');
-    var $delCalendarBtn = $('#delCalendarBtn');
-    var $formCheckLabel = $('.form-check-label');
+    var $addCalendarBtn = $calendarModal.find('#addCalendarBtn');
+    var $saveCalendarBtn = $calendarModal.find('#saveCalendarBtn');
+    var $delCalendarBtn = $calendarModal.find('#delCalendarBtn');
+    var $draftCheckbox = $calendarModal.find('.draft-checkbox');
 
     var $calendarSdtPicker = $('#startDatetimePicker');
     var $calendarEdtPicker = $('#endDatetimePicker');
@@ -197,8 +197,8 @@
             updateCalendarModal(beginDate, endDate);
 
             $calendarModalTitle.text(CalendarEventTitles.CREATECALENDAR);
-            $endDatetimeInput.parent().parent().show();
-            $formCheckLabel.removeClass('d-none');
+            $endDatetimeInput.parents('.form-group').show();
+            $draftCheckbox.removeClass('d-none');
             $eventTitle.removeAttr('disabled');
             $startDatetimeInput.removeAttr('disabled');
             $endDatetimeInput.removeAttr('disabled');
@@ -258,9 +258,9 @@
                 case CalendarEventTypes.Ticket:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATETICKET);
                     $delCalendarBtn.addClass('d-none');
-                    $formCheckLabel.addClass('d-none');
+                    $draftCheckbox.addClass('d-none');
                     $startDatetimeLabel.text(CalendarEventLabels.TICKETENDEDTIME);
-                    $endDatetimeInput.parent().parent().hide();
+                    $endDatetimeInput.parents('.form-group').hide();
                     $eventTitle.attr('disabled', true);
                     $startDatetimeInput.attr('disabled', true);
                     $endDatetimeInput.attr('disabled', true);
@@ -271,10 +271,10 @@
                 default:
                     $calendarModalTitle.text(CalendarEventTitles.UPDATECALENDAR);
                     $delCalendarBtn.removeClass('d-none');
-                    $formCheckLabel.removeClass('d-none');
+                    $draftCheckbox.removeClass('d-none');
                     $startDatetimeLabel.text(CalendarEventLabels.CALENDARSTARTEDTIME);
                     $endDatetimeLabel.text(CalendarEventLabels.CALENDARENDEDTIME);
-                    $endDatetimeInput.parent().parent().show();
+                    $endDatetimeInput.parents('.form-group').show();
                     $eventTitle.removeAttr('disabled');
                     $startDatetimeInput.removeAttr('disabled');
                     $endDatetimeInput.removeAttr('disabled');
