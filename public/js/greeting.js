@@ -149,7 +149,7 @@
                 $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
+                    $.notify('刪除失敗', { type: 'danger' });
                     return;
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
@@ -157,7 +157,7 @@
                     return;
                 }
 
-                $.notify('無此權限', { type: 'danger' });
+                $.notify('刪除失敗', { type: 'danger' });
                 return;
             });
         });
@@ -212,11 +212,15 @@
             $.notify('新增成功', { type: 'success' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
-                $.notify('失敗', { type: 'danger' });
+                $.notify('新增失敗', { type: 'danger' });
+                return;
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $.notify('無此權限', { type: 'danger' });
+                return;
             }
+            $.notify('新增失敗', { type: 'danger' });
+            return;
         });
     } // end of modalSubmit
 
