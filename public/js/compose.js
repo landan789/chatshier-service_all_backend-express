@@ -467,7 +467,7 @@
                 composeGender = '';
         }
         if (0 === Object.keys(compose.field_ids).length && 0 === compose.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll" data-title="無">無</snap>';
+            fieldsTd += '<snap id="sendAll" data-title="無"></snap>';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, compose.field_ids) || composeFields;
@@ -539,6 +539,7 @@
     }
 
     function resetAddModal() {
+        debugger;
         $('.error-msg').hide();
         $('.error-input').hide();
         $('.textinput').val('');
