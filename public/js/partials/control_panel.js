@@ -28,6 +28,7 @@
 
     var $edgeToggleContainer = $('#edgeToggleContainer');
     $edgeToggleContainer.on('click', '.edge-toggle-btn', switchCtrlPanel);
+    window.isMobileBrowser() && $edgeToggleContainer.addClass('hover');
 
     if ('/chat' !== window.location.pathname) {
         var $ctrlPanelChatroomItem = $('#ctrlPanelChatroomItem');
@@ -66,7 +67,7 @@
     });
     // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
     var isCtrlPanelPutAway = window.localStorage.getItem('isCtrlPanelPutAway');
-    isCtrlPanelPutAway && switchCtrlPanel();
+    isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
 
     // Todo: 功能尚未完成，關閉新增，編輯 apps 功能
     $ctrlPanel.find('#appsSlide').remove();
@@ -155,9 +156,9 @@
         return new Promise(function(resolve) {
             window.setTimeout(resolve, PUT_ANINATE_DRATION + 50);
         }).then(function() {
+            ctrlPanelSwiper.update();
             $ctrlPanel.find('.detail-list').toggle();
             $ctrlPanel.find('.simple-list').toggle();
-            ctrlPanelSwiper.update();
         });
     }
 

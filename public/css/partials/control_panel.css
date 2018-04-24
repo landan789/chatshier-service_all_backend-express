@@ -89,7 +89,8 @@
   z-index: 1000;
   opacity: 0;
   transition: opacity 300ms;  }
-  .edge-toggle-container:hover {
+  .edge-toggle-container:hover,
+  .edge-toggle-container.hover {
     opacity: 1; }
   .edge-toggle-container .edge-toggle-btn {
     width: 100%;
