@@ -1,9 +1,23 @@
+ = Release 1.2.2 =
+Released: 2018-04-24
+== Features ==
+ * creadted: [MASTER 1.2.2][chat][UI:RWD]
+ * creadted: [MASTER 1.2.2][calendar][UI:RWD]
+ * creadted: [MASTER 1.2.2][ticket][UI:RWD]
+ * creadted: [MASTER 1.2.2][analyze][UI:RWD]
+ * creadted: [MASTER 1.2.2][compose][UI:RWD]
+ * creadted: [MASTER 1.2.2][autoreply][UI:RWD]
+ * creadted: [MASTER 1.2.2][keywordsreply][UI:RWD]
+ * creadted: [MASTER 1.2.2][greeting][UI:RWD]
+== Bug Fixes ==
+ * Fixed: some bugs
+
  = Release 1.2.1 =
 Released: 2018-04-13
 == Features ==
 
 == Bug Fixes ==
- 
+ * Fixed: some bugs
 
  = Release 1.2.0 =
 Released: 2018-04-12
