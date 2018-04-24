@@ -104,17 +104,19 @@ button:focus {
         padding-bottom: .5rem;
         letter-spacing: 1px; }
 
-
-.chsr .btn.insert, .chsr .btn.update, .chsr .btn.remove, .chsr .btn.check {
+.chsr .btn.insert,
+.chsr .btn.update,
+.chsr .btn.remove,
+.chsr .btn.check {
     height: 2rem;
     width: 2rem;
     padding: .175rem .475rem;
 }
 
-input[type=checkbox] {
+.chsr input[type=checkbox] {
     -webkit-transform: translate3d(25%, 0, 0) scale(1.5);
     transform: translate3d(25%, 0, 0) scale(1.5); }
-    input[type=checkbox] + label {
+    .chsr input[type=checkbox] + label {
         margin-left: .25rem; }
 
 /*start of search bar*/

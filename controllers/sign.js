@@ -139,7 +139,7 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
-                userId = groupsMdl.Types.ObjectId().toString();
+                userId = groupsMdl.Types.ObjectId().toHexString();
                 let group = {
                     name: DEFAULT
                 };

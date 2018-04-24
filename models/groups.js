@@ -84,7 +84,7 @@ module.exports = (function() {
         insert(userId, postGroup, callback) {
             let group = new this.Model();
             group.name = postGroup.name;
-            userId = userId.toString();
+
             // The creator of groups must be the owner of group
             group.members[0] = {
                 status: 1,
