@@ -424,7 +424,7 @@
 
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
-                        '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
+                        '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
                         '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                         appendFields(compose) +
                         '<td>' +
@@ -736,7 +736,7 @@
 
                     var trGrop =
                         '<tr id="' + composeId + '" text="' + appId + '">' +
-                            '<th id="text" data-title="' + compose.text + '">' + compose.text + '</th>' +
+                            '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
