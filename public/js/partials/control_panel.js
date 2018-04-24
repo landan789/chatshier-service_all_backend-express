@@ -62,6 +62,7 @@
     $ctrlPanel.find('#appsSlide').remove();
     $ctrlPanel.find('.swiper-pagination').remove();
 
+    var isCtrlPanelPutAway = 'true' === window.localStorage.getItem('isCtrlPanelPutAway');
     var Swiper = window.Swiper;
     var ctrlPanelSwiper = new Swiper('#ctrlPanel.swiper-container', {
         loop: false,
@@ -69,6 +70,12 @@
         threshold: 10, // 撥動超過 10px 才進行 slide 動作
         pagination: {
             el: '#ctrlPanel .swiper-pagination'
+        },
+        on: {
+            init: function() {
+                // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
+                isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+            }
         }
     });
 
@@ -79,9 +86,6 @@
             return switchCtrlPanel();
         }
     });
-    // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
-    var isCtrlPanelPutAway = window.localStorage.getItem('isCtrlPanelPutAway');
-    isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
 
     function toggleCollapse() {
         $(this).next().collapse('toggle');
