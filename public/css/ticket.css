@@ -28,18 +28,20 @@
     justify-content: center;
     margin-top: 2.5%;
     padding: 0 5%;
-    width: 100% }
+    width: 100%; }
     .chsr.ticket table {
         width: 100%;
         border: 1px solid gray;
-        border-radius: 5px; }
+        border-radius: 5px;
+        table-layout: fixed; }
     .chsr.ticket td,
     .chsr.ticket th {
         border-bottom:  1px solid rgb(5, 82, 87);
         text-align: left;
-        padding: 8px;
-        margin: 2px 0;
-        width: 115px; }
+        padding: .5rem;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden; }
     .chsr.ticket tr {
         cursor: pointer; }
     .chsr.ticket tr:nth-child(even) {
