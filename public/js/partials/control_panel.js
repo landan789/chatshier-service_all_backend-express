@@ -14,14 +14,6 @@
     //     userId = '';
     // }
 
-    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
-    // 如果 control panel 使處於 收起 狀態，則將之復原
-    window.addEventListener('resize', function(ev) {
-        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
-            return switchCtrlPanel();
-        }
-    });
-
     var $pageWrappers = $('.page-wrapper');
     var $toolbar = $('.toolbar');
     var $ctrlPanel = $('#ctrlPanel');
@@ -64,6 +56,17 @@
             $ctrlPanel.find('.swiper-slide-active').animate({ scrollTop: window.innerHeight }, 300);
         });
     });
+
+    // 監聽 window 的尺寸變更事件，當寬度小於 sm 時
+    // 如果 control panel 使處於 收起 狀態，則將之復原
+    window.addEventListener('resize', function(ev) {
+        if (ev.target.innerWidth < BREAKPOINT_SM && $ctrlPanel.hasClass('put-away')) {
+            return switchCtrlPanel();
+        }
+    });
+    // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
+    var isCtrlPanelPutAway = window.localStorage.getItem('isCtrlPanelPutAway');
+    isCtrlPanelPutAway && switchCtrlPanel();
 
     // Todo: 功能尚未完成，關閉新增，編輯 apps 功能
     $ctrlPanel.find('#appsSlide').remove();
@@ -145,6 +148,9 @@
         $ctrlPanel.toggleClass('put-away');
         $edgeToggleContainer.toggleClass('put-away');
         $pageWrappers.toggleClass('put-away');
+
+        isCtrlPanelPutAway = $ctrlPanel.hasClass('put-away');
+        window.localStorage.setItem('isCtrlPanelPutAway', isCtrlPanelPutAway);
 
         return new Promise(function(resolve) {
             window.setTimeout(resolve, PUT_ANINATE_DRATION + 50);
