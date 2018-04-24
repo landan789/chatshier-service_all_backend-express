@@ -2,12 +2,14 @@ module.exports = (function() {
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
     const CHATSHIER = require('../config/chatshier');
+    const DEFAULT = 'DEFAULT';
 
-    const ciperHlp = require('../helpers/cipher');
-    const jwtHlp = require('../helpers/jwt');
-    const fuseHlp = require('../helpers/fuse');
-    const redisHlp = require('../helpers/redis');
-    const usersMdl = require('../models/users');
+    let ciperHlp = require('../helpers/cipher');
+    let jwtHlp = require('../helpers/jwt');
+    let fuseHlp = require('../helpers/fuse');
+    let redisHlp = require('../helpers/redis');
+    let usersMdl = require('../models/users');
+    let groupsMdl = require('../models/groups');
 
     class SignController {
         postSignin(req, res, next) {
@@ -110,6 +112,7 @@ module.exports = (function() {
         postSignup(req, res, next) {
             let token;
             let users;
+            let userId;
             return Promise.resolve().then(() => {
                 if (!req.body.name) {
                     return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
@@ -136,10 +139,26 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
+                userId = groupsMdl.Types.ObjectId().toHexString();
+                let group = {
+                    name: DEFAULT
+                };
+                return new Promise((resolve, reject) => {
+                    groupsMdl.insert(userId, group, (groups) => {
+                        if (!groups) {
+                            reject(API_ERROR.GROUP_FAILED_TO_INSERT);
+                        }
+                        resolve(groups);
+                    });
+                });
+            }).then((groups) => {
+                let groupId = Object.keys(groups).shift();
                 let user = {
+                    _id: userId,
                     name: req.body.name,
                     email: req.body.email,
-                    password: ciperHlp.encode(req.body.password)
+                    password: ciperHlp.encode(req.body.password),
+                    group_ids: [groupId]
                 };
                 return new Promise((resolve, reject) => {
                     usersMdl.insert(user, (_users) => {
