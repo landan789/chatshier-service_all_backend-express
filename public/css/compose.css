@@ -21,10 +21,10 @@ table {
 }
 
 .remove-btn {
-    float: right;
     cursor: pointer;
     color: red;
-    padding: .5rem;
+    top: -0.45rem;
+    right: -0.25rem;
 }
 
 .textinput {
