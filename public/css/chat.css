@@ -525,3 +525,6 @@ body {
     .multi-select-wrapper .dropdown-toggle .multi-select-values {
         white-space: normal;
         word-wrap: break-word; }
+    .multi-select-wrapper .form-check {
+        white-space: normal;
+        word-break: break-word; }

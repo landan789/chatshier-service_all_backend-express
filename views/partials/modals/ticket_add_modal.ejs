@@ -1,4 +1,4 @@
-<div class="modal fade ticket-modal" id="ticketAddModal" role="dialog">
+<div class="chsr modal fade ticket-modal" id="ticketAddModal" role="dialog">
     <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
@@ -8,7 +8,7 @@
             <div class="modal-body">
                 <form class="px-2">
                     <div class="form-group select-app-container">
-                        <label for="app">App</label>
+                        <label for="app" class="col-form-label font-weight-bold">聊天機器人:</label>
                         <select class="form-control" id="add-form-app">
                             <option value="">載入中</option>
                         </select>
@@ -16,7 +16,7 @@
 
                     <!-- 客戶姓名 -->
                     <div class="form-group">
-                        <label for="name" class="col-form-label">客戶姓名</label>
+                        <label for="name" class="col-form-label font-weight-bold">客戶姓名:</label>
                         <select class="form-control" id="add-form-name">
                             <option value="">無資料</option>
                         </select>
@@ -24,7 +24,7 @@
 
                     <!-- 客戶Id -->
                     <div class="form-group">
-                        <label for="subject" class="col-form-label">客戶ID</label>
+                        <label for="subject" class="col-form-label font-weight-bold">客戶ID:</label>
                         <div class="input-container">
                             <input class="form-control" type="text" id="add-form-uid" readonly>
                         </div>
@@ -32,7 +32,7 @@
 
                     <!-- email -->
                     <div class="form-group">
-                        <label for="email" class="col-form-label">電子郵件</label>
+                        <label for="email" class="col-form-label font-weight-bold">電子郵件:</label>
                         <div class="input-container">
                             <input class="form-control" type="text" id="add-form-email" readonly>
                         </div>
@@ -40,21 +40,21 @@
     
                     <!-- phone -->
                     <div class="form-group">
-                        <label for="phone" class="col-form-label">手機</label>
+                        <label for="phone" class="col-form-label font-weight-bold">手機:</label>
                         <div class="input-container">
                             <input class="form-control" type="text" id="add-form-phone" readonly>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>指派人</label>
+                        <label for="assigned-name" class="col-form-label font-weight-bold">指派人:</label>
                         <select class="form-control" id="assigned-name">
                             <option value="">無資料</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="status">狀態</label>
+                        <label for="add-form-status" class="col-form-label font-weight-bold">狀態:</label>
                         <select class="form-control" id="add-form-status">
                             <option value="2">未處理</option>
                             <option value="3">處理中</option>
@@ -64,7 +64,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="priority">優先</label>
+                        <label for="add-form-priority" class="col-form-label font-weight-bold">優先:</label>
                         <select class="form-control" id="add-form-priority">
                             <option value="1">低</option>
                             <option value="2">中</option>
@@ -74,7 +74,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="description">描述</label>
+                        <label for="add_form_description" class="col-form-label font-weight-bold">描述:</label>
                         <textarea class="form-control" id="add_form_description" rows="5"></textarea>
                     </div>
 

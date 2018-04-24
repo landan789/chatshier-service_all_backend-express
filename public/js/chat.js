@@ -1347,15 +1347,23 @@
                                             }
 
                                             if ('assigned' === field.alias) {
-                                                checkboxes +=
-                                                    '<span class="dropdown-item">' +
-                                                        '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                    '</span>';
+                                                checkboxes += (
+                                                    '<div class="dropdown-item">' +
+                                                        '<div class="form-check form-check-inline">' +
+                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                            '<label class="form-check-label">' + sets[i].agentName + '</label>' +
+                                                        '</div>' +
+                                                    '</div>'
+                                                );
                                             } else {
-                                                checkboxes +=
-                                                    '<span class="dropdown-item">' +
-                                                        '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                    '</span>';
+                                                checkboxes += (
+                                                    '<div class="dropdown-item">' +
+                                                        '<div class="form-check form-check-inline">' +
+                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                            '<label class="form-check-label">' + sets[i] + '</label>' +
+                                                        '</div>' +
+                                                    '</div>'
+                                                );
                                             }
                                         }
                                         return checkboxes;

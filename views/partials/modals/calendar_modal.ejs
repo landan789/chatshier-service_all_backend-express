@@ -1,4 +1,4 @@
-<div class="modal fade calendar-modal" id="calendar_modal">
+<div class="chsr modal fade calendar-modal" id="calendar_modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,12 +8,12 @@
             <div class="modal-body">
                 <div class="px-3 input-wrapper">
                     <div class="form-group">
-                        <label class="form-check-label col-form-label font-weight-bold">標題</label>
+                        <label class="form-check-label col-form-label font-weight-bold">標題:</label>
                         <input class="form-control event-title" type="text" placeholder="請輸入標題" required />
                     </div>
 
                     <div class="form-group">
-                        <label for="startDatetime">開始時間</label>
+                        <label for="startDatetime" class="col-form-label font-weight-bold">開始時間:</label>
                         <div class="input-group date" id="startDatetimePicker">
                             <span class="input-group-addon input-group-prepend">
                                 <span class="input-group-text">
@@ -25,7 +25,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="endDatetime">結束時間</label>
+                        <label for="endDatetime" class="col-form-label font-weight-bold">結束時間:</label>
                         <div class="input-group date" id="endDatetimePicker">
                             <span class="input-group-addon input-group-prepend">
                                 <span class="input-group-text">
@@ -36,7 +36,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group checkbox-is-draft">
+                    <div class="form-group draft-checkbox">
                         <label class="form-check-label col-form-label font-weight-bold">是否為全天？</label>
                         <div class="input-container form-check">
                             <input class="form-check-input" type="checkbox" id="event_is_allday" />
@@ -45,7 +45,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-form-label font-weight-bold">描述</label>
+                        <label class="col-form-label font-weight-bold">描述:</label>
                         <textarea class="form-control event-content" type="text" placeholder="請輸入描述內容" rows="6"></textarea>
                     </div>
                 </div>
