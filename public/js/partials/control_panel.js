@@ -1,5 +1,5 @@
 (function() {
-    var PUT_ANINATE_DRATION = 200;
+    var PUT_ANINATE_DRATION = 300;
     var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     // var BREAKPOINT_LG = 992;
@@ -147,7 +147,7 @@
         $pageWrappers.toggleClass('put-away');
 
         return new Promise(function(resolve) {
-            window.setTimeout(resolve, PUT_ANINATE_DRATION + 1);
+            window.setTimeout(resolve, PUT_ANINATE_DRATION + 50);
         }).then(function() {
             $ctrlPanel.find('.detail-list').toggle();
             $ctrlPanel.find('.simple-list').toggle();

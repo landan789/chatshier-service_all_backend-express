@@ -112,7 +112,8 @@ button:focus {
 }
 
 input[type=checkbox] {
-    zoom: 1.5;
+    -webkit-transform: scale(1.5);
+    transform: scale(1.5);
 }
 
 /*start of search bar*/
