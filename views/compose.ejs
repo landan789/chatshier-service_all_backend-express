@@ -149,18 +149,18 @@
                             <input type="text" class="form-control" name="sendDatetime" required>
                         </div>
                     </div>
+                    <div class="form-group" id="inputText">
+                        <label for="edutinput" class="col-form-label font-weight-bold mb-2">內容: </label>
+                        <button class="btn btn-light btn-border insert" id="addComposeText">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <span>(一次最多 3 則)</span>
 
-                    <div class="form-group" id="inputText"></div>
-                    <table>
-                        <td class="add-msg-btn-padding">
-                            <p>一次可以發送三則訊息</p>
-                            <p class="error-msg"><b>超過訊息上限</b></p>
-                            <button class="btn btn-light btn-border add-text-btn-style" id="addComposeText">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </td>
-                    </table>
-
+                        <p class="error-msg"><b>超過訊息上限</b></p>
+                        <div>
+                            <textarea class="px-2 compose-textarea" id="inputNum1"></textarea>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
                         <div class="input-container form-check">
@@ -181,7 +181,7 @@
 
     <!-- Edit Modal -->
     <div class="chsr modal fade" id="composeEditModal" tabindex="-1" role="dialog" aria-labelledby="composeEditModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="composeEditModalTitle"></h5>
@@ -202,7 +202,6 @@
                                 <input type="text" class="form-control" name="sendDatetime" id="edit-time" />
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="edit-custom-fields" class="col-form-label font-weight-bold">篩選條件: </label>
                             <div id="edit-limit-user" class="card">
@@ -210,12 +209,10 @@
                                 <div class="card-body" id="edit-custom-fields"></div>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="edutinput" class="col-form-label font-weight-bold">訊息: </label>
                             <textarea class="px-2 compose-textarea" id="edutinput"></textarea>
                         </div>
-
                         <div class="form-group">
                             <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
                             <div class="input-container form-check">
