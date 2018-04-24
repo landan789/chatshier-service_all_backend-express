@@ -199,7 +199,7 @@
 
                     $('#autoreply-tables').append(
                         '<tr id="' + autoreplyId + '" rel="' + appId + '">' +
-                            '<th class="mb-2" id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</th>' +
+                            '<td class="mb-2" id="title" data-title="' + autoreply.title + '">' + autoreply.title + '</td>' +
                             '<td id="started-time" rel="' + autoreply.startedTime + '">' + new Date(autoreply.startedTime).toLocaleString() + '</td>' +
                             '<td id="ended-time" rel="' + autoreply.endedTime + '">' + new Date(autoreply.endedTime).toLocaleString() + '</td>' +
                             '<td id="text" data-title="' + autoreply.text + '">' + autoreply.text + '</td>' +
