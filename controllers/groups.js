@@ -102,32 +102,21 @@ module.exports = (function() {
 
                 let group = groups[groupId];
                 user.group_ids = user.group_ids || [];
-                return new Promise((resolve) => {
-                    user.group_ids.push(groupId);
-                    usersMdl.update(userId, user, () => {
-                        resolve();
-                    });
-                }).then(() => {
-                    // 群組新增處理完畢後，自動新增一個內部聊天室的 App
-                    return new Promise((resolve, reject) => {
-                        let postApp = {
-                            name: 'Chatshier - ' + group.name,
-                            type: 'CHATSHIER',
-                            group_id: groupId
-                        };
+                user.group_ids.push(groupId);
 
-                        appsMdl.insert(userId, postApp, (apps) => {
-                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                                reject(API_ERROR.APP_FAILED_TO_INSERT);
-                                return;
-                            }
-                            resolve(apps);
-                        });
-                    });
+                return usersMdl.update(userId, user).then(() => {
+                    // 群組新增處理完畢後，自動新增一個內部聊天室的 App
+                    let postApp = {
+                        name: 'Chatshier - ' + group.name,
+                        type: 'CHATSHIER',
+                        group_id: groupId
+                    };
+                    return appsMdl.insert(userId, postApp);
                 }).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                    }
                     let appId = Object.keys(apps).shift() || '';
-                    let group = groups[groupId];
-                    group.app_ids.push(appId);
 
                     // 為 App 創立一個 chatroom 並將 group 裡的 members 新增為 messagers
                     return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {

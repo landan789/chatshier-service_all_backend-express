@@ -86,12 +86,12 @@ module.exports = (function() {
             group.name = postGroup.name;
 
             // The creator of groups must be the owner of group
-            group.members[0] = {
+            group.members.push({
                 status: 1,
                 type: OWNER,
                 user_id: userId,
-                isDeleted: 0
-            };
+                isDeleted: false
+            });
 
             return group.save().then((insertedGroup) => {
                 let groupId = insertedGroup._id;
