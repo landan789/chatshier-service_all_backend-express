@@ -243,7 +243,7 @@ body {
     overflow: hidden; }
     .chatroom-container .watermark-text {
         position: absolute;
-        color: #cfcfcf;
+        color: #8e8e8e;
         opacity: .5;
         width: 100%;
         text-indent: 1rem;
@@ -323,7 +323,6 @@ body {
     height: calc(100% - 8rem);
     width: 100%; }
     .chatroom-body .chat-content {
-        float: left;
         border: 1px solid #ccc;
         height: 100%;
         border-left: none;

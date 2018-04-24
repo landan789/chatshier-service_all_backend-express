@@ -57,7 +57,7 @@
                                     <th scope="col">開始</th>
                                     <th scope="col">結束</th>
                                     <th scope="col">內容</th>
-                                    <th scope="col">動作</th>
+                                    <th scope="col">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="autoreply-tables"></tbody>
@@ -78,36 +78,42 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
+                            <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
                             <div class="select-container">
                                 <select class="form-control" id="app-select"></select>
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="modal-task-name" class="col-form-label font-weight-bold">標題:</label>
                             <div class="input-container">
-                                <input class="form-control" type="text" id="modal-task-name" placeholder="標題" />
+                                <input class="form-control" type="text" id="modal-task-name" placeholder="請輸入標題" />
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="startDatetime" class="col-form-label font-weight-bold">開始時間:</label>
                             <div class="my-2 input-group date" id="startDatetimePicker">
-                                <input type="text" class="form-control" name="startDatetime" placeholder="開始時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始時間" />
                             </div>
+
+                            <label for="endDatetime" class="col-form-label font-weight-bold">結束時間:</label>
                             <div class="my-2 input-group date" id="endDatetimePicker">
-                                <input type="text" class="form-control" name="endDatetime" placeholder="結束時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束時間" />
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="enter-text" class="col-form-label font-weight-bold">內容:</label>
                             <div id="text" class="textarea-container">
-                                <textarea class="form-control" id="enter-text" placeholder="內容"></textarea>
+                                <textarea class="form-control" id="enter-text" placeholder="請輸入內容"></textarea>
                             </div>
                         </div>
                     </form>
@@ -131,40 +137,40 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div class="form-group d-none">
-                            <label class="col-2 col-form-label">APP ID</label>
-                            <span id="edit-appid"></span>
-                        </div>
-                        <div class="form-group d-none">
-                            <label class="col-2 col-form-label">Autoreply ID</label>
-                            <span id="edit-autoreplyid"></span>
-                        </div>
+                        <span class="d-none" id="edit-appid"></span>
+                        <span class="d-none" id="edit-autoreplyid"></span>
+
                         <div class="form-group">
+                            <label for="edit-taskTitle" class="col-form-label font-weight-bold">標題:</label>
                             <div class="input-container">
                                 <input class="form-control" type="text" id="edit-taskTitle">
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="edit-taskStart" class="col-form-label font-weight-bold">開始時間:</label>
                             <div class="my-2 input-group date" id="startDatetimePicker">
-                                <input type="text" class="form-control" name="startDatetime" id="edit-taskStart" placeholder="開始時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="startDatetime" id="edit-taskStart" placeholder="請選擇開始時間" />
                             </div>
+
+                            <label for="edit-taskEnd" class="col-form-label font-weight-bold">結束時間:</label>
                             <div class="my-2 input-group date" id="endDatetimePicker">
-                                <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="結束時間" />
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
+                                <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="請選擇結束時間" />
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="edit-taskContent" class="col-form-label font-weight-bold">內容:</label>
                             <div class="textarea-container">
-                                <textarea class="form-control" id="edit-taskContent" placeholder="內容"></textarea>
+                                <textarea class="form-control" id="edit-taskContent" placeholder="請輸入內容"></textarea>
                             </div>
                         </div>
                     </form>

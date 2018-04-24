@@ -73,7 +73,7 @@
                     '<div id="groupId" class="d-none">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">新增APP: </label>' +
+                    '<label class="col-form-label">新增機器人: </label>' +
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
@@ -786,8 +786,8 @@
                             (groupName || '') +
                         '</a>' +
                     '</div>' +
-                    '<div id="' + groupId + '" class="card-collapse collapse">' +
-                        '<div class="form-group form-group-row ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                    '<div id="' + groupId + '" class="chsr-group card-collapse collapse">' +
+                        '<div class="px-3 py-2 ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
                             '<label for="group_name" class="col-form-label">群組名稱: </label>' +
                             '<div class="input-container">' +
                                 '<div class="input-group group-name" id="group_name">' +
@@ -795,14 +795,14 @@
                                     '<span class="input-group-btn btn-update">' +
                                         '<button class="btn btn-primary">更新</button>' +
                                     '</span>' +
-                    // '<span class="input-group-btn btn-delete">' +
-                    //     '<button class="btn btn-danger">刪除群組</button>' +
-                    // '</span>' +
+                                // '<span class="input-group-btn btn-delete">' +
+                                //     '<button class="btn btn-danger">刪除群組</button>' +
+                                // '</span>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
 
-                        // '<div class="form-group form-group-row">' +
+                        // '<div class="px-3 py-2">' +
                         //     '<label for="group_photo" class="col-form-label">群組圖片 (URL): </label>' +
                         //     '<div class="input-container">' +
                         //         '<div class="input-group file-container" id="group_photo">' +
@@ -814,7 +814,7 @@
                         //             '<input type="file" class="file-ghost" accept=".png,.jpg,.jpeg,.bmp">' +
                         //             '<p type="input" class="form-control file-text" data-placeholder="選擇一張圖片..."></p>' +
                         //             '<span class="input-group-btn">' +
-                        //                 '<img src="image/favicon.ico" class="img-preview" />' +
+                        //                 '<img src="image/favicon/favicon.ico" class="img-preview" />' +
                         //             '</span>' +
                         //             '<span class="input-group-btn btn-update">' +
                         //                 '<button class="btn btn-primary">更新</button>' +
@@ -823,43 +823,37 @@
                         //     '</div>' +
                         // '</div>' +
 
-                        '<table class="chsr table table-responsive chsr-group">' +
-                            '<thead>' +
-                                '<tr>' +
-                                    '<td class="user">' +
-                                        '<div class="email-input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
+                        '<div class="px-3 py-2 d-flex user-invite">' +
+                            '<div class="w-100 position-relative input-container ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                                '<input type="email" class="text user-email form-control typeahead" data-provide="typeahead" placeholder="Email 地址" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus="false" />' +
+                            '</div>' +
+                            '<div class="ml-2 permission">' +
+                                '<div class="input-group text-right">' +
+                                    '<div class="input-group-btn">' +
+                                        '<button class="btn btn-light btn-block btn-border outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                            '<span class="permission-text">權限</span>' +
+                                        '</button>' +
+                                        '<div class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                                            '<a class="dropdown-item" role="button">READ</a>' +
+                                            '<a class="dropdown-item" role="button">WRITE</a>' +
+                                            '<a class="dropdown-item" role="button">ADMIN</a>' +
                                         '</div>' +
-                                    '</td>' +
-                                    '<td class="permission">' +
-                                        '<div class="input-group text-right">' +
-                                            '<div class="input-group-btn">' +
-                                                '<button class="btn btn-light btn-block btn-border outline dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
-                                                    '<span class="permission-text">Permission</span>' +
-                                                '</button>' +
-                                                '<div class="dropdown-menu dropdown-menu-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                                    '<a class="dropdown-item" role="button">READ</a>' +
-                                                    '<a class="dropdown-item" role="button">WRITE</a>' +
-                                                    '<a class="dropdown-item" role="button">ADMIN</a>' +
-                                                '</div>' +
-                                            '</div>' +
-                                        '</div>' +
-                                    '</td>' +
-                                    '<td class="status">' +
-                                        '<div>狀態</div>' +
-                                    '</td>' +
-                                    '<td class="actions">' +
-                                        '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
-                                            '<button class="btn btn-light btn-block btn-border outline add-button">' +
-                                                '<span>邀請</span>' +
-                                                '<i class="fa fa-user-plus"></i>' +
-                                            '</button>' +
-                                        '</div>' +
-                                    '</td>' +
-                                '</tr>' +
-                            '</thead>' +
-                            '<tbody></tbody>' +
-                        '</table>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="ml-auto actions">' +
+                                '<div class="text-right ' + (memberTypes.OWNER === member.type || memberTypes.ADMIN === member.type ? '' : 'd-none') + '">' +
+                                    '<button class="btn btn-light btn-block btn-border outline add-button">' +
+                                        '<span>邀請</span>' +
+                                        '<i class="fas fa-user-plus"></i>' +
+                                    '</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+
+                        '<div class="d-flex flex-wrap justify-content-center">' +
+                            '<div class="w-100 px-2 py-3 row member-list"></div>' +
+                        '</div>' +
                     '</div>';
                 return html;
             };
@@ -878,42 +872,51 @@
                     memberTypes.OWNER !== member.type;
 
                 var html =
-                    '<tr class="group-member" member-id="' + memberId + '">' +
-                        '<td class="user">' +
-                            '<div class="chips">' +
-                                '<div class="avatar-container">' +
-                                    '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
-                                '</div>' +
-                                '<span class="avatar-name">' + (memberUser.name || memberUser.name || '') + '</span>' +
+                    '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
+                        '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
+                            '<div class="avatar-container">' +
+                                '<img class="member-avatar" src="/image/avatar-default.png" alt="Member avatar" />' +
                             '</div>' +
-                        '</td>' +
-                        '<td class="permission">' +
-                            '<div class="permission-group text-left">' +
-                                '<span class="permission-item cursor-pointer' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">READ</span>' +
-                                '<span class="permission-item cursor-pointer' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">WRITE</span>' +
-                                '<span class="permission-item cursor-pointer' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">ADMIN</span>' +
-                                '<span class="permission-item cursor-pointer' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">OWNER</span>' +
+                            '<span class="avatar-name">' + (memberUser.name || memberUser.name || '') + '</span>' +
+                        '</div>' +
+                        '<div class="d-flex flex-nowrap align-items-center permission-group">' +
+                            '<div class="mr-3 text-left">權限:</div>' +
+                            '<div class="permission-item text-center' + (memberTypes.READ === member.type ? ' btn-primary' : '') + '">' +
+                                '<span class="permission-text cursor-pointer">R</span>' +
                             '</div>' +
-                        '</td>' +
-                        '<td class="status">' +
-                            '<span class="active ' + (!member.status ? 'd-none' : '') + '">' + ACTIVE + '</span>' +
-                            '<span class="inactive ' + (member.status ? 'd-none' : '') + '">' + INACTIVE + '</span>' +
-                        '</td>' +
-                        '<td class="actions">' +
-                            '<div class="action-container text-right">' +
+                            '<div class="permission-item text-center' + (memberTypes.WRITE === member.type ? ' btn-primary' : '') + '">' +
+                                '<span class="permission-text cursor-pointer">W</span>' +
+                            '</div>' +
+                            '<div class="permission-item text-center' + (memberTypes.ADMIN === member.type ? ' btn-primary' : '') + '">' +
+                                '<span class="permission-text cursor-pointer">A</span>' +
+                            '</div>' +
+                            '<div class="permission-item text-center' + (memberTypes.OWNER === member.type ? ' btn-primary' : '') + '">' +
+                                '<span class="permission-text cursor-pointer">O</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="d-flex flex-nowrap align-items-center status">' +
+                            '<div class="mr-3 text-left">狀態:</div>' +
+                            '<div class="status-item text-left">' +
+                                '<span class="active ' + (!member.status ? 'd-none' : '') + '">' + ACTIVE + '</span>' +
+                                '<span class="inactive ' + (member.status ? 'd-none' : '') + '">' + INACTIVE + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="d-flex flex-nowrap align-items-center actions">' +
+                            '<div class="mr-3 text-left">操作:</div>' +
+                            '<div class="action-container text-left">' +
                                 '<a role="button" class="btn-join' + (!canJoin ? ' d-none' : '') + '">' +
                                     '<span class="chsr-icon">' +
-                                        '<i class="fa fa-2x fa-plus-circle action-icon"></i>' +
+                                        '<i class="fas fa-2x fa-plus-circle action-icon"></i>' +
                                     '</span>' +
                                 '</a>' +
                                 '<a role="button" class="btn-remove' + (!canDelete ? ' d-none' : '') + '">' +
                                     '<span class="chsr-icon">' +
-                                        '<i class="fa fa-2x fa-times-circle action-icon"></i>' +
+                                        '<i class="fas fa-2x fa-trash-alt action-icon"></i>' +
                                     '</span>' +
                                 '</a>' +
                             '</div>' +
-                        '</td>' +
-                    '</tr>';
+                        '</div>' +
+                    '</div>';
                 return html;
             };
 
@@ -944,9 +947,9 @@
                     $fileName: $collapse.find('.file-container .file-text'),
                     $imgPreview: $collapse.find('.file-container .img-preview'),
 
-                    $memberEmail: $collapse.find('.chsr-group .user-email'),
-                    $memberList: $collapse.find('.chsr-group tbody'),
-                    $permissionText: $collapse.find('.chsr-group .permission .permission-text')
+                    $memberEmail: $collapse.find('.user-email'),
+                    $memberList: $collapse.find('.member-list'),
+                    $permissionText: $collapse.find('.permission .permission-text')
                 };
 
                 // 群組展開時將其他群組收縮起來
@@ -1051,7 +1054,7 @@
                             instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
                             $groupElems[groupId].$memberEmail.val('');
-                            $groupElems[groupId].$permissionText.text('Permission');
+                            $groupElems[groupId].$permissionText.text('權限');
                             $.notify('群組成員新增成功', { type: 'success' });
                         });
                     }).catch(function() {
@@ -1156,14 +1159,20 @@
                 $groupElems[groupId].$memberList.append(memberItemHtml);
 
                 var $memberRow = $groupElems[groupId].$memberList.find('[member-id="' + memberId + '"]');
-                var $memberPermission = $memberRow.find('.permission');
+                var $memberPermission = $memberRow.find('.permission-item');
                 var $memberStatus = $memberRow.find('.status');
                 var $memberActions = $memberRow.find('.actions');
 
                 // 使用者點擊群組內的事件處理
-                $memberPermission.on('click', '.permission-item', function() {
+                $memberPermission.on('click', function() {
                     var $permissionItem = $(this);
-                    var wantPermission = memberTypes[$permissionItem.text()];
+                    var $permissionText = $permissionItem.find('.permission-text');
+                    var wantPermission = {
+                        'R': memberTypes.READ,
+                        'W': memberTypes.WRITE,
+                        'A': memberTypes.ADMIN,
+                        'O': memberTypes.OWNER
+                    }[$permissionText.text()];
 
                     if (wantPermission === groups[groupId].members[memberId].type) {
                         // 想變更的權限與目前的權限一樣，無需執行更新
@@ -1580,7 +1589,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>LINE應用程式名稱:</td>' +
+                        '<td>LINE機器人名稱:</td>' +
                         '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
@@ -1620,7 +1629,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Facebook應用程式名稱:</td>' +
+                        '<td>Facebook機器人名稱:</td>' +
                         '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
@@ -1668,7 +1677,7 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Wechat應用程式名稱:</td>' +
+                        '<td>Wechat機器人名稱:</td>' +
                         '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +

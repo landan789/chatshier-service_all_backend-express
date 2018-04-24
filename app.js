@@ -31,6 +31,6 @@ app.use('/api/*', routerHlp.requestNotExistentApi);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
-app.use('/((?!api|webhook))/*', routerHlp.requestNotExistentPath);
+app.use(/\/((?!api|webhook).)*/, routerHlp.requestNotExistentPath);
 
 module.exports = app;

@@ -171,8 +171,8 @@
                         '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
-                            '<button type="button" class="m-1 btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="m-1 btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#keywordreply_edit_modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
                     if (!keywordreply.status) {
