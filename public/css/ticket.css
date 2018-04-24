@@ -18,12 +18,9 @@
         resize: vertical; }
 
 .top-toolbar {
-    display: flex;
-    justify-content: flex-end;
-    margin: 2% 10% 0; }
-    .top-toolbar .ticket-add {
-        margin-right: 2.5%; }
+    justify-content: flex-end; }
     .top-toolbar .ticket-search-bar {
+        border: 1px solid #bbb;
         width: 25%; }
 
 .chsr.ticket {
