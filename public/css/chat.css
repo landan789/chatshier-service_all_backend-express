@@ -372,7 +372,7 @@ body {
         width: 100%;
         z-index: 1; }
         .message-input.form-lower .submit-message-input {
-            width: 100%;
+            width: calc(100% - 2.5rem);
             height: 80%;
             border: none; }
     .message-input .submit-message-btn {
@@ -391,7 +391,7 @@ body {
             height: 100%;
             background-blend-mode: color;
             background-size: cover;
-            background-image: url("./../image/send-btn.svg"); }
+            background-image: url("/image/send-btn.svg"); }
         .message-input .submit-message-btn:hover {
             background-color: rgba(255, 255, 255, .5); }
     .message-input .media-btn {
@@ -503,11 +503,11 @@ body {
         font-size: .85rem; }
 
 .consumer-avatar {
-    width: 64px;
-    height: 64px; }
+    width: 4rem;
+    height: 4rem; }
     .consumer-avatar.larger {
-        width: 128px;
-        height: 128px; }
+        width: 8rem;
+        height: 8rem; }
 
 .click-here {
     margin-left: 10px;
