@@ -47,16 +47,12 @@ module.exports = (function() {
                 });
             }
 
-            return new Promise((resolve, reject) => {
-                groupsMdl.findUserIds(groupIds, (userIds) => {
-                    if (!userIds) {
-                        reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
-                        return;
-                    };
-                    (userIds.indexOf(userId) < 0) && userIds.push(userId);
-                    resolve(userIds);
-                });
-            }).then((userIds) => {
+            return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
+                if (!userIds) {
+                    return Promise.reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
+                };
+                (userIds.indexOf(userId) < 0) && userIds.push(userId);
+
                 return new Promise((resolve, reject) => {
                     // 有 query email 就不搜尋使用者下的所有群組的的所有成員 USERIDs
                     if (queryEmail) {
