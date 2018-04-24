@@ -217,6 +217,7 @@ body {
         .message .content img,
         .message .content video {
             width: 100%;
+            max-width: 20rem;
             height: auto;
             border-radius: .5rem; }
         .message .content .location-icon {
