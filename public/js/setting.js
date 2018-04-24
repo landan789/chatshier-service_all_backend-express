@@ -1588,7 +1588,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
