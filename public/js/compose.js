@@ -161,21 +161,12 @@
             $('.error-msg').show();
             inputNum--;
         } else {
-            $('#inputText').append(
-                '<div class="m-3">' +
-                    '<i class="fas fa-times remove-btn"></i>' +
-                    '<tr>' +
-                        '<th class="p-3" style="background-color: #ddd">輸入文字:</th>' +
-                    '</tr>' +
-                    '<tr>' +
-                        '<td style="background-color: #ddd">' +
-                            '<form style="padding:1%">' +
-                                '<textarea name="inputNum' + inputNum + '" class="textinput" id="inputNum' + inputNum + '" row="5"></textarea>' +
-                            '</form>' +
-                        '</td>' +
-                    '</tr>' +
-                '</div>'
-            );
+
+            let textAreaString = '<div class="mt-2 position-relative">' +
+                                    '<i class="fas fa-times remove-btn position-absolute"></i>' +
+                                    '<textarea class="px-2 compose-textarea" id="inputNum' + inputNum + '"></textarea>' +
+                                 '</div>';
+            $('#inputText').append(textAreaString);
             inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
         }
     }
@@ -476,7 +467,7 @@
                 composeGender = '';
         }
         if (0 === Object.keys(compose.field_ids).length && 0 === compose.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll" data-title="無">無</snap>';
+            fieldsTd += '<snap id="sendAll" data-title="無"></snap>';
             return fieldsTd;
         }
         composeFields = Object.assign(composeFields, compose.field_ids) || composeFields;
@@ -548,6 +539,7 @@
     }
 
     function resetAddModal() {
+        debugger;
         $('.error-msg').hide();
         $('.error-input').hide();
         $('.textinput').val('');
@@ -557,7 +549,9 @@
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
         $('#checkbox_value').prop('checked', false);
-        $('#inputText').empty();
+        $('#inputText').find('textarea').eq(2).parent().remove();
+        $('#inputText').find('textarea').eq(1).parent().remove();
+        $('#inputText').find('textarea').eq(0).val('');
 
         var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
         // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
@@ -569,7 +563,9 @@
         }
 
         inputObj = {};
-        inputNum = 0;
+        inputObj['inputNum1'] = 'inputNum1';
+
+        inputNum = 1;
         deleteNum = 0;
         ageRange = [];
         gender = '';
@@ -665,10 +661,9 @@
                     $composeAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
                     $('.textinput').val('');
-                    $('#inputText').empty();
                     $composesAddDtInput.val('');
 
-                    inputNum = 0;
+                    inputNum = 1;
                     $.notify('新增成功', { type: 'success' });
                     $appDropdown.find('.dropdown-text').text(appsData[appId].name);
                     $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
@@ -691,9 +686,8 @@
                     if (1 === json.status) {
                         $('.form-control').val(appsData[appId].name);
                         $('.textinput').val('');
-                        $('#inputText').empty();
                         $composesAddDtInput.val('');
-                        inputNum = 0;
+                        inputNum = 1;
 
                         $.notify('發送成功', { type: 'success' });
                         $appDropdown.find('.dropdown-text').text(appsData[appId].name);
@@ -740,8 +734,8 @@
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
-                                '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                                '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit insert" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
+                                '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                             '</td>' +
                         '</tr>';
                     if (!compose.status) {
