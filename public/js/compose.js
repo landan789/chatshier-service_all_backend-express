@@ -7,7 +7,6 @@
     var SOCKET_NAMESPACE = '/chatshier';
     const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
-    var inputObj = {};
     var ageRange = [];
     var gender = '';
     var fieldIds = {};
@@ -143,9 +142,7 @@
     } // end of loadFriendsReply
 
     function removeInput() {
-        var id = $(this).parent().find('form').find('textarea').attr('id');
         deleteNum++;
-        delete inputObj[id];
         if (inputNum - deleteNum < 4) {
             $('.error-msg').hide();
         };
@@ -164,13 +161,12 @@
             inputNum--;
         } else {
             let textAreaHtml = (
-                '<div class="mt-2 d-flex align-items-center justify-content-between input-container">' +
-                    '<textarea class="px-1 compose-textarea text-input" id="inputNum' + inputNum + '"></textarea>' +
-                    '<i class="m-auto p-2 fas fa-trash-alt remove-btn"></i>' +
+                '<div class="position-relative mt-2 input-container">' +
+                    '<textarea class="px-1 compose-textarea text-input"></textarea>' +
+                    '<i class="position-absolute p-2 fas fa-times remove-btn"></i>' +
                 '</div>'
             );
             $('#inputWarpper').append(textAreaHtml);
-            inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
         }
     }
 
@@ -565,9 +561,6 @@
             $composesAddDtInput.val(toDatetimeLocal(new Date(dateNowLater)));
         }
 
-        inputObj = {};
-        inputObj['inputNum1'] = 'inputNum1';
-
         inputNum = 1;
         deleteNum = 0;
         ageRange = [];
@@ -604,6 +597,7 @@
     }
 
     function insertSubmit() {
+        var $inputWarpper = $('#inputWarpper');
         var $errorMsgElem = $composeAddModal.find('.error-input');
         var appId = $appSelector.find('option:selected').val();
         var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
@@ -644,10 +638,10 @@
 
         let messages = [];
         if ($('#send-now').prop('checked')) {
-            for (let key in inputObj) {
+            $inputWarpper.find('.input-container textarea').each(function() {
                 let compose = {
                     type: 'text',
-                    text: $('#' + key).val(),
+                    text: $(this).val(),
                     status: 1,
                     time: Date.now() - 60000,
                     ageRange: ageRange,
@@ -655,7 +649,7 @@
                     field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
                 };
                 messages.push(compose);
-            }
+            });
 
             // 如果是屬於草稿則不做立即發送動作
             // 將群發訊息存入資料庫，等待使用者再行編輯
@@ -712,13 +706,13 @@
                 return loadComposes(appId, userId);
             });
         } else if ($('#send-sometime').prop('checked')) {
-            for (let key in inputObj) {
+            $inputWarpper.find('.input-container textarea').each(function() {
                 let message = {
                     type: 'text',
-                    text: $('#' + key).val()
+                    text: $(this).val()
                 };
                 messages.push(message);
-            };
+            });
 
             return insert(appId, userId, messages, options).then((responses) => {
                 responses.forEach((response) => {
