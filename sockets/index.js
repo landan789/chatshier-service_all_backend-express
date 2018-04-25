@@ -140,18 +140,20 @@ function init(server) {
                     platformMessager = messagers[platformUid];
                 });
             }).then(() => {
+
                 if (!platformMessager) {
                     return [];
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
+                console.log(JSON.stringify(152, null, 4));
+
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
                     fromPath = receivedMessages[0].fromPath;
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
-                console.trace(JSON.stringify(154, null, 4));
 
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
@@ -167,17 +169,13 @@ function init(server) {
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
-                console.trace(JSON.stringify(168, null, 4));
-
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
-                console.trace(JSON.stringify(172, null, 4));
-
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-                console.trace(JSON.stringify(174, null, 4));
+                console.log(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
@@ -189,18 +187,17 @@ function init(server) {
                 if (!groups) {
                     return [];
                 }
-                console.trace(JSON.stringify(groups, null, 4));
+                console.log(JSON.stringify(groups, null, 4));
 
                 let group = groups[app.group_id];
                 let members = group.members;
-                let recipientUids = Object.keys(members).filter((memberId) => {
+                let recipientUids = [];
+                Object.keys(members).forEach((memberId) => {
                     if (false === members[memberId].isDeleted && true === members[memberId].status) {
                         let userId = members[memberId].user_id;
-                        return true;
+                        recipientUids.push(userId);
                     }
-                    return false;
                 });
-                console.trace(JSON.stringify(recipientUids, null, 4));
 
                 return recipientUids;
 
@@ -222,7 +219,7 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
-                console.trace(JSON.stringify(recipientUids, null, 4));
+                console.log(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
