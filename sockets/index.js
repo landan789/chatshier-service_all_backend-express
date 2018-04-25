@@ -21,7 +21,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const consumersMdl = require('../models/consumers');
 const groupsMdl = require('../models/groups');
 
-const controllerCre = require('../cores/controller');
+const ControllerCore = require('../cores/controller');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
@@ -443,7 +443,7 @@ function init(server) {
                 chatroomId: chatroomId
             };
 
-            return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
+            return ControllerCore.appsRequestVerify(req).then((checkedAppIds) => {
                 if (!platformUid) {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
@@ -493,7 +493,7 @@ function init(server) {
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
-            return controllerCre.AppsRequestVerify(req).then(() => {
+            return ControllerCore.appsRequestVerify(req).then(() => {
                 if (!appId) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };
