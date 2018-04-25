@@ -187,8 +187,6 @@ function init(server) {
                 if (!groups) {
                     return [];
                 }
-                console.log(JSON.stringify(groups, null, 4));
-
                 let group = groups[app.group_id];
                 let members = group.members;
                 let recipientUids = [];
@@ -219,12 +217,10 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
-                console.log(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-                        console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
@@ -248,7 +244,6 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
@@ -259,7 +254,6 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
-
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
@@ -268,7 +262,6 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
                 }
@@ -299,8 +292,7 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
-
-            console.trace(JSON.stringify(error, null, 4));
+            console.trace(error);
             !res.headersSent && res.sendStatus(500);
         });
 
