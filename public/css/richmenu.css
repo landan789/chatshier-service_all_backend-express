@@ -102,11 +102,6 @@ label *:not(strong) {
     border-top: 1px solid #888;
 }
 
-.operating-btn {
-    padding: 5px;
-    margin-left: 10px;
-}
-
 .title {
     text-align: left;
     background-color: #F4F4F4;

@@ -1,4 +1,6 @@
 module.exports = (function() {
+    const ControllerCore = require('../cores/controller');
+
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
     const CHATSHIER = require('../config/chatshier');
@@ -8,13 +10,22 @@ module.exports = (function() {
     let jwtHlp = require('../helpers/jwt');
     let fuseHlp = require('../helpers/fuse');
     let redisHlp = require('../helpers/redis');
+
     let appsMdl = require('../models/apps');
     let appsChatroomsMdl = require('../models/apps_chatrooms');
     let appsFieldsMdl = require('../models/apps_fields');
     let usersMdl = require('../models/users');
     let groupsMdl = require('../models/groups');
 
-    class SignController {
+    class SignController extends ControllerCore {
+        constructor() {
+            super();
+            this.postSignin = this.postSignin.bind(this);
+            this.postSignout = this.postSignout.bind(this);
+            this.postSignup = this.postSignup.bind(this);
+            this.postRefresh = this.postRefresh.bind(this);
+        }
+
         postSignin(req, res, next) {
             let token;
             let users;
