@@ -10,8 +10,8 @@ Released: 2018-04-24
  * creadted: [MASTER 1.2.2][keywordsreply][UI:RWD]
  * creadted: [MASTER 1.2.2][greeting][UI:RWD]
 == Bug Fixes ==
- * Fixed: some bugs
-
+ * Fixed: some UI bugs
+ * Fixed: [MASTER 1.2.2][chat][isDeleted group member or none status group member should not chat on the group]
  = Release 1.2.1 =
 Released: 2018-04-13
 == Features ==
