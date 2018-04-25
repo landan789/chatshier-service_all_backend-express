@@ -4,7 +4,7 @@ Released: 2018-04-25
 
 == Bug Fixes ==
  * Fixed: some UI bugs
- * refactor: switch the classes of controller to ES6 class syntax
+ * refacted: switch the classes of controller to ES6 class syntax
  
  = Release 1.2.2 =
 Released: 2018-04-24
