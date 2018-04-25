@@ -199,14 +199,13 @@ function init(server) {
 
                 let group = groups[app.group_id];
                 let members = group.members;
-                let recipientUids = Object.keys(members).filter((memberId) => {
+                let recipientUids = [];
+                Object.keys(members).map((memberId) => {
                     if (false === members[memberId].isDeleted && true === members[memberId].status) {
                         let userId = members[memberId].user_id;
-                        return true;
+                        recipientUids.push(userId);
                     }
-                    return false;
                 });
-                console.trace(JSON.stringify(recipientUids, null, 4));
 
                 return recipientUids;
 
