@@ -224,7 +224,7 @@ function init(server) {
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-                        console.trace(JSON.stringify(appsChatroomsMessagers, null, 4));
+                        console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
