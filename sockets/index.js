@@ -20,6 +20,7 @@ const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const consumersMdl = require('../models/consumers');
 const groupsMdl = require('../models/groups');
+const groupsMembersMdl = require('../models/groups_members');
 
 const ControllerCore = require('../cores/controller');
 
@@ -99,6 +100,7 @@ function init(server) {
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
+
                 return botSvc.retrievePlatformUid(req, app);
             }).then((_platformUid) => {
                 platformUid = _platformUid;
@@ -146,8 +148,6 @@ function init(server) {
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
-                console.log(JSON.stringify(152, null, 4));
-
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
                     fromPath = receivedMessages[0].fromPath;
@@ -175,33 +175,26 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-                console.log(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
-                    groupsMdl.find(app.group_id, null, (groups) => {
-                        resolve(groups);
+                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
+                        resolve(members);
                     });
                 });
-            }).then((groups) => {
+            }).then((members) => {
 
-                if (!groups) {
+                if (!members) {
                     return [];
                 }
-                console.log(JSON.stringify(groups, null, 4));
+                let recipientUids = Object.keys(members).map((memberId) => {
+                    let userId = members[memberId].user_id;
 
-                let group = groups[app.group_id];
-                let members = group.members;
-                let recipientUids = [];
-                Object.keys(members).forEach((memberId) => {
-                    if (false === members[memberId].isDeleted && true === members[memberId].status) {
-                        let userId = members[memberId].user_id;
-                        recipientUids.push(userId);
-                    }
+                    return userId;
                 });
 
                 return recipientUids;
-
             }).then((recipientUids) => {
+                console.log(196);
 
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
@@ -219,9 +212,9 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
-                console.log(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
+                console.log(recipientUids);
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
                         console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
@@ -248,7 +241,6 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
@@ -259,7 +251,6 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
-
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
@@ -268,7 +259,6 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
                 }
@@ -299,8 +289,7 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
-
-            console.trace(JSON.stringify(error, null, 4));
+            console.trace(error);
             !res.headersSent && res.sendStatus(500);
         });
 
