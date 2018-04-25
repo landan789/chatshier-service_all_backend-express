@@ -1,3 +1,11 @@
+  = Release 1.2.3 =
+Released: 2018-04-25
+== Features ==
+
+== Bug Fixes ==
+ * Fixed: some UI bugs
+ * refacted: switch the classes of controller to ES6 class syntax
+ 
  = Release 1.2.2 =
 Released: 2018-04-24
 == Features ==
@@ -10,8 +18,9 @@ Released: 2018-04-24
  * creadted: [MASTER 1.2.2][keywordsreply][UI:RWD]
  * creadted: [MASTER 1.2.2][greeting][UI:RWD]
 == Bug Fixes ==
- * Fixed: some bugs
-
+ * Fixed: some UI bugs
+ * Fixed: [MASTER 1.2.2][chat][isDeleted group member or none status group member should not chat on the group]
+ * refactor(controller): switch to ES6 class syntax
  = Release 1.2.1 =
 Released: 2018-04-13
 == Features ==

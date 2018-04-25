@@ -133,7 +133,7 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string[]} appIds
+         * @param {string|string[]} appIds
          * @param {string} composeId
          * @param {(appComposes: any) => any} [callback]
          */

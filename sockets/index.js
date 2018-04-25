@@ -21,7 +21,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const consumersMdl = require('../models/consumers');
 const groupsMdl = require('../models/groups');
 
-const controllerCre = require('../cores/controller');
+const ControllerCore = require('../cores/controller');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
@@ -151,6 +151,8 @@ function init(server) {
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
+                console.trace(JSON.stringify(154, null, 4));
+
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
                     // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
@@ -165,31 +167,45 @@ function init(server) {
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
+                console.trace(JSON.stringify(168, null, 4));
+
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
+                console.trace(JSON.stringify(172, null, 4));
+
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
+                console.trace(JSON.stringify(174, null, 4));
+
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
                         resolve(groups);
                     });
                 });
             }).then((groups) => {
+
                 if (!groups) {
                     return [];
                 }
+                console.trace(JSON.stringify(groups, null, 4));
 
                 let group = groups[app.group_id];
                 let members = group.members;
-                let recipientUids = Object.keys(members).map((memberId) => {
-                    let userId = members[memberId].user_id;
-                    // 有新訊息時，群組中的成員需要更新 unRead 數
-                    return userId;
+                let recipientUids = Object.keys(members).filter((memberId) => {
+                    if (false === members[memberId].isDeleted && true === members[memberId].status) {
+                        let userId = members[memberId].user_id;
+                        return true;
+                    }
+                    return false;
                 });
+                console.trace(JSON.stringify(recipientUids, null, 4));
+
                 return recipientUids;
+
             }).then((recipientUids) => {
+
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
                 }
@@ -206,10 +222,13 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
+                console.trace(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
+                        console.trace(JSON.stringify(appsChatroomsMessagers, null, 4));
+
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
                         let recipientMsger = messagers[recipientUid];
@@ -232,6 +251,7 @@ function init(server) {
                     });
                 }));
             }).then(() => {
+
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
@@ -242,6 +262,7 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
+
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
@@ -250,6 +271,7 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
+
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
                 }
@@ -280,7 +302,8 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
-            console.trace(error);
+
+            console.trace(JSON.stringify(error, null, 4));
             !res.headersSent && res.sendStatus(500);
         });
 
@@ -427,7 +450,7 @@ function init(server) {
                 chatroomId: chatroomId
             };
 
-            return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
+            return ControllerCore.appsRequestVerify(req).then((checkedAppIds) => {
                 if (!platformUid) {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
@@ -477,7 +500,7 @@ function init(server) {
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
-            return controllerCre.AppsRequestVerify(req).then(() => {
+            return ControllerCore.appsRequestVerify(req).then(() => {
                 if (!appId) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };

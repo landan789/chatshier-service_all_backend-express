@@ -42,8 +42,8 @@ router.post('/apps/users/:userid', appsCtl.postOne);
 router.put('/apps/apps/:appid/users/:userid', appsCtl.putOne);
 router.delete('/apps/apps/:appid/users/:userid', appsCtl.deleteOne);
 
-router.get('/apps-tickets/users/:userid', appsTicketsCtl.getAllByUserid);
-router.get('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.getAllByUserid);
+router.get('/apps-tickets/users/:userid', appsTicketsCtl.getAll);
+router.get('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.getAll);
 router.get('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.getOne);
 router.post('/apps-tickets/apps/:appid/users/:userid', appsTicketsCtl.postOne);
 router.put('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsTicketsCtl.putOne);
@@ -55,7 +55,7 @@ router.get('/apps-chatrooms/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms/apps/:appid/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms-messagers/users/:userid', appsChatroomsMessagersCtl.getAll);
 router.get('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.getAll);
-router.put('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.update);
+router.put('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.putOne);
 // ===============
 
 // ==========
@@ -129,7 +129,7 @@ router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid',
 // consumer 個人資料訊息相關
 router.get('/consumers/users/:userid', consumersCtl.getAll);
 router.get('/consumers/consumers/:platformuid/users/:userid', consumersCtl.getOne);
-router.put('/consumers/consumers/:platformuid/users/:userid', consumersCtl.update);
+router.put('/consumers/consumers/:platformuid/users/:userid', consumersCtl.putOne);
 // ===============
 
 // vendor 的個人資料
