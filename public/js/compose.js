@@ -618,10 +618,6 @@
         $('.text-input').each(function() {
             isTextVaild &= !!$(this).val();
         });
-        if (sendTime < Date.now()) {
-            $errorMsgElem.text('群發時間必須大於現在時間').show();
-            return;
-        };
 
         if (!isTextVaild) {
             $errorMsgElem.text('請輸入群發的內容').show();
@@ -706,6 +702,11 @@
                 return loadComposes(appId, userId);
             });
         } else if ($('#send-sometime').prop('checked')) {
+            if (sendTime < Date.now()) {
+                $errorMsgElem.text('群發時間必須大於現在時間').show();
+                return;
+            };
+
             $inputWarpper.find('.input-container textarea').each(function() {
                 let message = {
                     type: 'text',
