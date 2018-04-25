@@ -89,6 +89,7 @@ function init(server) {
             let fromPath;
             let toPath;
             let _messages;
+            console.log(92);
 
             return appsMdl.find(null, webhookid).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
@@ -112,6 +113,7 @@ function init(server) {
                 if (!platformUid) {
                     return;
                 }
+                console.log(115);
 
                 consumers = _consumers;
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
@@ -147,12 +149,14 @@ function init(server) {
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
+                console.log(150);
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
                     fromPath = receivedMessages[0].fromPath;
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
+                console.log(156);
 
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
@@ -170,6 +174,7 @@ function init(server) {
             }).then(() => {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
+                console.log(173);
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
