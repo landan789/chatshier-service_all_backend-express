@@ -88,7 +88,6 @@ function init(server) {
             let fromPath;
             let toPath;
             let _messages;
-            console.trace(JSON.stringify(91, null, 4));
 
             return appsMdl.find(null, webhookid).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
@@ -112,7 +111,6 @@ function init(server) {
                 if (!platformUid) {
                     return;
                 }
-                console.trace(JSON.stringify(115, null, 4));
 
                 consumers = _consumers;
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
@@ -142,7 +140,6 @@ function init(server) {
                     platformMessager = messagers[platformUid];
                 });
             }).then(() => {
-                console.log(JSON.stringify(145, null, 4));
 
                 if (!platformMessager) {
                     return [];
@@ -157,7 +154,6 @@ function init(server) {
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
-                console.log(JSON.stringify(161, null, 4));
 
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
@@ -173,12 +169,8 @@ function init(server) {
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
-                console.log(JSON.stringify(168, null, 4));
-
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
-                console.log(JSON.stringify(172, null, 4));
-
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
@@ -200,7 +192,7 @@ function init(server) {
                 let group = groups[app.group_id];
                 let members = group.members;
                 let recipientUids = [];
-                Object.keys(members).map((memberId) => {
+                Object.keys(members).forEach((memberId) => {
                     if (false === members[memberId].isDeleted && true === members[memberId].status) {
                         let userId = members[memberId].user_id;
                         recipientUids.push(userId);
