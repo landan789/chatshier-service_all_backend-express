@@ -213,10 +213,13 @@ function init(server) {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
                 console.log(JSON.stringify(215, null, 4));
+                console.log(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
+                        console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
+
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
                         let recipientMsger = messagers[recipientUid];
