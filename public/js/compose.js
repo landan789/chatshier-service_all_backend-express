@@ -162,8 +162,8 @@
         } else {
             let textAreaHtml = (
                 '<div class="position-relative mt-3 input-container">' +
-                    '<textarea class="pl-2 pr-4 compose-textarea text-input"></textarea>' +
-                    '<i class="position-absolute p-1 fas fa-times remove-btn"></i>' +
+                    '<textarea class="pl-2 compose-textarea text-input"></textarea>' +
+                    '<i class="position-absolute fas fa-times remove-btn"></i>' +
                 '</div>'
             );
             $('#inputWarpper').append(textAreaHtml);

@@ -8,7 +8,7 @@
     cursor: pointer;
     color: #000;
     top: 0;
-    right: 0;
+    right: .3rem;
     font-size: 1.5em;
 }
 
@@ -16,4 +16,5 @@
     resize: none;
     width: 100%;
     height: 5rem;
+    padding-right: 1.8rem;
 }
