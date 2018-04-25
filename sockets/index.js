@@ -171,7 +171,6 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-                console.log(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
@@ -179,7 +178,6 @@ function init(server) {
                     });
                 });
             }).then((groups) => {
-                console.log(JSON.stringify(180, null, 4));
 
                 if (!groups) {
                     return [];
@@ -199,11 +197,13 @@ function init(server) {
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
                 }
+                console.log(JSON.stringify(200, null, 4));
 
                 let eventType = '';
                 if (receivedMessages.length > 0) {
                     eventType = receivedMessages[0].eventType || null;
                 }
+                console.log(JSON.stringify(206, null, 4));
 
                 // 接收到的事件為 follow 或 unfollow 時
                 // 只處理 repliedMessages
@@ -212,6 +212,7 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
+                console.log(JSON.stringify(215, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
@@ -238,7 +239,7 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                console.log(JSON.stringify(235, null, 4));
+                console.log(JSON.stringify(242, null, 4));
 
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
@@ -250,7 +251,7 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
-                console.log(JSON.stringify(245, null, 4));
+                console.log(JSON.stringify(254, null, 4));
 
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
@@ -260,7 +261,7 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-                console.log(JSON.stringify(253, null, 4));
+                console.log(JSON.stringify(264, null, 4));
 
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
