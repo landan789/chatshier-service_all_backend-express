@@ -162,7 +162,7 @@
             inputNum--;
         } else {
 
-            let textAreaString = '<div class="mt-2 position-relative">' +
+            let textAreaString = '<div class="mt-3 position-relative">' +
                                     '<i class="fas fa-times remove-btn position-absolute"></i>' +
                                     '<textarea class="px-2 compose-textarea" id="inputNum' + inputNum + '"></textarea>' +
                                  '</div>';
