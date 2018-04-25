@@ -22,9 +22,10 @@ table {
 
 .remove-btn {
     cursor: pointer;
-    color: red;
-    top: -0.45rem;
-    right: -0.25rem;
+    color: #000000;
+    top: 0rem;
+    right: 0.3rem;
+    font-size: 1.5em;
 }
 
 .textinput {
