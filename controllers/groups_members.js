@@ -130,7 +130,7 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, (groupsMembers) => {
+                    groupsMembersMdl.findMembers(groupId, null, false, true, (groupsMembers) => {
                         if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
@@ -275,7 +275,7 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, (members) => {
+                    groupsMembersMdl.findMembers(groupId, null, false, true, (members) => {
                         if (!members || (members && 0 === Object.keys(members).length)) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;

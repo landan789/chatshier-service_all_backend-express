@@ -58,7 +58,18 @@ module.exports = (function() {
             });
         }
 
-        findMembers(groupId, memberIds, callback) {
+
+        /**
+         * 根據 groupId 找到 members
+         *
+         * @param {string} groupId
+         * @param {string|string[]|null} memberIds
+         * @param {boolean|null} isDeleted
+         * @param {boolean|null} status
+         * @param {(chatroomId: string|null) => any} [callback]
+         * @returns {Promise<string>}
+         */
+        findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
                 memberIds = [memberIds];
             };
@@ -74,6 +85,18 @@ module.exports = (function() {
                 };
             }
 
+            if ('boolean' === typeof isDeleted) {
+                query['members.isDeleted'] = {
+                    $eq: isDeleted
+                };
+            }
+
+            if ('boolean' === typeof status) {
+                query['members.status'] = {
+                    $eq: status
+                };
+            }
+
             let aggregations = [
                 {
                     $unwind: '$members'
@@ -81,7 +104,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        members: 1
+                        members: true
                     }
                 }
             ];
