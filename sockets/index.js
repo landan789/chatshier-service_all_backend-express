@@ -171,12 +171,16 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
+                console.log(JSON.stringify(174, null, 4));
+
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
                         resolve(groups);
                     });
                 });
             }).then((groups) => {
+                console.log(JSON.stringify(180, null, 4));
+
                 if (!groups) {
                     return [];
                 }
@@ -190,6 +194,8 @@ function init(server) {
                 });
                 return recipientUids;
             }).then((recipientUids) => {
+                console.log(JSON.stringify(193, null, 4));
+
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
                 }
@@ -232,6 +238,8 @@ function init(server) {
                     });
                 }));
             }).then(() => {
+                console.log(JSON.stringify(235, null, 4));
+
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
                         if (!appsChatroomsMessages) {
@@ -242,6 +250,8 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
+                console.log(JSON.stringify(245, null, 4));
+
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
@@ -250,6 +260,8 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
+                console.log(JSON.stringify(253, null, 4));
+
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
                 }
@@ -280,6 +292,8 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
+            console.log(JSON.stringify(error, null, 4));
+
             console.trace(JSON.stringify(error, null, 4));
             !res.headersSent && res.sendStatus(500);
         });
