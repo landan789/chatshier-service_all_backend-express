@@ -186,9 +186,15 @@ interface SignAPI {
 }
 
 interface BotAPI {
-    activateMenu: (appId: string, menuId: string) => Promise<any>;
-    deactivateMenu: (appId: string, menuId: string) => Promise<any>;
-    deleteMenu: (appId: string, menuId: string) => Promise<any>;
+    getRichMenuList: (appId: string) => Promise<any>;
+    getRichMenu: (appId: string, richmenuId: string) => Promise<any>;
+    getRichMenuImage: (appId: string, richmenuId: string) => Promise<any>;
+    getProfile: (appId: string, platformUid: string) => Promise<any>;
+    createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
+    setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
+    linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
+    deleteRichMenu: (appId: string, richmenuId: string) => Promise<any>;
+    unlinkRichMenuFromUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
     getProfile: (appId: string, platformUid: string) => Promise<any>;
     uploadFile: (appId:string, userId: string, file: File) => Promise<any>;
 }

@@ -782,39 +782,9 @@ module.exports = (function() {
             });
         };
 
-        /**
-         * @param {any} postMenu
-         * @param {string} appId
-         * @param {any} app
-         */
-        createMenu(postMenu, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.createRichMenu(postMenu);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
-        };
+       
 
-        /**
-         * @param {string} menuId
-         * @param {string} appId
-         * @param {any} app
-         */
-        deleteMenu(menuId, appId, app) {
-            let bot = this.bots[appId];
-            switch (app.type) {
-                case LINE:
-                    return bot.deleteRichMenu(menuId);
-                case WECHAT:
-                default:
-                    return Promise.resolve([]);
-            }
-        };
-
-        /**
+       /**
          * @param {string} appId
          */
         getRichMenuList(appId) {
@@ -838,6 +808,15 @@ module.exports = (function() {
         getRichMenuImage(richmenuId, appId) {
             let bot = this.bots[appId];
             return bot.getRichMenuImage(richmenuId);
+        };
+
+        /**
+         * @param {any} richmenu
+         * @param {string} appId
+         */
+        createRichMenu(richmenu, appId) {
+            let bot = this.bots[appId];
+            return bot.createRichMenu(richmenu);
         };
 
         /**
@@ -870,6 +849,15 @@ module.exports = (function() {
             let bot = this.bots[appId];
             return bot.unlinkRichMenuFromUser(userId, richmenuId);
         }
+
+        /**
+         * @param {string} richmenuId
+         * @param {string} appId
+         */
+        deleteRichMenu(richmenuId, appId) {
+            let bot = this.bots[appId];
+            return bot.deleteRichMenu(richmenuId);
+        };
 
     }
 

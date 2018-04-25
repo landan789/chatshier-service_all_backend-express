@@ -97,25 +97,6 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    const RichmenusAreasSchema = new mongoose.Schema({
-        'bounds': {type: Object, default: {}},
-        'action': {type: Object, default: {}}
-    }, { minimize: false });
-
-    const RichmenusSchema = new mongoose.Schema({
-        'isDeleted': {type: Boolean, default: false},
-        'createdTime': {type: Date, default: Date.now()},
-        'updatedTime': {type: Date, default: Date.now()},
-        'status': {type: Boolean, default: false},
-        'selected': {type: Boolean, default: false},
-        'chatBarText': {type: String, default: ''},
-        'name': {type: String, default: ''},
-        'src': {type: String, default: ''},
-        'platformMenuId': {type: String, default: ''},
-        'size': {type: Object, default: {}},
-        'areas': [RichmenusAreasSchema]
-    }, { minimize: false });
-
     const TemplatesSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
         'keyword': {type: String, default: ''},
@@ -170,7 +151,6 @@ module.exports = (function() {
         'templates': [TemplatesSchema],
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
-        'richmenus': [RichmenusSchema],
         'webhook_id': {type: String, default: ''}
     });
 
