@@ -21,7 +21,7 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const consumersMdl = require('../models/consumers');
 const groupsMdl = require('../models/groups');
 
-const controllerCre = require('../cores/controller');
+const ControllerCore = require('../cores/controller');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
@@ -151,6 +151,8 @@ function init(server) {
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
+                console.trace(JSON.stringify(154, null, 4));
+
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
                     // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
@@ -165,12 +167,17 @@ function init(server) {
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
+                console.trace(JSON.stringify(168, null, 4));
+
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
+                console.trace(JSON.stringify(172, null, 4));
+
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
+                console.trace(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
@@ -443,7 +450,7 @@ function init(server) {
                 chatroomId: chatroomId
             };
 
-            return controllerCre.AppsRequestVerify(req).then((checkedAppIds) => {
+            return ControllerCore.appsRequestVerify(req).then((checkedAppIds) => {
                 if (!platformUid) {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
@@ -493,7 +500,7 @@ function init(server) {
             let app;
 
             // TODO 這裡為 socket 進入 不是 REST request
-            return controllerCre.AppsRequestVerify(req).then(() => {
+            return ControllerCore.appsRequestVerify(req).then(() => {
                 if (!appId) {
                     return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
                 };
