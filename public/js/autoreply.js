@@ -125,7 +125,7 @@
         let startedTime;
         let endedTime;
         let startTimePickerData = $autoreplyAddSdtPicker.data('DateTimePicker');
-        let endTimePickerData = $autoreplyAddSdtPicker.data('DateTimePicker');
+        let endTimePickerData = $autoreplyAddEdtPicker.data('DateTimePicker');
         if (startTimePickerData && endTimePickerData) {
             startedTime = startTimePickerData.date().toDate().getTime();
             endedTime = endTimePickerData.date().toDate().getTime();
