@@ -185,25 +185,24 @@ function init(server) {
 
                 let group = groups[app.group_id];
                 let members = group.members;
-                let recipientUids = Object.keys(members).map((memberId) => {
-                    let userId = members[memberId].user_id;
-                    // 有新訊息時，群組中的成員需要更新 unRead 數
-                    return userId;
+                let recipientUids = Object.keys(members).filter((memberId) => {
+                    if (0 === members[memberId].isDeleted && 1 === members[memberId].status) {
+                        let userId = members[memberId].user_id;
+                        return true;
+                    }
+                    return false;
                 });
                 return recipientUids;
             }).then((recipientUids) => {
-                console.log(JSON.stringify(193, null, 4));
 
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
                 }
-                console.log(JSON.stringify(200, null, 4));
 
                 let eventType = '';
                 if (receivedMessages.length > 0) {
                     eventType = receivedMessages[0].eventType || null;
                 }
-                console.log(JSON.stringify(206, null, 4));
 
                 // 接收到的事件為 follow 或 unfollow 時
                 // 只處理 repliedMessages
@@ -212,13 +211,12 @@ function init(server) {
                 } else {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
-                console.log(JSON.stringify(215, null, 4));
-                console.log(JSON.stringify(recipientUids, null, 4));
+                console.trace(JSON.stringify(recipientUids, null, 4));
 
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-                        console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
+                        console.trace(JSON.stringify(appsChatroomsMessagers, null, 4));
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
@@ -242,7 +240,6 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                console.log(JSON.stringify(242, null, 4));
 
                 return totalMessages.length > 0 && chatroomId && new Promise((resolve, reject) => {
                     appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages, (appsChatroomsMessages) => {
@@ -254,7 +251,6 @@ function init(server) {
                     });
                 });
             }).then((messages) => {
-                console.log(JSON.stringify(254, null, 4));
 
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
@@ -264,7 +260,6 @@ function init(server) {
                 }
                 return messages;
             }).then(() => {
-                console.log(JSON.stringify(264, null, 4));
 
                 if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                     return;
@@ -296,7 +291,6 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
-            console.log(JSON.stringify(error, null, 4));
 
             console.trace(JSON.stringify(error, null, 4));
             !res.headersSent && res.sendStatus(500);
