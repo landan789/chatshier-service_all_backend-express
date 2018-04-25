@@ -20,6 +20,7 @@ const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const consumersMdl = require('../models/consumers');
 const groupsMdl = require('../models/groups');
+const groupsMembersMdl = require('../models/groups_members');
 
 const ControllerCore = require('../cores/controller');
 
@@ -175,11 +176,10 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-                console.log(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
-                    groupsMdl.find(app.group_id, null, (groups) => {
-                        resolve(groups);
+                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (groupsMembers) => {
+                        resolve(groupsMembers);
                     });
                 });
             }).then((groups) => {
@@ -189,16 +189,13 @@ function init(server) {
                 }
                 let group = groups[app.group_id];
                 let members = group.members;
-                let recipientUids = [];
-                Object.keys(members).forEach((memberId) => {
-                    if (false === members[memberId].isDeleted && true === members[memberId].status) {
-                        let userId = members[memberId].user_id;
-                        recipientUids.push(userId);
-                    }
+                let recipientUids = Object.keys(members).map((memberId) => {
+                    let userId = members[memberId].user_id;
+
+                    return userId;
                 });
 
                 return recipientUids;
-
             }).then((recipientUids) => {
 
                 if (!(recipientUids && platformUid)) {

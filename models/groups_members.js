@@ -58,6 +58,17 @@ module.exports = (function() {
             });
         }
 
+
+        /**
+         * 根據 groupId 找到 members
+         *
+         * @param {string} groupId
+         * @param {string|string[]|null} memberIds
+         * @param {boolean|null} isDeleted
+         * @param {boolean|null} status
+         * @param {(chatroomId: string|null) => any} [callback]
+         * @returns {Promise<string>}
+         */
         findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
                 memberIds = [memberIds];
@@ -74,19 +85,11 @@ module.exports = (function() {
                 };
             }
 
-            query['members.isDeleted'] = {
-                $in: [true, false]
-            };
-
             if ('boolean' === typeof isDeleted) {
                 query['members.isDeleted'] = {
                     $eq: isDeleted
                 };
             }
-
-            query['members.status'] = {
-                $in: [true, false]
-            };
 
             if ('boolean' === typeof status) {
                 query['members.status'] = {
