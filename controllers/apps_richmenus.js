@@ -99,8 +99,6 @@ module.exports = (function() {
     };
 
     AppsRichmenusController.prototype.postOne = (req, res, next) => {
-        res.setHeader('Content-Type', 'application/json');
-
         var postRichmenu = {
             size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
             name: undefined === req.body.name ? '' : req.body.name,
@@ -138,7 +136,6 @@ module.exports = (function() {
     };
 
     AppsRichmenusController.prototype.putOne = (req, res, next) => {
-        res.setHeader('Content-Type', 'application/json');
         let richmenuId = req.params.richmenuid;
         let appIds = '';
 

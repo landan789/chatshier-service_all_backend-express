@@ -280,7 +280,7 @@ function init(server) {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
         }).catch((error) => {
-            console.trace(error);
+            console.trace(JSON.stringify(error, null, 4));
             !res.headersSent && res.sendStatus(500);
         });
 

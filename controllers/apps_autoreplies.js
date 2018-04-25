@@ -73,7 +73,6 @@ module.exports = (function() {
     };
 
     AppsAutorepliesController.prototype.postOne = (req, res, next) => {
-        res.setHeader('Content-Type', 'application/json');
         var autoreply = {
             title: undefined === req.body.title ? '' : req.body.title,
             startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
@@ -110,7 +109,6 @@ module.exports = (function() {
     };
 
     AppsAutorepliesController.prototype.putOne = (req, res, next) => {
-        res.setHeader('Content-Type', 'application/json');
         var appId = req.params.appid;
         var autoreplyId = req.params.autoreplyid;
         var autoreply = {

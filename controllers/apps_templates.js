@@ -85,8 +85,6 @@ module.exports = (function() {
     };
 
     AppsTemplatesController.prototype.postOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
-
         let keyword = req.body.keyword || '';
         let type = req.body.type || '';
         let altText = req.body.altText || '';
@@ -172,7 +170,6 @@ module.exports = (function() {
     };
 
     AppsTemplatesController.prototype.deleteOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
         let templateId = req.params.templateid;
         let appId = '';
         return AppsTemplatesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
