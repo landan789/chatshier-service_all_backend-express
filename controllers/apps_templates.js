@@ -3,6 +3,7 @@ module.exports = (function() {
 
     const API_ERROR = require('../config/api_error');
     const API_SUCCESS = require('../config/api_success');
+    const storageHlp = require('../helpers/storage');
 
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
@@ -90,8 +91,8 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         }
-
         postOne(req, res) {
+            let appId;
             let keyword = req.body.keyword || '';
             let type = req.body.type || '';
             let altText = req.body.altText || '';
@@ -102,35 +103,53 @@ module.exports = (function() {
                 altText: altText,
                 template: template
             };
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                let appId = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTemplatesMdl.insert(appId, postTemplate, (result) => {
-                        if (!result) {
-                            reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
-                            return;
-                        }
-                        resolve(result);
-                    });
-                });
-            }).then((template) => {
-                let result = template !== undefined ? template : {};
-                let json = {
-                    status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: result
-                };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
-            });
-        }
-
+        return this.appsRequestVerify(req).then((checkedAppIds) => {
+             appId = checkedAppIds;
+                        return new Promise((resolve, reject) => {
+                            appsTemplatesMdl.insert(appId, postTemplate, (result) => {
+                                if(!result) {
+                                    reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                                    return;
+                            }
+                            resolve(result);
+                            }).then((appsTemplate)=>{
+                            return new Promise((resolve, reject) => {
+                                let templateId = Object.keys(appsTemplate[appId].templates);
+                                if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
+                                    let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
+                                    let fromPath = `/temp/`+fromPathArray.pop();
+                                    let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
+                                    storageHlp.filesMoveV2(fromPath, toPath);
+                                }
+                                else{
+                                    return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
+                                        let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
+                                        let fromPath = `/temp/`+fromPathArray.pop();
+                                        let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
+                                        storageHlp.filesMoveV2(fromPath, toPath);
+                                 }))
+                                }
+                                resolve(appsTemplate);
+                            })
+                        })
+                    })
+            }).then((appsTemplate) => {
+            let result = appsTemplate !== undefined ? appsTemplate : {};
+            let json = {
+                status: 1,
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                data: result
+            };
+            res.status(200).json(json);
+        }).catch((ERR) => {
+            let json = {
+                status: 0,
+                msg: ERR.MSG,
+                code: ERR.CODE
+            };
+            res.status(500).json(json);
+        });
+    };
         putOne(req, res) {
             let templateId = req.params.templateid;
             let appId;
@@ -157,7 +176,25 @@ module.exports = (function() {
                             return;
                         }
                         resolve(appsTemplate);
-                    });
+                    }).then((appsTemplate)=>{
+                        return new Promise((resolve, reject) => {
+                            if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
+                                let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
+                                let fromPath = `/temp/`+fromPathArray.pop();
+                                let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
+                                storageHlp.filesMoveV2(fromPath, toPath);
+                            }
+                            else{ 
+                                return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
+                                    let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
+                                    let fromPath = `/temp/`+fromPathArray.pop();
+                                    let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
+                                    storageHlp.filesMoveV2(fromPath, toPath);
+                                }))
+                            }
+                            resolve(appsTemplate);
+                        })
+                    })
                 });
             }).then((appsTemplate) => {
                 let result = appsTemplate !== undefined ? appsTemplate : {};
@@ -213,6 +250,5 @@ module.exports = (function() {
             });
         }
     }
-
     return new AppsTemplatesController();
 })();

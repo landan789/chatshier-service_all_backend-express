@@ -22,6 +22,7 @@ module.exports = (function() {
             this.unlinkRichMenuFromUser = this.unlinkRichMenuFromUser.bind(this);
             this.deleteRichMenu = this.deleteRichMenu.bind(this);
             this.getProfile = this.getProfile.bind(this);
+            this.uploadFile = this.uploadFile.bind(this);
         }
 
         _findApp(appId) {

@@ -20,7 +20,7 @@ module.exports = (function() {
          * @returns {Promise<string[]>}
          */
         static appsRequestVerify(req) {
-            let appId = req.params.appid;
+            let appId = req.params.appid || req.query.appid;
             let userId = req.params.userid;
             let method = req.method;
 

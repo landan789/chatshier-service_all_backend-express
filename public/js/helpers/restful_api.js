@@ -118,6 +118,8 @@ window.restfulAPI = (function() {
         });
     };
 
+
+
     /**
      * 宣告專門處理 Chatshier App 相關的 API 類別
      */
@@ -1063,7 +1065,7 @@ window.restfulAPI = (function() {
          */
         AppsTemplatesAPI.prototype.insert = function(appId, userId, newTemplateData) {
             var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
-            var reqInit = {
+            reqInit = {
                 method: 'POST',
                 headers: reqHeaders,
                 body: JSON.stringify(newTemplateData)

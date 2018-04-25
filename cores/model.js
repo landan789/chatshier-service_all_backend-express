@@ -116,6 +116,15 @@ module.exports = (function() {
         'areas': [RichmenusAreasSchema]
     }, { minimize: false });
 
+    const TemplatesSchema = new mongoose.Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'keyword': {type: String, default: ''},
+        'altText': {type: String, default: ''},
+        'type': {type: String, default: 'template'},
+        'template': {type: Object, default: {}},
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()}
+    });
     const FieldsSchema = new mongoose.Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},
@@ -158,6 +167,7 @@ module.exports = (function() {
         'keywordreplies': [KeywordrepliesSchema],
         'composes': [ComposesSchema],
         'greetings': [GreetingsSchema],
+        'templates': [TemplatesSchema],
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],

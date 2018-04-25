@@ -32,16 +32,6 @@ label *:not(strong) {
     display: none!important;
 }
 
-.image-upload {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    text-align: center;
-}
 
 .line-title {
     font-weight: bold;
