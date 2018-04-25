@@ -106,7 +106,7 @@ interface AppsTemplatesAPI {
 
 interface AppsRichmenusAPI {
     findAll: (appId: string, userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
+    findOne: (appId: string, richmenuId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, richmenuData: any) => Promise<any>;
     update: (appId: string, richmenuId: string, userId: string, richmenuData: any) => Promise<any>;
     remove: (appId: string, richmenuId: string, userId: string) => Promise<any>;
@@ -186,9 +186,9 @@ interface SignAPI {
 }
 
 interface BotAPI {
-    activateMenu: (appId: string, menuId: string) => Promise<any>;
-    deactivateMenu: (appId: string, menuId: string) => Promise<any>;
-    deleteMenu: (appId: string, menuId: string) => Promise<any>;
+    activateMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
+    deactivateMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
+    deleteMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
     getProfile: (appId: string, platformUid: string) => Promise<any>;
     uploadFile: (appId:string, userId: string, file: File) => Promise<any>;
 }

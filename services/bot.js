@@ -798,15 +798,15 @@ module.exports = (function() {
         };
 
         /**
-         * @param {string} menuId
+         * @param {string} platformMenuId
          * @param {string} appId
          * @param {any} app
          */
-        deleteMenu(menuId, appId, app) {
+        deleteMenu(platformMenuId, appId, app) {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
-                    return bot.deleteRichMenu(menuId);
+                    return bot.deleteRichMenu(platformMenuId);
                 case WECHAT:
                 default:
                     return Promise.resolve([]);
@@ -822,52 +822,52 @@ module.exports = (function() {
         };
 
         /**
-         * @param {string} richmenuId
+         * @param {string} platformMenuId
          * @param {string} appId
          */
-        getRichMenu(richmenuId, appId) {
+        getRichMenu(platformMenuId, appId) {
             let bot = this.bots[appId];
-            return bot.getRichMenu(richmenuId);
+            return bot.getRichMenu(platformMenuId);
         };
 
         /**
-         * @param {string} richmenuId
+         * @param {string} platformMenuId
          * @param {string} appId
          */
-        getRichMenuImage(richmenuId, appId) {
+        getRichMenuImage(platformMenuId, appId) {
             let bot = this.bots[appId];
-            return bot.getRichMenuImage(richmenuId);
+            return bot.getRichMenuImage(platformMenuId);
         };
 
         /**
-         * @param {string} richmenuId
-         * @param {string} richmenuImg
+         * @param {string} platformMenuId
+         * @param {any} richmenuImg
          * @param {string} appId
          */
-        setRichMenuImage(richmenuId, richmenuImg, appId) {
+        setRichMenuImage(platformMenuId, richmenuImg, appId) {
             let bot = this.bots[appId];
-            let contentType = '';
-            return bot.setRichMenuImage(richmenuId, richmenuImg, contentType);
+            let imageBuffer = richmenuImg.fileBinary;
+            return bot.setRichMenuImage(platformMenuId, imageBuffer, null);
         };
 
         /**
          * @param {string} userId
-         * @param {string} richmenuId
+         * @param {string} platformMenuId
          * @param {string} appId
          */
-        linkRichMenuToUser(userId, richmenuId, appId) {
+        linkRichMenuToUser(userId, platformMenuId, appId) {
             let bot = this.bots[appId];
-            return bot.linkRichMenuToUser(userId, richmenuId);
+            return bot.linkRichMenuToUser(userId, platformMenuId);
         }
 
         /**
          * @param {string} userId
-         * @param {string} richmenuId
+         * @param {string} platformMenuId
          * @param {string} appId
          */
-        unlinkRichMenuFromUser(userId, richmenuId, appId) {
+        unlinkRichMenuFromUser(userId, platformMenuId, appId) {
             let bot = this.bots[appId];
-            return bot.unlinkRichMenuFromUser(userId, richmenuId);
+            return bot.unlinkRichMenuFromUser(userId, platformMenuId);
         }
 
     }

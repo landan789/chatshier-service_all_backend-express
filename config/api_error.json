@@ -91,6 +91,7 @@
     "BOT_MENU_FAILED_TO_UPDATE": { "MSG": "bot menu failed to update", "CODE": "8.7" },
     "BOT_MENU_FAILED_TO_REMOVE": { "MSG": "bot menu failed to remove", "CODE": "8.8" },
     "BOT_MENU_FAILED_TO_LINK": { "MSG": "bot menu failed to link", "CODE": "8.9" },
+    "BOT_MENU_FAILED_TO_UNLINK": { "MSG": "bot menu failed to unlink", "CODE": "8.91" },
     
 
     "CALENDAR_EVENT_FAILED_TO_FIND": { "MSG": "calendar event failed to find", "CODE": "9.1" },

@@ -103,31 +103,20 @@ module.exports = (function() {
     AppsRichmenusController.prototype.postOne = (req, res, next) => {
         res.setHeader('Content-Type', 'application/json');
         let appId = '';
-        let originalFilePath = '';
 
         var postRichmenu = {
             size: req.body.size || '',
             name: req.body.name || '',
             selected: req.body.selected || '',
             chatBarText: req.body.chatBarText || '',
+            form: req.body.form || '',
             areas: req.body.areas || '',
             src: req.body.src || '',
             platformMenuId: ''
         };
 
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            appId = checkedAppIds;
-            let src = postRichmenu.src;
-            originalFilePath = `/${Date.now()}.png`;
-            let srcBuffer = src;
-            return storageHlp.filesUpload(originalFilePath, srcBuffer);
-        }).then((response) => {
-            return storageHlp.sharingCreateSharedLink(originalFilePath);
-        }).then((response) => {
-            let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-            let url = wwwurl.replace('?dl=0', '');
-            postRichmenu.src = url;
-        }).then(() => {
+            appId = checkedAppIds[0];
             return appsRichmenusMdl.insert(appId, postRichmenu);
         }).then((appsRichmenu) => {
             if (!appsRichmenu) {
@@ -135,12 +124,15 @@ module.exports = (function() {
                 return;
             }
 
-            let richmenu = appsRichmenu[appId].richemnus;
-            let richmenuId = Object.keys(richmenu);
-            let newFilePath = `/apps/${appId}/richmenus/${richmenuId}/src/${originalFilePath}`;
+            let richmenu = appsRichmenu[appId].richmenus;
+            let richmenuId = Object.keys(richmenu)[0] || '';
+            let src = richmenu[richmenuId].src;
+            let fileName = src.split('/').pop();
+            let fromPath = `/temp/${fileName}`;
+            let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
             return Promise.all([
                 appsRichmenu,
-                storageHlp.filesMoveV2(originalFilePath, newFilePath)
+                storageHlp.filesMoveV2(fromPath, toPath)
             ]);
         }).then((results) => {
             let appsRichmenu = results[0];
@@ -166,11 +158,14 @@ module.exports = (function() {
         let appIds = '';
 
         var postRichmenu = {
-            size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
-            name: undefined === req.body.name ? '' : req.body.name,
-            selected: undefined === req.body.selected ? '' : req.body.selected,
-            chatBarText: undefined === req.body.chatBarText ? '' : req.body.chatBarText,
-            areas: undefined === req.body.areas ? '' : JSON.parse(req.body.areas)
+            size: req.body.size || '',
+            name: req.body.name || '',
+            selected: req.body.selected || '',
+            chatBarText: req.body.chatBarText || '',
+            form: req.body.form || '',
+            areas: req.body.areas || '',
+            src: req.body.src || '',
+            platformMenuId: ''
         };
 
         return AppsRichmenusController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
@@ -254,7 +249,7 @@ module.exports = (function() {
             return new Promise((resolve, reject) => {
                 appsRichmenusMdl.remove(appIds, richmenuId, (richmenu) => {
                     if (!richmenu) {
-                        reject(API_ERROR.RICHMENU_DELETE_FAIL);
+                        reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                     }
                     resolve(richmenu);
                 });

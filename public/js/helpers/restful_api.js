@@ -1231,9 +1231,10 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Menu的 App ID
          * @param {string} menuId - 目標Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.activateMenu = function(appId, menuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId;
+        BotAPI.prototype.activateMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders
@@ -1246,9 +1247,10 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標 Menu的 App ID
          * @param {string} menuId - 目標 Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.deactivateMenu = function(appId, menuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId;
+        BotAPI.prototype.deactivateMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -1261,9 +1263,10 @@ window.restfulAPI = (function() {
          *
          * @param {string} appId - 目標Menu的 App ID
          * @param {string} menuId - 目標Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.deleteMenu = function(appId, menuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/content/';
+        BotAPI.prototype.deleteMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId + '/content/';
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -1285,6 +1288,7 @@ window.restfulAPI = (function() {
         };
 
         /**
+         * @param {string} appId
          * @param {string} userId
          * @param {File} file
          */

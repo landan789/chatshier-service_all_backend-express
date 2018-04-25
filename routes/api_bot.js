@@ -20,9 +20,9 @@ router.use(
 
 // ==========
 // bot
-router.post('/apps/:appid/menus/:menuid', botCtl.activateMenu);
-router.delete('/apps/:appid/menus/:menuid', botCtl.deactivateMenu);
-router.delete('/apps/:appid/menus/:menuid/content/', botCtl.deleteMenu);
+router.post('/apps/:appid/menus/:menuid/users/:userid', botCtl.activateMenu);
+router.delete('/apps/:appid/menus/:menuid/users/:userid', botCtl.deactivateMenu);
+router.delete('/apps/:appid/menus/:menuid/users/:userid/content/', botCtl.deleteMenu);
 router.get('/apps/:appid/consumers/:platformuid', botCtl.getProfile);
 router.post('/upload-file/users/:userid', botCtl.uploadFile);
 // ==========
