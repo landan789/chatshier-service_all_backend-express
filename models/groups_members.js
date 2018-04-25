@@ -58,7 +58,7 @@ module.exports = (function() {
             });
         }
 
-        findMembers(groupId, memberIds, callback) {
+        findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
                 memberIds = [memberIds];
             };
@@ -74,6 +74,26 @@ module.exports = (function() {
                 };
             }
 
+            query['members.isDeleted'] = {
+                $in: [true, false]
+            };
+
+            if ('boolean' === typeof isDeleted) {
+                query['members.isDeleted'] = {
+                    $eq: isDeleted
+                };
+            }
+
+            query['members.status'] = {
+                $in: [true, false]
+            };
+
+            if ('boolean' === typeof status) {
+                query['members.status'] = {
+                    $eq: status
+                };
+            }
+
             let aggregations = [
                 {
                     $unwind: '$members'
@@ -81,7 +101,7 @@ module.exports = (function() {
                     $match: query
                 }, {
                     $project: {
-                        members: 1
+                        members: true
                     }
                 }
             ];
