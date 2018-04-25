@@ -93,7 +93,8 @@ function init(server) {
 
             return appsMdl.find(null, webhookid).then((apps) => {
                 console.log(95);
-
+                console.log(webhookid);
+                console.log(apps);
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
                     return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                 }
