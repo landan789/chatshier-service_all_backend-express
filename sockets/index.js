@@ -182,6 +182,7 @@ function init(server) {
                 if (!groups) {
                     return [];
                 }
+                console.trace(JSON.stringify(groups, null, 4));
 
                 let group = groups[app.group_id];
                 let members = group.members;
@@ -192,7 +193,10 @@ function init(server) {
                     }
                     return false;
                 });
+                console.trace(JSON.stringify(recipientUids, null, 4));
+
                 return recipientUids;
+
             }).then((recipientUids) => {
 
                 if (!(recipientUids && platformUid)) {
