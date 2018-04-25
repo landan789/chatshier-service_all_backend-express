@@ -86,12 +86,12 @@ module.exports = (function() {
             group.name = postGroup.name;
 
             // The creator of groups must be the owner of group
-            group.members[0] = {
+            group.members.push({
                 status: 1,
                 type: OWNER,
                 user_id: userId,
-                isDeleted: 0
-            };
+                isDeleted: false
+            });
 
             return group.save().then((insertedGroup) => {
                 let groupId = insertedGroup._id;
@@ -185,9 +185,12 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} groupIds
+         * @param {boolean} [includeAny]
          * @param {(userIds: string[]) => any} [callback]
          */
-        findUserIds(groupIds, callback) {
+        findUserIds(groupIds, includeAny, callback) {
+            includeAny = !!includeAny;
+
             // polymorphism to both groupid[] and groupid
             if (groupIds && !(groupIds instanceof Array)) {
                 groupIds = [groupIds];
@@ -197,9 +200,9 @@ module.exports = (function() {
                 '_id': {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
-                'isDeleted': false,
-                'members.isDeleted': false
+                'isDeleted': false
             };
+            !includeAny && (query['members.isDeleted'] = false);
 
             let aggregations = [
                 {

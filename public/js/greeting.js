@@ -72,7 +72,7 @@
                 for (let greetingId in greeting) {
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<th>' + greeting[greetingId].text + '</th>' +
+                            '<td>' + greeting[greetingId].text + '</td>' +
                             '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                             '<td>' +
                                 '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
@@ -94,7 +94,7 @@
     function appendNewTr(appId) {
         $('table #MsgCanvas').append(
             '<tr rel="' + appId + '">' +
-                '<th></th>' +
+                '<td></td>' +
                 '<td></td>' +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-border btn-light insert" id="add-btn">' +
@@ -113,7 +113,7 @@
 
         $('table #MsgCanvas').append(
             '<tr id="new' + rowCount + '" rel="' + appId + '">' +
-                '<th><textarea class="greeting-textarea"></textarea></th>' +
+                '<td><textarea class="greeting-textarea"></textarea></td>' +
                 '<td>' + ToLocalTimeString(nowTime) + '</td>' +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="check-btn">' +
@@ -149,11 +149,16 @@
                 $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
+                    $.notify('刪除失敗', { type: 'danger' });
+                    return;
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
+                    return;
                 }
+
+                $.notify('刪除失敗', { type: 'danger' });
+                return;
             });
         });
     }
@@ -191,7 +196,7 @@
 
             var trGrop =
             '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                '<th>' + greeting[greetingId].text + '</th>' +
+                '<td>' + greeting[greetingId].text + '</td>' +
                 '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                 '<td>' +
                     '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
@@ -207,11 +212,15 @@
             $.notify('新增成功', { type: 'success' });
         }).catch((resJson) => {
             if (undefined === resJson.status) {
-                $.notify('失敗', { type: 'danger' });
+                $.notify('新增失敗', { type: 'danger' });
+                return;
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $.notify('無此權限', { type: 'danger' });
+                return;
             }
+            $.notify('新增失敗', { type: 'danger' });
+            return;
         });
     } // end of modalSubmit
 

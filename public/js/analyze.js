@@ -467,9 +467,9 @@
                 includeAllValues: true
             }],
             listeners: [{
-                event: 'rendered',
+                event: 'drawn',
                 method: function() {
-                    // chart 渲染完後，移除 AmCharts 的廣告文字
+                    // 每繪製一次 chart 完後，移除 AmCharts 的廣告文字
                     $chartBody.find('a[href="http://www.amcharts.com"]').remove();
                 }
             }]

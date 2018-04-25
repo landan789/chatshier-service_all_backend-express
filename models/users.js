@@ -59,10 +59,13 @@ module.exports = (function() {
             let query = {};
             let _query = {};
             let _user = new this.Model();
+            _user._id = user._id || '';
             _user.email = user.email || '';
             _user.name = user.name || '';
             _user.company = user.company || '';
             _user.password = user.password;
+            _user.group_ids = user.group_ids || [];
+
             if (user.email) {
                 query['email'] = user.email;
             }

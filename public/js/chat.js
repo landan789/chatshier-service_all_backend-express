@@ -961,10 +961,10 @@
 
         return (
             '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
-                '<div class="messager-name' + (shouldRightSide ? ' text-right' : 'leftside') + '">' +
+                '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
                     '<span>' + senderrName + '</span>' +
                 '</div>' +
-                '<span class="message-group ' + (shouldRightSide ? ' align-right' : '') + '">' +
+                '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
                     '<strong></strong>' +
@@ -1347,15 +1347,23 @@
                                             }
 
                                             if ('assigned' === field.alias) {
-                                                checkboxes +=
-                                                    '<span class="dropdown-item">' +
-                                                        '<input type="checkbox" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i].agentName +
-                                                    '</span>';
+                                                checkboxes += (
+                                                    '<div class="dropdown-item">' +
+                                                        '<div class="form-check form-check-inline">' +
+                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                            '<label class="form-check-label">' + sets[i].agentName + '</label>' +
+                                                        '</div>' +
+                                                    '</div>'
+                                                );
                                             } else {
-                                                checkboxes +=
-                                                    '<span class="dropdown-item">' +
-                                                        '<input type="checkbox" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '">' + sets[i] +
-                                                    '</span>';
+                                                checkboxes += (
+                                                    '<div class="dropdown-item">' +
+                                                        '<div class="form-check form-check-inline">' +
+                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                            '<label class="form-check-label">' + sets[i] + '</label>' +
+                                                        '</div>' +
+                                                    '</div>'
+                                                );
                                             }
                                         }
                                         return checkboxes;
@@ -1811,7 +1819,7 @@
         if (messager && messager.platformUid && 'CHATSHIER' !== messager.type) {
             var platformUid = messager.platformUid;
             var consumer = consumers[platformUid];
-            $messagePanel.find('.messager-nameleftside span').text(consumer.name);
+            $messagePanel.find('.messager-name.text-left span').text(consumer.name);
         }
 
         if (chatroomList.indexOf(chatroomId) >= 0) {

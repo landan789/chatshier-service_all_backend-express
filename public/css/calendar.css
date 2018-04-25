@@ -9,19 +9,11 @@
     background-color: #e0e0e0;
 }
 
-.input-wrapper {
-    width: 90%;
-    margin: 0 auto; }
-    .input-wrapper textarea.event-content {
-        margin: 1em 0;
-        resize: vertical; }
+.input-wrapper textarea.event-content {
+    resize: vertical; }
 
 .font-red {
     color: red;
-}
-
-.calendar-modal .modal-header .modal-title {
-    margin: 0px 27px;
 }
 
 @media (max-width: 576px) {

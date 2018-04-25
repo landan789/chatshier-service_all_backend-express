@@ -84,16 +84,18 @@
   height: 100%;
   left: 16rem;
   width: 1rem;
-  z-index: 1060;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
   opacity: 0;
   transition: opacity 300ms;  }
+  .edge-toggle-container:hover,
+  .edge-toggle-container.hover {
+    opacity: 1; }
   .edge-toggle-container .edge-toggle-btn {
-    position: relative;
-    top: 50%;
     width: 100%;
     height: 2.25rem;
     padding: 0;
-    transform: translate3d(0, -50%, 0);
     cursor: pointer;
     color: transparent;
     background: none;
@@ -101,27 +103,18 @@
     border-style: none;
     border-color: initial;
     border-image: initial; }
-  .edge-toggle-container .edge-toggle-btn::before {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 100%;
-    font-family: "Font Awesome\ 5 Free";
-    content: "\f068";
-    font-size: .85rem;
-    font-weight: 900;
+  .edge-toggle-container .edge-toggle-btn i {
     color: #212529;
-    transform: translate3d(0, -50%, 0) rotate(90deg);
-    transition: transform 300ms; }
-  .edge-toggle-container:hover {
-    opacity: 1; }
-    .edge-toggle-container:hover .edge-toggle-btn:hover::before {
-      transform: translate3d(0, -50%, 0); }
+    font-size: .85rem;
+    transition: transform 300ms;
+    transform: rotate(90deg); }
+  .edge-toggle-container:hover .edge-toggle-btn:hover i {
+    transform: rotate(0deg); }
   .edge-toggle-container.put-away {
     transform: translate3d(-12rem, 0, 0); }
-.chsr.ctrl-panel:not(.put-away) + .edge-toggle-container:hover .edge-toggle-btn:hover::before {
+.chsr.ctrl-panel:not(.put-away) + .edge-toggle-container:hover .edge-toggle-btn:hover i::before {
   content: "\f053"; }
-.chsr.ctrl-panel.put-away + .edge-toggle-container:hover .edge-toggle-btn:hover::before {
+.chsr.ctrl-panel.put-away + .edge-toggle-container:hover .edge-toggle-btn:hover i::before {
   content: "\f054"; }
 
 @keyframes controlPanelSlideIn {

@@ -68,12 +68,12 @@
         let groupId = $(this).attr('rel');
         let formStr =
             '<form>' +
-                '<div class="form-group">' +
-                    '<div id="type" class="d-none">insertNewApp</div>' +
-                    '<div id="groupId" class="d-none">' + groupId + '</div>' +
+                '<div class="form-group d-none">' +
+                    '<div id="type">insertNewApp</div>' +
+                    '<div id="groupId">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">新增機器人: </label>' +
+                    '<label class="col-form-label font-weight-bold">新增機器人:</label>' +
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
@@ -82,85 +82,85 @@
                 '</div>' +
                 '<div class="app-form" id="line-form">' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">名稱: </label>' +
+                        '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="line-name"/>' +
+                            '<input class="form-control" type="text" id="line-name" placeholder="請輸入名稱" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">ID: </label>' +
+                        '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" id="channel-id" placeholder="請至 LINE Developers 查詢" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Secret: </label>' +
+                        '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" id="channel-secret" placeholder="請至 LINE Developers 查詢" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Token: </label>' +
+                        '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="channel-token"/>' +
+                            '<input class="form-control" type="text" id="channel-token" placeholder="請至 LINE Developers 查詢" />' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="app-form d-none" id="facebook-form">' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Facebook粉絲頁名稱: </label>' +
+                        '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-name">' +
+                            '<input class="form-control" type="text" id="facebook-name" placeholder="請輸入名稱">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Page ID: </label>' +
+                        '<label class="col-form-label font-weight-bold">粉絲頁 ID:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-page-id">' +
+                            '<input class="form-control" type="text" id="facebook-page-id" placeholder="請至 粉絲專頁 > 關於 查詢">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">App ID: </label>' +
+                        '<label class="col-form-label font-weight-bold">App ID:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-app-id">' +
+                            '<input class="form-control" type="text" id="facebook-app-id" placeholder="請至 Facebook Developers 查詢">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">App Secret: </label>' +
+                        '<label class="col-form-label font-weight-bold">App Secret:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-app-secret">' +
+                            '<input class="form-control" type="text" id="facebook-app-secret" placeholder="請至 Facebook Developers 查詢">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Validation Token: </label>' +
+                        '<label class="col-form-label font-weight-bold">Validation Token:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-valid-token">' +
+                            '<input class="form-control" type="text" id="facebook-valid-token" placeholder="請至 Facebook Developers 查詢">' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Page Token: </label>' +
+                        '<label class="col-form-label font-weight-bold">Page Token:</label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="facebook-page-token">' +
+                            '<input class="form-control" type="text" id="facebook-page-token" placeholder="請至 Facebook Developers 查詢">' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="app-form d-none" id="wechat-form">' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">名稱: </label>' +
+                        '<label class="col-form-label">機器人名稱: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="wechat-name"/>' +
+                            '<input class="form-control" type="text" id="wechat-name" placeholder="請輸入名稱" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">ID: </label>' +
+                        '<label class="col-form-label">App ID: </label>' +
                             '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="channel-id"/>' +
+                            '<input class="form-control" type="text" id="channel-id" placeholder="請至 Wechat Developers 查詢" />' +
                         '</div>' +
                     '</div>' +
                     '<div class="form-group">' +
-                        '<label class="col-form-label">Secret: </label>' +
+                        '<label class="col-form-label">App Secret: </label>' +
                         '<div class="input-container">' +
-                            '<input class="form-control" type="text" value="" id="channel-secret"/>' +
+                            '<input class="form-control" type="text" id="channel-secret" placeholder="請至 Wechat Developers 查詢" />' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -192,14 +192,16 @@
         clearAppModalBody();
     });
 
-    $('#setting-modal-submit-btn').click(function(event) {
-        event.preventDefault();
-        let type = $(this).parent().parent().find('#type').text();
+    $('#setting-modal-submit-btn').on('click', function(ev) {
+        ev.preventDefault();
+
+        let $modalContent = $(ev.target).parents('.modal-content');
+        let type = $modalContent.find('#type').text();
         let groupId;
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
-                let type = $(this).parent().parent().find('#app-group-select option:selected').val();
+                let type = $modalContent.find('#app-group-select option:selected').val();
                 groupId = $('#groupId').text();
                 let app = insertType(type, groupId);
                 insertOneApp(app);
@@ -208,8 +210,8 @@
                 profSubmitBasic();
                 break;
             case 'updateApp':
-                let appId = $(this).parent().parent().find('#webhook-id').text();
-                groupId = $(this).parent().parent().find('#groupId').text();
+                let appId = $modalContent.find('#webhook-id').text();
+                groupId = $modalContent.find('#groupId').text();
 
                 if ($('#name').val()) {
                     let name = $('#name').val();
@@ -1398,7 +1400,12 @@
             $('#setting-modal').modal('hide');
             clearAppModalBody();
 
-            var str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
+            var str = (
+                '<tr class="d-none">' +
+                    '<td>ID:</td>' +
+                    '<td id="prof-id"></td>' +
+                '</tr>'
+            );
             $('#app-group').html(str);
 
             $.notify('新增成功!', { type: 'success' });
@@ -1556,7 +1563,7 @@
             '<div id="' + groupId + '-group" class="card-collapse collapse">' +
                 '<div class="app-table-space">' +
                     '<button type="button" class="btn btn-light btn-border mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                        '<i class="fas fa-plus fa-fw"></i>新增APP' +
+                        '<i class="fas fa-plus fa-fw"></i>新增聊天機器人' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
                         '<tbody id="' + groupId + '-body"></tbody>' +
@@ -1581,7 +1588,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -1589,23 +1596,23 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>LINE機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel ID: </td>' +
+                        '<td class="font-weight-bold">Channel ID:</td>' +
                         '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel Secret: </td>' +
+                        '<td class="font-weight-bold">Channel Secret:</td>' +
                         '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel Access Token: </td>' +
+                        '<td class="font-weight-bold">Channel Access Token:</td>' +
                         '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL: </td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1629,31 +1636,31 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Facebook機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Page Id: </td>' +
+                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
                         '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Id: </td>' +
+                        '<td class="font-weight-bold">App ID:</td>' +
                         '<td class="long-token" id="prof-fbAppId">' + app.id2 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Secret: </td>' +
+                        '<td class="font-weight-bold">App Secret:</td>' +
                         '<td class="long-token" id="prof-fbAppSecret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Validation Token: </td>' +
+                        '<td class="font-weight-bold">Validation Token: </td>' +
                         '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Page Token: </td>' +
+                        '<td class="font-weight-bold">Page Access Token:</td>' +
                         '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL: </td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1669,7 +1676,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -1677,19 +1684,19 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Wechat機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App ID: </td>' +
+                        '<td class="font-weight-bold">App ID:</td>' +
                         '<td class="long-token" id="prof-wechat-app-id">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Secret: </td>' +
+                        '<td class="font-weight-bold">App Secret:</td>' +
                         '<td class="long-token" id="prof-wechat-app-secret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL: </td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1707,32 +1714,32 @@
             case LINE:
                 appStr =
                     '<form>' +
-                        '<div class="form-group d-none" >' +
-                            '<label for="edit-id" class="col-form-label">ID</label>' +
+                        '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
                         '<div id="prof-edit-line-1">' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">Channel Name: </label>' +
+                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
                                 '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="name"/>' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="name" />' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label">Channel ID: </label>' +
+                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">Channel ID:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label">Channel Secret: </label>' +
+                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">Channel Secret:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelAccessToken_1" class="col-form-label">Channel Access Token: </label>' +
+                                '<label for="prof-edit-channelAccessToken_1" class="col-form-label font-weight-bold">Channel Access Token:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
                                 '</div>' +
@@ -1744,43 +1751,43 @@
                 appStr =
                     '<form>' +
                         '<div class="form-group d-none">' +
-                            '<label class="col-form-label">ID</label>' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
                         '<div id="prof-edit-fb">' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">Facebook Page Name: </label>' +
+                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">Page Id: </label>' +
+                                '<label class="col-form-label font-weight-bold">Page ID:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.id1 + '" id="facebook-page-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">App ID: </label>' +
+                                '<label class="col-form-label font-weight-bold">App ID:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.id2 + '" id="facebook-app-id">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">App Secret: </label>' +
+                                '<label class="col-form-label font-weight-bold">App Secret:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.secret + '" id="facebook-app-secret">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">Validation Token: </label>' +
+                                '<label class="col-form-label font-weight-bold">Validation Token:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.token1 + '" id="facebook-valid-token">' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">Page Token: </label>' +
+                                '<label class="col-form-label font-weight-bold">Page Token:</label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.token2 + '" id="facebook-page-token">' +
                                 '</div>' +
@@ -1792,25 +1799,25 @@
                 appStr =
                     '<form>' +
                         '<div class="form-group d-none">' +
-                            '<label for="edit-id" class="col-form-label">ID</label>' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
                         '<div id="prof-edit-line-1">' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">App Name: </label>' +
+                                '<label class="col-form-label font-weight-bold">App Name: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label">App ID: </label>' +
+                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">App ID: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label">App Secret: </label>' +
+                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">App Secret: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
                                 '</div>' +

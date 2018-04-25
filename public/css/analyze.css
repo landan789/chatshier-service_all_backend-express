@@ -10,6 +10,5 @@
     height: 25rem; }
     .chart-container .chart-body {
         width: 100%;
-        max-width: 50rem;
         height: 100%;
         border: 1px solid #ddd; }

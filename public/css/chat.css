@@ -217,6 +217,7 @@ body {
         .message .content img,
         .message .content video {
             width: 100%;
+            max-width: 20rem;
             height: auto;
             border-radius: .5rem; }
         .message .content .location-icon {
@@ -232,7 +233,7 @@ body {
 .message-group {
     display: flex;
     align-items: flex-end; }
-    .message-group.align-right {
+    .message-group.right-side {
         flex-direction: row-reverse; }
 
 .chatroom-container {
@@ -372,7 +373,7 @@ body {
         width: 100%;
         z-index: 1; }
         .message-input.form-lower .submit-message-input {
-            width: 100%;
+            width: calc(100% - 2.5rem);
             height: 80%;
             border: none; }
     .message-input .submit-message-btn {
@@ -391,7 +392,7 @@ body {
             height: 100%;
             background-blend-mode: color;
             background-size: cover;
-            background-image: url("./../image/send-btn.svg"); }
+            background-image: url("/image/send-btn.svg"); }
         .message-input .submit-message-btn:hover {
             background-color: rgba(255, 255, 255, .5); }
     .message-input .media-btn {
@@ -503,11 +504,11 @@ body {
         font-size: .85rem; }
 
 .consumer-avatar {
-    width: 64px;
-    height: 64px; }
+    width: 4rem;
+    height: 4rem; }
     .consumer-avatar.larger {
-        width: 128px;
-        height: 128px; }
+        width: 8rem;
+        height: 8rem; }
 
 .click-here {
     margin-left: 10px;
@@ -525,3 +526,6 @@ body {
     .multi-select-wrapper .dropdown-toggle .multi-select-values {
         white-space: normal;
         word-wrap: break-word; }
+    .multi-select-wrapper .form-check {
+        white-space: normal;
+        word-break: break-word; }

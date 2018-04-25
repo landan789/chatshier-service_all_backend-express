@@ -27,13 +27,13 @@
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="mb-4 pt-3 px-3">群發訊息</h3>
-                        <p class="mb-3 pt-0 px-3">首頁 / 訊息 /群發 </p>
-                        <p class="mb-3 pt-0 px-3">新增、編輯傳送到LINE@的訊息</p>
+                        <p class="mb-3 pt-0 px-3">首頁 / 訊息 / 群發</p>
+                        <p class="mb-3 pt-0 px-3">機器人向您的群體客戶發送的訊息</p>
                     </div>
                     <div class="px-3 my-3" id="appSelector">
                         <div class="dropdown app-dropdown">
                             <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <span class="dropdown-text">請選擇應用程式</span>
+                                <span class="dropdown-text">請選擇聊天機器人</span>
                             </button>
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
@@ -93,8 +93,8 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
+    <!-- Add Modal -->
+    <div class="chsr modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -149,38 +149,39 @@
                             <input type="text" class="form-control" name="sendDatetime" required>
                         </div>
                     </div>
+                    <div class="form-group" id="inputText">
+                        <label for="edutinput" class="col-form-label font-weight-bold mb-2">內容: </label>
+                        <button class="btn btn-light btn-border insert" id="addComposeText">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <span>(一次最多 3 則)</span>
 
-                    <div class="form-group" id="inputText"></div>
-                    <table>
-                        <td class="add-msg-btn-padding">
-                            <p>一次可以發送三則訊息</p>
-                            <p class="error-msg"><b>超過訊息上限</b></p>
-                            <button class="btn btn-light btn-border add-text-btn-style" id="addComposeText">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </td>
-                    </table>
-
+                        <p class="error-msg"><b>超過訊息上限</b></p>
+                        <div>
+                            <textarea class="px-2 compose-textarea" id="inputNum1"></textarea>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
                         <div class="input-container form-check">
-                            <input class="form-check-input" id="checkbox_value" type="checkbox" name="modal-draft" />
-                            <span>是</span>
+                            <input class="form-check-input" type="checkbox" id="checkbox_value" name="modal-draft" />
+                            <label class="form-check-label">是</label>
                         </div>
                     </div>
 
                     <p class="error-input"></p>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-info" id="composeAddSubmitBtn">確認</button>
+                        <button type="button" class="btn btn-primary" id="composeAddSubmitBtn">新增</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Edit Modal -->
-    <div class="modal fade" id="composeEditModal" tabindex="-1" role="dialog" aria-labelledby="composeEditModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+    <div class="chsr modal fade" id="composeEditModal" tabindex="-1" role="dialog" aria-labelledby="composeEditModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="composeEditModalTitle"></h5>
@@ -201,7 +202,6 @@
                                 <input type="text" class="form-control" name="sendDatetime" id="edit-time" />
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="edit-custom-fields" class="col-form-label font-weight-bold">篩選條件: </label>
                             <div id="edit-limit-user" class="card">
@@ -209,38 +209,36 @@
                                 <div class="card-body" id="edit-custom-fields"></div>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="edutinput" class="col-form-label font-weight-bold">訊息: </label>
                             <textarea class="px-2 compose-textarea" id="edutinput"></textarea>
                         </div>
-
                         <div class="form-group">
                             <label class="form-check-label col-form-label font-weight-bold">是否儲存為草稿？</label>
                             <div class="input-container form-check">
                                 <input class="form-check-input" type="checkbox" name="modal-draft" />
-                                <span>是</span>
+                                <label class="form-check-label">是</label>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="edit-submit">確認</button>
+                    <button type="button" class="btn btn-primary" id="edit-submit">更新</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="dialog_modal" tabindex="-1" role="dialog">
+    <div class="chsr modal fade" id="dialog_modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     <h4 id="textContent"></h4>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary">確定</button>
                     <button type="button" class="btn btn-secondary">取消</button>
+                    <button type="button" class="btn btn-primary">確定</button>
                 </div>
             </div>
         </div>

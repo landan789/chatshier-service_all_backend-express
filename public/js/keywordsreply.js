@@ -167,7 +167,7 @@
 
                     var trGrop =
                     '<tr id="' + keywordreplyId + '" data-title="' + appId + '">' +
-                        '<th data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</th>' +
+                        '<td data-title="' + keywordreply.keyword + '">' + keywordreply.keyword + '</td>' +
                         '<td data-title="' + keywordreply.text + '">' + keywordreply.text + '</td>' +
                         '<td>' + keywordreply.replyCount + '</td>' +
                         '<td>' +
