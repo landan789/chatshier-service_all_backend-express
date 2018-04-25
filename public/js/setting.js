@@ -68,9 +68,9 @@
         let groupId = $(this).attr('rel');
         let formStr =
             '<form>' +
-                '<div class="form-group">' +
-                    '<div id="type" class="d-none">insertNewApp</div>' +
-                    '<div id="groupId" class="d-none">' + groupId + '</div>' +
+                '<div class="form-group d-none">' +
+                    '<div id="type">insertNewApp</div>' +
+                    '<div id="groupId">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">新增機器人:</label>' +
@@ -192,14 +192,16 @@
         clearAppModalBody();
     });
 
-    $('#setting-modal-submit-btn').click(function(event) {
-        event.preventDefault();
-        let type = $(this).parent().parent().find('#type').text();
+    $('#setting-modal-submit-btn').on('click', function(ev) {
+        ev.preventDefault();
+
+        let $modalContent = $(ev.target).parents('.modal-content');
+        let type = $modalContent.find('#type').text();
         let groupId;
         // insertNewApp, updateProfile, updateApp
         switch (type) {
             case 'insertNewApp':
-                let type = $(this).parent().parent().find('#app-group-select option:selected').val();
+                let type = $modalContent.find('#app-group-select option:selected').val();
                 groupId = $('#groupId').text();
                 let app = insertType(type, groupId);
                 insertOneApp(app);
@@ -208,8 +210,8 @@
                 profSubmitBasic();
                 break;
             case 'updateApp':
-                let appId = $(this).parent().parent().find('#webhook-id').text();
-                groupId = $(this).parent().parent().find('#groupId').text();
+                let appId = $modalContent.find('#webhook-id').text();
+                groupId = $modalContent.find('#groupId').text();
 
                 if ($('#name').val()) {
                     let name = $('#name').val();
@@ -1561,7 +1563,7 @@
             '<div id="' + groupId + '-group" class="card-collapse collapse">' +
                 '<div class="app-table-space">' +
                     '<button type="button" class="btn btn-light btn-border mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                        '<i class="fas fa-plus fa-fw"></i>新增APP' +
+                        '<i class="fas fa-plus fa-fw"></i>新增聊天機器人' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
                         '<tbody id="' + groupId + '-body"></tbody>' +
@@ -1586,7 +1588,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -1594,23 +1596,23 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel ID:</td>' +
+                        '<td class="font-weight-bold">Channel ID:</td>' +
                         '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel Secret:</td>' +
+                        '<td class="font-weight-bold">Channel Secret:</td>' +
                         '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Channel Access Token:</td>' +
+                        '<td class="font-weight-bold">Channel Access Token:</td>' +
                         '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL:</td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1634,31 +1636,31 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Page Id:</td>' +
+                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
                         '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Id:</td>' +
+                        '<td class="font-weight-bold">App ID:</td>' +
                         '<td class="long-token" id="prof-fbAppId">' + app.id2 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Secret:</td>' +
+                        '<td class="font-weight-bold">App Secret:</td>' +
                         '<td class="long-token" id="prof-fbAppSecret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Validation Token: </td>' +
+                        '<td class="font-weight-bold">Validation Token: </td>' +
                         '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Page Token:</td>' +
+                        '<td class="font-weight-bold">Page Access Token:</td>' +
                         '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL:</td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1674,7 +1676,7 @@
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -1682,19 +1684,19 @@
                         '</th>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>機器人名稱:</td>' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
                         '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App ID:</td>' +
+                        '<td class="font-weight-bold">App ID:</td>' +
                         '<td class="long-token" id="prof-wechat-app-id">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>App Secret:</td>' +
+                        '<td class="font-weight-bold">App Secret:</td>' +
                         '<td class="long-token" id="prof-wechat-app-secret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td>Webhook URL:</td>' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
                             '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
@@ -1713,6 +1715,7 @@
                 appStr =
                     '<form>' +
                         '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
@@ -1748,6 +1751,7 @@
                 appStr =
                     '<form>' +
                         '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
@@ -1795,24 +1799,25 @@
                 appStr =
                     '<form>' +
                         '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
                             '<span id="webhook-id">' + id + '</span>' +
                             '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
                         '<div id="prof-edit-line-1">' +
                             '<div class="form-group">' +
-                                '<label class="col-form-label">App Name: </label>' +
+                                '<label class="col-form-label font-weight-bold">App Name: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label">App ID: </label>' +
+                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">App ID: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label">App Secret: </label>' +
+                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">App Secret: </label>' +
                                 '<div class="input-container">' +
                                     '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
                                 '</div>' +

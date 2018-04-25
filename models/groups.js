@@ -185,9 +185,12 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} groupIds
+         * @param {boolean} [includeAny]
          * @param {(userIds: string[]) => any} [callback]
          */
-        findUserIds(groupIds, callback) {
+        findUserIds(groupIds, includeAny, callback) {
+            includeAny = !!includeAny;
+
             // polymorphism to both groupid[] and groupid
             if (groupIds && !(groupIds instanceof Array)) {
                 groupIds = [groupIds];
@@ -197,9 +200,9 @@ module.exports = (function() {
                 '_id': {
                     $in: groupIds.map((groupId) => this.Types.ObjectId(groupId))
                 },
-                'isDeleted': false,
-                'members.isDeleted': false
+                'isDeleted': false
             };
+            !includeAny && (query['members.isDeleted'] = false);
 
             let aggregations = [
                 {
