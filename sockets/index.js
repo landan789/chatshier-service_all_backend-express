@@ -284,8 +284,14 @@ function init(server) {
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
-        }).catch((error) => {
-            console.trace(error);
+        }).catch((ERROR) => {
+            let json = {
+                status: 0,
+                msg: ERROR.MSG,
+                code: ERROR.CODE
+            };
+            console.log(JSON.stringify(json, null, 4));
+            console.trace(json);
             !res.headersSent && res.sendStatus(500);
         });
 
