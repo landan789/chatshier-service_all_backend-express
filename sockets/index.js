@@ -92,6 +92,8 @@ function init(server) {
             console.log(92);
 
             return appsMdl.find(null, webhookid).then((apps) => {
+                console.log(95);
+
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
                     return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                 }
@@ -99,21 +101,27 @@ function init(server) {
                 app = apps[appId];
                 return botSvc.parser(req, res, server, appId, app);
             }).then(() => {
+                console.log(104);
                 return botSvc.create(appId, app);
             }).then(() => {
+                console.log(107);
+
                 return botSvc.retrievePlatformUid(req, app);
             }).then((_platformUid) => {
+                console.log(111);
                 platformUid = _platformUid;
                 return platformUid && botSvc.getProfile(platformUid, appId, app);
             }).then((profile) => {
+                console.log(114);
                 // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
                 // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
                 return platformUid && profile && consumersMdl.replace(platformUid, profile);
             }).then((_consumers) => {
+                console.log(120);
                 if (!platformUid) {
                     return;
                 }
-                console.log(115);
+                console.log(124);
 
                 consumers = _consumers;
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
