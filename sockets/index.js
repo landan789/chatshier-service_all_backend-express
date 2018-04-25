@@ -147,8 +147,6 @@ function init(server) {
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
-                console.log(JSON.stringify(152, null, 4));
-
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
                     fromPath = receivedMessages[0].fromPath;
@@ -178,17 +176,15 @@ function init(server) {
             }).then(() => {
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (groupsMembers) => {
-                        resolve(groupsMembers);
+                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
+                        resolve(members);
                     });
                 });
-            }).then((groups) => {
+            }).then((members) => {
 
-                if (!groups) {
+                if (!members) {
                     return [];
                 }
-                let group = groups[app.group_id];
-                let members = group.members;
                 let recipientUids = Object.keys(members).map((memberId) => {
                     let userId = members[memberId].user_id;
 

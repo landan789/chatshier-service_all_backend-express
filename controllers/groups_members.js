@@ -85,11 +85,10 @@ module.exports = (function() {
         postOne(req, res, next) {
             let userId = req.params.userid;
             let groupId = req.params.groupid;
-            let memberUserId = req.body.userid;
             let memberUser;
 
             let postMember = {
-                user_id: memberUserId || '',
+                user_id: req.body.userid || '',
                 status: false, // false 邀請中 ; true 已加入
                 type: 0 <= [OWNER, ADMIN, WRITE, READ].indexOf(req.body.type) ? req.body.type : READ // OWNER 群組擁有者 ; ADMIN 群組管理員 ; WRITE 群組可修改 ; READ 群組可查看
             };
@@ -103,12 +102,12 @@ module.exports = (function() {
                         return reject(API_ERROR.GROUPID_WAS_EMPTY);
                     };
 
-                    usersMdl.find(memberUserId, null, (users) => {
+                    usersMdl.find(req.body.userid, null, (users) => {
                         if (!users) {
                             // 不存在的 user 無法加入 群組
                             return reject(API_ERROR.USER_FAILED_TO_FIND);
                         }
-                        memberUser = users[memberUserId];
+                        memberUser = users[req.body.userid];
                         resolve();
                     });
                 });
@@ -130,12 +129,12 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, false, true, (groupsMembers) => {
-                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
+                    groupsMembersMdl.findMembers(groupId, null, null, null, (members) => {
+                        if (!members || (members && 0 === Object.keys(members).length)) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
                         }
-                        resolve(groupsMembers);
+                        resolve(members);
                     });
                 });
             }).then((members) => {
@@ -144,24 +143,29 @@ module.exports = (function() {
                     let userId = member.user_id;
                     return userId;
                 });
-                let paramsIndex = userIds.indexOf(userId);
+                let paramsIndex = userIds.indexOf(req.params.userid);
                 let paramsMemberId = Object.keys(members)[paramsIndex];
                 let paramsMember = members[paramsMemberId];
 
-                let bodyIndex = userIds.indexOf(memberUserId);
+                let bodyIndex = userIds.indexOf(req.body.userid);
                 let bodyMemberId = Object.keys(members)[bodyIndex];
                 let bodyMember = members[bodyMemberId];
 
-                if (0 <= bodyIndex && !bodyMember.isDeleted) {
+                if (0 <= bodyIndex && !bodyMember.isDeleted && bodyMember.status) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_ALREADY_IN_THIS_GROUP);
                 }
+
+                if (0 <= bodyIndex && !bodyMember.isDeleted && !bodyMember.status) {
+                    return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
+                }
+
                 if (WRITE === paramsMember.type || READ === paramsMember.type) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_PERMISSION_TO_INSERT_MEMBER);
                 };
 
                 if (0 <= bodyIndex && bodyMember.isDeleted) {
                     postMember.isDeleted = false;
-                    postMember.status = false;
+                    postMember.status = false; // group member must be status false (not active) when we insert him or her again
 
                     return new Promise((resolve, reject) => {
                         groupsMembersMdl.update(groupId, bodyMemberId, postMember, (groupsMembers) => {
@@ -180,7 +184,7 @@ module.exports = (function() {
 
                         memberUser.group_ids.push(groupId);
                         return new Promise((resolve, reject) => {
-                            usersMdl.update(memberUserId, memberUser, (users) => {
+                            usersMdl.update(req.body.userid, memberUser, (users) => {
                                 if (!users || (users && 0 === Object.keys(users).length)) {
                                     reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
                                     return;
@@ -275,7 +279,7 @@ module.exports = (function() {
                 }
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(groupId, null, false, true, (members) => {
+                    groupsMembersMdl.findMembers(groupId, null, false, null, (members) => {
                         if (!members || (members && 0 === Object.keys(members).length)) {
                             reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                             return;
