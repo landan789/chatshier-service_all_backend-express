@@ -89,12 +89,8 @@ function init(server) {
             let fromPath;
             let toPath;
             let _messages;
-            console.log(92);
 
             return appsMdl.find(null, webhookid).then((apps) => {
-                console.log(95);
-                console.log(webhookid);
-                console.log(apps);
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
                     return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                 }
@@ -102,27 +98,21 @@ function init(server) {
                 app = apps[appId];
                 return botSvc.parser(req, res, server, appId, app);
             }).then(() => {
-                console.log(104);
                 return botSvc.create(appId, app);
             }).then(() => {
-                console.log(107);
 
                 return botSvc.retrievePlatformUid(req, app);
             }).then((_platformUid) => {
-                console.log(111);
                 platformUid = _platformUid;
                 return platformUid && botSvc.getProfile(platformUid, appId, app);
             }).then((profile) => {
-                console.log(114);
                 // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
                 // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
                 return platformUid && profile && consumersMdl.replace(platformUid, profile);
             }).then((_consumers) => {
-                console.log(120);
                 if (!platformUid) {
                     return;
                 }
-                console.log(124);
 
                 consumers = _consumers;
                 return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
@@ -158,14 +148,12 @@ function init(server) {
                 }
                 return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
             }).then((messages) => {
-                console.log(150);
                 receivedMessages = messages;
                 if (0 < receivedMessages.length) {
                     fromPath = receivedMessages[0].fromPath;
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
-                console.log(156);
 
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
@@ -183,12 +171,10 @@ function init(server) {
             }).then(() => {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
-                console.log(173);
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-                console.log(177);
 
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
@@ -196,7 +182,6 @@ function init(server) {
                     });
                 });
             }).then((members) => {
-                console.log(members);
 
                 if (!members) {
                     return [];
