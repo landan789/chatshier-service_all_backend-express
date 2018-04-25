@@ -177,7 +177,7 @@ function init(server) {
             }).then(() => {
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
+                    groupsMembersMdl.findMembers(app.group_id, null, false, true, (members) => {
                         resolve(members);
                     });
                 });
