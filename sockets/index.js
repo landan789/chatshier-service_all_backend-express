@@ -174,6 +174,7 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
+                console.log(177);
 
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
@@ -181,6 +182,7 @@ function init(server) {
                     });
                 });
             }).then((members) => {
+                console.log(members);
 
                 if (!members) {
                     return [];
@@ -193,6 +195,7 @@ function init(server) {
 
                 return recipientUids;
             }).then((recipientUids) => {
+                console.log(196);
 
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
