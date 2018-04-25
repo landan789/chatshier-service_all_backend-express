@@ -40,7 +40,6 @@ calendarsEvents.getAll = function(req, res, next) {
 };
 
 calendarsEvents.postOne = (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
     let event = {
         title: undefined === req.body.title ? null : req.body.title,
@@ -115,7 +114,6 @@ calendarsEvents.postOne = (req, res, next) => {
 };
 
 calendarsEvents.putOne = (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
     let userId = req.params.userid;
     let eventId = req.params.eventid;
     let calendarId = req.params.calendarid;

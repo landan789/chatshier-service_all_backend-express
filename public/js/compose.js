@@ -1,7 +1,11 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var appsData = {};
+    // var RESERVATION = 'RESERVATION';
+    var HISTORY = 'HISTORY';
+    // var DRAFT = 'DRAFT';
+
+    var apps = {};
     var appsComposes = {};
     var api = window.restfulAPI;
     var SOCKET_NAMESPACE = '/chatshier';
@@ -18,9 +22,9 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var $customFields = $('#custom-fields');
-    var $historyTableElem = null;
-    var $draftTableElem = null;
-    var $reservationTableElem = null;
+    var $historyTableBody = null;
+    var $draftTableBody = null;
+    var $reservationTableBody = null;
     var timeInMs = (Date.now() + 1000);
     var fieldEnums = api.appsFields.enums;
 
@@ -33,6 +37,7 @@
     var $composesEditDtInput = $composesEditDtPicker.find('input[name="sendDatetime"]');
 
     const NO_PERMISSION_CODE = '3.16';
+    const MUST_BE_LATER_THAN_NOW = '15.5';
     const DID_NOT_HAVE_TAGS = '15.6';
 
     var userId;
@@ -99,9 +104,9 @@
         $fieldBtn.text(btnName + ':' + conditionValue).show();
     });
 
-    $historyTableElem = $('#composes_history_table tbody');
-    $reservationTableElem = $('#composes_reservation_table tbody');
-    $draftTableElem = $('#composes_draft_table tbody');
+    $historyTableBody = $('#composesHistoryTable tbody');
+    $reservationTableBody = $('#composesReservationTable tbody');
+    $draftTableBody = $('#composesDraftTable tbody');
 
     if (!window.isMobileBrowser()) {
         var datetimePickerInitOpts = {
@@ -170,15 +175,18 @@
         }
     }
 
-    $composeEditModal.on('shown.bs.modal', function(event) {
+    $composeEditModal.on('shown.bs.modal', function(ev) {
         $('#edit-custom-fields').empty();
-        var $targetRow = $(event.relatedTarget).parent().parent();
+        var $targetRow = $(ev.relatedTarget).parents('tr');
+        var $targetTable = $targetRow.parents('table');
+
         var appId = $targetRow.attr('text');
         var composeId = $targetRow.attr('id');
         var $editForm = $composeEditModal.find('.modal-body form');
         var targetCompose = appsComposes[appId].composes[composeId];
         var customFieldsElement = $targetRow.find('#fields > #field');
         var customFields = {};
+
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
             let fieldId = 'ageRange' === $(this).attr('data-type') ? 'age' : $(this).attr('data-type');
@@ -260,14 +268,26 @@
             }
         }
 
+        var category = $targetTable.attr('category');
+        var composeDateTime = new Date(targetCompose.time);
+
+        if (HISTORY === category) {
+            composeDateTime = new Date(Date.now() + (5 * 60 * 1000));
+            $composeEditModal.find('#edit-submit').text('重發');
+        } else {
+            $composeEditModal.find('#edit-submit').text('更新');
+        }
+
         var composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
         if (composesEditDtPickerData) {
-            composesEditDtPickerData.date(new Date(targetCompose.time));
+            composesEditDtPickerData.date(composeDateTime);
         } else {
-            $composesEditDtInput.val(toDatetimeLocal(new Date(targetCompose.time)));
+            $composesEditDtInput.val(toDatetimeLocal(composeDateTime));
         }
 
         $editForm.find('#edutinput').val(targetCompose.text);
+        $editForm.find('input[name="modal-draft"]').prop('checked', !targetCompose.status);
+
         $composeEditModal.find('#edit-submit').off('click').on('click', function() {
             $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
             var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
@@ -279,46 +299,51 @@
             targetCompose.ageRange = ageRange;
             targetCompose.gender = gender;
             targetCompose.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
-            targetCompose.status = isDraft ? 1 : 0;
+            targetCompose.status = !isDraft;
 
-            return api.appsComposes.update(appId, composeId, userId, targetCompose).then((resJson) => {
+            return Promise.resolve().then(() => {
+                if (HISTORY === category) {
+                    return api.appsComposes.insert(appId, userId, targetCompose);
+                }
+                return api.appsComposes.update(appId, composeId, userId, targetCompose);
+            }).then((resJson) => {
                 ageRange = [];
                 gender = '';
                 fieldIds = {};
                 $composeEditModal.modal('hide');
-                $.notify('修改成功！', { type: 'success' });
+                $.notify(HISTORY === category ? '新增成功！' : '更新成功！', { type: 'success' });
                 $composeEditModal.find('#edit-submit').removeAttr('disabled');
                 return loadComposes(appId, userId);
             }).catch((resJson) => {
+                $composeEditModal.find('#edit-submit').removeAttr('disabled');
+
                 if (undefined === resJson.status) {
-                    $composeEditModal.modal('hide');
                     $.notify('失敗', { type: 'danger' });
-                    $composeEditModal.find('#edit-submit').removeAttr('disabled');
-                    return loadComposes(appId, userId);
-                }
-                if (NO_PERMISSION_CODE === resJson.code) {
                     $composeEditModal.modal('hide');
+                }
+
+                if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
-                    $composeEditModal.find('#edit-submit').removeAttr('disabled');
-                    return loadComposes(appId, userId);
+                    $composeEditModal.modal('hide');
+                }
+
+                if (MUST_BE_LATER_THAN_NOW === resJson.code) {
+                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
                 }
             });
         });
     });
 
     return api.apps.findAll(userId).then(function(respJson) {
-        appsData = respJson.data;
-
+        apps = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
-        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
-        // 將所有的 messages 的物件全部塞到一個陣列之中
         nowSelectAppId = '';
         modelSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
             if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+                delete apps[appId];
                 continue;
             }
             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
@@ -334,7 +359,7 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             loadComposes(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
@@ -396,21 +421,28 @@
 
     function loadComposes(appId, userId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
-        $historyTableElem.empty();
-        $draftTableElem.empty();
-        $reservationTableElem.empty();
+        $historyTableBody.empty();
+        $draftTableBody.empty();
+        $reservationTableBody.empty();
+
         return api.appsComposes.findAll(appId, userId).then(function(resJson) {
             if (!resJson.data[appId]) {
                 return;
             }
 
-            appsComposes = resJson.data;
+            Object.assign(appsComposes, resJson.data || {});
             var composes = appsComposes[appId].composes;
+
             for (var composeId in composes) {
                 var compose = composes[composeId];
                 if (compose.isDeleted) {
                     continue;
                 }
+
+                var composeTime = new Date(compose.time).getTime();
+                var isDraft = !compose.status;
+                var isReservation = compose.status && composeTime > timeInMs;
+                var isHistory = composeTime <= timeInMs;
 
                 var trGrop =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
@@ -418,16 +450,17 @@
                         '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                         appendFields(compose) +
                         '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isHistory ? 'fa-share-square' : 'fa-edit') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>';
-                if (!compose.status) {
-                    $draftTableElem.append(trGrop);
-                } else if (compose.status && new Date(compose.time) > timeInMs) {
-                    $reservationTableElem.append(trGrop);
-                } else if (compose.status && new Date(compose.time) <= timeInMs) {
-                    $historyTableElem.append(trGrop);
+
+                if (isReservation) {
+                    $reservationTableBody.append(trGrop);
+                } else if (isHistory) {
+                    $historyTableBody.append(trGrop);
+                } else if (isDraft) {
+                    $draftTableBody.append(trGrop);
                 }
             }
         });
@@ -652,13 +685,13 @@
             if (isDraft) {
                 return insert(appId, userId, messages, options).then(() => {
                     $composeAddModal.modal('hide');
-                    $('.form-control').val(appsData[appId].name);
+                    $('.form-control').val(apps[appId].name);
                     $('.text-input').val('');
                     $composesAddDtInput.val('');
 
                     inputNum = 1;
                     $.notify('新增成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(appsData[appId].name);
+                    $appDropdown.find('.dropdown-text').text(apps[appId].name);
                     $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                     return loadComposes(appId, userId);
                 });
@@ -677,13 +710,13 @@
                     $composeAddModal.modal('hide');
                     $composeAddModal.find('button.btn-update-submit').removeAttr('disabled');
                     if (1 === json.status) {
-                        $('.form-control').val(appsData[appId].name);
+                        $('.form-control').val(apps[appId].name);
                         $('.text-input').val('');
                         $composesAddDtInput.val('');
                         inputNum = 1;
 
                         $.notify('發送成功', { type: 'success' });
-                        $appDropdown.find('.dropdown-text').text(appsData[appId].name);
+                        $appDropdown.find('.dropdown-text').text(apps[appId].name);
                     } else {
                         let errText = '';
                         if (NO_PERMISSION_CODE === json.code) {
@@ -720,9 +753,9 @@
                     if (0 === response.stats) {
                         return;
                     };
-                    let appsComposes = response.data;
-                    let appId = Object.keys(appsComposes)[0];
-                    let composes = appsComposes[appId].composes;
+                    let _appsComposes = response.data || {};
+                    let appId = Object.keys(_appsComposes)[0];
+                    let composes = _appsComposes[appId].composes;
                     let composeId = Object.keys(composes)[0];
                     let compose = composes[composeId];
 
@@ -737,18 +770,17 @@
                             '</td>' +
                         '</tr>';
                     if (!compose.status) {
-                        $draftTableElem.append(trGrop);
+                        $draftTableBody.append(trGrop);
                     } else if (compose.status && new Date(compose.time) > timeInMs) {
-                        $reservationTableElem.append(trGrop);
+                        $reservationTableBody.append(trGrop);
                     } else if (compose.status && new Date(compose.time) <= timeInMs) {
-                        $historyTableElem.append(trGrop);
+                        $historyTableBody.append(trGrop);
                     }
-                    appsComposes[appId] = appsComposes[appId] || {};
-                    appsComposes[appId].composes = appsComposes[appId].composes || {};
-                    appsComposes[appId].composes[composeId] = compose;
                 });
                 $composeAddModal.modal('hide');
                 $.notify('新增成功', { type: 'success' });
+            }).then(() => {
+                return loadComposes(appId, userId);
             });
         }
     }
@@ -845,17 +877,20 @@
         });
 
         return api.appsComposes.insert(appId, userId, composes, true).catch((resJson) => {
+            $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
+
             if (undefined === resJson.status) {
-                $composeAddModal.modal('hide');
-                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $.notify('失敗', { type: 'danger' });
-                return loadComposes(appId, userId);
-            }
-            if (NO_PERMISSION_CODE === resJson.code) {
                 $composeAddModal.modal('hide');
-                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
+            }
+
+            if (NO_PERMISSION_CODE === resJson.code) {
                 $.notify('無此權限', { type: 'danger' });
-                return loadComposes(appId, userId);
+                $composeAddModal.modal('hide');
+            }
+
+            if (MUST_BE_LATER_THAN_NOW === resJson.code) {
+                $.notify('群發時間必須大於現在時間', { type: 'danger' });
             }
         });
     }

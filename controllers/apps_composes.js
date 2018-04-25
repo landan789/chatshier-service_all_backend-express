@@ -72,8 +72,6 @@ module.exports = (function() {
     };
 
     AppsComposesController.prototype.postOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
-
         let postCompose = {
             type: req.body.type,
             text: req.body.text,
@@ -83,15 +81,23 @@ module.exports = (function() {
             gender: req.body.gender,
             field_ids: req.body.field_ids || {}
         };
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
-            let appId = checkedAppIds;
-            return new Promise((resolve, reject) => {
-                appsComposesMdl.insert(appId, postCompose, (result) => {
-                    if (!result) {
-                        reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(result);
+
+        return Promise.resolve().then(() => {
+            // 檢查欲更新的群發發送時間比現在的時間還早的話不允許新增
+            if (!postCompose.time || new Date(postCompose.time).getTime() < Date.now()) {
+                return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+            }
+
+            return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppIds) => {
+                let appId = checkedAppIds;
+                return new Promise((resolve, reject) => {
+                    appsComposesMdl.insert(appId, postCompose, (result) => {
+                        if (!result) {
+                            reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                            return;
+                        }
+                        resolve(result);
+                    });
                 });
             });
         }).then((compose) => {
@@ -115,7 +121,7 @@ module.exports = (function() {
     AppsComposesController.prototype.putOne = (req, res) => {
         let composeId = req.params.composeid;
         let appId = '';
-        let putComposesData = {
+        let putComposes = {
             type: req.body.type,
             text: req.body.text,
             time: req.body.time,
@@ -129,21 +135,23 @@ module.exports = (function() {
             if (!composeId) {
                 return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
             };
-            return new Promise((resolve, reject) => {
-                appsComposesMdl.update(appId, composeId, putComposesData, (AppsCompose) => {
-                    if (!AppsCompose) {
-                        reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
-                        return;
-                    }
-                    resolve(AppsCompose);
-                });
+
+            // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
+            if (!putComposes.time || new Date(putComposes.time).getTime() < Date.now()) {
+                return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+            }
+
+            return appsComposesMdl.update(appId, composeId, putComposes).then((_appsComposes) => {
+                if (!_appsComposes) {
+                    return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
+                }
+                return _appsComposes;
             });
-        }).then((AppsCompose) => {
-            let result = AppsCompose !== undefined ? AppsCompose : {};
+        }).then((data) => {
             let json = {
                 status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                data: result
+                msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
+                data: data
             };
             res.status(200).json(json);
         }).catch((ERR) => {
@@ -157,12 +165,10 @@ module.exports = (function() {
     };
 
     AppsComposesController.prototype.deleteOne = (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
         let composeId = req.params.composeid;
-        let appId = '';
-        return AppsComposesController.prototype.AppsRequestVerify(req).then((checkedAppId) => {
-            appId = checkedAppId;
+        let appId = req.params.appid;
 
+        return AppsComposesController.prototype.AppsRequestVerify(req).then(() => {
             if (!composeId) {
                 return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
             };
