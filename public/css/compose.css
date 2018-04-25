@@ -1,33 +1,16 @@
-table {
-    width: 100%;
-}
-
-
-.add-msg-btn-padding {
-    padding: 5%;
-}
-
 .error-msg,
 .error-input {
     display: none;
     color: red;
 }
 
-.add-text-btn-style {
-    width: 20%;
-    margin: 0.5%;
-    padding: 0.5%;
-    float: left;
-}
-
 .remove-btn {
     cursor: pointer;
     color: red;
-    top: -0.45rem;
-    right: -0.25rem;
 }
 
-.textinput {
-    width: 100%;
-    height: 100px;
+.compose-textarea {
+    resize: none;
+    width: 90%;
+    height: 4rem;
 }

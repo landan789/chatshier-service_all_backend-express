@@ -146,7 +146,9 @@
         var id = $(this).parent().find('form').find('textarea').attr('id');
         deleteNum++;
         delete inputObj[id];
-        if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
+        if (inputNum - deleteNum < 4) {
+            $('.error-msg').hide();
+        };
         $(this).parent().remove();
     }
 
@@ -161,24 +163,25 @@
             $('.error-msg').show();
             inputNum--;
         } else {
-
-            let textAreaString = '<div class="mt-2 position-relative">' +
-                                    '<i class="fas fa-times remove-btn position-absolute"></i>' +
-                                    '<textarea class="px-2 compose-textarea" id="inputNum' + inputNum + '"></textarea>' +
-                                 '</div>';
-            $('#inputText').append(textAreaString);
+            let textAreaHtml = (
+                '<div class="mt-2 d-flex align-items-center justify-content-between input-container">' +
+                    '<textarea class="px-1 compose-textarea text-input" id="inputNum' + inputNum + '"></textarea>' +
+                    '<i class="m-auto p-2 fas fa-trash-alt remove-btn"></i>' +
+                '</div>'
+            );
+            $('#inputWarpper').append(textAreaHtml);
             inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
         }
     }
 
     $composeEditModal.on('shown.bs.modal', function(event) {
         $('#edit-custom-fields').empty();
-        var targetRow = $(event.relatedTarget).parent().parent();
-        var appId = targetRow.attr('text');
-        var composeId = targetRow.attr('id');
+        var $targetRow = $(event.relatedTarget).parent().parent();
+        var appId = $targetRow.attr('text');
+        var composeId = $targetRow.attr('id');
         var $editForm = $composeEditModal.find('.modal-body form');
         var targetCompose = appsComposes[appId].composes[composeId];
-        var customFieldsElement = targetRow.find('#fields > #field');
+        var customFieldsElement = $targetRow.find('#fields > #field');
         var customFields = {};
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
@@ -539,19 +542,19 @@
     }
 
     function resetAddModal() {
-        debugger;
         $('.error-msg').hide();
         $('.error-input').hide();
-        $('.textinput').val('');
+        $('.text-input').val('');
         $('#send-all').prop('checked', true);
         $('#limit-user').addClass('d-none');
         $('#condition').remove();
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
         $('#checkbox_value').prop('checked', false);
-        $('#inputText').find('textarea').eq(2).parent().remove();
-        $('#inputText').find('textarea').eq(1).parent().remove();
-        $('#inputText').find('textarea').eq(0).val('');
+
+        var $inputWarpper = $('#inputWarpper');
+        $inputWarpper.find('.input-container').first().val('');
+        $inputWarpper.find('.input-container').not(':first').remove();
 
         var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
         // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
@@ -618,7 +621,7 @@
         $errorMsgElem.empty().hide();
 
         var isTextVaild = true;
-        $('.textinput').each(function() {
+        $('.text-input').each(function() {
             isTextVaild &= !!$(this).val();
         });
         if (sendTime < Date.now()) {
@@ -660,7 +663,7 @@
                 return insert(appId, userId, messages, options).then(() => {
                     $composeAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
-                    $('.textinput').val('');
+                    $('.text-input').val('');
                     $composesAddDtInput.val('');
 
                     inputNum = 1;
@@ -685,7 +688,7 @@
                     $composeAddModal.find('button.btn-update-submit').removeAttr('disabled');
                     if (1 === json.status) {
                         $('.form-control').val(appsData[appId].name);
-                        $('.textinput').val('');
+                        $('.text-input').val('');
                         $composesAddDtInput.val('');
                         inputNum = 1;
 
