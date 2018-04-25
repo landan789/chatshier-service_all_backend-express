@@ -149,16 +149,19 @@
                             <input type="text" class="form-control" name="sendDatetime" required>
                         </div>
                     </div>
-                    <div class="form-group" id="inputText">
+                    <div class="form-group">
                         <label for="edutinput" class="col-form-label font-weight-bold mb-2">內容: </label>
                         <button class="btn btn-light btn-border insert" id="addComposeText">
                             <i class="fas fa-plus"></i>
                         </button>
                         <span>(一次最多 3 則)</span>
 
-                        <p class="error-msg"><b>超過訊息上限</b></p>
-                        <div>
-                            <textarea class="px-2 compose-textarea" id="inputNum1"></textarea>
+                        <p class="error-msg font-weight-bold">超過訊息上限</p>
+                        <p class="error-input font-weight-bold"></p>
+                        <div class="w-100 input-warpper" id="inputWarpper">
+                            <div class="position-relative input-container">
+                                <textarea class="px-2 compose-textarea text-input"></textarea>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -169,7 +172,6 @@
                         </div>
                     </div>
 
-                    <p class="error-input"></p>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" id="composeAddSubmitBtn">新增</button>
@@ -210,7 +212,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="edutinput" class="col-form-label font-weight-bold">訊息: </label>
+                            <label for="edutinput" class="col-form-label font-weight-bold">訊息:</label>
                             <textarea class="px-2 compose-textarea" id="edutinput"></textarea>
                         </div>
                         <div class="form-group">

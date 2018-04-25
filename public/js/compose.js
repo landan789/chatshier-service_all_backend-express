@@ -7,7 +7,6 @@
     var SOCKET_NAMESPACE = '/chatshier';
     const socket = io(SOCKET_NAMESPACE);
     var inputNum = 0; // 計算訊息的數量
-    var inputObj = {};
     var ageRange = [];
     var gender = '';
     var fieldIds = {};
@@ -143,10 +142,10 @@
     } // end of loadFriendsReply
 
     function removeInput() {
-        var id = $(this).parent().find('form').find('textarea').attr('id');
         deleteNum++;
-        delete inputObj[id];
-        if (inputNum - deleteNum < 4) { $('.error_msg').hide(); };
+        if (inputNum - deleteNum < 4) {
+            $('.error-msg').hide();
+        };
         $(this).parent().remove();
     }
 
@@ -161,24 +160,24 @@
             $('.error-msg').show();
             inputNum--;
         } else {
-
-            let textAreaString = '<div class="mt-3 position-relative">' +
-                                    '<i class="fas fa-times remove-btn position-absolute"></i>' +
-                                    '<textarea class="px-2 compose-textarea" id="inputNum' + inputNum + '"></textarea>' +
-                                 '</div>';
-            $('#inputText').append(textAreaString);
-            inputObj['inputNum' + inputNum] = 'inputNum' + inputNum;
+            let textAreaHtml = (
+                '<div class="position-relative mt-3 input-container">' +
+                    '<textarea class="pl-2 compose-textarea text-input"></textarea>' +
+                    '<i class="position-absolute fas fa-times remove-btn"></i>' +
+                '</div>'
+            );
+            $('#inputWarpper').append(textAreaHtml);
         }
     }
 
     $composeEditModal.on('shown.bs.modal', function(event) {
         $('#edit-custom-fields').empty();
-        var targetRow = $(event.relatedTarget).parent().parent();
-        var appId = targetRow.attr('text');
-        var composeId = targetRow.attr('id');
+        var $targetRow = $(event.relatedTarget).parent().parent();
+        var appId = $targetRow.attr('text');
+        var composeId = $targetRow.attr('id');
         var $editForm = $composeEditModal.find('.modal-body form');
         var targetCompose = appsComposes[appId].composes[composeId];
-        var customFieldsElement = targetRow.find('#fields > #field');
+        var customFieldsElement = $targetRow.find('#fields > #field');
         var customFields = {};
         customFieldsElement.each(function() {
             let fieldValue = $(this).text();
@@ -539,19 +538,19 @@
     }
 
     function resetAddModal() {
-        debugger;
         $('.error-msg').hide();
         $('.error-input').hide();
-        $('.textinput').val('');
+        $('.text-input').val('');
         $('#send-all').prop('checked', true);
         $('#limit-user').addClass('d-none');
         $('#condition').remove();
         $('button[id="field"]').show();
         $('#send-now').prop('checked', true);
         $('#checkbox_value').prop('checked', false);
-        $('#inputText').find('textarea').eq(2).parent().remove();
-        $('#inputText').find('textarea').eq(1).parent().remove();
-        $('#inputText').find('textarea').eq(0).val('');
+
+        var $inputWarpper = $('#inputWarpper');
+        $inputWarpper.find('.input-container').first().val('');
+        $inputWarpper.find('.input-container').not(':first').remove();
 
         var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
         // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
@@ -561,9 +560,6 @@
         } else {
             $composesAddDtInput.val(toDatetimeLocal(new Date(dateNowLater)));
         }
-
-        inputObj = {};
-        inputObj['inputNum1'] = 'inputNum1';
 
         inputNum = 1;
         deleteNum = 0;
@@ -601,6 +597,7 @@
     }
 
     function insertSubmit() {
+        var $inputWarpper = $('#inputWarpper');
         var $errorMsgElem = $composeAddModal.find('.error-input');
         var appId = $appSelector.find('option:selected').val();
         var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
@@ -618,13 +615,9 @@
         $errorMsgElem.empty().hide();
 
         var isTextVaild = true;
-        $('.textinput').each(function() {
+        $('.text-input').each(function() {
             isTextVaild &= !!$(this).val();
         });
-        if (sendTime < Date.now()) {
-            $errorMsgElem.text('群發時間必須大於現在時間').show();
-            return;
-        };
 
         if (!isTextVaild) {
             $errorMsgElem.text('請輸入群發的內容').show();
@@ -641,10 +634,10 @@
 
         let messages = [];
         if ($('#send-now').prop('checked')) {
-            for (let key in inputObj) {
+            $inputWarpper.find('.input-container textarea').each(function() {
                 let compose = {
                     type: 'text',
-                    text: $('#' + key).val(),
+                    text: $(this).val(),
                     status: 1,
                     time: Date.now() - 60000,
                     ageRange: ageRange,
@@ -652,7 +645,7 @@
                     field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
                 };
                 messages.push(compose);
-            }
+            });
 
             // 如果是屬於草稿則不做立即發送動作
             // 將群發訊息存入資料庫，等待使用者再行編輯
@@ -660,7 +653,7 @@
                 return insert(appId, userId, messages, options).then(() => {
                     $composeAddModal.modal('hide');
                     $('.form-control').val(appsData[appId].name);
-                    $('.textinput').val('');
+                    $('.text-input').val('');
                     $composesAddDtInput.val('');
 
                     inputNum = 1;
@@ -685,7 +678,7 @@
                     $composeAddModal.find('button.btn-update-submit').removeAttr('disabled');
                     if (1 === json.status) {
                         $('.form-control').val(appsData[appId].name);
-                        $('.textinput').val('');
+                        $('.text-input').val('');
                         $composesAddDtInput.val('');
                         inputNum = 1;
 
@@ -709,13 +702,18 @@
                 return loadComposes(appId, userId);
             });
         } else if ($('#send-sometime').prop('checked')) {
-            for (let key in inputObj) {
+            if (sendTime < Date.now()) {
+                $errorMsgElem.text('群發時間必須大於現在時間').show();
+                return;
+            };
+
+            $inputWarpper.find('.input-container textarea').each(function() {
                 let message = {
                     type: 'text',
-                    text: $('#' + key).val()
+                    text: $(this).val()
                 };
                 messages.push(message);
-            };
+            });
 
             return insert(appId, userId, messages, options).then((responses) => {
                 responses.forEach((response) => {
