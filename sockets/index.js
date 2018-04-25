@@ -186,7 +186,7 @@ function init(server) {
                 let group = groups[app.group_id];
                 let members = group.members;
                 let recipientUids = Object.keys(members).filter((memberId) => {
-                    if (0 === members[memberId].isDeleted && 1 === members[memberId].status) {
+                    if (false === members[memberId].isDeleted && true === members[memberId].status) {
                         let userId = members[memberId].user_id;
                         return true;
                     }
