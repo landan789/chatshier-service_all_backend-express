@@ -151,6 +151,8 @@ function init(server) {
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
+                console.trace(JSON.stringify(154, null, 4));
+
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
                     // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
@@ -165,12 +167,17 @@ function init(server) {
                 let replyToken = receivedMessages[0].replyToken || '';
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
+                console.trace(JSON.stringify(168, null, 4));
+
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
             }).then((keywordreplies) => {
+                console.trace(JSON.stringify(172, null, 4));
+
                 return Promise.all(keywordreplies.map((keywordreply) => {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
+                console.trace(JSON.stringify(174, null, 4));
 
                 return new Promise((resolve, reject) => {
                     groupsMdl.find(app.group_id, null, (groups) => {
