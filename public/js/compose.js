@@ -444,7 +444,7 @@
                 var isReservation = compose.status && composeTime > timeInMs;
                 var isHistory = composeTime <= timeInMs;
 
-                var trGrop =
+                var tr =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
                         '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
                         '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
@@ -456,11 +456,11 @@
                     '</tr>';
 
                 if (isReservation) {
-                    $reservationTableBody.append(trGrop);
+                    $reservationTableBody.append(tr);
                 } else if (isHistory) {
-                    $historyTableBody.append(trGrop);
+                    $historyTableBody.append(tr);
                 } else if (isDraft) {
-                    $draftTableBody.append(trGrop);
+                    $draftTableBody.append(tr);
                 }
             }
         });
