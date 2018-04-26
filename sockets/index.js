@@ -100,7 +100,6 @@ function init(server) {
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
-
                 return botSvc.retrievePlatformUid(req, app);
             }).then((_platformUid) => {
                 platformUid = _platformUid;
@@ -177,7 +176,7 @@ function init(server) {
             }).then(() => {
 
                 return new Promise((resolve, reject) => {
-                    groupsMembersMdl.findMembers(app.group_id, null, null, null, (members) => {
+                    groupsMembersMdl.findMembers(app.group_id, null, false, true, (members) => {
                         resolve(members);
                     });
                 });
@@ -194,7 +193,6 @@ function init(server) {
 
                 return recipientUids;
             }).then((recipientUids) => {
-                console.log(196);
 
                 if (!(recipientUids && platformUid)) {
                     return recipientUids;
@@ -214,10 +212,8 @@ function init(server) {
                 }
 
                 // 將整個聊天室群組成員的聊天狀態更新
-                console.log(recipientUids);
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-                        console.log(JSON.stringify(appsChatroomsMessagers, null, 4));
 
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
@@ -288,8 +284,14 @@ function init(server) {
         }).then(() => {
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
-        }).catch((error) => {
-            console.trace(error);
+        }).catch((ERROR) => {
+            let json = {
+                status: 0,
+                msg: ERROR.MSG,
+                code: ERROR.CODE
+            };
+            console.log(JSON.stringify(json, null, 4));
+            console.trace(json);
             !res.headersSent && res.sendStatus(500);
         });
 

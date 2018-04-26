@@ -2105,7 +2105,7 @@
 
     $searchInput.on('keyup', function(ev) {
         var searchStr = $(ev.target).val().toLowerCase();
-        if (!searchStr) {
+        if ('' === searchStr) {
             $searchWapper.find('.search-results').addClass('d-none');
             displayAll();
 
@@ -2117,6 +2117,8 @@
                 $chatContent.find('.message .content').removeClass('found');
                 $tablink.removeClass('d-none');
             });
+            return;
+
         }
 
         var code = ev.keyCode || ev.which;
