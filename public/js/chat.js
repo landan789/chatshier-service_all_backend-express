@@ -258,6 +258,7 @@
                     var $messagerEmailElem = $ticketAddModal.find('input#add-form-email');
                     var $messagerPhoneElem = $ticketAddModal.find('input#add-form-phone');
                     var $assignedSelectElem = $ticketAddModal.find('select#assigned-name');
+                    var $addFormDescription = $ticketAddModal.find('textarea#add_form_description');
 
                     // 在聊天室中的代辦事項已經知道所屬的 app 因此不需要讓使用者選擇 app
                     var $appContainerElem = $ticketAddModal.find('.select-app-container');
@@ -295,8 +296,9 @@
                         var platformUid = ev.target.value;
                         updateInfo(platformUid);
                     });
-                });
 
+                    $addFormDescription.val('');
+                });
                 $ticketTable.off('keyup').on('keyup', '.ticket-search-bar', instance.ticketSearch);
                 $ticketBody.off('click').on('click', '.ticket-row', instance.showTicketDetail);
             });
