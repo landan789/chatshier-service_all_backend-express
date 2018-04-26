@@ -54,7 +54,7 @@
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#addComposeText', addComposeText);
     $(document).on('click', '.remove-btn', removeInput);
-    $(document).on('click', '#delete-btn', dataRemove);
+    $(document).on('click', '#delete-btn', remove);
     $(document).on('click', '#send-all', function () {
         let id = $(this).attr('rel');
         $('#' + id).addClass('d-none');
@@ -895,7 +895,8 @@
         });
     }
 
-    function dataRemove() {
+    function remove() {
+
         var userId;
         try {
             var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -914,12 +915,18 @@
                 $('#' + composeId).remove();
                 $.notify('刪除成功！', { type: 'success' });
             }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
+                    return;
                 }
+
+                if (MUST_BE_LATER_THAN_NOW === resJson.code) {
+                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
+                    return;
+                }
+
+                $.notify('失敗', { type: 'danger' });
+                return;
             });
         });
     }
