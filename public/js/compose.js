@@ -446,7 +446,7 @@
 
                 var tr =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
-                        '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
+                        '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
                         '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                         appendFields(compose) +
                         '<td>' +
@@ -517,6 +517,7 @@
     }
 
     function dataSearch(ev) {
+        // debugger;
         let searchText = $(this).val().toLocaleLowerCase();
         let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
         if (0 === target.length) {
@@ -761,7 +762,7 @@
 
                     var trGrop =
                         '<tr id="' + composeId + '" text="' + appId + '">' +
-                            '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
+                            '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
