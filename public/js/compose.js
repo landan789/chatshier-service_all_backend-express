@@ -54,7 +54,7 @@
     $(document).on('click', '.tablinks', clickMsg);
     $(document).on('click', '#addComposeText', addComposeText);
     $(document).on('click', '.remove-btn', removeInput);
-    $(document).on('click', '#delete-btn', dataRemove);
+    $(document).on('click', '#delete-btn', remove);
     $(document).on('click', '#send-all', function () {
         let id = $(this).attr('rel');
         $('#' + id).addClass('d-none');
@@ -444,23 +444,23 @@
                 var isReservation = compose.status && composeTime > timeInMs;
                 var isHistory = composeTime <= timeInMs;
 
-                var trGrop =
+                var tr =
                     '<tr id="' + composeId + '" text="' + appId + '">' +
-                        '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
+                        '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
                         '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                         appendFields(compose) +
                         '<td>' +
                             '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isHistory ? 'fa-share-square' : 'fa-edit') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
+                            (isHistory ? '' : '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>') +
                         '</td>' +
                     '</tr>';
 
                 if (isReservation) {
-                    $reservationTableBody.append(trGrop);
+                    $reservationTableBody.append(tr);
                 } else if (isHistory) {
-                    $historyTableBody.append(trGrop);
+                    $historyTableBody.append(tr);
                 } else if (isDraft) {
-                    $draftTableBody.append(trGrop);
+                    $draftTableBody.append(tr);
                 }
             }
         });
@@ -517,6 +517,7 @@
     }
 
     function dataSearch(ev) {
+        // debugger;
         let searchText = $(this).val().toLocaleLowerCase();
         let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
         if (0 === target.length) {
@@ -635,12 +636,12 @@
         var appId = $appSelector.find('option:selected').val();
         var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
 
-        var sendTime;
+        var time;
         var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
         if (composesAddDtPickerData) {
-            sendTime = composesAddDtPickerData.date().toDate().getTime();
+            time = composesAddDtPickerData.date().toDate().getTime();
         } else {
-            sendTime = new Date($composesAddDtInput.val()).getTime();
+            time = new Date($composesAddDtInput.val()).getTime();
         }
 
         var conditionInputElement = $composeAddModal.find('input#condition-input');
@@ -658,7 +659,7 @@
         }
 
         let options = {
-            sendTime: sendTime,
+            time: time,
             isDraft: isDraft,
             ageRange: ageRange,
             gender: gender,
@@ -735,7 +736,7 @@
                 return loadComposes(appId, userId);
             });
         } else if ($('#send-sometime').prop('checked')) {
-            if (sendTime < Date.now()) {
+            if (time < Date.now()) {
                 $errorMsgElem.text('群發時間必須大於現在時間').show();
                 return;
             };
@@ -761,7 +762,7 @@
 
                     var trGrop =
                         '<tr id="' + composeId + '" text="' + appId + '">' +
-                            '<td id="text" data-title="' + compose.text + '">' + compose.text + '</td>' +
+                            '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
                             '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
                             appendFields(compose) +
                             '<td>' +
@@ -868,7 +869,7 @@
                 type: message.type,
                 text: message.text,
                 status: options.isDraft ? 0 : 1,
-                time: options.isDraft ? Date.now() : options.sendTime,
+                time: options.time,
                 ageRange: options.ageRange,
                 gender: options.gender,
                 field_ids: options.field_ids
@@ -895,7 +896,8 @@
         });
     }
 
-    function dataRemove() {
+    function remove() {
+
         var userId;
         try {
             var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -914,12 +916,18 @@
                 $('#' + composeId).remove();
                 $.notify('刪除成功！', { type: 'success' });
             }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
+                    return;
                 }
+
+                if (MUST_BE_LATER_THAN_NOW === resJson.code) {
+                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
+                    return;
+                }
+
+                $.notify('失敗', { type: 'danger' });
+                return;
             });
         });
     }

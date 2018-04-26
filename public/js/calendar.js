@@ -238,9 +238,9 @@
             });
 
             // 按鈕顯示設定
-            $addCalendarBtn.show();
-            $saveCalendarBtn.hide();
-            $delCalendarBtn.hide();
+            $addCalendarBtn.removeClass('d-none');
+            $saveCalendarBtn.addClass('d-none');
+            $delCalendarBtn.addClass('d-none');
 
             $calendar.fullCalendar('unselect');
             $calendarModal.modal('show');
@@ -314,10 +314,8 @@
             $delCalendarBtn.off('click').on('click', function() {
                 deleteCalendarEvent(event);
             });
-
-            // 按鈕顯示設定
-            $addCalendarBtn.hide();
-            $saveCalendarBtn.show();
+            $addCalendarBtn.addClass('d-none');
+            $saveCalendarBtn.removeClass('d-none');
 
             $calendar.fullCalendar('unselect');
             $calendarModal.modal('show'); // 顯示新增視窗
