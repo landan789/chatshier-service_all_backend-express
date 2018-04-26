@@ -8,8 +8,13 @@
     cursor: pointer;
     color: #000;
     top: 0;
-    right: .3rem;
+    right: 0.3rem;
     font-size: 1.5em;
+    opacity: 0.5;
+}
+
+.remove-btn:hover {
+    opacity: 1;
 }
 
 .compose-textarea {
