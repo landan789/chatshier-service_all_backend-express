@@ -374,6 +374,7 @@ function init(server) {
                     }).then((messagesInDB) => {
                         let messageId = Object.keys(messagesInDB).shift() || '';
                         let _message = messagesInDB[messageId];
+                        socketBody.messages[i] = _message;
                         if (!_message.src) {
                             return;
                         }
