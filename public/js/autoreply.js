@@ -21,6 +21,7 @@
     var nowSelectAppId = '';
 
     const NO_PERMISSION_CODE = '3.16';
+    const MAX_CHATSHIER_UNIX_TIME = 4701945599000;
 
     var userId;
     try {
@@ -128,10 +129,10 @@
         let endTimePickerData = $autoreplyAddEdtPicker.data('DateTimePicker');
         if (startTimePickerData && endTimePickerData) {
             startedTime = startTimePickerData.date().toDate().getTime();
-            endedTime = endTimePickerData.date().toDate().getTime();
+            endedTime = endTimePickerData.date() ? endTimePickerData.date().toDate().getTime() : MAX_CHATSHIER_UNIX_TIME;
         } else {
             startedTime = new Date($autoreplyAddSdtInput.val()).getTime();
-            endedTime = new Date($autoreplyAddEdtInput.val()).getTime();
+            endedTime = $autoreplyAddEdtInput.val() ? new Date($autoreplyAddEdtInput.val()).getTime() : MAX_CHATSHIER_UNIX_TIME;
         }
 
         let name = $('#modal-task-name').val();
@@ -143,11 +144,9 @@
             text: textInput
         };
 
-        return api.appsAutoreplies.insert(appId, userId, autoreplyData).then(function(resJson) {
-            // let autoreplies = resJson.data[appId].autoreplies;
-            // let autoreplyId = Object.keys(autoreplies);
-            // let autoreply = autoreplies[autoreplyId[0]];
-
+        return Promise.resolve().then(() => {
+            return api.appsAutoreplies.insert(appId, userId, autoreplyData);
+        }).then((resJson) => {
             $autoreplyAddModal.modal('hide');
             $('#modal-task-name').val('');
             $('#starttime').val('');
