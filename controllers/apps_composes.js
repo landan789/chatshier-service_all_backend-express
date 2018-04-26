@@ -129,7 +129,7 @@ module.exports = (function() {
         putOne(req, res) {
             let composeId = req.params.composeid;
             let appId;
-            let putComposes = {
+            let putCompose = {
                 type: req.body.type,
                 text: req.body.text,
                 time: req.body.time,
@@ -146,11 +146,11 @@ module.exports = (function() {
                 };
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
-                if (!putComposes.time || new Date(putComposes.time).getTime() < Date.now()) {
+                if (!putCompose.time || new Date(putCompose.time).getTime() < new Date().getTime()) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
-                return appsComposesMdl.update(appId, composeId, putComposes).then((_appsComposes) => {
+                return appsComposesMdl.update(appId, composeId, putCompose).then((_appsComposes) => {
                     if (!_appsComposes) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }
@@ -181,6 +181,22 @@ module.exports = (function() {
                 if (!composeId) {
                     return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
                 };
+                return new Promise((resolve, reject) => {
+                    appsComposesMdl.find(appId, composeId, (appsComposes) => {
+                        if (!appsComposes) {
+                            reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                            return;
+                        }
+                        resolve(appsComposes);
+                    });
+                });
+            }).then((appsComposes) => {
+                let app = appsComposes[appId];
+                let compose = app.composes[composeId];
+                if (new Date(compose.time).getTime() < new Date().getTime()) {
+                    return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
+                }
+            }).then(() => {
                 return new Promise((resolve, reject) => {
                     appsComposesMdl.remove(appId, composeId, (result) => {
                         if (!result) {

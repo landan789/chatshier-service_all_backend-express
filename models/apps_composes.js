@@ -138,6 +138,10 @@ module.exports = (function() {
          * @param {(appComposes: any) => any} [callback]
          */
         remove(appIds, composeId, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+            
             let compose = {
                 _id: composeId,
                 isDeleted: true,
@@ -165,8 +169,8 @@ module.exports = (function() {
                             },
                             'composes._id': this.Types.ObjectId(composeId)
                         }
-                    }, 
-                        docOutput
+                    },
+                    docOutput
                 ];
 
                 return this.AppsModel.aggregate(aggregations);
