@@ -211,7 +211,12 @@
                 let dom = $actions.eq(i);
                 let data = action[i];
                 dom.find('.row-label').val(data.label);
-                dom.find('.row-text').val(data.text);
+                if(!data.text){
+                    dom.find('.row-text').val(data.uri);
+                }
+                else{
+                    dom.find('.row-text').val(data.text);
+                }
             }
         }
         function dataUpdate(){
@@ -476,17 +481,28 @@
         function getAction(container) {
             let $actions = container.find('.line-action');
             let actionArr = [];
+            let textslice;
             $actions.each(function() {
                 let label = $(this).find('.row-label').val();
                 let text = $(this).find('.row-text').val();
                 if (!label) label = '---';
                 if ('---' === label) text = ' ';
                 else if (!text) text = label;
-                actionArr.push({
-                    'type': 'message',
-                    'label': label,
-                    'text': text
-                });
+                textslice = text.slice(0, 5);
+                    if('https'=== textslice){
+                        actionArr.push({
+                            'type': 'uri',
+                            'label': label,
+                            'uri': text
+                        });
+                    }
+                    else{
+                        actionArr.push({
+                            'type': 'message',
+                            'label': label,
+                            'text': text
+                        });
+                    }
             });
             return actionArr;
         }
