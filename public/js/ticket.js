@@ -260,7 +260,7 @@
     }
 
     function showAddTicketModal() {
-        var $descriptionElem = $ticketAddModal.find('textarea#add_form_description');
+        var $descriptionElem = $ticketAddModal.find('textarea#add-form-description');
         $descriptionElem.val('');
         reloadAddTicketApps();
     }
@@ -391,7 +391,7 @@
         var $appSelectElem = $ticketAddModal.find('select#add-form-app');
         var $assignedSelectElem = $ticketAddModal.find('select#assigned-name');
         var $platformUidElem = $ticketAddModal.find('input#add-form-uid');
-        var $descriptionElem = $ticketAddModal.find('textarea#add_form_description');
+        var $descriptionElem = $ticketAddModal.find('textarea#add-form-description');
 
         var platformUid = $platformUidElem.val();
         var appId = $appSelectElem.find('option:selected').val();
