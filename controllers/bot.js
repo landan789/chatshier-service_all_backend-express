@@ -346,7 +346,7 @@ module.exports = (function() {
                 if(!docName || !docId) {
                     originalFilePath = `/temp/${Date.now()}.${ext}`;
                 } else {
-                    originalFilePath = `/app/${appId}/${docName}/${docId}/src/${Date.now()}.${ext}`;
+                    originalFilePath = `/apps/${appId}/${docName}/${docId}/src/${Date.now()}.${ext}`;
                 }
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {
