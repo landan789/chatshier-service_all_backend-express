@@ -75,7 +75,7 @@
         $editForm.find('textarea[name="keywordreply-text"]').val(targetData.text);
 
         // 如果是屬於草稿則顯示 checkbox 否則隱藏
-        var checkboxIsDraft = $editForm.find('.form-check.checkbox-is-draft');
+        var checkboxIsDraft = $editForm.find('.checkbox-is-draft');
         checkboxIsDraft.find('input[name="keywordreply-is-draft"]').prop('checked', !targetData.status);
         if (!targetData.status) {
             checkboxIsDraft.show();
