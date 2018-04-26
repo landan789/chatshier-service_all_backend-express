@@ -221,6 +221,7 @@
             let keyword = $('#template-keyword').val();
             let type = $('#template-type').val();
             let templateId = $('#template-id').text();
+            let document = 'template';
             if (!altText) {
                 $.notify('電腦版替代文字不可為空', { type: 'warning' });
                 return null;
@@ -241,7 +242,7 @@
                     };
                         return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                             if(''!== imageFile[imageFileNum]){
-                                return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson)=>{
+                                return api.bot.uploadFile(appId,document,templateId, userId,imageFile[imageFileNum]).then((resJson)=>{
                                    return resJson.data;
                                  })
                             }
@@ -256,14 +257,13 @@
                             
                         }
                         }).then(()=>{
-                            return api.appsTemplates.update(appId, templateId, userId,putTemplate).then(function(resJson) {
+                            api.appsTemplates.update(appId, templateId, userId,putTemplate);
                                 $('#template-modal').modal('hide');
                                 $.notify('修改成功！', { type: 'success' });
                                 $('#edit-modal-save').removeAttr('disabled');
                                 setTimeout(function() {
                                     $appDropdown.find('#' + appId).click();
                                 }, 1000);
-                                });
                         }).catch((resJson) => {
                         if (undefined === resJson.status) {
                             $('#template-modal').modal('hide');
@@ -342,7 +342,7 @@
         appId = $('#app-select option:selected').attr('id');
         keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
-       
+        
         if (!keyword || !type) {
             $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         } else {
@@ -350,7 +350,7 @@
             if (template) {
                     return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                         if(''!== imageFile[imageFileNum]){
-                            return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson)=>{
+                            return api.bot.uploadFile(appId, null, null, userId, imageFile[imageFileNum]).then((resJson)=>{
                                return resJson.data;
                              })
                         }

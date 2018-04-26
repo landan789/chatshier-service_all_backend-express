@@ -332,12 +332,21 @@ module.exports = (function() {
         uploadFile(req, res) {
             let file = req.body.file;
             let fileName = req.body.fileName;
+            let docName = req.query.doc;
+            let docId = req.query.docid;
             let ext = fileName.split('.').pop();
-            let originalFilePath = `/temp/${Date.now()}.${ext}`;
+            let originalFilePath = '';
     
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((chechedAppIds) => {
+                let appId = chechedAppIds[0];
                 if (!(file && fileName)) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_UPLOAD_IMAGE);
+                }
+
+                if(!docName || !docId) {
+                    originalFilePath = `/temp/${Date.now()}.${ext}`;
+                } else {
+                    originalFilePath = `/app/${appId}/${docName}/${docId}/src/${Date.now()}.${ext}`;
                 }
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {

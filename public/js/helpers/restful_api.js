@@ -1371,11 +1371,14 @@ window.restfulAPI = (function() {
         };
 
         /**
+         * @param {string} appId
+         * @param {string} docName
+         * @param {string} docId
          * @param {string} userId
          * @param {File} file
          */
-        BotAPI.prototype.uploadFile = function(appId, userId, file) {
-            var destUrl = this.urlPrefix + 'upload-file/users/' + userId + '?appid=' + appId;
+        BotAPI.prototype.uploadFile = function(appId, docName, docId, userId, file) {
+            var destUrl = this.urlPrefix + 'upload-file/users/' + userId + '?appid=' + appId + '&doc=' + docName + '&docid=' + docId;
             var formData = new FormData();
             formData.append('file', file);
             formData.append('fileName', file.name);

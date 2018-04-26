@@ -250,7 +250,7 @@ function init(server) {
                 _messages = messages;
                 let messageId = Object.keys(messages).shift() || '';
                 if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
-                    toPath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src${fromPath}`;
+                    toPath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${fromPath}`;
                     return storageHlp.filesMoveV2(fromPath, toPath);
                 }
                 return messages;

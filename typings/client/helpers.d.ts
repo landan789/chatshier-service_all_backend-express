@@ -196,5 +196,5 @@ interface BotAPI {
     deleteRichMenu: (appId: string, richmenuId: string) => Promise<any>;
     unlinkRichMenuFromUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
     getProfile: (appId: string, platformUid: string) => Promise<any>;
-    uploadFile: (appId:string, userId: string, file: File) => Promise<any>;
+    uploadFile: (appId: string, docName: string, docId: string, userId: string, file: File) => Promise<any>;
 }

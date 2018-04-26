@@ -104,36 +104,36 @@ module.exports = (function() {
                 template: template
             };
         return this.appsRequestVerify(req).then((checkedAppIds) => {
-             appId = checkedAppIds;
-                        return new Promise((resolve, reject) => {
-                            appsTemplatesMdl.insert(appId, postTemplate, (result) => {
-                                if(!result) {
-                                    reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
-                                    return;
-                            }
-                            resolve(result);
-                            }).then((appsTemplate)=>{
-                            return new Promise((resolve, reject) => {
-                                let templateId = Object.keys(appsTemplate[appId].templates);
-                                if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
-                                    let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                                    let fromPath = `/temp/`+fromPathArray.pop();
-                                    let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
-                                    storageHlp.filesMoveV2(fromPath, toPath);
-                                }
-                                else{
-                                    return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
-                                        let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                                        let fromPath = `/temp/`+fromPathArray.pop();
-                                        let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
-                                        storageHlp.filesMoveV2(fromPath, toPath);
-                                 }))
-                                }
-                                resolve(appsTemplate);
-                            })
-                        })
-                    })
-            }).then((appsTemplate) => {
+            appId = checkedAppIds;
+            return new Promise((resolve, reject) => {
+                appsTemplatesMdl.insert(appId, postTemplate, (result) => {
+                    if(!result) {
+                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                        return;
+                    }
+                resolve(result);
+                });
+            })
+        }).then((appsTemplate)=>{
+            return new Promise((resolve, reject) => {
+                let templateId = Object.keys(appsTemplate[appId].templates);
+                    if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
+                        let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
+                        let fromPath = `/temp/`+fromPathArray.pop();
+                        let toPath=`/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                        storageHlp.filesMoveV2(fromPath, toPath);
+                    }
+                    else{
+                         return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
+                            let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
+                            let fromPath = `/temp/`+fromPathArray.pop();
+                            let toPath=`/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                            storageHlp.filesMoveV2(fromPath, toPath);
+                        }))
+                    }
+            resolve(appsTemplate);
+            })
+        }).then((appsTemplate) => {
             let result = appsTemplate !== undefined ? appsTemplate : {};
             let json = {
                 status: 1,
@@ -166,36 +166,18 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppId) => {
                 appId = checkedAppId;
-                if (!templateId) {
-                    return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
-                };
                 return new Promise((resolve, reject) => {
+                    if (!templateId) {
+                       reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
+                    };
                     appsTemplatesMdl.update(appId, templateId, putTemplateData, (appsTemplate) => {
                         if (!appsTemplate) {
                             reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
                             return;
                         }
                         resolve(appsTemplate);
-                    }).then((appsTemplate)=>{
-                        return new Promise((resolve, reject) => {
-                            if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
-                                let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                                let fromPath = `/temp/`+fromPathArray.pop();
-                                let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
-                                storageHlp.filesMoveV2(fromPath, toPath);
-                            }
-                            else{ 
-                                return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
-                                    let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                                    let fromPath = `/temp/`+fromPathArray.pop();
-                                    let toPath=`/apps/${appId}/template/${templateId}/src${fromPath}`;
-                                    storageHlp.filesMoveV2(fromPath, toPath);
-                                }))
-                            }
-                            resolve(appsTemplate);
-                        })
                     })
-                });
+                })
             }).then((appsTemplate) => {
                 let result = appsTemplate !== undefined ? appsTemplate : {};
                 let json = {
