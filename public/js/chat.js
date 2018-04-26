@@ -1,8 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var LOADING_MSG_AND_ICON = '<p class="message-time"><strong><i>' + 'Loading History Messages...' + '</i></strong><span class="loadingIcon"></span></p>';
-    var NO_HISTORY_MSG = '<p class="message-time"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
+    var LOADING_MSG_AND_ICON = '<p class="message-time font-weight-bold">Loading History Messages...<i class="loadingIcon"></i></p>';
+    var NO_HISTORY_MSG = '<p class="message-time font-weight-bold">-沒有更舊的歷史訊息-</p>';
     var COLOR = {
         FIND: '#ff0000',
         CLICKED: '#2e555f',
@@ -962,16 +962,14 @@
             (appType === CHATSHIER && userId === platformUid);
 
         return (
-            '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
+            '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
                     '<span>' + senderrName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
-                    '<strong></strong>' +
                 '</span>' +
-                '<br/>' +
             '</div>'
         );
     }
@@ -1178,13 +1176,13 @@
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
-                returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time font-weight-bold">' + nowDateStr + '</p>';
             }
 
             var messageTime = messageDate.getTime();
             if (messageTime - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(messageTime) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time font-weight-bold">' + toDateStr(messageTime) + '</p>';
             }
             prevTime = messageTime;
 
@@ -1829,7 +1827,7 @@
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
             if (new Date(_message.time).getTime() - lastMessageTime >= 900000) {
-                $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
+                $messagePanel.append('<p class="message-time font-weight-bold">-新訊息-</p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
             $messagePanel.append(messageHtml);
