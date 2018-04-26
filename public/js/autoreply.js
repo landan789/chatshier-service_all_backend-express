@@ -353,7 +353,7 @@
     function dataSearch(ev) {
         let searchText = $(this).val().toLocaleLowerCase();
         if (!searchText) {
-            $('tbody>tr>th:not([data-title*="' + searchText + '"]').parent().removeAttr('style');
+            $('tbody > tr').removeAttr('style');
             return;
         }
         var code = ev.keyCode || ev.which;
