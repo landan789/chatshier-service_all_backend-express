@@ -169,8 +169,8 @@ module.exports = (function() {
                             },
                             'composes._id': this.Types.ObjectId(composeId)
                         }
-                    }, 
-                        docOutput
+                    },
+                    docOutput
                 ];
 
                 return this.AppsModel.aggregate(aggregations);
