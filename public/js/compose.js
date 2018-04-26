@@ -635,12 +635,12 @@
         var appId = $appSelector.find('option:selected').val();
         var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
 
-        var sendTime;
+        var time;
         var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
         if (composesAddDtPickerData) {
-            sendTime = composesAddDtPickerData.date().toDate().getTime();
+            time = composesAddDtPickerData.date().toDate().getTime();
         } else {
-            sendTime = new Date($composesAddDtInput.val()).getTime();
+            time = new Date($composesAddDtInput.val()).getTime();
         }
 
         var conditionInputElement = $composeAddModal.find('input#condition-input');
@@ -658,7 +658,7 @@
         }
 
         let options = {
-            sendTime: sendTime,
+            time: time,
             isDraft: isDraft,
             ageRange: ageRange,
             gender: gender,
@@ -735,7 +735,7 @@
                 return loadComposes(appId, userId);
             });
         } else if ($('#send-sometime').prop('checked')) {
-            if (sendTime < Date.now()) {
+            if (time < Date.now()) {
                 $errorMsgElem.text('群發時間必須大於現在時間').show();
                 return;
             };
@@ -868,7 +868,7 @@
                 type: message.type,
                 text: message.text,
                 status: options.isDraft ? 0 : 1,
-                time: options.isDraft ? Date.now() : options.sendTime,
+                time: options.time,
                 ageRange: options.ageRange,
                 gender: options.gender,
                 field_ids: options.field_ids
