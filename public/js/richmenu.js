@@ -35,38 +35,28 @@
     $jqDoc.on('click', '#deactivate-btn', activateMenu);
     $jqDoc.on('click', '#activate-btn', deactivateMenu);
     $jqDoc.on('click', '#update-btn', appenedData);
-    $jqDoc.on('click', '.update-save', update);
+    $jqDoc.on('click', '#modal-update-save', update);
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
+        // $('#')
     });
 
-    $jqDoc.on('change', 'input.content-input', function() {
-        var val = $(this).val();
-        if (val) {
-            let boxId = $('.box.checked').attr('id');
-            $('#' + boxId).attr('ref', val);
-            $('#' + boxId).removeClass('checked');
-        }
-    });
+    $modal.on('show.bs.modal', function() {
+        $('#keyword').empty();
+        let keywordreplyStr = '';
+        let appId = $appSelector.find('option:selected').val();
 
-    $('input.content-input option:selected').each(function() {
-        var val = $(this).val();
-        if (val) {
-            let boxId = $('.box.checked').attr('id');
-            $('#' + boxId).attr('ref', val);
-            $('#' + boxId).removeClass('checked');
-        }
+        return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
+            let appsKeywordreplies = resJson.data;
+            let keywordreply = appsKeywordreplies[appId].keywordreplies;
+            for (let keywordreplyId in keywordreply) {
+                let keyword = keywordreply[keywordreplyId].keyword;
+                keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
+            }
+            $('#keyword').append(keywordreplyStr);
+        });
     });
-
-    // $jqDoc.on('change', 'input.content-input option:selected', function() {
-    //     var val = $(this).val();
-    //     if (val) {
-    //         let boxId = $('.box.checked').attr('id');
-    //         $('#' + boxId).attr('ref', val);
-    //         $('#' + boxId).removeClass('checked');
-    //     }
-    // });
 
     return api.apps.findAll(userId).then(function(resJson) {
         var appsData = resJson.data;
@@ -80,8 +70,8 @@
                 continue;
             }
 
-            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option value="' + appId + '">' + appsData[appId].name + '</option>');
+            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
@@ -238,61 +228,68 @@
     }
 
     function contentInputShow() {
-        $('.content-input').val('');
-        $('#content-input-box').empty();
-        let appId = $appSelector.find('option:selected').val();
-        let contentInputId = $(this).val();
-
-        switch (contentInputId) {
-            case 'url':
-                $('#content-input-box').append(
-                    '<input type="url" id="url" class="form-control content-input" placeholder="http://">'
-                );
-                break;
-            case 'text':
-                $('#content-input-box').append(
-                    '<input type="text" id="text" class="form-control content-input">'
-                );
-                break;
-            case 'keyword':
-                let keywordreplyStr = '';
-                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
-                    let appsKeywordreplies = resJson.data;
-                    let keywordreply = appsKeywordreplies[appId].keywordreplies;
-                    for (let keywordreplyId in keywordreply) {
-                        let keyword = keywordreply[keywordreplyId].keyword;
-                        keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
-                    }
-                    $('#content-input-box').append(
-                        '<select class="form-control content-input">' + keywordreplyStr + '</select>'
-                    );
-                });
-            default:
-                break;
+        let contentInputId = $('input[name = content]:checked').val();
+        let contentInputValue = $('#' + contentInputId).val();
+        if (!contentInputValue) {
+            $('.content-input').val('');
         }
+        $('.content-input').addClass('d-none');
+        $('#' + contentInputId).removeClass('d-none');
+        $('#' + contentInputId).change(function() {
+            var val = $(this).val();
+            if (val) {
+                let boxId = $('.box.checked').attr('id');
+                $('#' + boxId).attr('ref', val);
+                $('#' + boxId).removeClass('checked');
+                $(this).siblings().val();
+            }
+        });
     }
 
     function contentBarShow() {
-        let text = $(this).attr('ref');
+        $(this).siblings().removeClass('checked');
+        if ($(this).hasClass('marked')) {
+            let inputValue = $(this).attr('ref');
+            inputTypeCheck(inputValue);
+        }
         $('input[name = content]').removeAttr('checked');
-        $('.content-input').val('');
         $('.content-bar').removeClass('d-none');
-        // $('.box').css('background-color','rgba(158,158,158,0)');
         $(this).css('background-color', 'rgba(158,158,158,0.7)');
         $(this).addClass('checked');
     }
 
+    function inputTypeCheck(inputValue) {
+        let keywordOptionElement = $('#keyword option');
+        keywordOptionElement.each(function() {
+            if ($(this).val() === inputValue) {
+                $(this).prop('select', true);
+                $('input[value = keyword]').prop('checked', true);
+            }
+        });
+
+        if (inputValue.includes('http://') || inputValue.includes('https://')) {
+            $('#url').val(inputValue);
+            $('input[value = url]').prop('checked', true);
+        } else {
+            $('#text').val(inputValue);
+            $('input[value = text]').prop('checked', true);
+        }
+        contentInputShow();
+    }
+
     function cleanmodal() {
         console.log('clear');
+        $('#modal-save').removeClass('d-none');
+        $('#modal-update-save').addClass('d-none');
         $modal.find('input[type = text]').val('');
         $modal.find('input[type = datetime-local]').val('');
         $modal.find('input[type = url]').val('');
         $modal.find('input[type = file]').val('');
-        $modal.find('select').val('');
         $modal.find('.show-richmenu-form').removeAttr('style');
         $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
         $modal.find('.show-richmenu-form').find('.box').remove();
         $modal.find('input[value = "form1"]').prop('checked', true);
+        $modal.find('input[name = "content"]').prop('checked', false);
         photoFormShow();
     }
 
@@ -303,45 +300,7 @@
         let chatBarText = $('#chatbar-text').val();
         let form = $('input[name = richmenu-form]:checked').val();
 
-        let width = $modal.find('.show-richmenu-form').width();
-        let height = $modal.find('.show-richmenu-form').height();
-
-        let imgWidth = size.width;
-        let imgHeight = size.height;
-
-        // 取得 長 寬 比例尺
-        let widthRate = imgWidth / width;
-        let heightRate = imgHeight / height;
-
-        let boxElements = $('.box');
-        let areas = [];
-        boxElements.each(function() {
-            let boxWidth = $(this).width();
-            let boxHeight = $(this).height();
-            let x = parseInt($(this).attr('data-x'));
-            let y = parseInt($(this).attr('data-y'));
-            let text = $(this).attr('ref');
-
-            // 將 長寬 及 座標 依圖片大小縮放並四捨五入
-            let sacledWidth = Math.round(boxWidth * widthRate);
-            let scaledHeight = Math.round(boxHeight * heightRate);
-            let scaledX = Math.round(x * widthRate);
-            let scaledY = Math.round(y * heightRate);
-
-            let areaDataObj = {
-                'bounds': {
-                    x: scaledX,
-                    y: scaledY,
-                    width: sacledWidth,
-                    height: scaledHeight
-                },
-                'action': {
-                    type: 'message',
-                    text: text
-                }
-            };
-            areas.push(areaDataObj);
-        });
+        let areas = composeAreaObject();
 
         return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
             let url = resJson.data;
@@ -448,13 +407,56 @@
     function appenedData() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
-        let photoForm = $('#photoForm').attr('data-form');
-        $('modal-save').addClass('update-save');
+        $('#modal-save').addClass('d-none');
+        $('#modal-update-save').removeClass('d-none');
+        let url = '';
+
+        $modal.find('#modal-update-save').off('click').on('click', function() {
+            let selected = $('#richmenu-selected').val();
+            let title = $('#title').val();
+            let chatBarText = $('#chatbar-text').val();
+            let form = $('input[name = richmenu-form]:checked').val();
+
+            let areas = composeAreaObject();
+
+            let putRichmenu = {
+                selected: selected,
+                name: title,
+                chatBarText: chatBarText,
+                form: form,
+                src: url,
+                size: size,
+                areas: areas
+            };
+
+            if (!imageFile) {
+                return api.appsRichmenus.update(appId, userId, putRichmenu).then((resJson) => {
+                    let appsRichmenu = resJson.data;
+                    let richemnu = appsRichmenu[appId].richmenus;
+                    let richmenuId = Object.keys(richemnu)[0];
+                    $('#richmenu-modal').modal('hide');
+                    loadRichmenus(appId, userId);
+                });
+            }
+
+            return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+                putRichmenu.src = resJson.data;
+
+                return api.appsRichmenus.update(appId, userId, putRichmenu).then((resJson) => {
+                    let appsRichmenu = resJson.data;
+                    let richemnu = appsRichmenu[appId].richmenus;
+                    let richmenuId = Object.keys(richemnu)[0];
+                    $('#richmenu-modal').modal('hide');
+                    loadRichmenus(appId, userId);
+                });
+            });
+        });
 
         return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
             let appRichmenu = resJson.data;
             let richemnu = appRichmenu[appId].richmenus[richmenuId];
             let areas = richemnu.areas;
+            let photoForm = richemnu.form;
 
             $appSelector.parent().parent().addClass('d-none');
 
@@ -465,6 +467,8 @@
             $('.show-richmenu-form')
                 .css('background', 'url(' + richemnu.src + ') center no-repeat')
                 .css('background-size', 'cover');
+
+            url = richemnu.src;
             photoFormShow();
             let boxElements = $('.box');
             boxElements.each(function(i) {
@@ -472,13 +476,53 @@
                 let type = areas[i].action.type;
                 $(this).css('background-color', 'rgba(158,158,158, 0.7)');
                 $(this).text(type);
-                $(this).attr('ref', text);
+                $(this).addClass('marked')
+                    .attr('ref', text);
             });
         });
     }
 
-    function update() {
+    function composeAreaObject() {
+        let width = $modal.find('.show-richmenu-form').width();
+        let height = $modal.find('.show-richmenu-form').height();
 
+        let imgWidth = size.width;
+        let imgHeight = size.height;
+
+        // 取得 長 寬 比例尺
+        let widthRate = imgWidth / width;
+        let heightRate = imgHeight / height;
+
+        let boxElements = $('.box');
+        let areas = [];
+        boxElements.each(function() {
+            let boxWidth = $(this).width();
+            let boxHeight = $(this).height();
+            let x = parseInt($(this).attr('data-x'));
+            let y = parseInt($(this).attr('data-y'));
+            let text = $(this).attr('ref');
+
+            // 將 長寬 及 座標 依圖片大小縮放並四捨五入
+            let sacledWidth = Math.round(boxWidth * widthRate);
+            let scaledHeight = Math.round(boxHeight * heightRate);
+            let scaledX = Math.round(x * widthRate);
+            let scaledY = Math.round(y * heightRate);
+
+            let areaDataObj = {
+                'bounds': {
+                    x: scaledX,
+                    y: scaledY,
+                    width: sacledWidth,
+                    height: scaledHeight
+                },
+                'action': {
+                    type: 'message',
+                    text: text
+                }
+            };
+            areas.push(areaDataObj);
+        });
+        return areas;
     }
 
     function remove() {
@@ -496,24 +540,22 @@
                     $('#' + richmenuId).remove();
                     $.notify('刪除成功！', { type: 'success' });
                 }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $.notify('失敗', { type: 'danger' });
-                    }
                     if (NO_PERMISSION_CODE === resJson.code) {
                         $.notify('無此權限', { type: 'danger' });
+                        return;
                     }
+                    $.notify('失敗', { type: 'danger' });
                 });
             } else {
                 return api.appsRichmenus.remove(appId, richmenuId, userId).then(function(resJson) {
                     $('#' + richmenuId).remove();
                     $.notify('刪除成功！', { type: 'success' });
                 }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $.notify('失敗', { type: 'danger' });
-                    }
                     if (NO_PERMISSION_CODE === resJson.code) {
                         $.notify('無此權限', { type: 'danger' });
+                        return;
                     }
+                    $.notify('失敗', { type: 'danger' });
                 });
             }
         });

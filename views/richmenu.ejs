@@ -94,8 +94,7 @@
                         <div class="form-group">
                             <label class="col-form-label">App:</label>
                             <div class="select-container">
-                                <select class="form-control" id="app-select">
-                                </select>
+                                <select class="form-control" id="app-select"></select>
                             </div>
                         </div>
                         <!-- select -->
@@ -214,12 +213,20 @@
                             </div>
                         </div>
 
-                        <div class="form-group col-sm-12" id="content-input-box"></div>
+                        <!-- <div class="form-group col-sm-12" id="content-input-box"></div> -->
+
+
+                        <div class="form-group col-sm-12">
+                            <select id="keyword" class="form-control content-input"></select>
+                            <input id="text" type="text" class="form-control content-input" >
+                            <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                        </div>
 
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modal-update-save">確認</button>
                     <button type="button" class="btn btn-primary" id="modal-save">確認</button>
                 </div>
             </div>
