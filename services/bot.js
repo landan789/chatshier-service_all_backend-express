@@ -699,6 +699,7 @@ module.exports = (function() {
             }).then(() => {
                 switch (app.type) {
                     case LINE:
+   
                         _multicast = (messagerIds, messages) => {
                             let multicasts = [];
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
