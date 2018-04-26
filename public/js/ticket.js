@@ -260,13 +260,13 @@
     }
 
     function showAddTicketModal() {
-        var $descriptionElem = $ticketAddModal.find('textarea#add-form-description');
+        var $descriptionElem = $ticketAddModal.find('#add-form-description');
         $descriptionElem.val('');
         reloadAddTicketApps();
     }
 
     function reloadAddTicketApps() {
-        var $appSelectElem = $ticketAddModal.find('select#add-form-app');
+        var $appSelectElem = $ticketAddModal.find('#add-form-app');
         $appSelectElem.empty().off('change');
 
         for (var appId in apps) {
@@ -388,10 +388,10 @@
     }
 
     function addTicket(ev) {
-        var $appSelectElem = $ticketAddModal.find('select#add-form-app');
-        var $assignedSelectElem = $ticketAddModal.find('select#assigned-name');
-        var $platformUidElem = $ticketAddModal.find('input#add-form-uid');
-        var $descriptionElem = $ticketAddModal.find('textarea#add-form-description');
+        var $appSelectElem = $ticketAddModal.find('#add-form-app');
+        var $assignedSelectElem = $ticketAddModal.find('#assigned-name');
+        var $platformUidElem = $ticketAddModal.find('#add-form-uid');
+        var $descriptionElem = $ticketAddModal.find('#add-form-description');
 
         var platformUid = $platformUidElem.val();
         var appId = $appSelectElem.find('option:selected').val();
