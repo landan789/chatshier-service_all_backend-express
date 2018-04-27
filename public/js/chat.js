@@ -21,7 +21,9 @@
     var CHATSHIER_LOGO = '/image/logo-no-transparent.png';
 
     var SOCKET_NAMESPACE = '/chatshier';
-    var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_MD = 768;
+    var BREAKPOINT_LG = 992;
 
     var api = window.restfulAPI;
     var userId;
@@ -44,7 +46,8 @@
     // selectors
     var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
     var $ctrlPanelChatroomCollapse = $('#ctrlPanelChatroomCollapse');
-    var $chatroomBody = $('#chatContentPanel .chatroom-body'); // 聊天室空間
+    var $chatContentPanel = $('#chatContentPanel');
+    var $chatroomBody = $chatContentPanel.find('.chatroom-body'); // 聊天室空間
     var $profilePanel = $('#profilePanel');
     var $profileWrapper = $profilePanel.find('.profile-wrapper');
     var $ticketPanel = $('#ticketPanel');
@@ -1554,7 +1557,6 @@
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
         $chatroomContainer.addClass('open');
-        $chatroomContainer.find('.chat-content-panel').removeClass('d-none');
         // $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
@@ -1572,9 +1574,22 @@
         var $profileToggle = $('.toolbar #profileToggle');
         $profileToggle.removeClass('d-none');
 
-        if (window.innerWidth <= BREAKPOINT_SM) {
-            $profileToggle.removeClass('active');
-            $profilePanel.addClass('d-none');
+        // 若屬於 lg 以下的尺寸(行動裝置)，在切換 chatroom 時
+        // 如果有開啟用戶個檔或待辦事項的面板時，不要展開聊天室面板，只切換用戶
+        // 如果有開啟待辦事項的面板時，但切換至 Chatshier 內部聊天室時，因內部聊天室沒有待辦事項，因此自動展開聊天室面板
+        if (window.innerWidth < BREAKPOINT_LG) {
+            if ($profileToggle.hasClass('active') ||
+                ($ticketToggle.hasClass('active') && CHATSHIER !== appType)) {
+                $chatContentPanel.addClass('d-none');
+            } else {
+                $chatContentPanel.removeClass('d-none');
+                $profileToggle.removeClass('active');
+                $ticketToggle.removeClass('active');
+                $profilePanel.addClass('d-none');
+                $ticketPanel.addClass('d-none');
+            }
+        } else {
+            $chatContentPanel.removeClass('d-none');
         }
 
         if ($profileToggle.hasClass('active')) {
@@ -2118,7 +2133,6 @@
                 $tablink.removeClass('d-none');
             });
             return;
-
         }
 
         var code = ev.keyCode || ev.which;
