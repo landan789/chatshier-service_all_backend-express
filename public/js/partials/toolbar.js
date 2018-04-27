@@ -1,5 +1,5 @@
 (function() {
-    var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
 
