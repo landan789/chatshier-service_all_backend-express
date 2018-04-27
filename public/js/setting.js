@@ -73,7 +73,7 @@
                     '<div id="groupId">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">新增機器人:</label>' +
+                    '<label class="col-form-label font-weight-bold">聊天機器人平台:</label>' +
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
