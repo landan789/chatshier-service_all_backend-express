@@ -1568,7 +1568,6 @@
         $messageInputContainer.removeClass('d-none');
         $messageWrapper.addClass('shown').removeClass('d-none');
         $messageWrapper.siblings().removeClass('shown').addClass('d-none');
-        scrollMessagePanelToBottom(appId, chatroomId);
 
         ticketTableCtrl.loadTickets(appId, userId, platformUid);
 
@@ -1593,6 +1592,7 @@
         } else {
             $chatContentPanel.removeClass('d-none');
         }
+        scrollMessagePanelToBottom(appId, chatroomId);
 
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
