@@ -18,9 +18,11 @@
     var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
     var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
     var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
-    var CHATSHIER_LOGO = '/image/logo-no-transparent.png';
+    var CHATSHIER_LOGO = 'image/logo-no-transparent.png';
 
     var SOCKET_NAMESPACE = '/chatshier';
+    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+
     // var BREAKPOINT_SM = 576;
     // var BREAKPOINT_MD = 768;
     var BREAKPOINT_LG = 992;
@@ -432,7 +434,7 @@
 
     // 攜帶欲 appId 向伺服器端註冊依據
     // 使伺服器端可以針對特定 app 發送 socket 資料
-    var chatshierSocket = io(SOCKET_NAMESPACE);
+    var chatshierSocket = io(SOCKET_SERVER_URL);
     chatshierSocket.once('connect', function() {
         bindingSocketEvents(chatshierSocket);
     });
@@ -882,7 +884,7 @@
                     // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                     default:
                         uiRequireData.person = Object.assign({}, users[userId]);
-                        uiRequireData.person.photo = '/image/group.png';
+                        uiRequireData.person.photo = 'image/group.png';
                         uiRequireData.platformUid = userId;
                         break;
                 }
@@ -912,7 +914,7 @@
     function generateLoadingJqElem() {
         return $($.parseHTML(
             '<div class="loading-container">' +
-                '<img src="/image/loading.gif" alt="loading..." />' +
+                '<img src="image/loading.gif" alt="loading..." />' +
             '</div>'
         ).shift());
     }
@@ -933,7 +935,7 @@
 
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
-        opts.clientPhoto = opts.clientPhoto || '/image/user_large.png';
+        opts.clientPhoto = opts.clientPhoto || 'image/user_large.png';
 
         var html =
             '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
@@ -1056,7 +1058,7 @@
         var $consumerPhoto = $appCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
         $consumerPhoto.on('error', function() {
             var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
-            $consumerPhotos.attr('src', '/image/user_large.png');
+            $consumerPhotos.attr('src', 'image/user_large.png');
 
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
             return api.bot.getProfile(appId, platformUid).then((resJson) => {
@@ -1066,7 +1068,7 @@
                 var _consumers = resJson.data;
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
-                consumer.photo = consumer.photo || '/image/user_large.png';
+                consumer.photo = consumer.photo || 'image/user_large.png';
                 $consumerPhotos.attr('src', consumer.photo);
                 Object.assign(consumers, _consumers);
             });
@@ -1202,7 +1204,7 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
         var person = requireData.person;
-        person.photo = person.photo || '/image/user_large.png';
+        person.photo = person.photo || 'image/user_large.png';
 
         var profilePanelHtml = (
             '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
@@ -1451,7 +1453,7 @@
 
                                 html +=
                                     '<div class="person-chip">' +
-                                        '<img src="' + (memberUser.photo || '/image/avatar-default.png') + '" class="person-avatar" alt="">' +
+                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
                                         '<span>' + memberUser.name + '</span>' +
                                     '</div>';
                             }
