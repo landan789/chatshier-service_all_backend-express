@@ -30,7 +30,7 @@ window.chatshierCookie = (function() {
             expires = expires || new Date(Date.now() + yearTimeGap).toGMTString();
             domain = domain || DEFAULT_DOMAIN;
 
-            document.cookie = name + '=' + val + ';expires=' + expires + ';domain=' + domain;
+            document.cookie = name + '=' + encodeURIComponent(unescape(val)) + ';expires=' + expires + ';domain=' + domain;
             return true;
         },
         /**
@@ -41,7 +41,7 @@ window.chatshierCookie = (function() {
             var parts = cookieValues.split('; ' + name + '=');
 
             if (parts.length >= 2) {
-                return unescape(parts.pop().split(';').shift());
+                return unescape(decodeURIComponent(parts.pop().split(';').shift()));
             }
             return '';
         },
