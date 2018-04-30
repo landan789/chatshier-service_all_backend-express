@@ -264,7 +264,7 @@ body {
         height: 100%;
         opacity: .5;
         background-color: transparent;
-        background-image: url(../image/logo.png);
+        background-image: url("../image/logo.png");
         background-position: center calc(50% - 4rem);
         background-size: contain;
         background-repeat: no-repeat; }
@@ -392,7 +392,7 @@ body {
             height: 100%;
             background-blend-mode: color;
             background-size: cover;
-            background-image: url("/image/send-btn.svg"); }
+            background-image: url("../image/send-btn.svg"); }
         .message-input .submit-message-btn:hover {
             background-color: rgba(255, 255, 255, .5); }
     .message-input .media-btn {

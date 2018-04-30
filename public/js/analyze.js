@@ -400,7 +400,7 @@
         ev && $chartDropdown.find('.dropdown-text').text($(ev.target).text());
         wordfreq && wordfreq.stop() && wordfreq.empty();
         wordfreq = new window.WordFreqSync({
-            workerUrl: '/lib/js/wordfreq.worker.js',
+            workerUrl: 'lib/js/wordfreq.worker.js',
             minimumCount: 1 // 過濾文字出現的最小次數最小
         });
 

@@ -8,8 +8,11 @@
     var apps = {};
     var appsComposes = {};
     var api = window.restfulAPI;
+
     var SOCKET_NAMESPACE = '/chatshier';
-    const socket = io(SOCKET_NAMESPACE);
+    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    var socket = io(SOCKET_SERVER_URL);
+
     var inputNum = 0; // 計算訊息的數量
     var ageRange = [];
     var gender = '';
