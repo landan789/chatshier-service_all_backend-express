@@ -40,6 +40,8 @@
     background-color: #4a8998;
     cursor: pointer;
     border: none; }
+  .ctrl-panel .list-group-item.logo-item {
+    height: 50px; }
   .ctrl-panel .detail-list .list-group-item {
     display: flex;
     align-items: center;
@@ -66,8 +68,8 @@
   .ctrl-panel .simple-list {
     display: none; }
   .ctrl-panel .ctrl-panel-logo {
-    width: 3.5rem;
-    height: 3.5rem; }
+    width: 3rem;
+    height: 3rem; }
   .ctrl-panel + .edge-toggle-container {
     left: 16rem; }
 

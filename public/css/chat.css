@@ -331,13 +331,12 @@ body {
     }
 
 .message-panel {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     padding-bottom: 5%;
     overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    clear: right;
-    display: flex;
-    flex-direction: column; }
+    -webkit-overflow-scrolling: touch; }
     .message-panel .loading-container {
         display: flex;
         justify-content: center;
