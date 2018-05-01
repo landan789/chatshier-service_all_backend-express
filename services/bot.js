@@ -143,11 +143,15 @@ module.exports = (function() {
         /**
          * @param {any} req
          * @param {any} app
-         * @returns {string}
+         * @returns {{ platformGroupId: string, platformGroupType: string, platformUid: string }}
          */
-        retrievePlatformUid(req, app) {
+        retrievePlatformInfo(req, app) {
             let body = req.body || {};
-            let platformUId = '';
+            let info = {
+                platformGroupId: '',
+                platformGroupType: '',
+                platformUid: ''
+            };
 
             switch (app.type) {
                 case LINE:
@@ -157,7 +161,9 @@ module.exports = (function() {
                         if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
                             return;
                         }
-                        platformUId = platformUId || event.source.userId;
+                        info.platformGroupId = info.platformGroupId || event.source.roomId || event.source.groupId;
+                        info.platformGroupType = info.platformGroupType || event.source.type;
+                        info.platformUid = info.platformUId || event.source.userId;
                     });
                     break;
                 case FACEBOOK:
@@ -165,18 +171,18 @@ module.exports = (function() {
                     entries.forEach((entry) => {
                         let messagings = entry.messaging || [];
                         messagings.forEach((messaging) => {
-                            platformUId = platformUId || messaging.sender.id;
+                            info.platformUId = info.platformUId || messaging.sender.id;
                         });
                     });
                     break;
                 case WECHAT:
                     let weixin = req.weixin;
-                    platformUId = weixin.FromUserName;
+                    info.platformUId = weixin.FromUserName;
                     break;
                 default:
                     break;
             }
-            return platformUId;
+            return info;
         }
 
         /**
@@ -457,11 +463,11 @@ module.exports = (function() {
 
         /**
          * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
-         * @param {string} senderId
+         * @param {{ platformGroupId?: string, platformGroupType?: string, platformUid?: string }} platformInfo
          * @param {string} appId
-         * @param {*} app
+         * @param {any} app
          */
-        getProfile(senderId, appId, app) {
+        getProfile(platformInfo, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
                 return Promise.reject(new Error('BOT_NOT_FOUND'));
@@ -473,17 +479,31 @@ module.exports = (function() {
                     name: '',
                     photo: ''
                 };
+                let platformGroupId = platformInfo.platformGroupId;
+                let platformGroupType = platformInfo.platformGroupType;
+                let platformUid = platformInfo.platformUid;
+
+                if (!platformGroupId && !platformGroupType && !platformUid) {
+                    return senderProfile;
+                }
 
                 switch (app.type) {
                     case LINE:
-                        return bot.getProfile(senderId).then((lineUserProfile) => {
+                        if (platformGroupId && platformUid) {
+                            if ('group' === platformGroupType) {
+                                return bot.getGroupMemberProfile(platformGroupId, platformUid);
+                            } else {
+                                return bot.getRoomMemberProfile(platformGroupId, platformUid);
+                            }
+                        }
+                        return bot.getProfile(platformUid).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
                             senderProfile.photo = lineUserProfile.pictureUrl;
                             return senderProfile;
                         });
                     case FACEBOOK:
-                        return bot.getProfile(senderId).then((fbUserProfile) => {
+                        return bot.getProfile(platformUid).then((fbUserProfile) => {
                             fbUserProfile = fbUserProfile || {};
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
                             senderProfile.photo = fbUserProfile.profile_pic;
@@ -492,7 +512,7 @@ module.exports = (function() {
                     case WECHAT:
                         return new Promise((resolve, reject) => {
                             // http://doxmate.cool/node-webot/wechat-api/api.html#api_api_user
-                            bot.getUser({ openid: senderId, lang: 'zh_TW' }, (err, wxUser) => {
+                            bot.getUser({ openid: platformUid, lang: 'zh_TW' }, (err, wxUser) => {
                                 if (err) {
                                     console.log(err);
                                     reject(new Error(err));

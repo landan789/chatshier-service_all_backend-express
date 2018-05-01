@@ -43,12 +43,6 @@ body {
     font-family: Microsoft JhengHei;
     height: 100%;
     overflow-y: hidden; }
-    .chat-wrapper .chat-area {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        max-height: calc(100% - 50px);
-        background-color: #f7f8f9; }
 
 .chat-app-list {
     position: absolute;
@@ -237,11 +231,11 @@ body {
         flex-direction: row-reverse; }
 
 .chatroom-container {
-    position: relative;
-    display: inherit;
     width: 100%;
     height: 100%;
-    overflow: hidden; }
+    max-height: calc(100% - 50px);
+    overflow: hidden;
+    background-color: #f7f8f9; }
     .chatroom-container .watermark-text {
         position: absolute;
         color: #8e8e8e;
@@ -306,8 +300,6 @@ body {
     .profile-panel .photo-container {
         text-align: center;
         margin: 5% 0; }
-        .profile-panel .photo-container img {
-            border-radius: 50%; }
 
 .consumer-profile {
     display: flex;
@@ -492,8 +484,6 @@ body {
         table-layout: fixed; }
     .profile-group .profile-label {
         width: 35%; }
-        .profile-group .profile-label.align-top {
-            vertical-align: top; }
     .profile-group .profile-label,
     .profile-group .user-info-td {
         vertical-align: middle; }
@@ -504,7 +494,8 @@ body {
 
 .consumer-avatar {
     width: 4rem;
-    height: 4rem; }
+    height: 4rem;
+    border-radius: 1rem; }
     .consumer-avatar.larger {
         width: 8rem;
         height: 8rem; }

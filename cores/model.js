@@ -37,6 +37,8 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
+        'platformGroupId': {type: String, default: ''},
+        'platformGroupType': {type: String, default: ''},
         'messagers': [{
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},

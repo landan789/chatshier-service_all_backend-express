@@ -81,7 +81,8 @@ function init(server) {
             let repliedMessages = [];
             let totalMessages = [];
 
-            let platformUid;
+            /** @type {{ platformGroupId?: string, platformGroupType?: string, platformUid: string }} */
+            let platformInfo = { platformUid: '' };
             let chatroomId = '';
             let platformMessager;
             let consumers = {};
@@ -100,48 +101,84 @@ function init(server) {
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
-                return botSvc.retrievePlatformUid(req, app);
-            }).then((_platformUid) => {
-                platformUid = _platformUid;
-                return platformUid && botSvc.getProfile(platformUid, appId, app);
+                return botSvc.retrievePlatformInfo(req, app);
+            }).then((_platformInfo) => {
+                platformInfo = _platformInfo;
+                return platformInfo && botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
                 // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
                 // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
+                let platformUid = platformInfo.platformUid;
                 return platformUid && profile && consumersMdl.replace(platformUid, profile);
             }).then((_consumers) => {
-                if (!platformUid) {
+                if (!_consumers) {
                     return;
                 }
-
                 consumers = _consumers;
-                return platformUid && appsChatroomsMessagersMdl.findByPlatformUid(appId, null, platformUid).then((appsChatroomsMessagers) => {
-                    if (!appsChatroomsMessagers || (appsChatroomsMessagers && 0 === Object.keys(appsChatroomsMessagers).length)) {
-                        return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
-                            let chatrooms = appsChatrooms[appId].chatrooms;
-                            chatroomId = Object.keys(chatrooms).shift() || '';
 
+                let platformGroupId = platformInfo.platformGroupId;
+                let platformGroupType = platformInfo.platformGroupType;
+                let platformUid = platformInfo.platformUid;
+
+                return Promise.resolve().then(() => {
+                    if (!platformGroupId) {
+                        return;
+                    }
+
+                    // 如果 webhook 打過來的訊息是屬於平台的群組聊天，而非單一使用者
+                    // 則根據平台的群組 ID 查找聊天室
+                    // 若未找到記有群組 ID 的聊天室則自動建立一個聊天室
+                    return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
+                        if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
+                            let chatroom = {
+                                platformGroupId: platformGroupId,
+                                platformGroupType: platformGroupType
+                            };
+                            return appsChatroomsMdl.insert(appId, chatroom);
+                        }
+                        return appsChatrooms;
+                    }).then((appsChatrooms) => {
+                        let chatrooms = appsChatrooms[appId].chatrooms;
+                        chatroomId = Object.keys(chatrooms).shift() || '';
+                        return chatrooms[chatroomId];
+                    });
+                }).then((groupChatroom) => {
+                    return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
+                        // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
+                        if (appsChatroomsMessagers && Object.keys(appsChatroomsMessagers).length > 0) {
+                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                            chatroomId = Object.keys(chatrooms).shift() || '';
+                            let messagers = chatrooms[chatroomId].messagers;
+                            platformMessager = messagers[platformUid];
+                            return;
+                        }
+
+                        return Promise.resolve().then(() => {
+                            if (!groupChatroom) {
+                                // 如果是非平台群組聊天室(單一 consumer)的話
+                                // 首次聊天室自動為其建立聊天室
+                                return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                                    let chatrooms = appsChatrooms[appId].chatrooms;
+                                    chatroomId = Object.keys(chatrooms).shift() || '';
+                                });
+                            }
+                        }).then(() => {
+                            // 自動建立聊天室後，將此訊息發送者加入
                             let messager = {
                                 type: app.type,
                                 platformUid: platformUid,
                                 lastTime: Date.now()
                             };
 
-                            // 自動建立聊天室後，將此訊息發送者加入
                             return appsChatroomsMessagersMdl.insertByPlatformUid(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
                                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                                 let messagers = chatrooms[chatroomId].messagers;
                                 platformMessager = messagers[platformUid];
                             });
                         });
-                    }
-
-                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                    chatroomId = Object.keys(chatrooms).shift() || '';
-                    let messagers = chatrooms[chatroomId].messagers;
-                    platformMessager = messagers[platformUid];
+                    });
                 });
             }).then(() => {
-
                 if (!platformMessager) {
                     return [];
                 }
@@ -153,7 +190,6 @@ function init(server) {
                 }
                 return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
             }).then((messages) => {
-
                 repliedMessages = messages;
                 if (0 === repliedMessages.length) {
                     // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
@@ -166,6 +202,7 @@ function init(server) {
                 // 所以將 http request 做 response 傳入
                 // 待訊息回覆後直接做 http response
                 let replyToken = receivedMessages[0].replyToken || '';
+                let platformUid = platformInfo.platformUid;
                 return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
             }).then(() => {
                 return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
@@ -174,27 +211,23 @@ function init(server) {
                     return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
                 }));
             }).then(() => {
-
                 return new Promise((resolve, reject) => {
                     groupsMembersMdl.findMembers(app.group_id, null, false, true, (members) => {
                         resolve(members);
                     });
                 });
             }).then((members) => {
-
                 if (!members) {
                     return [];
                 }
+
                 let recipientUids = Object.keys(members).map((memberId) => {
                     let userId = members[memberId].user_id;
-
                     return userId;
                 });
-
                 return recipientUids;
             }).then((recipientUids) => {
-
-                if (!(recipientUids && platformUid)) {
+                if (!(recipientUids && platformInfo.platformUid)) {
                     return recipientUids;
                 }
 
@@ -214,7 +247,6 @@ function init(server) {
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-
                         let chatrooms = appsChatroomsMessagers[appId].chatrooms;
                         let messagers = chatrooms[chatroomId].messagers;
                         let recipientMsger = messagers[recipientUid];
@@ -270,7 +302,7 @@ function init(server) {
                         app_id: appId,
                         type: app.type,
                         chatroom_id: chatroomId,
-                        senderUid: platformUid,
+                        senderUid: platformInfo.platformUid,
                         // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
                         // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                         recipientUid: '',
