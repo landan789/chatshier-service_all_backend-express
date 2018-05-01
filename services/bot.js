@@ -584,7 +584,7 @@ module.exports = (function() {
             });
         }
 
-        pushMessage(messagerId, message, srcBuffer, appId, app) {
+        pushMessage(recipientUid, message, srcBuffer, appId, app) {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
@@ -614,21 +614,21 @@ module.exports = (function() {
                         _message.packageId = message.text.substr(message.text.indexOf(' '));
                     };
 
-                    return bot.pushMessage(messagerId, _message);
+                    return bot.pushMessage(recipientUid, _message);
                 case FACEBOOK:
                     if ('text' === message.type) {
-                        return bot.sendTextMessage(messagerId, message.text);
+                        return bot.sendTextMessage(recipientUid, message.text);
                     };
                     if ('image' === message.type) {
-                        return bot.sendImageMessage(messagerId, message.src, true);
+                        return bot.sendImageMessage(recipientUid, message.src, true);
                     };
                     if ('audio' === message.type) {
-                        return bot.sendAudioMessage(messagerId, message.src, true);
+                        return bot.sendAudioMessage(recipientUid, message.src, true);
                     };
                     if ('video' === message.type) {
-                        return bot.sendVideoMessage(messagerId, message.src, true);
+                        return bot.sendVideoMessage(recipientUid, message.src, true);
                     };
-                    return bot.sendTextMessage(messagerId, message.text);
+                    return bot.sendTextMessage(recipientUid, message.text);
                 case WECHAT:
                     return Promise.resolve().then(() => {
                         if (message.src && srcBuffer) {
@@ -655,7 +655,7 @@ module.exports = (function() {
                     }).then((mediaResult) => {
                         return new Promise((resolve, reject) => {
                             if (!mediaResult) {
-                                bot.sendText(messagerId, message.text, (err, result) => {
+                                bot.sendText(recipientUid, message.text, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -666,7 +666,7 @@ module.exports = (function() {
                             }
 
                             if ('image' === message.type) {
-                                bot.sendImage(messagerId, mediaResult.media_id, (err, result) => {
+                                bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -675,7 +675,7 @@ module.exports = (function() {
                                 });
                                 return;
                             } else if ('audio' === message.type) {
-                                bot.sendVoice(messagerId, mediaResult.media_id, (err, result) => {
+                                bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -684,7 +684,7 @@ module.exports = (function() {
                                 });
                                 return;
                             } else if ('video' === message.type) {
-                                bot.sendVideo(messagerId, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
+                                bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -701,12 +701,12 @@ module.exports = (function() {
         };
 
         /**
-         * @param {string[]} messagerIds
+         * @param {string[]} recipientUids
          * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
          */
-        multicast(messagerIds, messages, appId, app) {
+        multicast(recipientUids, messages, appId, app) {
             let bot = this.bots[appId];
             let _multicast;
 
@@ -719,8 +719,7 @@ module.exports = (function() {
             }).then(() => {
                 switch (app.type) {
                     case LINE:
-   
-                        _multicast = (messagerIds, messages) => {
+                        _multicast = (_recipientUids, messages) => {
                             let multicasts = [];
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
@@ -733,13 +732,13 @@ module.exports = (function() {
                                     return Promise.resolve();
                                 };
                                 let messages = multicasts[i];
-                                return bot.multicast(messagerIds, messages).then(() => {
+                                return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
                             };
                             return nextPromise(0);
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     case FACEBOOK:
                         _multicast = (messagerIds, messages) => {
                             return Promise.all(messagerIds.map((messagerId) => {
@@ -756,7 +755,7 @@ module.exports = (function() {
                                 return nextPromise(0);
                             }));
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     case WECHAT:
                         _multicast = (messagerIds, messages) => {
                             let nextPromise = (i) => {
@@ -795,7 +794,7 @@ module.exports = (function() {
                             };
                             return nextPromise(0);
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     default:
                         return Promise.resolve([]);
                 }
