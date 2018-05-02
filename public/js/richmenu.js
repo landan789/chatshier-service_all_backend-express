@@ -39,7 +39,6 @@
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
-        // $('#')
     });
 
     $modal.on('show.bs.modal', function() {
@@ -326,11 +325,10 @@
 
     function contentBarShow() {
         let id = $(this).attr('id');
-        $('.box').removeAttr('style');
         $(this).siblings().removeClass('checked');
         if ($(this).hasClass('marked')) {
             let inputValue = $(this).attr('ref');
-            inputTypeCheck(inputValue);
+            inputTypeCheck(id, inputValue);
         }
         $('.content-input').addClass('d-none');
         $(`#${id} input[name = content]`).removeAttr('checked');
@@ -341,7 +339,7 @@
         $(this).addClass('checked');
     }
 
-    function inputTypeCheck(inputValue) {
+    function inputTypeCheck(id, inputValue) {
         let keywordOptionElement = $('#keyword option');
         keywordOptionElement.each(function() {
             if ($(this).val() === inputValue) {
@@ -351,11 +349,11 @@
         });
 
         if (inputValue.includes('http://') || inputValue.includes('https://')) {
-            $('#url').val(inputValue);
-            $('input[value = url]').prop('checked', true);
+            $(`#${id}-input #url`).val(inputValue);
+            $(`input[value = url]`).prop('checked', true);
         } else {
-            $('#text').val(inputValue);
-            $('input[value = text]').prop('checked', true);
+            $(`#${id}-input #text`).val(inputValue);
+            $(`input[value = text]`).prop('checked', true);
         }
         contentInputShow();
     }
@@ -510,7 +508,7 @@
             };
 
             if (!imageFile) {
-                return api.appsRichmenus.update(appId, userId, putRichmenu).then((resJson) => {
+                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
                     let appsRichmenu = resJson.data;
                     let richemnu = appsRichmenu[appId].richmenus;
                     let richmenuId = Object.keys(richemnu)[0];
@@ -522,7 +520,7 @@
             return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
                 putRichmenu.src = resJson.data;
 
-                return api.appsRichmenus.update(appId, userId, putRichmenu).then((resJson) => {
+                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
                     let appsRichmenu = resJson.data;
                     let richemnu = appsRichmenu[appId].richmenus;
                     let richmenuId = Object.keys(richemnu)[0];
