@@ -1703,9 +1703,11 @@
                 }
                 resolve();
             });
+        }).then(() => {
+            $loadingElem.remove();
+            $loadingElem = void 0;
         }).catch(() => {
             $.notify('發送失敗', { type: 'danger' });
-        }).then(() => {
             $loadingElem.remove();
             $loadingElem = void 0;
         });
@@ -1779,9 +1781,11 @@
                 }
                 resolve();
             });
+        }).then(() => {
+            $loadingElem.remove();
+            $loadingElem = void 0;
         }).catch(() => {
             $.notify('發送失敗', { type: 'danger' });
-        }).then(() => {
             $loadingElem.remove();
             $loadingElem = void 0;
         });
