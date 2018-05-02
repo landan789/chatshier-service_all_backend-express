@@ -73,7 +73,7 @@
                     '<div id="groupId">' + groupId + '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">新增機器人:</label>' +
+                    '<label class="col-form-label font-weight-bold">聊天機器人平台:</label>' +
                     '<select id="app-group-select" class="form-control" value="LINE">' +
                         '<option value="LINE">LINE</option>' +
                         '<option value="FACEBOOK">臉書</option>' +
@@ -877,7 +877,7 @@
                     '<div class="col-12 m-2 card justify-content-around group-member" member-id="' + memberId + '">' +
                         '<div class="d-flex flex-nowrap align-items-center w-100 user chips">' +
                             '<div class="avatar-container">' +
-                                '<img class="member-avatar" src="/image/avatar-default.png" alt="Member avatar" />' +
+                                '<img class="member-avatar" src="image/avatar-default.png" alt="Member avatar" />' +
                             '</div>' +
                             '<span class="avatar-name">' + (memberUser.name || memberUser.name || '') + '</span>' +
                         '</div>' +

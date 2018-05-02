@@ -40,6 +40,8 @@
     background-color: #4a8998;
     cursor: pointer;
     border: none; }
+  .ctrl-panel .list-group-item.logo-item {
+    height: 50px; }
   .ctrl-panel .detail-list .list-group-item {
     display: flex;
     align-items: center;
@@ -65,9 +67,11 @@
     margin-left: 1.25rem; }
   .ctrl-panel .simple-list {
     display: none; }
-  .ctrl-panel .simple-list .ctrl-panel-logo {
-    width: 4rem;
-    height: 4rem; }
+  .ctrl-panel .ctrl-panel-logo {
+    width: 3rem;
+    height: 3rem; }
+  .ctrl-panel + .edge-toggle-container {
+    left: 16rem; }
 
 .ctrl-panel-backdrop {
   position: absolute;
@@ -82,13 +86,13 @@
   position: absolute;
   top: 0;
   height: 100%;
-  left: 16rem;
+  left: 0;
   width: 1rem;
   display: flex;
   align-items: center;
-  z-index: 1000;
+  z-index: 1031;
   opacity: 0;
-  transition: opacity 300ms;  }
+  transition: opacity 300ms; }
   .edge-toggle-container:hover,
   .edge-toggle-container.hover {
     opacity: 1; }
@@ -102,7 +106,8 @@
     border-width: initial;
     border-style: none;
     border-color: initial;
-    border-image: initial; }
+    border-image: initial;
+    outline: none; }
   .edge-toggle-container .edge-toggle-btn i {
     color: #212529;
     font-size: .85rem;

@@ -10,6 +10,7 @@ interface ChatshierChatSocketBody {
 }
 
 interface ChatshierMessage {
+    _id?: string;
     from: 'LINE' | 'FACEBOOK' | 'CHATSHIER' | 'SYSTEM';
     messager_id: string;
     src: any;

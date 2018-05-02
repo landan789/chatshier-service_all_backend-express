@@ -1,8 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var LOADING_MSG_AND_ICON = '<p class="message-time"><strong><i>' + 'Loading History Messages...' + '</i></strong><span class="loadingIcon"></span></p>';
-    var NO_HISTORY_MSG = '<p class="message-time"><strong><i>' + '-沒有更舊的歷史訊息-' + '</i></strong></p>';
+    var LOADING_MSG_AND_ICON = '<p class="message-time font-weight-bold">Loading History Messages...<i class="loadingIcon"></i></p>';
+    var NO_HISTORY_MSG = '<p class="message-time font-weight-bold">-沒有更舊的歷史訊息-</p>';
     var COLOR = {
         FIND: '#ff0000',
         CLICKED: '#2e555f',
@@ -18,10 +18,14 @@
     var LINE_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg';
     var FACEBOOK_LOGO = 'https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png';
     var WECHAT_LOGO = 'https://cdn.worldvectorlogo.com/logos/wechat.svg';
-    var CHATSHIER_LOGO = '/image/logo-no-transparent.png';
+    var CHATSHIER_LOGO = 'image/logo-no-transparent.png';
 
     var SOCKET_NAMESPACE = '/chatshier';
-    var BREAKPOINT_SM = 576;
+    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+
+    // var BREAKPOINT_SM = 576;
+    // var BREAKPOINT_MD = 768;
+    var BREAKPOINT_LG = 992;
 
     var api = window.restfulAPI;
     var userId;
@@ -44,7 +48,8 @@
     // selectors
     var $submitMessageInput = $('#submitMessageInput'); // 訊息欄
     var $ctrlPanelChatroomCollapse = $('#ctrlPanelChatroomCollapse');
-    var $chatroomBody = $('#chatContentPanel .chatroom-body'); // 聊天室空間
+    var $chatContentPanel = $('#chatContentPanel');
+    var $chatroomBody = $chatContentPanel.find('.chatroom-body'); // 聊天室空間
     var $profilePanel = $('#profilePanel');
     var $profileWrapper = $profilePanel.find('.profile-wrapper');
     var $ticketPanel = $('#ticketPanel');
@@ -429,7 +434,7 @@
 
     // 攜帶欲 appId 向伺服器端註冊依據
     // 使伺服器端可以針對特定 app 發送 socket 資料
-    var chatshierSocket = io(SOCKET_NAMESPACE);
+    var chatshierSocket = io(SOCKET_SERVER_URL);
     chatshierSocket.once('connect', function() {
         bindingSocketEvents(chatshierSocket);
     });
@@ -879,7 +884,7 @@
                     // Profile UI 部分改顯示為聊天室資訊而非對話者的資訊
                     default:
                         uiRequireData.person = Object.assign({}, users[userId]);
-                        uiRequireData.person.photo = '/image/group.png';
+                        uiRequireData.person.photo = 'image/group.png';
                         uiRequireData.platformUid = userId;
                         break;
                 }
@@ -909,7 +914,7 @@
     function generateLoadingJqElem() {
         return $($.parseHTML(
             '<div class="loading-container">' +
-                '<img src="/image/loading.gif" alt="loading..." />' +
+                '<img src="image/loading.gif" alt="loading..." />' +
             '</div>'
         ).shift());
     }
@@ -930,7 +935,7 @@
 
     function generateClientHtml(opts) {
         var unReadStr = opts.unRead > 99 ? '99+' : ('' + opts.unRead);
-        opts.clientPhoto = opts.clientPhoto || '/image/user_large.png';
+        opts.clientPhoto = opts.clientPhoto || 'image/user_large.png';
 
         var html =
             '<button class="tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
@@ -962,16 +967,14 @@
             (appType === CHATSHIER && userId === platformUid);
 
         return (
-            '<div class="message" message-time="' + message.time + '" message-type="' + message.type + '">' +
+            '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
                     '<span>' + senderrName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
                     '<span class="send-time">' + toTimeStr(message.time) + '</span>' +
-                    '<strong></strong>' +
                 '</span>' +
-                '<br/>' +
             '</div>'
         );
     }
@@ -1055,7 +1058,7 @@
         var $consumerPhoto = $appCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
         $consumerPhoto.on('error', function() {
             var $consumerPhotos = $ctrlPanelChatroomCollapse.find(tablinksSelectQuery + ' img.consumer-photo');
-            $consumerPhotos.attr('src', '/image/user_large.png');
+            $consumerPhotos.attr('src', 'image/user_large.png');
 
             // 當載入失敗時發 api 通知後端更新 consumer 的頭像
             return api.bot.getProfile(appId, platformUid).then((resJson) => {
@@ -1065,7 +1068,7 @@
                 var _consumers = resJson.data;
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
-                consumer.photo = consumer.photo || '/image/user_large.png';
+                consumer.photo = consumer.photo || 'image/user_large.png';
                 $consumerPhotos.attr('src', consumer.photo);
                 Object.assign(consumers, _consumers);
             });
@@ -1178,13 +1181,13 @@
             if (d !== nowDateStr) {
                 // if (now msg's date != previos msg's date), change day
                 nowDateStr = d;
-                returnStr += '<p class="message-time"><strong>' + nowDateStr + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time font-weight-bold">' + nowDateStr + '</p>';
             }
 
             var messageTime = messageDate.getTime();
             if (messageTime - prevTime > 15 * 60 * 1000) {
                 // if out of 15min section, new a section
-                returnStr += '<p class="message-time"><strong>' + toDateStr(messageTime) + '</strong></p>'; // plus date info
+                returnStr += '<p class="message-time font-weight-bold">' + toDateStr(messageTime) + '</p>';
             }
             prevTime = messageTime;
 
@@ -1201,7 +1204,7 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
         var person = requireData.person;
-        person.photo = person.photo || '/image/user_large.png';
+        person.photo = person.photo || 'image/user_large.png';
 
         var profilePanelHtml = (
             '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
@@ -1450,7 +1453,7 @@
 
                                 html +=
                                     '<div class="person-chip">' +
-                                        '<img src="' + (memberUser.photo || '/image/avatar-default.png') + '" class="person-avatar" alt="">' +
+                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="">' +
                                         '<span>' + memberUser.name + '</span>' +
                                     '</div>';
                             }
@@ -1556,7 +1559,6 @@
 
         var $chatroomContainer = $('#chatWrapper .chatroom-container');
         $chatroomContainer.addClass('open');
-        $chatroomContainer.find('.chat-content-panel').removeClass('d-none');
         // $chatroomContainer.find('.consumer-profile .display-name').text(appName);
 
         // 將聊天室訊息面板顯示，並將 scroll 滑至最下方
@@ -1566,7 +1568,6 @@
         $messageInputContainer.removeClass('d-none');
         $messageWrapper.addClass('shown').removeClass('d-none');
         $messageWrapper.siblings().removeClass('shown').addClass('d-none');
-        scrollMessagePanelToBottom(appId, chatroomId);
 
         ticketTableCtrl.loadTickets(appId, userId, platformUid);
 
@@ -1574,10 +1575,24 @@
         var $profileToggle = $('.toolbar #profileToggle');
         $profileToggle.removeClass('d-none');
 
-        if (window.innerWidth <= BREAKPOINT_SM) {
-            $profileToggle.removeClass('active');
-            $profilePanel.addClass('d-none');
+        // 若屬於 lg 以下的尺寸(行動裝置)，在切換 chatroom 時
+        // 如果有開啟用戶個檔或待辦事項的面板時，不要展開聊天室面板，只切換用戶
+        // 如果有開啟待辦事項的面板時，但切換至 Chatshier 內部聊天室時，因內部聊天室沒有待辦事項，因此自動展開聊天室面板
+        if (window.innerWidth < BREAKPOINT_LG) {
+            if ($profileToggle.hasClass('active') ||
+                ($ticketToggle.hasClass('active') && CHATSHIER !== appType)) {
+                $chatContentPanel.addClass('d-none');
+            } else {
+                $chatContentPanel.removeClass('d-none');
+                $profileToggle.removeClass('active');
+                $ticketToggle.removeClass('active');
+                $profilePanel.addClass('d-none');
+                $ticketPanel.addClass('d-none');
+            }
+        } else {
+            $chatContentPanel.removeClass('d-none');
         }
+        scrollMessagePanelToBottom(appId, chatroomId);
 
         if ($profileToggle.hasClass('active')) {
             $profilePanel.removeClass('d-none');
@@ -1829,7 +1844,7 @@
 
             // 如果現在時間比上一筆聊天記錄多15分鐘的話，將視為新訊息
             if (new Date(_message.time).getTime() - lastMessageTime >= 900000) {
-                $messagePanel.append('<p class="message-time"><strong>-新訊息-</strong></p>');
+                $messagePanel.append('<p class="message-time font-weight-bold">-新訊息-</p>');
             }
             var messageHtml = generateMessageHtml(srcHtml, _message, messager, appType);
             $messagePanel.append(messageHtml);
@@ -2120,7 +2135,6 @@
                 $tablink.removeClass('d-none');
             });
             return;
-
         }
 
         var code = ev.keyCode || ev.which;
