@@ -1,8 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     let appsComposesMdl = require('../models/apps_composes');
 
@@ -128,7 +129,7 @@ module.exports = (function() {
 
         putOne(req, res) {
             let composeId = req.params.composeid;
-            let appId;
+            let appIds;
             let putCompose = {
                 type: req.body.type,
                 text: req.body.text,
@@ -139,8 +140,8 @@ module.exports = (function() {
                 field_ids: req.body.field_ids || {}
             };
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                appIds = checkedAppIds;
                 if (!composeId) {
                     return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
                 };
@@ -150,7 +151,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
-                return appsComposesMdl.update(appId, composeId, putCompose).then((_appsComposes) => {
+                return appsComposesMdl.update(appIds, composeId, putCompose).then((_appsComposes) => {
                     if (!_appsComposes) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }
@@ -181,37 +182,29 @@ module.exports = (function() {
                 if (!composeId) {
                     return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
                 };
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.find(appId, composeId, (appsComposes) => {
-                        if (!appsComposes) {
-                            reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appsComposes);
-                    });
-                });
+                return appsComposesMdl.find(appId, composeId);
             }).then((appsComposes) => {
+                if (!appsComposes) {
+                    return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                }
+
                 let app = appsComposes[appId];
                 let compose = app.composes[composeId];
                 if (new Date(compose.time).getTime() < new Date().getTime()) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.remove(appId, composeId, (result) => {
-                        if (!result) {
-                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(result);
-                    });
+
+                return appsComposesMdl.remove(appId, composeId).then((appsCompose) => {
+                    if (!appsCompose) {
+                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_REMOVE);
+                    }
+                    return appsCompose;
                 });
-            }).then((AppsCompose) => {
-                let result = AppsCompose !== undefined ? AppsCompose : {};
+            }).then((appsCompose) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                    data: result
+                    data: appsCompose
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {

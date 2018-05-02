@@ -1,8 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     let appsFieldsMdl = require('../models/apps_fields');
 

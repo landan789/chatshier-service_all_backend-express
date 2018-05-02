@@ -1,4 +1,7 @@
 module.exports = (function() {
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+
     const line = require('@line/bot-sdk');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
@@ -6,7 +9,6 @@ module.exports = (function() {
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
-    const API_ERROR = require('../config/api_error');
     const appsMdl = require('../models/apps');
     const StorageHlp = require('../helpers/storage');
     const wechatSvc = require('./wechat');

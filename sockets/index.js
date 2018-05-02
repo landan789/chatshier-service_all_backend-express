@@ -25,8 +25,10 @@ const groupsMembersMdl = require('../models/groups_members');
 const ControllerCore = require('../cores/controller');
 
 const SOCKET_EVENTS = require('../config/socket-events');
-const API_ERROR = require('../config/api_error');
-const API_SUCCESS = require('../config/api_success');
+/** @type {any} */
+const API_ERROR = require('../config/api_error.json');
+/** @type {any} */
+const API_SUCCESS = require('../config/api_success.json');
 
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';

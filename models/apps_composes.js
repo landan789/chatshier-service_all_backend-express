@@ -102,17 +102,22 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} appId
+         * @param {string|string[]} appIds
          * @param {string} composeId
          * @param {any} compose
          * @param {(appComposes: any) => any} [callback]
          */
-        update(appId, composeId, compose, callback) {
+        update(appIds, composeId, compose, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
             compose._id = composeId;
             compose.updatedTime = Date.now();
 
             let query = {
-                '_id': appId,
+                '_id': {
+                    $in: appIds
+                },
                 'composes._id': composeId
             };
 
@@ -122,7 +127,7 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, composeId);
+                return this.find(appIds, composeId);
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;
@@ -141,7 +146,7 @@ module.exports = (function() {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
-            
+
             let compose = {
                 _id: composeId,
                 isDeleted: true,
@@ -149,7 +154,9 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': appIds.map((appId) => appId),
+                '_id': {
+                    $in: appIds
+                },
                 'composes._id': composeId
             };
 
@@ -159,6 +166,10 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
+                if (!(appIds instanceof Array)) {
+                    appIds = [appIds];
+                }
+
                 let aggregations = [
                     {
                         $unwind: '$composes'
@@ -173,19 +184,19 @@ module.exports = (function() {
                     docOutput
                 ];
 
-                return this.AppsModel.aggregate(aggregations);
-            }).then((results) => {
-                let appsComposes = {};
-                if (0 === results.length) {
-                    return Promise.reject(new Error());
-                }
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsComposes = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-                appsComposes = results.reduce((output, app) => {
-                    output[app._id] = output[app._id] || { composes: {} };
-                    Object.assign(output[app._id].composes, this.toObject(app.composes));
-                    return output;
-                }, {});
-                return appsComposes;
+                    appsComposes = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { composes: {} };
+                        Object.assign(output[app._id].composes, this.toObject(app.composes));
+                        return output;
+                    }, {});
+                    return appsComposes;
+                });
             }).then((appsComposes) => {
                 ('function' === typeof callback) && callback(appsComposes);
                 return appsComposes;

@@ -1,5 +1,6 @@
 module.exports = (function() {
-    let API_ERROR = require('../config/api_error');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
 
     let appsMdl = require('../models/apps');
     let usersMdl = require('../models/users');
