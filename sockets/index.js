@@ -352,15 +352,10 @@ function init(server) {
             let senderMsgId;
             let app;
 
-            return new Promise((resolve, reject) => {
-                appsMdl.find(appId, null, (apps) => {
-                    if (!apps) {
-                        reject(API_ERROR.APP_FAILED_TO_FIND);
-                        return;
-                    }
-                    resolve(apps);
-                });
-            }).then((apps) => {
+            return appsMdl.find(appId, null).then((apps) => {
+                if (!apps) {
+                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                }
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
@@ -465,6 +460,9 @@ function init(server) {
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();
+            }).catch((err) => {
+                console.error(err);
+                ('function' === typeof callback) && callback(err);
             });
         });
 
@@ -508,6 +506,7 @@ function init(server) {
             }).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
+                console.error(err);
                 ('function' === typeof callback) && callback(err);
             });
         });
