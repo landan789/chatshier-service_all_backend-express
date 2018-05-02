@@ -28,11 +28,7 @@ module.exports = (function() {
         }
 
         create(appId, app) {
-            return new Promise((resolve, reject) => {
-                if (this.bots[appId]) {
-                    resolve(this.bots[appId]);
-                    return;
-                }
+            return Promise.resolve().then(() => {
                 switch (app.type) {
                     case LINE:
                         let lineConfig = {
@@ -41,8 +37,7 @@ module.exports = (function() {
                         };
                         let lineBot = new line.Client(lineConfig);
                         this.bots[appId] = lineBot;
-                        resolve(lineBot);
-                        break;
+                        return lineBot;
                     case FACEBOOK:
                         let facebookConfig = {
                             pageID: app.id1,
@@ -54,8 +49,7 @@ module.exports = (function() {
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
                         let facebookBot = facebook.create(facebookConfig);
                         this.bots[appId] = facebookBot;
-                        resolve(facebookBot);
-                        break;
+                        return facebookBot;
                     case WECHAT:
                         let getToken = (callback) => {
                             // 此 callback 在 instance 被建立會要發 API 時會執行
@@ -81,7 +75,7 @@ module.exports = (function() {
                                 token1: app.token1,
                                 token1ExpireTime: app.token1ExpireTime
                             };
-                            appsMdl.update(appId, _app, (apps) => {
+                            return appsMdl.update(appId, _app).then((apps) => {
                                 if (!apps) {
                                     callback(API_ERROR.APP_FAILED_TO_UPDATE);
                                     return;
@@ -91,10 +85,8 @@ module.exports = (function() {
                         };
                         let wechatBot = new WechatAPI(app.id1, app.secret, getToken, setToken);
                         this.bots[appId] = wechatBot;
-                        resolve(wechatBot);
-                        break;
+                        return wechatBot;
                     default:
-                        resolve();
                         break;
                 }
             });
@@ -699,7 +691,6 @@ module.exports = (function() {
             }).then(() => {
                 switch (app.type) {
                     case LINE:
-   
                         _multicast = (messagerIds, messages) => {
                             let multicasts = [];
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次

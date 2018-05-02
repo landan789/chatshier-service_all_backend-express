@@ -1693,13 +1693,21 @@
         $messageView.find('.message-panel').append($loadingElem);
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        return new Promise(function(resolve) {
+        return new Promise(function(resolve, reject) {
             $submitMessageInput.val('');
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
-                $loadingElem.remove();
-                $loadingElem = void 0;
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
                 resolve();
             });
+        }).catch(() => {
+            $.notify('發送失敗', { type: 'danger' });
+        }).then(() => {
+            $loadingElem.remove();
+            $loadingElem = void 0;
         });
     }
 
@@ -1760,8 +1768,20 @@
             recipientUid: platformMessager.platformUid,
             messages: [messageToSend]
         };
-        $submitMessageInput.val('');
-        chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
+
+        return new Promise((resolve, reject) => {
+            $submitMessageInput.val('');
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
+        }).catch(() => {
+            $.notify('發送失敗', { type: 'danger' });
+        }).then(() => {
             $loadingElem.remove();
             $loadingElem = void 0;
         });
