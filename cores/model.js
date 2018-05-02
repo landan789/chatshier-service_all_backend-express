@@ -225,11 +225,10 @@ module.exports = (function() {
 
         /**
          * @param {any[]} array
-         * @param {string} [idKey="_id"]
+         * @param {string} [key="_id"]
          */
-        toObject(array, idKey) {
-            idKey = idKey || '_id';
-
+        toObject(array, key) {
+            let idKey = key || '_id';
             if (array && array[idKey]) {
                 let output = {
                     [array[idKey]]: array

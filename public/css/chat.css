@@ -208,12 +208,28 @@ body {
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content img,
-        .message .content video {
+        .message .content .image-content,
+        .message .content .sticker-content,
+        .message .content .video-content {
             width: 100%;
             max-width: 20rem;
             height: auto;
             border-radius: .5rem; }
+        .message .content .image-container {
+            width: 100%;
+            height: 100%; }
+            .message .content .image-container.stretch {
+                position: fixed;
+                left: 0;
+                top: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0, 0, 0, .3) }
+            .message .content .image-container.stretch img {
+                width: auto;
+                max-width: 95%;
+                max-height: 95%; }
         .message .content .location-icon {
             margin-right: .5rem;
             color: red; }

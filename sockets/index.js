@@ -1,19 +1,14 @@
 const socketIO = require('socket.io');
-
 const wechat = require('wechat');
-const storageHlp = require('../helpers/storage');
 
 const app = require('../app');
-
+const storageHlp = require('../helpers/storage');
 const chatshierHlp = require('../helpers/chatshier');
 const socketHlp = require('../helpers/socket');
 const botSvc = require('../services/bot');
 
 const appsMdl = require('../models/apps');
-const appsTemplatesMdl = require('../models/apps_templates');
-const appsGreetingsMdl = require('../models/apps_greetings');
 const appsComposes = require('../models/apps_composes');
-const appsAutorepliesMdl = require('../models/apps_autoreplies');
 const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 const appsChatroomsMdl = require('../models/apps_chatrooms');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
@@ -35,7 +30,6 @@ const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 
 const CHAT_COUNT_INTERVAL_TIME = 900000;
 
-const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const media = {
     image: 'png',

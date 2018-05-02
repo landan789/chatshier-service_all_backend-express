@@ -490,6 +490,12 @@
             $chatroomContainer.removeAttr('style');
         }
     });
+
+    $chatContentPanel.on('click', '.message .content .image-container', function(ev) {
+        var $imageContainer = $(this);
+        $imageContainer.toggleClass('stretch');
+        $imageContainer.find('img').toggleClass(['animated', 'zoomIn']);
+    });
     // =====end chat event=====
 
     // =====start profile event=====
@@ -961,7 +967,12 @@
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
         var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
-        var isMedia = srcHtml.startsWith('<img') || srcHtml.startsWith('<audio') || srcHtml.startsWith('<video');
+        var isMedia = (
+            'image' === message.type ||
+            'audio' === message.type ||
+            'video' === message.type ||
+            'sticker' === message.type
+        );
 
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
         // 如果訊息是來自於其他平台的話，訊息一律放在左邊
@@ -1042,7 +1053,7 @@
             $appCollapse.append(
                 '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
                     '<i class="' + clientUiOpts.icon + '"></i>' +
-                    '<span>' + appName + '</span>' +
+                    '<span>' + (CHATSHIER === appType ? appName.replace('Chatshier - ', '') : appName) + '</span>' +
                     '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
                 '</li>' +
                 '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
@@ -1115,7 +1126,9 @@
         switch (message.type) {
             case 'image':
                 return (
-                    '<img class="image-content" src="' + message.src + '" />'
+                    '<div class="image-container">' +
+                        '<img class="image-content" src="' + message.src + '" />' +
+                    '</div>'
                 );
             case 'audio':
                 return (
@@ -1131,7 +1144,7 @@
                 );
             case 'sticker':
                 return (
-                    '<img class="sticker-content" src="' + message.src + '" style="width: 100%; max-width: 200px;" />'
+                    '<img class="sticker-content" src="' + message.src + '" />'
                 );
             case 'location':
                 return (
