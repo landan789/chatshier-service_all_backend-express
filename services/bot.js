@@ -491,18 +491,27 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
-                        if (platformGroupId && platformUid) {
-                            if ('group' === platformGroupType) {
-                                return bot.getGroupMemberProfile(platformGroupId, platformUid);
-                            } else {
-                                return bot.getRoomMemberProfile(platformGroupId, platformUid);
+                        return Promise.resolve().then(() => {
+                            if (platformGroupId && platformUid) {
+                                if ('group' === platformGroupType) {
+                                    return bot.getGroupMemberProfile(platformGroupId, platformUid);
+                                } else {
+                                    return bot.getRoomMemberProfile(platformGroupId, platformUid);
+                                }
                             }
-                        }
-                        return bot.getProfile(platformUid).then((lineUserProfile) => {
+                            return bot.getProfile(platformUid);
+                        }).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
                             senderProfile.photo = lineUserProfile.pictureUrl;
                             return senderProfile;
+                        }).catch((err) => {
+                            // 無法抓到使用者 profile 時，回傳 undefined
+                            // 其餘狀況擲出錯誤
+                            if (404 === err.statusCode) {
+                                return Promise.resolve();
+                            }
+                            return Promise.reject(err);
                         });
                     case FACEBOOK:
                         return bot.getProfile(platformUid).then((fbUserProfile) => {
@@ -516,16 +525,16 @@ module.exports = (function() {
                             // http://doxmate.cool/node-webot/wechat-api/api.html#api_api_user
                             bot.getUser({ openid: platformUid, lang: 'zh_TW' }, (err, wxUser) => {
                                 if (err) {
-                                    console.log(err);
-                                    reject(new Error(err));
+                                    reject(err);
                                     return;
                                 }
-                                wxUser = wxUser || {};
-                                senderProfile.gender = !wxUser.sex ? '' : (1 === wxUser.sex ? 'MALE' : (2 === wxUser.sex ? 'FEMALE' : ''));
-                                senderProfile.name = wxUser.nickname;
-                                senderProfile.photo = wxUser.headimgurl;
-                                resolve(senderProfile);
+                                resolve(wxUser);
                             });
+                        }).then((wxUser) => {
+                            wxUser = wxUser || {};
+                            senderProfile.name = wxUser.nickname;
+                            senderProfile.photo = wxUser.headimgurl;
+                            return senderProfile;
                         });
                     default:
                         return senderProfile;

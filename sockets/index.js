@@ -240,6 +240,10 @@ function init(server) {
                     totalMessages = receivedMessages.concat(repliedMessages);
                 }
 
+                if (0 === totalMessages.length) {
+                    return [];
+                }
+
                 // 將整個聊天室群組成員的聊天狀態更新
                 return Promise.all(recipientUids.map((recipientUid) => {
                     return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
@@ -291,18 +295,18 @@ function init(server) {
                 // 讓前端能夠更新目前 messager 的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId).then((appsChatroomsMessagers) => {
                     let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                    let messagers = chatrooms[chatroomId].messagers;
+                    let chatroom = chatrooms[chatroomId];
 
                     /** @type {ChatshierChatSocketBody} */
                     let messagesToSend = {
                         app_id: appId,
                         type: app.type,
                         chatroom_id: chatroomId,
+                        chatroom: chatroom,
                         senderUid: platformInfo.platformUid,
                         // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
                         // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
                         recipientUid: '',
-                        messagers: messagers,
                         consumers: consumers,
                         messages: Object.values(_messages)
                     };
@@ -318,6 +322,7 @@ function init(server) {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
+            console.log(ERROR);
             console.log(JSON.stringify(json, null, 4));
             console.trace(json);
             !res.headersSent && res.sendStatus(500);
@@ -453,10 +458,10 @@ function init(server) {
                 });
             }).then((appsChatroomsMessagers) => {
                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                let messagers = chatrooms[chatroomId].messagers;
+                let chatroom = chatrooms[chatroomId];
 
                 // 將 socket 資料原封不動的廣播到 chatshier chatroom
-                socketBody.messagers = messagers;
+                socketBody.chatroom = chatroom;
                 return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();
@@ -632,11 +637,14 @@ function init(server) {
                         });
                     })).then((messages) => {
                         let recipientUid = matchedChatrooms[chatroomId];
+                        let chatroom = chatrooms[chatroomId];
+
                         /** @type {ChatshierChatSocketBody} */
                         let socketBody = {
                             app_id: appId,
                             type: app.type,
                             chatroom_id: chatroomId,
+                            chatroom: chatroom,
                             senderUid: '',
                             recipientUid: recipientUid,
                             messages: messages
