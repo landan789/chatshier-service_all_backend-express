@@ -5,7 +5,7 @@ Released: 2018-05-02
  * Add: click image content will stretch the image
 
 == Bug Fixes ==
- * Fixed: message panel not scroll buttom
+ * Fixed: message panel not scroll to bottom
  * Fixed: message text new line not work
 
 = Release 1.2.4 =
