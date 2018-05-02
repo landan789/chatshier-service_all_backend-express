@@ -76,6 +76,7 @@ module.exports = (function() {
                             messages: {}
                         };
                     }
+
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
