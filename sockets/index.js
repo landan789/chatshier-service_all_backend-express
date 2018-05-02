@@ -550,24 +550,23 @@ function init(server) {
                 }
                 chatrooms = appsChatroomsMessagers[appId].chatrooms;
 
-                for (let chatroomId in chatrooms) {
-                    let chatroom = chatrooms[chatroomId];
-                    let messagers = chatroom.messagers;
+                for (let i in composes) {
+                    let compose = composes[i];
+                    let composeAgeRange = compose.ageRange;
+                    let composeGender = compose.gender;
+                    let composeFields = compose.field_ids || {};
 
-                    for (let messagerId in messagers) {
-                        let messager = messagers[messagerId];
+                    for (let chatroomId in chatrooms) {
+                        let chatroom = chatrooms[chatroomId];
+                        let messagers = chatroom.messagers;
 
-                        for (let i in composes) {
-                            let compose = composes[i];
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
                             let messagerAge = messager.age || 0;
                             let messagerGender = messager.gender || '';
                             let messagerFields = messager.custom_fields || {};
-
-                            let composeAgeRange = compose.ageRange;
-                            let composeGender = compose.gender;
-                            let composeFields = compose.field_ids || {};
-
                             let isMatch = true;
+
                             if (composeAgeRange && messagerAge &&
                                 (messagerAge < composeAgeRange[0] || messagerAge > composeAgeRange[1])) {
                                 isMatch = false;
@@ -595,12 +594,8 @@ function init(server) {
                                 }
                             }
 
-                            if (isMatch) {
-                                if (chatroom.platformGroupId) {
-                                    matchedChatrooms[chatroomId] = chatroom.platformGroupId;
-                                } else {
-                                    matchedChatrooms[chatroomId] = messager.platformUid;
-                                }
+                            if (isMatch && !chatroom.platformGroupId) {
+                                matchedChatrooms[chatroomId] = messager.platformUid;
                             }
                         }
                     }
@@ -623,26 +618,23 @@ function init(server) {
                 let chatroomIds = Object.keys(matchedChatrooms);
                 return Promise.all(chatroomIds.map((chatroomId) => {
                     return Promise.all(composes.map((compose) => {
-                        let _message = {
+                        let message = {
                             from: SYSTEM,
+                            type: compose.type || 'text',
                             messager_id: '',
                             text: compose.text,
-                            src: '',
-                            time: Date.now(),
-                            type: 'text'
+                            src: compose.src || '',
+                            time: Date.now()
                         };
 
-                        return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insert(appId, chatroomId, _message, (appsChatroomsMessages) => {
-                                if (!appsChatroomsMessages) {
-                                    reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                                    return;
-                                };
+                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                            if (!appsChatroomsMessages) {
+                                return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                            };
 
-                                let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
-                                let messageId = Object.keys(messagesInDB).shift() || '';
-                                resolve(messagesInDB[messageId]);
-                            });
+                            let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                            let messageId = Object.keys(messagesInDB).shift() || '';
+                            return messagesInDB[messageId];
                         });
                     })).then((messages) => {
                         let recipientUid = matchedChatrooms[chatroomId];

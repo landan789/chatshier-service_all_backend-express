@@ -82,6 +82,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
+        'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
         'ageRange': {type: Array},
