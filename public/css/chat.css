@@ -214,6 +214,8 @@ body {
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
+        .message .content .text-content {
+            white-space: pre-wrap; }
         .message .content img,
         .message .content video {
             width: 100%;
