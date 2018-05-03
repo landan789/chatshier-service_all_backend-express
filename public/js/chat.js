@@ -1137,7 +1137,8 @@
                     '<span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>'
                 );
             default:
-                return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
+                let messageText = filterWechatEmoji(message.text || '');
+                return '<span class="text-content">' + messageText + '</span>';
         }
     }
 
