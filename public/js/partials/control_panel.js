@@ -158,7 +158,7 @@
         window.localStorage.setItem('isCtrlPanelPutAway', isCtrlPanelPutAway);
 
         return new Promise(function(resolve) {
-            window.setTimeout(resolve, PUT_ANINATE_DRATION + 50);
+            window.setTimeout(resolve, PUT_ANINATE_DRATION + 100);
         }).then(function() {
             ctrlPanelSwiper.update();
             $ctrlPanel.find('.detail-list').toggle();

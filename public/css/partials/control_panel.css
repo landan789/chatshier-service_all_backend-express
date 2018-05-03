@@ -67,6 +67,8 @@
     margin-left: 1.25rem; }
   .ctrl-panel .simple-list {
     display: none; }
+  .ctrl-panel .logo-item {
+    height: 50px; }
   .ctrl-panel .ctrl-panel-logo {
     width: 3rem;
     height: 3rem; }
