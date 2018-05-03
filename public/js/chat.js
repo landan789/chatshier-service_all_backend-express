@@ -450,7 +450,22 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
+        var isMobile = window.isMobileBrowser && window.isMobileBrowser();
+        if (13 === ev.keyCode) {
+            // 按下 enter 後，如果有進行 shift 組合鍵時，在 PC 版本上，預設會自動換行
+            if (!isMobile && ev.shiftKey) {
+                return;
+            }
+
+            // 在行動裝置上按下 enter 鍵是進行換行動作
+            // 在 PC 版本上，按下 enter 是直接發送
+            if (isMobile) {
+                ev.target.value += '\n';
+            } else {
+                $('.message-input-container #submitMessageBtn').click();
+            }
+            ev.preventDefault();
+        }
     });
     // 偵測 video 變成全螢幕時，把 control panel 及 toobar 進行顯示及隱藏切換
     $chatroomBody.on('fullscreenchange webkitfullscreenchange mozfullscreenchange', '.message video', function(ev) {

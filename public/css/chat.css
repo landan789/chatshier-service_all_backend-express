@@ -375,7 +375,8 @@ body {
         .message-input.form-lower .submit-message-input {
             width: calc(100% - 2.5rem);
             height: 80%;
-            border: none; }
+            border: none;
+            resize: none; }
     .message-input .submit-message-btn {
         position: relative;
         width: 2rem;
