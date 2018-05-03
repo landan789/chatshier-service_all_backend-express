@@ -938,7 +938,6 @@
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
                 '<img class="app-icon consumer-photo" src="' + opts.clientPhoto + '" />' +
-                // '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
@@ -1055,7 +1054,7 @@
             $appCollapse.append(
                 '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
                     '<i class="' + clientUiOpts.icon + '"></i>' +
-                    '<span>' + appName + '</span>' +
+                    '<span>' + (CHATSHIER === appType ? appName.replace('Chatshier - ', '') : appName) + '</span>' +
                     '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
                 '</li>' +
                 '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
