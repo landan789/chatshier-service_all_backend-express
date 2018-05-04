@@ -452,7 +452,22 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        (13 === ev.keyCode) && $('.message-input-container #submitMessageBtn').click();
+        var isMobile = window.isMobileBrowser && window.isMobileBrowser();
+        if (13 === ev.keyCode) {
+            // 按下 enter 後，如果有進行 shift 組合鍵時，在 PC 版本上，預設會自動換行
+            if (!isMobile && ev.shiftKey) {
+                return;
+            }
+
+            // 在行動裝置上按下 enter 鍵是進行換行動作
+            // 在 PC 版本上，按下 enter 是直接發送
+            if (isMobile) {
+                ev.target.value += '\n';
+            } else {
+                $('.message-input-container #submitMessageBtn').click();
+            }
+            ev.preventDefault();
+        }
     });
     // 偵測 video 變成全螢幕時，把 control panel 及 toobar 進行顯示及隱藏切換
     $chatroomBody.on('fullscreenchange webkitfullscreenchange mozfullscreenchange', '.message video', function(ev) {
@@ -925,7 +940,6 @@
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" platform-uid="' + opts.platformUid + '" app-type="' + opts.appType + '">' +
                 '<img class="app-icon consumer-photo" src="' + opts.clientPhoto + '" />' +
-                // '<i class="fas fa-comment-dots"></i>' +
                 '<span class="app-name' + (opts.unRead ? ' font-weight-bold' : '') + '">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
@@ -1042,7 +1056,7 @@
             $appCollapse.append(
                 '<li class="text-light nested list-group-item has-collapse" app-id="' + appId + '" app-type="' + appType + '">' +
                     '<i class="' + clientUiOpts.icon + '"></i>' +
-                    '<span>' + appName + '</span>' +
+                    '<span>' + (CHATSHIER === appType ? appName.replace('Chatshier - ', '') : appName) + '</span>' +
                     '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
                 '</li>' +
                 '<div class="collapse nested show" app-id="' + appId + '" app-type="' + appType + '">' +
@@ -1139,7 +1153,8 @@
                     '<span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>'
                 );
             default:
-                return filterWechatEmoji(message.text || '').replace(/\\n/g, '<br/>');
+                let messageText = filterWechatEmoji(message.text || '');
+                return '<span class="text-content">' + messageText + '</span>';
         }
     }
 
@@ -1693,13 +1708,23 @@
         $messageView.find('.message-panel').append($loadingElem);
         scrollMessagePanelToBottom(appId, chatroomId);
 
-        return new Promise(function(resolve) {
+        return new Promise(function(resolve, reject) {
             $submitMessageInput.val('');
-            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
-                $loadingElem.remove();
-                $loadingElem = void 0;
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
                 resolve();
             });
+        }).then(() => {
+            $loadingElem.remove();
+            $loadingElem = void 0;
+        }).catch(() => {
+            $.notify('發送失敗', { type: 'danger' });
+            $loadingElem.remove();
+            $loadingElem = void 0;
         });
     }
 
@@ -1760,8 +1785,22 @@
             recipientUid: platformMessager.platformUid,
             messages: [messageToSend]
         };
-        $submitMessageInput.val('');
-        chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function() {
+
+        return new Promise((resolve, reject) => {
+            $submitMessageInput.val('');
+            chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
+        }).then(() => {
+            $loadingElem.remove();
+            $loadingElem = void 0;
+        }).catch(() => {
+            $.notify('發送失敗', { type: 'danger' });
             $loadingElem.remove();
             $loadingElem = void 0;
         });

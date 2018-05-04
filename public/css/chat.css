@@ -214,6 +214,8 @@ body {
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
+        .message .content .text-content {
+            white-space: pre-wrap; }
         .message .content img,
         .message .content video {
             width: 100%;
@@ -374,7 +376,8 @@ body {
         .message-input.form-lower .submit-message-input {
             width: calc(100% - 2.5rem);
             height: 80%;
-            border: none; }
+            border: none;
+            resize: none; }
     .message-input .submit-message-btn {
         position: relative;
         width: 2rem;
