@@ -29,15 +29,13 @@
         "document": true,
         "navigator": true,
         "window": true,
-        "firebase": true,
 
         "describe": true,
         "it": true,
 
+        "FB": true,
         "io": true,
         "SOCKET_EVENTS": true,
-        "auth": true,
-        "database": true,
         "urlConfig": true
     },
 
@@ -203,6 +201,6 @@
         "standard/no-callback-literal": ["warn"],
         "standard/object-curly-even-spacing": ["error", "either"],
 
-        "chai-friendly/no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }],
+        "chai-friendly/no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true, "allowTaggedTemplates": true }]
     }
 }

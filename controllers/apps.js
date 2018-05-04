@@ -151,7 +151,7 @@ module.exports = (function() {
                 token1: undefined === req.body.token1 ? null : req.body.token1,
                 token2: undefined === req.body.token2 ? null : req.body.token2,
                 type: undefined === req.body.type ? null : req.body.type,
-                group_id: undefined === req.body.groupid ? null : req.body.groupid
+                group_id: undefined === req.body.group_id ? null : req.body.group_id
             };
             let apps;
             Promise.resolve().then(() => {
@@ -187,7 +187,7 @@ module.exports = (function() {
                         return;
                     }
 
-                    if ('' === req.body.groupid || null === req.body.groupid || undefined === req.body.groupid) {
+                    if ('' === req.body.group_id || null === req.body.group_id || undefined === req.body.group_id) {
                         reject(API_ERROR.GROUPID_WAS_EMPTY);
                         return;
                     }
@@ -206,17 +206,17 @@ module.exports = (function() {
                 });
             }).then((user) => {
                 let groupIds = user.group_ids || [];
-                if (0 > groupIds.indexOf(req.body.groupid)) {
+                if (0 > groupIds.indexOf(req.body.group_id)) {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 };
 
                 return new Promise((resolve, reject) => {
-                    groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
+                    groupsMdl.find(req.body.group_id, req.params.userid, (groups) => {
                         if (!groups || (groups && 0 === Object.keys(groups).length)) {
                             reject(API_ERROR.GROUP_DID_NOT_EXIST);
                             return;
                         }
-                        let group = groups[req.body.groupid];
+                        let group = groups[req.body.group_id];
                         resolve(group);
                     });
                 });
