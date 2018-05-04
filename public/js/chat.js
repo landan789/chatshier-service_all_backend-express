@@ -71,6 +71,8 @@
         '/::B': '😍',
         '/::|': '😳'
     });
+    var urlRegex = /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
+    var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
 
     /**
      * @param {string} text
@@ -450,7 +452,6 @@
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
     $submitMessageInput.on('keydown', function(ev) { // 按enter可以發送訊息
-        var isMobile = window.isMobileBrowser && window.isMobileBrowser();
         if (13 === ev.keyCode) {
             // 按下 enter 後，如果有進行 shift 組合鍵時，在 PC 版本上，預設會自動換行
             if (!isMobile && ev.shiftKey) {
@@ -1148,10 +1149,10 @@
             case 'location':
                 return (
                     '<i class="fa fa-location-arrow location-icon"></i>' +
-                    '<span>地理位置: <a target="_blank" href="' + message.src + '">地圖</a></span>'
+                    '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             default:
-                let messageText = filterWechatEmoji(message.text || '');
+                let messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
         }
     }
@@ -2358,6 +2359,15 @@
 
     function addZero(val) {
         return val < 10 ? '0' + val : val;
+    }
+
+    /**
+     * @param {string} text
+     */
+    function linkify(text) {
+        return text.replace(urlRegex, function(url) {
+            return '<a href="' + url + '" target="_blank">' + url + '</a>';
+        });
     }
 
     // =====end utility function
