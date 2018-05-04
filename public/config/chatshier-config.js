@@ -6,8 +6,9 @@ chatshier.config = {
 };
 
 chatshier.facebook = {
-    appId: '193447848045904',
-    version: 'v3.0'
+    appId: '178381762879392',
+    version: 'v3.0',
+    cookie: true
 };
 
 window.chatshier = chatshier;

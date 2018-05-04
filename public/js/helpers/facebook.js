@@ -9,10 +9,9 @@ window.facebookHelper = (function() {
     var fbsdkUrl = 'https://connect.facebook.net/' + language + '/sdk.js';
     var fbsdkId = 'facebook-jssdk';
     /** @type {fb.InitParams} */
-    var fbConfig = window.chatshier ? window.chatshier.facebook : {};
+    var fbParams = window.chatshier ? window.chatshier.facebook : {};
 
     var facebookHelper = {
-        PAGES_SCOPES: 'manage_pages,publish_pages',
         auth: function() {
             return fbAuth;
         },
@@ -50,7 +49,7 @@ window.facebookHelper = (function() {
             }
 
             initPromise = facebookHelper.loadAPI().then(function() {
-                FB.init(fbConfig);
+                FB.init(fbParams);
                 return new Promise(function(resolve) {
                     FB.getLoginStatus(resolve);
                 });
@@ -58,16 +57,43 @@ window.facebookHelper = (function() {
 
             return initPromise;
         },
+        getFanPages: function() {
+            return new Promise(function(resolve) {
+                FB.api('/me/accounts', resolve);
+            });
+        },
+        getFanPageDetail: function(pageId) {
+            return new Promise(function(resolve) {
+                FB.api('/' + pageId, resolve);
+            });
+        },
+        getFanPageSubscribeApp: function(pageId, pageToken) {
+            return new Promise(function(resolve) {
+                FB.api('/' + pageId + '/subscribed_apps?access_token=' + pageToken, resolve);
+            });
+        },
+        setFanPageSubscribeApp: function(pageId, pageToken) {
+            return new Promise(function(resolve) {
+                FB.api('/' + pageId + '/subscribed_apps?access_token=' + pageToken, 'POST', resolve);
+            });
+        },
         /**
-         * @param {string} [scope="email"]
          * @returns {Promise<fb.AuthResponse>}
          */
-        signIn: function(scope) {
-            scope = scope || 'email';
+        signIn: function() {
+            return new Promise((resolve) => {
+                FB.login(resolve, { scope: 'email' });
+            });
+        },
+        /**
+         * @returns {Promise<fb.AuthResponse>}
+         */
+        signInForPages: function() {
             return new Promise((resolve) => {
                 /** @type {fb.LoginOptions} */
                 var fbOpts = {
-                    scope: scope,
+                    auth_type: 'reauthenticate',
+                    scope: 'manage_pages,publish_pages,pages_messaging,pages_messaging_subscriptions',
                     return_scopes: true
                 };
                 FB.login(resolve, fbOpts);

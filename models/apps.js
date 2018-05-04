@@ -32,18 +32,17 @@ module.exports = (function() {
             };
         }
 
-        find(appIds, webhookId, callback) {
+        find(appIds, webhookId, query, callback) {
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             };
 
-            let query = {
-                'isDeleted': false
-            };
-            appIds && (query['_id'] = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
-            webhookId && (query['webhook_id'] = this.Types.ObjectId(webhookId));
+            let _query = query || {};
+            _query.isDeleted = false;
+            appIds && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
 
-            return this.AppsModel.find(query, this.project).then((results) => {
+            return this.AppsModel.find(_query, this.project).then((results) => {
                 let apps = {};
                 if (0 === results.length) {
                     return apps;

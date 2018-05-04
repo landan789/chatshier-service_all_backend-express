@@ -8,7 +8,17 @@
     const ACTIVE = '啟用';
     const INACTIVE = '未啟用';
     const NO_PERMISSION_CODE = '3.16';
+
+    var apps = {};
+    var appsFields = {};
+    var groups = {};
+    var users = {};
+
     var api = window.restfulAPI;
+    var translate = window.translate;
+    var gClientHlp = window.googleClientHelper;
+    var gCalendarHlp = window.googleCalendarHelper;
+    var fbHlp = window.facebookHelper;
     var transJson = {};
 
     var userId;
@@ -19,14 +29,14 @@
         userId = '';
     }
 
-    window.translate.ready.then(function(json) {
+    translate.ready.then(function(json) {
         transJson = json;
     });
 
     // 動態載入 gapi
-    window.googleClientHelper.loadAPI().then(function() {
-        var url = window.googleCalendarHelper.configJsonUrl;
-        return window.googleClientHelper.init(url);
+    gClientHlp.loadAPI().then(function() {
+        var url = gCalendarHlp.configJsonUrl;
+        return gClientHlp.init(url);
     }).then(function(isSignedIn) {
         var $gCalendarRow = $('#gcalendar_row');
         $gCalendarRow.removeClass('d-none');
@@ -37,14 +47,14 @@
             var elem = ev.target;
             if (elem.checked) {
                 elem.checked = !elem.checked;
-                return window.googleClientHelper.signIn().then(function() {
+                return gClientHlp.signIn().then(function() {
                     elem.checked = true;
                 }).catch(function() {
                     elem.checked = false;
                 });
             } else {
                 elem.checked = !elem.checked;
-                return window.googleClientHelper.signOut().then(function() {
+                return gClientHlp.signOut().then(function() {
                     elem.checked = false;
                 }).catch(function() {
                     elem.checked = true;
@@ -52,6 +62,8 @@
             }
         });
     });
+
+    fbHlp.init();
 
     // ACTIONS
     $(document).on('click', '#edit', function() {
@@ -172,11 +184,96 @@
     $appAddModal.on('click', '#appAddModalSubmitBtn', function(ev) {
         var $appAddModalSubmitBtn = $(ev.target).attr('disabled', true);
         var type = $appAddModal.find('#appTypeSelect option:selected').val();
-        var groupId = $appAddModal.find('.modal-body form').attr('group-id');
-        var app = getAddModalApp(type, groupId);
+
+        var app = {
+            type: type,
+            group_id: $appAddModal.find('.modal-body form').attr('group-id'),
+            name: $appAddModal.find('[name="appName"]').val(),
+            id1: $appAddModal.find('[name="appId1"]').val(),
+            secret: $appAddModal.find('[name="appSecret"]').val()
+        };
+
+        switch (type) {
+            case LINE:
+                app.token1 = $appAddModal.find('[name="appToken1"]').val();
+                break;
+            case FACEBOOK:
+                app.id2 = $appAddModal.find('[name="appId2"]').val();
+                app.token1 = $appAddModal.find('[name="appToken1"]').val();
+                app.token2 = $appAddModal.find('[name="appToken2"]').val();
+                break;
+            case WECHAT:
+            default:
+                break;
+        }
 
         return insertOneApp(app).then(() => {
             $appAddModalSubmitBtn.removeAttr('disabled');
+        });
+    });
+
+    $appAddModal.on('click', '.fb-pages-button', function(ev) {
+        var groupId = $(ev.target).parents('.fb-sdk-item').attr('group-id');
+        fbHlp.signInForPages().then(function(res) {
+            if (!res || (res && res.status !== 'connected')) {
+                return;
+            }
+
+            return fbHlp.getFanPages().then(function(res) {
+                var fanPages = res.data;
+                var appsList = fanPages.map(function(fanPage) {
+                    var app = {
+                        webhook_id: '',
+                        group_id: groupId,
+                        type: FACEBOOK,
+                        name: fanPage.name,
+                        id1: fanPage.id,
+                        id2: '178381762879392',
+                        secret: '27aad72319bf154c059f696bce055ac2',
+                        token1: '8eeabaf3c836d295edb26264ec76e975',
+                        token2: fanPage.access_token
+                    };
+                    return app;
+                });
+                return appsList;
+            }).then(function(appsList) {
+                var appIds = groups[groupId].app_ids;
+                return Promise.all(appsList.map(function(app) {
+                    var isExist = false;
+                    for (var i in appIds) {
+                        var _app = apps[appIds[i]];
+                        if (!_app || FACEBOOK !== _app.type) {
+                            continue;
+                        }
+
+                        if (_app.id1 === app.id1) {
+                            isExist = true;
+                            break;
+                        }
+                    }
+
+                    if (isExist) {
+                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
+                    }
+
+                    return api.apps.insert(userId, app).then((resJson) => {
+                        var _apps = resJson.data;
+                        for (var appId in _apps) {
+                            apps[appId] = _apps[appId];
+                            groups[groupId].app_ids.push(appId);
+                            generateAppItem(appId, apps[appId]);
+                        }
+                        return fbHlp.setFanPageSubscribeApp(app.id1, app.token2);
+                    }).then(function() {
+                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
+                    });
+                }));
+            });
+        }).then(function(res) {
+            if (!res) {
+                return;
+            }
+            return fbHlp.signOut();
         });
     });
 
@@ -260,14 +357,30 @@
         var selectType = $appTypeSelect.val();
         $appItemsContainer.html(itemsHtml[selectType]);
 
-        $appTypeSelect.off('change').on('change', function(ev) {
-            $appItemsContainer.html(itemsHtml[ev.target.value] || '');
-        });
+        function appTypeChange(ev) {
+            selectType = ev.target.value;
+            $appItemsContainer.html(itemsHtml[selectType] || '');
+
+            if (FACEBOOK === selectType) {
+                $appAddForm.find('.platform-app-container').prepend(
+                    '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
+                        '<button type="button" class="px-4 py-2 text-center fb-pages-button">' +
+                            '<i class="fab fa-facebook-square fa-fw"></i>' +
+                            '<span>匯入粉絲專頁</span>' +
+                        '</button>' +
+                    '</div>'
+                );
+            } else {
+                $appAddForm.find('.fb-sdk-item').remove();
+            }
+        }
+        $appTypeSelect.off('change').on('change', appTypeChange);
+        appTypeChange({ target: $appTypeSelect.get(0) });
     });
 
     function findAllGroups() {
         return api.groups.findAll(userId).then(function(resJson) {
-            let groups = resJson.data;
+            groups = resJson.data;
             if (groups && 0 === Object.keys(groups).length) {
                 $('#addGroupNameAppBtn').attr('disabled', true);
                 return;
@@ -277,7 +390,7 @@
                 if (groups[groupId].isDeleted) {
                     continue;
                 }
-                loadGroups(groups[groupId], groupId);
+                showGroupContent(groupId, groups[groupId]);
             }
             $('#addGroupNameAppBtn').removeAttr('disabled');
         });
@@ -290,16 +403,15 @@
             let groups = resJson.data;
             $groupAddModal.modal('hide');
             for (let groupId in groups) {
-                loadGroups(groups[groupId], groupId);
+                showGroupContent(groupId, groups[groupId]);
             }
         });
     }
 
     function findAllApps() {
         return api.apps.findAll(userId).then(function(resJson) {
-            let apps = resJson.data;
-
-            for (let appId in apps) {
+            apps = resJson.data;
+            for (var appId in apps) {
                 if (apps[appId].isDeleted || CHATSHIER === apps[appId].type) {
                     continue;
                 }
@@ -312,34 +424,10 @@
 
     function findOneApp(appId) {
         return api.apps.findOne(appId, userId).then(function(resJson) {
-            let apps = resJson.data;
+            let _apps = resJson.data;
+            apps[appId] = _apps[appId];
             showAppContent(appId, apps[appId]);
         });
-    }
-
-    function getAddModalApp(type, groupId) {
-        let app = {
-            type: type,
-            group_id: groupId,
-            name: $appAddModal.find('[name="appName"]').val(),
-            id1: $appAddModal.find('[name="appId1"]').val(),
-            secret: $appAddModal.find('[name="appSecret"]').val()
-        };
-
-        switch (type) {
-            case LINE:
-                app.token1 = $appAddModal.find('[name="appToken1"]').val();
-                break;
-            case FACEBOOK:
-                app.id2 = $appAddModal.find('[name="appId2"]').val();
-                app.token1 = $appAddModal.find('[name="appToken1"]').val();
-                app.token2 = $appAddModal.find('[name="appToken2"]').val();
-                break;
-            case WECHAT:
-            default:
-                break;
-        }
-        return app;
     }
 
     function insertOneApp(app) {
@@ -347,9 +435,10 @@
             $appAddModal.modal('hide');
 
             $.notify('新增成功!', { type: 'success' });
-            let apps = resJson.data;
-            for (let appId in apps) {
-                generateAppItem(appId, apps[appId]);
+            let _apps = resJson.data;
+            for (let appId in _apps) {
+                apps[appId] = _apps[appId];
+                generateAppItem(appId, _apps[appId]);
             }
         }).catch((resJson) => {
             $appAddModal.modal('hide');
@@ -370,8 +459,9 @@
             var str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
             $('#app-group').html(str);
 
-            $.notify('修改成功!', { type: 'success' });
-            var apps = resJson.data;
+            $.notify('更新成功!', { type: 'success' });
+            var _apps = resJson.data;
+            apps[appId] = _apps[appId];
             var app = apps[appId];
 
             switch (app.type) {
@@ -401,7 +491,7 @@
             if (!resJson.status) {
                 $('#setting-modal').modal('hide');
                 clearAppModalBody();
-                $.notify('失敗', { type: 'danger' });
+                $.notify('更新失敗', { type: 'danger' });
             }
             if (NO_PERMISSION_CODE === resJson.code) {
                 $('#setting-modal').modal('hide');
@@ -421,8 +511,9 @@
                 let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
                 $('#app-group').html(str);
                 $.notify('成功刪除!', { type: 'success' });
-                var apps = resJson.data;
-                var app = apps[appId];
+                var _apps = resJson.data;
+                delete apps[appId];
+                var app = _apps[appId];
 
                 switch (app.type) {
                     case LINE:
@@ -449,7 +540,7 @@
                 };
             }).catch((resJson) => {
                 if (!resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
+                    $.notify('刪除失敗', { type: 'danger' });
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
@@ -484,12 +575,13 @@
     }
 
     /**
-     * 群組資料從ajax載入後把群組視覺化
-     * @param {any} group
      * @param {string} groupId
+     * @param {any} group
      */
-    function loadGroups(group, groupId) {
-        let groupStr =
+    function showGroupContent(groupId, group) {
+        groups[groupId] = group;
+
+        let groupStr = (
             '<div class="group-tab" role="tab">' +
                 '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
                     (group.name || '') +
@@ -498,13 +590,15 @@
             '<div id="' + groupId + '-group" class="card-collapse collapse">' +
                 '<div class="app-table-space">' +
                     '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
-                        '<i class="fas fa-plus fa-fw"></i>新增聊天機器人' +
+                        '<i class="fas fa-plus fa-fw"></i>' +
+                        '<span>新增聊天機器人</span>' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
                         '<tbody id="' + groupId + '-body"></tbody>' +
                     '</table>' +
                 '</div>' +
-            '</div>';
+            '</div>'
+        );
         $('#apps .app-container').append(groupStr);
     }
 
@@ -644,10 +738,12 @@
     }
 
     function showAppContent(appId, app) {
-        let appStr;
+        apps[appId] = app;
+
+        var appHtml;
         switch (app.type) {
             case LINE:
-                appStr =
+                appHtml =
                     '<form>' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
@@ -683,7 +779,7 @@
                     '</form>';
                 break;
             case FACEBOOK:
-                appStr =
+                appHtml =
                     '<form>' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
@@ -731,7 +827,7 @@
                     '</form>';
                 break;
             case WECHAT:
-                appStr =
+                appHtml =
                     '<form>' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
@@ -763,7 +859,7 @@
             default:
                 break;
         }
-        appStr && $appAddModal.append(appStr);
+        appHtml && $appAddModal.append(appHtml);
     }
 
     function clearAppModalBody() {
@@ -1117,8 +1213,8 @@
                 api.apps.findAll(userId),
                 api.appsFields.findAll(userId)
             ]).then(function(resJsons) {
-                var apps = resJsons.shift().data;
-                var appsFields = resJsons.shift().data;
+                apps = resJsons.shift().data;
+                appsFields = resJsons.shift().data;
 
                 fieldPanelCtrl.saveListeners.length = 0;
                 fieldPanelCtrl.deleteListeners.length = 0;
@@ -1202,7 +1298,10 @@
                                 fieldOrg.sets = fieldOnUI.sets;
                             }
                             fieldOrg.order = fieldOnUI.order;
-                            return api.appsFields.update(args.appId, fieldId, userId, fieldOrg);
+                            return api.appsFields.update(args.appId, fieldId, userId, fieldOrg).then(function(resJson) {
+                                let _appsFields = resJson.data;
+                                appsFields[args.appId].fields[fieldId] = _appsFields[args.appId].fields[fieldId];
+                            });
                         } else if (fieldOrg.isDeleted) {
                             return api.appsFields.remove(args.appId, fieldId, userId).then(function() {
                                 delete appsFields[args.appId].fields[fieldId];
@@ -1263,8 +1362,6 @@
     (function() {
         var api = window.restfulAPI;
         var memberTypes = api.groupsMembers.enums.type;
-        var groups = {};
-        var userGroupMembers = {};
         var searchCache = {};
         var keyinWaitTimer = null;
 
@@ -1573,7 +1670,7 @@
                         });
                     }).then(function(insertData) {
                         return api.users.find(userId).then(function(resJson) {
-                            userGroupMembers = resJson.data || {};
+                            users = resJson.data || {};
                             instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
                             $groupElems[groupId].$memberEmail.val('');
@@ -1673,7 +1770,7 @@
             };
 
             GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
-                var memberUser = userGroupMembers[member.user_id];
+                var memberUser = users[member.user_id];
                 if (!memberUser) {
                     return;
                 };
@@ -1799,7 +1896,7 @@
                 api.users.find(userId)
             ]).then(function(resJsons) {
                 groups = resJsons[0].data || {};
-                userGroupMembers = resJsons[1].data || {};
+                users = resJsons[1].data || {};
                 var firstGroupId = '';
                 for (var groupId in groups) {
                     firstGroupId = firstGroupId || groupId;

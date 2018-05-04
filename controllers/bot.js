@@ -24,26 +24,20 @@ module.exports = (function() {
         }
 
         _findApp(appId) {
-            return Promise.resolve().then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appId, null, (apps) => {
-                        if (!apps) {
-                            return reject(API_ERROR.APPS_FAILED_TO_FIND);
-                        }
-                        let app = apps[appId];
-                        resolve(app);
-                    });
-                });
+            return appsMdl.find(appId).then((apps) => {
+                if (!apps) {
+                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                }
+                return apps;
             });
         }
 
         getRichMenuList(req, res) {
             let appId = req.params.appid;
 
-            return BotController.prototype._findApp(appId).then((app) => {
+            return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.getRichMenuList(appId);
             }).then((richmenuList) => {
                 if (!richmenuList) {
@@ -71,10 +65,9 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenuId = req.params.richmenuid;
 
-            return BotController.prototype._findApp(appId).then((app) => {
+            return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.getRichMenu(richmenuId, appId);
             }).then((richMenu) => {
                 if (!richMenu) {
@@ -102,10 +95,9 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenuId = req.params.richmenuid;
 
-            return BotController.prototype._findApp(appId).then((app) => {
+            return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.getRichMenuImage(richmenuId, appId);
             }).then((richmenuImg) => {
                 if (!richmenuImg) {
@@ -133,10 +125,9 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenu = JSON.parse(req.body.richmenu);
 
-            return BotController.prototype._findApp(appId).then((app) => {
+            return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.createRichMenu(richmenu, appId);
             }).then((richmenuId) => {
                 if (!richmenuId) {
@@ -165,10 +156,9 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
             let richmenuImg = JSON.parse(req.body.richmenuImg);
 
-            return BotController.prototype._findApp(appId).then((app) => {
+            return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.setRichMenuImage(richmenuId, richmenuImg, appId);
             }).then((result) => {
                 if (!result) {
@@ -199,8 +189,7 @@ module.exports = (function() {
 
             return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.linkRichMenuToUser(senderId, richmenuId, appId);
             }).then((result) => {
                 if (!result) {
@@ -231,8 +220,7 @@ module.exports = (function() {
 
             return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.unlinkRichMenuFromUser(senderId, richmenuId, appId);
             }).then((result) => {
                 if (!result) {
@@ -262,8 +250,7 @@ module.exports = (function() {
 
             return this._findApp(appId).then((app) => {
                 return botSvc.create(appId, app);
-            }).then((_bot) => {
-                let bot = _bot;
+            }).then(() => {
                 return botSvc.deleteRichMenu(richmenuId, appId);
             }).then((result) => {
                 if (!result) {
@@ -296,11 +283,13 @@ module.exports = (function() {
                 if (!appId) {
                     return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
                 }
-                return appsMdl.find(appId, null);
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
+                });
             }).then((apps) => {
-                if (!apps) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                }
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {

@@ -1,10 +1,10 @@
 const socketIO = require('socket.io');
-
+const bodyParser = require('body-parser');
 const wechat = require('wechat');
-const storageHlp = require('../helpers/storage');
 
 const app = require('../app');
 
+const storageHlp = require('../helpers/storage');
 const chatshierHlp = require('../helpers/chatshier');
 const socketHlp = require('../helpers/socket');
 const botSvc = require('../services/bot');
@@ -28,6 +28,7 @@ const SOCKET_EVENTS = require('../config/socket-events');
 const API_ERROR = require('../config/api_error');
 const API_SUCCESS = require('../config/api_success');
 
+const FACEBOOK = 'FACEBOOK';
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 
@@ -46,7 +47,7 @@ function init(server) {
     let chatshierNsp = socketIOServer.of('/chatshier');
     let webhookProcQueue = [];
 
-    app.get('/webhook/:webhookid', function(req, res) {
+    app.get('/webhook/:webhookid?', function(req, res) {
         // Facebook
         if (req.query['hub.verify_token']) {
             if (FACEBOOK_WEBHOOK_VERIFY_TOKEN === req.query['hub.verify_token']) {
@@ -70,7 +71,7 @@ function init(server) {
         }
     });
 
-    app.post('/webhook/:webhookid', (req, res, next) => {
+    app.post('/webhook/:webhookid?', (req, res, next) => {
         let webhookid = req.params.webhookid;
 
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
@@ -90,13 +91,56 @@ function init(server) {
             let toPath;
             let _messages;
 
-            return appsMdl.find(null, webhookid).then((apps) => {
-                if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                    return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+            return Promise.resolve().then(() => {
+                // 由於 Facebook 使用單一 app 的訂閱所有的粉絲專頁
+                // 因此所有的 webhook 入口都會一致是 /webhook/facebook
+                if (webhookid && FACEBOOK === webhookid.toUpperCase()) {
+                    return new Promise((resolve) => {
+                        bodyParser.json()(req, res, resolve);
+                    }).then(() => {
+                        let entries = req.body.entry || [];
+                        let senderUid;
+                        let recipientUid;
+
+                        // 從 facebook 打過來的訊息中，抓取出發送者與接收者的 facebook uid
+                        for (let i in entries) {
+                            let messagings = entries[i].messaging || [];
+                            for (let j in messagings) {
+                                senderUid = messagings[j].sender.id;
+                                recipientUid = messagings[j].recipient.id;
+                                break;
+                            }
+                            break;
+                        }
+
+                        // 如果發送者與接收者的其中資料缺一，代表 webhook 傳過來的資料有誤
+                        if (!(senderUid && recipientUid)) {
+                            return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                        }
+
+                        // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
+                        // 因此使用以下 query 來查找到 app
+                        let query = {
+                            id1: { $in: [senderUid, recipientUid] }
+                        };
+                        return appsMdl.find(null, null, query).then((apps) => {
+                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+                            }
+                            appId = Object.keys(apps).shift() || '';
+                            app = apps[appId];
+                            return app;
+                        });
+                    });
                 }
-                appId = Object.keys(apps).shift() || '';
-                app = apps[appId];
-                return botSvc.parser(req, res, server, appId, app);
+                return appsMdl.find(null, webhookid).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+                    }
+                    appId = Object.keys(apps).shift() || '';
+                    app = apps[appId];
+                    return botSvc.parser(req, res, server, appId, app);
+                });
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
@@ -320,7 +364,7 @@ function init(server) {
             let senderMsgId;
             let app;
 
-            return appsMdl.find(appId, null).then((apps) => {
+            return appsMdl.find(appId).then((apps) => {
                 if (!apps) {
                     return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                 }
@@ -490,20 +534,16 @@ function init(server) {
             // TODO 這裡為 socket 進入 不是 REST request
             return ControllerCore.appsRequestVerify(req).then(() => {
                 if (!appId) {
-                    return Promise.reject(new Error(API_ERROR.APPID_FAILED_TO_FIND));
-                };
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appId, null, (apps) => {
-                        if (!apps) {
-                            reject(API_ERROR.APPID_WAS_EMPTY);
-                            return;
-                        }
-                        let app = apps[appId];
-                        resolve(app);
-                    });
+                    return Promise.reject(new Error(API_ERROR.APPID_WAS_EMPTY));
+                }
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
-            }).then((_app) => {
-                app = _app;
+            }).then((apps) => {
+                app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
                 return appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {

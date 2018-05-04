@@ -245,12 +245,13 @@ module.exports = (function() {
                 if (!appIds) {
                     return Promise.reject(API_ERROR.APPID_FAILED_TO_FIND);
                 }
-                return appsMdl.find(appIds, null);
+                return appsMdl.find(appIds).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
+                });
             }).then((apps) => {
-                if (!apps) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                }
-
                 let appIds = Object.keys(apps);
                 let putApp = {
                     name: 'Chatshier - ' + putGroup.name

@@ -15,15 +15,11 @@ let jobProcess = () => {
     let startedUnixTime = Date.now();
 
     console.log('[start]  [' + startedUnixTime + '] [' + new Date(startedUnixTime).toString() + '] schedules/index.js is starting ... ');
-    return new Promise((resolve, reject) => {
-        let appIds = '';
-        appsMdl.find(appIds, null, (apps) => {
-            if (!apps) {
-                reject(API_ERROR.APPS_FAILED_TO_FIND);
-                return;
-            }
-            resolve(apps);
-        });
+    return appsMdl.find().then((apps) => {
+        if (!apps) {
+            return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
+        }
+        return apps;
     }).then((apps) => {
         // LINE BOT 相異 apps 允許 同時間群發。
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。

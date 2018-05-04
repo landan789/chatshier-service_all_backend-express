@@ -221,3 +221,14 @@ p:empty:not(:focus)::before {
 
 /* #endregion */
 /*******************/
+
+.fb-pages-button {
+    border-radius: .5rem;
+    background-color: #4267b2;
+    color: white;
+    cursor: pointer; }
+    .fb-pages-button:focus {
+        outline: none; }
+    .fb-pages-button i {
+        padding: 0 .25rem;
+    }

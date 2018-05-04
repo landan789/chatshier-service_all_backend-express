@@ -48,13 +48,11 @@ module.exports = (function() {
                     });
                 });
             }).then((appIds) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appIds, null, (apps) => {
-                        if (null === apps || '' === apps || undefined === apps) {
-                            apps = {};
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appIds).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let json = {
@@ -114,15 +112,11 @@ module.exports = (function() {
                 };
                 return Promise.resolve();
             }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appId, null, (data) => {
-                        let app = data;
-                        if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(app);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((data) => {
                 let app = data;
@@ -339,14 +333,11 @@ module.exports = (function() {
                     });
                 });
             }).then((user) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(req.params.appid, null, (apps) => {
-                        if (null === apps || undefined === apps || '' === apps) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let app = Object.values(apps)[0];
@@ -443,14 +434,11 @@ module.exports = (function() {
                     });
                 });
             }).then((user) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(req.params.appid, null, (apps) => {
-                        if (null === apps || undefined === apps || '' === apps) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let app = Object.values(apps)[0];
