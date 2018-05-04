@@ -17,6 +17,7 @@ module.exports = (function() {
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const WECHAT = 'WECHAT';
+    const VENDOR = 'VENDOR';
 
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
     const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
@@ -142,6 +143,7 @@ module.exports = (function() {
         retrievePlatformInfo(req, app) {
             let body = req.body || {};
             let info = {
+                isEcho: false,
                 platformGroupId: '',
                 platformGroupType: '',
                 platformUid: ''
@@ -165,7 +167,8 @@ module.exports = (function() {
                     entries.forEach((entry) => {
                         let messagings = entry.messaging || [];
                         messagings.forEach((messaging) => {
-                            info.platformUid = info.platformUid || messaging.sender.id;
+                            info.isEcho = !!(messaging.message.is_echo && messaging.message.app_id);
+                            info.platformUid = info.platformUid || (!messaging.message.is_echo ? messaging.sender.id : messaging.recipient.id);
                         });
                     });
                     break;
@@ -283,11 +286,18 @@ module.exports = (function() {
                             let attachments = _messaging.message.attachments;
                             let text = _messaging.message.text || '';
 
+                            // 如果有 is_echo 的 flag 並且有 fb 的 app_id
+                            // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
+                            if (_messaging.message.is_echo && _messaging.message.app_id) {
+                                return;
+                            }
+
                             // !attachments 沒有夾帶檔案
                             if (!attachments && text) {
                                 let _message = {
-                                    messager_id: messagerId, // FACEBOOK 平台的 sender id
-                                    from: FACEBOOK,
+                                    messager_id: messagerId,
+                                    // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
+                                    from: _messaging.message.is_echo ? VENDOR : FACEBOOK,
                                     text: text,
                                     type: 'text',
                                     time: Date.now(), // 將要回覆的訊息加上時戳

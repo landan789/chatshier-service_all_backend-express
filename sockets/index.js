@@ -79,8 +79,7 @@ function init(server) {
             let repliedMessages = [];
             let totalMessages = [];
 
-            /** @type {{ platformGroupId?: string, platformGroupType?: string, platformUid: string }} */
-            let platformInfo = { platformUid: '' };
+            let platformInfo = {};
             let chatroomId = '';
             let platformMessager;
             let consumers = {};
@@ -145,12 +144,16 @@ function init(server) {
                 return botSvc.retrievePlatformInfo(req, app);
             }).then((_platformInfo) => {
                 platformInfo = _platformInfo;
-                return platformInfo && botSvc.getProfile(platformInfo, appId, app);
+                if (!(platformInfo && !platformInfo.isEcho)) {
+                    return;
+                }
+                return botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
-                // 找出此 webhook 傳過來的發送者隸屬於哪一個 chatroom 中
-                // 取出此發送者的 chatroomId 與隸屬 chatroom 裡的 messagerId
                 let platformUid = platformInfo.platformUid;
-                return platformUid && profile && consumersMdl.replace(platformUid, profile);
+                if (!(profile && platformInfo && !platformInfo.isEcho)) {
+                    return;
+                }
+                return consumersMdl.replace(platformUid, profile);
             }).then((_consumers) => {
                 if (!_consumers) {
                     return;

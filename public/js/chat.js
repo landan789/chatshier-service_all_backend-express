@@ -11,6 +11,8 @@
 
     var CHATSHIER = 'CHATSHIER';
     var SYSTEM = 'SYSTEM';
+    var VENDOR = 'VENDOR';
+
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
     var WECHAT = 'WECHAT';
@@ -984,7 +986,14 @@
             var platformUid = messager.platformUid;
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
-        var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
+
+        var senderrName = sender.name || '';
+        if (SYSTEM === message.from) {
+            senderrName = '由系統發送';
+        } else if (VENDOR === message.from) {
+            senderrName = '經由平台軟體發送';
+        }
+
         var isMedia = (
             'image' === message.type ||
             'audio' === message.type ||
@@ -995,7 +1004,7 @@
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
         // 如果訊息是來自於其他平台的話，訊息一律放在左邊
         var shouldRightSide =
-            (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from)) ||
+            (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
         return (
