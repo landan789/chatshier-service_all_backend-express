@@ -36,19 +36,36 @@
                         <div class="search-add mb-2">
                             <span class="icon"><i class="fa fa-search"></i></span>
                             <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#quickAdd" aria-hidden="true" disabled="true">
+                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
                     <div class="py-0 px-5 chsr table">
                         <table class="chsr table">
+                            <caption>啟用</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">標題</th>
                                     <th scope="col">聊天室選單文字</th>
+                                    <th scope="col">圖片種類</th>
                                     <th scope="col">連結</th>
-                                    <th scope="col">有效時間</th>
+                                    <th scope="col">狀態</th>
+                                    <th scope="col">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activated-richmenu"></tbody>
+                        </table>
+                    </div>
+                    <div class="py-0 px-5 chsr table">
+                        <table class="chsr table">
+                            <caption>草稿</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">標題</th>
+                                    <th scope="col">聊天室選單文字</th>
+                                    <th scope="col">圖片種類</th>
+                                    <th scope="col">連結</th>
                                     <th scope="col">狀態</th>
                                     <th scope="col">操作</th>
                                 </tr>
@@ -63,7 +80,7 @@
 
     <!-- new modal -->
     <div class="chsr modal fade" id="richmenu-modal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="quickAddTitle"></h5>
@@ -75,154 +92,148 @@
                     <form>
                         <!-- app -->
                         <div class="form-group">
-                            <label class="col-2 col-form-label">App:</label>
-                            <div class="col-4">
-                                <select class="form-control" id="app-select">
-                                </select>
+                            <label class="col-form-label">App:</label>
+                            <div class="select-container">
+                                <select class="form-control" id="app-select"></select>
                             </div>
                         </div>
-                        <!-- status -->
-                        <div class="form-group from-row col-sm-12">
-                            <label class="col-form-label"><strong>狀態:</strong></label>
-                            <select class="form-control" id="richmenu-status">
-                                <option value="open" selected>開放</option>
-                                <option value="close">關閉</option>
+                        <!-- select -->
+                        <div class="form-group">
+                            <label class="col-form-label"><strong>顯示設定:</strong></label>
+                            <select class="form-control" id="richmenu-selected">
+                                <option value="true">直接顯示</option>
+                                <option value="false">點選後展開</option>
                             </select>
                         </div>
-                        <!-- effective period -->
-                        <div class="form-group col-sm-6">
-                            <label class="col-form-label"><strong>開始時間:</strong></label>
-                            <input type="datetime-local" class="form-control" id="start-time">
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label class="col-form-label"><strong>結束時間:</strong></label>
-                            <input type="datetime-local" class="form-control" id="end-time"> 
-                        </div>
                         <!-- title -->
-                        <div class="form-group col-sm-12">
+                        <div class="form-group">
                             <label class="col-form-label"><strong>標題:</strong></label>
                             <input class="form-control mb-2" type="text" id="title">
                         </div>
-                        <div class="form-group col-sm-12">
+                        <div class="form-group">
                             <label class="col-form-label"><strong>聊天室選單文字:</strong></label>
                             <input class="form-control" type="text" id="chatbar-text">
                         </div>
                         <!-- 圖片種類 -->
                         <div class="row col-sm-12">
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-01.png"/>
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type1" checked>
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form1">
                                     <strong>圖片種類 1</strong>
                                 </label>
                             </div>
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-02.png">
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type2">
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form2">
                                     <strong>圖片種類 2</strong>
                                 </label>
                             </div>                            
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-03.png">
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type3">
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form3">
                                     <strong>圖片種類 3</strong>
                                 </label>
                             </div>
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-04.png">                                    
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type4">
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form4">
                                     <strong>圖片種類 4</strong>
                                 </label>
                             </div>
                         </div>
                         <div class="row col-sm-12">
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-05.png">                                   
-                                    <input type="radio" class="richmenu-type"  name="richmenu-type" value="type5">
+                                    <input type="radio" class="richmenu-form"  name="richmenu-form" value="form5">
                                     <strong>圖片種類 5</strong>
                                 </label>
                             </div>
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-06.png">                                  
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type6">
-                                    <strong>圖片種類 6:</strong>
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form6">
+                                    <strong>圖片種類 6</strong>
                                 </label>
                             </div>
                             <div class="form-group col-sm-3">
-                                <label class="col-form-label richmenu-type-label">
+                                <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-07.png">
-                                    <input class="richmenu-type" type="radio" name="richmenu-type" value="type7">
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form7">
                                     <strong>圖片種類 7</strong>
                                 </label>
                             </div>
                         </div>
                         <!-- 內容設定 -->
-                            <div class="col-sm-12">
-                                <label class="col-form-label"><strong>內容設定:</strong></label>
-                                <label class="col-form-label btn btn-light btn-border">
-                                    <strong>上傳圖片</strong>
-                                    <input type="file" class="image-ghost" id="photo" accept="image/png|image/jpg"/>
-                                </label>
-                                <i class="fa fa-info-circle btn" aria-hidden="true"></i> 
-                            </div>
+                        <div class="col-sm-12">
+                            <label class="col-form-label"><strong>內容設定:</strong></label>
+                            <label class="col-form-label btn btn-light btn-border">
+                                <strong>上傳圖片</strong>
+                                <input type="file" class="image-ghost" id="photo" accept="image/png|image/jpg"/>
+                            </label>
+                            <i class="fa fa-info-circle btn" aria-hidden="true"></i> 
+                        </div>
                         
 
                         <!-- rich menu photo -->
-                            <div class="chsr carousel-inner">
-                                <div class="show-richmenu-type"></div>
-                                <img class="linebar" src="image/linebar.png">
-                            </div>
+                        <div class="chsr carousel-inner">
+                            <div class="show-richmenu-form"></div>
+                            <img class="linebar" src="image/linebar.png">
+                        </div>
                         
                         <!-- 內容 -->
-                        <div class="content-bar">
-                            <div class="form-group col-sm-3 margin-top">
-                                <label class="col-form-label">
-                                    <input type="radio" name="content" value="richmenu-keyword">
-                                    <strong>關鍵字</strong>
-                                </label>
-                            </div>
-                            <div class="form-group col-sm-3 margin-top">
-                                <label class="col-form-label">
-                                    <input type="radio" name="content" value="richmenu-url">
-                                    <strong>網址</strong></label>
-                            </div>
-                            <div class="form-group col-sm-3 margin-top">
-                                <label class="col-form-label">
-                                    <input type="radio" name="content" value="richmenu-text">
-                                    <strong>文字</strong>
-                                </label>
-                            </div>
-                            <div class="form-group col-sm-3 margin-top">
-                                <label class="col-form-label">
-                                    <input type="radio" name="content" value="richmenu-no-ction">
-                                    <strong>不設定</strong>
-                                </label>
-                            </div>
-                        </div>
-                        
+                        <section class="boxes-inputs"></section>
 
-                        <div class="form-group col-sm-12">
-                            <select id="richmenu-keyword" class="form-control content-input">
-                                <option></option>
-                            </select>
-                            <input id="richmenu-text" class="form-control content-input" type="text">
-                            <input id="richmenu-url" class="form-control content-input" type="url">
-                        </div>
+                        <!-- <div class="form-group col-sm-12" id="content-input-box"></div> -->
+
+                        <section class="form-inputs">
+                            <div class="form-group col-sm-12" id="box1-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box2-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box3-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box4-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box5-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box6-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                        </section>
 
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modal-update-save">確認</button>
                     <button type="button" class="btn btn-primary" id="modal-save">確認</button>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- end new modal -->
     <div id="dialog_modal" class="chsr modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
