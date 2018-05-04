@@ -37,6 +37,8 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
+        'platformGroupId': {type: String, default: ''},
+        'platformGroupType': {type: String, default: ''},
         'messagers': [{
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},
@@ -80,6 +82,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
+        'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
         'ageRange': {type: Array},
@@ -242,11 +245,10 @@ module.exports = (function() {
 
         /**
          * @param {any[]} array
-         * @param {string} [idKey="_id"]
+         * @param {string} [key="_id"]
          */
-        toObject(array, idKey) {
-            idKey = idKey || '_id';
-
+        toObject(array, key) {
+            let idKey = key || '_id';
             if (array && array[idKey]) {
                 let output = {
                     [array[idKey]]: array

@@ -1,8 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
-    const storageHlp = require('../helpers/storage');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     let botSvc = require('../services/bot');
     let consumersMdl = require('../models/consumers');
