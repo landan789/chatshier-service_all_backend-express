@@ -21,6 +21,7 @@ module.exports = (function() {
             this.deleteMenu = this.deleteMenu.bind(this);
             this.getProfile = this.getProfile.bind(this);
             this.uploadFile = this.uploadFile.bind(this);
+            this.getRichMenuList = this.getRichMenuList.bind(this);
         }
 
         _createBot(appId) {
@@ -186,6 +187,7 @@ module.exports = (function() {
                 }));
             }).then(() => {
                 richmenu.platformMenuId = '';
+                richmenu.isDeleted = false;
                 return appsRichmenusMdl.update(appId, menuId, richmenu).then((appsRichemnu) => {
                     return appsRichemnu;
                 });

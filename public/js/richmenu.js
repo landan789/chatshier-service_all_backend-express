@@ -26,8 +26,8 @@
 
     $('.content-bar').addClass('d-none');
     $('.content-input').addClass('d-none');
-    $jqDoc.on('click', '#modal-save', saveRichMenus);
-    $jqDoc.on('click', '#add-btn', cleanmodal);
+    $jqDoc.on('click', '#modal-save', saveRichMenus); // add richmenu, not activated.
+    $jqDoc.on('click', '#add-btn', cleanmodal); // cleaning the options in modal.
     $jqDoc.on('change', '.image-ghost', uploadImage);
     $jqDoc.on('click', 'input[name = richmenu-form]', photoFormShow);
     $jqDoc.on('click', 'input[name = content]', contentInputShow);
@@ -411,9 +411,17 @@
     function activateMenu() {
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
-        return api.bot.activateMenu(appId, richmenuId, userId).then((resJson) => {
-            let activedMenu = resJson.data;
-            loadRichmenus(appId, userId);
+        return Promise.resolve().then(() => {
+            return api.bot.activateMenu(appId, richmenuId, userId);
+        }).then(() => {
+            return new Promise((resolve, reject) => {
+                loadRichmenus(appId, userId);
+                resolve();
+            });
+        }).then(() => {
+            $('#' + richmenuId).remove();
+        }).catch(() => {
+            $.notify('失敗', { type: 'danger' });
         });
     }
 
@@ -433,7 +441,7 @@
             let data = resJson.data;
             let richmenus = data[appId].richmenus;
             for (let richmenuId in richmenus) {
-                if (!richmenus[richmenuId].isDeleted) {
+                if (!richmenus[richmenuId].isDeleted || richmenus[richmenuId].platformMenuId) {
                     groupType(richmenuId, richmenus[richmenuId], appId);
                 }
             }
@@ -453,7 +461,7 @@
             '<tr id="' + richmenuId + '" rel="' + appId + '">' +
                 '<th>' + richmenu.name + '</th>' +
                 '<td>' + richmenu.chatBarText + '</td>' +
-                '<td id="photoForm" data-form="' + richmenu.form + '">種類 ' + richmenu.form.slice(-1) + '</td>' +
+                '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">種類 ' + richmenu.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>';
         if (!richmenu.platformMenuId) {
             trGrop +=
@@ -470,9 +478,7 @@
                 '<td>' +
                     '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用</button>' +
                 '</td>' +
-                '<td>' +
-                    '<button type="button" id="remove-btn" class="btn btn-danger fas fa-trash-alt"></button>' +
-                '</td>' +
+                '<td></td>' +
             '</tr>';
         }
         if (richmenu.platformMenuId) {
