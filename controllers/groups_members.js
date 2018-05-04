@@ -1,8 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
@@ -435,9 +436,9 @@ module.exports = (function() {
                 return groupsMembersMdl.findMembers(groupId, null);
             }).then((members) => {
                 if (!members || (members && 0 === Object.keys(members).length)) {
-                    Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
-                    return;
+                    return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_FIND);
                 }
+
                 // 該群組下的所有使用者 IDs
                 let groupUserIds = Object.values(members).map((member) => {
                     let userId = member.user_id;

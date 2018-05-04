@@ -1,4 +1,7 @@
 module.exports = (function() {
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+
     const line = require('@line/bot-sdk');
     const Wechat = require('wechat');
     const WechatAPI = require('wechat-api');
@@ -6,7 +9,6 @@ module.exports = (function() {
     const facebook = require('facebook-bot-messenger'); // facebook串接
     const chatshierCfg = require('../config/chatshier');
 
-    const API_ERROR = require('../config/api_error');
     const appsMdl = require('../models/apps');
     const StorageHlp = require('../helpers/storage');
     const wechatSvc = require('./wechat');
@@ -28,11 +30,7 @@ module.exports = (function() {
         }
 
         create(appId, app) {
-            return new Promise((resolve, reject) => {
-                if (this.bots[appId]) {
-                    resolve(this.bots[appId]);
-                    return;
-                }
+            return Promise.resolve().then(() => {
                 switch (app.type) {
                     case LINE:
                         let lineConfig = {
@@ -41,8 +39,7 @@ module.exports = (function() {
                         };
                         let lineBot = new line.Client(lineConfig);
                         this.bots[appId] = lineBot;
-                        resolve(lineBot);
-                        break;
+                        return lineBot;
                     case FACEBOOK:
                         let facebookConfig = {
                             pageID: app.id1,
@@ -54,8 +51,7 @@ module.exports = (function() {
                         // fbBot 因為無法取得 json 因此需要在 bodyParser 才能解析，所以拉到這層
                         let facebookBot = facebook.create(facebookConfig);
                         this.bots[appId] = facebookBot;
-                        resolve(facebookBot);
-                        break;
+                        return facebookBot;
                     case WECHAT:
                         let getToken = (callback) => {
                             // 此 callback 在 instance 被建立會要發 API 時會執行
@@ -81,7 +77,7 @@ module.exports = (function() {
                                 token1: app.token1,
                                 token1ExpireTime: app.token1ExpireTime
                             };
-                            appsMdl.update(appId, _app, (apps) => {
+                            return appsMdl.update(appId, _app).then((apps) => {
                                 if (!apps) {
                                     callback(API_ERROR.APP_FAILED_TO_UPDATE);
                                     return;
@@ -91,10 +87,8 @@ module.exports = (function() {
                         };
                         let wechatBot = new WechatAPI(app.id1, app.secret, getToken, setToken);
                         this.bots[appId] = wechatBot;
-                        resolve(wechatBot);
-                        break;
+                        return wechatBot;
                     default:
-                        resolve();
                         break;
                 }
             });
@@ -143,11 +137,15 @@ module.exports = (function() {
         /**
          * @param {any} req
          * @param {any} app
-         * @returns {string}
+         * @returns {{ platformGroupId: string, platformGroupType: string, platformUid: string }}
          */
-        retrievePlatformUid(req, app) {
+        retrievePlatformInfo(req, app) {
             let body = req.body || {};
-            let platformUId = '';
+            let info = {
+                platformGroupId: '',
+                platformGroupType: '',
+                platformUid: ''
+            };
 
             switch (app.type) {
                 case LINE:
@@ -157,7 +155,9 @@ module.exports = (function() {
                         if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
                             return;
                         }
-                        platformUId = platformUId || event.source.userId;
+                        info.platformGroupId = info.platformGroupId || event.source.roomId || event.source.groupId;
+                        info.platformGroupType = info.platformGroupType || event.source.type;
+                        info.platformUid = info.platformUId || event.source.userId;
                     });
                     break;
                 case FACEBOOK:
@@ -165,18 +165,18 @@ module.exports = (function() {
                     entries.forEach((entry) => {
                         let messagings = entry.messaging || [];
                         messagings.forEach((messaging) => {
-                            platformUId = platformUId || messaging.sender.id;
+                            info.platformUId = info.platformUId || messaging.sender.id;
                         });
                     });
                     break;
                 case WECHAT:
                     let weixin = req.weixin;
-                    platformUId = weixin.FromUserName;
+                    info.platformUId = weixin.FromUserName;
                     break;
                 default:
                     break;
             }
-            return platformUId;
+            return info;
         }
 
         /**
@@ -457,11 +457,11 @@ module.exports = (function() {
 
         /**
          * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
-         * @param {string} senderId
+         * @param {{ platformGroupId?: string, platformGroupType?: string, platformUid?: string }} platformInfo
          * @param {string} appId
-         * @param {*} app
+         * @param {any} app
          */
-        getProfile(senderId, appId, app) {
+        getProfile(platformInfo, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
                 return Promise.reject(new Error('BOT_NOT_FOUND'));
@@ -473,17 +473,40 @@ module.exports = (function() {
                     name: '',
                     photo: ''
                 };
+                let platformGroupId = platformInfo.platformGroupId;
+                let platformGroupType = platformInfo.platformGroupType;
+                let platformUid = platformInfo.platformUid;
+
+                if (!platformGroupId && !platformGroupType && !platformUid) {
+                    return senderProfile;
+                }
 
                 switch (app.type) {
                     case LINE:
-                        return bot.getProfile(senderId).then((lineUserProfile) => {
+                        return Promise.resolve().then(() => {
+                            if (platformGroupId && platformUid) {
+                                if ('group' === platformGroupType) {
+                                    return bot.getGroupMemberProfile(platformGroupId, platformUid);
+                                } else {
+                                    return bot.getRoomMemberProfile(platformGroupId, platformUid);
+                                }
+                            }
+                            return bot.getProfile(platformUid);
+                        }).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
                             senderProfile.photo = lineUserProfile.pictureUrl;
                             return senderProfile;
+                        }).catch((err) => {
+                            // 無法抓到使用者 profile 時，回傳 undefined
+                            // 其餘狀況擲出錯誤
+                            if (404 === err.statusCode) {
+                                return Promise.resolve();
+                            }
+                            return Promise.reject(err);
                         });
                     case FACEBOOK:
-                        return bot.getProfile(senderId).then((fbUserProfile) => {
+                        return bot.getProfile(platformUid).then((fbUserProfile) => {
                             fbUserProfile = fbUserProfile || {};
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
                             senderProfile.photo = fbUserProfile.profile_pic;
@@ -492,18 +515,18 @@ module.exports = (function() {
                     case WECHAT:
                         return new Promise((resolve, reject) => {
                             // http://doxmate.cool/node-webot/wechat-api/api.html#api_api_user
-                            bot.getUser({ openid: senderId, lang: 'zh_TW' }, (err, wxUser) => {
+                            bot.getUser({ openid: platformUid, lang: 'zh_TW' }, (err, wxUser) => {
                                 if (err) {
-                                    console.log(err);
-                                    reject(new Error(err));
+                                    reject(err);
                                     return;
                                 }
-                                wxUser = wxUser || {};
-                                senderProfile.gender = !wxUser.sex ? '' : (1 === wxUser.sex ? 'MALE' : (2 === wxUser.sex ? 'FEMALE' : ''));
-                                senderProfile.name = wxUser.nickname;
-                                senderProfile.photo = wxUser.headimgurl;
-                                resolve(senderProfile);
+                                resolve(wxUser);
                             });
+                        }).then((wxUser) => {
+                            wxUser = wxUser || {};
+                            senderProfile.name = wxUser.nickname;
+                            senderProfile.photo = wxUser.headimgurl;
+                            return senderProfile;
                         });
                     default:
                         return senderProfile;
@@ -564,7 +587,7 @@ module.exports = (function() {
             });
         }
 
-        pushMessage(messagerId, message, srcBuffer, appId, app) {
+        pushMessage(recipientUid, message, srcBuffer, appId, app) {
             let bot = this.bots[appId];
             switch (app.type) {
                 case LINE:
@@ -594,21 +617,21 @@ module.exports = (function() {
                         _message.packageId = message.text.substr(message.text.indexOf(' '));
                     };
 
-                    return bot.pushMessage(messagerId, _message);
+                    return bot.pushMessage(recipientUid, _message);
                 case FACEBOOK:
                     if ('text' === message.type) {
-                        return bot.sendTextMessage(messagerId, message.text);
+                        return bot.sendTextMessage(recipientUid, message.text);
                     };
                     if ('image' === message.type) {
-                        return bot.sendImageMessage(messagerId, message.src, true);
+                        return bot.sendImageMessage(recipientUid, message.src, true);
                     };
                     if ('audio' === message.type) {
-                        return bot.sendAudioMessage(messagerId, message.src, true);
+                        return bot.sendAudioMessage(recipientUid, message.src, true);
                     };
                     if ('video' === message.type) {
-                        return bot.sendVideoMessage(messagerId, message.src, true);
+                        return bot.sendVideoMessage(recipientUid, message.src, true);
                     };
-                    return bot.sendTextMessage(messagerId, message.text);
+                    return bot.sendTextMessage(recipientUid, message.text);
                 case WECHAT:
                     return Promise.resolve().then(() => {
                         if (message.src && srcBuffer) {
@@ -635,7 +658,7 @@ module.exports = (function() {
                     }).then((mediaResult) => {
                         return new Promise((resolve, reject) => {
                             if (!mediaResult) {
-                                bot.sendText(messagerId, message.text, (err, result) => {
+                                bot.sendText(recipientUid, message.text, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -646,7 +669,7 @@ module.exports = (function() {
                             }
 
                             if ('image' === message.type) {
-                                bot.sendImage(messagerId, mediaResult.media_id, (err, result) => {
+                                bot.sendImage(recipientUid, mediaResult.media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -655,7 +678,7 @@ module.exports = (function() {
                                 });
                                 return;
                             } else if ('audio' === message.type) {
-                                bot.sendVoice(messagerId, mediaResult.media_id, (err, result) => {
+                                bot.sendVoice(recipientUid, mediaResult.media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -664,7 +687,7 @@ module.exports = (function() {
                                 });
                                 return;
                             } else if ('video' === message.type) {
-                                bot.sendVideo(messagerId, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
+                                bot.sendVideo(recipientUid, mediaResult.media_id, mediaResult.thumb_media_id, (err, result) => {
                                     if (err) {
                                         reject(err);
                                         return;
@@ -681,12 +704,12 @@ module.exports = (function() {
         };
 
         /**
-         * @param {string[]} messagerIds
+         * @param {string[]} recipientUids
          * @param {any[]} messages
          * @param {string} appId
          * @param {any} app
          */
-        multicast(messagerIds, messages, appId, app) {
+        multicast(recipientUids, messages, appId, app) {
             let bot = this.bots[appId];
             let _multicast;
 
@@ -699,8 +722,7 @@ module.exports = (function() {
             }).then(() => {
                 switch (app.type) {
                     case LINE:
-   
-                        _multicast = (messagerIds, messages) => {
+                        _multicast = (_recipientUids, messages) => {
                             let multicasts = [];
                             // 把 messages 分批，每五個一包，因為 line.multicast 方法 一次只能寄出五次
                             while (messages.length > 5) {
@@ -713,13 +735,13 @@ module.exports = (function() {
                                     return Promise.resolve();
                                 };
                                 let messages = multicasts[i];
-                                return bot.multicast(messagerIds, messages).then(() => {
+                                return bot.multicast(_recipientUids, messages).then(() => {
                                     return nextPromise(i + 1);
                                 });
                             };
                             return nextPromise(0);
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     case FACEBOOK:
                         _multicast = (messagerIds, messages) => {
                             return Promise.all(messagerIds.map((messagerId) => {
@@ -736,7 +758,7 @@ module.exports = (function() {
                                 return nextPromise(0);
                             }));
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     case WECHAT:
                         _multicast = (messagerIds, messages) => {
                             let nextPromise = (i) => {
@@ -775,7 +797,7 @@ module.exports = (function() {
                             };
                             return nextPromise(0);
                         };
-                        return _multicast(messagerIds, messages);
+                        return _multicast(recipientUids, messages);
                     default:
                         return Promise.resolve([]);
                 }

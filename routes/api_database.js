@@ -1,5 +1,3 @@
-const API_ERROR = require('../config/api_error');
-const API_SUCCESS = require('../config/api_success');
 const express = require('express');
 const bodyParser = require('body-parser');
 const formData = require('express-form-data');

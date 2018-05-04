@@ -43,12 +43,6 @@ body {
     font-family: Microsoft JhengHei;
     height: 100%;
     overflow-y: hidden; }
-    .chat-wrapper .chat-area {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        max-height: calc(100% - 50px);
-        background-color: #f7f8f9; }
 
 .chat-app-list {
     position: absolute;
@@ -214,12 +208,32 @@ body {
         .message .content.found {
             color:white;
             background-color: #33ccff !important; }
-        .message .content img,
-        .message .content video {
+        .message .content .text-content {
+            white-space: pre-wrap; }
+        .message .content .image-content,
+        .message .content .sticker-content,
+        .message .content .video-content {
             width: 100%;
             max-width: 20rem;
             height: auto;
             border-radius: .5rem; }
+        .message .content .image-container {
+            width: 100%;
+            height: 100%; }
+        .message .content .image-container:hover {
+            cursor: pointer; }
+            .message .content .image-container.stretch {
+                position: fixed;
+                left: 0;
+                top: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0, 0, 0, .3) }
+            .message .content .image-container.stretch img {
+                width: auto;
+                max-width: 95%;
+                max-height: 95%; }
         .message .content .location-icon {
             margin-right: .5rem;
             color: red; }
@@ -237,11 +251,11 @@ body {
         flex-direction: row-reverse; }
 
 .chatroom-container {
-    position: relative;
-    display: inherit;
     width: 100%;
     height: 100%;
-    overflow: hidden; }
+    max-height: calc(100% - 50px);
+    overflow: hidden;
+    background-color: #f7f8f9; }
     .chatroom-container .watermark-text {
         position: absolute;
         color: #8e8e8e;
@@ -306,8 +320,6 @@ body {
     .profile-panel .photo-container {
         text-align: center;
         margin: 5% 0; }
-        .profile-panel .photo-container img {
-            border-radius: 50%; }
 
 .consumer-profile {
     display: flex;
@@ -374,7 +386,8 @@ body {
         .message-input.form-lower .submit-message-input {
             width: calc(100% - 2.5rem);
             height: 80%;
-            border: none; }
+            border: none;
+            resize: none; }
     .message-input .submit-message-btn {
         position: relative;
         width: 2rem;
@@ -492,8 +505,6 @@ body {
         table-layout: fixed; }
     .profile-group .profile-label {
         width: 35%; }
-        .profile-group .profile-label.align-top {
-            vertical-align: top; }
     .profile-group .profile-label,
     .profile-group .user-info-td {
         vertical-align: middle; }
@@ -504,7 +515,8 @@ body {
 
 .consumer-avatar {
     width: 4rem;
-    height: 4rem; }
+    height: 4rem;
+    border-radius: 1rem; }
     .consumer-avatar.larger {
         width: 8rem;
         height: 8rem; }

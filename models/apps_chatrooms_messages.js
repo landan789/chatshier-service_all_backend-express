@@ -55,6 +55,8 @@ module.exports = (function() {
                         chatrooms: {
                             _id: '$chatrooms._id',
                             isDeleted: '$chatrooms.isDeleted',
+                            platformGroupId: '$chatrooms.platformGroupId',
+                            platformGroupType: '$chatrooms.platformGroupType',
                             messages: !messageIds ? '$chatrooms.messages' : {
                                 $filter: {
                                     input: '$chatrooms.messages',
@@ -93,7 +95,12 @@ module.exports = (function() {
                             messages: {}
                         };
                     }
-                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
+
+                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                    chatroom._id = app.chatrooms._id;
+                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
                     return output;
                 }, {});
                 return appsChatroomsMessages;
