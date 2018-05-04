@@ -1,5 +1,6 @@
 module.exports = (function() {
-    let API_ERROR = require('../config/api_error');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
 
     let appsMdl = require('../models/apps');
     let usersMdl = require('../models/users');
@@ -20,7 +21,7 @@ module.exports = (function() {
          * @returns {Promise<string[]>}
          */
         static appsRequestVerify(req) {
-            let appId = req.params.appid;
+            let appId = req.params.appid || req.query.appid;
             let userId = req.params.userid;
             let method = req.method;
 

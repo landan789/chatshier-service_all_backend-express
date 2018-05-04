@@ -5,9 +5,9 @@ const appsMdl = require('../models/apps');
 const appsComposesMdl = require('../models/apps_composes');
 const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
-const consumersMdl = require('../models/consumers');
 
-const API_ERROR = require('../config/api_error');
+/** @type {any} */
+const API_ERROR = require('../config/api_error.json');
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 
@@ -19,117 +19,110 @@ let jobProcess = () => {
         if (!apps) {
             return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
         }
-        return apps;
-    }).then((apps) => {
         // LINE BOT 相異 apps 允許 同時間群發。
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
-        return Promise.all(Object.keys(apps).map((appId) => {
+        let appIds = Object.keys(apps);
+        return Promise.all(appIds.map((appId) => {
             let app = apps[appId];
             let messages = [];
+            let matchedChatrooms = {};
 
             if (CHATSHIER === app.type || app.isDeleted) {
                 return Promise.resolve(null);
             }
 
-            let p1 = new Promise((resolve, reject) => {
-                appsComposesMdl.find(appId, null, (appsComposes) => {
-                    if (!appsComposes) {
-                        return resolve({});
-                    }
-                    resolve(appsComposes[appId].composes);
-                });
-            });
-            let p2 = appsChatroomsMessagersMdl.find(appId, null, null, app.type).then((appsChatroomsMessagers) => {
-                let messagers = {};
-                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                for (let chatroomId in chatrooms) {
-                    let chatroomMessagers = chatrooms[chatroomId].messagers;
-                    for (let messagerId in chatroomMessagers) {
-                        let messager = chatroomMessagers[messagerId];
-                        messager.chatroomId = chatroomId; // 紀錄 messager 所在的 chatroom，才能知道要將訊息 insert 到哪些 chatroom 中
-                        messagers[messager.platformUid] = messager;
-                    }
+            return Promise.all([
+                appsComposesMdl.find(appId),
+                appsChatroomsMessagersMdl.find(appId, null, null, app.type)
+            ]).then((results) => {
+                let appsComposes = results[0];
+                if (!appsComposes) {
+                    return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
                 }
-                return messagers;
-            });
 
-            return Promise.all([p1, p2]).then((results) => {
-                let composes = results[0];
-                let messagers = results[1];
+                let appsChatroomsMessagers = results[1];
+                if (!appsChatroomsMessagers) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                }
+
+                let composes = appsComposes[appId].composes;
+                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
 
                 for (let composeId in composes) {
-                    if (composes[composeId].text &&
-                        composes[composeId].status &&
-                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(composes[composeId].time) &&
-                        !composes[composeId].isDeleted
-                    ) {
-                        let message = {
-                            type: composes[composeId].type,
-                            text: composes[composeId].text
-                        };
-                        messages.push(message);
+                    let compose = composes[composeId];
+                    if (compose.isDeleted ||
+                        !(compose.text && compose.status && timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(compose.time))) {
+                        continue;
+                    }
 
-                        for (let platformUid in messagers) {
-                            let originMessager = messagers[platformUid] || {};
-                            if (originMessager.isDeleted) {
-                                delete messagers[platformUid];
-                                continue;
+                    let composeAgeRange = compose.ageRange;
+                    let composeGender = compose.gender;
+                    let composeFields = compose.field_ids || {};
+
+                    let message = {
+                        type: compose.type,
+                        text: compose.text,
+                        src: compose.src || ''
+                    };
+                    messages.push(message);
+
+                    for (let chatroomId in chatrooms) {
+                        let chatroom = chatrooms[chatroomId];
+                        let messagers = chatroom.messagers;
+
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            let messagerAge = messager.age;
+                            let messagerGender = messager.gender;
+                            let messagerFields = messager.custom_fields || {};
+                            let isMatch = true;
+
+                            if (composeAgeRange && messagerAge &&
+                                (messagerAge < composeAgeRange[0] || messagerAge > composeAgeRange[1])) {
+                                isMatch = false;
                             }
-                            let originMessagerAge = originMessager.age || '';
-                            let originMessagerGender = originMessager.gender || '';
-                            let originMessagerFields = originMessager.custom_fields || {};
 
-                            let composeAgeRange = composes[composeId].ageRange || '';
-                            let composeGender = composes[composeId].gender || '';
-                            let composeFields = composes[composeId].field_ids || {};
+                            if (composeGender && messagerGender && messagerGender !== composeGender) {
+                                isMatch = false;
+                            }
 
-                            for (let i = 0; i < composeAgeRange.length; i++) {
-                                if (i % 2) {
-                                    if (originMessagerAge > composeAgeRange[i] && '' !== composeAgeRange[i]) {
-                                        delete messagers[platformUid];
-                                        continue;
+                            for (let fieldId in composeFields) {
+                                let messagerFieldValue = messagerFields[fieldId].value;
+                                let composeFieldValue = composeFields[fieldId].value;
+
+                                if (messagerFieldValue instanceof Array) {
+                                    for (let k in messagerFieldValue) {
+                                        if (messagerFieldValue[k] && composeFieldValue && messagerFieldValue[k] !== composeFieldValue) {
+                                            isMatch = false;
+                                            break;
+                                        }
                                     }
                                 } else {
-                                    if (originMessagerAge < composeAgeRange[i] && '' !== composeAgeRange[i]) {
-                                        delete messagers[platformUid];
-                                        continue;
+                                    if (messagerFieldValue && composeFieldValue && messagerFieldValue !== composeFieldValue) {
+                                        isMatch = false;
                                     }
                                 }
                             }
-                            if (originMessagerGender !== composeGender && '' !== composeGender) {
-                                delete messagers[platformUid];
-                            }
-                            for (let fieldId in composeFields) {
-                                let originMessagerTagValue = originMessagerFields[fieldId].value || '';
-                                let composeTagValue = composeFields[fieldId].value || '';
-                                if (originMessagerTagValue !== composeTagValue && '' !== composeTagValue) {
-                                    delete messagers[platformUid];
-                                }
+
+                            if (isMatch && !chatroom.platformGroupId) {
+                                matchedChatrooms[chatroomId] = messager.platformUid;
                             }
                         }
                     }
                 }
+
                 // 沒有訊息對象 或 沒有群發訊息 就不做處理
-                let platformUids = Object.keys(messagers);
-                if (0 === platformUids.length || 0 === messages.length) {
-                    return Promise.resolve(null);
-                };
-                return Promise.all([
-                    messagers,
-                    botSvc.multicast(platformUids, messages, appId, app)
-                ]);
-            }).then((results) => {
-                if (!results) {
-                    return Promise.resolve(null);
-                }
-                let messagers = results[0];
-                let platformUids = Object.keys(messagers);
+                let recipientUids = Object.values(matchedChatrooms);
+                return recipientUids.length > 0 && messages.length > 0 && botSvc.multicast(recipientUids, messages, appId, app);
+            }).then(() => {
+                let chatroomIds = Object.keys(matchedChatrooms);
                 // 將所有已發送的訊息加到隸屬於 consumer 的 chatroom 中
-                return Promise.all(platformUids.map((platformUid) => {
+                return Promise.all(chatroomIds.map((chatroomId) => {
                     return Promise.all(messages.map((message) => {
-                        console.log('[database] insert to db each message ... ');
-                        let messager = messagers[platformUid];
-                        let chatroomId = messager.chatroomId;
+                        message.from = SYSTEM;
+                        message.messager_id = '';
+                        message.time = Date.now();
+                        console.log('[database] insert each message to chatroom - ' + chatroomId);
                         return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
                     }));
                 }));
@@ -146,5 +139,4 @@ let jobProcess = () => {
 };
 
 // the rule of schedule follows the rule of Linux crontab
-let job1 = schedule.scheduleJob('10 * * * * *', jobProcess);
-// jobProcess();
+schedule.scheduleJob('10 * * * * *', jobProcess);

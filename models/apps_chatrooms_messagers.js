@@ -93,6 +93,8 @@ module.exports = (function() {
                         chatrooms: {
                             _id: '$chatrooms._id',
                             isDeleted: '$chatrooms.isDeleted',
+                            platformGroupId: '$chatrooms.platformGroupId',
+                            platformGroupType: '$chatrooms.platformGroupType',
                             messagers: {
                                 $filter: {
                                     input: '$chatrooms.messagers',
@@ -123,7 +125,11 @@ module.exports = (function() {
                         };
                     }
 
-                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messagers, this.toObject(app.chatrooms.messagers));
+                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                    chatroom._id = app.chatrooms._id;
+                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
                     return output;
                 }, {});
                 return appsChatroomsMessagers;
@@ -174,6 +180,8 @@ module.exports = (function() {
                         chatrooms: {
                             _id: '$chatrooms._id',
                             isDeleted: '$chatrooms.isDeleted',
+                            platformGroupId: '$chatrooms.platformGroupId',
+                            platformGroupType: '$chatrooms.platformGroupType',
                             messagers: {
                                 $filter: {
                                     input: '$chatrooms.messagers',
@@ -211,9 +219,12 @@ module.exports = (function() {
                             messagers: {}
                         };
                     }
-                    let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
-                    let messagersDest = app.chatrooms.messagers;
-                    Object.assign(messagersSrc, this.toObject(messagersDest, 'platformUid'));
+
+                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                    chatroom._id = app.chatrooms._id;
+                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));
                     return output;
                 }, {});
                 return appsChatroomsMessagers;
@@ -588,6 +599,8 @@ module.exports = (function() {
                             chatrooms: {
                                 _id: '$chatrooms._id',
                                 isDeleted: '$chatrooms.isDeleted',
+                                platformGroupId: '$chatrooms.platformGroupId',
+                                platformGroupType: '$chatrooms.platformGroupType',
                                 messagers: {
                                     $filter: {
                                         input: '$chatrooms.messagers',
@@ -623,9 +636,12 @@ module.exports = (function() {
                                 messagers: {}
                             };
                         }
-                        let messagersSrc = output[app._id].chatrooms[app.chatrooms._id].messagers;
-                        let messagersDest = app.chatrooms.messagers;
-                        Object.assign(messagersSrc, this.toObject(messagersDest, 'platformUid'));
+
+                        let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                        chatroom._id = app.chatrooms._id;
+                        chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                        chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                        Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));
                         return output;
                     }, {});
                     return appsChatroomsMessagers;

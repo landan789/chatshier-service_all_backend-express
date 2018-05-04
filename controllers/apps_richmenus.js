@@ -1,10 +1,12 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     let appsRichmenusMdl = require('../models/apps_richmenus');
+    let storageHlp = require('../helpers/storage');
 
     class AppsRichmenusController extends ControllerCore {
         constructor() {
@@ -103,30 +105,45 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
+            res.setHeader('Content-Type', 'application/json');
+            let appId = '';
+
             var postRichmenu = {
-                size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
-                name: undefined === req.body.name ? '' : req.body.name,
-                selected: undefined === req.body.name ? '' : req.body.name,
-                chatBarText: undefined === req.body.chatBarText ? '' : req.body.chatBarText,
-                areas: undefined === req.body.areas ? '' : JSON.parse(req.body.areas)
+                size: req.body.size || '',
+                name: req.body.name || '',
+                selected: req.body.selected || '',
+                chatBarText: req.body.chatBarText || '',
+                form: req.body.form || '',
+                areas: req.body.areas || '',
+                src: req.body.src || '',
+                platformMenuId: ''
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
-                let appId = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsRichmenusMdl.insert(appId, postRichmenu, (richmenu) => {
-                        if (false === richmenu) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(richmenu);
-                    });
-                });
-            }).then((richmenu) => {
+                appId = checkedAppIds[0];
+                return appsRichmenusMdl.insert(appId, postRichmenu);
+            }).then((appsRichmenu) => {
+                if (!appsRichmenu) {
+                    Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
+                    return;
+                }
+
+                let richmenu = appsRichmenu[appId].richmenus;
+                let richmenuId = Object.keys(richmenu)[0] || '';
+                let src = richmenu[richmenuId].src;
+                let fileName = src.split('/').pop();
+                let fromPath = `/temp/${fileName}`;
+                let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
+                return Promise.all([
+                    appsRichmenu,
+                    storageHlp.filesMoveV2(fromPath, toPath)
+                ]);
+            }).then((results) => {
+                let appsRichmenu = results[0];
                 var json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: richmenu
+                    data: appsRichmenu
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -137,18 +154,21 @@ module.exports = (function() {
                 };
                 res.status(500).json(json);
             });
-        }
+        };
 
         putOne(req, res, next) {
             let richmenuId = req.params.richmenuid;
             let appIds;
 
-            let postRichmenu = {
-                size: undefined === req.body.size ? '' : JSON.parse(req.body.size),
-                name: undefined === req.body.name ? '' : req.body.name,
-                selected: undefined === req.body.selected ? '' : req.body.selected,
-                chatBarText: undefined === req.body.chatBarText ? '' : req.body.chatBarText,
-                areas: undefined === req.body.areas ? '' : JSON.parse(req.body.areas)
+            var postRichmenu = {
+                size: req.body.size || '',
+                name: req.body.name || '',
+                selected: req.body.selected || '',
+                chatBarText: req.body.chatBarText || '',
+                form: req.body.form || '',
+                areas: req.body.areas || '',
+                src: req.body.src || '',
+                platformMenuId: ''
             };
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
@@ -232,7 +252,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsRichmenusMdl.remove(appIds, richmenuId, (richmenu) => {
                         if (!richmenu) {
-                            reject(API_ERROR.RICHMENU_DELETE_FAIL);
+                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
                         }
                         resolve(richmenu);
                     });

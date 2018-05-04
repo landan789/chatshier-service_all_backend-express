@@ -106,7 +106,7 @@ interface AppsTemplatesAPI {
 
 interface AppsRichmenusAPI {
     findAll: (appId: string, userId: string) => Promise<any>;
-    findOne: (appId: string, userId: string) => Promise<any>;
+    findOne: (appId: string, richmenuId: string, userId: string) => Promise<any>;
     insert: (appId: string, userId: string, richmenuData: any) => Promise<any>;
     update: (appId: string, richmenuId: string, userId: string, richmenuData: any) => Promise<any>;
     remove: (appId: string, richmenuId: string, userId: string) => Promise<any>;
@@ -186,13 +186,9 @@ interface SignAPI {
 }
 
 interface BotAPI {
-    getRichMenuList: (appId: string) => Promise<any>;
-    getRichMenu: (appId: string, richmenuId: string) => Promise<any>;
-    getRichMenuImage: (appId: string, richmenuId: string) => Promise<any>;
+    activateMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
+    deactivateMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
+    deleteMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
     getProfile: (appId: string, platformUid: string) => Promise<any>;
-    createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
-    setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
-    linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
-    deleteRichMenu: (appId: string, richmenuId: string) => Promise<any>;
-    unlinkRichMenuFromUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
+    uploadFile: (appId:string, userId: string, file: File) => Promise<any>;
 }
