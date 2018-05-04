@@ -4,10 +4,6 @@
     "private": true,
     "scripts": {
         "start": "node ./bin/www",
-        "sub-sync": "git submodule sync && git submodule update --init --no-fetch",
-        "prebuild-react": "npm run sub-sync",
-        "build-react": "./bin/build-react",
-        "postbuild-react": "git add public/static views/react.ejs react.chatshier",
         "test": "mocha 'test/**/*.spec.js' --exit"
     },
     "engines": {
