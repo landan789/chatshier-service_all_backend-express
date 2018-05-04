@@ -804,7 +804,21 @@ module.exports = (function() {
             });
         };
 
-       
+        /**
+         * @param {any} postMenu
+         * @param {string} appId
+         * @param {any} app
+         */
+        createMenu(postMenu, appId, app) {
+            let bot = this.bots[appId];
+            switch (app.type) {
+                case LINE:
+                    return bot.createRichMenu(postMenu);
+                case WECHAT:
+                default:
+                    return Promise.resolve([]);
+            }
+        };
 
         /**
          * @param {string} platformMenuId
@@ -878,16 +892,6 @@ module.exports = (function() {
             let bot = this.bots[appId];
             return bot.unlinkRichMenuFromUser(userId, platformMenuId);
         }
-
-        /**
-         * @param {string} richmenuId
-         * @param {string} appId
-         */
-        deleteRichMenu(richmenuId, appId) {
-            let bot = this.bots[appId];
-            return bot.deleteRichMenu(richmenuId);
-        };
-
     }
 
     return new BotService();
