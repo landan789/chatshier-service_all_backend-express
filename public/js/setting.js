@@ -212,7 +212,7 @@
         });
     });
 
-    $appAddModal.on('click', '.fb-pages-button', function(ev) {
+    $appAddModal.on('click', '.fb-import-button', function(ev) {
         var groupId = $(ev.target).parents('.fb-sdk-item').attr('group-id');
         fbHlp.signInForPages().then(function(res) {
             if (!res || (res && res.status !== 'connected')) {
@@ -364,7 +364,7 @@
             if (FACEBOOK === selectType) {
                 $appAddForm.find('.platform-app-container').prepend(
                     '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
-                        '<button type="button" class="px-4 py-2 text-center fb-pages-button">' +
+                        '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
                             '<i class="fab fa-facebook-square fa-fw"></i>' +
                             '<span>匯入粉絲專頁</span>' +
                         '</button>' +
