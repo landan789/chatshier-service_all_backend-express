@@ -1,8 +1,9 @@
 module.exports = (function() {
     const ControllerCore = require('../cores/controller');
-
-    const API_ERROR = require('../config/api_error');
-    const API_SUCCESS = require('../config/api_success');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
+    /** @type {any} */
+    const API_SUCCESS = require('../config/api_success.json');
 
     const appsTicketsMdl = require('../models/apps_tickets');
 
@@ -77,6 +78,7 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
+            let appId = req.params.appid;
             let postTikeck = {
                 description: req.body.description === undefined ? '' : req.body.description,
                 dueTime: req.body.dueTime === undefined ? '' : req.body.dueTime,
@@ -86,16 +88,12 @@ module.exports = (function() {
                 assigned_id: req.body.assigned_id === undefined ? '' : req.body.assigned_id
             };
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTicketsMdl.insert(appIds, postTikeck, (appsTickets) => {
-                        if (!appsTickets) {
-                            reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(appsTickets);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsTicketsMdl.insert(appId, postTikeck).then((appsTickets) => {
+                    if (!appsTickets) {
+                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
+                    }
+                    return appsTickets;
                 });
             }).then((data) => {
                 let json = {

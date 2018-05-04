@@ -900,7 +900,6 @@
     }
 
     function remove() {
-
         var userId;
         try {
             var payload = window.jwt_decode(window.localStorage.getItem('jwt'));

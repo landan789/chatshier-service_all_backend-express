@@ -1,5 +1,6 @@
 module.exports = (function() {
-    var API_ERROR = require('../config/api_error');
+    /** @type {any} */
+    const API_ERROR = require('../config/api_error.json');
 
     class RouterHelper {
         /**
@@ -8,7 +9,6 @@ module.exports = (function() {
 
         requestNotExistentPath(req, res, next) {
             res.redirect('/signin');
-            return;
         }
         /**
          * middleware: respone 400
@@ -19,7 +19,6 @@ module.exports = (function() {
                 msg: API_ERROR.REQUESTED_NOT_EXISTENT_API.MSG
             };
             res.status(400).json(json);
-            return;
         }
     };
     return new RouterHelper();

@@ -58,7 +58,6 @@ module.exports = (function() {
             });
         }
 
-
         /**
          * 根據 groupId 找到 members
          *
@@ -66,8 +65,8 @@ module.exports = (function() {
          * @param {string|string[]|null} memberIds
          * @param {boolean|null} isDeleted
          * @param {boolean|null} status
-         * @param {(chatroomId: string|null) => any} [callback]
-         * @returns {Promise<string>}
+         * @param {(chatroomId: any) => any} [callback]
+         * @returns {Promise<any>}
          */
         findMembers(groupId, memberIds, isDeleted = false, status = true, callback) {
             if (memberIds && !(memberIds instanceof Array)) {
@@ -230,19 +229,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.GroupsModel.aggregate(aggregations);
-            }).then((results) => {
-                let groups = {};
-                if (0 === results.length) {
-                    return Promise.resolve(groups);
-                }
+                return this.GroupsModel.aggregate(aggregations).then((results) => {
+                    let groups = {};
+                    if (0 === results.length) {
+                        return Promise.resolve(groups);
+                    }
 
-                groups = results.reduce((output, group) => {
-                    output[group._id] = output[group._id] || {members: {}};
-                    Object.assign(output[group._id].members, this.toObject(group.members));
-                    return output;
-                }, {});
-                return groups;
+                    groups = results.reduce((output, group) => {
+                        output[group._id] = output[group._id] || {members: {}};
+                        Object.assign(output[group._id].members, this.toObject(group.members));
+                        return output;
+                    }, {});
+                    return groups;
+                });
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;

@@ -77,8 +77,89 @@ module.exports = (function() {
                         };
                     }
 
-                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messagers, this.toObject(app.chatrooms.messagers));
-                    Object.assign(output[app._id].chatrooms[app.chatrooms._id].messages, this.toObject(app.chatrooms.messages));
+                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                    chatroom._id = app.chatrooms._id;
+                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
+                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
+                    return output;
+                }, {});
+                return appsChatrooms;
+            }).then((appsChatrooms) => {
+                ('function' === typeof callback) && callback(appsChatrooms);
+                return appsChatrooms;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string|string[]} appIds
+         * @param {string|string[]} platformGroupIds
+         * @param {(appsChatrooms: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        findByPlatformGroupId(appIds, platformGroupIds, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false,
+                'chatrooms.isDeleted': false
+            };
+
+            if (!(platformGroupIds instanceof Array)) {
+                platformGroupIds = [platformGroupIds];
+            }
+
+            query['chatrooms.platformGroupId'] = {
+                $in: platformGroupIds
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$chatrooms'
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        chatrooms: true
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsChatrooms = {};
+                if (0 === results.length) {
+                    return appsChatrooms;
+                }
+
+                appsChatrooms = results.reduce((output, app) => {
+                    if (!output[app._id]) {
+                        output[app._id] = {
+                            chatrooms: {}
+                        };
+                    }
+
+                    if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                        output[app._id].chatrooms[app.chatrooms._id] = {
+                            messagers: {},
+                            messages: {}
+                        };
+                    }
+
+                    let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                    chatroom._id = app.chatrooms._id;
+                    chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                    chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                    Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
+                    Object.assign(chatroom.messages, this.toObject(app.chatrooms.messages));
                     return output;
                 }, {});
                 return appsChatrooms;
@@ -93,16 +174,15 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
+         * @param {any} [chatroom]
          * @param {(appsChatrooms: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insert(appId, callback) {
+        insert(appId, chatroom, callback) {
             let chatroomId = this.Types.ObjectId();
-            let chatroom = {
-                _id: chatroomId,
-                createdTime: Date.now(),
-                updatedTime: Date.now()
-            };
+            let _chatroom = chatroom || {};
+            _chatroom._id = chatroomId;
+            _chatroom.createdTime = _chatroom.updatedTime = Date.now();
 
             let query = {
                 '_id': this.Types.ObjectId(appId)
@@ -110,7 +190,7 @@ module.exports = (function() {
 
             let updateOper = {
                 $push: {
-                    chatrooms: chatroom
+                    chatrooms: _chatroom
                 }
             };
 
