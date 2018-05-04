@@ -6,6 +6,7 @@ module.exports = (function() {
     const API_SUCCESS = require('../config/api_success.json');
 
     let appsRichmenusMdl = require('../models/apps_richmenus');
+    let storageHlp = require('../helpers/storage');
 
     class AppsRichmenusController extends ControllerCore {
         constructor() {

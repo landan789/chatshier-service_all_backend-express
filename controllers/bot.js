@@ -7,6 +7,7 @@ module.exports = (function() {
 
     let botSvc = require('../services/bot');
     let consumersMdl = require('../models/consumers');
+    let storageHlp = require('../helpers/storage');
 
     let appsMdl = require('../models/apps');
     let appsRichmenusMdl = require('../models/apps_richmenus');
