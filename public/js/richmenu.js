@@ -57,8 +57,8 @@
         });
     });
 
-    return api.apps.findAll(userId).then(function(respJson) {
-        var appsData = respJson.data;
+    return api.apps.findAll(userId).then(function(resJson) {
+        var appsData = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         nowSelectAppId = '';
@@ -452,9 +452,9 @@
         let linkText = '';
         for (let i = 0; i < richmenu.areas.length; i++) {
             if (0 === i) {
-                linkText = linkText + richmenu.areas[i].action.type;
+                linkText = linkText + richmenu.areas[i].action.text;
             } else {
-                linkText = linkText + '，' + richmenu.areas[i].action.type;
+                linkText = linkText + '，' + richmenu.areas[i].action.text;
             }
         }
         var trGrop =
