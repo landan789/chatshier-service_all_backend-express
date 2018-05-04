@@ -379,6 +379,7 @@
         let title = $('#title').val();
         let chatBarText = $('#chatbar-text').val();
         let form = $('input[name = richmenu-form]:checked').val();
+        let originalFilePath = '';
 
         if (!appId || !title || !chatBarText) {
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
@@ -386,8 +387,11 @@
 
         let areas = composeAreaObject();
 
-        return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
-            let url = resJson.data;
+        Promise.resolve().then(() => {
+            return api.bot.uploadFile(appId, userId, imageFile);
+        }).then((resJson) => {
+            let url = resJson.data.url;
+            originalFilePath = resJson.data.originalFilePath;
 
             let postRichmenu = {
                 selected: selected,
@@ -398,13 +402,15 @@
                 size: size,
                 areas: areas
             };
-            return api.appsRichmenus.insert(appId, userId, postRichmenu).then((resJson) => {
-                let appsRichmenu = resJson.data;
-                let richemnu = appsRichmenu[appId].richmenus;
-                let richmenuId = Object.keys(richemnu)[0];
-                $('#richmenu-modal').modal('hide');
-                loadRichmenus(appId, userId);
-            });
+            return api.appsRichmenus.insert(appId, userId, postRichmenu);
+        }).then((resJson) => {
+            let appsRichmenu = resJson.data;
+            let richemnu = appsRichmenu[appId].richmenus;
+            let richmenuId = Object.keys(richemnu)[0];
+            return api.bot.moveFile(appId, richmenuId, userId, originalFilePath);
+        }).then(() => {
+            $('#richmenu-modal').modal('hide');
+            loadRichmenus(appId, userId);
         });
     }
 

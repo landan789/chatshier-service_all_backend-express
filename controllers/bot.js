@@ -320,11 +320,11 @@ module.exports = (function() {
                 let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                 let url = wwwurl.replace('?dl=0', '');
                 return url;
-            }).then((data) => {
+            }).then((url) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: {url, originalFilePath}
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -336,6 +336,29 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         };
+
+        moveFileLocation(req, res) {
+            let appId = req.query.appid;
+            let richMenuId = req.query.richmenuid;
+            let fromPath = req.query.path;
+            let fileName = fromPath.slice(fromPath.indexOf('temp/') + 5);
+            let toPath = `/apps/${appId}/richmenus/${richMenuId}/src/${fileName}`;
+
+            return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+                };
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(500).json(json);
+            });
+        }
     }
     return new BotController();
 })();

@@ -25,6 +25,7 @@ router.delete('/apps/:appid/menus/:menuid/users/:userid', botCtl.deactivateMenu)
 router.delete('/apps/:appid/menus/:menuid/users/:userid/content/', botCtl.deleteMenu);
 router.get('/apps/:appid/consumers/:platformuid', botCtl.getProfile);
 router.post('/upload-file/users/:userid', botCtl.uploadFile);
+router.post('/move-file/users/:userid', botCtl.moveFileLocation);
 // ==========
 
 module.exports = router;
