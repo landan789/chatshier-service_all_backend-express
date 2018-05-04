@@ -1315,11 +1315,12 @@ window.restfulAPI = (function() {
         /**
          * 連結 目標Richmenu 與 LINE client
          *
-         * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} richmenuId - 目標Richmenu的 ID
+         * @param {string} appId - 目標Menu的 App ID
+         * @param {string} menuId - 目標Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.linkRichMenuToUser = function(appId, richmenuId, senderId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/senders/' + senderId;
+        BotAPI.prototype.activateMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders
@@ -1330,11 +1331,12 @@ window.restfulAPI = (function() {
         /**
          * 解除 目標Richmenu 與 LINE client 的連結
          *
-         * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} richmenuId - 目標Richmenu的 ID
+         * @param {string} appId - 目標 Menu的 App ID
+         * @param {string} menuId - 目標 Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.unlinkRichMenuFromUser = function(appId, richmenuId, senderId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId + '/senders/' + senderId;
+        BotAPI.prototype.deactivateMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId;
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
@@ -1345,11 +1347,12 @@ window.restfulAPI = (function() {
         /**
          * 刪除一筆在 LINE server 的 Richmenu 資料
          *
-         * @param {string} appId - 目標Richmenu的 App ID
-         * @param {string} richmenuId - 目標Richmenu的 ID
+         * @param {string} appId - 目標Menu的 App ID
+         * @param {string} menuId - 目標Menu的 ID
+         * @param {string} userId
          */
-        BotAPI.prototype.deleteRichMenu = function(appId, richmenuId) {
-            var destUrl = this.urlPrefix + 'apps/' + appId + '/richmenus/' + richmenuId;
+        BotAPI.prototype.deleteMenu = function(appId, menuId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/menus/' + menuId + '/users/' + userId + '/content/';
             var reqInit = {
                 method: 'DELETE',
                 headers: reqHeaders
