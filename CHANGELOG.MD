@@ -1,8 +1,9 @@
 = Release 1.2.5 =
-Released: 2018-05-02
+Released: Not Ready
 == Features ==
- * Add: Support LINE group and room chat with LINE@
+ * Add: Support LINE group and room chat with LINE
  * Add: click image content will stretch the image
+ * Add: add sound and title text when new message is come
 
 == Bug Fixes ==
  * Fixed: message panel not scroll to bottom

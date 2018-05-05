@@ -22,6 +22,7 @@
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
+    var newMessageTipText = '(๑•̀ω•́)ノ (有新訊息)';
 
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
@@ -78,6 +79,7 @@
     });
     var urlRegex = /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
+    var hasUserFocus = true;
 
     /**
      * @param {string} text
@@ -447,6 +449,14 @@
     // start the loading works
     $profilePanel.addClass('d-none');
 
+    window.addEventListener('blur', function() {
+        hasUserFocus = false;
+    });
+    window.addEventListener('focus', function() {
+        hasUserFocus = true;
+        blinkPageTitle();
+    });
+
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
@@ -747,7 +757,12 @@
                     return nextMessage(i + 1);
                 });
             };
-            return nextMessage(0);
+            return nextMessage(0).then(function() {
+                if (!hasUserFocus) {
+                    blinkPageTitle(newMessageTipText);
+                    return playNewMessageSound();
+                }
+            });
         });
 
         socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, function(data) {
@@ -2397,6 +2412,63 @@
     function linkify(text) {
         return text.replace(urlRegex, function(url) {
             return '<a href="' + url + '" target="_blank">' + url + '</a>';
+        });
+    }
+
+    var blinkCycle = null;
+    var DEFAULT_TITLE = document.title;
+    var blinkTitlePrev = DEFAULT_TITLE;
+    var blinkTitleNext = DEFAULT_TITLE;
+    /**
+     * @param {string} [title]
+     */
+    function blinkPageTitle(title) {
+        blinkTitlePrev = blinkTitleNext = DEFAULT_TITLE;
+        blinkCycle && window.clearInterval(blinkCycle);
+        if (!title) {
+            document.title = DEFAULT_TITLE;
+            return;
+        }
+
+        document.title = title;
+        blinkCycle = window.setInterval(function() {
+            blinkTitlePrev = document.title;
+            document.title = blinkTitleNext;
+            blinkTitleNext = blinkTitlePrev;
+        }, 1000);
+    }
+
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var audioCtx = AudioContext && new AudioContext();
+    /**
+     * Safari 需要使用 WebAudioAPI 才能播放音效
+     * 已知問題: Safari 在離開分頁後，無法在背景播放音效
+     */
+    function playNewMessageSound() {
+        var audioCtxSrc;
+        var newMessageSnd = document.createElement('audio');
+        newMessageSnd.src = 'media/new_message.mp3';
+
+        return Promise.resolve().then(function() {
+            if (audioCtx) {
+                audioCtxSrc = audioCtx.createMediaElementSource(newMessageSnd);
+                audioCtxSrc.connect(audioCtx.destination);
+            }
+            return newMessageSnd.play();
+        }).then(function() {
+            return new Promise((resolve) => {
+                newMessageSnd.onended = resolve;
+            });
+        }).then(function() {
+            audioCtx && audioCtxSrc.disconnect(audioCtx.destination);
+            newMessageSnd = audioCtxSrc = void 0;
+        }).catch(function(err) {
+            audioCtx && audioCtxSrc.disconnect(audioCtx.destination);
+            newMessageSnd = audioCtxSrc = void 0;
+            if ('NotAllowedError' === err.name) {
+                return;
+            }
+            return Promise.reject(err);
         });
     }
 
