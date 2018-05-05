@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var LOADING_MSG_AND_ICON = '<p class="message-time font-weight-bold">Loading History Messages...<i class="loadingIcon"></i></p>';
     var NO_HISTORY_MSG = '<p class="message-time font-weight-bold">-沒有更舊的歷史訊息-</p>';
     var COLOR = {
         FIND: '#ff0000',
@@ -519,8 +518,6 @@
     // =====start profile event=====
     $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
     $(document).on('click', '.profile-confirm button', userInfoConfirm);
-    $(document).on('click', '.photo-choose', groupPhotoChoose);
-    $(document).on('change', '.photo-ghost', groupPhotoUpload);
     // =====end profile event=====
 
     // =====start utility event=====
@@ -2158,28 +2155,6 @@
         });
     }
     // =====end profile function=====
-
-    // =====start internal function=====
-    function groupPhotoChoose() {
-        var container = $(this).parents('.photo-container');
-        container.find('.photo-ghost').click();
-    }
-
-    function groupPhotoUpload() {
-        if (0 < this.files.length) {
-            var fileContainer = $(this).parents('.photo-container');
-            var img = fileContainer.find('img');
-
-            var file = this.files[0];
-            var storageRef = firebase.storage().ref();
-            var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.downloadURL;
-                img.attr('src', url);
-            });
-        }
-    }
-    // =====end internal function
 
     // =====start search input change func=====
     /** @type {JQuery<HTMLElement>[]} */

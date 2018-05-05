@@ -10,7 +10,7 @@
     var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
     var cookieManager = window.chatshierCookie.manager;
     var api = window.restfulAPI;
-    const REFRESH_TIME = 5 * 1000;
+    const PREPARE_TIME = 3 * 60 * 1000;
 
     /**
      * jwt automatically refreshes 10 minutes before jwt expires
@@ -27,24 +27,21 @@
 
             return new Promise((resolve, reject) => {
                 let jwt = window.localStorage.getItem('jwt');
-                let payload = window.jwt_decode(jwt);
-                let exp;
+                let payload;
 
                 try {
-                    payload = window.jwt_decode(window.localStorage.getItem('jwt'));
-                    exp = payload.exp;
-                    userId = payload.uid;
+                    payload = window.jwt_decode(jwt);
                 } catch (ex) {
-                    exp = 0;
+                    reject(ex);
+                    return;
                 }
 
-                let time = exp - Date.now() - REFRESH_TIME;
-                if (0 > time) {
-                    time = 0;
+                userId = payload.uid;
+                let remainingTime = payload.exp - PREPARE_TIME - Date.now();
+                if (remainingTime < 0) {
+                    remainingTime = 0;
                 }
-                window.setTimeout(() => {
-                    resolve();
-                }, time);
+                window.setTimeout(resolve, remainingTime);
             }).then(() => {
                 return api.sign.refresh(userId);
             }).then((response) => {

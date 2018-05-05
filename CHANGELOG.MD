@@ -7,6 +7,7 @@ Released: 2018-05-02
 == Bug Fixes ==
  * Fixed: message panel not scroll to bottom
  * Fixed: message text new line not work
+ * Fixed: sometime refresh token is too late
 
 = Release 1.2.4 =
 Released: 2018-04-27
