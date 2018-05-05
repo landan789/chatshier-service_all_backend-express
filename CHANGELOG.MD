@@ -1,13 +1,12 @@
 = Release 1.2.5 =
 Released: Not Ready
 == Features ==
- * Add: Support LINE group and room chat with LINE
+ * Add: support LINE group and room chat with LINE
  * Add: click image content will stretch the image
  * Add: add sound and title text when new message is come
+ * Add: user can link fan pages by facebook login
 
 == Bug Fixes ==
- * Fixed: message panel not scroll to bottom
- * Fixed: message text new line not work
  * Fixed: sometime refresh token is too late
 
 = Release 1.2.4 =
