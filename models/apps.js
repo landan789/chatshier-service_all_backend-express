@@ -64,9 +64,10 @@ module.exports = (function() {
 
         insert(userId, postApp, callback) {
             let apps = {};
-            let webhookId = this.Types.ObjectId();
-            let groupId = postApp.group_id;
             let _appId = this.Types.ObjectId();
+            let webhookId = this.Types.ObjectId().toHexString();
+            let groupId = postApp.group_id;
+
             let _apps = new this.AppsModel();
             _apps._id = _appId;
             _apps.id1 = postApp.id1 || '';
@@ -77,7 +78,7 @@ module.exports = (function() {
             _apps.token2 = postApp.token2 || '';
             _apps.type = postApp.type || '';
             _apps.group_id = postApp.group_id;
-            _apps.webhook_id = CHATSHIER === postApp.type ? _appId : webhookId;
+            _apps.webhook_id = CHATSHIER === postApp.type ? '' : webhookId;
             _apps.isDeleted = false;
             _apps.updatedTime = Date.now();
             _apps.createdTime = Date.now();

@@ -223,14 +223,10 @@
                 var fanPages = res.data;
                 var appsList = fanPages.map(function(fanPage) {
                     var app = {
-                        webhook_id: '',
                         group_id: groupId,
                         type: FACEBOOK,
                         name: fanPage.name,
                         id1: fanPage.id,
-                        id2: '178381762879392',
-                        secret: '27aad72319bf154c059f696bce055ac2',
-                        token1: '8eeabaf3c836d295edb26264ec76e975',
                         token2: fanPage.access_token
                     };
                     return app;
@@ -238,10 +234,17 @@
                 return appsList;
             }).then(function(appsList) {
                 var appIds = groups[groupId].app_ids;
-                return Promise.all(appsList.map(function(app) {
+                var responses = [];
+
+                function nextRequest(i) {
+                    if (i >= appsList.length) {
+                        return Promise.resolve(responses);
+                    }
+
+                    var app = appsList[i];
                     var isExist = false;
-                    for (var i in appIds) {
-                        var _app = apps[appIds[i]];
+                    for (var j in appIds) {
+                        var _app = apps[appIds[j]];
                         if (!_app || FACEBOOK !== _app.type) {
                             continue;
                         }
@@ -266,10 +269,15 @@
                         return fbHlp.setFanPageSubscribeApp(app.id1, app.token2);
                     }).then(function() {
                         return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
+                    }).then(function(res) {
+                        responses.push(res);
+                        return nextRequest(i + 1);
                     });
-                }));
+                }
+                return nextRequest(0);
             });
         }).then(function(res) {
+            $appAddModal.modal('hide');
             if (!res) {
                 return;
             }
@@ -379,10 +387,11 @@
     });
 
     function findAllGroups() {
+        $('#addGroupNameAppBtn').attr('disabled', true);
         return api.groups.findAll(userId).then(function(resJson) {
+            $('#addGroupNameAppBtn').removeAttr('disabled');
             groups = resJson.data;
             if (groups && 0 === Object.keys(groups).length) {
-                $('#addGroupNameAppBtn').attr('disabled', true);
                 return;
             };
 
@@ -392,7 +401,6 @@
                 }
                 showGroupContent(groupId, groups[groupId]);
             }
-            $('#addGroupNameAppBtn').removeAttr('disabled');
         });
     }
 

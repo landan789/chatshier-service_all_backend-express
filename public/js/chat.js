@@ -987,7 +987,7 @@
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
 
-        var senderrName = sender.name || '';
+        var senderrName = sender && (sender.name || '');
         if (SYSTEM === message.from) {
             senderrName = '由系統發送';
         } else if (VENDOR === message.from) {
