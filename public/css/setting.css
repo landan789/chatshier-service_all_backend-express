@@ -229,6 +229,11 @@ p:empty:not(:focus)::before {
         width: 200px;
         height: 24px; }
 
+.fb-fanpage-picture {
+    width: 2rem;
+    height: 2rem;
+}
+
 .fb-import-button {
     border-radius: .5rem;
     background-color: #4267b2;

@@ -11,6 +11,19 @@ window.facebookHelper = (function() {
     /** @type {fb.InitParams} */
     var fbParams = window.chatshier ? window.chatshier.facebook : {};
 
+    var sendAPI = function(apiPath, method) {
+        method = method || 'GET';
+        return new Promise(function(resolve, reject) {
+            FB.api(apiPath, method, function(res) {
+                if (!res || (res && res.error)) {
+                    reject(res.error);
+                    return;
+                }
+                resolve(res);
+            });
+        });
+    };
+
     var facebookHelper = {
         auth: function() {
             return fbAuth;
@@ -58,24 +71,24 @@ window.facebookHelper = (function() {
             return initPromise;
         },
         getFanPages: function() {
-            return new Promise(function(resolve) {
-                FB.api('/me/accounts', resolve);
-            });
+            var apiPath = '/me/accounts';
+            return sendAPI(apiPath);
+        },
+        getFanPagesPicture: function(pageId, pageToken) {
+            var apiPath = '/' + pageId + '/picture?access_token=' + pageToken + '&redirect=false';
+            return sendAPI(apiPath);
         },
         getFanPageDetail: function(pageId) {
-            return new Promise(function(resolve) {
-                FB.api('/' + pageId, resolve);
-            });
+            var apiPath = '/' + pageId;
+            return sendAPI(apiPath);
         },
         getFanPageSubscribeApp: function(pageId, pageToken) {
-            return new Promise(function(resolve) {
-                FB.api('/' + pageId + '/subscribed_apps?access_token=' + pageToken, resolve);
-            });
+            var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
+            return sendAPI(apiPath);
         },
         setFanPageSubscribeApp: function(pageId, pageToken) {
-            return new Promise(function(resolve) {
-                FB.api('/' + pageId + '/subscribed_apps?access_token=' + pageToken, 'POST', resolve);
-            });
+            var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
+            return sendAPI(apiPath, 'POST');
         },
         /**
          * @returns {Promise<fb.AuthResponse>}
