@@ -224,7 +224,7 @@
                 // 取得 fb 用戶的所有可管理的粉絲專頁後
                 // 濾除已經加入的粉絲專頁
                 var fanPages = res.data || [];
-                var canLinkFanPages = fanPages.filter(function(fanPage) {
+                fanPages = fanPages.filter(function(fanPage) {
                     var canLink = true;
                     for (var appId in apps) {
                         var app = apps[appId];
@@ -240,12 +240,12 @@
                     return canLink;
                 });
 
-                if (0 === canLinkFanPages.length) {
+                if (0 === fanPages.length) {
                     $.notify('沒有可進行連結的粉絲專頁', { type: 'warning' });
-                    return canLinkFanPages;
+                    return fanPages;
                 }
 
-                return Promise.all(canLinkFanPages.map(function(fanPage) {
+                return Promise.all(fanPages.map(function(fanPage) {
                     // 抓取粉絲專頁的大頭貼(用於選取時顯示)
                     return fbHlp.getFanPagesPicture(fanPage.id, fanPage.access_token);
                 })).then(function(fanPagePics) {
@@ -258,7 +258,7 @@
                         $appAddModal.on('hidden.bs.modal', appAddModalHidden);
                         $appAddModal.modal('hide');
                     }).then(function() {
-                        return canLinkFanPages.map(function(fanPages, i) {
+                        return fanPages.map(function(fanPages, i) {
                             var fanPagePic = fanPagePics[i].data;
                             return (
                                 '<div class="form-group form-check">' +
@@ -317,7 +317,6 @@
                     };
                     return app;
                 });
-                var appIds = groups[groupId].app_ids;
                 var responses = [];
 
                 // 未處理 bug: 使用 Promise.all 會造成 group 的 app_ids 只會新增一筆
@@ -327,23 +326,6 @@
                     }
 
                     var app = appsList[i];
-                    var isExist = false;
-                    for (var j in appIds) {
-                        var _app = apps[appIds[j]];
-                        if (!_app || FACEBOOK !== _app.type) {
-                            continue;
-                        }
-
-                        if (_app.id1 === app.id1) {
-                            isExist = true;
-                            break;
-                        }
-                    }
-
-                    if (isExist) {
-                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
-                    }
-
                     return api.apps.insert(userId, app).then((resJson) => {
                         var _apps = resJson.data;
                         for (var appId in _apps) {
