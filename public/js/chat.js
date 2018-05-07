@@ -1189,12 +1189,13 @@
                     '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'file':
+                var fileName = message.src.split('/').pop();
                 return (
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
-                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">點擊下載</a></span>'
+                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">' + fileName + '</a></span>'
                 );
             default:
-                let messageText = linkify(filterWechatEmoji(message.text || ''));
+                var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
         }
     }
