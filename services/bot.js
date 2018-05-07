@@ -157,7 +157,7 @@ module.exports = (function() {
                         }
                         info.platformGroupId = info.platformGroupId || event.source.roomId || event.source.groupId;
                         info.platformGroupType = info.platformGroupType || event.source.type;
-                        info.platformUid = info.platformUId || event.source.userId;
+                        info.platformUid = info.platformUid || event.source.userId;
                     });
                     break;
                 case FACEBOOK:
@@ -165,13 +165,13 @@ module.exports = (function() {
                     entries.forEach((entry) => {
                         let messagings = entry.messaging || [];
                         messagings.forEach((messaging) => {
-                            info.platformUId = info.platformUId || messaging.sender.id;
+                            info.platformUid = info.platformUid || messaging.sender.id;
                         });
                     });
                     break;
                 case WECHAT:
                     let weixin = req.weixin;
-                    info.platformUId = weixin.FromUserName;
+                    info.platformUid = weixin.FromUserName;
                     break;
                 default:
                     break;
