@@ -3,8 +3,10 @@ Released: Not Ready
 == Features ==
  * Add: support LINE group and room chat with LINE
  * Add: click image content will stretch the image
- * Add: add sound and title text when new message is come
+ * Add: add sound and title blink when new message is come
+ * Remove: manually link facebook fan page
  * Add: user can link fan pages by facebook login
+ * Add: add link of line developers on add modal
 
 == Bug Fixes ==
  * Fixed: sometime refresh token is too late
