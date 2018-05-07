@@ -104,53 +104,52 @@ module.exports = (function() {
                 altText: altText,
                 template: template
             };
-        return this.appsRequestVerify(req).then((checkedAppIds) => {
-            appId = checkedAppIds;
-            return new Promise((resolve, reject) => {
-                appsTemplatesMdl.insert(appId, postTemplate, (result) => {
-                    if(!result) {
-                        reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
-                        return;
-                    }
-                resolve(result);
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                appId = checkedAppIds;
+                return new Promise((resolve, reject) => {
+                    appsTemplatesMdl.insert(appId, postTemplate, (result) => {
+                        if (!result) {
+                            reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                            return;
+                        }
+                        resolve(result);
+                    });
                 });
-            })
-        }).then((appsTemplate)=>{
-            return new Promise((resolve, reject) => {
-                let templateId = Object.keys(appsTemplate[appId].templates);
-                    if(appsTemplate[appId].templates[templateId].template.thumbnailImageUrl){
+            }).then((appsTemplate) => {
+                return new Promise((resolve, reject) => {
+                    let templateId = Object.keys(appsTemplate[appId].templates)[0];
+                    if (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl) {
                         let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                        let fromPath = `/temp/`+fromPathArray.pop();
-                        let toPath=`/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                        let fromPath = `/temp/` + fromPathArray.pop();
+                        let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
                         storageHlp.filesMoveV2(fromPath, toPath);
-                    }
-                    else{
-                         return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
+                    } else {
+                        return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
                             let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                            let fromPath = `/temp/`+fromPathArray.pop();
-                            let toPath=`/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                            let fromPath = `/temp/` + fromPathArray.pop();
+                            let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
                             storageHlp.filesMoveV2(fromPath, toPath);
-                        }))
+                        }));
                     }
-            resolve(appsTemplate);
-            })
-        }).then((appsTemplate) => {
-            let result = appsTemplate !== undefined ? appsTemplate : {};
-            let json = {
-                status: 1,
-                msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                data: result
-            };
-            res.status(200).json(json);
-        }).catch((ERR) => {
-            let json = {
-                status: 0,
-                msg: ERR.MSG,
-                code: ERR.CODE
-            };
-            res.status(500).json(json);
-        });
-    };
+                    resolve(appsTemplate);
+                });
+            }).then((appsTemplate) => {
+                let result = appsTemplate !== undefined ? appsTemplate : {};
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    data: result
+                };
+                res.status(200).json(json);
+            }).catch((ERR) => {
+                let json = {
+                    status: 0,
+                    msg: ERR.MSG,
+                    code: ERR.CODE
+                };
+                res.status(500).json(json);
+            });
+        };
         putOne(req, res) {
             let templateId = req.params.templateid;
             let appId;
@@ -169,7 +168,7 @@ module.exports = (function() {
                 appId = checkedAppId;
                 return new Promise((resolve, reject) => {
                     if (!templateId) {
-                       reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
+                        reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                     };
                     appsTemplatesMdl.update(appId, templateId, putTemplateData, (appsTemplate) => {
                         if (!appsTemplate) {

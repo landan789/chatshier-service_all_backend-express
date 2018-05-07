@@ -353,31 +353,31 @@
         } else {
             let template = createTemplate(type);
             if (template) {
-                    return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
-                        if(''!== imageFile[imageFileNum]){
-                            return api.bot.uploadFile(appId, null, null, userId, imageFile[imageFileNum]).then((resJson)=>{
-                               return resJson.data;
-                             })
+                return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
+                    if ('' !== imageFile[imageFileNum]) {
+                        return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                            return resJson.data.url;
+                        });
+                    }
+                })).then((imageUrl) => {
+                    if ('buttons' === template.template.type) {
+                        template.template.thumbnailImageUrl = imageUrl[0];
+                    }
+                    if ('carousel' === template.template.type) {
+                        for (let img in template.template.columns) {
+                            template.template.columns[img].thumbnailImageUrl = imageUrl[img];
                         }
-                    })).then((imageUrl)=>{
-                        if('buttons'=== template.template.type){
-                            template.template.thumbnailImageUrl = imageUrl[0];
-                           }
-                           if('carousel'=== template.template.type){
-                               for(img in template.template.columns){
-                                template.template.columns[img].thumbnailImageUrl = imageUrl[img];
-                               }
-                        }
-                    }).then(()=>{
-                        api.appsTemplates.insert(appId, userId, template);
-                        $('#template-modal').modal('hide');
-                        $.notify('新增成功！', { type: 'success' });
-                        $('#modal-save').removeAttr('disabled');
-                        setTimeout(function() {
-                            $appDropdown.find('#' + appId).click();
-                        }, 1000);
-                        $('#template-modal').modal('toggle');
-                    })  
+                    }
+                }).then(() => {
+                    api.appsTemplates.insert(appId, userId, template);
+                    $('#template-modal').modal('hide');
+                    $.notify('新增成功！', { type: 'success' });
+                    $('#modal-save').removeAttr('disabled');
+                    setTimeout(function() {
+                        $appDropdown.find('#' + appId).click();
+                    }, 1000);
+                    $('#template-modal').modal('toggle');
+                });
             }
         }
     }
@@ -403,110 +403,109 @@
                 };
                 return postTemplate;
             };
-            }  
+        }  
+    }
+
+    function createConfirm() {
+        let container = $('.template-view[rel="confirm"] .rounded-border');
+        let text = container.find('.line-text').val();
+        if (!text) {
+            $.notify('說明文字不可為空', { type: 'warning' });
+            return null;
+        } else {
+            let actions = getAction(container);
+            let template = {
+                'type': 'confirm',
+                'text': text,
+                'actions': actions
+            };
+            return template;
         }
-        
-        function createConfirm() {
-            let container = $('.template-view[rel="confirm"] .rounded-border');
-            let text = container.find('.line-text').val();
-            if (!text) {
-                $.notify('說明文字不可為空', { type: 'warning' });
-                return null;
+    }
+
+    function createButtons() {
+        let container = $('#carousel-container .carousel-item.active .rounded-border');
+        let thumbnailImageUrl = previewImage;
+        let title = container.find('.line-title').val();
+        let text = container.find('.line-text').val();
+        let actions= getAction(container);
+        if (!text) {
+            $.notify('說明文字不可為空', { type: 'warning' });
+            return null;
+        } else {
+            let template = {
+                'type': 'buttons',
+                'text':text,
+                'title':title,
+                'thumbnailImageUrl': thumbnailImageUrl,
+                'actions': actions
+            }
+            return template;
+        }
+    }
+
+    function createCarousel() {
+        let items = $('#carousel-container .carousel-item .rounded-border');
+        let columns = [];
+        items.each(function() {
+            let col = getColumn($(this));
+            if (col) columns.push(col);
+        });
+        if (columns.length > 0) {
+            let template = {
+                'type': 'carousel',
+                'thumbnailImageUrl':'',
+                'columns': columns
+            };
+            return template;
+        } else return null;
+    }
+
+    function getColumn(container) {
+        let thumbnailImageUrl = previewImage;
+        let title = container.find('.line-title').val();
+        let text = container.find('.line-text').val();
+        if (!text) return null;
+        else {
+            let actions = getAction(container);
+            let column = {
+                'text': text,
+                'actions': actions
+            };
+            if (thumbnailImageUrl) column['thumbnailImageUrl'] = thumbnailImageUrl;
+            if (title) column['title'] = title;
+            return column;
+        }
+    }
+
+    function getAction(container) {
+        let $actions = container.find('.line-action');
+        let actionArr = [];
+        let textslice;
+        $actions.each(function() {
+            let label = $(this).find('.row-label').val();
+            let text = $(this).find('.row-text').val();
+            if (!label) label = '---';
+            if ('---' === label) text = ' ';
+            else if (!text) text = label;
+            textslice = text.slice(0, 5);
+            if ('https' === textslice) {
+                actionArr.push({
+                    'type': 'uri',
+                    'label': label,
+                    'uri': text
+                });
             } else {
-                let actions = getAction(container);
-                let template = {
-                    'type': 'confirm',
-                    'text': text,
-                    'actions': actions
-                };
-                return template;
+                actionArr.push({
+                    'type': 'message',
+                    'label': label,
+                    'text': text
+                });
             }
-        }
+        });
+        return actionArr;
+    }
 
-        function createButtons() {
-            let container = $('#carousel-container .carousel-item.active .rounded-border');
-            let thumbnailImageUrl = previewImage;
-            let title = container.find('.line-title').val();
-            let text = container.find('.line-text').val();
-            let actions= getAction(container);
-            if (!text) {
-                $.notify('說明文字不可為空', { type: 'warning' });
-                return null;
-            } else {
-                let template = {
-                    'type': 'buttons',
-                    'text':text,
-                    'title':title,
-                    'thumbnailImageUrl': thumbnailImageUrl,
-                    'actions': actions
-                }
-                return template;
-            }
-        }
-
-        function createCarousel() {
-            let items = $('#carousel-container .carousel-item .rounded-border');
-            let columns = [];
-            items.each(function() {
-                let col = getColumn($(this));
-                if (col) columns.push(col);
-            });
-            if (columns.length > 0) {
-                let template = {
-                    'type': 'carousel',
-                    'thumbnailImageUrl':'',
-                    'columns': columns
-                };
-                return template;
-            } else return null;
-        }
-
-        function getColumn(container) {
-            let thumbnailImageUrl = previewImage;
-            let title = container.find('.line-title').val();
-            let text = container.find('.line-text').val();
-            if (!text) return null;
-            else {
-                let actions = getAction(container);
-                let column = {
-                    'text': text,
-                    'actions': actions
-                };
-                if (thumbnailImageUrl) column['thumbnailImageUrl'] = thumbnailImageUrl;
-                if (title) column['title'] = title;
-                return column;
-            }
-        }
-
-        function getAction(container) {
-            let $actions = container.find('.line-action');
-            let actionArr = [];
-            let textslice;
-            $actions.each(function() {
-                let label = $(this).find('.row-label').val();
-                let text = $(this).find('.row-text').val();
-                if (!label) label = '---';
-                if ('---' === label) text = ' ';
-                else if (!text) text = label;
-                textslice = text.slice(0, 5);
-                    if('https'=== textslice){
-                        actionArr.push({
-                            'type': 'uri',
-                            'label': label,
-                            'uri': text
-                        });
-                    }
-                    else{
-                        actionArr.push({
-                            'type': 'message',
-                            'label': label,
-                            'text': text
-                        });
-                    }
-            });
-            return actionArr;
-        }
-    
     // =====edit template end=====
 
     function dataRemove() {
