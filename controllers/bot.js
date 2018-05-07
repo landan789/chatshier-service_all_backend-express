@@ -337,14 +337,19 @@ module.exports = (function() {
             });
         };
 
-        moveFileLocation(req, res) {
+        moveFile(req, res) {
             let appId = req.query.appid;
             let richMenuId = req.query.richmenuid;
             let fromPath = req.query.path;
-            let fileName = fromPath.slice(fromPath.indexOf('temp/') + 5);
-            let toPath = `/apps/${appId}/richmenus/${richMenuId}/src/${fileName}`;
+            let fileName = fromPath.slice(fromPath.indexOf('temp/') + 4);
+            let toPath = `/apps/${appId}/richmenus/${richMenuId}/src${fileName}`;
 
-            return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
+            return storageHlp.filesMoveV2(fromPath, toPath).catch((ERROR) => {
+                if (409 === ERROR.status) {
+                    return;
+                }
+                return Promise.reject(ERROR);
+            }).then(() => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
