@@ -1185,8 +1185,13 @@
                 );
             case 'location':
                 return (
-                    '<i class="fa fa-location-arrow location-icon"></i>' +
+                    '<i class="fa fa-location-arrow fa-fw location-icon"></i>' +
                     '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
+                );
+            case 'file':
+                return (
+                    '<i class="fas fa-file fa-fw file-icon"></i>' +
+                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">點擊下載</a></span>'
                 );
             default:
                 let messageText = linkify(filterWechatEmoji(message.text || ''));

@@ -98,41 +98,37 @@ module.exports = (function() {
         /**
          * @param {any} req
          * @param {any} res
-         * @param {any} server
          * @param {string} appId
          * @param {any} app
          */
-        parser(req, res, server, appId, app) {
-            return new Promise((resolve, reject) => {
-                switch (app.type) {
-                    case LINE:
-                        let lineConfig = {
-                            channelSecret: app.secret,
-                            channelAccessToken: app.token1
-                        };
+        parser(req, res, appId, app) {
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+
+                    return new Promise((resolve, reject) => {
                         line.middleware(lineConfig)(req, res, (err) => {
                             if (err) {
                                 reject(err);
                                 return;
                             }
-                            resolve({});
+                            resolve();
                         });
-                        break;
-                    case FACEBOOK:
-                        bodyParser.json()(req, res, () => {
-                            resolve({});
-                        });
-                        break;
-                    case WECHAT:
-                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => {
-                            resolve({});
-                        })(req, res);
-                        break;
-                    default:
-                        resolve({});
-                        break;
-                }
-            });
+                    });
+                case FACEBOOK:
+                    return new Promise((resolve) => {
+                        bodyParser.json()(req, res, () => resolve());
+                    });
+                case WECHAT:
+                    return new Promise((resolve) => {
+                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => resolve())(req, res);
+                    });
+                default:
+                    return Promise.resolve();
+            }
         }
 
         /**
@@ -219,7 +215,7 @@ module.exports = (function() {
                                 time: Date.now(), // 將要回覆的訊息加上時戳
                                 replyToken: event.replyToken,
                                 message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
-                                fromPath: event.message ? `/${Date.now()}.${media[event.message.type]}` : ''
+                                fromPath: event.message ? ('file' === event.message.type ? '/' + event.message.fileName : `/${Date.now()}.${media[event.message.type]}`) : ''
                             };
 
                             if (event.message && 'text' === event.message.type) {
@@ -244,7 +240,7 @@ module.exports = (function() {
                             };
 
                             let bot = this.bots[appId];
-                            if (event.message && ['image', 'audio', 'video'].includes(event.message.type)) {
+                            if (event.message && ['image', 'audio', 'video', 'file'].includes(event.message.type)) {
                                 return bot.getMessageContent(event.message.id).then((contentStream) => {
                                     return new Promise((resolve, reject) => {
                                         let bufferArray = [];
@@ -265,7 +261,9 @@ module.exports = (function() {
                                 });
                             };
                             messages.push(_message);
-                        }));
+                        })).then(() => {
+                            return messages;
+                        });
                     case FACEBOOK:
                         let entries = body.entry;
                         for (let i in entries) {
@@ -344,18 +342,17 @@ module.exports = (function() {
                         return messages;
                     case WECHAT:
                         let weixin = req.weixin;
+                        let message = {
+                            messager_id: messagerId, // WECHAT 平台的 sender id
+                            type: weixin.MsgType,
+                            time: parseInt(weixin.CreateTime) * 1000,
+                            from: WECHAT,
+                            text: '',
+                            src: '',
+                            message_id: weixin.MsgId || '' // WECHAT 平台的 訊息 id
+                        };
 
-                        return new Promise((resolve, reject) => {
-                            let message = {
-                                messager_id: messagerId, // WECHAT 平台的 sender id
-                                type: weixin.MsgType,
-                                time: parseInt(weixin.CreateTime) * 1000,
-                                from: WECHAT,
-                                text: '',
-                                src: '',
-                                message_id: weixin.MsgId || '' // WECHAT 平台的 訊息 id
-                            };
-
+                        return Promise.resolve().then(() => {
                             // 目前暫不處理 wechat 的事件訊息
                             if ('event' === weixin.MsgType) {
                                 if ('subscribe' === weixin.Event) {
@@ -363,8 +360,7 @@ module.exports = (function() {
                                     // 改為使用 "follow" 與 LINE 的事件統一
                                     message.eventType = 'follow';
                                 }
-                                resolve(message);
-                                return;
+                                return message;
                             }
 
                             // 由於 wechat 在 5s 內沒有收到 http response 時會在打 webhook 過來
@@ -372,8 +368,7 @@ module.exports = (function() {
                             // 標註 MsgId 來防止相同訊息被處理 2 次以上
                             if (weixin.MsgId) {
                                 if (messageCacheMap.get(weixin.MsgId)) {
-                                    reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
-                                    return;
+                                    return Promise.reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
                                 }
                                 messageCacheMap.set(weixin.MsgId, true);
                             }
@@ -388,8 +383,7 @@ module.exports = (function() {
 
                             let bot = this.bots[appId];
                             if (!bot) {
-                                reject(new Error('BOT_NOT_FOUND'));
-                                return;
+                                return Promise.reject(new Error('BOT_NOT_FOUND'));
                             }
 
                             if ('text' === message.type) {
@@ -429,7 +423,7 @@ module.exports = (function() {
                                     let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                                     let src = wwwurl.replace('?dl=0', '');
                                     message.src = src;
-                                    resolve(message);
+                                    return message;
                                 });
                             } else if ('location' === message.type) {
                                 let latitude = weixin.Location_X;
@@ -442,7 +436,7 @@ module.exports = (function() {
                                 // 將 message.src 指向 dropbox 連結
                                 message.text = weixin.Title + ' - ' + weixin.Description;
                             }
-                            resolve(message);
+                            return message;
                         }).then((message) => {
                             message && messages.push(message);
                             return messages;
