@@ -120,14 +120,14 @@ module.exports = (function() {
                     let templateId = Object.keys(appsTemplate[appId].templates)[0];
                     if (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl) {
                         let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                        let fromPath = `/temp/` + fromPathArray.pop();
-                        let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                        let fromPath = `/temp/${fromPathArray[5]}`;
+                        let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray[5]}`;
                         storageHlp.filesMoveV2(fromPath, toPath);
                     } else {
                         return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
                             let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                            let fromPath = `/temp/` + fromPathArray.pop();
-                            let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray.pop()}`;
+                            let fromPath = `/temp/${fromPathArray[5]}`;
+                            let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray[5]}`;
                             storageHlp.filesMoveV2(fromPath, toPath);
                         }));
                     }
