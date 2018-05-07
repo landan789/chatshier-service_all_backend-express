@@ -6,3 +6,12 @@ db.createUser(
     roles: [ { role: "readWrite", db: "chatshier" } ]
   }
 );
+
+
+db.createUser(
+  {
+    user: "chsr_read",
+    pwd: "dc6ae153245b5db94abc2083f9426949",
+    roles: [ { role: "read", db: "chatshier" } ]
+  }
+);
