@@ -8,6 +8,7 @@ Released: Not Ready
 
 == Bug Fixes ==
  * Fixed: sometime refresh token is too late
+ * Fixed: support file type message for LINE
 
 = Release 1.2.4 =
 Released: 2018-04-27
