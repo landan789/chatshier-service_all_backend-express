@@ -222,6 +222,13 @@ p:empty:not(:focus)::before {
 /* #endregion */
 /*******************/
 
+.line-dev-link {
+    background-color: #262a2e;
+    border-radius: .5rem; }
+    .line-dev-link .line-dev-logo {
+        width: 200px;
+        height: 24px; }
+
 .fb-import-button {
     border-radius: .5rem;
     background-color: #4267b2;

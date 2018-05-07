@@ -37,8 +37,7 @@ module.exports = (function() {
                 appIds = [appIds];
             };
 
-            let _query = query || {};
-            _query.isDeleted = false;
+            let _query = query || { isDeleted: false };
             appIds && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
             webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
 

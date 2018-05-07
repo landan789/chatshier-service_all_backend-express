@@ -1033,6 +1033,9 @@
     }
 
     function createChatroom(requireData) {
+        if (!requireData) {
+            return;
+        }
         var appId = requireData.appId;
         var appName = requireData.name;
         var appType = requireData.type;
@@ -1041,7 +1044,7 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
 
-        if (!(requireData && requireData.chatroom)) {
+        if (!(chatroom && person)) {
             return;
         }
         chatroomId && chatroomList.push(chatroomId);
@@ -1261,9 +1264,12 @@
         var chatroom = requireData.chatroom;
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
-        var person = requireData.person || {};
-        person.photo = person.photo || 'image/user_large.png';
+        var person = requireData.person;
+        if (!person) {
+            return;
+        }
 
+        person.photo = person.photo || 'image/user_large.png';
         var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
         var profilePanelHtml = (
             '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +

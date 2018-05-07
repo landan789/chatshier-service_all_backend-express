@@ -241,12 +241,29 @@ module.exports = (function() {
                     if (FACEBOOK === postApp.type && postApp.token2) {
                         // 在新增 facebook 類型的 app 之前
                         // 無論無何都須將粉絲專頁的 page token 轉為永久 token
-                        // 否則從 web 取得的 page token 時效性只有 2 小時
+                        // 因為從 web 取得的 user token 因為沒有進行 server-side token 轉換
+                        // 因此取得的 page token 時效性只有 1-2 小時
                         return fbSvc.exchangeLongLivedToken(postApp.token2).then((longLiveToken) => {
                             postApp.token2 = longLiveToken.access_token;
                         });
                     }
                 }).then(() => {
+                    if (FACEBOOK === postApp.type) {
+                        // 檢查同 group 內是否已經有匯入此粉絲專頁(包含已刪除的)
+                        // 如果有則直接更新 app
+                        let query = {
+                            id1: postApp.id1,
+                            group_id: postApp.group_id
+                        };
+                        return appsMdl.find(null, null, query).then((apps) => {
+                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                return appsMdl.insert(req.params.userid, postApp);
+                            }
+                            postApp.isDeleted = false;
+                            let appId = Object.keys(apps).shift() || '';
+                            return appsMdl.update(appId, postApp);
+                        });
+                    }
                     return appsMdl.insert(req.params.userid, postApp);
                 }).then((_apps) => {
                     if (!_apps) {
@@ -283,13 +300,6 @@ module.exports = (function() {
         putOne(req, res, next) {
             let userId = req.params.userid;
             let appId = req.params.appid;
-            let id1 = req.body.id1;
-            let id2 = req.body.id2;
-            let name = req.body.name;
-            let secret = req.body.secret;
-            let token1 = req.body.token1;
-            let token2 = req.body.token2;
-            let type = req.body.type;
 
             let putApp = {
                 id1: undefined === req.body.id1 ? null : req.body.id1,

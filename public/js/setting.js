@@ -293,6 +293,17 @@
 
         var itemsHtml = {
             [LINE]: (
+                '<div class="pt-2 form-group line-dev-item">' +
+                    '<a class="p-3 text-center line-dev-link" href="https://developers.line.me/" target="_blank">' +
+                        '<img class="line-dev-logo" src="https://developers.line.me/assets/img/structures/header/logo.svg" alt="LINE developers" />' +
+                    '</a>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
+                    '</div>' +
+                '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
                         '<div class="input-container">' +
@@ -313,38 +324,20 @@
                 '</div>'
             ),
             [FACEBOOK]: (
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">粉絲頁 ID:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appId1" placeholder="請至 粉絲專頁 > 關於 查詢">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">App ID:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appId2" placeholder="請至 Facebook Developers 查詢">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">App Secret:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appSecret" placeholder="請至 Facebook Developers 查詢">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">Validation Token:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appToken1" placeholder="請至 Facebook Developers 查詢">' +
-                    '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">Page Token:</label>' +
-                    '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appToken2" placeholder="請至 Facebook Developers 查詢">' +
-                    '</div>' +
+                '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
+                    '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
+                        '<i class="fab fa-facebook-square fa-fw"></i>' +
+                        '<span>連結粉絲專頁</span>' +
+                    '</button>' +
                 '</div>'
             ),
             [WECHAT]: (
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
+                    '</div>' +
+                '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label">App ID: </label>' +
                         '<div class="input-container">' +
@@ -368,19 +361,6 @@
         function appTypeChange(ev) {
             selectType = ev.target.value;
             $appItemsContainer.html(itemsHtml[selectType] || '');
-
-            if (FACEBOOK === selectType) {
-                $appAddForm.find('.platform-app-container').prepend(
-                    '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
-                        '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
-                            '<i class="fab fa-facebook-square fa-fw"></i>' +
-                            '<span>匯入粉絲專頁</span>' +
-                        '</button>' +
-                    '</div>'
-                );
-            } else {
-                $appAddForm.find('.fb-sdk-item').remove();
-            }
         }
         $appTypeSelect.off('change').on('change', appTypeChange);
         appTypeChange({ target: $appTypeSelect.get(0) });

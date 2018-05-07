@@ -57,22 +57,6 @@ router.post('/:webhookid', (req, res, next) => {
     let webhookid = req.params.webhookid;
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
-        let appId = '';
-        let app = {};
-
-        let receivedMessages = [];
-        let repliedMessages = [];
-        let totalMessages = [];
-
-        let platformInfo = {};
-        let chatroomId = '';
-        let platformMessager;
-        let consumers = {};
-
-        let fromPath;
-        let toPath;
-        let _messages;
-
         return Promise.resolve().then(() => {
             // 由於 Facebook 使用單一 app 的訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
@@ -109,241 +93,261 @@ router.post('/:webhookid', (req, res, next) => {
                         if (!apps || (apps && 0 === Object.keys(apps).length)) {
                             return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                         }
-                        appId = Object.keys(apps).shift() || '';
-                        app = apps[appId];
-                        return app;
+                        return apps;
                     });
                 });
             }
+
             return appsMdl.find(null, webhookid).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
                     return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                 }
-                appId = Object.keys(apps).shift() || '';
-                app = apps[appId];
-                return botSvc.parser(req, res, appId, app);
-            });
-        }).then(() => {
-            return botSvc.create(appId, app);
-        }).then(() => {
-            return botSvc.retrievePlatformInfo(req, app);
-        }).then((_platformInfo) => {
-            platformInfo = _platformInfo;
-            if (!(platformInfo && !platformInfo.isEcho)) {
-                return;
-            }
-            return botSvc.getProfile(platformInfo, appId, app);
-        }).then((profile) => {
-            let platformUid = platformInfo.platformUid;
-            if (!(profile && platformInfo && !platformInfo.isEcho)) {
-                return;
-            }
-            return consumersMdl.replace(platformUid, profile);
-        }).then((_consumers) => {
-            if (!_consumers) {
-                return;
-            }
-            consumers = _consumers;
 
-            let platformGroupId = platformInfo.platformGroupId;
-            let platformGroupType = platformInfo.platformGroupType;
-            let platformUid = platformInfo.platformUid;
-
-            return Promise.resolve().then(() => {
-                if (!platformGroupId) {
-                    return;
-                }
-
-                // 如果 webhook 打過來的訊息是屬於平台的群組聊天，而非單一使用者
-                // 則根據平台的群組 ID 查找聊天室
-                // 若未找到記有群組 ID 的聊天室則自動建立一個聊天室
-                return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
-                    if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
-                        let chatroom = {
-                            platformGroupId: platformGroupId,
-                            platformGroupType: platformGroupType
-                        };
-                        return appsChatroomsMdl.insert(appId, chatroom);
-                    }
-                    return appsChatrooms;
-                }).then((appsChatrooms) => {
-                    let chatrooms = appsChatrooms[appId].chatrooms;
-                    chatroomId = Object.keys(chatrooms).shift() || '';
-                    return chatrooms[chatroomId];
+                // webhook 傳過來如果具有 webhookid 只會有一個 app 被找出來
+                let appId = Object.keys(apps).shift() || '';
+                let app = apps[appId];
+                return botSvc.parser(req, res, appId, app).then(() => {
+                    return apps;
                 });
-            }).then((groupChatroom) => {
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
-                    // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
-                    if (appsChatroomsMessagers && Object.keys(appsChatroomsMessagers).length > 0) {
-                        let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                        chatroomId = Object.keys(chatrooms).shift() || '';
-                        let messagers = chatrooms[chatroomId].messagers;
-                        platformMessager = messagers[platformUid];
+            });
+        }).then((apps) => {
+            let appIds = Object.keys(apps);
+            return Promise.all(appIds.map((appId) => {
+                let receivedMessages = [];
+                let repliedMessages = [];
+                let totalMessages = [];
+                let platformInfo = {};
+
+                let chatroomId = '';
+                let platformMessager;
+                let consumers = {};
+
+                let fromPath;
+                let toPath;
+                let _messages;
+
+                let app = apps[appId];
+                return botSvc.create(appId, app).then(() => {
+                    return botSvc.retrievePlatformInfo(req, app);
+                }).then((_platformInfo) => {
+                    platformInfo = _platformInfo;
+                    if (!(platformInfo && !platformInfo.isEcho)) {
+                        return;
+                    }
+                    return botSvc.getProfile(platformInfo, appId, app);
+                }).then((profile) => {
+                    let platformUid = platformInfo.platformUid;
+                    if (!(profile && platformInfo && !platformInfo.isEcho)) {
+                        return;
+                    }
+                    return consumersMdl.replace(platformUid, profile);
+                }).then((_consumers) => {
+                    if (!_consumers) {
+                        return;
+                    }
+                    consumers = _consumers;
+
+                    let platformGroupId = platformInfo.platformGroupId;
+                    let platformGroupType = platformInfo.platformGroupType;
+                    let platformUid = platformInfo.platformUid;
+
+                    return Promise.resolve().then(() => {
+                        if (!platformGroupId) {
+                            return;
+                        }
+
+                        // 如果 webhook 打過來的訊息是屬於平台的群組聊天，而非單一使用者
+                        // 則根據平台的群組 ID 查找聊天室
+                        // 若未找到記有群組 ID 的聊天室則自動建立一個聊天室
+                        return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
+                            if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
+                                let chatroom = {
+                                    platformGroupId: platformGroupId,
+                                    platformGroupType: platformGroupType
+                                };
+                                return appsChatroomsMdl.insert(appId, chatroom);
+                            }
+                            return appsChatrooms;
+                        }).then((appsChatrooms) => {
+                            let chatrooms = appsChatrooms[appId].chatrooms;
+                            chatroomId = Object.keys(chatrooms).shift() || '';
+                            return chatrooms[chatroomId];
+                        });
+                    }).then((groupChatroom) => {
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
+                            // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
+                            if (appsChatroomsMessagers && Object.keys(appsChatroomsMessagers).length > 0) {
+                                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                chatroomId = Object.keys(chatrooms).shift() || '';
+                                let messagers = chatrooms[chatroomId].messagers;
+                                platformMessager = messagers[platformUid];
+                                return;
+                            }
+
+                            return Promise.resolve().then(() => {
+                                if (!groupChatroom) {
+                                    // 如果是非平台群組聊天室(單一 consumer)的話
+                                    // 首次聊天室自動為其建立聊天室
+                                    return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
+                                        let chatrooms = appsChatrooms[appId].chatrooms;
+                                        chatroomId = Object.keys(chatrooms).shift() || '';
+                                    });
+                                }
+                            }).then(() => {
+                                // 自動建立聊天室後，將此訊息發送者加入
+                                let messager = {
+                                    type: app.type,
+                                    platformUid: platformUid,
+                                    lastTime: Date.now()
+                                };
+
+                                return appsChatroomsMessagersMdl.insertByPlatformUid(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
+                                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                                    let messagers = chatrooms[chatroomId].messagers;
+                                    platformMessager = messagers[platformUid];
+                                });
+                            });
+                        });
+                    });
+                }).then(() => {
+                    if (!platformMessager) {
+                        return [];
+                    }
+                    return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
+                }).then((messages) => {
+                    receivedMessages = messages;
+                    if (receivedMessages.length > 0) {
+                        fromPath = receivedMessages[0].fromPath;
+                    }
+                    return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
+                }).then((messages) => {
+                    repliedMessages = messages;
+                    if (0 === repliedMessages.length) {
+                        // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
+                        // 因此在此直接將 webhook 的 http request 做 response
+                        !res.headersSent && res.status(200).send('');
+                        return;
+                    };
+
+                    // 因各平台處理方式不同
+                    // 所以將 http request 做 response 傳入
+                    // 待訊息回覆後直接做 http response
+                    let replyToken = receivedMessages[0].replyToken || '';
+                    let platformUid = platformInfo.platformUid;
+                    return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
+                }).then(() => {
+                    return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
+                }).then((keywordreplies) => {
+                    return Promise.all(keywordreplies.map((keywordreply) => {
+                        return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
+                    }));
+                }).then(() => {
+                    return groupsMembersMdl.findMembers(app.group_id, null, false, true);
+                }).then((members) => {
+                    if (!members) {
+                        return [];
+                    }
+
+                    let recipientUids = Object.keys(members).map((memberId) => {
+                        let userId = members[memberId].user_id;
+                        return userId;
+                    });
+                    return recipientUids;
+                }).then((recipientUids) => {
+                    if (!(recipientUids && platformInfo.platformUid)) {
+                        return recipientUids;
+                    }
+
+                    let eventType = '';
+                    if (receivedMessages.length > 0) {
+                        eventType = receivedMessages[0].eventType || null;
+                    }
+
+                    // 接收到的事件為 follow 或 unfollow 時
+                    // 只處理 repliedMessages
+                    if (eventType && ('follow' === eventType || 'unfollow' === eventType)) {
+                        totalMessages = repliedMessages;
+                    } else {
+                        totalMessages = receivedMessages.concat(repliedMessages);
+                    }
+
+                    if (0 === totalMessages.length) {
+                        return [];
+                    }
+
+                    // 將整個聊天室群組成員的聊天狀態更新
+                    return Promise.all(recipientUids.map((recipientUid) => {
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
+                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                            let messagers = chatrooms[chatroomId].messagers;
+                            let recipientMsger = messagers[recipientUid];
+
+                            // 更新最後聊天時間及計算聊天次數
+                            let currentTime = Date.now();
+                            let _messager = {
+                                platformUid: recipientUid,
+                                chatCount: recipientMsger.chatCount ? recipientMsger.chatCount : 0,
+                                lastTime: currentTime,
+                                unRead: recipientMsger.unRead + totalMessages.length
+                            };
+                            if (recipientMsger.lastTime) {
+                                let lastChatedTimeGap = currentTime - new Date(recipientMsger.lastTime).getTime();
+                                if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
+                                    _messager.chatCount++;
+                                }
+                            }
+                            return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, recipientUid, _messager);
+                        });
+                    }));
+                }).then(() => {
+                    if (!(totalMessages.length > 0 && chatroomId)) {
+                        return;
+                    }
+                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages).then((appsChatroomsMessages) => {
+                        if (!appsChatroomsMessages) {
+                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                        };
+                        return appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                    });
+                }).then((messages) => {
+                    if (!messages) {
+                        return;
+                    }
+                    _messages = messages;
+                    let messageId = Object.keys(messages).shift() || '';
+                    if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
+                        toPath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src${fromPath}`;
+                        return storageHlp.filesMoveV2(fromPath, toPath);
+                    }
+                    return messages;
+                }).then(() => {
+                    if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
                         return;
                     }
 
-                    return Promise.resolve().then(() => {
-                        if (!groupChatroom) {
-                            // 如果是非平台群組聊天室(單一 consumer)的話
-                            // 首次聊天室自動為其建立聊天室
-                            return appsChatroomsMdl.insert(appId).then((appsChatrooms) => {
-                                let chatrooms = appsChatrooms[appId].chatrooms;
-                                chatroomId = Object.keys(chatrooms).shift() || '';
-                            });
-                        }
-                    }).then(() => {
-                        // 自動建立聊天室後，將此訊息發送者加入
-                        let messager = {
-                            type: app.type,
-                            platformUid: platformUid,
-                            lastTime: Date.now()
-                        };
+                    // 抓出聊天室 messagers 最新的狀態傳給 socket
+                    // 讓前端能夠更新目前 messager 的聊天狀態
+                    return appsChatroomsMessagersMdl.find(appId, chatroomId).then((appsChatroomsMessagers) => {
+                        let chatrooms = appsChatroomsMessagers[appId].chatrooms;
+                        let chatroom = chatrooms[chatroomId];
 
-                        return appsChatroomsMessagersMdl.insertByPlatformUid(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
-                            let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                            let messagers = chatrooms[chatroomId].messagers;
-                            platformMessager = messagers[platformUid];
-                        });
+                        /** @type {ChatshierChatSocketBody} */
+                        let messagesToSend = {
+                            app_id: appId,
+                            type: app.type,
+                            chatroom_id: chatroomId,
+                            chatroom: chatroom,
+                            senderUid: platformInfo.platformUid,
+                            // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
+                            // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
+                            recipientUid: '',
+                            consumers: consumers,
+                            messages: Object.values(_messages)
+                        };
+                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
                     });
                 });
-            });
-        }).then(() => {
-            if (!platformMessager) {
-                return [];
-            }
-            return botSvc.getReceivedMessages(req, res, platformMessager._id, appId, app);
-        }).then((messages) => {
-            receivedMessages = messages;
-            if (receivedMessages.length > 0) {
-                fromPath = receivedMessages[0].fromPath;
-            }
-            return chatshierHlp.getRepliedMessages(receivedMessages, appId, app);
-        }).then((messages) => {
-            repliedMessages = messages;
-            if (0 === repliedMessages.length) {
-                // 沒有回覆訊息的話代表此 webhook 沒有需要等待的非同步處理
-                // 因此在此直接將 webhook 的 http request 做 response
-                !res.headersSent && res.status(200).send('');
-                return;
-            };
-
-            // 因各平台處理方式不同
-            // 所以將 http request 做 response 傳入
-            // 待訊息回覆後直接做 http response
-            let replyToken = receivedMessages[0].replyToken || '';
-            let platformUid = platformInfo.platformUid;
-            return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
-        }).then(() => {
-            return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
-        }).then((keywordreplies) => {
-            return Promise.all(keywordreplies.map((keywordreply) => {
-                return appsKeywordrepliesMdl.increaseReplyCount(appId, keywordreply._id);
             }));
-        }).then(() => {
-            return groupsMembersMdl.findMembers(app.group_id, null, false, true);
-        }).then((members) => {
-            if (!members) {
-                return [];
-            }
-
-            let recipientUids = Object.keys(members).map((memberId) => {
-                let userId = members[memberId].user_id;
-                return userId;
-            });
-            return recipientUids;
-        }).then((recipientUids) => {
-            if (!(recipientUids && platformInfo.platformUid)) {
-                return recipientUids;
-            }
-
-            let eventType = '';
-            if (receivedMessages.length > 0) {
-                eventType = receivedMessages[0].eventType || null;
-            }
-
-            // 接收到的事件為 follow 或 unfollow 時
-            // 只處理 repliedMessages
-            if (eventType && ('follow' === eventType || 'unfollow' === eventType)) {
-                totalMessages = repliedMessages;
-            } else {
-                totalMessages = receivedMessages.concat(repliedMessages);
-            }
-
-            if (0 === totalMessages.length) {
-                return [];
-            }
-
-            // 將整個聊天室群組成員的聊天狀態更新
-            return Promise.all(recipientUids.map((recipientUid) => {
-                return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUid).then((appsChatroomsMessagers) => {
-                    let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                    let messagers = chatrooms[chatroomId].messagers;
-                    let recipientMsger = messagers[recipientUid];
-
-                    // 更新最後聊天時間及計算聊天次數
-                    let currentTime = Date.now();
-                    let _messager = {
-                        platformUid: recipientUid,
-                        chatCount: recipientMsger.chatCount ? recipientMsger.chatCount : 0,
-                        lastTime: currentTime,
-                        unRead: recipientMsger.unRead + totalMessages.length
-                    };
-                    if (recipientMsger.lastTime) {
-                        let lastChatedTimeGap = currentTime - new Date(recipientMsger.lastTime).getTime();
-                        if (CHAT_COUNT_INTERVAL_TIME <= lastChatedTimeGap) {
-                            _messager.chatCount++;
-                        }
-                    }
-                    return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, recipientUid, _messager);
-                });
-            }));
-        }).then(() => {
-            if (!(totalMessages.length > 0 && chatroomId)) {
-                return;
-            }
-            return appsChatroomsMessagesMdl.insert(appId, chatroomId, totalMessages).then((appsChatroomsMessages) => {
-                if (!appsChatroomsMessages) {
-                    return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                };
-                return appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
-            });
-        }).then((messages) => {
-            if (!messages) {
-                return;
-            }
-            _messages = messages;
-            let messageId = Object.keys(messages).shift() || '';
-            if (chatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
-                toPath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src${fromPath}`;
-                return storageHlp.filesMoveV2(fromPath, toPath);
-            }
-            return messages;
-        }).then(() => {
-            if (!(chatroomId && _messages && Object.keys(_messages).length > 0)) {
-                return;
-            }
-
-            // 抓出聊天室 messagers 最新的狀態傳給 socket
-            // 讓前端能夠更新目前 messager 的聊天狀態
-            return appsChatroomsMessagersMdl.find(appId, chatroomId).then((appsChatroomsMessagers) => {
-                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-                let chatroom = chatrooms[chatroomId];
-
-                /** @type {ChatshierChatSocketBody} */
-                let messagesToSend = {
-                    app_id: appId,
-                    type: app.type,
-                    chatroom_id: chatroomId,
-                    chatroom: chatroom,
-                    senderUid: platformInfo.platformUid,
-                    // 從 webhook 打過來的訊息，不能確定接收人是誰(因為是群組接收)
-                    // 因此傳到 chatshier 聊天室裡不需要聲明接收人是誰
-                    recipientUid: '',
-                    consumers: consumers,
-                    messages: Object.values(_messages)
-                };
-                return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
-            });
         });
     }).catch((ERROR) => {
         let json = {

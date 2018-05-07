@@ -22,6 +22,8 @@ module.exports = (function() {
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
     const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 
+    const FACEBOOK_OAUTH_EXCEPTION = 190;
+
     /** @type {Map<string, boolean>} */
     let messageCacheMap = new Map();
 
@@ -30,6 +32,46 @@ module.exports = (function() {
             this.bots = {};
         }
 
+        /**
+         * @param {any} req
+         * @param {any} res
+         * @param {string} appId
+         * @param {any} app
+         */
+        parser(req, res, appId, app) {
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+
+                    return new Promise((resolve, reject) => {
+                        line.middleware(lineConfig)(req, res, (err) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    });
+                case FACEBOOK:
+                    return new Promise((resolve) => {
+                        bodyParser.json()(req, res, () => resolve());
+                    });
+                case WECHAT:
+                    return new Promise((resolve) => {
+                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => resolve())(req, res);
+                    });
+                default:
+                    return Promise.resolve();
+            }
+        }
+
+        /**
+         * @param {string} appId
+         * @param {any} app
+         */
         create(appId, app) {
             return Promise.resolve().then(() => {
                 switch (app.type) {
@@ -93,42 +135,6 @@ module.exports = (function() {
                         break;
                 }
             });
-        };
-
-        /**
-         * @param {any} req
-         * @param {any} res
-         * @param {string} appId
-         * @param {any} app
-         */
-        parser(req, res, appId, app) {
-            switch (app.type) {
-                case LINE:
-                    let lineConfig = {
-                        channelSecret: app.secret,
-                        channelAccessToken: app.token1
-                    };
-
-                    return new Promise((resolve, reject) => {
-                        line.middleware(lineConfig)(req, res, (err) => {
-                            if (err) {
-                                reject(err);
-                                return;
-                            }
-                            resolve();
-                        });
-                    });
-                case FACEBOOK:
-                    return new Promise((resolve) => {
-                        bodyParser.json()(req, res, () => resolve());
-                    });
-                case WECHAT:
-                    return new Promise((resolve) => {
-                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => resolve())(req, res);
-                    });
-                default:
-                    return Promise.resolve();
-            }
         }
 
         /**
@@ -503,6 +509,18 @@ module.exports = (function() {
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
                             senderProfile.photo = fbUserProfile.profile_pic;
                             return senderProfile;
+                        }).catch((ex) => {
+                            // 如果此 app 的 page access token 已經無法使用
+                            // 則自動將此 app 刪除
+                            if (FACEBOOK_OAUTH_EXCEPTION === ex.error.code) {
+                                return appsMdl.remove(appId).then((apps) => {
+                                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
+                                    }
+                                    return Promise.resolve();
+                                });
+                            }
+                            return Promise.reject(ex.error);
                         });
                     case WECHAT:
                         return new Promise((resolve, reject) => {
