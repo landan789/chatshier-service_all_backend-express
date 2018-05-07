@@ -29,18 +29,22 @@
                     <div class="message-input-container">
                         <div class="message-input form-upper">
                             <div class="media-container">
-                                <button data-id="file-image" data-type="image" id="attImg" class="p-0 media-btn">
+                                <button data-id="fileImage" data-type="image" class="p-0 media-btn">
                                     <i class="fas fa-image" aria-hidden="true"></i>
                                 </button>
-                                <button data-id="file-video" data-type="video" id="attVid" class="p-0 media-btn">
+                                <button data-id="fileVideo" data-type="video" class="p-0 media-btn">
                                     <i class="fas fa-video" aria-hidden="true"></i>
                                 </button>
-                                <button data-id="file-audio" data-type="audio" id="attAud" class="p-0 media-btn">
-                                    <i class="fa fa-volume-up" aria-hidden="true"></i>
+                                <button data-id="fileAudio" data-type="audio" class="p-0 media-btn">
+                                    <i class="fas fa-volume-up" aria-hidden="true"></i>
                                 </button>
-                                <input class="ghost-file d-none" type="file" id="file-image" data-type="image" accept="image/*" />
-                                <input class="ghost-file d-none" type="file" id="file-video" data-type="video" accept="video/mp4,video/mpeg4" />
-                                <input class="ghost-file d-none" type="file" id="file-audio" data-type="audio" accept="audio/mp3,video/mpeg3" />
+                                <button data-id="anyFile" data-type="file" class="p-0 media-btn">
+                                    <i class="fas fa-file" aria-hidden="true"></i>
+                                </button>
+                                <input class="ghost-file d-none" type="file" id="fileImage" data-type="image" accept="image/*" />
+                                <input class="ghost-file d-none" type="file" id="fileVideo" data-type="video" accept="video/mp4,video/mpeg4" />
+                                <input class="ghost-file d-none" type="file" id="fileAudio" data-type="audio" accept="audio/mp3,video/mpeg3" />
+                                <input class="ghost-file d-none" type="file" id="anyFile" data-type="file" accept="*/*" />
                             </div>
                         </div>
                         <div class="message-input form-lower">

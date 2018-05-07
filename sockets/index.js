@@ -348,6 +348,7 @@ function init(server) {
             let appId = socketBody.app_id;
             let chatroomId = socketBody.chatroom_id;
             let messages = socketBody.messages;
+            // 訊息寄送者，這裡為 vendor 的 userid
             let senderUid = socketBody.senderUid;
             let senderMsgId;
             let app;
@@ -371,8 +372,10 @@ function init(server) {
                     let message = messages[i];
                     senderMsgId = message.messager_id;
 
-                    // messagerId 訊息寄送者，這裡為 vendor 的 userid
-                    let originalFilePath = `/${message.time}.${media[message.type]}`;
+                    let fileName = message.fileName || `${message.time}.${media[message.type]}`;
+                    delete message.fileName;
+
+                    let originalFilePath = `/${fileName}`;
                     let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
@@ -413,7 +416,7 @@ function init(server) {
                         if (!_message.src) {
                             return;
                         }
-                        let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${_message.time}.${media[_message.type]}`;
+                        let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${fileName}`;
                         return storageHlp.filesMoveV2(originalFilePath, newFilePath);
                     }).then(() => {
                         return nextMessage(i + 1);

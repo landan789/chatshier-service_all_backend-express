@@ -17,4 +17,5 @@ interface ChatshierMessage {
     text: string;
     time: number;
     type: string;
+    fileName?: string;
 }

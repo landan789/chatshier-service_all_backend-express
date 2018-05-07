@@ -1167,6 +1167,12 @@
                     '<i class="fa fa-location-arrow location-icon"></i>' +
                     '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
+            case 'file':
+                // let fileName = message.src.split('/').pop();
+                return (
+                    '<i class="fas fa-file fa-fw file-icon"></i>' +
+                    '<span>' + message.text + '<a href="' + message.src + '" download="' + message.src + '">' + message.src + '</a></span>'
+                );
             default:
                 let messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
@@ -1799,20 +1805,20 @@
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
         var config = window.chatshier.config;
+        var megaByte = 1024 * 1000;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         } else if (file.type.indexOf('video') >= 0 && file.size > config.videoFileMaxSize) {
-            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         } else if (file.type.indexOf('audio') >= 0 && file.size > config.audioFileMaxSize) {
-            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / megaByte) + ' MB', { type: 'warning' });
+            return;
+        } else if (file.size > config.otherFileMaxSize) {
+            $.notify('檔案過大，檔案大小限制為: ' + Math.floor(config.otherFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         }
-
-        var $loadingElem = generateLoadingJqElem();
-        $messageView.find('.message-panel').append($loadingElem);
-        scrollMessagePanelToBottom(appId, chatroomId);
 
         var messageType = $(_this).data('type');
         var appType = apps[appId].type;
@@ -1822,8 +1828,9 @@
 
         /** @type {ChatshierMessage} */
         var messageToSend = {
-            text: '',
+            text: '錢掌櫃傳送檔案給您: ',
             src: src,
+            fileName: file.name,
             type: messageType,
             from: CHATSHIER,
             time: Date.now(),
@@ -1839,8 +1846,11 @@
             messages: [messageToSend]
         };
 
+        var $loadingElem = generateLoadingJqElem();
+        $messageView.find('.message-panel').append($loadingElem);
+        scrollMessagePanelToBottom(appId, chatroomId);
+
         return new Promise((resolve, reject) => {
-            $submitMessageInput.val('');
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                 if (err) {
                     console.error(err);
