@@ -1,13 +1,17 @@
 = Release 1.2.5 =
-Released: 2018-05-02
+Released: Not Ready
 == Features ==
  * Add: Custom group chatroom name
- * Add: Support LINE group and room chat with LINE@
+ * Add: support LINE group and room chat with LINE
  * Add: click image content will stretch the image
+ * Add: add sound and title blink when new message is come
+ * Remove: manually link facebook fan page
+ * Add: user can link fan pages by facebook login
+ * Add: add link of line developers on add modal
 
 == Bug Fixes ==
- * Fixed: message panel not scroll to bottom
- * Fixed: message text new line not work
+ * Fixed: sometime refresh token is too late
+ * Fixed: support file type message for LINE
 
 = Release 1.2.4 =
 Released: 2018-04-27

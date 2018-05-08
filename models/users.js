@@ -54,6 +54,29 @@ module.exports = (function() {
             });
         }
 
+        /**
+         * @param {string} userId
+         * @param {(calendarIds: string[]|null) => any} [callback]
+         * @returns {Promise<string[]|null>}
+         */
+        findCalendarId(userId, callback) {
+            let query = {
+                '_id': userId
+            };
+            return this.Model.findOne(query).then((user) => {
+                if (!user) {
+                    return Promise.reject(new Error());
+                };
+                return user.calendar_ids;
+            }).then((calendarIds) => {
+                ('function' === typeof callback) && callback(calendarIds);
+                return calendarIds;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
         insert(user, callback) {
             let users;
             let query = {};
@@ -65,6 +88,7 @@ module.exports = (function() {
             _user.company = user.company || '';
             _user.password = user.password;
             _user.group_ids = user.group_ids || [];
+            _user.createdTime = user.updatedTime = Date.now();
 
             if (user.email) {
                 query['email'] = user.email;
@@ -102,43 +126,24 @@ module.exports = (function() {
             });
         }
 
-        /**
-         * @param {string} userId
-         * @param {(calendarIds: string[]|null) => any} [callback]
-         * @returns {Promise<string[]|null>}
-         */
-        findCalendarId(userId, callback) {
-            let query = {
-                '_id': userId
-            };
-            return this.Model.findOne(query).then((user) => {
-                if (!user) {
-                    return Promise.reject(new Error());
-                };
-                return user.calendar_ids;
-            }).then((calendarIds) => {
-                ('function' === typeof callback) && callback(calendarIds);
-                return calendarIds;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
         update(userId, user, callback) {
+            user.updatedTime = Date.now();
+
             let query = {
                 '_id': userId
             };
-            let users;
-            return this.Model.update(query, {
+
+            let doc = {
                 $set: user
-            }).then((result) => {
+            };
+
+            return this.Model.update(query, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
                 return this.Model.findOne(query);
             }).then((user) => {
-                users = {
+                let users = {
                     [user._id]: user
                 };
                 ('function' === typeof callback) && callback(users);

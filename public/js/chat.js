@@ -1,7 +1,6 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var LOADING_MSG_AND_ICON = '<p class="message-time font-weight-bold">Loading History Messages...<i class="loadingIcon"></i></p>';
     var NO_HISTORY_MSG = '<p class="message-time font-weight-bold">-沒有更舊的歷史訊息-</p>';
     var COLOR = {
         FIND: '#ff0000',
@@ -11,6 +10,8 @@
 
     var CHATSHIER = 'CHATSHIER';
     var SYSTEM = 'SYSTEM';
+    var VENDOR = 'VENDOR';
+
     var LINE = 'LINE';
     var FACEBOOK = 'FACEBOOK';
     var WECHAT = 'WECHAT';
@@ -21,6 +22,7 @@
         [WECHAT]: 'https://cdn.worldvectorlogo.com/logos/wechat.svg',
         [CHATSHIER]: 'image/logo-no-transparent.png'
     };
+    var newMessageTipText = '(๑•̀ω•́)ノ (有新訊息)';
 
     var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
@@ -78,6 +80,7 @@
     });
     var urlRegex = /(\b(https?):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     var isMobile = 'function' === typeof window.isMobileBrowser && window.isMobileBrowser();
+    var hasUserFocus = true;
 
     /**
      * @param {string} text
@@ -238,9 +241,11 @@
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
+
+                        // 只顯示該 consumer 為對象以及有指派人的待辦事項
                         if (ticket.isDeleted ||
                             platformUid !== ticket.platformUid ||
-                            (ticket.assigned_id && ticket.assigned_id !== userId)) {
+                            !ticket.assigned_id) {
                             continue;
                         }
 
@@ -447,6 +452,14 @@
     // start the loading works
     $profilePanel.addClass('d-none');
 
+    window.addEventListener('blur', function() {
+        hasUserFocus = false;
+    });
+    window.addEventListener('focus', function() {
+        hasUserFocus = true;
+        blinkPageTitle();
+    });
+
     // =====start chat event=====
     $(document).on('click', '.chat-app-item', showChatApp);
     $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
@@ -518,8 +531,6 @@
     // =====start profile event=====
     $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
     $(document).on('click', '.profile-confirm button', userInfoConfirm);
-    $(document).on('click', '.photo-choose', groupPhotoChoose);
-    $(document).on('change', '.photo-ghost', groupPhotoUpload);
 
     $profilePanel.on('click', '.profile-content .btn-update-chatroom', function(ev) {
         var $evBtn = $(ev.target);
@@ -780,7 +791,12 @@
                     return nextMessage(i + 1);
                 });
             };
-            return nextMessage(0);
+            return nextMessage(0).then(function() {
+                if (!hasUserFocus) {
+                    blinkPageTitle(newMessageTipText);
+                    return playNewMessageSound();
+                }
+            });
         });
 
         socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, function(data) {
@@ -1016,7 +1032,14 @@
             var platformUid = messager.platformUid;
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
-        var senderrName = SYSTEM === message.from ? '由系統發送' : (sender.name || '');
+
+        var senderrName = sender && (sender.name || '');
+        if (SYSTEM === message.from) {
+            senderrName = '由系統發送';
+        } else if (VENDOR === message.from) {
+            senderrName = '經由平台軟體發送';
+        }
+
         var isMedia = (
             'image' === message.type ||
             'audio' === message.type ||
@@ -1027,7 +1050,7 @@
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
         // 如果訊息是來自於其他平台的話，訊息一律放在左邊
         var shouldRightSide =
-            (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from)) ||
+            (appType !== CHATSHIER && (SYSTEM === message.from || CHATSHIER === message.from || VENDOR === message.from)) ||
             (appType === CHATSHIER && userId === platformUid);
 
         return (
@@ -1044,6 +1067,9 @@
     }
 
     function createChatroom(requireData) {
+        if (!requireData) {
+            return;
+        }
         var appId = requireData.appId;
         var appName = requireData.name;
         var appType = requireData.type;
@@ -1052,7 +1078,7 @@
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
 
-        if (!(requireData && requireData.chatroom)) {
+        if (!(chatroom && person)) {
             return;
         }
         chatroomId && chatroomList.push(chatroomId);
@@ -1196,11 +1222,17 @@
                 );
             case 'location':
                 return (
-                    '<i class="fa fa-location-arrow location-icon"></i>' +
+                    '<i class="fa fa-location-arrow fa-fw location-icon"></i>' +
                     '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
+            case 'file':
+                var fileName = message.src.split('/').pop();
+                return (
+                    '<i class="fas fa-file fa-fw file-icon"></i>' +
+                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">' + fileName + '</a></span>'
+                );
             default:
-                let messageText = linkify(filterWechatEmoji(message.text || ''));
+                var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
         }
     }
@@ -1266,9 +1298,12 @@
         var chatroom = requireData.chatroom;
         var chatroomId = requireData.chatroomId;
         var platformUid = requireData.platformUid;
-        var person = requireData.person || {};
-        person.photo = person.photo || 'image/user_large.png';
+        var person = requireData.person;
+        if (!person) {
+            return;
+        }
 
+        person.photo = person.photo || 'image/user_large.png';
         var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
         var profilePanelHtml = (
             '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
@@ -2184,28 +2219,6 @@
     }
     // =====end profile function=====
 
-    // =====start internal function=====
-    function groupPhotoChoose() {
-        var container = $(this).parents('.photo-container');
-        container.find('.photo-ghost').click();
-    }
-
-    function groupPhotoUpload() {
-        if (0 < this.files.length) {
-            var fileContainer = $(this).parents('.photo-container');
-            var img = fileContainer.find('img');
-
-            var file = this.files[0];
-            var storageRef = firebase.storage().ref();
-            var fileRef = storageRef.child(file.lastModified + '_' + file.name);
-            fileRef.put(file).then(function(snapshot) {
-                var url = snapshot.downloadURL;
-                img.attr('src', url);
-            });
-        }
-    }
-    // =====end internal function
-
     // =====start search input change func=====
     /** @type {JQuery<HTMLElement>[]} */
     var $tablinks = [];
@@ -2447,6 +2460,63 @@
     function linkify(text) {
         return text.replace(urlRegex, function(url) {
             return '<a href="' + url + '" target="_blank">' + url + '</a>';
+        });
+    }
+
+    var blinkCycle = null;
+    var DEFAULT_TITLE = document.title;
+    var blinkTitlePrev = DEFAULT_TITLE;
+    var blinkTitleNext = DEFAULT_TITLE;
+    /**
+     * @param {string} [title]
+     */
+    function blinkPageTitle(title) {
+        blinkTitlePrev = blinkTitleNext = DEFAULT_TITLE;
+        blinkCycle && window.clearInterval(blinkCycle);
+        if (!title) {
+            document.title = DEFAULT_TITLE;
+            return;
+        }
+
+        document.title = title;
+        blinkCycle = window.setInterval(function() {
+            blinkTitlePrev = document.title;
+            document.title = blinkTitleNext;
+            blinkTitleNext = blinkTitlePrev;
+        }, 1000);
+    }
+
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var audioCtx = AudioContext && new AudioContext();
+    /**
+     * Safari 需要使用 WebAudioAPI 才能播放音效
+     * 已知問題: Safari 在離開分頁後，無法在背景播放音效
+     */
+    function playNewMessageSound() {
+        var audioCtxSrc;
+        var newMessageSnd = document.createElement('audio');
+        newMessageSnd.src = 'media/new_message.mp3';
+
+        return Promise.resolve().then(function() {
+            if (audioCtx) {
+                audioCtxSrc = audioCtx.createMediaElementSource(newMessageSnd);
+                audioCtxSrc.connect(audioCtx.destination);
+            }
+            return newMessageSnd.play();
+        }).then(function() {
+            return new Promise((resolve) => {
+                newMessageSnd.onended = resolve;
+            });
+        }).then(function() {
+            audioCtx && audioCtxSrc.disconnect(audioCtx.destination);
+            newMessageSnd = audioCtxSrc = void 0;
+        }).catch(function(err) {
+            audioCtx && audioCtxSrc.disconnect(audioCtx.destination);
+            newMessageSnd = audioCtxSrc = void 0;
+            if ('NotAllowedError' === err.name) {
+                return;
+            }
+            return Promise.reject(err);
         });
     }
 

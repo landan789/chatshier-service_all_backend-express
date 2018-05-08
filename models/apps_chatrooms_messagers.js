@@ -281,9 +281,8 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         insertByPlatformUid(appId, chatroomId, messager, callback) {
-            messager = messager || {};
-
             let messagerId = this.Types.ObjectId();
+            messager = messager || {};
             messager._id = messagerId;
             messager.type = messager.type || CHATSHIER;
             messager.createdTime = messager.updatedTime = messager.lastTime = Date.now();
@@ -434,8 +433,8 @@ module.exports = (function() {
 
                 return this.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
                     let messager = {
-                        'platformUid': platformUid,
-                        'updatedTime': Date.now()
+                        platformUid: platformUid,
+                        updatedTime: Date.now()
                     };
 
                     let doc = {};

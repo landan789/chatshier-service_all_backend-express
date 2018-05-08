@@ -162,7 +162,8 @@ module.exports = (function() {
             let setGreeting = {
                 $set: {
                     'greetings.$._id': greetingId,
-                    'greetings.$.isDeleted': true
+                    'greetings.$.isDeleted': true,
+                    'greetings.$.updatedTime': Date.now()
                 }
             };
 

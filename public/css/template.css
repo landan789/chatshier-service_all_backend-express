@@ -148,3 +148,15 @@ tr:nth-child(even) {
 .title-top {
     margin-top: -20px;
 }
+
+.h3-padding {
+    padding-top: 15px;
+}
+
+.chsr.pagination {
+    margin-top: 0px;
+}
+.imagebtnlabel label{
+    width: 30%;
+    display: inline;
+}
