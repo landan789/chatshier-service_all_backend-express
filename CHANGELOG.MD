@@ -1,13 +1,13 @@
-= Release 1.2.5 =
+= Release 1.3.0 =
 Released: Not Ready
 == Features ==
- * Add: Custom group chatroom name
- * Add: support LINE group and room chat with LINE
- * Add: click image content will stretch the image
- * Add: add sound and title blink when new message is come
- * Remove: manually link facebook fan page
- * Add: user can link fan pages by facebook login
- * Add: add link of line developers on add modal
+ * creadted: support LINE group and room chat with LINE
+ * creadted: custom group chatroom name
+ * creadted: click image content will stretch the image
+ * creadted: add sound and title blink when new message is come
+ * creadted: user can link fan pages by facebook login
+ * creadted: add link of line developers on add modal
+ * changed: remove manually add facebook fan page
 
 == Bug Fixes ==
  * Fixed: sometime refresh token is too late
