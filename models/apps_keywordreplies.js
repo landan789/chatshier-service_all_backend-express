@@ -91,123 +91,6 @@ module.exports = (function() {
             });
         }
 
-        insert(appId, postKeywordreply, callback) {
-            let keywordreplyId = this.Types.ObjectId();
-            postKeywordreply._id = keywordreplyId;
-
-            return this.AppsModel.findById(appId).then((app) => {
-                app.keywordreplies.push(postKeywordreply);
-                return app.save();
-            }).then(() => {
-                return this.find(appId, keywordreplyId);
-            }).then((appsKeywordreplies) => {
-                ('function' === typeof callback) && callback(appsKeywordreplies);
-                return appsKeywordreplies;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        update(appId, keywordreplyId, putKeywordreply, callback) {
-            let query = {
-                '_id': appId,
-                'keywordreplies._id': keywordreplyId
-            };
-            putKeywordreply._id = keywordreplyId;
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$': putKeywordreply
-                }
-            };
-            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
-                return this.find(appId, keywordreplyId);
-            }).then((appsKeywordreplies) => {
-                ('function' === typeof callback) && callback(appsKeywordreplies);
-                return appsKeywordreplies;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        increaseReplyCount(appId, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
-                keywordreplyIds = [keywordreplyIds];
-            }
-            let query = {
-                '_id': appId,
-                'keywordreplies._id': {
-                    $in: keywordreplyIds.map((keywordreplyId) => this.toObject(keywordreplyId))
-                }
-            };
-            let operate = {
-                $inc: {
-                    'keywordreplies.$.replyCount': 1
-                }
-            };
-
-            return this.AppsModel.update(query, operate, { multi: true }).then(() => {
-                return this.find(appId, keywordreplyIds);
-            }).then((appsKeywordreplies) => {
-                ('function' === typeof callback) && callback(appsKeywordreplies);
-                return appsKeywordreplies;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        remove(appId, keywordreplyId, callback) {
-            let query = {
-                '_id': appId,
-                'keywordreplies._id': keywordreplyId
-            };
-
-            let updateOper = {
-                $set: {
-                    'keywordreplies.$._id': keywordreplyId,
-                    'keywordreplies.$.isDeleted': true
-                }
-            };
-            return this.AppsModel.update(query, updateOper).then(() => {
-                let aggregations = [
-                    {
-                        $unwind: '$keywordreplies'
-                    }, {
-                        $match: {
-                            '_id': this.Types.ObjectId(appId),
-                            'keywordreplies._id': this.Types.ObjectId(keywordreplyId)
-                        }
-                    }, {
-                        $project: {
-                            keywordreplies: true
-                        }
-                    }
-                ];
-
-                return this.AppsModel.aggregate(aggregations).then((results) => {
-                    let appsKeywordreplies = {};
-                    if (0 === results.length) {
-                        return Promise.reject(new Error());
-                    }
-
-                    appsKeywordreplies = results.reduce((output, app) => {
-                        output[app._id] = output[app._id] || { keywordreplies: {} };
-                        Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
-                        return output;
-                    }, {});
-                    return appsKeywordreplies;
-                });
-            }).then((appsKeywordreplies) => {
-                ('function' === typeof callback) && callback(appsKeywordreplies);
-                return appsKeywordreplies;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
         findKeywordreplies(appIds, keywordreplyIds, callback) {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
@@ -249,6 +132,129 @@ module.exports = (function() {
                         return appsKeywordreplies;
                     });
                 }
+            }).then((appsKeywordreplies) => {
+                ('function' === typeof callback) && callback(appsKeywordreplies);
+                return appsKeywordreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        insert(appId, postKeywordreply, callback) {
+            let keywordreplyId = this.Types.ObjectId();
+            postKeywordreply._id = keywordreplyId;
+            postKeywordreply.createdTime = postKeywordreply.updatedTime = Date.now();
+
+            return this.AppsModel.findById(appId).then((app) => {
+                app.keywordreplies.push(postKeywordreply);
+                return app.save();
+            }).then(() => {
+                return this.find(appId, keywordreplyId);
+            }).then((appsKeywordreplies) => {
+                ('function' === typeof callback) && callback(appsKeywordreplies);
+                return appsKeywordreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        update(appId, keywordreplyId, putKeywordreply, callback) {
+            putKeywordreply._id = keywordreplyId;
+            putKeywordreply.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId,
+                'keywordreplies._id': keywordreplyId
+            };
+
+            let updateOper = {
+                $set: {
+                    'keywordreplies.$': putKeywordreply
+                }
+            };
+            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
+                return this.find(appId, keywordreplyId);
+            }).then((appsKeywordreplies) => {
+                ('function' === typeof callback) && callback(appsKeywordreplies);
+                return appsKeywordreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        increaseReplyCount(appId, keywordreplyIds, callback) {
+            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
+                keywordreplyIds = [keywordreplyIds];
+            }
+            let query = {
+                '_id': appId,
+                'keywordreplies._id': {
+                    $in: keywordreplyIds.map((keywordreplyId) => this.toObject(keywordreplyId))
+                }
+            };
+            let operate = {
+                $inc: {
+                    'keywordreplies.$.replyCount': 1
+                },
+                'keywordreplies.$.updatedTime': Date.now()
+            };
+
+            return this.AppsModel.update(query, operate, { multi: true }).then(() => {
+                return this.find(appId, keywordreplyIds);
+            }).then((appsKeywordreplies) => {
+                ('function' === typeof callback) && callback(appsKeywordreplies);
+                return appsKeywordreplies;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        remove(appId, keywordreplyId, callback) {
+            let query = {
+                '_id': appId,
+                'keywordreplies._id': keywordreplyId
+            };
+
+            let updateOper = {
+                $set: {
+                    'keywordreplies.$._id': keywordreplyId,
+                    'keywordreplies.$.isDeleted': true,
+                    'keywordreplies.$.updatedTime': Date.now()
+                }
+            };
+            return this.AppsModel.update(query, updateOper).then(() => {
+                let aggregations = [
+                    {
+                        $unwind: '$keywordreplies'
+                    }, {
+                        $match: {
+                            '_id': this.Types.ObjectId(appId),
+                            'keywordreplies._id': this.Types.ObjectId(keywordreplyId)
+                        }
+                    }, {
+                        $project: {
+                            keywordreplies: true
+                        }
+                    }
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsKeywordreplies = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
+
+                    appsKeywordreplies = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { keywordreplies: {} };
+                        Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
+                        return output;
+                    }, {});
+                    return appsKeywordreplies;
+                });
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;

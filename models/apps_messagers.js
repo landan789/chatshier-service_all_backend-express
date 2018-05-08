@@ -110,9 +110,9 @@ module.exports = (function() {
                     (!appsMessagers || (appsMessagers && 0 === Object.keys(appsMessagers).length))) {
                     let chatroomId = this.Types.ObjectId();
                     let chatroom = {
-                        _id: chatroomId,
-                        createdTime: Date.now()
+                        _id: chatroomId
                     };
+                    chatroom.createdTime = chatroom.updatedTime = Date.now();
 
                     let query = {
                         '_id': appId

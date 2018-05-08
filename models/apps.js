@@ -119,13 +119,17 @@ module.exports = (function() {
         };
 
         update(appId, putApp, callback) {
+            putApp.updatedTime = Date.now();
+
             let query = {
                 '_id': appId
             };
 
-            return this.AppsModel.update(query, {
+            let doc = {
                 $set: putApp
-            }).then((result) => {
+            };
+
+            return this.AppsModel.update(query, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
@@ -146,9 +150,14 @@ module.exports = (function() {
                 '_id': appId
             };
 
-            return this.AppsModel.update(query, {
-                $set: {isDeleted: true}
-            }).then((result) => {
+            let doc = {
+                $set: {
+                    isDeleted: true,
+                    updatedTime: Date.now()
+                }
+            };
+
+            return this.AppsModel.update(query, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 };
