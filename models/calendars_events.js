@@ -79,6 +79,7 @@ module.exports = (function() {
         insert(calendarIds, postEvent, callback) {
             let eventId = this.Types.ObjectId();
             postEvent._id = eventId;
+            postEvent.createdTime = postEvent.updatedTime = Date.now();
 
             return Promise.resolve().then(() => {
                 if (calendarIds && !(calendarIds instanceof Array)) {
@@ -133,16 +134,19 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         update(calendarId, eventId, putEvent, callback) {
-            putEvent.updatedTime = undefined === putEvent.updatedTime ? Date.now() : putEvent.updatedTime;
+            putEvent.updatedTime = Date.now();
+
             let calendarQuery = {
                 '_id': calendarId,
                 'events._id': eventId
             };
+
             let setEvent = {
                 $set: {
                     'events.$._id': eventId
                 }
             };
+
             for (let prop in putEvent) {
                 if (null === putEvent[prop] || undefined === putEvent[prop]) {
                     continue;
@@ -178,7 +182,8 @@ module.exports = (function() {
 
             let setEvent = {
                 $set: {
-                    'events.$.isDeleted': true
+                    'events.$.isDeleted': true,
+                    'events.$.updatedTime': Date.now()
                 }
             };
 
