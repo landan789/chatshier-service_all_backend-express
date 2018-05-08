@@ -113,12 +113,14 @@ module.exports = (function() {
             if ('string' === typeof appIds) {
                 appIds = [appIds];
             }
+
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
                 'autoreplies.isDeleted': false
             };
+
             let aggregations = [
                 {
                     $unwind: '$autoreplies' // 只針對 document 處理
@@ -131,6 +133,7 @@ module.exports = (function() {
                     }
                 }
             ];
+
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 let appsAutoreplies = {};
                 if (0 === results.length) {

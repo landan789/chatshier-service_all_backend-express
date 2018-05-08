@@ -56,7 +56,7 @@ module.exports = (function() {
 
         fuseOptionBuilder(options) {
             options = options || {};
-            /** @type {Fuse.FuseOptions} */
+            /** @type {FuseJS.FuseOptions} */
             let fuseOptions = {
                 // 搜尋的關鍵字須遵守大小寫
                 caseSensitive: false,
@@ -145,52 +145,10 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {string} keyword
+         * @param {string} inputText
          * @returns {Promise<any>}
          */
-        searchKeywordreplies(appId, keyword, callback) {
-            let fuseOptions = this.fuseOptionBuilder({
-                tokenize: true,
-                matchAllTokens: true,
-                includeScore: true,
-                distance: 100,
-                threshold: 0.2,
-                keys: [
-                    'keyword'
-                ]
-            });
-
-            return Promise.resolve().then(() => {
-                if (!(appId && keyword)) {
-                    return Promise.resolve([]);
-                };
-
-                return new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.find(appId, null, (appsKeywordreplies) => {
-                        let keywordreplies = appsKeywordreplies[appId].keywordreplies;
-                        let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
-                        let list = keywordreplyIds.map((keywordreplyId) => {
-                            keywordreplies[keywordreplyId].id = keywordreplyId;
-                            return keywordreplies[keywordreplyId];
-                        });
-                        let keywordRepliyFuse = new FuseJS(list, fuseOptions);
-
-                        let results = keywordRepliyFuse.search(keyword);
-                        let _keywordreplies = {};
-
-                        if (results.length > 0) {
-                            _keywordreplies[results[0].item.id] = results[0].item;
-                        }
-                        resolve(_keywordreplies);
-                    });
-                });
-            }).then((keywordreplies) => {
-                callback(keywordreplies);
-                return Promise.resolve(keywordreplies);
-            });
-        };
-
-        searchKeywordreplies2(appId, inputText, callback) {
+        searchKeywordreplies(appId, inputText) {
             let fuseOptions = this.fuseOptionBuilder({
                 includeScore: true,
                 distance: 100,
@@ -200,14 +158,16 @@ module.exports = (function() {
                 ]
             });
 
-            return new Promise((resolve, reject) => {
+            return Promise.resolve().then(() => {
                 if (!(appId && inputText)) {
-                    return resolve({});
+                    return {};
                 }
-                appsKeywordrepliesMdl.findKeywordreplies(appId, null,(appsKeywordreplies) => {
-                    if (!appsKeywordreplies) {
-                        return resolve({});
+
+                return appsKeywordrepliesMdl.find(appId).then((appsKeywordreplies) => {
+                    if (!appsKeywordreplies || (appsKeywordreplies && 0 === Object.keys(appsKeywordreplies).length)) {
+                        return {};
                     }
+
                     let keywordreplies = appsKeywordreplies[appId].keywordreplies;
                     let keywordreplyIds = Object.keys(appsKeywordreplies[appId].keywordreplies);
                     let list = [{
@@ -217,20 +177,21 @@ module.exports = (function() {
                     let _keywordreplies = {};
                     keywordreplyIds.forEach((keywordreplyId) => {
                         let results = keywordRepliyFuse.search(keywordreplies[keywordreplyId].keyword);
-
                         if (results.length > 0 && 0.1 > results[0].score) {
                             _keywordreplies[keywordreplyId] = keywordreplies[keywordreplyId];
                         }
                     });
-                    resolve(_keywordreplies);
+                    return _keywordreplies;
                 });
-            }).then((keywordreplies) => {
-                callback(keywordreplies);
-                return Promise.resolve(keywordreplies);
             });
         };
 
-        searchTemplates(appId, inputText, callback) {
+        /**
+         * @param {string} appId
+         * @param {string} inputText
+         * @returns {Promise<any>}
+         */
+        searchTemplates(appId, inputText) {
             let fuseOptions = this.fuseOptionBuilder({
                 includeScore: true,
                 distance: 100,
@@ -240,14 +201,16 @@ module.exports = (function() {
                 ]
             });
 
-            return new Promise((resolve, reject) => {
+            return Promise.resolve().then(() => {
                 if (!(appId && inputText)) {
-                    return resolve([]);
+                    return {};
                 }
-                appsTemplatesMdl.find(appId, null, (appsTemplates) => {
-                    if (!appsTemplates) {
-                        return;
+
+                return appsTemplatesMdl.find(appId).then((appsTemplates) => {
+                    if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
+                        return {};
                     }
+
                     let templates = appsTemplates[appId].templates;
                     let templatesIds = Object.keys(appsTemplates[appId].templates);
                     let list = [{
@@ -262,11 +225,8 @@ module.exports = (function() {
                             _templates[templatesId] = templates[templatesId];
                         }
                     });
-                    resolve(_templates);
+                    return _templates;
                 });
-            }).then((templates) => {
-                callback(templates);
-                return Promise.resolve(templates);
             });
         };
     }
