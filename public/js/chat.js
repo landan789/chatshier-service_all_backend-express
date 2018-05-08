@@ -240,9 +240,11 @@
 
                     for (var ticketId in tickets) {
                         var ticket = tickets[ticketId];
+
+                        // 只顯示該 consumer 為對象以及有指派人的待辦事項
                         if (ticket.isDeleted ||
                             platformUid !== ticket.platformUid ||
-                            (ticket.assigned_id && ticket.assigned_id !== userId)) {
+                            !ticket.assigned_id) {
                             continue;
                         }
 
