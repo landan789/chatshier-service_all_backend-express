@@ -24,6 +24,7 @@
     };
     var newMessageTipText = '(๑•̀ω•́)ノ (有新訊息)';
 
+    var DEFAULT_CHATROOM_NAME = '群組聊天室';
     var SOCKET_NAMESPACE = '/chatshier';
     var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
 
@@ -530,6 +531,37 @@
     // =====start profile event=====
     $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
     $(document).on('click', '.profile-confirm button', userInfoConfirm);
+
+    $profilePanel.on('click', '.profile-content .btn-update-chatroom', function(ev) {
+        var $evBtn = $(ev.target);
+        var $parentGroup = $evBtn.parents('.profile-group');
+        var appId = $parentGroup.attr('app-id');
+        var chatroomId = $parentGroup.attr('chatroom-id');
+        var putChatroom = {
+            name: $evBtn.siblings('.chatroom-name').val()
+        };
+
+        return Promise.resolve().then(function() {
+            if (putChatroom.name === appsChatrooms[appId].chatrooms[chatroomId].name) {
+                return;
+            }
+
+            return api.appsChatrooms.update(appId, chatroomId, putChatroom, userId).then(function(resJson) {
+                var _appsChatrooms = resJson.data;
+                var _chatrooms = _appsChatrooms[appId].chatrooms;
+                var _chatroom = _chatrooms[chatroomId];
+                for (let prop in _chatroom) {
+                    appsChatrooms[appId].chatrooms[chatroomId][prop] = _chatroom[prop];
+                }
+
+                var $chatroomNames = $('.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .app-name');
+                $chatroomNames.text(_chatroom.name || DEFAULT_CHATROOM_NAME);
+                $.notify('更新成功', { type: 'success' });
+            });
+        }).catch(function() {
+            $.notify('更新失敗', { type: 'danger' });
+        });
+    });
     // =====end profile event=====
 
     // =====start utility event=====
@@ -744,7 +776,7 @@
                         var $chatroomProfile = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
                         $chatroomProfile.find('.panel-table').remove();
 
-                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, app.type, chatroom, groups[app.group_id].name));
+                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, app.type, chatroom));
                         $(chatroomProfileJqNode.shift()).insertAfter($chatroomProfile.find('.photo-container'));
                     } else if (senderUid && consumer) {
                         var consumerUid = consumer.platformUid;
@@ -982,7 +1014,7 @@
         var chatroomName = opts.clientName;
         if (CHATSHIER === opts.appType || chatroom.platformGroupType) {
             chatroomPhoto = CHATSHIER === opts.appType ? 'image/group.png' : logos[opts.appType];
-            chatroomName = '群組聊天室';
+            chatroomName = chatroom.name || DEFAULT_CHATROOM_NAME;
         }
 
         var html = (
@@ -1283,8 +1315,7 @@
                         var html = '';
 
                         if (isGroupChatroom) {
-                            var groupName = requireData.name;
-                            html = generateChatroomProfileHtml(appId, appType, chatroom, groupName);
+                            html = generateChatroomProfileHtml(appId, appType, chatroom);
                         } else {
                             html = (
                                 generatePersonProfileHtml(appId, chatroomId, platformUid, person) +
@@ -1507,17 +1538,19 @@
         return messagerProfileHtml;
     }
 
-    function generateChatroomProfileHtml(appId, appType, chatroom, groupName) {
+    function generateChatroomProfileHtml(appId, appType, chatroom) {
         var groupId = apps[appId].group_id;
-        var members = groups[groupId].members;
+        var group = groups[groupId];
+        var chatroomName = chatroom.name || '';
         var isChatshierApp = CHATSHIER === appType;
 
         var html =
             '<table class="table table-hover panel-table">' +
-                '<tr class="' + (!isChatshierApp ? 'd-none' : '') + '">' +
+                '<tr>' +
                     '<th class="profile-label">群組名稱</th>' +
-                    '<td class="profile-content">' +
-                        '<input class="form-control td-inner" type="text" value="' + groupName + '"' + ' readonly disabled />' +
+                    '<td class="d-flex profile-content">' +
+                        '<input class="form-control td-inner chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
+                        '<button class="ml-2 btn btn-success btn-update-chatroom">更新</button>' +
                     '</td>' +
                 '</tr>' +
                 '<tr>' +
@@ -1526,14 +1559,15 @@
                         (function() {
                             var html = '';
                             if (isChatshierApp) {
-                                for (var memberId in members) {
-                                    var memberUserId = members[memberId].user_id;
+                                for (var memberId in group.members) {
+                                    var memberUserId = group.members[memberId].user_id;
                                     var memberUser = users[memberUserId];
-                                    html +=
+                                    html += (
                                         '<div class="person-chip">' +
                                             '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
                                             '<span>' + memberUser.name + '</span>' +
-                                        '</div>';
+                                        '</div>'
+                                    );
                                 }
                             } else {
                                 var messagers = chatroom.messagers;

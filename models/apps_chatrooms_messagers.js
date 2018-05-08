@@ -92,6 +92,7 @@ module.exports = (function() {
                         // 篩選需要的項目
                         chatrooms: {
                             _id: '$chatrooms._id',
+                            name: '$chatrooms.name',
                             isDeleted: '$chatrooms.isDeleted',
                             platformGroupId: '$chatrooms.platformGroupId',
                             platformGroupType: '$chatrooms.platformGroupType',
@@ -127,6 +128,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -179,6 +181,7 @@ module.exports = (function() {
                         // 篩選需要的項目
                         chatrooms: {
                             _id: '$chatrooms._id',
+                            name: '$chatrooms.name',
                             isDeleted: '$chatrooms.isDeleted',
                             platformGroupId: '$chatrooms.platformGroupId',
                             platformGroupType: '$chatrooms.platformGroupType',
@@ -222,6 +225,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));
@@ -597,6 +601,7 @@ module.exports = (function() {
                             // 篩選需要的項目
                             chatrooms: {
                                 _id: '$chatrooms._id',
+                                name: '$chatrooms.name',
                                 isDeleted: '$chatrooms.isDeleted',
                                 platformGroupId: '$chatrooms.platformGroupId',
                                 platformGroupType: '$chatrooms.platformGroupType',
@@ -638,6 +643,7 @@ module.exports = (function() {
 
                         let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                         chatroom._id = app.chatrooms._id;
+                        chatroom.name = app.chatrooms.name;
                         chatroom.platformGroupId = app.chatrooms.platformGroupId;
                         chatroom.platformGroupType = app.chatrooms.platformGroupType;
                         Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));

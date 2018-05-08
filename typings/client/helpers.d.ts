@@ -67,6 +67,7 @@ interface AppsAutorepliesAPI {
 
 interface AppsChatroomsAPI {
     findAll: (userId: string) => Promise<any>;
+    update: (appId: string, chatroomId: string, chatroom: any, userId: string) => Promise<any>;
 }
 
 interface AppsChatroomsMessagersAPI {

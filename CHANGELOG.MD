@@ -1,6 +1,7 @@
 = Release 1.2.5 =
 Released: Not Ready
 == Features ==
+ * Add: Custom group chatroom name
  * Add: support LINE group and room chat with LINE
  * Add: click image content will stretch the image
  * Add: add sound and title blink when new message is come
