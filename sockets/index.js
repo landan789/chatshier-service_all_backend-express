@@ -139,7 +139,19 @@ function init(server) {
                         return chatrooms[chatroomId];
                     });
                 }).then((groupChatroom) => {
-                    return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
+                    let query;
+                    if (!groupChatroom) {
+                        // 如果不是平台群組聊天室的訊息，則只要搜尋單一 consumer 的聊天室即可
+                        query = {
+                            // 由於舊資料沒有 platformGroupId 欄位，因此需要進行 or 條件
+                            $or: [
+                                { 'chatrooms.platformGroupId': null },
+                                { 'chatrooms.platformGroupId': '' }
+                            ]
+                        };
+                    }
+
+                    return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid, query).then((appsChatroomsMessagers) => {
                         // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
                         if (appsChatroomsMessagers && Object.keys(appsChatroomsMessagers).length > 0) {
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
