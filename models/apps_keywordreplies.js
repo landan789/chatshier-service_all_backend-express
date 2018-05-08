@@ -138,7 +138,7 @@ module.exports = (function() {
             let query = {
                 '_id': appId,
                 'keywordreplies._id': {
-                    $in: keywordreplyIds.map((keywordreplyId) => this.toObject(keywordreplyId))
+                    $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 }
             };
             let operate = {
