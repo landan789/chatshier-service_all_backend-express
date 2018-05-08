@@ -223,10 +223,9 @@ module.exports = (function() {
                     let messager = {
                         _id: messagerId,
                         type: CHATSHIER,
-                        platformUid: memberUserId,
-                        createdTime: Date.now(),
-                        updatedTime: Date.now()
+                        platformUid: memberUserId
                     };
+                    messager.createdTime = messager.updatedTime = Date.now();
 
                     let doc = {
                         $push: {

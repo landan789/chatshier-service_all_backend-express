@@ -131,6 +131,7 @@ module.exports = (function() {
             let userId = postMember.user_id;
             let memberId = this.Types.ObjectId();
             postMember._id = memberId;
+            postMember.createdTime = postMember.updatedTime = Date.now();
 
             let groupQuery = {
                 '_id': groupId
@@ -170,21 +171,26 @@ module.exports = (function() {
         }
 
         update(groupId, memberId, putMember, callback) {
+            putMember.updatedTime = Date.now();
+
             let query = {
                 '_id': groupId,
                 'members._id': memberId
             };
+
             let member = {
                 $set: {
                     'members.$._id': memberId
                 }
             };
+
             for (let prop in putMember) {
                 if (null === putMember[prop] || undefined === putMember[prop]) {
                     continue;
                 }
                 member.$set['members.$.' + prop] = putMember[prop];
             }
+
             return this.GroupsModel.update(query, member).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
@@ -204,11 +210,14 @@ module.exports = (function() {
                 '_id': groupId,
                 'members._id': memberId
             };
+
             let setMember = {
                 $set: {
-                    'members.$.isDeleted': true
+                    'members.$.isDeleted': true,
+                    'members.$.updatedTime': Date.now()
                 }
             };
+
             return this.GroupsModel.update(query, setMember).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
