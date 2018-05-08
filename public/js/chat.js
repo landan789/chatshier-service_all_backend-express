@@ -1471,8 +1471,10 @@
                                                 checkboxes += (
                                                     '<div class="dropdown-item">' +
                                                         '<div class="form-check form-check-inline">' +
-                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                            '<label class="form-check-label">' + sets[i].agentName + '</label>' +
+                                                            '<label class="form-check-label">' +
+                                                                '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                                sets[i].agentName +
+                                                            '</label>' +
                                                         '</div>' +
                                                     '</div>'
                                                 );
