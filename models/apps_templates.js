@@ -1,96 +1,70 @@
 module.exports = (function() {
     let ModelCore = require('../cores/model');
     const APPS = 'apps';
+
     class TemplatesModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
         }
-          /**
+        /**
          * 輸入全部的 appId 取得該 App 所有templates的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string|string[]} templateIds
+         * @param {string|string[]} [templateIds]
          * @param {(appsTemplates: any) => any} [callback]
          * @return {Promise<any>}
          */
         find(appIds, templateIds, callback) {
-            if (templateIds && !(templateIds instanceof Array)) {
-                templateIds = [templateIds];
-            }
-            if (appIds && !(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-            return Promise.resolve().then(() => {
-                if (!templateIds) {
-                    let query = {
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'templates.isDeleted': false
-                    };
-                    let aggregations = [
-                        {
-                            $unwind: '$templates' // 只針對 document 處理
-                        }, {
-                            $match: query
-                        }, {
-                            $project: {
-                                // 篩選項目
-                                templates: true
-                            }
-                        }
-                    ];
-                    return this.AppsModel.aggregate(aggregations).then((results) => {
-                        let appsTemplates = {};
-                        if (0 === results.length) {
-                            return appsTemplates;
-                        }
+            let query = {
+                'templates.isDeleted': false
+            };
 
-                        appsTemplates = results.reduce((output, app) => {
-                            output[app._id] = output[app._id] || { templates: {} };
-                            Object.assign(output[app._id].templates, this.toObject(app.templates));
-                            return output;
-                        }, {});
-                        return appsTemplates;
-                    });
+            if (appIds) {
+                if (!(appIds instanceof Array)) {
+                    appIds = [appIds];
+                }
+
+                query['_id'] = {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 };
+            }
 
-                let aggregations = [
-                    {
-                        $unwind: '$templates' // 只針對 templates document 處理
-                    }, {
-                        $match: {
-                            // 尋找符合 appId 及 templateIds 的欄位
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'templates.isDeleted': false,
-                            'templates._id': {
-                                $in: templateIds.map((templateId) => this.Types.ObjectId(templateId))
-                            }
-                        }
-                    }, {
-                        $project: {
-                            // 篩選項目
-                            templates: true
-                        }
+            if (templateIds) {
+                if (!(templateIds instanceof Array)) {
+                    templateIds = [templateIds];
+                }
+
+                query['templates._id'] = {
+                    $in: templateIds.map((templateId) => this.Types.ObjectId(templateId))
+                };
+            }
+
+            let aggregations = [
+                {
+                    $unwind: '$templates' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        templates: true
                     }
-                ];
+                }
+            ];
 
-                return this.AppsModel.aggregate(aggregations).then((results) => {
-                    let appsTemplates = {};
-                    if (0 === results.length) {
-                        return appsTemplates;
-                    }
-
-                    appsTemplates = results.reduce((output, app) => {
-                        output[app._id] = output[app._id] || { templates: {} };
-                        Object.assign(output[app._id].templates, this.toObject(app.templates));
-                        return output;
-                    }, {});
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsTemplates = {};
+                if (0 === results.length) {
                     return appsTemplates;
-                });
+                }
+
+                appsTemplates = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { templates: {} };
+                    Object.assign(output[app._id].templates, this.toObject(app.templates));
+                    return output;
+                }, {});
+                return appsTemplates;
             }).then((appsTemplates) => {
                 ('function' === typeof callback) && callback(appsTemplates);
                 return appsTemplates;
@@ -99,22 +73,22 @@ module.exports = (function() {
                 return null;
             });
         }
+
         /**
-         * 輸入指定的 appId 新增一筆templates的資料
-         *
          * @param {string} appId
          * @param {any} postTemplate
          * @param {(appsTemplates: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insert(appId, postTemplate, callback){
+        insert(appId, postTemplate, callback) {
             let templateId = this.Types.ObjectId();
             postTemplate._id = templateId;
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.templates.push(postTemplate);
                 return app.save();
             }).then(() => {
-                return this.find(appId, templateId);
+                return this.find(appId, templateId.toHexString());
             }).then((appsTemplates) => {
                 ('function' === typeof callback) && callback(appsTemplates);
                 return appsTemplates;
@@ -124,25 +98,25 @@ module.exports = (function() {
             });
         }
         /**
-         * 輸入指定的 appId 修改一筆templates的資料
-         *
          * @param {string} appId
          * @param {string} templateId
          * @param {any} putTemplate
          * @param {(appsTemplates: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        update(appId, templateId, putTemplate, callback){
+        update(appId, templateId, putTemplate, callback) {
             let query = {
                 '_id': appId,
                 'templates._id': templateId
             };
+
             putTemplate._id = templateId;
             let operate = {
                 $set: {
                     'templates.$': putTemplate
                 }
             };
+
             return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
                 return this.find(appId, templateId);
             }).then((appsTemplates) => {
@@ -161,12 +135,16 @@ module.exports = (function() {
          * @param {(appsAutoreplies: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        remove(appIds, templateId, callback){
+        remove(appIds, templateId, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'templates._id': templateId
+                'templates._id': this.Types.ObjectId(templateId)
             };
 
             let operate = {
@@ -175,6 +153,7 @@ module.exports = (function() {
                     'templates.$.isDeleted': true
                 }
             };
+
             return this.AppsModel.update(query, operate).then((updateResult) => {
                 if (!updateResult.ok) {
                     return Promise.reject(new Error());
@@ -184,12 +163,7 @@ module.exports = (function() {
                     {
                         $unwind: '$templates'
                     }, {
-                        $match: {
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'templates._id': this.Types.ObjectId(templateId)
-                        }
+                        $match: query
                     }, {
                         $project: {
                             templates: true
@@ -215,7 +189,8 @@ module.exports = (function() {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
-        } 
+        }
+
         /**
         * 找到 templates未刪除的資料包，不含 apps 結構
         *
@@ -223,47 +198,50 @@ module.exports = (function() {
         * @param {(appsTemplates: any) => any} [callback]
         * @return {Promise<any>}
         */
-       findTemplates(appIds, callback) {
-        if ('string' === typeof appIds) {
-            appIds = [appIds];
-        }
-        let query = {
-            '_id': {
-                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-            },
-            'templates.isDeleted': false
-        };
-        let aggregations = [
-            {
-                $unwind: '$templates' // 只針對 document 處理
-            }, {
-                $match: query
-            }, {
-                $project: {
-                    // 篩選項目
-                    templates: true
-                }
-            }
-        ];
-        return this.AppsModel.aggregate(aggregations).then((results) => {
-            let appsTemplates = {};
-            if (0 === results.length) {
-                return appsTemplates;
+        findTemplates(appIds, callback) {
+            if ('string' === typeof appIds) {
+                appIds = [appIds];
             }
 
-            appsTemplates = results.reduce((output, app) => {
-                Object.assign(output, this.toObject(app.templates));
-                return output;
-            }, {});
-            return appsTemplates;
-        }).then((appsTemplates) => {
-            ('function' === typeof callback) && callback(appsTemplates);
-            return appsTemplates;
-        }).catch(() => {
-            ('function' === typeof callback) && callback(null);
-            return null;
-        });
-    };
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'templates.isDeleted': false
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$templates' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        templates: true
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsTemplates = {};
+                if (0 === results.length) {
+                    return appsTemplates;
+                }
+
+                appsTemplates = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.templates));
+                    return output;
+                }, {});
+                return appsTemplates;
+            }).then((appsTemplates) => {
+                ('function' === typeof callback) && callback(appsTemplates);
+                return appsTemplates;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
     }
     return new TemplatesModel();
 })();

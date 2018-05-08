@@ -6,20 +6,7 @@ module.exports = (function() {
     const API_SUCCESS = require('../config/api_success.json');
     const storageHlp = require('../helpers/storage');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
-    const READ = 'READ';
-
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
-
     let appsTemplatesMdl = require('../models/apps_templates');
-    let appsMdl = require('../models/apps');
-    let usersMdl = require('../models/users');
-    let groupsMdl = require('../models/groups');
 
     class AppsTemplatesController extends ControllerCore {
         constructor() {
@@ -34,14 +21,11 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTemplatesMdl.find(appIds, null, (data) => {
-                        if (undefined === data || null === data || '' === data) {
-                            reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    }
+                    return appsTemplates;
                 });
             }).then((data) => {
                 let json = {
@@ -61,26 +45,21 @@ module.exports = (function() {
         }
 
         getOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appIds;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTemplatesMdl.find(appIds, templateId, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    }
+                    return appsTemplates;
                 });
-            }).then((template) => {
-                let result = template !== undefined ? template : {};
+            }).then((appsTemplates) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsTemplates || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -92,8 +71,9 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         }
+
         postOne(req, res) {
-            let appId;
+            let appId = req.params.appid;
             let keyword = req.body.keyword || '';
             let type = req.body.type || '';
             let altText = req.body.altText || '';
@@ -104,41 +84,37 @@ module.exports = (function() {
                 altText: altText,
                 template: template
             };
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTemplatesMdl.insert(appId, postTemplate, (result) => {
-                        if (!result) {
-                            reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(result);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                    }
+                    return appsTemplates;
                 });
-            }).then((appsTemplate) => {
-                return new Promise((resolve, reject) => {
-                    let templateId = Object.keys(appsTemplate[appId].templates)[0];
-                    if (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl) {
-                        let fromPathArray = (appsTemplate[appId].templates[templateId].template.thumbnailImageUrl).split('/');
+            }).then((appsTemplates) => {
+                return Promise.resolve().then(() => {
+                    let templateId = Object.keys(appsTemplates[appId].templates)[0];
+                    if (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl) {
+                        let fromPathArray = (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl).split('/');
                         let fromPath = `/temp/${fromPathArray[5]}`;
                         let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray[5]}`;
-                        storageHlp.filesMoveV2(fromPath, toPath);
-                    } else {
-                        return Promise.all(Object.keys(appsTemplate[appId].templates[templateId].template.columns).map((img) => {
-                            let fromPathArray = (appsTemplate[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                            let fromPath = `/temp/${fromPathArray[5]}`;
-                            let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray[5]}`;
-                            storageHlp.filesMoveV2(fromPath, toPath);
-                        }));
+                        return storageHlp.filesMoveV2(fromPath, toPath);
                     }
-                    resolve(appsTemplate);
+
+                    return Promise.all(Object.keys(appsTemplates[appId].templates[templateId].template.columns).map((img) => {
+                        let fromPathArray = (appsTemplates[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
+                        let fromPath = `/temp/${fromPathArray[5]}`;
+                        let toPath = `/apps/${appId}/template/${templateId}/src/${fromPathArray[5]}`;
+                        return storageHlp.filesMoveV2(fromPath, toPath);
+                    }));
+                }).then(() => {
+                    return appsTemplates;
                 });
-            }).then((appsTemplate) => {
-                let result = appsTemplate !== undefined ? appsTemplate : {};
+            }).then((appsTemplates) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: result
+                    data: appsTemplates || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -149,7 +125,8 @@ module.exports = (function() {
                 };
                 res.status(500).json(json);
             });
-        };
+        }
+
         putOne(req, res) {
             let templateId = req.params.templateid;
             let appId;
@@ -166,18 +143,19 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppId) => {
                 appId = checkedAppId;
+                if (!templateId) {
+                    return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
+                }
+
                 return new Promise((resolve, reject) => {
-                    if (!templateId) {
-                        reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
-                    };
                     appsTemplatesMdl.update(appId, templateId, putTemplateData, (appsTemplate) => {
                         if (!appsTemplate) {
                             reject(API_ERROR.APP_TEMPLATE_FAILED_TO_UPDATE);
                             return;
                         }
                         resolve(appsTemplate);
-                    })
-                })
+                    });
+                });
             }).then((appsTemplate) => {
                 let result = appsTemplate !== undefined ? appsTemplate : {};
                 let json = {
