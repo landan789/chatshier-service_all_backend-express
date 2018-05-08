@@ -3,7 +3,8 @@
 var app = require('../app');
 var http = require('http');
 var server = http.createServer(app);
-var io = require('../sockets/index')(server);
+var socketInit = require('../sockets/index');
+socketInit(server);
 
 var port = process.env.PORT || '3002';
 

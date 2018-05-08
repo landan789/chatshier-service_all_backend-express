@@ -272,11 +272,13 @@ module.exports = (function() {
                 if (!appId) {
                     return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
                 }
-                return appsMdl.find(appId, null);
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
+                });
             }).then((apps) => {
-                if (!apps) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                }
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {

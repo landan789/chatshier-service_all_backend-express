@@ -5,10 +5,14 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
+    const fbSvc = require('../services/facebook');
+
     const OWNER = 'OWNER';
     const ADMIN = 'ADMIN';
     const WRITE = 'WRITE';
     const READ = 'READ';
+
+    const FACEBOOK = 'FACEBOOK';
 
     let appsMdl = require('../models/apps');
     let usersMdl = require('../models/users');
@@ -49,13 +53,11 @@ module.exports = (function() {
                     });
                 });
             }).then((appIds) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appIds, null, (apps) => {
-                        if (null === apps || '' === apps || undefined === apps) {
-                            apps = {};
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appIds).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let json = {
@@ -115,15 +117,11 @@ module.exports = (function() {
                 };
                 return Promise.resolve();
             }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(appId, null, (data) => {
-                        let app = data;
-                        if ('' === app || null === app || undefined === app || (app instanceof Array && 0 === app.length)) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(app);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((data) => {
                 let app = data;
@@ -144,82 +142,74 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
-            let postApp = {
-                id1: undefined === req.body.id1 ? null : req.body.id1,
-                id2: undefined === req.body.id2 ? null : req.body.id2,
-                name: undefined === req.body.name ? null : req.body.name,
-                secret: undefined === req.body.secret ? null : req.body.secret,
-                token1: undefined === req.body.token1 ? null : req.body.token1,
-                token2: undefined === req.body.token2 ? null : req.body.token2,
-                type: undefined === req.body.type ? null : req.body.type,
-                group_id: undefined === req.body.groupid ? null : req.body.groupid
-            };
             let apps;
+            let userId = req.params.userid;
+            let postApp = {
+                id1: 'string' === typeof req.body.id1 ? req.body.id1 : '',
+                id2: 'string' === typeof req.body.id2 ? req.body.id2 : '',
+                name: 'string' === typeof req.body.name ? req.body.name : '',
+                secret: 'string' === typeof req.body.secret ? req.body.secret : '',
+                token1: 'string' === typeof req.body.token1 ? req.body.token1 : '',
+                token2: 'string' === typeof req.body.token2 ? req.body.token2 : '',
+                type: 'string' === typeof req.body.type ? req.body.type : '',
+                group_id: 'string' === typeof req.body.group_id ? req.body.group_id : ''
+            };
+
+            // 如果新增的 Facebook 類型的機器人沒有帶有 fb app 的資料
+            // 則帶入 Chatshier 自己的 fb app
+            if (FACEBOOK === postApp.type) {
+                postApp.id2 = postApp.id2 || fbSvc.appId;
+                postApp.secret = postApp.secret || fbSvc.appSecret;
+                postApp.token1 = postApp.token1 || fbSvc.appAccessToken;
+            }
+
             Promise.resolve().then(() => {
-                return new Promise((resolve, reject) => {
-                    if ('' === req.params.userid || null === req.params.userid || undefined === req.params.userid) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
-                        return;
-                    }
+                if (!userId) {
+                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                }
 
-                    if ('' === req.body.id1 || null === req.body.id1 || undefined === req.body.id1) {
-                        reject(API_ERROR.ID1_WAS_EMPTY);
-                        return;
-                    }
+                if (!postApp.id1) {
+                    return Promise.reject(API_ERROR.ID1_WAS_EMPTY);
+                }
 
-                    if ('' === req.body.name || null === req.body.name || undefined === req.body.name) {
-                        reject(API_ERROR.NAME_WAS_EMPTY);
-                        return;
-                    }
+                if (!postApp.name) {
+                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                }
 
-                    if ('' === req.body.secret || null === req.body.secret || undefined === req.body.secret) {
-                        reject(API_ERROR.TYPE_WAS_EMPTY);
-                        return;
-                    }
+                if (!postApp.secret) {
+                    return Promise.reject(API_ERROR.SECRET_WAS_EMPTY);
+                }
 
-                    // wechat 新增 app 不需要輸入 token
-                    // if ('' === req.body.token1 || null === req.body.token1 || undefined === req.body.token1) {
-                    //     reject(API_ERROR.TOKEN1_WAS_EMPTY);
-                    //     return;
-                    // }
+                // wechat 新增 app 不需要輸入 token
+                // if (!postApp.token1) {
+                //     return Promise.reject(API_ERROR.TOKEN1_WAS_EMPTY);
+                // }
 
-                    if ('' === req.body.type || null === req.body.type || undefined === req.body.type) {
-                        reject(API_ERROR.TYPE_WAS_EMPTY);
-                        return;
-                    }
+                if (!postApp.type) {
+                    return Promise.reject(API_ERROR.TYPE_WAS_EMPTY);
+                }
 
-                    if ('' === req.body.groupid || null === req.body.groupid || undefined === req.body.groupid) {
-                        reject(API_ERROR.GROUPID_WAS_EMPTY);
-                        return;
+                if (!postApp.group_id) {
+                    return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
+                }
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!users) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    let userId = req.params.userid;
-                    usersMdl.find(userId, null, (users) => {
-                        if (!users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(users[userId]);
-                    });
+                    return users[userId];
                 });
             }).then((user) => {
                 let groupIds = user.group_ids || [];
-                if (0 > groupIds.indexOf(req.body.groupid)) {
+                if (0 > groupIds.indexOf(req.body.group_id)) {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
                 };
 
-                return new Promise((resolve, reject) => {
-                    groupsMdl.find(req.body.groupid, req.params.userid, (groups) => {
-                        if (!groups || (groups && 0 === Object.keys(groups).length)) {
-                            reject(API_ERROR.GROUP_DID_NOT_EXIST);
-                            return;
-                        }
-                        let group = groups[req.body.groupid];
-                        resolve(group);
-                    });
+                return groupsMdl.find(req.body.group_id, req.params.userid).then((groups) => {
+                    if (!groups || (groups && 0 === Object.keys(groups).length)) {
+                        return Promise.reject(API_ERROR.GROUP_DID_NOT_EXIST);
+                    }
+                    return groups[req.body.group_id];
                 });
             }).then((group) => {
                 let members = group.members;
@@ -237,38 +227,58 @@ module.exports = (function() {
 
                 if (0 > index) {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
-                };
+                }
 
                 if (0 === member.status) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
-                };
+                }
 
                 if (READ === member.type) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
-                };
+                }
 
-                return Promise.resolve();
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.insert(req.params.userid, postApp, (_apps) => {
-                        if (!_apps) {
-                            reject(API_ERROR.APP_FAILED_TO_INSERT);
-                            return;
-                        }
-                        apps = _apps;
-                        resolve(apps);
-                    });
+                return Promise.resolve().then(() => {
+                    if (FACEBOOK === postApp.type && postApp.token2) {
+                        // 在新增 facebook 類型的 app 之前
+                        // 無論無何都須將粉絲專頁的 page token 轉為永久 token
+                        // 因為從 web 取得的 user token 因為沒有進行 server-side token 轉換
+                        // 因此取得的 page token 時效性只有 1-2 小時
+                        return fbSvc.exchangeLongLivedToken(postApp.token2).then((longLiveToken) => {
+                            postApp.token2 = longLiveToken.access_token;
+                        });
+                    }
+                }).then(() => {
+                    if (FACEBOOK === postApp.type) {
+                        // 檢查同 group 內是否已經有匯入此粉絲專頁(包含已刪除的)
+                        // 如果有則直接更新 app
+                        let query = {
+                            id1: postApp.id1,
+                            group_id: postApp.group_id
+                        };
+                        return appsMdl.find(null, null, query).then((apps) => {
+                            if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                return appsMdl.insert(req.params.userid, postApp);
+                            }
+                            postApp.isDeleted = false;
+                            let appId = Object.keys(apps).shift() || '';
+                            return appsMdl.update(appId, postApp);
+                        });
+                    }
+                    return appsMdl.insert(req.params.userid, postApp);
+                }).then((_apps) => {
+                    if (!_apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                    }
+                    apps = _apps;
+                    return apps;
                 });
             }).then((apps) => {
                 let appId = Object.keys(apps).shift() || '';
-                return new Promise((resolve, reject) => {
-                    appsFieldsMdl.insertDefaultFields(appId, (fields) => {
-                        if (!fields) {
-                            reject(API_ERROR.APP_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve();
-                    });
+                return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
+                    if (!appsFields) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                    }
+                    return appsFields;
                 });
             }).then(() => {
                 let json = {
@@ -290,13 +300,6 @@ module.exports = (function() {
         putOne(req, res, next) {
             let userId = req.params.userid;
             let appId = req.params.appid;
-            let id1 = req.body.id1;
-            let id2 = req.body.id2;
-            let name = req.body.name;
-            let secret = req.body.secret;
-            let token1 = req.body.token1;
-            let token2 = req.body.token2;
-            let type = req.body.type;
 
             let putApp = {
                 id1: undefined === req.body.id1 ? null : req.body.id1,
@@ -340,14 +343,11 @@ module.exports = (function() {
                     });
                 });
             }).then((user) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(req.params.appid, null, (apps) => {
-                        if (null === apps || undefined === apps || '' === apps) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let app = Object.values(apps)[0];
@@ -444,14 +444,11 @@ module.exports = (function() {
                     });
                 });
             }).then((user) => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.find(req.params.appid, null, (apps) => {
-                        if (null === apps || undefined === apps || '' === apps) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 });
             }).then((apps) => {
                 let app = Object.values(apps)[0];
