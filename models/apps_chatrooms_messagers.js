@@ -148,34 +148,34 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string|null} chatroomId
          * @param {string|string[]} platformUids
+         * @param {any} [query]
          * @param {(appsChatroomMessager: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        findByPlatformUid(appId, chatroomId, platformUids, callback) {
+        findByPlatformUid(appId, chatroomId, platformUids, query, callback) {
             if (!(platformUids instanceof Array)) {
                 platformUids = [platformUids];
             }
 
             // 尋找符合的欄位
-            let query = {
-                '_id': this.Types.ObjectId(appId),
-                'isDeleted': false,
-                'chatrooms.isDeleted': false,
-                'chatrooms.messagers.isDeleted': false,
-                'chatrooms.messagers.platformUid': {
-                    $in: platformUids
-                }
+            let _query = query || {};
+            _query['_id'] = this.Types.ObjectId(appId);
+            _query['isDeleted'] = false;
+            _query['chatrooms.isDeleted'] = false;
+            _query['chatrooms.messagers.isDeleted'] = false;
+            _query['chatrooms.messagers.platformUid'] = {
+                $in: platformUids
             };
 
             if (chatroomId) {
-                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+                _query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
             }
 
             let aggregations = [
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: _query
                 }, {
                     $project: {
                         // 篩選需要的項目
