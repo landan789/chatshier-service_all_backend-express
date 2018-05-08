@@ -75,35 +75,35 @@ module.exports = (function() {
                 return Promise.resolve(autoreplies);
             });
 
-            // let templates = {};
-            // let templatesPromise = Promise.all(messages.map((message) => {
-            //     let eventType = message.eventType;
-            //     let text = message.text;
-            //     if ('message' !== eventType) {
-            //         return Promise.resolve();
-            //     }
-            //     return new Promise((resolve, reject) => {
-            //         // templates使用模糊比對，不直接對 DB 查找
-            //         fuseHlp.searchTemplates(appId, text, (_templates) => {
-            //             templates = Object.assign(templates, _templates);
-            //             resolve(_templates);
-            //         });
-            //     });
-            // })).then(() => {
-            //     return Promise.resolve(templates);
-            // });
+            let templates = {};
+            let templatesPromise = Promise.all(messages.map((message) => {
+                let eventType = message.eventType;
+                let text = message.text;
+                if ('message' !== eventType) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve, reject) => {
+                    // templates使用模糊比對，不直接對 DB 查找
+                    fuseHlp.searchTemplates(appId, text, (_templates) => {
+                        templates = Object.assign(templates, _templates);
+                        resolve(_templates);
+                    });
+                });
+            })).then(() => {
+                return Promise.resolve(templates);
+            });
 
             return Promise.all([
                 grettingsPromise,
                 keywordrepliesPromise,
-                autorepliesPromise
-                // templatesPromise
+                autorepliesPromise,
+                templatesPromise
             ]).then((results) => {
                 let repliedMessages = [];
                 let greetins = results.shift();
                 let keywordreplies = results.shift();
                 let autoreplies = results.shift();
-                // let templates = results.shift();
+                let templates = results.shift();
                 let _message = {
                     from: SYSTEM
                 };
@@ -125,11 +125,11 @@ module.exports = (function() {
                     repliedMessages.push(message);
                 });
 
-                // Object.keys(templates).map((templateId) => {
-                //     let template = templates[templateId];
-                //     let message = Object.assign({}, SCHEMA.APP_CHATROOM_MESSAGE, template, _message);
-                //     repliedMessages.push(message);
-                // });
+                Object.keys(templates).map((templateId) => {
+                    let template = templates[templateId];
+                    let message = Object.assign({},template, _message);
+                    repliedMessages.push(message);
+                });
 
                 return Promise.resolve(repliedMessages);
             });

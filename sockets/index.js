@@ -98,21 +98,18 @@ function init(server) {
                     }).then((recipientUid) => {
                         return botSvc.pushMessage(recipientUid, message, srcBuffer, appId, app);
                     }).then(() => {
-                        return new Promise((resolve, reject) => {
-                            appsChatroomsMessagesMdl.insert(appId, chatroomId, message, (appsChatroomsMessages) => {
-                                if (!appsChatroomsMessages) {
-                                    reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
-                                    return;
-                                }
-                                resolve(appsChatroomsMessages[appId].chatrooms[chatroomId].messages);
-                            });
+                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                            if (!appsChatroomsMessages) {
+                                return Promise.reject(new Error(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT));
+                            }
+                            return appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
                         });
                     }).then((messagesInDB) => {
                         let messageId = Object.keys(messagesInDB).shift() || '';
                         let _message = messagesInDB[messageId];
                         socketBody.messages[i] = _message;
                         if (!_message.src) {
-                            return;
+                            return Promise.resolve(null);
                         }
                         let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${_message.time}.${media[_message.type]}`;
                         return storageHlp.filesMoveV2(originalFilePath, newFilePath);

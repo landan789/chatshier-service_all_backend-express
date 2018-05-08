@@ -36,8 +36,8 @@
                         </div>
                         <div class="search-add mb-2">
                             <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" class="btn btn-light btn-border" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
+                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
+                            <button type="button" class="btn btn-light btn-border insert" id="show-template-modal" data-toggle="modal" data-target="#template-modal" aria-hidden="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -49,7 +49,7 @@
                                     <th scope="col">標題</th>
                                     <th scope="col">類型</th>
                                     <th scope="col">關鍵字</th>
-                                    <th scope="col">編輯/刪除</th>
+                                    <th scope="col">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="template-tables"></tbody>
@@ -74,13 +74,13 @@
                     <form>
                         <!-- 編號 -->
                         <div class="form-group d-none">
-                            <label for="template-id" class="col-2 col-form-label">ID</label>
+                            <label for="template-id" class=" col-form-label">ID</label>
                             <input id="template-id"></span>
                         </div>
                         <!-- channelId -->
-                        <div class="form-group">
-                            <label class="col-2 col-form-label">App:</label>
-                            <div class="col-4">
+                        <div class="form-group app-select-bar">
+                            <label class="col-form-label">App:</label>
+                            <div>
                                 <select class="form-control" id="app-select">
                                 </select>
                             </div>
@@ -88,16 +88,16 @@
 
                         <!-- Keyword -->
                         <div class="form-group">
-                            <label class="col-2 col-form-label"><strong>觸發關鍵字:</strong><p class="keyword-duplicate hidden">關鍵字重複，請重新輸入</p>
-                            <div class="col-4">
+                            <label class="col-form-label"><strong>觸發關鍵字:</strong><p class="keyword-duplicate d-none">關鍵字重複，請重新輸入</p>
+                            <div >
                                 <input class="form-control" type="text" value="" id="template-keyword">
                             </div>
                         </label>
                         </div>
                         <!-- Type -->
                         <div class="form-group">
-                            <label class="col-2 col-form-label"><strong>類型:</strong>
-                            <div class="col-4">
+                            <label class=" col-form-label"><strong>類型:</strong>
+                            <div>
                                 <select class="form-control" id="template-type">
                                     <option disabled selected value> -- 請選擇 -- </option>
                                     <option value="buttons">按鈕</option>
@@ -108,18 +108,10 @@
                             </div>
                         </label>
                         </div>
-                        <!-- text -->
-                        <div class="form-group">
-                            <label class="col-2 col-form-label template-view" rel="text"><strong>文字:</strong>
-                            <div class="col-4">
-                                <textarea class="form-control" type="text" value="" id="template-text"></textarea>
-                            </div>
-                        </label>
-                        </div>
                         <!-- AltText -->
                         <div class="form-group">
-                            <label class="col-2 col-form-label template-view" rel="confirm carousel buttons"><strong>電腦版替代文字:</strong>
-                            <div class="col-4">
+                            <label class="col-form-label template-view" rel="confirm carousel buttons"><strong>電腦版替代文字:</strong>
+                            <div>
                                 <input class="form-control" type="text" value="" id="template-altText">
                             </div>
                         </label>
@@ -128,7 +120,7 @@
                         <div id="carousel-container" class="template-view carousel slide" rel="carousel buttons" data-ride="carousel" data-interval="false">
                             <!-- Wrapper for slides -->
                             <div class="carousel-inner">
-                                <div class="item active">
+                                <div class="carousel-item active template-view" rel="carousel buttons" data-slide-to="0">
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
@@ -138,7 +130,7 @@
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            <input class="line-title form-control" type="text" placeholder="標題1" maxlength="40">
                                         </div>
                                         <div class="line-content">
                                             <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
@@ -160,7 +152,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="item">
+                                <div class="carousel-item template-view" rel="carousel" data-slide-to="1">
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
@@ -170,7 +162,7 @@
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            <input class="line-title form-control" type="text" placeholder="標題2" maxlength="40">
                                         </div>
                                         <div class="line-content">
                                             <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
@@ -192,7 +184,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="item">
+                                <div class="carousel-item template-view" rel="carousel"data-slide-to="2">
                                     <div class="rounded-border">
                                         <div class="line-content">
                                             <div class="line-thumbnailImageUrl">
@@ -202,7 +194,7 @@
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題" maxlength="40">
+                                            <input class="line-title form-control" type="text" placeholder="標題3" maxlength="40">
                                         </div>
                                         <div class="line-content">
                                             <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
@@ -227,11 +219,11 @@
                             </div>
                             <!-- Left and right controls -->
                             <div class="template-view" rel="carousel">
-                                <a class="left carousel-control" href="#carousel-container" data-slide="prev">
+                                <a class="carousel-item-left carousel-control-prev text-info" href="#carousel-container" data-slide="prev" role="button">
                                     <span class="fas fa-chevron-left"></span>
                                     <span class="sr-only">Previous</span>
                                 </a>
-                                <a class="right carousel-control" href="#carousel-container" data-slide="next">
+                                <a class="carousel-item-right carousel-control-next text-info" href="#carousel-container" data-slide="next" role="button">
                                     <span class="fas fa-chevron-right"></span>
                                     <span class="sr-only">Next</span>
                                 </a>
@@ -259,6 +251,7 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary" id="modal-save">確認</button>
+                            <button type="button" class="btn btn-primary" id="edit-modal-save">確認</button>
                         </div>
                     </form>
                 </div>
