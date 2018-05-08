@@ -1,4 +1,5 @@
 module.exports = (function() {
+    require('isomorphic-fetch'); // polyfill fetch method for Dropbox SDK
     const chatshierCfg = require('../config/chatshier');
 
     const Dropbox = require('dropbox').Dropbox;
