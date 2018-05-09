@@ -7,6 +7,7 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     const DEFAULT = 'DEFAULT';
 
+    let grecaptchaHlp = require('../helpers/grecaptcha');
     let ciperHlp = require('../helpers/cipher');
     let jwtHlp = require('../helpers/jwt');
     let fuseHlp = require('../helpers/fuse');
@@ -293,6 +294,46 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(500).json(json);
+            });
+        }
+
+        postResetPassword(req, res) {
+            let email = req.body.email;
+            let recaptchaResponse = req.body.recaptchaResponse;
+
+            return Promise.resolve().then(() => {
+                if (!email) {
+                    return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
+                }
+
+                if (!recaptchaResponse) {
+                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                }
+
+                return grecaptchaHlp.verifyingUserResponse(recaptchaResponse);
+            }).then((resJson) => {
+                if (!resJson.success) {
+                    return Promise.reject(API_ERROR.PASSWORD_FAILED_TO_RESET);
+                }
+                return usersMdl.find(null, email);
+            }).then((users) => {
+                if (!users || (users && 1 !== Object.keys(users).length)) {
+                    return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                }
+                return users;
+            }).then(() => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
+                };
                 res.status(200).json(json);
             }).catch((ERROR) => {
                 let json = {

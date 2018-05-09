@@ -20,9 +20,14 @@ module.exports = {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
     },
     FACEBOOK: {
+        // https://developers.facebook.com/apps
         appId: '178381762879392',
         appSecret: '27aad72319bf154c059f696bce055ac2',
         appAccessToken: '8eeabaf3c836d295edb26264ec76e975'
+    },
+    GOOGLE: {
+        // https://www.google.com/recaptcha/admin
+        recaptchaSecretKey: '6LecPVgUAAAAAIkVg1b-J1_og56i0GlEg-8ivM8x'
     },
     JWT: {
         EXPIRES: EXPIRES,

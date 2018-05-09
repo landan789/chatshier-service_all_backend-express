@@ -7,6 +7,6 @@
     "DATA_SUCCEEDED_TO_REMOVE": { "MSG": "data succeeded to remove!" },
     "USER_SUCCEEDED_TO_SIGNUP": { "MSG": "user succeeded to signup!"},
     "USER_SUCCEEDED_TO_SIGNIN": { "MSG": "user succeeded to signin!"},
-    "USER_SUCCEEDED_TO_SIGNOUT": { "MSG": "user succeeded to signout!"}
-
+    "USER_SUCCEEDED_TO_SIGNOUT": { "MSG": "user succeeded to signout!"},
+    "USER_SUCCEEDED_TO_RESET_PASSWORD": { "MSG": "user succeeded to reset password!"}
 }
