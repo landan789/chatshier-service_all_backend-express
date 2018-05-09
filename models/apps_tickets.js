@@ -110,7 +110,7 @@ module.exports = (function() {
          * @param {(appTickets: any) => any} [callback]
          */
         update(appId, ticketId, ticket, callback) {
-            ticket._id = ticketId;
+            ticket = ticket || {};
             ticket.updatedTime = Date.now();
 
             let query = {
@@ -145,7 +145,6 @@ module.exports = (function() {
             }
 
             let ticket = {
-                _id: ticketId,
                 isDeleted: true,
                 updatedTime: Date.now()
             };

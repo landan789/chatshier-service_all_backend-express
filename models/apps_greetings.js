@@ -64,16 +64,15 @@ module.exports = (function() {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
-        };
+        }
 
         /**
          * 找到 加好友回覆未刪除的資料包，不含 apps 結構
          *
          * @param {string|string[]} appIds
-         * @param {(appsGreetings: any) => any} [callback]
+         * @param {(greetings: any) => any} [callback]
          * @return {Promise<any>}
          */
-
         findGreetings(appIds, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
@@ -100,20 +99,20 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
-                let appGreetings = {};
+                let greetings = {};
                 if (0 === results.length) {
-                    return appGreetings;
+                    return greetings;
                 }
 
-                appGreetings = results.reduce((output, app) => {
+                greetings = results.reduce((output, app) => {
                     Object.assign(output, this.toObject(app.greetings));
                     return output;
                 }, {});
 
-                return appGreetings;
-            }).then((appGreetings) => {
-                ('function' === typeof callback) && callback(appGreetings);
-                return appGreetings;
+                return greetings;
+            }).then((greetings) => {
+                ('function' === typeof callback) && callback(greetings);
+                return greetings;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -131,6 +130,7 @@ module.exports = (function() {
         insert(appId, postGreeting, callback) {
             let greetId = this.Types.ObjectId();
             postGreeting._id = greetId;
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.greetings.push(postGreeting);
                 return app.save();
@@ -161,7 +161,6 @@ module.exports = (function() {
 
             let setGreeting = {
                 $set: {
-                    'greetings.$._id': greetingId,
                     'greetings.$.isDeleted': true,
                     'greetings.$.updatedTime': Date.now()
                 }
@@ -180,19 +179,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.AppsModel.aggregate(aggregations);
-            }).then((results) => {
-                let appGreetings = {};
-                if (0 === results.length) {
-                    return Promise.reject(new Error());
-                }
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appGreetings = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-                appGreetings = results.reduce((output, app) => {
-                    output[app._id] = output[app._id] || {greetings: {}};
-                    Object.assign(output[app._id].greetings, this.toObject(app.greetings));
-                    return output;
-                }, {});
-                return appGreetings;
+                    appGreetings = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || {greetings: {}};
+                        Object.assign(output[app._id].greetings, this.toObject(app.greetings));
+                        return output;
+                    }, {});
+                    return appGreetings;
+                });
             }).then((appGreetings) => {
                 ('function' === typeof callback) && callback(appGreetings);
                 return appGreetings;

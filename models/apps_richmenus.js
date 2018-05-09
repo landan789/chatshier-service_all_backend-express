@@ -186,8 +186,8 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': appIds.map((appId) => appId),
-                'richmenus._id': richmenuId
+                '_id': appIds.map((appId) => this.Types.ObjectId(appId)),
+                'richmenus._id': this.Types.ObjectId(richmenuId)
             };
 
             let updateOper = { $set: {} };
@@ -200,12 +200,7 @@ module.exports = (function() {
                     {
                         $unwind: '$richmenus'
                     }, {
-                        $match: {
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'richmenus._id': this.Types.ObjectId(richmenuId)
-                        }
+                        $match: query
                     }, {
                         $project: {
                             richmenus: true

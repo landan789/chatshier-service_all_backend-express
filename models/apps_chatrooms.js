@@ -80,6 +80,7 @@ module.exports = (function() {
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
                     chatroom.name = app.chatrooms.name;
+                    chatroom.isDeleted = app.chatrooms.isDeleted;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -99,27 +100,26 @@ module.exports = (function() {
         /**
          * @param {string|string[]} appIds
          * @param {string|string[]} platformGroupIds
+         * @param {any} [query]
          * @param {(appsChatrooms: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        findByPlatformGroupId(appIds, platformGroupIds, callback) {
+        findByPlatformGroupId(appIds, platformGroupIds, query, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
 
-            let query = {
-                '_id': {
-                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                },
-                'isDeleted': false,
-                'chatrooms.isDeleted': false
+            let _query = query || { 'chatrooms.isDeleted': false };
+            _query['_id'] = {
+                $in: appIds.map((appId) => this.Types.ObjectId(appId))
             };
+            _query['isDeleted'] = false;
 
             if (!(platformGroupIds instanceof Array)) {
                 platformGroupIds = [platformGroupIds];
             }
 
-            query['chatrooms.platformGroupId'] = {
+            _query['chatrooms.platformGroupId'] = {
                 $in: platformGroupIds
             };
 
@@ -127,7 +127,7 @@ module.exports = (function() {
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: _query
                 }, {
                     $project: {
                         chatrooms: true
@@ -158,6 +158,7 @@ module.exports = (function() {
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
                     chatroom.name = app.chatrooms.name;
+                    chatroom.isDeleted = app.chatrooms.isDeleted;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -256,12 +257,89 @@ module.exports = (function() {
          */
         update(appId, chatroomId, chatroom, callback) {
             chatroom = chatroom || {};
-            chatroom._id = this.Types.ObjectId(chatroomId);
             chatroom.updatedTime = Date.now();
 
             let query = {
                 '_id': this.Types.ObjectId(appId),
-                'chatrooms._id': chatroom._id
+                'chatrooms._id': this.Types.ObjectId(chatroomId)
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in chatroom) {
+                updateOper.$set['chatrooms.$.' + prop] = chatroom[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                query['chatrooms.isDeleted'] = false;
+
+                let aggregations = [
+                    {
+                        $unwind: '$chatrooms'
+                    }, {
+                        $match: query
+                    }, {
+                        $project: {
+                            // 篩選需要的項目
+                            chatrooms: {
+                                _id: '$chatrooms._id',
+                                name: '$chatrooms.name',
+                                isDeleted: '$chatrooms.isDeleted',
+                                platformGroupId: '$chatrooms.platformGroupId',
+                                platformGroupType: '$chatrooms.platformGroupType'
+                            }
+                        }
+                    }
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsChatrooms = {};
+                    if (0 === results.length) {
+                        return appsChatrooms;
+                    }
+
+                    appsChatrooms = results.reduce((output, app) => {
+                        if (!output[app._id]) {
+                            output[app._id] = { chatrooms: {} };
+                        }
+
+                        if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                            output[app._id].chatrooms[app.chatrooms._id] = {};
+                        }
+
+                        let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                        chatroom._id = app.chatrooms._id;
+                        chatroom.name = app.chatrooms.name;
+                        chatroom.isDeleted = app.chatrooms.isDeleted;
+                        chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                        chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                        return output;
+                    }, {});
+                    return appsChatrooms;
+                }).then((appsChatrooms) => {
+                    ('function' === typeof callback) && callback(appsChatrooms);
+                    return appsChatrooms;
+                }).catch(() => {
+                    ('function' === typeof callback) && callback(null);
+                    return null;
+                });
+            });
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {(appsChatrooms: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        remove(appId, chatroomId, callback) {
+            let chatroom = {
+                isDeleted: true,
+                updatedTime: Date.now()
+            };
+
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'chatrooms._id': this.Types.ObjectId(chatroomId)
             };
 
             let updateOper = { $set: {} };
@@ -307,6 +385,7 @@ module.exports = (function() {
                         let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                         chatroom._id = app.chatrooms._id;
                         chatroom.name = app.chatrooms.name;
+                        chatroom.isDeleted = app.chatrooms.isDeleted;
                         chatroom.platformGroupId = app.chatrooms.platformGroupId;
                         chatroom.platformGroupType = app.chatrooms.platformGroupType;
                         return output;

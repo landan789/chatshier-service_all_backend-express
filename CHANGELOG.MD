@@ -1,13 +1,14 @@
-= Release 1.2.5 =
+= Release 1.3.0 =
 Released: Not Ready
 == Features ==
- * Add: Custom group chatroom name
- * Add: support LINE group and room chat with LINE
- * Add: click image content will stretch the image
- * Add: add sound and title blink when new message is come
- * Remove: manually link facebook fan page
- * Add: user can link fan pages by facebook login
- * Add: add link of line developers on add modal
+ * created: support LINE group and room chat with LINE
+ * created: custom naming platform group chatroom name
+ * created: custom naming platform consumer name
+ * created: click image content will stretch the image
+ * created: add sound and title blink when new message is come
+ * created: user can link fan pages by facebook login
+ * created: add link of line developers on add modal
+ * changed: remove manually add facebook fan page
 
 == Bug Fixes ==
  * Fixed: sometime refresh token is too late
@@ -31,14 +32,14 @@ Released: 2018-04-25
  = Release 1.2.2 =
 Released: 2018-04-24
 == Features ==
- * creadted: [MASTER 1.2.2][chat][UI:RWD]
- * creadted: [MASTER 1.2.2][calendar][UI:RWD]
- * creadted: [MASTER 1.2.2][ticket][UI:RWD]
- * creadted: [MASTER 1.2.2][analyze][UI:RWD]
- * creadted: [MASTER 1.2.2][compose][UI:RWD]
- * creadted: [MASTER 1.2.2][autoreply][UI:RWD]
- * creadted: [MASTER 1.2.2][keywordsreply][UI:RWD]
- * creadted: [MASTER 1.2.2][greeting][UI:RWD]
+ * created: [MASTER 1.2.2][chat][UI:RWD]
+ * created: [MASTER 1.2.2][calendar][UI:RWD]
+ * created: [MASTER 1.2.2][ticket][UI:RWD]
+ * created: [MASTER 1.2.2][analyze][UI:RWD]
+ * created: [MASTER 1.2.2][compose][UI:RWD]
+ * created: [MASTER 1.2.2][autoreply][UI:RWD]
+ * created: [MASTER 1.2.2][keywordsreply][UI:RWD]
+ * created: [MASTER 1.2.2][greeting][UI:RWD]
 == Bug Fixes ==
  * Fixed: some UI bugs
  * Fixed: [MASTER 1.2.2][chat][isDeleted group member or none status group member should not chat on the group]

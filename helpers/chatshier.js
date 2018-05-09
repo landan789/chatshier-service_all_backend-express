@@ -22,14 +22,12 @@ module.exports = (function() {
                     return Promise.resolve();
                 };
 
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.findGreetings(appId, (_greetings) => {
-                        greetings = Object.assign({}, greetings, _greetings);
-                        resolve(_greetings);
-                    });
+                return appsGreetingsMdl.findGreetings(appId).then((_greetings) => {
+                    Object.assign(greetings, _greetings);
+                    return _greetings;
                 });
             })).then(() => {
-                return Promise.resolve(greetings);
+                return greetings;
             });
 
             let keywordreplies = {};
@@ -38,15 +36,14 @@ module.exports = (function() {
                 if (!text) {
                     return Promise.resolve();
                 }
-                return new Promise((resolve, reject) => {
-                    // 關鍵字回復使用模糊比對，不直接對 DB 查找
-                    fuseHlp.searchKeywordreplies2(appId, text, (_keywordreplies) => {
-                        keywordreplies = Object.assign(keywordreplies, _keywordreplies);
-                        resolve(_keywordreplies);
-                    });
+
+                // 關鍵字回復使用模糊比對，不直接對 DB 查找
+                return fuseHlp.searchKeywordreplies(appId, text).then((_keywordreplies) => {
+                    keywordreplies = Object.assign(keywordreplies, _keywordreplies);
+                    return _keywordreplies;
                 });
             })).then(() => {
-                return Promise.resolve(keywordreplies);
+                return keywordreplies;
             });
 
             let autoreplies = {};
@@ -54,25 +51,23 @@ module.exports = (function() {
                 let eventType = message.eventType || null;
                 if ('follow' === eventType || 'unfollow' === eventType) {
                     return Promise.resolve();
-                };
-                return new Promise((resolve, reject) => {
-                    appsAutorepliesMdl.findAutoreplies(appId, (_autoreplies) => {
-                        autoreplies = Object.assign(autoreplies, _autoreplies);
-                        let timeNow = Date.now();
+                }
 
-                        for (let key in autoreplies) {
-                            let endedTime = autoreplies[key].endedTime;
-                            let startedTime = autoreplies[key].startedTime;
-                            if (startedTime <= timeNow && timeNow < endedTime) {
-                                continue;
-                            }
-                            delete autoreplies[key];
+                return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
+                    let timeNow = Date.now();
+                    for (let key in _autoreplies) {
+                        let endedTime = _autoreplies[key].endedTime;
+                        let startedTime = _autoreplies[key].startedTime;
+                        if (startedTime <= timeNow && timeNow < endedTime) {
+                            continue;
                         }
-                        resolve(autoreplies);
-                    });
+                        delete _autoreplies[key];
+                    }
+                    autoreplies = Object.assign(autoreplies, _autoreplies);
+                    return autoreplies;
                 });
             })).then(() => {
-                return Promise.resolve(autoreplies);
+                return autoreplies;
             });
 
             let templates = {};
@@ -82,15 +77,14 @@ module.exports = (function() {
                 if ('message' !== eventType) {
                     return Promise.resolve();
                 }
-                return new Promise((resolve, reject) => {
-                    // templates使用模糊比對，不直接對 DB 查找
-                    fuseHlp.searchTemplates(appId, text, (_templates) => {
-                        templates = Object.assign(templates, _templates);
-                        resolve(_templates);
-                    });
+
+                // templates使用模糊比對，不直接對 DB 查找
+                return fuseHlp.searchTemplates(appId, text).then((_templates) => {
+                    templates = Object.assign(templates, _templates);
+                    return _templates;
                 });
             })).then(() => {
-                return Promise.resolve(templates);
+                return templates;
             });
 
             return Promise.all([
@@ -100,38 +94,37 @@ module.exports = (function() {
                 templatesPromise
             ]).then((results) => {
                 let repliedMessages = [];
-                let greetins = results.shift();
-                let keywordreplies = results.shift();
-                let autoreplies = results.shift();
-                let templates = results.shift();
-                let _message = {
-                    from: SYSTEM
-                };
-                Object.keys(greetins).map((grettingId) => {
-                    let gretting = greetins[grettingId];
+                let greetings = results.shift() || {};
+                let keywordreplies = results.shift() || {};
+                let autoreplies = results.shift() || {};
+                let templates = results.shift() || {};
+                let _message = { from: SYSTEM };
+
+                Object.keys(greetings).forEach((grettingId) => {
+                    let gretting = greetings[grettingId];
                     let message = Object.assign({}, gretting, _message);
                     repliedMessages.push(message);
                 });
 
-                Object.keys(keywordreplies).map((keywordreplyId) => {
+                Object.keys(keywordreplies).forEach((keywordreplyId) => {
                     let keywordreply = keywordreplies[keywordreplyId];
                     let message = Object.assign({}, keywordreply, _message);
                     repliedMessages.push(message);
                 });
 
-                Object.keys(autoreplies).map((autoreplyId) => {
+                Object.keys(autoreplies).forEach((autoreplyId) => {
                     let autoreply = autoreplies[autoreplyId];
                     let message = Object.assign({}, autoreply, _message);
                     repliedMessages.push(message);
                 });
 
-                Object.keys(templates).map((templateId) => {
+                Object.keys(templates).forEach((templateId) => {
                     let template = templates[templateId];
-                    let message = Object.assign({},template, _message);
+                    let message = Object.assign({}, template, _message);
                     repliedMessages.push(message);
                 });
 
-                return Promise.resolve(repliedMessages);
+                return repliedMessages;
             });
         };
 
@@ -143,12 +136,11 @@ module.exports = (function() {
                 if (('text' !== eventType && 'message' !== eventType) || '' === message.text) {
                     return Promise.resolve();
                 }
-                return new Promise((resolve, reject) => {
-                    // 關鍵字回復使用模糊比對，不直接對 DB 查找
-                    fuseHlp.searchKeywordreplies2(appId, text, (_keywordreplies) => {
-                        keywordreplies = Object.assign(keywordreplies, _keywordreplies);
-                        resolve(_keywordreplies);
-                    });
+
+                // 關鍵字回復使用模糊比對，不直接對 DB 查找
+                return fuseHlp.searchKeywordreplies(appId, text).then((_keywordreplies) => {
+                    keywordreplies = Object.assign(keywordreplies, _keywordreplies);
+                    return _keywordreplies;
                 });
             })).then(() => {
                 let _keywordreplies = Object.keys(keywordreplies).map((keywordreplyId) => {
