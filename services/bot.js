@@ -212,6 +212,12 @@ module.exports = (function() {
                             fromPath: event.message ? `/${Date.now()}.${media[event.message.type]}` : ''
                         };
 
+                        if (event.message && 'template' === event.message.type) {
+                            _message.template = event.message.template;
+                            messages.push(_message);
+                            return Promise.resolve();
+                        }
+
                         if (event.message && 'text' === event.message.type) {
                             _message.text = event.message.text;
                             messages.push(_message);

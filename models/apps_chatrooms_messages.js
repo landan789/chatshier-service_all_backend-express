@@ -134,11 +134,15 @@ module.exports = (function() {
                     isDeleted: false,
                     from: message.from,
                     messager_id: message.messager_id,
-                    text: message.text || (message.altText ? message.altText + '請至智慧手機上確認訊息內容。' + '\n' : ''),
+                    text: message.text || '',
                     time: Date.now() + i,
                     type: message.type,
                     src: message.src || ''
                 };
+
+                if (message.template) {
+                    _message.template = message.template;
+                }
 
                 let query = {
                     '_id': appId,
