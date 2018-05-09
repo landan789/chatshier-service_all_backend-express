@@ -370,26 +370,38 @@
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
-                        '<div class="input-container">' +
+                    '<img class="img-fluid my-1" src="./image/apps-1.jpg"/>' + 
+                    '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appId1" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
+                    '<img class="img-fluid my-1" src="./image/apps-2.jpg"/>' + 
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appSecret" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
+                    '<img class="img-fluid my-1" src="./image/apps-3.jpg"/>' + 
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appToken1" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
-                '<div class="pt-2 form-group line-dev-item">' +
-                    '<a class="p-3 text-center line-dev-link" href="https://developers.line.me/" target="_blank">' +
-                        '<img class="line-dev-logo" src="https://developers.line.me/assets/img/structures/header/logo.svg" alt="LINE developers" />' +
-                    '</a>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">Use webhooks:</label>' +
+                    '<img class="img-fluid my-1" src="./image/apps-4.jpg"/>' + 
+                    '<div class="">' +
+                        '<span class="pl-3 text-muted">請至 Line Developer 啟用 webhook</span>' +
+                    '</div>' +
+                '</div>' + 
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">webhook URL:</label>' +
+                    '<img class="img-fluid my-1" src="./image/apps-5.jpg"/>' + 
+                    '<div class="">' +
+                        '<span class="pl-3 text-muted">請至 Line Developer 貼上 webhook URL</span>' +
+                    '</div>' +
                 '</div>'
             ),
             [FACEBOOK]: (
