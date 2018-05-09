@@ -1000,8 +1000,10 @@
 
     function generateLoadingJqElem() {
         return $($.parseHTML(
-            '<div class="loading-container">' +
-                '<img src="image/loading.gif" alt="loading..." />' +
+            '<div class="mb-3 message">' +
+                '<div class="ml-auto loading-container">' +
+                    '<img class="w-100 h-100" src="image/loading.gif" alt="loading..." />' +
+                '</div>' +
             '</div>'
         ).shift());
     }
@@ -1223,13 +1225,13 @@
             case 'location':
                 return (
                     '<i class="fa fa-location-arrow fa-fw location-icon"></i>' +
-                    '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
+                    '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'file':
-                var fileName = message.src.split('/').pop();
+                // var fileName = message.src.split('/').pop();
                 return (
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
-                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">' + fileName + '</a></span>'
+                    '<span class="text-content">' + message.text + '<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
                 );
             default:
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
