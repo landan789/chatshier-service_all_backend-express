@@ -137,7 +137,7 @@ router.post('/:webhookid', (req, res, next) => {
                     return botSvc.getProfile(platformInfo, appId, app);
                 }).then((profile) => {
                     let platformUid = platformInfo.platformUid;
-                    if (!(profile && platformInfo && !platformInfo.isEcho)) {
+                    if (!(profile && platformInfo && !platformInfo.isEcho && platformUid)) {
                         return;
                     }
                     return consumersMdl.replace(platformUid, profile);
