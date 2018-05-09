@@ -480,8 +480,8 @@
                     '<button type="button" id="deactivate-btn" class="btn btn-light btn-border" data-status="false">未啟用</button>' +
                 '</td>' +
                 '<td>' +
-                    '<button type="button" id="update-btn" class="btn btn-light btn-border fas fa-edit" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
-                    '<button type="button" id="remove-btn" class="btn btn-danger fas fa-trash-alt"></button>' +
+                    '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
+                    '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
                 '</td>' +
             '</tr>';
         } else {

@@ -105,14 +105,25 @@
                         <span>加好友回覆</span>
                     </li>
                 </div>
-                <li class="text-light list-group-item" onclick="window.location.assign('/richmenu')">
+                <li class="text-light list-group-item has-collapse" id="ctrlPanelMenu">
                     <i class="far fa-images fa-fw"></i>
                     <span>圖文影音內容</span>
+                    <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
                 </li>
-                <li class="text-light list-group-item" onclick="window.location.assign('/template')">
-                    <i class="fas fa-clone fa-fw"></i>
-                    <span>模板訊息</span>
-                </li>
+                <div class="collapse show" id="ctrlPanelMenuCollapse">
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/richmenu')">
+                        <i class="fas fa-image"></i>
+                        <span>圖文選單</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/imagemap')">
+                        <i class="fas fa-comment"></i>
+                        <span>圖文訊息</span>
+                    </li>
+                    <li class="text-light nested list-group-item" onclick="window.location.assign('/template')">
+                        <i class="fas fa-clone"></i>
+                        <span>模板訊息</span>
+                    </li>
+                </div>
             </ul>
 
             <ul class="list-group simple-list animated slideInRight">

@@ -53,5 +53,8 @@ router.get('/template', function(req, res, next) {
 router.get('/richmenu', function(req, res, next) {
     res.render('richmenu', { title: '圖文選單' + titlePostfix });
 });
+router.get('/imagemap', function(req, res, next) {
+    res.render('imagemap', { title: '圖文訊息' + titlePostfix });
+});
 
 module.exports = router;
