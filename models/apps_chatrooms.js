@@ -257,12 +257,11 @@ module.exports = (function() {
          */
         update(appId, chatroomId, chatroom, callback) {
             chatroom = chatroom || {};
-            chatroom._id = this.Types.ObjectId(chatroomId);
             chatroom.updatedTime = Date.now();
 
             let query = {
                 '_id': this.Types.ObjectId(appId),
-                'chatrooms._id': chatroom._id
+                'chatrooms._id': this.Types.ObjectId(chatroomId)
             };
 
             let updateOper = { $set: {} };
@@ -334,15 +333,13 @@ module.exports = (function() {
          */
         remove(appId, chatroomId, callback) {
             let chatroom = {
-                _id: this.Types.ObjectId(chatroomId),
                 isDeleted: true,
                 updatedTime: Date.now()
             };
 
             let query = {
                 '_id': this.Types.ObjectId(appId),
-                'chatrooms._id': chatroom._id,
-                'chatrooms.isDeleted': false
+                'chatrooms._id': this.Types.ObjectId(chatroomId)
             };
 
             let updateOper = { $set: {} };
@@ -351,8 +348,6 @@ module.exports = (function() {
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                query['chatrooms.isDeleted'] = true;
-
                 let aggregations = [
                     {
                         $unwind: '$chatrooms'

@@ -130,6 +130,7 @@ module.exports = (function() {
         insert(appId, postGreeting, callback) {
             let greetId = this.Types.ObjectId();
             postGreeting._id = greetId;
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.greetings.push(postGreeting);
                 return app.save();
@@ -160,7 +161,6 @@ module.exports = (function() {
 
             let setGreeting = {
                 $set: {
-                    'greetings.$._id': greetingId,
                     'greetings.$.isDeleted': true,
                     'greetings.$.updatedTime': Date.now()
                 }
@@ -179,19 +179,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.AppsModel.aggregate(aggregations);
-            }).then((results) => {
-                let appGreetings = {};
-                if (0 === results.length) {
-                    return Promise.reject(new Error());
-                }
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appGreetings = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-                appGreetings = results.reduce((output, app) => {
-                    output[app._id] = output[app._id] || {greetings: {}};
-                    Object.assign(output[app._id].greetings, this.toObject(app.greetings));
-                    return output;
-                }, {});
-                return appGreetings;
+                    appGreetings = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || {greetings: {}};
+                        Object.assign(output[app._id].greetings, this.toObject(app.greetings));
+                        return output;
+                    }, {});
+                    return appGreetings;
+                });
             }).then((appGreetings) => {
                 ('function' === typeof callback) && callback(appGreetings);
                 return appGreetings;

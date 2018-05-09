@@ -226,7 +226,6 @@ module.exports = (function() {
          */
         update(appId, fieldId, field, callback) {
             field = field || {};
-            field._id = fieldId;
             field.updatedTime = Date.now();
 
             let query = {
@@ -257,7 +256,6 @@ module.exports = (function() {
          */
         remove(appId, fieldId, callback) {
             let field = {
-                _id: fieldId,
                 isDeleted: true,
                 updatedTime: Date.now()
             };

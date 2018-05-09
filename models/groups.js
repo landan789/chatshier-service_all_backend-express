@@ -125,13 +125,13 @@ module.exports = (function() {
         /**
          * @param {string|string[]} groupIds
          * @param {boolean} [includeAny]
-         * @param {(userIds: string[]) => any} [callback]
+         * @param {(userIds: string[]|null) => any} [callback]
          */
         findUserIds(groupIds, includeAny, callback) {
             includeAny = !!includeAny;
 
             // polymorphism to both groupid[] and groupid
-            if (groupIds && !(groupIds instanceof Array)) {
+            if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
 
@@ -207,21 +207,15 @@ module.exports = (function() {
          * @param {(groups: any) => any} [callback]
          */
         update(groupId, putGroup, callback) {
+            putGroup = putGroup || {};
             putGroup.updatedTime = Date.now();
 
             let query = {
-                '_id': groupId
+                '_id': this.Types.ObjectId(groupId)
             };
 
-            let group = {
-                '_id': groupId,
-                $set: {}
-            };
-
+            let group = { $set: {} };
             for (let prop in putGroup) {
-                if (null === putGroup[prop]) {
-                    continue;
-                }
                 group.$set[prop] = putGroup[prop];
             }
 

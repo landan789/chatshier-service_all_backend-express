@@ -118,10 +118,11 @@ module.exports = (function() {
         };
 
         update(appId, putApp, callback) {
+            putApp = putApp || {};
             putApp.updatedTime = Date.now();
 
             let query = {
-                '_id': appId
+                '_id': this.Types.ObjectId(appId)
             };
 
             let doc = {
@@ -146,7 +147,7 @@ module.exports = (function() {
 
         remove(appId, callback) {
             let query = {
-                '_id': appId
+                '_id': this.Types.ObjectId(appId)
             };
 
             let doc = {

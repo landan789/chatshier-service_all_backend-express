@@ -97,7 +97,6 @@ module.exports = (function() {
         remove(platformUid, callback) {
             let consumer = {
                 isDeleted: true,
-                platformUid: platformUid,
                 updatedTime: Date.now()
             };
 
@@ -115,10 +114,6 @@ module.exports = (function() {
                     return Promise.reject(new Error());
                 }
 
-                let query = {
-                    'platformUid': platformUid,
-                    'isDeleted': true
-                };
                 return this.Model.findOne(query, this.project).then((consumer) => {
                     return this.toObject(consumer);
                 });

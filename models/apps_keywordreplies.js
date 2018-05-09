@@ -143,12 +143,14 @@ module.exports = (function() {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
             }
+
             let query = {
-                '_id': appId,
+                '_id': this.Types.ObjectId(appId),
                 'keywordreplies._id': {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 }
             };
+
             let operate = {
                 $inc: {
                     'keywordreplies.$.replyCount': 1
@@ -175,7 +177,6 @@ module.exports = (function() {
 
             let updateOper = {
                 $set: {
-                    'keywordreplies.$._id': keywordreplyId,
                     'keywordreplies.$.isDeleted': true,
                     'keywordreplies.$.updatedTime': Date.now()
                 }

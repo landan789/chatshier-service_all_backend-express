@@ -111,7 +111,8 @@ module.exports = (function() {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
-            compose._id = composeId;
+
+            compose = compose || {};
             compose.updatedTime = Date.now();
 
             let query = {
@@ -148,16 +149,15 @@ module.exports = (function() {
             }
 
             let compose = {
-                _id: composeId,
                 isDeleted: true,
                 updatedTime: Date.now()
             };
 
             let query = {
                 '_id': {
-                    $in: appIds
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'composes._id': composeId
+                'composes._id': this.Types.ObjectId(composeId)
             };
 
             let updateOper = { $set: {} };
@@ -174,12 +174,7 @@ module.exports = (function() {
                     {
                         $unwind: '$composes'
                     }, {
-                        $match: {
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'composes._id': this.Types.ObjectId(composeId)
-                        }
+                        $match: query
                     },
                     docOutput
                 ];

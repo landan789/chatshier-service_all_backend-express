@@ -228,12 +228,11 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'autoreplies._id': autoreplyId
+                'autoreplies._id': this.Types.ObjectId(autoreplyId)
             };
 
             let operate = {
                 $set: {
-                    'autoreplies.$._id': autoreplyId,
                     'autoreplies.$.isDeleted': true,
                     'autoreplies.$.updatedTime': Date.now()
                 }
