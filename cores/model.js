@@ -44,6 +44,7 @@ module.exports = (function() {
             'createdTime': {type: Date, default: Date.now()},
             'updatedTime': {type: Date, default: Date.now()},
             'type': {type: String, default: 'CHATSHIER'},
+            'namings': {type: Object, default: {}},
             'age': {type: Number, default: 0},
             'custom_fields': {type: Object, default: {}},
             'email': {type: String, default: ''},
