@@ -19,6 +19,11 @@ module.exports = {
     LINE: {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
     },
+    FACEBOOK: {
+        appId: '178381762879392',
+        appSecret: '27aad72319bf154c059f696bce055ac2',
+        appAccessToken: '8eeabaf3c836d295edb26264ec76e975'
+    },
     JWT: {
         EXPIRES: EXPIRES,
         SUBJECT: '9thflr.service@gmail.com',

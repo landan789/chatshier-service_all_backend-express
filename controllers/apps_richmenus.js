@@ -64,7 +64,7 @@ module.exports = (function() {
                             reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                             return;
                         }
-                        var richmenuIds = Object.keys(richmenus);
+                        let richmenuIds = Object.keys(richmenus);
                         resolve(richmenuIds);
                     });
                 });
@@ -108,7 +108,7 @@ module.exports = (function() {
             res.setHeader('Content-Type', 'application/json');
             let appId = '';
 
-            var postRichmenu = {
+            let postRichmenu = {
                 size: req.body.size || '',
                 name: req.body.name || '',
                 selected: req.body.selected || '',
@@ -122,32 +122,29 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds[0];
                 return appsRichmenusMdl.insert(appId, postRichmenu);
-            }).then((appsRichmenu) => {
-                if (!appsRichmenu) {
-                    Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
-                    return;
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                 }
 
-                let richmenu = appsRichmenu[appId].richmenus;
+                let richmenu = appsRichmenus[appId].richmenus;
                 let richmenuId = Object.keys(richmenu)[0] || '';
                 let src = richmenu[richmenuId].src;
                 let fileName = src.split('/').pop();
                 let fromPath = `/temp/${fileName}`;
                 let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
-                return Promise.all([
-                    appsRichmenu,
-                    storageHlp.filesMoveV2(fromPath, toPath)
-                ]);
-            }).then((results) => {
-                let appsRichmenu = results[0];
-                var json = {
+                return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
+                    return appsRichmenus;
+                });
+            }).then((appsRichmenus) => {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsRichmenu
+                    data: appsRichmenus
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE
@@ -160,7 +157,7 @@ module.exports = (function() {
             let richmenuId = req.params.richmenuid;
             let appIds;
 
-            var postRichmenu = {
+            let postRichmenu = {
                 size: req.body.size || '',
                 name: req.body.name || '',
                 selected: req.body.selected || '',
@@ -200,19 +197,20 @@ module.exports = (function() {
                     appsRichmenusMdl.update(appIds, richmenuId, postRichmenu, (richmenu) => {
                         if (false === richmenu) {
                             reject(API_ERROR.RICHMENU_UPDATE_FAIL);
+                            return;
                         }
                         resolve(richmenu);
                     });
                 });
             }).then((richmenu) => {
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: richmenu
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE
@@ -236,7 +234,7 @@ module.exports = (function() {
                             reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                             return;
                         }
-                        var richmenuIds = Object.keys(richmenus);
+                        let richmenuIds = Object.keys(richmenus);
                         resolve(richmenuIds);
                     });
                 });
@@ -253,19 +251,20 @@ module.exports = (function() {
                     appsRichmenusMdl.remove(appIds, richmenuId, (richmenu) => {
                         if (!richmenu) {
                             reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
+                            return;
                         }
                         resolve(richmenu);
                     });
                 });
             }).then((richmenu) => {
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: richmenu
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
-                var json = {
+                let json = {
                     status: 0,
                     msg: ERR.MSG,
                     code: ERR.CODE

@@ -10,16 +10,19 @@ module.exports = (function() {
     const chatshierCfg = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
-    const StorageHlp = require('../helpers/storage');
+    const storageHlp = require('../helpers/storage');
     const wechatSvc = require('./wechat');
 
     // app type defined
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const WECHAT = 'WECHAT';
+    const VENDOR = 'VENDOR';
 
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
     const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
+
+    const FACEBOOK_OAUTH_EXCEPTION = 190;
 
     /** @type {Map<string, boolean>} */
     let messageCacheMap = new Map();
@@ -29,6 +32,46 @@ module.exports = (function() {
             this.bots = {};
         }
 
+        /**
+         * @param {any} req
+         * @param {any} res
+         * @param {string} appId
+         * @param {any} app
+         */
+        parser(req, res, appId, app) {
+            switch (app.type) {
+                case LINE:
+                    let lineConfig = {
+                        channelSecret: app.secret,
+                        channelAccessToken: app.token1
+                    };
+
+                    return new Promise((resolve, reject) => {
+                        line.middleware(lineConfig)(req, res, (err) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    });
+                case FACEBOOK:
+                    return new Promise((resolve) => {
+                        bodyParser.json()(req, res, () => resolve());
+                    });
+                case WECHAT:
+                    return new Promise((resolve) => {
+                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => resolve())(req, res);
+                    });
+                default:
+                    return Promise.resolve();
+            }
+        }
+
+        /**
+         * @param {string} appId
+         * @param {any} app
+         */
         create(appId, app) {
             return Promise.resolve().then(() => {
                 switch (app.type) {
@@ -92,46 +135,6 @@ module.exports = (function() {
                         break;
                 }
             });
-        };
-
-        /**
-         * @param {any} req
-         * @param {any} res
-         * @param {any} server
-         * @param {string} appId
-         * @param {any} app
-         */
-        parser(req, res, server, appId, app) {
-            return new Promise((resolve, reject) => {
-                switch (app.type) {
-                    case LINE:
-                        let lineConfig = {
-                            channelSecret: app.secret,
-                            channelAccessToken: app.token1
-                        };
-                        line.middleware(lineConfig)(req, res, (err) => {
-                            if (err) {
-                                reject(err);
-                                return;
-                            }
-                            resolve({});
-                        });
-                        break;
-                    case FACEBOOK:
-                        bodyParser.json()(req, res, () => {
-                            resolve({});
-                        });
-                        break;
-                    case WECHAT:
-                        Wechat(WECHAT_WEBHOOK_VERIFY_TOKEN, () => {
-                            resolve({});
-                        })(req, res);
-                        break;
-                    default:
-                        resolve({});
-                        break;
-                }
-            });
         }
 
         /**
@@ -142,6 +145,7 @@ module.exports = (function() {
         retrievePlatformInfo(req, app) {
             let body = req.body || {};
             let info = {
+                isEcho: false,
                 platformGroupId: '',
                 platformGroupType: '',
                 platformUid: ''
@@ -162,12 +166,16 @@ module.exports = (function() {
                     break;
                 case FACEBOOK:
                     let entries = body.entry || [];
-                    entries.forEach((entry) => {
-                        let messagings = entry.messaging || [];
-                        messagings.forEach((messaging) => {
-                            info.platformUid = info.platformUid || messaging.sender.id;
-                        });
-                    });
+                    for (let i in entries) {
+                        let messagings = entries[i].messaging || [];
+                        for (let j in messagings) {
+                            info.isEcho = !!(messagings[j].message.is_echo && messagings[j].message.app_id);
+                            if (info.isEcho) {
+                                continue;
+                            }
+                            info.platformUid = info.platformUid || (!messagings[j].message.is_echo ? messagings[j].sender.id : messagings[j].recipient.id);
+                        }
+                    }
                     break;
                 case WECHAT:
                     let weixin = req.weixin;
@@ -182,8 +190,8 @@ module.exports = (function() {
         /**
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
          *
-         * @param {string} messagerId
-         * @return {any}
+         * @param {string} messagerId - 這裡是代表 Chatshier chatroom 裡的 messager_id
+         * @return {Promise<any>}
          */
         getReceivedMessages(req, res, messagerId, appId, app) {
             let body = req.body;
@@ -192,267 +200,257 @@ module.exports = (function() {
                 audio: 'mp3',
                 video: 'mp4'
             };
-            let messages = [];
-            switch (app.type) {
-                case LINE:
-                    let events = body.events;
-                    return Promise.all(events.map((event) => {
-                        // LINE 系統 webhook 測試不理會
-                        if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
-                            return Promise.resolve();
-                        }
-                        let _message = {
-                            messager_id: messagerId, // LINE 平台的 sender id
-                            from: LINE,
-                            type: event.message ? event.message.type : '', // LINE POST 訊息型別
-                            eventType: event.type, // LINE POST 事件型別
-                            time: Date.now(), // 將要回覆的訊息加上時戳
-                            replyToken: event.replyToken,
-                            message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
-                            fromPath: event.message ? `/${Date.now()}.${media[event.message.type]}` : ''
-                        };
 
-                        if (event.message && 'text' === event.message.type) {
-                            _message.text = event.message.text;
-                            messages.push(_message);
-                            return Promise.resolve();
-                        };
+            return Promise.resolve().then(() => {
+                let messages = [];
 
-                        if (event.message && 'sticker' === event.message.type) {
-                            let stickerId = event.message.stickerId;
-                            _message.src = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
-                            messages.push(_message);
-                            return Promise.resolve();
-                        };
+                switch (app.type) {
+                    case LINE:
+                        let events = body.events;
+                        return Promise.all(events.map((event) => {
+                            // LINE 系統 webhook 測試不理會
+                            if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                                return;
+                            }
 
-                        if (event.message && 'location' === event.message.type) {
-                            let latitude = event.message.latitude;
-                            let longitude = event.message.longitude;
-                            _message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                            messages.push(_message);
-                            return Promise.resolve();
-                        };
+                            let _message = {
+                                messager_id: messagerId, // LINE 平台的 sender id
+                                from: LINE,
+                                type: event.message ? event.message.type : '', // LINE POST 訊息型別
+                                eventType: event.type, // LINE POST 事件型別
+                                time: Date.now(), // 將要回覆的訊息加上時戳
+                                replyToken: event.replyToken,
+                                message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
+                                fromPath: event.message ? ('file' === event.message.type ? '/' + event.message.fileName : `/${Date.now()}.${media[event.message.type]}`) : ''
+                            };
 
-                        let bot = this.bots[appId];
-                        if (event.message && ['image', 'audio', 'video'].includes(event.message.type)) {
-                            return new Promise((resolve, reject) => {
-                                bot.getMessageContent(event.message.id).then((stream) => {
+                            if (event.message && 'text' === event.message.type) {
+                                _message.text = event.message.text;
+                                messages.push(_message);
+                                return;
+                            };
+
+                            if (event.message && 'sticker' === event.message.type) {
+                                let stickerId = event.message.stickerId;
+                                _message.src = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
+                                messages.push(_message);
+                                return;
+                            };
+
+                            if (event.message && 'location' === event.message.type) {
+                                let latitude = event.message.latitude;
+                                let longitude = event.message.longitude;
+                                _message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                                messages.push(_message);
+                                return;
+                            };
+
+                            let bot = this.bots[appId];
+                            if (event.message && ['image', 'audio', 'video', 'file'].includes(event.message.type)) {
+                                return bot.getMessageContent(event.message.id).then((contentStream) => {
                                     return new Promise((resolve, reject) => {
-                                        let buffs = [];
-                                        stream.on('data', (chunk) => {
-                                            buffs.push(chunk);
-                                        });
-
-                                        stream.on('end', () => {
-                                            let buff = Buffer.concat(buffs);
-                                            resolve(buff);
-                                        });
-
-                                        stream.on('error', (err) => {
-                                            reject(err);
-                                        });
+                                        let bufferArray = [];
+                                        contentStream.on('error', reject);
+                                        contentStream.on('data', (chunk) => bufferArray.push(chunk));
+                                        contentStream.on('end', () => resolve(Buffer.concat(bufferArray)));
                                     });
-                                }).then((buff) => {
+                                }).then((contentBuffer) => {
                                     _message.text = '';
-                                    return StorageHlp.filesUpload(_message.fromPath, buff).then(() => {
-                                        return Promise.resolve();
-                                    }).then(() => {
-                                        return StorageHlp.sharingCreateSharedLink(_message.fromPath);
-                                    }).then((response) => {
-                                        let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                        let src = wwwurl.replace('?dl=0', '');
-                                        _message.src = src;
-                                        messages.push(_message);
-                                        resolve();
-                                    });
+                                    return storageHlp.filesUpload(_message.fromPath, contentBuffer);
+                                }).then(() => {
+                                    return storageHlp.sharingCreateSharedLink(_message.fromPath);
+                                }).then((response) => {
+                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
+                                    let src = wwwurl.replace('?dl=0', '');
+                                    _message.src = src;
+                                    messages.push(_message);
                                 });
-                            });
-                        };
-                        messages.push(_message);
-                        return Promise.resolve();
-                    })).then(() => {
-                        return messages;
-                    });
-                case FACEBOOK:
-                    let entry = body.entry;
-                    messages = [];
-                    entry.forEach((_entry) => {
-                        let messaging = _entry.messaging || [];
-
-                        messaging.forEach((_messaging) => {
-                            let attachments = _messaging.message.attachments;
-                            let text = _messaging.message.text || '';
-
-                            // !attachments 沒有夾帶檔案
-                            if (!attachments && text) {
-                                let _message = {
-                                    messager_id: messagerId, // FACEBOOK 平台的 sender id
-                                    from: FACEBOOK,
-                                    text: text,
-                                    type: 'text',
-                                    time: Date.now(), // 將要回覆的訊息加上時戳
-                                    src: '',
-                                    message_id: _messaging.message.mid // FACEBOOK 平台的 訊息 id
-                                };
-                                messages.push(_message);
-                                return;
-                            }
-
-                            attachments.forEach((attachment) => {
-                                let src;
-                                if ('location' === attachment.type) {
-                                    let coordinates = attachment.payload.coordinates;
-                                    let latitude = coordinates.lat;
-                                    let longitude = coordinates.long;
-                                    src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                                };
-
-                                if ('fallback' === attachment.type) {
-                                    text = attachment.fallback.title;
-                                    src = attachment.fallback.url;
-                                };
-
-                                if ('image' === attachment.type) {
-                                    src = attachment.payload.url;
-                                };
-
-                                if ('video' === attachment.type) {
-                                    src = attachment.payload.url;
-                                };
-
-                                if ('audio' === attachment.type) {
-                                    src = attachment.payload.url;
-                                };
-
-                                if ('file' === attachment.type) {
-                                    src = attachment.payload.url;
-                                };
-
-                                let _message = {
-                                    messager_id: messagerId, // FACEBOOK 平台的 sender id
-                                    from: FACEBOOK,
-                                    text: text,
-                                    type: attachment.type || 'text',
-                                    time: Date.now(), // 將要回覆的訊息加上時戳
-                                    src: src,
-                                    message_id: _messaging.message.mid // FACEBOOK 平台的 訊息 id
-                                };
-
-                                messages.push(_message);
-                            });
+                            };
+                            messages.push(_message);
+                        })).then(() => {
+                            return messages;
                         });
-                    });
-                    return messages;
-                case WECHAT:
-                    let weixin = req.weixin;
-                    let message = {
-                        messager_id: messagerId, // WECHAT 平台的 sender id
-                        type: weixin.MsgType,
-                        time: parseInt(weixin.CreateTime) * 1000,
-                        from: WECHAT,
-                        text: '',
-                        src: '',
-                        message_id: weixin.MsgId || '' // WECHAT 平台的 訊息 id
-                    };
+                    case FACEBOOK:
+                        let entries = body.entry;
+                        for (let i in entries) {
+                            let messaging = entries[i].messaging || [];
+                            for (let j in messaging) {
+                                // 如果有 is_echo 的 flag 並且有 fb 的 app_id
+                                // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
+                                if (messaging[j].message.is_echo && messaging[j].message.app_id) {
+                                    continue;
+                                }
 
-                    return new Promise((resolve, reject) => {
-                        // 目前暫不處理 wechat 的事件訊息
-                        if ('event' === weixin.MsgType) {
-                            if ('subscribe' === weixin.Event) {
-                                // 當關注公眾號時，將此訊息標註為關注
-                                // 改為使用 "follow" 與 LINE 的事件統一
-                                message.eventType = 'follow';
-                                messages.push(message);
+                                let attachments = messaging[j].message.attachments;
+                                let text = messaging[j].message.text || '';
+
+                                // !attachments 沒有夾帶檔案
+                                if (!attachments && text) {
+                                    let _message = {
+                                        messager_id: messagerId,
+                                        // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
+                                        from: messaging[j].message.is_echo ? VENDOR : FACEBOOK,
+                                        text: text,
+                                        type: 'text',
+                                        time: Date.now(), // 將要回覆的訊息加上時戳
+                                        src: '',
+                                        message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                    };
+                                    messages.push(_message);
+                                    continue;
+                                }
+
+                                if (attachments) {
+                                    messages.concat(attachments.map((attachment) => {
+                                        let src;
+                                        if ('location' === attachment.type) {
+                                            let coordinates = attachment.payload.coordinates;
+                                            let latitude = coordinates.lat;
+                                            let longitude = coordinates.long;
+                                            src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                                        };
+
+                                        if ('fallback' === attachment.type) {
+                                            text = attachment.fallback.title;
+                                            src = attachment.fallback.url;
+                                        };
+
+                                        if ('image' === attachment.type) {
+                                            src = attachment.payload.url;
+                                        };
+
+                                        if ('video' === attachment.type) {
+                                            src = attachment.payload.url;
+                                        };
+
+                                        if ('audio' === attachment.type) {
+                                            src = attachment.payload.url;
+                                        };
+
+                                        if ('file' === attachment.type) {
+                                            src = attachment.payload.url;
+                                        };
+
+                                        let _message = {
+                                            messager_id: messagerId, // FACEBOOK 平台的 sender id
+                                            from: FACEBOOK,
+                                            text: text,
+                                            type: attachment.type || 'text',
+                                            time: Date.now(), // 將要回覆的訊息加上時戳
+                                            src: src,
+                                            message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                        };
+                                        return _message;
+                                    }));
+                                }
                             }
-                            resolve();
-                            return;
                         }
+                        return messages;
+                    case WECHAT:
+                        let weixin = req.weixin;
+                        let message = {
+                            messager_id: messagerId, // WECHAT 平台的 sender id
+                            type: weixin.MsgType,
+                            time: parseInt(weixin.CreateTime) * 1000,
+                            from: WECHAT,
+                            text: '',
+                            src: '',
+                            message_id: weixin.MsgId || '' // WECHAT 平台的 訊息 id
+                        };
 
-                        // 由於 wechat 在 5s 內沒有收到 http response 時會在打 webhook 過來
-                        // 有可能因網路傳輸或資料庫處理等原因，造成處理時間超過 5s
-                        // 標註 MsgId 來防止相同訊息被處理 2 次以上
-                        if (weixin.MsgId) {
-                            if (messageCacheMap.get(weixin.MsgId)) {
-                                reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
-                                return;
+                        return Promise.resolve().then(() => {
+                            // 目前暫不處理 wechat 的事件訊息
+                            if ('event' === weixin.MsgType) {
+                                if ('subscribe' === weixin.Event) {
+                                    // 當關注公眾號時，將此訊息標註為關注
+                                    // 改為使用 "follow" 與 LINE 的事件統一
+                                    message.eventType = 'follow';
+                                }
+                                return message;
                             }
-                            messageCacheMap.set(weixin.MsgId, true);
-                        }
 
-                        // 將 wechat 的 type 格式統一處理
-                        // 音檔型別就是 audio, 影音檔就是 video
-                        if ('voice' === message.type) {
-                            message.type = 'audio';
-                        } else if ('shortvideo' === message.type) {
-                            message.type = 'video';
-                        }
+                            // 由於 wechat 在 5s 內沒有收到 http response 時會在打 webhook 過來
+                            // 有可能因網路傳輸或資料庫處理等原因，造成處理時間超過 5s
+                            // 標註 MsgId 來防止相同訊息被處理 2 次以上
+                            if (weixin.MsgId) {
+                                if (messageCacheMap.get(weixin.MsgId)) {
+                                    return Promise.reject(new Error('MESSAGE_HAS_BEEN_PROCESSED'));
+                                }
+                                messageCacheMap.set(weixin.MsgId, true);
+                            }
 
-                        let bot = this.bots[appId];
-                        if (!bot) {
-                            reject(new Error('BOT_NOT_FOUND'));
-                            return;
-                        }
+                            // 將 wechat 的 type 格式統一處理
+                            // 音檔型別就是 audio, 影音檔就是 video
+                            if ('voice' === message.type) {
+                                message.type = 'audio';
+                            } else if ('shortvideo' === message.type) {
+                                message.type = 'video';
+                            }
 
-                        if ('text' === message.type) {
-                            message.text = weixin.Content;
-                        } else if (weixin.MediaId) {
-                            let ext = media[message.type];
-                            message.fromPath = `/${message.time}.${ext}`;
+                            let bot = this.bots[appId];
+                            if (!bot) {
+                                return Promise.reject(new Error('BOT_NOT_FOUND'));
+                            }
 
-                            // 抓取 wechat 資料 -> 轉檔(amr) -> 儲存至 storage (整個流程可能超過 5s)
-                            // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
-                            // 由於 wechat 的 webhook 在 5s 內沒有進行 http response 的話
-                            // 會再打一次 webhook 過來持續三次
-                            // 而接收到多媒體訊息的話不需要回覆訊息
-                            // 因此在此階段即可回應 wechat 200 狀態
-                            !res.headersSent && res.reply('');
+                            if ('text' === message.type) {
+                                message.text = weixin.Content;
+                            } else if (weixin.MediaId) {
+                                let ext = media[message.type];
+                                message.fromPath = `/${message.time}.${ext}`;
 
-                            return new Promise((resolve, reject) => {
-                                bot.getMedia(weixin.MediaId, (err, buffer) => {
-                                    if (err) {
-                                        reject(new Error(err));
-                                        return;
-                                    }
+                                // 抓取 wechat 資料 -> 轉檔(amr) -> 儲存至 storage (整個流程可能超過 5s)
+                                // https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453
+                                // 由於 wechat 的 webhook 在 5s 內沒有進行 http response 的話
+                                // 會再打一次 webhook 過來持續三次
+                                // 而接收到多媒體訊息的話不需要回覆訊息
+                                // 因此在此階段即可回應 wechat 200 狀態
+                                !res.headersSent && res.reply('');
 
+                                return new Promise((resolve, reject) => {
+                                    bot.getMedia(weixin.MediaId, (err, rawBuffer) => {
+                                        if (err) {
+                                            reject(new Error(err));
+                                            return;
+                                        }
+                                        resolve(rawBuffer);
+                                    });
+                                }).then((rawBuffer) => {
                                     if ('amr' === weixin.Format) {
                                         // 由於 wechat 的錄音檔的格式為 amr, HTML5 的 audio 不支援
                                         // 因此必須將 amr 檔轉換為 mp3 檔案
-                                        return wechatSvc.amrToMp3(buffer, `/${weixin.MsgId}.${weixin.Format}`, message.fromPath).then((outputBuffer) => {
-                                            resolve(outputBuffer);
-                                        });
+                                        return wechatSvc.amrToMp3(rawBuffer);
                                     }
-                                    resolve(buffer);
-                                });
-                            }).then((outputBuffer) => {
-                                return StorageHlp.filesUpload(message.fromPath, outputBuffer).then(() => {
-                                    return StorageHlp.sharingCreateSharedLink(message.fromPath);
+                                    return rawBuffer;
+                                }).then((outputBuffer) => {
+                                    return storageHlp.filesUpload(message.fromPath, outputBuffer);
+                                }).then(() => {
+                                    return storageHlp.sharingCreateSharedLink(message.fromPath);
                                 }).then((response) => {
                                     let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
                                     let src = wwwurl.replace('?dl=0', '');
                                     message.src = src;
-                                    messages.push(message);
-                                    resolve();
+                                    return message;
                                 });
-                            });
-                        } else if ('location' === message.type) {
-                            let latitude = weixin.Location_X;
-                            let longitude = weixin.Location_Y;
-                            message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                        } else if ('file' === message.type) {
-                            // TODO:
-                            // 目前無法得知如何從後台下載 wechat 的檔案
-                            // 期望結果應是從 wechat 下載到該檔案後上傳至 dropbox
-                            // 將 message.src 指向 dropbox 連結
-                            message.text = weixin.Title + ' - ' + weixin.Description;
-                        }
-                        messages.push(message);
-                        resolve();
-                    }).then(() => {
+                            } else if ('location' === message.type) {
+                                let latitude = weixin.Location_X;
+                                let longitude = weixin.Location_Y;
+                                message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
+                            } else if ('file' === message.type) {
+                                // TODO:
+                                // 目前無法得知如何從後台下載 wechat 的檔案
+                                // 期望結果應是從 wechat 下載到該檔案後上傳至 dropbox
+                                // 將 message.src 指向 dropbox 連結
+                                message.text = weixin.Title + ' - ' + weixin.Description;
+                            }
+                            return message;
+                        }).then((message) => {
+                            message && messages.push(message);
+                            return messages;
+                        });
+                    default:
                         return messages;
-                    });
-                default:
-                    return messages;
-            }
+                }
+            });
         }
 
         /**
@@ -511,6 +509,18 @@ module.exports = (function() {
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
                             senderProfile.photo = fbUserProfile.profile_pic;
                             return senderProfile;
+                        }).catch((ex) => {
+                            // 如果此 app 的 page access token 已經無法使用
+                            // 則自動將此 app 刪除
+                            if (FACEBOOK_OAUTH_EXCEPTION === ex.error.code) {
+                                return appsMdl.remove(appId).then((apps) => {
+                                    if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
+                                    }
+                                    return Promise.resolve();
+                                });
+                            }
+                            return Promise.reject(ex.error);
                         });
                     case WECHAT:
                         return new Promise((resolve, reject) => {
@@ -899,7 +909,6 @@ module.exports = (function() {
             let bot = this.bots[appId];
             return bot.unlinkRichMenuFromUser(userId, platformMenuId);
         }
-
     }
 
     return new BotService();

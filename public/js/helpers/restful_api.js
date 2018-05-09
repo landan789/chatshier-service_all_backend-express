@@ -118,6 +118,8 @@ window.restfulAPI = (function() {
         });
     };
 
+
+
     /**
      * 宣告專門處理 Chatshier App 相關的 API 類別
      */
@@ -698,6 +700,22 @@ window.restfulAPI = (function() {
             var reqInit = {
                 method: 'GET',
                 headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {any} putChatroom
+         * @param {string} userId
+         */
+        AppsChatroomsAPI.prototype.update = function(appId, chatroomId, putChatroom, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putChatroom)
             };
             return sendRequest(destUrl, reqInit);
         };
@@ -1305,6 +1323,25 @@ window.restfulAPI = (function() {
                 method: 'POST',
                 headers: _reqHeaders,
                 body: formData
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} richMenuId
+         * @param {string} userId
+         * @param {string} path
+         */
+        BotAPI.prototype.moveFile = function(appId, richMenuId, userId, path) {
+            var destUrl = `${this.urlPrefix}move-file/users/${userId}?appid=${appId}&richmenuid=${richMenuId}&path=${path}`;
+
+            var _reqHeaders = new Headers();
+            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
+
+            var reqInit = {
+                method: 'POST',
+                headers: _reqHeaders
             };
             return sendRequest(destUrl, reqInit);
         };

@@ -67,6 +67,7 @@ interface AppsAutorepliesAPI {
 
 interface AppsChatroomsAPI {
     findAll: (userId: string) => Promise<any>;
+    update: (appId: string, chatroomId: string, chatroom: any, userId: string) => Promise<any>;
 }
 
 interface AppsChatroomsMessagersAPI {
@@ -190,5 +191,11 @@ interface BotAPI {
     deactivateMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
     deleteMenu: (appId: string, menuId: string, userId: string) => Promise<any>;
     getProfile: (appId: string, platformUid: string) => Promise<any>;
-    uploadFile: (appId:string, userId: string, file: File) => Promise<any>;
+    createRichMenu: (appId: string, richmenuIdData: any) => Promise<any>;
+    setRichMenuImage: (appId: string, richmenuId: string, richmenuImg: string) => Promise<any>;
+    linkRichMenuToUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
+    deleteRichMenu: (appId: string, richmenuId: string) => Promise<any>;
+    unlinkRichMenuFromUser: (appId: string, richmenuId: string, senderId: string) => Promise<any>;
+    getProfile: (appId: string, platformUid: string) => Promise<any>;
+    uploadFile: (appId: string, docName: string, docId: string, userId: string, file: File) => Promise<any>;
 }

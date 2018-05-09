@@ -37,6 +37,7 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
+        'name': {type: String, default: ''},
         'platformGroupId': {type: String, default: ''},
         'platformGroupType': {type: String, default: ''},
         'messagers': [{
@@ -96,6 +97,16 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'text': {type: String, default: ''},
         'type': {type: String, default: 'text'},
+        'updatedTime': {type: Date, default: Date.now()},
+        'createdTime': {type: Date, default: Date.now()}
+    });
+
+    const TemplatesSchema = new mongoose.Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'keyword': {type: String, default: ''},
+        'altText': {type: String, default: ''},
+        'type': {type: String, default: 'template'},
+        'template': {type: Object, default: {}},
         'updatedTime': {type: Date, default: Date.now()},
         'createdTime': {type: Date, default: Date.now()}
     });
@@ -161,6 +172,7 @@ module.exports = (function() {
         'keywordreplies': [KeywordrepliesSchema],
         'composes': [ComposesSchema],
         'greetings': [GreetingsSchema],
+        'templates': [TemplatesSchema],
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],

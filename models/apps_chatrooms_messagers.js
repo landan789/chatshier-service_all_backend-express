@@ -92,6 +92,7 @@ module.exports = (function() {
                         // 篩選需要的項目
                         chatrooms: {
                             _id: '$chatrooms._id',
+                            name: '$chatrooms.name',
                             isDeleted: '$chatrooms.isDeleted',
                             platformGroupId: '$chatrooms.platformGroupId',
                             platformGroupType: '$chatrooms.platformGroupType',
@@ -127,6 +128,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -146,39 +148,40 @@ module.exports = (function() {
          * @param {string} appId
          * @param {string|null} chatroomId
          * @param {string|string[]} platformUids
+         * @param {any} [query]
          * @param {(appsChatroomMessager: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        findByPlatformUid(appId, chatroomId, platformUids, callback) {
+        findByPlatformUid(appId, chatroomId, platformUids, query, callback) {
             if (!(platformUids instanceof Array)) {
                 platformUids = [platformUids];
             }
 
             // 尋找符合的欄位
-            let query = {
-                '_id': this.Types.ObjectId(appId),
-                'isDeleted': false,
-                'chatrooms.isDeleted': false,
-                'chatrooms.messagers.isDeleted': false,
-                'chatrooms.messagers.platformUid': {
-                    $in: platformUids
-                }
+            let _query = query || {};
+            _query['_id'] = this.Types.ObjectId(appId);
+            _query['isDeleted'] = false;
+            _query['chatrooms.isDeleted'] = false;
+            _query['chatrooms.messagers.isDeleted'] = false;
+            _query['chatrooms.messagers.platformUid'] = {
+                $in: platformUids
             };
 
             if (chatroomId) {
-                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+                _query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
             }
 
             let aggregations = [
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: query
+                    $match: _query
                 }, {
                     $project: {
                         // 篩選需要的項目
                         chatrooms: {
                             _id: '$chatrooms._id',
+                            name: '$chatrooms.name',
                             isDeleted: '$chatrooms.isDeleted',
                             platformGroupId: '$chatrooms.platformGroupId',
                             platformGroupType: '$chatrooms.platformGroupType',
@@ -222,6 +225,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));
@@ -277,9 +281,8 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         insertByPlatformUid(appId, chatroomId, messager, callback) {
-            messager = messager || {};
-
             let messagerId = this.Types.ObjectId();
+            messager = messager || {};
             messager._id = messagerId;
             messager.type = messager.type || CHATSHIER;
             messager.createdTime = messager.updatedTime = messager.lastTime = Date.now();
@@ -430,8 +433,8 @@ module.exports = (function() {
 
                 return this.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
                     let messager = {
-                        'platformUid': platformUid,
-                        'updatedTime': Date.now()
+                        platformUid: platformUid,
+                        updatedTime: Date.now()
                     };
 
                     let doc = {};
@@ -598,6 +601,7 @@ module.exports = (function() {
                             // 篩選需要的項目
                             chatrooms: {
                                 _id: '$chatrooms._id',
+                                name: '$chatrooms.name',
                                 isDeleted: '$chatrooms.isDeleted',
                                 platformGroupId: '$chatrooms.platformGroupId',
                                 platformGroupType: '$chatrooms.platformGroupType',
@@ -639,6 +643,7 @@ module.exports = (function() {
 
                         let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                         chatroom._id = app.chatrooms._id;
+                        chatroom.name = app.chatrooms.name;
                         chatroom.platformGroupId = app.chatrooms.platformGroupId;
                         chatroom.platformGroupType = app.chatrooms.platformGroupType;
                         Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers, 'platformUid'));

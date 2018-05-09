@@ -213,19 +213,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.AppsModel.aggregate(aggregations);
-            }).then((results) => {
-                let appsRichmenus = {};
-                if (0 === results.length) {
-                    return Promise.reject(new Error());
-                }
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsRichmenus = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-                appsRichmenus = results.reduce((output, app) => {
-                    output[app._id] = output[app._id] || { richmenus: {} };
-                    Object.assign(output[app._id].richmenus, this.toObject(app.richmenus));
-                    return output;
-                }, {});
-                return appsRichmenus;
+                    appsRichmenus = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { richmenus: {} };
+                        Object.assign(output[app._id].richmenus, this.toObject(app.richmenus));
+                        return output;
+                    }, {});
+                    return appsRichmenus;
+                });
             }).then((appsRichmenus) => {
                 ('function' === typeof callback) && callback(appsRichmenus);
                 return appsRichmenus;
