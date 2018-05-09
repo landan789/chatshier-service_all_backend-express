@@ -1050,7 +1050,8 @@
             'image' === message.type ||
             'audio' === message.type ||
             'video' === message.type ||
-            'sticker' === message.type
+            'sticker' === message.type ||
+            'template' === message.type
         );
 
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
@@ -1234,6 +1235,12 @@
                     '<i class="fa fa-location-arrow fa-fw location-icon"></i>' +
                     '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
+            case 'template':
+                if (!message.template) {
+                    let messageText = linkify(filterWechatEmoji(message.text || ''));
+                    return '<span class="text-content">' + messageText + '</span>';
+                }
+                return templateMessageType(message.template);
             case 'file':
                 // var fileName = message.src.split('/').pop();
                 return (
@@ -1243,6 +1250,48 @@
             default:
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
+        }
+    }
+
+    function templateMessageType(template) {
+        switch (template.type) {
+            case 'confirm':
+                return (
+                    '<div class="template-sm">' +
+                        `<div class="template-sm-title">${template.text}</div>` +
+                        '<div class="template-sm-buttons">' +
+                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
+                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
+                        '</div>' +
+                    '</div>'
+                );
+            case 'buttons':
+                return (
+                    '<div class="template">' +
+                        `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
+                        `<div class="template-title">${template.title}</div>` +
+                        `<div class="template-desc">${template.text}</div>` +
+                        '<div class="template-buttons">' +
+                            `<div class="template-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
+                            `<div class="template-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
+                            `<div class="template-button3">${template.actions[2].label} (輸出：${template.actions[2].text})</div>` +
+                        '</div>' +
+                    '</div>'
+                );
+            case 'carousel':
+                return template.columns.map((column) => (
+                    '<div class="template">' +
+                        `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
+                        `<div class="template-title">${column.title}</div>` +
+                        `<div class="template-desc">${column.text}</div>` +
+                        '<div class="template-buttons">' +
+                            `<div class="template-button1">${column.actions[0].label} (輸出：${column.actions[0].text})</div>` +
+                            `<div class="template-button2">${column.actions[1].label} (輸出：${column.actions[1].text})</div>` +
+                            `<div class="template-button3">${column.actions[2].label} (輸出：${column.actions[2].text})</div>` +
+                        '</div>' +
+                    '</div>'
+                ));
+            default:
         }
     }
 
