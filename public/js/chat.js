@@ -1000,8 +1000,10 @@
 
     function generateLoadingJqElem() {
         return $($.parseHTML(
-            '<div class="loading-container">' +
-                '<img src="image/loading.gif" alt="loading..." />' +
+            '<div class="mb-3 message">' +
+                '<div class="ml-auto loading-container">' +
+                    '<img class="w-100 h-100" src="image/loading.gif" alt="loading..." />' +
+                '</div>' +
             '</div>'
         ).shift());
     }
@@ -1223,13 +1225,13 @@
             case 'location':
                 return (
                     '<i class="fa fa-location-arrow fa-fw location-icon"></i>' +
-                    '<span>地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
+                    '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'file':
-                var fileName = message.src.split('/').pop();
+                // var fileName = message.src.split('/').pop();
                 return (
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
-                    '<span>檔案: <a href="' + message.src + '" download="' + message.src + '">' + fileName + '</a></span>'
+                    '<span class="text-content">' + message.text + '<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
                 );
             default:
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
@@ -1878,20 +1880,21 @@
         _this.value = ''; // 把 input file 值清空，使 change 事件對同一檔案可重複觸發
 
         var config = window.chatshier.config;
+        var kiloByte = 1024;
+        var megaByte = kiloByte * 1024;
         if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         } else if (file.type.indexOf('video') >= 0 && file.size > config.videoFileMaxSize) {
-            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('影像檔案過大，檔案大小限制為: ' + Math.floor(config.videoFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         } else if (file.type.indexOf('audio') >= 0 && file.size > config.audioFileMaxSize) {
-            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / (1024 * 1000)) + ' MB');
+            $.notify('聲音檔案過大，檔案大小限制為: ' + Math.floor(config.audioFileMaxSize / megaByte) + ' MB', { type: 'warning' });
+            return;
+        } else if (file.size > config.otherFileMaxSize) {
+            $.notify('檔案過大，檔案大小限制為: ' + Math.floor(config.otherFileMaxSize / megaByte) + ' MB', { type: 'warning' });
             return;
         }
-
-        var $loadingElem = generateLoadingJqElem();
-        $messageView.find('.message-panel').append($loadingElem);
-        scrollMessagePanelToBottom(appId, chatroomId);
 
         var messageType = $(_this).data('type');
         var appType = apps[appId].type;
@@ -1899,10 +1902,19 @@
         var messagerSelf = findMessagerSelf(appId, chatroomId);
         var src = file;
 
+        var fileSize = file.size / kiloByte;
+        if (fileSize >= 1000) {
+            fileSize /= kiloByte;
+            fileSize = fileSize.toFixed(1) + ' MB';
+        } else {
+            fileSize = fileSize.toFixed(1) + ' KB';
+        }
+
         /** @type {ChatshierMessage} */
         var messageToSend = {
-            text: '',
+            text: '錢掌櫃傳送檔案給您:\n檔案大小: ' + fileSize + '\n',
             src: src,
+            fileName: file.name,
             type: messageType,
             from: CHATSHIER,
             time: Date.now(),
@@ -1918,8 +1930,11 @@
             messages: [messageToSend]
         };
 
+        var $loadingElem = generateLoadingJqElem();
+        $messageView.find('.message-panel').append($loadingElem);
+        scrollMessagePanelToBottom(appId, chatroomId);
+
         return new Promise((resolve, reject) => {
-            $submitMessageInput.val('');
             chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
                 if (err) {
                     console.error(err);

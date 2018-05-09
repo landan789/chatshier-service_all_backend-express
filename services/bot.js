@@ -606,42 +606,49 @@ module.exports = (function() {
                     if ('text' === message.type) {
                         _message.type = message.type;
                         _message.text = message.text;
-                    };
+                    }
                     if ('image' === message.type) {
                         _message.type = message.type;
                         _message.previewImageUrl = message.src;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('audio' === message.type) {
                         _message.type = message.type;
                         _message.duration = 240000;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('video' === message.type) {
                         _message.type = message.type;
                         _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('sticker' === message.type) {
                         _message.type = message.type;
                         _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
                         _message.packageId = message.text.substr(message.text.indexOf(' '));
-                    };
+                    }
+                    if ('file' === message.type) {
+                        _message.type = 'text';
+                        _message.text = message.text + message.src;
+                    }
 
                     return bot.pushMessage(recipientUid, _message);
                 case FACEBOOK:
                     if ('text' === message.type) {
                         return bot.sendTextMessage(recipientUid, message.text);
-                    };
+                    }
                     if ('image' === message.type) {
                         return bot.sendImageMessage(recipientUid, message.src, true);
-                    };
+                    }
                     if ('audio' === message.type) {
                         return bot.sendAudioMessage(recipientUid, message.src, true);
-                    };
+                    }
                     if ('video' === message.type) {
                         return bot.sendVideoMessage(recipientUid, message.src, true);
-                    };
+                    }
+                    if ('file' === message.type) {
+                        return bot.sendFileMessage(recipientUid, message.src, true);
+                    }
                     return bot.sendTextMessage(recipientUid, message.text);
                 case WECHAT:
                     return Promise.resolve().then(() => {

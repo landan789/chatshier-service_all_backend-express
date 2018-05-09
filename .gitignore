@@ -10,7 +10,5 @@
 /public/config/firebaseConfig.js
 /public/config/url-config.js
 
-# react
-
 # npm
 npm-debug.log

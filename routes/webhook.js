@@ -58,7 +58,7 @@ router.post('/:webhookid', (req, res, next) => {
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         return Promise.resolve().then(() => {
-            // 由於 Facebook 使用單一 app 的訂閱所有的粉絲專頁
+            // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
             if (webhookid && FACEBOOK === webhookid.toUpperCase()) {
                 return new Promise((resolve) => {
