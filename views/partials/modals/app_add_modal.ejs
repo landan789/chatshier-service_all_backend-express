@@ -1,0 +1,23 @@
+<div class="chsr modal fade app-modal" id="appAddModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form class="app-form">
+                    <div class="form-group">
+                        <label class="col-form-label font-weight-bold">聊天機器人平台:</label>
+                        <select id="appTypeSelect" class="form-control" value="LINE">
+                            <option value="LINE">LINE</option>
+                            <option value="FACEBOOK">臉書</option>
+                            <!-- <option value="WECHAT">WeChat</option> -->
+                        </select>
+                    </div>
+                    <div class="app-items-container" id="appItemsContainer"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary" id="appAddModalSubmitBtn">確認</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -43,7 +43,7 @@
 
     $modal.on('show.bs.modal', function() {
         $('#keyword').empty();
-        let keywordreplyStr = '';
+        let keywordreplyStr = '<option>請選擇關鍵字</option>';
         let appId = $appSelector.find('option:selected').val();
 
         return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
@@ -53,7 +53,12 @@
                 let keyword = keywordreply[keywordreplyId].keyword;
                 keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
             }
-            $('#keyword').append(keywordreplyStr);
+            $(`#box1-input #keyword`).append(keywordreplyStr);
+            $(`#box2-input #keyword`).append(keywordreplyStr);
+            $(`#box3-input #keyword`).append(keywordreplyStr);
+            $(`#box4-input #keyword`).append(keywordreplyStr);
+            $(`#box5-input #keyword`).append(keywordreplyStr);
+            $(`#box6-input #keyword`).append(keywordreplyStr);
         });
     });
 

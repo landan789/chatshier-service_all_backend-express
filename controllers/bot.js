@@ -26,11 +26,10 @@ module.exports = (function() {
         }
 
         _createBot(appId) {
-            let app = '';
-            return appsMdl.find(appId, null).then((apps) => {
+            let app;
+            return appsMdl.find(appId).then((apps) => {
                 if (!apps) {
-                    Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
-                    return;
+                    return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
                 }
                 app = apps[appId];
                 return botSvc.create(appId, app);
@@ -67,8 +66,7 @@ module.exports = (function() {
                 return this._createBot(appId);
             }).then((app) => {
                 if (!app) {
-                    Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                    return;
+                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
                 appType = app.type;
                 return Promise.all([
@@ -79,8 +77,7 @@ module.exports = (function() {
                 let appsRichmenu = results[0];
                 let app = results[1];
                 if (!appsRichmenu) {
-                    Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                    return;
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
                 postMenu = appsRichmenu[appId].richmenus[menuId];
 
@@ -102,22 +99,19 @@ module.exports = (function() {
                     if (!response.errcode && 'ok' === response.errmsg) {
                         botMenuId = 'true';
                     }
-                    Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_INSERT);
-                    return;
+                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_INSERT);
                 }
                 botMenuId = response;
 
                 return botSvc.setRichMenuImage(botMenuId, image, appId).then((result) => {
                     if (!result) {
-                        Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
-                        return;
+                        return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
                     }
                     return this._findPlatformUids(appId, appType).then((platformUids) => {
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, botMenuId, appId).then((result) => {
                                 if (!result) {
-                                    Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
-                                    return;
+                                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
                                 }
                                 return platformUid;
                             });
@@ -147,41 +141,32 @@ module.exports = (function() {
         };
 
         deactivateMenu(req, res) {
-            let appId = '';
-            let appType = '';
-            let richmenu = {};
-            let platformMenuId = '';
             let menuId = req.params.menuid;
+            let appId = '';
+            let app;
+            let richmenu;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds[0];
                 return this._createBot(appId);
-            }).then((app) => {
-                if (!app) {
-                    Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                    return;
+            }).then((_app) => {
+                if (!_app) {
+                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                appType = app.type;
-                return Promise.all([
-                    appsRichmenusMdl.find(appId, menuId),
-                    app
-                ]);
-            }).then((results) => {
-                let appsRichmenu = results[0];
-                let app = results[1];
-                if (!appsRichmenu) {
-                    Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                    return;
+                app = _app;
+                return appsRichmenusMdl.find(appId, menuId);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                richmenu = appsRichmenu[appId].richmenus[menuId];
-                platformMenuId = richmenu.platformMenuId;
-                return this._findPlatformUids(appId, appType);
+                richmenu = appsRichmenus[appId].richmenus[menuId];
+                return this._findPlatformUids(appId, app.type);
             }).then((platformUids) => {
+                let platformMenuId = richmenu.platformMenuId;
                 return Promise.all(platformUids.map((platformUid) => {
                     return botSvc.unlinkRichMenuFromUser(platformUid, platformMenuId, appId).then((result) => {
                         if (!result) {
-                            Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_UNLINK);
-                            return;
+                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_UNLINK);
                         }
                         return platformUid;
                     });
@@ -210,38 +195,30 @@ module.exports = (function() {
         };
 
         deleteMenu(req, res) {
-            let appId = '';
             let menuId = req.params.menuid;
-            let appType = '';
-            let richmenu = {};
+            let appId = '';
+            let app;
+            let richmenu;
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds[0];
                 return this._createBot(appId);
-            }).then((app) => {
-                if (!app) {
-                    Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
-                    return;
+            }).then((_app) => {
+                if (!_app) {
+                    return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                appType = app.type;
-                return Promise.all([
-                    appsRichmenusMdl.find(appId, menuId),
-                    app
-                ]);
-            }).then((results) => {
-                let appsRichmenu = results[0];
-                let app = results[1];
-                if (!appsRichmenu) {
-                    Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                    return;
+                app = _app;
+                return appsRichmenusMdl.find(appId, menuId);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                richmenu = appsRichmenu[appId].richmenus[menuId];
+                richmenu = appsRichmenus[appId].richmenus[menuId];
                 let platformMenuId = richmenu.platformMenuId;
                 return botSvc.deleteMenu(platformMenuId, appId, app);
             }).then((result) => {
                 if (!result) {
-                    Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_REMOVE);
-                    return;
+                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_REMOVE);
                 }
                 richmenu.platformMenuId = '';
                 richmenu.isDeleted = true;
@@ -272,11 +249,13 @@ module.exports = (function() {
                 if (!appId) {
                     return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
                 }
-                return appsMdl.find(appId, null);
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
+                });
             }).then((apps) => {
-                if (!apps) {
-                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
-                }
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
@@ -344,11 +323,11 @@ module.exports = (function() {
             let fileName = fromPath.slice(fromPath.indexOf('temp/') + 4);
             let toPath = `/apps/${appId}/richmenus/${richMenuId}/src${fileName}`;
 
-            return storageHlp.filesMoveV2(fromPath, toPath).catch((ERROR) => {
-                if (409 === ERROR.status) {
-                    return;
+            return storageHlp.filesMoveV2(fromPath, toPath).catch((err) => {
+                if (409 === err.status) {
+                    return Promise.resolve();
                 }
-                return Promise.reject(ERROR);
+                return Promise.reject(err);
             }).then(() => {
                 let json = {
                     status: 1,

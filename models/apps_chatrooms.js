@@ -79,6 +79,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -156,6 +157,7 @@ module.exports = (function() {
 
                     let chatroom = output[app._id].chatrooms[app.chatrooms._id];
                     chatroom._id = app.chatrooms._id;
+                    chatroom.name = app.chatrooms.name;
                     chatroom.platformGroupId = app.chatrooms.platformGroupId;
                     chatroom.platformGroupType = app.chatrooms.platformGroupType;
                     Object.assign(chatroom.messagers, this.toObject(app.chatrooms.messagers));
@@ -223,10 +225,9 @@ module.exports = (function() {
                     let messager = {
                         _id: messagerId,
                         type: CHATSHIER,
-                        platformUid: memberUserId,
-                        createdTime: Date.now(),
-                        updatedTime: Date.now()
+                        platformUid: memberUserId
                     };
+                    messager.createdTime = messager.updatedTime = Date.now();
 
                     let doc = {
                         $push: {
@@ -244,7 +245,82 @@ module.exports = (function() {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
-        };
+        }
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {any} [chatroom]
+         * @param {(appsChatrooms: any) => any} [callback]
+         * @returns {Promise<any>}
+         */
+        update(appId, chatroomId, chatroom, callback) {
+            chatroom = chatroom || {};
+            chatroom._id = this.Types.ObjectId(chatroomId);
+            chatroom.updatedTime = Date.now();
+
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'chatrooms._id': chatroom._id
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in chatroom) {
+                updateOper.$set['chatrooms.$.' + prop] = chatroom[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                let aggregations = [
+                    {
+                        $unwind: '$chatrooms'
+                    }, {
+                        $match: query
+                    }, {
+                        $project: {
+                            // 篩選需要的項目
+                            chatrooms: {
+                                _id: '$chatrooms._id',
+                                name: '$chatrooms.name',
+                                isDeleted: '$chatrooms.isDeleted',
+                                platformGroupId: '$chatrooms.platformGroupId',
+                                platformGroupType: '$chatrooms.platformGroupType'
+                            }
+                        }
+                    }
+                ];
+
+                return this.AppsModel.aggregate(aggregations).then((results) => {
+                    let appsChatrooms = {};
+                    if (0 === results.length) {
+                        return appsChatrooms;
+                    }
+
+                    appsChatrooms = results.reduce((output, app) => {
+                        if (!output[app._id]) {
+                            output[app._id] = { chatrooms: {} };
+                        }
+
+                        if (!output[app._id].chatrooms[app.chatrooms._id]) {
+                            output[app._id].chatrooms[app.chatrooms._id] = {};
+                        }
+
+                        let chatroom = output[app._id].chatrooms[app.chatrooms._id];
+                        chatroom._id = app.chatrooms._id;
+                        chatroom.name = app.chatrooms.name;
+                        chatroom.platformGroupId = app.chatrooms.platformGroupId;
+                        chatroom.platformGroupType = app.chatrooms.platformGroupType;
+                        return output;
+                    }, {});
+                    return appsChatrooms;
+                }).then((appsChatrooms) => {
+                    ('function' === typeof callback) && callback(appsChatrooms);
+                    return appsChatrooms;
+                }).catch(() => {
+                    ('function' === typeof callback) && callback(null);
+                    return null;
+                });
+            });
+        }
     }
 
     return new AppsChatroomsModel();

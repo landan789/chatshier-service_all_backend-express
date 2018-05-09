@@ -62,16 +62,11 @@ module.exports = (function() {
                     return Promise.resolve([req.params.appid]);
                 };
 
-                return Promise.resolve().then(() => {
-                    return new Promise((resolve, reject) => {
-                        appsMdl.find(appId, null, (apps) => {
-                            if (null === apps || undefined === apps || '' === apps) {
-                                reject(API_ERROR.APP_FAILED_TO_FIND);
-                                return;
-                            }
-                            resolve(apps);
-                        });
-                    });
+                return appsMdl.find(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return apps;
                 }).then((apps) => {
                     let app = Object.values(apps)[0];
                     let groupId = app.group_id;

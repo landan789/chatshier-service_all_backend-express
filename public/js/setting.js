@@ -8,8 +8,20 @@
     const ACTIVE = '啟用';
     const INACTIVE = '未啟用';
     const NO_PERMISSION_CODE = '3.16';
+
+    var apps = {};
+    var appsFields = {};
+    var groups = {};
+    var users = {};
+
     var api = window.restfulAPI;
+    var translate = window.translate;
+    var gClientHlp = window.googleClientHelper;
+    var gCalendarHlp = window.googleCalendarHelper;
+    var fbHlp = window.facebookHelper;
     var transJson = {};
+
+    var $settingModal = $('#setting-modal');
 
     var userId;
     try {
@@ -19,14 +31,14 @@
         userId = '';
     }
 
-    window.translate.ready.then(function(json) {
+    translate.ready.then(function(json) {
         transJson = json;
     });
 
     // 動態載入 gapi
-    window.googleClientHelper.loadAPI().then(function() {
-        var url = window.googleCalendarHelper.configJsonUrl;
-        return window.googleClientHelper.init(url);
+    gClientHlp.loadAPI().then(function() {
+        var url = gCalendarHlp.configJsonUrl;
+        return gClientHlp.init(url);
     }).then(function(isSignedIn) {
         var $gCalendarRow = $('#gcalendar_row');
         $gCalendarRow.removeClass('d-none');
@@ -37,14 +49,14 @@
             var elem = ev.target;
             if (elem.checked) {
                 elem.checked = !elem.checked;
-                return window.googleClientHelper.signIn().then(function() {
+                return gClientHlp.signIn().then(function() {
                     elem.checked = true;
                 }).catch(function() {
                     elem.checked = false;
                 });
             } else {
                 elem.checked = !elem.checked;
-                return window.googleClientHelper.signOut().then(function() {
+                return gClientHlp.signOut().then(function() {
                     elem.checked = false;
                 }).catch(function() {
                     elem.checked = true;
@@ -52,6 +64,8 @@
             }
         });
     });
+
+    fbHlp.init();
 
     // ACTIONS
     $(document).on('click', '#edit', function() {
@@ -64,154 +78,20 @@
         removeOneApp(appId);
     });
 
-    $(document).on('click', '#add-new-btn', function() {
-        let groupId = $(this).attr('rel');
-        let formStr =
-            '<form>' +
-                '<div class="form-group d-none">' +
-                    '<div id="type">insertNewApp</div>' +
-                    '<div id="groupId">' + groupId + '</div>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">聊天機器人平台:</label>' +
-                    '<select id="app-group-select" class="form-control" value="LINE">' +
-                        '<option value="LINE">LINE</option>' +
-                        '<option value="FACEBOOK">臉書</option>' +
-            // '<option value="WECHAT">WeChat</option>' +
-                    '</select>' +
-                '</div>' +
-                '<div class="app-form" id="line-form">' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="line-name" placeholder="請輸入名稱" />' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
-                            '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="channel-id" placeholder="請至 LINE Developers 查詢" />' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="channel-secret" placeholder="請至 LINE Developers 查詢" />' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="channel-token" placeholder="請至 LINE Developers 查詢" />' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="app-form d-none" id="facebook-form">' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-name" placeholder="請輸入名稱">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">粉絲頁 ID:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-page-id" placeholder="請至 粉絲專頁 > 關於 查詢">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">App ID:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-app-id" placeholder="請至 Facebook Developers 查詢">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">App Secret:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-app-secret" placeholder="請至 Facebook Developers 查詢">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">Validation Token:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-valid-token" placeholder="請至 Facebook Developers 查詢">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label font-weight-bold">Page Token:</label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="facebook-page-token" placeholder="請至 Facebook Developers 查詢">' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="app-form d-none" id="wechat-form">' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label">機器人名稱: </label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="wechat-name" placeholder="請輸入名稱" />' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label">App ID: </label>' +
-                            '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="channel-id" placeholder="請至 Wechat Developers 查詢" />' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="form-group">' +
-                        '<label class="col-form-label">App Secret: </label>' +
-                        '<div class="input-container">' +
-                            '<input class="form-control" type="text" id="channel-secret" placeholder="請至 Wechat Developers 查詢" />' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-            '</form>';
-        $appModal.append(formStr);
-    });
+    $settingModal.on('hidden.bs.modal', clearSettingModalBody);
 
-    $(document).on('change', '#app-group-select', function(ev) { // 切換模式 LINE或是臉書
-        let $selector = $(ev.target);
-        let type = $selector.find('option:selected').val();
-        $selector.parents('form').find('.app-form').addClass('d-none');
-
-        switch (type) {
-            case LINE:
-                $('#line-form').removeClass('d-none');
-                break;
-            case FACEBOOK:
-                $('#facebook-form').removeClass('d-none');
-                break;
-            case WECHAT:
-                $('#wechat-form').removeClass('d-none');
-                break;
-            default:
-                break;
-        }
-    });
-
-    $('#setting-modal').on('hidden.bs.modal', function() {
-        clearAppModalBody();
-    });
-
-    $('#setting-modal-submit-btn').on('click', function(ev) {
+    $settingModal.on('click', '#setting-modal-submit-btn', function(ev) {
         ev.preventDefault();
 
         let $modalContent = $(ev.target).parents('.modal-content');
         let type = $modalContent.find('#type').text();
-        let groupId;
-        // insertNewApp, updateProfile, updateApp
+        // updateProfile, updateApp
         switch (type) {
-            case 'insertNewApp':
-                let type = $modalContent.find('#app-group-select option:selected').val();
-                groupId = $('#groupId').text();
-                let app = insertType(type, groupId);
-                insertOneApp(app);
-                break;
             case 'updateProfile':
                 profSubmitBasic();
                 break;
             case 'updateApp':
                 let appId = $modalContent.find('#webhook-id').text();
-                groupId = $modalContent.find('#groupId').text();
 
                 if ($('#name').val()) {
                     let name = $('#name').val();
@@ -265,11 +145,12 @@
     });
 
     $('#userProfileEdit').click(function() {
-        let company = $('#prof-company').text();
-        let phone = $('#prof-phonenumber').text();
-        let location = $('#prof-address').text();
+        let user = users[userId];
+        let company = user.company;
+        let phone = user.phone;
+        let address = user.address;
         let str =
-            '<div id="line-form">' +
+            '<form id="line-form">' +
                 '<div id="type" class="d-none">updateProfile</div>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label">公司名稱: </label>' +
@@ -286,18 +167,804 @@
                 '<div class="form-group">' +
                     '<label class="col-form-label">地址: </label>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" value="' + location + '" id="location"/>' +
+                        '<input class="form-control" type="text" value="' + address + '" id="address"/>' +
                     '</div>' +
                 '</div>' +
-            '</div>';
-        $appModal.append(str);
+            '</form>';
+        $settingModal.find('.modal-body').append(str);
     });
 
-    findAllGroups().then(() => {
+    findAllGroups().then(function() {
+        // 列出所有設定的APPs
         return findAllApps();
     });
-    // 列出所有設定的APPs
     findUserProfile();
+    var $appAddModal = $('#appAddModal');
+    var $groupAddModal = $('#groupAddModal');
+
+    $appAddModal.on('click', '#appAddModalSubmitBtn', function(ev) {
+        var $appAddModalSubmitBtn = $(ev.target).attr('disabled', true);
+        var type = $appAddModal.find('#appTypeSelect option:selected').val();
+
+        var app = {
+            type: type,
+            group_id: $appAddModal.find('.modal-body form').attr('group-id'),
+            name: $appAddModal.find('[name="appName"]').val(),
+            id1: $appAddModal.find('[name="appId1"]').val(),
+            secret: $appAddModal.find('[name="appSecret"]').val()
+        };
+
+        switch (type) {
+            case LINE:
+                app.token1 = $appAddModal.find('[name="appToken1"]').val();
+                break;
+            case FACEBOOK:
+                app.id2 = $appAddModal.find('[name="appId2"]').val();
+                app.token1 = $appAddModal.find('[name="appToken1"]').val();
+                app.token2 = $appAddModal.find('[name="appToken2"]').val();
+                break;
+            case WECHAT:
+            default:
+                break;
+        }
+
+        return insertOneApp(app).then(() => {
+            $appAddModalSubmitBtn.removeAttr('disabled');
+        });
+    });
+
+    $appAddModal.on('click', '.fb-import-button', function(ev) {
+        var groupId = $(ev.target).parents('.fb-sdk-item').attr('group-id');
+        return fbHlp.signInForPages().then(function(res) {
+            if (!res || (res && res.status !== 'connected')) {
+                return;
+            }
+
+            return fbHlp.getFanPages().then(function(res) {
+                // 取得 fb 用戶的所有可管理的粉絲專頁後
+                // 濾除已經加入的粉絲專頁
+                var fanPages = res.data || [];
+                fanPages = fanPages.filter(function(fanPage) {
+                    var canLink = true;
+                    for (var appId in apps) {
+                        var app = apps[appId];
+                        if (!(FACEBOOK === app.type && app.group_id === groupId)) {
+                            continue;
+                        }
+
+                        if (app.id1 === fanPage.id) {
+                            canLink = false;
+                            break;
+                        }
+                    }
+                    return canLink;
+                });
+
+                if (0 === fanPages.length) {
+                    $.notify('沒有可進行連結的粉絲專頁', { type: 'warning' });
+                    return fanPages;
+                }
+
+                return Promise.all(fanPages.map(function(fanPage) {
+                    // 抓取粉絲專頁的大頭貼(用於選取時顯示)
+                    return fbHlp.getFanPagesPicture(fanPage.id, fanPage.access_token);
+                })).then(function(fanPagePics) {
+                    // 將可進行連結的粉絲專頁提供給使用者選取
+                    return new Promise(function(resolve) {
+                        function appAddModalHidden() {
+                            $appAddModal.off('hidden.bs.modal', appAddModalHidden);
+                            resolve();
+                        }
+                        $appAddModal.on('hidden.bs.modal', appAddModalHidden);
+                        $appAddModal.modal('hide');
+                    }).then(function() {
+                        return fanPages.map(function(fanPages, i) {
+                            var fanPagePic = fanPagePics[i].data;
+                            return (
+                                '<div class="form-group form-check">' +
+                                    '<label class="form-check-label">' +
+                                        '<input class="form-check-input" type="checkbox" value="' + i + '" />' +
+                                        '<img class="mx-2 fb-fanpage-picture" src="' + fanPagePic.url + '" alt="" />' +
+                                        fanPages.name +
+                                    '</label>' +
+                                '</div>'
+                            );
+                        }).join('');
+                    });
+                }).then(function(modalBodyHtml) {
+                    var $selectPagesModal = createModal(modalBodyHtml, '選取連結的粉絲專頁');
+
+                    return new Promise(function(resolve) {
+                        var $btnSubmit = $selectPagesModal.find('.btn-submit');
+                        var closeModal = function(selectedFanPages) {
+                            $btnSubmit.off('click');
+                            $selectPagesModal.off('hide.bs.modal');
+                            resolve(selectedFanPages || []);
+                        };
+
+                        $selectPagesModal.on('hide.bs.modal', function() {
+                            closeModal([]);
+                        });
+
+                        $btnSubmit.on('click', function() {
+                            $selectPagesModal.off('hide.bs.modal');
+                            $selectPagesModal.modal('hide');
+
+                            var $checkedPages = $selectPagesModal.find('.form-check-input:checked');
+                            var selectedFanPages = [];
+                            $checkedPages.each(function() {
+                                var fanpageIdx = parseInt($(this).val());
+                                selectedFanPages.push(fanPages[fanpageIdx]);
+                            });
+                            closeModal(selectedFanPages);
+                        });
+                        $selectPagesModal.modal('show');
+                    });
+                });
+            }).then(function(selectedFanPages) {
+                if (0 === selectedFanPages.length) {
+                    return;
+                }
+
+                // 使用者選取完欲連結的粉絲專頁後，將資料轉換為 Chatshier app 資料
+                var appsList = selectedFanPages.map(function(fanPage) {
+                    var app = {
+                        group_id: groupId,
+                        type: FACEBOOK,
+                        name: fanPage.name,
+                        id1: fanPage.id,
+                        token2: fanPage.access_token
+                    };
+                    return app;
+                });
+                var responses = [];
+
+                // 未處理 bug: 使用 Promise.all 會造成 group 的 app_ids 只會新增一筆
+                function nextRequest(i) {
+                    if (i >= appsList.length) {
+                        return Promise.resolve(responses);
+                    }
+
+                    var app = appsList[i];
+                    return api.apps.insert(userId, app).then((resJson) => {
+                        var _apps = resJson.data;
+                        for (var appId in _apps) {
+                            apps[appId] = _apps[appId];
+                            groups[groupId].app_ids.push(appId);
+                            generateAppItem(appId, apps[appId]);
+                        }
+                        return fbHlp.setFanPageSubscribeApp(app.id1, app.token2);
+                    }).then(function() {
+                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
+                    }).then(function(res) {
+                        responses.push(res);
+                        return nextRequest(i + 1);
+                    });
+                }
+                return nextRequest(0).then(function() {
+                    $.notify('已成功連結了 ' + selectedFanPages.length + ' 個粉絲專頁', { type: 'success' });
+                });
+            });
+        }).then(function(res) {
+            $appAddModal.modal('hide');
+            if (!res) {
+                return;
+            }
+            return fbHlp.signOut();
+        });
+    });
+
+    $appAddModal.on('show.bs.modal', function(ev) {
+        var groupId = $(ev.relatedTarget).attr('group-id');
+        var $appAddForm = $appAddModal.find('.modal-body form');
+        $appAddForm.attr('group-id', groupId);
+        $appAddForm.find('[name="appName"]').val('');
+
+        var itemsHtml = {
+            [LINE]: (
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appId1" placeholder="請至 LINE Developers 查詢" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appSecret" placeholder="請至 LINE Developers 查詢" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appToken1" placeholder="請至 LINE Developers 查詢" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="pt-2 form-group line-dev-item">' +
+                    '<a class="p-3 text-center line-dev-link" href="https://developers.line.me/" target="_blank">' +
+                        '<img class="line-dev-logo" src="https://developers.line.me/assets/img/structures/header/logo.svg" alt="LINE developers" />' +
+                    '</a>' +
+                '</div>'
+            ),
+            [FACEBOOK]: (
+                '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
+                    '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
+                        '<i class="fab fa-facebook-square fa-fw"></i>' +
+                        '<span>連結粉絲專頁</span>' +
+                    '</button>' +
+                '</div>'
+            ),
+            [WECHAT]: (
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App ID: </label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appId1" placeholder="請至 Wechat Developers 查詢" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App Secret: </label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appSecret" placeholder="請至 Wechat Developers 查詢" />' +
+                    '</div>' +
+                '</div>'
+            )
+        };
+
+        var $appTypeSelect = $appAddForm.find('#appTypeSelect');
+        var $appItemsContainer = $appAddForm.find('#appItemsContainer');
+        var selectType = $appTypeSelect.val();
+        $appItemsContainer.html(itemsHtml[selectType]);
+
+        function appTypeChange(ev) {
+            selectType = ev.target.value;
+            $appItemsContainer.html(itemsHtml[selectType] || '');
+        }
+        $appTypeSelect.off('change').on('change', appTypeChange);
+        appTypeChange({ target: $appTypeSelect.get(0) });
+    });
+
+    function findAllGroups() {
+        $('#addGroupNameAppBtn').attr('disabled', true);
+        return api.groups.findAll(userId).then(function(resJson) {
+            $('#addGroupNameAppBtn').removeAttr('disabled');
+            groups = resJson.data;
+            if (groups && 0 === Object.keys(groups).length) {
+                return;
+            };
+
+            for (let groupId in groups) {
+                if (groups[groupId].isDeleted) {
+                    continue;
+                }
+                showGroupContent(groupId, groups[groupId]);
+            }
+        });
+    }
+
+    function insertOneGroup() {
+        let name = $('input[name="groupAddName"]').val();
+        let groupName = { name };
+        return api.groups.insert(userId, groupName).then(function(resJson) {
+            let groups = resJson.data;
+            $groupAddModal.modal('hide');
+            for (let groupId in groups) {
+                showGroupContent(groupId, groups[groupId]);
+            }
+        });
+    }
+
+    function findAllApps() {
+        return api.apps.findAll(userId).then(function(resJson) {
+            apps = resJson.data;
+            for (var appId in apps) {
+                if (apps[appId].isDeleted || CHATSHIER === apps[appId].type) {
+                    continue;
+                }
+                generateAppItem(appId, apps[appId]);
+            }
+            $('.chsr.nav-pills .nav-link:first-child').tab('show');
+            $('.app-add-btn').removeAttr('disabled');
+        });
+    }
+
+    function findOneApp(appId) {
+        return api.apps.findOne(appId, userId).then(function(resJson) {
+            let _apps = resJson.data;
+            apps[appId] = _apps[appId];
+            showAppContent(appId, apps[appId]);
+        });
+    }
+
+    function insertOneApp(app) {
+        return api.apps.insert(userId, app).then(function(resJson) {
+            $appAddModal.modal('hide');
+
+            $.notify('新增成功!', { type: 'success' });
+            let _apps = resJson.data;
+            for (let appId in _apps) {
+                apps[appId] = _apps[appId];
+                generateAppItem(appId, _apps[appId]);
+            }
+        }).catch((resJson) => {
+            $appAddModal.modal('hide');
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
+            if (!resJson.status) {
+                $.notify('新增失敗', { type: 'danger' });
+            }
+        });
+    }
+
+    function updateOneApp(appId, appData) {
+        return api.apps.update(appId, userId, appData).then(function(resJson) {
+            $settingModal.modal('hide');
+
+            var str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
+            $('#app-group').html(str);
+
+            $.notify('更新成功!', { type: 'success' });
+            var _apps = resJson.data;
+            apps[appId] = _apps[appId];
+            var app = apps[appId];
+
+            switch (app.type) {
+                case LINE:
+                    $('[app-id="' + appId + '"] #prof-name1').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-channelId_1').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-channelSecret_1').html(app.secret);
+                    $('[app-id="' + appId + '"] #prof-channelAccessToken_1').html(app.token1);
+                    break;
+                case FACEBOOK:
+                    $('[app-id="' + appId + '"] #prof-fbPageName').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-fbPageId').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-fbAppId').html(app.id2);
+                    $('[app-id="' + appId + '"] #prof-fbAppSecret').html(app.secret);
+                    $('[app-id="' + appId + '"] #prof-fbValidToken').html(app.token1);
+                    $('[app-id="' + appId + '"] #prof-fbPageToken').html(app.token2);
+                    break;
+                case WECHAT:
+                    $('[app-id="' + appId + '"] #prof-wechat-app-name').html(app.name);
+                    $('[app-id="' + appId + '"] #prof-wechat-app-id').html(app.id1);
+                    $('[app-id="' + appId + '"] #prof-wechat-app-secret').html(app.secret);
+                    break;
+                default:
+                    break;
+            };
+        }).catch((resJson) => {
+            if (!resJson.status) {
+                $settingModal.modal('hide');
+                $.notify('更新失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $settingModal.modal('hide');
+                $.notify('無此權限', { type: 'danger' });
+            }
+        });
+    }
+
+    function removeOneApp(appId) {
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
+            if (!isOK) {
+                return;
+            }
+
+            return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
+                let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
+                $('#app-group').html(str);
+                $.notify('成功刪除!', { type: 'success' });
+                var _apps = resJson.data;
+                delete apps[appId];
+                var app = _apps[appId];
+
+                switch (app.type) {
+                    case LINE:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    case FACEBOOK:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    case WECHAT:
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        $('[app-id="' + appId + '"]').remove();
+                        break;
+                    default:
+                        break;
+                };
+            }).catch((resJson) => {
+                if (!resJson.status) {
+                    $.notify('刪除失敗', { type: 'danger' });
+                }
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                }
+            });
+        });
+    }
+
+    function showDialog(textContent) {
+        return new Promise(function(resolve) {
+            $('#textContent').text(textContent);
+
+            var isOK = false;
+            var $dialogModal = $('#dialog_modal');
+
+            $dialogModal.find('.btn-primary').on('click', function() {
+                isOK = true;
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.find('.btn-secondary').on('click', function() {
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.modal({
+                backdrop: false,
+                show: true
+            });
+        });
+    }
+
+    /**
+     * @param {string} groupId
+     * @param {any} group
+     */
+    function showGroupContent(groupId, group) {
+        groups[groupId] = group;
+
+        let groupStr = (
+            '<div class="group-tab" role="tab">' +
+                '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
+                    (group.name || '') +
+                '</a>' +
+            '</div>' +
+            '<div id="' + groupId + '-group" class="card-collapse collapse">' +
+                '<div class="app-table-space">' +
+                    '<button type="button" class="btn btn-light btn-border mt-2 mb-3 app-add-btn" group-id="' + groupId + '" data-toggle="modal" data-target="#appAddModal">' +
+                        '<i class="fas fa-plus fa-fw"></i>' +
+                        '<span>新增聊天機器人</span>' +
+                    '</button>' +
+                    '<table class="table chsr-group chsr-table">' +
+                        '<tbody id="' + groupId + '-body"></tbody>' +
+                    '</table>' +
+                '</div>' +
+            '</div>'
+        );
+        $('#apps .app-container').append(groupStr);
+    }
+
+    function generateAppItem(appId, app) {
+        var baseWebhookUrl = urlConfig.webhookUrl;
+        var itemHtml = '';
+
+        switch (app.type) {
+            case LINE:
+                itemHtml =
+                    '<tr class="active" app-id="' + appId + '">' +
+                        '<th>LINE</th>' +
+                        '<th class="text-right">' +
+                            '<div id="group1" class="line">' +
+                                '<button type="button" class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
+                                '</button>' +
+                            '</div>' +
+                        '</th>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
+                        '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Channel ID:</td>' +
+                        '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Channel Secret:</td>' +
+                        '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Channel Access Token:</td>' +
+                        '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
+                        '<td class="long-token">' +
+                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                        '</td>' +
+                    '</tr>';
+                break;
+            case FACEBOOK:
+                itemHtml =
+                    '<tr class="active" app-id="' + appId + '">' +
+                        '<th>Facebook</th>' +
+                        '<th class="text-right">' +
+                            '<div id="group3" class="fb">' +
+                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
+                                '</button>' +
+                            '</div>' +
+                        '</th>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
+                        '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
+                        '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
+                    '</tr>';
+                break;
+            case WECHAT:
+                itemHtml =
+                    '<tr class="active" app-id="' + appId + '">' +
+                        '<th>Wechat</th>' +
+                        '<th class="text-right">' +
+                            '<div id="group1" class="wechat">' +
+                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
+                                    '<span>刪除</span>' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                    '<i class="fas fa-edit fa-fw"></i>' +
+                                    '<span>編輯</span>' +
+                                '</button>' +
+                            '</div>' +
+                        '</th>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">機器人名稱:</td>' +
+                        '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">App ID:</td>' +
+                        '<td class="long-token" id="prof-wechat-app-id">' + app.id1 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">App Secret:</td>' +
+                        '<td class="long-token" id="prof-wechat-app-secret">' + app.secret + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
+                        '<td class="long-token">' +
+                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                        '</td>' +
+                    '</tr>';
+                break;
+            default:
+                break;
+        }
+        itemHtml && $('#' + app.group_id + '-body').append(itemHtml);
+    }
+
+    function showAppContent(appId, app) {
+        apps[appId] = app;
+
+        var appHtml;
+        switch (app.type) {
+            case LINE:
+                appHtml =
+                    '<form>' +
+                        '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
+                            '<span id="webhook-id">' + appId + '</span>' +
+                            '<span id="groupId">' + app.group_id + '</span>' +
+                        '</div>' +
+                        '<div id="prof-edit-line-1">' +
+                            '<div class="form-group">' +
+                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="name" />' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">Channel ID:</label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">Channel Secret:</label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="prof-edit-channelAccessToken_1" class="col-form-label font-weight-bold">Channel Access Token:</label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</form>';
+                break;
+            case FACEBOOK:
+                appHtml =
+                    '<form>' +
+                        '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
+                            '<span id="webhook-id">' + appId + '</span>' +
+                            '<span id="groupId">' + app.group_id + '</span>' +
+                        '</div>' +
+                        '<div id="prof-edit-fb">' +
+                            '<div class="form-group">' +
+                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</form>';
+                break;
+            case WECHAT:
+                appHtml =
+                    '<form>' +
+                        '<div class="form-group d-none">' +
+                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
+                            '<span id="webhook-id">' + appId + '</span>' +
+                            '<span id="groupId">' + app.group_id + '</span>' +
+                        '</div>' +
+                        '<div id="prof-edit-line-1">' +
+                            '<div class="form-group">' +
+                                '<label class="col-form-label font-weight-bold">App Name: </label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">App ID: </label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">App Secret: </label>' +
+                                '<div class="input-container">' +
+                                    '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</form>';
+                break;
+            default:
+                break;
+        }
+        appHtml && $settingModal.find('.modal-body').append(appHtml);
+    }
+
+    function clearSettingModalBody() {
+        $settingModal.find('.modal-body').empty();
+    }
+
+    function findUserProfile() {
+        return api.users.find(userId).then(function(resJson) {
+            var users = resJson.data;
+            var user = users[userId];
+
+            $('#prof-id').text(userId);
+            $('.user-name .card-title').text(user.name);
+            $('#prof-email').text(user.email);
+            $('#prof-IDnumber').text(userId);
+            $('#prof-company').text(user.company);
+            $('#prof-phonenumber').text(user.phone);
+            $('#prof-address').text(user.address);
+        });
+    }
+
+    function updateUserProfile(user) {
+        return api.users.update(userId, user).then(function() {
+            $('#prof-company').text(user.company);
+            $('#prof-phonenumber').text(user.phone);
+            $('#prof-address').text(user.address);
+        });
+    }
+
+    function profSubmitBasic() {
+        let company = $('#company').val();
+        let phone = $('#phone').val();
+        let address = $('#address').val();
+        let users = {
+            company,
+            phone,
+            address
+        };
+        var phoneRule = /^09\d{8}$/;
+        if (phone && !phone.match(phoneRule)) {
+            $settingModal.modal('hide');
+            $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
+        } else {
+            updateUserProfile(users);
+            $settingModal.modal('hide');
+        }
+    }
+
+    function createWebhookUrl(baseWebhookUrl, webhookId) {
+        let webhookUrl;
+        baseWebhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '');
+        baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
+        webhookUrl = 'https://' + baseWebhookUrl + '/' + webhookId;
+        return webhookUrl;
+    }
+
+    /**
+     * @param {string} [bodyHtml=""]
+     * @param {string} [titleText=""]
+     * @param {string} [cancelText="取消"]
+     * @param {string} [submitText="確認"]
+     * @return {JQuery<HTMLElement>}
+     */
+    function createModal(bodyHtml, titleText, cancelText, submitText) {
+        bodyHtml = bodyHtml || '';
+        titleText = titleText || '';
+        cancelText = cancelText || '取消';
+        submitText = submitText || '確認';
+        var modalHtml = (
+            '<div class="chsr modal fade" id="dynamicModal" tabindex="-1" role="dialog">' +
+                '<div class="modal-dialog" role="document">' +
+                    '<div class="modal-content">' +
+                        (function() {
+                            if (!titleText) {
+                                return '';
+                            }
+                            return (
+                                '<div class="modal-header">' +
+                                    '<h4 class="modal-title">' + titleText + '</h4>' +
+                                '</div>'
+                            );
+                        })() +
+                        '<div class="modal-body">' + bodyHtml + '</div>' +
+                        '<div class="modal-footer">' +
+                            '<button type="button" class="btn btn-secondary" data-dismiss="modal">' + cancelText + '</button>' +
+                            '<button type="button" class="btn btn-primary btn-submit">' + submitText + '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+        );
+        var $docBody = $(document.body);
+        $docBody.append(modalHtml);
+        modalHtml = void 0;
+
+        var $dynamicModal = $docBody.find('#dynamicModal');
+        $dynamicModal.on('hidden.bs.modal', function() {
+            $dynamicModal.off('hidden.bs.modal');
+            $dynamicModal.remove();
+            $docBody = $dynamicModal = void 0;
+        });
+        return $dynamicModal;
+    }
 
     // ===============
     // #region 客戶分類條件 Tab 代碼區塊
@@ -596,8 +1263,8 @@
                 api.apps.findAll(userId),
                 api.appsFields.findAll(userId)
             ]).then(function(resJsons) {
-                var apps = resJsons.shift().data;
-                var appsFields = resJsons.shift().data;
+                apps = resJsons.shift().data;
+                appsFields = resJsons.shift().data;
 
                 fieldPanelCtrl.saveListeners.length = 0;
                 fieldPanelCtrl.deleteListeners.length = 0;
@@ -681,7 +1348,10 @@
                                 fieldOrg.sets = fieldOnUI.sets;
                             }
                             fieldOrg.order = fieldOnUI.order;
-                            return api.appsFields.update(args.appId, fieldId, userId, fieldOrg);
+                            return api.appsFields.update(args.appId, fieldId, userId, fieldOrg).then(function(resJson) {
+                                let _appsFields = resJson.data;
+                                appsFields[args.appId].fields[fieldId] = _appsFields[args.appId].fields[fieldId];
+                            });
                         } else if (fieldOrg.isDeleted) {
                             return api.appsFields.remove(args.appId, fieldId, userId).then(function() {
                                 delete appsFields[args.appId].fields[fieldId];
@@ -742,8 +1412,6 @@
     (function() {
         var api = window.restfulAPI;
         var memberTypes = api.groupsMembers.enums.type;
-        var groups = {};
-        var userGroupMembers = {};
         var searchCache = {};
         var keyinWaitTimer = null;
 
@@ -1052,7 +1720,7 @@
                         });
                     }).then(function(insertData) {
                         return api.users.find(userId).then(function(resJson) {
-                            userGroupMembers = resJson.data || {};
+                            users = resJson.data || {};
                             instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
 
                             $groupElems[groupId].$memberEmail.val('');
@@ -1152,7 +1820,7 @@
             };
 
             GroupPanelCtrl.prototype.addMemberToList = function(groupId, memberId, member, memberSelf) {
-                var memberUser = userGroupMembers[member.user_id];
+                var memberUser = users[member.user_id];
                 if (!memberUser) {
                     return;
                 };
@@ -1278,7 +1946,7 @@
                 api.users.find(userId)
             ]).then(function(resJsons) {
                 groups = resJsons[0].data || {};
-                userGroupMembers = resJsons[1].data || {};
+                users = resJsons[1].data || {};
                 var firstGroupId = '';
                 for (var groupId in groups) {
                     firstGroupId = firstGroupId || groupId;
@@ -1294,594 +1962,4 @@
     })();
     // #endregion
     // ===============
-
-    var $appModal = $('#setting-modal .modal-body');
-
-    function findAllGroups() {
-        return api.groups.findAll(userId).then(function(resJson) {
-            let groups = resJson.data;
-            if (groups && 0 === Object.keys(groups).length) {
-                $('#addGroupNameAppBtn').attr('disabled', false);
-                return;
-            };
-
-            for (let groupId in groups) {
-                if (groups[groupId].isDeleted) {
-                    continue;
-                }
-                loadGroups(groups[groupId], groupId);
-            }
-            $('#addGroupNameAppBtn').attr('disabled', false);
-        });
-    }
-
-    function insertOneGroup() {
-        let name = $('input[name="groupAddName"]').val();
-        let groupName = { name };
-        return api.groups.insert(userId, groupName).then(function(resJson) {
-            let groups = resJson.data;
-            $('#groupAddModal').modal('hide');
-            for (let groupId in groups) {
-                loadGroups(groups[groupId], groupId);
-            }
-        });
-    }
-
-    function findAllApps() {
-        return api.apps.findAll(userId).then(function(resJson) {
-            let apps = resJson.data;
-
-            for (let appId in apps) {
-                if (apps[appId].isDeleted || CHATSHIER === apps[appId].type) {
-                    continue;
-                }
-                groupType(appId, apps[appId]);
-            }
-            $('.chsr.nav-pills .nav-link:first-child').tab('show');
-            $('#add-new-btn').attr('disabled', false);
-        });
-    }
-
-    function findOneApp(appId) {
-        return api.apps.findOne(appId, userId).then(function(resJson) {
-            let apps = resJson.data;
-            formModalBody(appId, apps[appId]);
-        });
-    }
-
-    function insertType(type, groupId) {
-        let app = {
-            type: type,
-            groupid: groupId
-        };
-
-        switch (type) {
-            case LINE:
-                let lineName = $('#line-name').val();
-                let lineId = $('#channel-id').val();
-                let lineSecret = $('#channel-secret').val();
-                let lineToken = $('#channel-token').val();
-                app.name = lineName;
-                app.id1 = lineId;
-                app.secret = lineSecret;
-                app.token1 = lineToken;
-                break;
-            case FACEBOOK:
-                let fbName = $('#facebook-name').val();
-                let fbPageId = $('#facebook-page-id').val();
-                let fbAppId = $('#facebook-app-id').val();
-                let fbSecret = $('#facebook-app-secret').val();
-                let fbValidToken = $('#facebook-valid-token').val();
-                let fbPageToken = $('#facebook-page-token').val();
-                app.name = fbName;
-                app.id1 = fbPageId;
-                app.id2 = fbAppId;
-                app.secret = fbSecret;
-                app.token1 = fbValidToken;
-                app.token2 = fbPageToken;
-                break;
-            case WECHAT:
-                let $wechatForm = $('#wechat-form');
-                let wechatName = $wechatForm.find('#wechat-name').val();
-                let wechatId = $wechatForm.find('#channel-id').val();
-                let wechatSecret = $wechatForm.find('#channel-secret').val();
-                app.name = wechatName;
-                app.id1 = wechatId;
-                app.secret = wechatSecret;
-                break;
-            default:
-                break;
-        }
-        return app;
-    }
-
-    function insertOneApp(app) {
-        return api.apps.insert(userId, app).then(function(resJson) {
-            $('#setting-modal').modal('hide');
-            clearAppModalBody();
-
-            var str = (
-                '<tr class="d-none">' +
-                    '<td>ID:</td>' +
-                    '<td id="prof-id"></td>' +
-                '</tr>'
-            );
-            $('#app-group').html(str);
-
-            $.notify('新增成功!', { type: 'success' });
-            let apps = resJson.data;
-            for (let appId in apps) {
-                groupType(appId, apps[appId]);
-            }
-        }).catch((resJson) => {
-            if (!resJson.status) {
-                $('#setting-modal').modal('hide');
-                clearAppModalBody();
-                $.notify('失敗', { type: 'danger' });
-            }
-            if (NO_PERMISSION_CODE === resJson.code) {
-                $('#setting-modal').modal('hide');
-                clearAppModalBody();
-                $.notify('無此權限', { type: 'danger' });
-            }
-        });
-    }
-
-    function updateOneApp(appId, appData) {
-        return api.apps.update(appId, userId, appData).then(function(resJson) {
-            $('#setting-modal').modal('hide');
-            clearAppModalBody();
-
-            var str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
-            $('#app-group').html(str);
-
-            $.notify('修改成功!', { type: 'success' });
-            var apps = resJson.data;
-            var app = apps[appId];
-
-            switch (app.type) {
-                case LINE:
-                    $('[app-id="' + appId + '"] #prof-name1').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-channelId_1').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-channelSecret_1').html(app.secret);
-                    $('[app-id="' + appId + '"] #prof-channelAccessToken_1').html(app.token1);
-                    break;
-                case FACEBOOK:
-                    $('[app-id="' + appId + '"] #prof-fbPageName').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-fbPageId').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-fbAppId').html(app.id2);
-                    $('[app-id="' + appId + '"] #prof-fbAppSecret').html(app.secret);
-                    $('[app-id="' + appId + '"] #prof-fbValidToken').html(app.token1);
-                    $('[app-id="' + appId + '"] #prof-fbPageToken').html(app.token2);
-                    break;
-                case WECHAT:
-                    $('[app-id="' + appId + '"] #prof-wechat-app-name').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-wechat-app-id').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-wechat-app-secret').html(app.secret);
-                    break;
-                default:
-                    break;
-            };
-        }).catch((resJson) => {
-            if (!resJson.status) {
-                $('#setting-modal').modal('hide');
-                clearAppModalBody();
-                $.notify('失敗', { type: 'danger' });
-            }
-            if (NO_PERMISSION_CODE === resJson.code) {
-                $('#setting-modal').modal('hide');
-                clearAppModalBody();
-                $.notify('無此權限', { type: 'danger' });
-            }
-        });
-    }
-
-    function removeOneApp(appId) {
-        return showDialog('確定要刪除嗎？').then(function(isOK) {
-            if (!isOK) {
-                return;
-            }
-
-            return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
-                let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
-                $('#app-group').html(str);
-                $.notify('成功刪除!', { type: 'success' });
-                var apps = resJson.data;
-                var app = apps[appId];
-
-                switch (app.type) {
-                    case LINE:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    case FACEBOOK:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    case WECHAT:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    default:
-                        break;
-                };
-            }).catch((resJson) => {
-                if (!resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                }
-            });
-        });
-    }
-
-    function showDialog(textContent) {
-        return new Promise(function(resolve) {
-            $('#textContent').text(textContent);
-
-            var isOK = false;
-            var $dialogModal = $('#dialog_modal');
-
-            $dialogModal.find('.btn-primary').on('click', function() {
-                isOK = true;
-                resolve(isOK);
-                $dialogModal.modal('hide');
-            });
-
-            $dialogModal.find('.btn-secondary').on('click', function() {
-                resolve(isOK);
-                $dialogModal.modal('hide');
-            });
-
-            $dialogModal.modal({
-                backdrop: false,
-                show: true
-            });
-        });
-    }
-
-    /**
-     * 群組資料從ajax載入後把群組視覺化
-     * @param {any} group
-     * @param {string} groupId
-     */
-    function loadGroups(group, groupId) {
-        let groupStr =
-            '<div class="group-tab" role="tab">' +
-                '<a class="group-name collapsed" role="button" data-toggle="collapse" href="#' + groupId + '-group" aria-expanded="true" aria-controls="' + groupId + '-group">' +
-                    (group.name || '') +
-                '</a>' +
-            '</div>' +
-            '<div id="' + groupId + '-group" class="card-collapse collapse">' +
-                '<div class="app-table-space">' +
-                    '<button type="button" class="btn btn-light btn-border mt-2 mb-3" id="add-new-btn" rel="' + groupId + '" data-toggle="modal" data-target="#setting-modal">' +
-                        '<i class="fas fa-plus fa-fw"></i>新增聊天機器人' +
-                    '</button>' +
-                    '<table class="table chsr-group chsr-table">' +
-                        '<tbody id="' + groupId + '-body"></tbody>' +
-                    '</table>' +
-                '</div>' +
-            '</div>';
-        $('#apps .app-container').append(groupStr);
-    }
-
-    function groupType(appId, app) {
-        var baseWebhookUrl = urlConfig.webhookUrl;
-        var appStr;
-
-        switch (app.type) {
-            case LINE:
-                appStr =
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th>LINE</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="line">' +
-                                '<button type="button" class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel ID:</td>' +
-                        '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel Secret:</td>' +
-                        '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel Access Token:</td>' +
-                        '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>';
-                break;
-            case FACEBOOK:
-                appStr =
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th>Facebook</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group3" class="fb">' +
-                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">粉絲頁 ID:</td>' +
-                        '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" id="prof-fbAppId">' + app.id2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App Secret:</td>' +
-                        '<td class="long-token" id="prof-fbAppSecret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Validation Token: </td>' +
-                        '<td class="long-token" id="prof-fbValidToken">' + app.token1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Page Access Token:</td>' +
-                        '<td class="long-token" id="prof-fbPageToken">' + app.token2 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span id="prof-fbwebhookUrl">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>';
-                break;
-            case WECHAT:
-                appStr =
-                    '<tr class="active" app-id="' + appId + '">' +
-                        '<th>Wechat</th>' +
-                        '<th class="text-right">' +
-                            '<div id="group1" class="wechat">' +
-                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
-                                    '<i class="fas fa-trash-alt fa-fw"></i>' +
-                                    '<span>刪除</span>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
-                                    '<i class="fas fa-edit fa-fw"></i>' +
-                                    '<span>編輯</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</th>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-id">' + app.id1 + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App Secret:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-secret">' + app.secret + '</td>' +
-                    '</tr>' +
-                    '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Webhook URL:</td>' +
-                        '<td class="long-token">' +
-                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
-                        '</td>' +
-                    '</tr>';
-                break;
-            default:
-                break;
-        }
-        appStr && $('#' + app.group_id + '-body').append(appStr);
-    }
-
-    function formModalBody(id, app) {
-        let appStr;
-        switch (app.type) {
-            case LINE:
-                appStr =
-                    '<form>' +
-                        '<div class="form-group d-none">' +
-                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + id + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
-                        '</div>' +
-                        '<div id="prof-edit-line-1">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="name" />' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">Channel ID:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">Channel Secret:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelAccessToken_1" class="col-form-label font-weight-bold">Channel Access Token:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</form>';
-                break;
-            case FACEBOOK:
-                appStr =
-                    '<form>' +
-                        '<div class="form-group d-none">' +
-                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + id + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
-                        '</div>' +
-                        '<div id="prof-edit-fb">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">Page ID:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="facebook-page-id">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">App ID:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id2 + '" id="facebook-app-id">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">App Secret:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.secret + '" id="facebook-app-secret">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">Validation Token:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="facebook-valid-token">' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">Page Token:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.token2 + '" id="facebook-page-token">' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</form>';
-                break;
-            case WECHAT:
-                appStr =
-                    '<form>' +
-                        '<div class="form-group d-none">' +
-                            '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + id + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
-                        '</div>' +
-                        '<div id="prof-edit-line-1">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">App Name: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">App ID: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">App Secret: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
-                                '</div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</form>';
-                break;
-            default:
-                break;
-        }
-        appStr && $appModal.append(appStr);
-    }
-
-    function clearAppModalBody() {
-        $appModal.empty();
-    }
-
-    function findUserProfile() {
-        return api.users.find(userId).then(function(resJson) {
-            var users = resJson.data;
-            var user = users[userId];
-
-            $('#prof-id').text(userId);
-            $('.user-name .card-title').text(user.name);
-            $('#prof-email').text(user.email);
-            $('#prof-IDnumber').text(userId);
-            $('#prof-company').text(user.company);
-            $('#prof-phonenumber').text(user.phone);
-            $('#prof-address').text(user.address);
-        });
-    }
-
-    function updateUserProfile(user) {
-        return api.users.update(userId, user).then(function() {
-            $('#prof-company').text(user.company);
-            $('#prof-phonenumber').text(user.phone);
-            $('#prof-address').text(user.address);
-        });
-    }
-
-    function profSubmitBasic() {
-        let company = $('#company').val();
-        let phone = $('#phone').val();
-        let address = $('#location').val();
-        let users = {
-            company,
-            phone,
-            address
-        };
-        var phoneRule = /^09\d{8}$/;
-        if (phone && !phone.match(phoneRule)) {
-            $('#setting-modal').modal('hide');
-            $.notify('手機格式錯誤，應為09XXXXXXXX', {type: 'danger'});
-        } else {
-            updateUserProfile(users);
-            $('#setting-modal').modal('hide');
-        }
-    }
-
-    function createWebhookUrl(baseWebhookUrl, webhookId) {
-        let webhookUrl;
-        baseWebhookUrl = baseWebhookUrl.replace(/^https?:\/\//, '');
-        baseWebhookUrl = baseWebhookUrl.replace(/\/+$/, '');
-        webhookUrl = 'https://' + baseWebhookUrl + '/' + webhookId;
-        return webhookUrl;
-    };
 })();

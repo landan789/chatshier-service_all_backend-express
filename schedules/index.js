@@ -19,7 +19,6 @@ let jobProcess = () => {
         if (!apps) {
             return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
         }
-
         // LINE BOT 相異 apps 允許 同時間群發。
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         let appIds = Object.keys(apps);

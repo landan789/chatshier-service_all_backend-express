@@ -51,6 +51,7 @@ router.delete('/apps-tickets/apps/:appid/tickets/:ticketid/users/:userid', appsT
 // 聊天室訊息
 router.get('/apps-chatrooms/users/:userid', appsChatroomsCtl.getAll);
 router.get('/apps-chatrooms/apps/:appid/users/:userid', appsChatroomsCtl.getAll);
+router.put('/apps-chatrooms/apps/:appid/chatrooms/:chatroomid/users/:userid', appsChatroomsCtl.putOne);
 router.get('/apps-chatrooms-messagers/users/:userid', appsChatroomsMessagersCtl.getAll);
 router.get('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.getAll);
 router.put('/apps-chatrooms-messagers/apps/:appid/chatrooms/:chatroomid/messagers/:messagerid/users/:userid', appsChatroomsMessagersCtl.putOne);

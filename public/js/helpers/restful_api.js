@@ -704,6 +704,22 @@ window.restfulAPI = (function() {
             return sendRequest(destUrl, reqInit);
         };
 
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {any} putChatroom
+         * @param {string} userId
+         */
+        AppsChatroomsAPI.prototype.update = function(appId, chatroomId, putChatroom, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/chatrooms/' + chatroomId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putChatroom)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
         return AppsChatroomsAPI;
     })();
 

@@ -27,6 +27,7 @@ module.exports = (function() {
             if (!(groupIds instanceof Array)) {
                 groupIds = [groupIds];
             };
+
             let aggregations = [
                 {
                     $unwind: '$members'
@@ -40,6 +41,7 @@ module.exports = (function() {
                     }
                 }
             ];
+
             return this.Model.aggregate(aggregations).then((results) => {
                 let groups = {};
                 if (0 === results.length) {
@@ -67,69 +69,6 @@ module.exports = (function() {
                 };
 
                 return groups;
-            }).then((groups) => {
-                ('function' === typeof callback) && callback(groups);
-                return groups;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        /**
-         * @param {string} userId
-         * @param {any} postGroup
-         * @param {(groups: any) => any} [callback]
-         */
-        insert(userId, postGroup, callback) {
-            let group = new this.Model();
-            group.name = postGroup.name;
-
-            // The creator of groups must be the owner of group
-            group.members.push({
-                status: 1,
-                type: OWNER,
-                user_id: userId,
-                isDeleted: false
-            });
-
-            return group.save().then((insertedGroup) => {
-                let groupId = insertedGroup._id;
-                return this.find(groupId, userId);
-            }).then((groups) => {
-                ('function' === typeof callback) && callback(groups);
-                return groups;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        /**
-         * @param {string} groupId
-         * @param {any} putGroup
-         * @param {(groups: any) => any} [callback]
-         */
-        update(groupId, putGroup, callback) {
-            putGroup.updatedTime = undefined === putGroup.updatedTime ? Date.now() : putGroup.updatedTime;
-            let query = {
-                '_id': groupId
-            };
-            let group = {
-                '_id': groupId,
-                $set: {}
-            };
-            for (let prop in putGroup) {
-                if (null === putGroup[prop]) {
-                    continue;
-                }
-                group.$set[prop] = putGroup[prop];
-            }
-            return this.Model.update(query, group).then((result) => {
-                if (!result.ok) {
-                    return Promise.reject(new Error());
-                }
-                return this.find(groupId, null);
             }).then((groups) => {
                 ('function' === typeof callback) && callback(groups);
                 return groups;
@@ -226,6 +165,74 @@ module.exports = (function() {
             }).then((userIds) => {
                 ('function' === typeof callback) && callback(userIds);
                 return userIds;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} userId
+         * @param {any} postGroup
+         * @param {(groups: any) => any} [callback]
+         */
+        insert(userId, postGroup, callback) {
+            let group = new this.Model();
+            group.name = postGroup.name;
+            group.createdTime = group.updatedTime = Date.now();
+
+            // The creator of groups must be the owner of group
+            group.members.push({
+                status: 1,
+                type: OWNER,
+                user_id: userId,
+                isDeleted: false
+            });
+
+            return group.save().then((insertedGroup) => {
+                let groupId = insertedGroup._id;
+                return this.find(groupId, userId);
+            }).then((groups) => {
+                ('function' === typeof callback) && callback(groups);
+                return groups;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+         * @param {string} groupId
+         * @param {any} putGroup
+         * @param {(groups: any) => any} [callback]
+         */
+        update(groupId, putGroup, callback) {
+            putGroup.updatedTime = Date.now();
+
+            let query = {
+                '_id': groupId
+            };
+
+            let group = {
+                '_id': groupId,
+                $set: {}
+            };
+
+            for (let prop in putGroup) {
+                if (null === putGroup[prop]) {
+                    continue;
+                }
+                group.$set[prop] = putGroup[prop];
+            }
+
+            return this.Model.update(query, group).then((result) => {
+                if (!result.ok) {
+                    return Promise.reject(new Error());
+                }
+                return this.find(groupId, null);
+            }).then((groups) => {
+                ('function' === typeof callback) && callback(groups);
+                return groups;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
