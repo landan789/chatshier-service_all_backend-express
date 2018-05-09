@@ -10,6 +10,7 @@ module.exports = (function() {
     const chatshierCfg = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
+    const appsChatroomsMdl = require('../models/apps_chatrooms');
     const storageHlp = require('../helpers/storage');
     const wechatSvc = require('./wechat');
 
@@ -901,6 +902,40 @@ module.exports = (function() {
         unlinkRichMenuFromUser(userId, platformMenuId, appId) {
             let bot = this.bots[appId];
             return bot.unlinkRichMenuFromUser(userId, platformMenuId);
+        }
+
+        leaveGroupRoom(appId, chatroomId) {
+            return appsMdl.find(appId).then((apps) => {
+                apps = apps || {};
+                let app = apps[appId];
+                if (!app) {
+                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                }
+
+                if (LINE === app.type) {
+                    let lineBot;
+                    return this.create(appId, app).then((_lineBot) => {
+                        lineBot = _lineBot;
+                        return appsChatroomsMdl.find(appId, chatroomId);
+                    }).then((appsChatrooms) => {
+                        if (!appsChatrooms && (appsChatrooms && 1 !== Object.keys(appsChatrooms).length)) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                        }
+
+                        let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+                        let platformGroupId = chatroom.platformGroupId;
+                        let platformGroupType = chatroom.platformGroupType;
+                        if (platformGroupId && platformGroupType) {
+                            if ('room' === platformGroupType) {
+                                return lineBot.leaveRoom(platformGroupId);
+                            }
+                            return lineBot.leaveGroup(platformGroupId);
+                        }
+                    });
+                } else if (FACEBOOK === app.type) {
+                    // Facebook 無支援群組聊天
+                }
+            });
         }
     }
 

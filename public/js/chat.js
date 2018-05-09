@@ -530,8 +530,6 @@
 
     // =====start profile event=====
     $(document).on('keypress', '.user-info-td[modify="true"] input[type="text"]', userInfoKeyPress);
-    $(document).on('click', '.profile-confirm button', userInfoConfirm);
-
     $profilePanel.on('click', '.profile-content .btn-update-chatroom', function(ev) {
         var $evBtn = $(ev.target);
         var $parentGroup = $evBtn.parents('.profile-group');
@@ -562,6 +560,8 @@
             $.notify('更新失敗', { type: 'danger' });
         });
     });
+    $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
+    $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
     // =====end profile event=====
 
     // =====start utility event=====
@@ -1315,7 +1315,15 @@
                         var html = '';
 
                         if (isGroupChatroom) {
-                            html = generateChatroomProfileHtml(appId, appType, chatroom);
+                            html = (
+                                generateChatroomProfileHtml(appId, appType, chatroom) +
+                                '<div class="p-2 leave-group-room text-right">' +
+                                    '<button type="button" class="btn btn-danger">' +
+                                        '<i class="fas fa-sign-out-alt fa-fw"></i>' +
+                                        '<span>離開群組</span>' +
+                                    '</button>' +
+                                '</div>'
+                            );
                         } else {
                             html = (
                                 generatePersonProfileHtml(appId, chatroomId, platformUid, person) +
@@ -2217,6 +2225,37 @@
             $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function() {
             $.notify('用戶資料更新失敗', { type: 'danger' });
+        });
+    }
+
+    function userLeaveGroupRoom(ev) {
+        if (!confirm('確定要離開嗎？此聊天室將會刪除但資料將會保留。')) {
+            return;
+        }
+
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+
+        return api.bot.leaveGroupRoom(appId, chatroomId, userId).then(function() {
+            var $navTitle = $('#navTitle');
+            var chatroomTitle = document.title.replace(' | Chatshier', '');
+            $navTitle.text(chatroomTitle);
+
+            var selectQuery = '[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
+            $('.tablinks' + selectQuery).remove();
+            $('.profile-group' + selectQuery).remove();
+            $('.chat-content' + selectQuery).remove();
+
+            var $profileToggle = $('.toolbar #profileToggle');
+            $profileToggle.removeClass('active');
+            $chatContentPanel.addClass('d-none');
+            $profilePanel.addClass('d-none');
+
+            var $chatroomContainer = $('#chatWrapper .chatroom-container');
+            $chatroomContainer.removeClass('open');
+
+            delete appsChatrooms[appId].chatrooms[chatroomId];
         });
     }
     // =====end profile function=====
