@@ -2,7 +2,8 @@
 Released: Not Ready
 == Features ==
  * created: support LINE group and room chat with LINE
- * created: custom group chatroom name
+ * created: custom naming platform group chatroom name
+ * created: custom naming platform consumer name
  * created: click image content will stretch the image
  * created: add sound and title blink when new message is come
  * created: user can link fan pages by facebook login
