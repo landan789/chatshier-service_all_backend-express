@@ -10,6 +10,7 @@ module.exports = (function() {
     const chatshierCfg = require('../config/chatshier');
 
     const appsMdl = require('../models/apps');
+    const appsChatroomsMdl = require('../models/apps_chatrooms');
     const storageHlp = require('../helpers/storage');
     const wechatSvc = require('./wechat');
 
@@ -611,42 +612,49 @@ module.exports = (function() {
                     if ('text' === message.type) {
                         _message.type = message.type;
                         _message.text = message.text;
-                    };
+                    }
                     if ('image' === message.type) {
                         _message.type = message.type;
                         _message.previewImageUrl = message.src;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('audio' === message.type) {
                         _message.type = message.type;
                         _message.duration = 240000;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('video' === message.type) {
                         _message.type = message.type;
                         _message.previewImageUrl = chatshierCfg.LINE.PREVIEW_IMAGE_URL;
                         _message.originalContentUrl = message.src;
-                    };
+                    }
                     if ('sticker' === message.type) {
                         _message.type = message.type;
                         _message.stickerId = message.text.substr(message.text.lastIndexOf(' '));
                         _message.packageId = message.text.substr(message.text.indexOf(' '));
-                    };
+                    }
+                    if ('file' === message.type) {
+                        _message.type = 'text';
+                        _message.text = message.text + message.src;
+                    }
 
                     return bot.pushMessage(recipientUid, _message);
                 case FACEBOOK:
                     if ('text' === message.type) {
                         return bot.sendTextMessage(recipientUid, message.text);
-                    };
+                    }
                     if ('image' === message.type) {
                         return bot.sendImageMessage(recipientUid, message.src, true);
-                    };
+                    }
                     if ('audio' === message.type) {
                         return bot.sendAudioMessage(recipientUid, message.src, true);
-                    };
+                    }
                     if ('video' === message.type) {
                         return bot.sendVideoMessage(recipientUid, message.src, true);
-                    };
+                    }
+                    if ('file' === message.type) {
+                        return bot.sendFileMessage(recipientUid, message.src, true);
+                    }
                     return bot.sendTextMessage(recipientUid, message.text);
                 case WECHAT:
                     return Promise.resolve().then(() => {
@@ -907,6 +915,40 @@ module.exports = (function() {
         unlinkRichMenuFromUser(userId, platformMenuId, appId) {
             let bot = this.bots[appId];
             return bot.unlinkRichMenuFromUser(userId, platformMenuId);
+        }
+
+        leaveGroupRoom(appId, chatroomId) {
+            return appsMdl.find(appId).then((apps) => {
+                apps = apps || {};
+                let app = apps[appId];
+                if (!app) {
+                    return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                }
+
+                if (LINE === app.type) {
+                    let lineBot;
+                    return this.create(appId, app).then((_lineBot) => {
+                        lineBot = _lineBot;
+                        return appsChatroomsMdl.find(appId, chatroomId);
+                    }).then((appsChatrooms) => {
+                        if (!appsChatrooms && (appsChatrooms && 1 !== Object.keys(appsChatrooms).length)) {
+                            return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_FIND);
+                        }
+
+                        let chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+                        let platformGroupId = chatroom.platformGroupId;
+                        let platformGroupType = chatroom.platformGroupType;
+                        if (platformGroupId && platformGroupType) {
+                            if ('room' === platformGroupType) {
+                                return lineBot.leaveRoom(platformGroupId);
+                            }
+                            return lineBot.leaveGroup(platformGroupId);
+                        }
+                    });
+                } else if (FACEBOOK === app.type) {
+                    // Facebook 無支援群組聊天
+                }
+            });
         }
     }
 

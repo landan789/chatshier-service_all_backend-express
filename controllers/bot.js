@@ -5,12 +5,15 @@ module.exports = (function() {
     /** @type {any} */
     const API_SUCCESS = require('../config/api_success.json');
 
+    const LINE = 'LINE';
+
     let botSvc = require('../services/bot');
     let consumersMdl = require('../models/consumers');
     let storageHlp = require('../helpers/storage');
 
     let appsMdl = require('../models/apps');
     let appsRichmenusMdl = require('../models/apps_richmenus');
+    let appsChatroomsMdl = require('../models/apps_chatrooms');
     let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 
     class BotController extends ControllerCore {
@@ -23,6 +26,7 @@ module.exports = (function() {
             this.deleteMenu = this.deleteMenu.bind(this);
             this.getProfile = this.getProfile.bind(this);
             this.uploadFile = this.uploadFile.bind(this);
+            this.leaveGroupRoom = this.leaveGroupRoom.bind(this);
         }
 
         _createBot(appId) {
@@ -328,10 +332,36 @@ module.exports = (function() {
                     return Promise.resolve();
                 }
                 return Promise.reject(err);
-            }).then(() => {
+            }).then((data) => {
                 let json = {
                     status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
+                    data: data
+                };
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(500).json(json);
+            });
+        }
+
+        leaveGroupRoom(req, res) {
+            let appId = req.params.appid;
+            let chatroomId = req.params.chatroomid;
+
+            return this.appsRequestVerify(req).then(() => {
+                return botSvc.leaveGroupRoom(appId, chatroomId);
+            }).then(() => {
+                return appsChatroomsMdl.remove(appId, chatroomId);
+            }).then((data) => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
+                    data: data
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {

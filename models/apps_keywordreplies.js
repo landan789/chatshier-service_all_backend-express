@@ -12,9 +12,11 @@ module.exports = (function() {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
             }
+
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             }
+
             return Promise.resolve().then(() => {
                 if (!keywordreplyIds) {
                     let query = {
@@ -23,6 +25,7 @@ module.exports = (function() {
                         },
                         'keywordreplies.isDeleted': false
                     };
+
                     let aggregations = [
                         {
                             $unwind: '$keywordreplies' // 只針對 document 處理
@@ -35,6 +38,7 @@ module.exports = (function() {
                             }
                         }
                     ];
+
                     return this.AppsModel.aggregate(aggregations).then((results) => {
                         let appsKeywordreplies = {};
                         if (0 === results.length) {
@@ -82,56 +86,6 @@ module.exports = (function() {
                     }, {});
                     return appsKeywordreplies;
                 });
-            }).then((appsKeywordreplies) => {
-                ('function' === typeof callback) && callback(appsKeywordreplies);
-                return appsKeywordreplies;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        findKeywordreplies(appIds, keywordreplyIds, callback) {
-            if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
-                keywordreplyIds = [keywordreplyIds];
-            }
-            if (appIds && !(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-            return Promise.resolve().then(() => {
-                if (!keywordreplyIds) {
-                    let query = {
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'keywordreplies.isDeleted': false,
-                        'keywordreplies.status': true
-                    };
-                    let aggregations = [
-                        {
-                            $unwind: '$keywordreplies' // 只針對 document 處理
-                        }, {
-                            $match: query
-                        }, {
-                            $project: {
-                                // 篩選項目
-                                keywordreplies: true
-                            }
-                        }
-                    ];
-                    return this.AppsModel.aggregate(aggregations).then((results) => {
-                        let appsKeywordreplies = {};
-                        if (0 === results.length) {
-                            return appsKeywordreplies;
-                        }
-                        appsKeywordreplies = results.reduce((output, app) => {
-                            output[app._id] = output[app._id] || { keywordreplies: {} };
-                            Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
-                            return output;
-                        }, {});
-                        return appsKeywordreplies;
-                    });
-                }
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;
@@ -189,12 +143,14 @@ module.exports = (function() {
             if (keywordreplyIds && !(keywordreplyIds instanceof Array)) {
                 keywordreplyIds = [keywordreplyIds];
             }
+
             let query = {
-                '_id': appId,
+                '_id': this.Types.ObjectId(appId),
                 'keywordreplies._id': {
                     $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
                 }
             };
+
             let operate = {
                 $inc: {
                     'keywordreplies.$.replyCount': 1
@@ -221,7 +177,6 @@ module.exports = (function() {
 
             let updateOper = {
                 $set: {
-                    'keywordreplies.$._id': keywordreplyId,
                     'keywordreplies.$.isDeleted': true,
                     'keywordreplies.$.updatedTime': Date.now()
                 }

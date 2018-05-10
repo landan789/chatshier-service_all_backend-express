@@ -118,8 +118,6 @@ window.restfulAPI = (function() {
         });
     };
 
-
-
     /**
      * 宣告專門處理 Chatshier App 相關的 API 類別
      */
@@ -1316,6 +1314,7 @@ window.restfulAPI = (function() {
             formData.append('file', file);
             formData.append('fileName', file.name);
 
+            // 由於要使用 formData, Content-type 不同，因此使用新的 Headers
             var _reqHeaders = new Headers();
             _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
 
@@ -1336,12 +1335,23 @@ window.restfulAPI = (function() {
         BotAPI.prototype.moveFile = function(appId, richMenuId, userId, path) {
             var destUrl = `${this.urlPrefix}move-file/users/${userId}?appid=${appId}&richmenuid=${richMenuId}&path=${path}`;
 
-            var _reqHeaders = new Headers();
-            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
-
             var reqInit = {
                 method: 'POST',
-                headers: _reqHeaders
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} chatroomId
+         * @param {string} userId
+         */
+        BotAPI.prototype.leaveGroupRoom = function(appId, chatroomId, userId) {
+            var destUrl = this.urlPrefix + 'leave-group-room/apps/' + appId + '/chatrooms/' + chatroomId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
             };
             return sendRequest(destUrl, reqInit);
         };

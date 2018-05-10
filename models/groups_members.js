@@ -171,11 +171,12 @@ module.exports = (function() {
         }
 
         update(groupId, memberId, putMember, callback) {
+            putMember = putMember || {};
             putMember.updatedTime = Date.now();
 
             let query = {
-                '_id': groupId,
-                'members._id': memberId
+                '_id': this.Types.ObjectId(groupId),
+                'members._id': this.Types.ObjectId(memberId)
             };
 
             let member = {
@@ -207,8 +208,8 @@ module.exports = (function() {
 
         remove(groupId, memberId, callback) {
             let query = {
-                '_id': groupId,
-                'members._id': memberId
+                '_id': this.Types.ObjectId(groupId),
+                'members._id': this.Types.ObjectId(memberId)
             };
 
             let setMember = {
@@ -227,10 +228,7 @@ module.exports = (function() {
                     {
                         $unwind: '$members'
                     }, {
-                        $match: {
-                            '_id': this.Types.ObjectId(groupId),
-                            'members._id': this.Types.ObjectId(memberId)
-                        }
+                        $match: query
                     }, {
                         $project: {
                             members: 1

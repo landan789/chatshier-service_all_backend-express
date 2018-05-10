@@ -49,6 +49,7 @@ function init(server) {
             let appId = socketBody.app_id;
             let chatroomId = socketBody.chatroom_id;
             let messages = socketBody.messages;
+            // 訊息寄送者，這裡為 vendor 的 userid
             let senderUid = socketBody.senderUid;
             let senderMsgId;
             let app;
@@ -72,8 +73,10 @@ function init(server) {
                     let message = messages[i];
                     senderMsgId = message.messager_id;
 
-                    // messagerId 訊息寄送者，這裡為 vendor 的 userid
-                    let originalFilePath = `/${message.time}.${media[message.type]}`;
+                    let fileName = message.fileName || `${message.time}.${media[message.type]}`;
+                    delete message.fileName;
+
+                    let originalFilePath = `/${fileName}`;
                     let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
@@ -111,7 +114,7 @@ function init(server) {
                         if (!_message.src) {
                             return Promise.resolve(null);
                         }
-                        let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${_message.time}.${media[_message.type]}`;
+                        let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${fileName}`;
                         return storageHlp.filesMoveV2(originalFilePath, newFilePath);
                     }).then(() => {
                         return nextMessage(i + 1);
@@ -168,6 +171,7 @@ function init(server) {
             let appId = req.params.appid;
             let chatroomId = req.params.chatroomid;
             let platformUid = req.params.platformuid;
+            let userId = req.params.userid;
 
             let messagerToSocket = {
                 appId: appId,
@@ -175,11 +179,27 @@ function init(server) {
                 chatroomId: chatroomId
             };
 
-            return ControllerCore.appsRequestVerify(req).then((checkedAppIds) => {
+            return ControllerCore.appsRequestVerify(req).then(() => {
                 if (!platformUid) {
                     return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
 
+                return Promise.resolve().then(() => {
+                    // Chatshier 使用者可以對各個平台的 consumer 做自定義的命名
+                    let customName = ('string' === typeof req.body.name) && req.body.name;
+                    if (customName) {
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, userId).then((appsChatroomsMessagers) => {
+                            if (!appsChatroomsMessagers) {
+                                return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                            }
+                            let userMessager = appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[userId];
+                            userMessager.namings = userMessager.namings || {};
+                            userMessager.namings[platformUid] = customName;
+                            return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, userId, userMessager);
+                        });
+                    }
+                });
+            }).then(() => {
                 // 只允許更新 API 可編輯的屬性
                 let messager = {};
                 ('number' === typeof req.body.age) && (messager.age = req.body.age);
@@ -189,7 +209,6 @@ function init(server) {
                 ('string' === typeof req.body.remark) && (messager.remark = req.body.remark);
                 req.body.custom_fields && (messager.custom_fields = req.body.custom_fields);
                 req.body.assigned_ids && (messager.assigned_ids = req.body.assigned_ids);
-
                 return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager);
             }).then((appsChatroomsMessagers) => {
                 if (!appsChatroomsMessagers) {

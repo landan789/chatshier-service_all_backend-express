@@ -491,7 +491,6 @@ module.exports = (function() {
          */
         resetUnReadByPlatformUid(appId, chatroomId, platformUid, callback) {
             let messager = {
-                platformUid: platformUid,
                 unRead: 0,
                 updatedTime: Date.now()
             };
@@ -540,7 +539,6 @@ module.exports = (function() {
             }
 
             let messager = {
-                platformUid: platformUid,
                 isDeleted: true,
                 updatedTime: Date.now()
             };
@@ -549,9 +547,7 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
-                'chatrooms.isDeleted': false,
-                'chatrooms.messagers.platformUid': platformUid,
-                'chatrooms.messagers.isDeleted': false
+                'chatrooms.messagers.platformUid': platformUid
             };
 
             let updateOper = { $set: {} };
@@ -590,7 +586,6 @@ module.exports = (function() {
                     return Promise.reject(result);
                 }
 
-                query['chatrooms.messagers.isDeleted'] = true;
                 let aggregations = [
                     {
                         $unwind: '$chatrooms'

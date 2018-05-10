@@ -106,13 +106,13 @@ module.exports = (function() {
                     query._id = this.Types.ObjectId(calendarIds);
                 }
 
-                let calendar = {
+                let doc = {
                     $push: {
                         events: postEvent
                     }
                 };
 
-                return this.CalendarsModel.update(query, calendar).then((result) => {
+                return this.CalendarsModel.update(query, doc).then((result) => {
                     if (!result.ok) {
                         return Promise.reject(new Error());
                     }
@@ -134,14 +134,15 @@ module.exports = (function() {
          * @returns {Promise<any>}
          */
         update(calendarId, eventId, putEvent, callback) {
+            putEvent = putEvent || {};
             putEvent.updatedTime = Date.now();
 
-            let calendarQuery = {
-                '_id': calendarId,
-                'events._id': eventId
+            let query = {
+                '_id': this.Types.ObjectId(calendarId),
+                'events._id': this.Types.ObjectId(eventId)
             };
 
-            let setEvent = {
+            let doc = {
                 $set: {
                     'events.$._id': eventId
                 }
@@ -151,10 +152,10 @@ module.exports = (function() {
                 if (null === putEvent[prop] || undefined === putEvent[prop]) {
                     continue;
                 }
-                setEvent.$set['events.$.' + prop] = putEvent[prop];
+                doc.$set['events.$.' + prop] = putEvent[prop];
             }
 
-            return this.CalendarsModel.update(calendarQuery, setEvent).then((result) => {
+            return this.CalendarsModel.update(query, doc).then((result) => {
                 if (!result.ok) {
                     return Promise.reject(new Error());
                 }
@@ -171,31 +172,28 @@ module.exports = (function() {
         /**
          * @param {string} calendarId
          * @param {string} eventId
-         * @param {(calendar: string|null) => any} [callback]
+         * @param {(calendarEvents: any) => any} [callback]
          * @returns {Promise<any>}
          */
         remove(calendarId, eventId, callback) {
-            let calendarQuery = {
-                '_id': calendarId,
-                'events._id': eventId
+            let query = {
+                '_id': this.Types.ObjectId(calendarId),
+                'events._id': this.Types.ObjectId(eventId)
             };
 
-            let setEvent = {
+            let doc = {
                 $set: {
                     'events.$.isDeleted': true,
                     'events.$.updatedTime': Date.now()
                 }
             };
 
-            return this.CalendarsModel.update(calendarQuery, setEvent).then(() => {
+            return this.CalendarsModel.update(query, doc).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$events'
                     }, {
-                        $match: {
-                            '_id': this.Types.ObjectId(calendarId),
-                            'events._id': this.Types.ObjectId(eventId)
-                        }
+                        $match: query
                     }, {
                         $project: {
                             events: 1
@@ -203,19 +201,19 @@ module.exports = (function() {
                     }
                 ];
 
-                return this.CalendarsModel.aggregate(aggregations);
-            }).then((results) => {
-                let calendarEvents = {};
-                if (0 === results.length) {
-                    return Promise.reject(new Error());
-                }
+                return this.CalendarsModel.aggregate(aggregations).then((results) => {
+                    let calendarEvents = {};
+                    if (0 === results.length) {
+                        return Promise.reject(new Error());
+                    }
 
-                calendarEvents = results.reduce((output, calendar) => {
-                    output[calendar._id] = output[calendar._id] || {events: {}};
-                    Object.assign(output[calendar._id].events, this.toObject(calendar.events));
-                    return output;
-                }, {});
-                return calendarEvents;
+                    calendarEvents = results.reduce((output, calendar) => {
+                        output[calendar._id] = output[calendar._id] || {events: {}};
+                        Object.assign(output[calendar._id].events, this.toObject(calendar.events));
+                        return output;
+                    }, {});
+                    return calendarEvents;
+                });
             }).then((calendarEvents) => {
                 ('function' === typeof callback) && callback(calendarEvents);
                 return calendarEvents;

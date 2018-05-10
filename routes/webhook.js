@@ -58,7 +58,7 @@ router.post('/:webhookid', (req, res, next) => {
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         return Promise.resolve().then(() => {
-            // 由於 Facebook 使用單一 app 的訂閱所有的粉絲專頁
+            // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
             if (webhookid && FACEBOOK === webhookid.toUpperCase()) {
                 return new Promise((resolve) => {
@@ -137,7 +137,7 @@ router.post('/:webhookid', (req, res, next) => {
                     return botSvc.getProfile(platformInfo, appId, app);
                 }).then((profile) => {
                     let platformUid = platformInfo.platformUid;
-                    if (!(profile && platformInfo && !platformInfo.isEcho)) {
+                    if (!(profile && platformInfo && !platformInfo.isEcho && platformUid)) {
                         return;
                     }
                     return consumersMdl.replace(platformUid, profile);
@@ -159,7 +159,7 @@ router.post('/:webhookid', (req, res, next) => {
                         // 如果 webhook 打過來的訊息是屬於平台的群組聊天，而非單一使用者
                         // 則根據平台的群組 ID 查找聊天室
                         // 若未找到記有群組 ID 的聊天室則自動建立一個聊天室
-                        return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId).then((appsChatrooms) => {
+                        return appsChatroomsMdl.findByPlatformGroupId(appId, platformGroupId, {}).then((appsChatrooms) => {
                             if (!appsChatrooms || (appsChatrooms && 0 === Object.keys(appsChatrooms).length)) {
                                 let chatroom = {
                                     platformGroupId: platformGroupId,
@@ -171,7 +171,19 @@ router.post('/:webhookid', (req, res, next) => {
                         }).then((appsChatrooms) => {
                             let chatrooms = appsChatrooms[appId].chatrooms;
                             chatroomId = Object.keys(chatrooms).shift() || '';
-                            return chatrooms[chatroomId];
+                            let chatroom = chatrooms[chatroomId];
+
+                            // 如果此群組聊天室已經離開過，則將此聊天室重新啟用
+                            if (chatroom.isDeleted) {
+                                return appsChatroomsMdl.update(appId, chatroomId, { isDeleted: false }).then((_appsChatrooms) => {
+                                    if (!_appsChatrooms || (_appsChatrooms && 0 === Object.keys(_appsChatrooms).length)) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_FAILED_TO_UPDATE);
+                                    }
+                                    chatroom = _appsChatrooms[appId].chatrooms[chatroomId];
+                                    return chatroom;
+                                });
+                            }
+                            return chatroom;
                         });
                     }).then((groupChatroom) => {
                         let query;
@@ -375,7 +387,6 @@ router.post('/:webhookid', (req, res, next) => {
         let idx = webhookProcQueue.indexOf(webhookPromise);
         idx >= 0 && webhookProcQueue.splice(idx, 1);
     });
-
     webhookProcQueue.push(webhookPromise);
 });
 

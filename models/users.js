@@ -126,16 +126,18 @@ module.exports = (function() {
             });
         }
 
-        update(userId, user, callback) {
-            user.updatedTime = Date.now();
+        update(userId, putUser, callback) {
+            putUser = putUser || {};
+            putUser.updatedTime = Date.now();
 
             let query = {
-                '_id': userId
+                '_id': this.Types.ObjectId(userId)
             };
 
-            let doc = {
-                $set: user
-            };
+            let doc = { $set: {} };
+            for (let prop in putUser) {
+                doc.$set[prop] = putUser[prop];
+            }
 
             return this.Model.update(query, doc).then((result) => {
                 if (!result.ok) {
