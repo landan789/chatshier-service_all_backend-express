@@ -21,21 +21,17 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsImagemapsMdl.find(appIds, null, (imagemaps) => {
-                        if (!imagemaps) {
-                            reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(imagemaps);
-                    });
-                });
-            }).then((imagemaps) => {
-                let result = imagemaps !== undefined ? imagemaps : {};
+                return appsImagemapsMdl.find(appIds, null);
+            }).then((appsImagemaps) => {
+                if (!appsImagemaps) {
+                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                }
+                return Promise.resolve(appsImagemaps);
+            }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -54,44 +50,25 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds;
-
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
-                return new Promise((resolve, reject) => {
-                    appsImagemapsMdl.findImagemaps(appId, (imagemaps) => {
-                        if (!imagemaps) {
-                            reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                            return;
-                        }
-                        let imagemapIds = Object.keys(imagemaps);
-                        resolve(imagemapIds);
-                    });
-                });
-            }).then((imagemaps) => {
-                return new Promise((resolve, reject) => {
-                    if (!imagemaps.includes(imagemapId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
-                        return;
-                    }
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsImagemapsMdl.find(appId, imagemapId, (imagemap) => {
-                        if (!imagemap) {
-                            reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(imagemap);
-                    });
-                });
-            }).then((imagemap) => {
-                let result = imagemap !== undefined ? imagemap : {};
+                return appsImagemapsMdl.findImagemaps(appId);
+            }).then((appsImagemaps) => {
+                if (!appsImagemaps) {
+                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                }
+                return Promise.resolve(appsImagemaps);
+            }).then((appsImagemaps) => {
+                if (!appsImagemaps.includes(imagemapId)) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                }
+                return Promise.resolve(appsImagemaps);
+            }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
