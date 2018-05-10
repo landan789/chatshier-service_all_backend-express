@@ -52,5 +52,11 @@ module.exports = {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
+    },
+    GMAIL: {
+        user: 'support@chatshier.com',
+        clientId: '185667191445-g4es10vb23gm1jbt12m3c5me5vm5h8pr.apps.googleusercontent.com',
+        clientSecret: 'n9FV99oB3x6b4kMzKtDa8baV',
+        refreshToken: '1/J0sZ7lej6vGQgO_9ThiZ_kXTB-cx8m51AbWtEU8433M'
     }
 };

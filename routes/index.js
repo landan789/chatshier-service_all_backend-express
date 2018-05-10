@@ -5,7 +5,9 @@ const titlePostfix = ' | Chatshier';
 
 let reactReadyPaths = [
     '/signin',
-    '/signup'
+    '/signup',
+    '/reset-password',
+    '/change-password/*'
 ];
 router.get(reactReadyPaths, function(req, res, next) {
     res.render('react');
