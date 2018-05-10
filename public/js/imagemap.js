@@ -279,8 +279,8 @@
 
             let postImagemap = {
                 type: 'imagemap',
-                baseUri: '',
-                altText: '',
+                baseUri: url,
+                altText: 'imagemap create by chatshier via line',
                 baseSize: {
                     height: 1040,
                     width: 1040
