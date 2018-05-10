@@ -19,6 +19,7 @@ module.exports = (function() {
         }
 
         getAll(req, res, next) {
+            // TODO
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
                 return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
@@ -49,6 +50,7 @@ module.exports = (function() {
             let templateId = req.params.templateid;
 
             return this.appsRequestVerify(req).then(() => {
+                // TODO
                 return appsTemplatesMdl.find(appId, templateId).then((appsTemplates) => {
                     if (!appsTemplates) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
@@ -85,6 +87,7 @@ module.exports = (function() {
                 template: template
             };
             return this.appsRequestVerify(req).then(() => {
+                // TODO
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
                     if (!appsTemplates) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
@@ -157,6 +160,7 @@ module.exports = (function() {
                     });
                 });
             }).then((appsTemplate) => {
+                // TODO
                 let result = appsTemplate !== undefined ? appsTemplate : {};
                 let json = {
                     status: 1,
@@ -185,6 +189,7 @@ module.exports = (function() {
                 };
                 return new Promise((resolve, reject) => {
                     appsTemplatesMdl.remove(appId, templateId, (result) => {
+                        // TODO
                         if (!result) {
                             reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                             return;
@@ -192,8 +197,9 @@ module.exports = (function() {
                         resolve(result);
                     });
                 });
-            }).then((AppsTemplate) => {
-                let result = AppsTemplate !== undefined ? AppsTemplate : {};
+            }).then((appsTemplates) => {
+                // TODO
+                let result = appsTemplates !== undefined ? appsTemplates : {};
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
