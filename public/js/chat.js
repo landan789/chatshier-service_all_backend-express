@@ -916,19 +916,19 @@
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
-                '<i class="fas fa-user-times"></i>' +
+                '<i class="fas fa-user-times fa-fw fa-1p5x"></i>' +
                 '<span>未讀</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested unread show"></div>' +
             '<li class="text-light nested list-group-item has-collapse assigned">' +
-                '<i class="fas fa-check-circle"></i>' +
+                '<i class="fas fa-check-circle fa-fw fa-1p5x"></i>' +
                 '<span>已指派</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested assigned show"></div>' +
             '<li class="text-light nested list-group-item has-collapse unassigned">' +
-                '<i class="fas fa-times-circle"></i>' +
+                '<i class="fas fa-times-circle fa-fw fa-1p5x"></i>' +
                 '<span>未指派</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
