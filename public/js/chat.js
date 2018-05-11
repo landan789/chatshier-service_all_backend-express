@@ -1045,11 +1045,11 @@
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
 
-        var senderrName = (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) || (sender && sender.name) || '';
+        var senderName = (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) || (sender && sender.name) || '';
         if (SYSTEM === message.from) {
-            senderrName = '由系統發送';
+            senderName = '由系統發送';
         } else if (VENDOR === message.from) {
-            senderrName = '經由平台軟體發送';
+            senderName = '經由平台軟體發送';
         }
 
         var isMedia = (
@@ -1069,7 +1069,7 @@
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    '<span>' + senderrName + '</span>' +
+                    '<span>' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +
