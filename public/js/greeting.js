@@ -184,12 +184,11 @@
             $.notify('請填入文字內容', { type: 'warning' });
             return;
         }
-        let greetingData = {
+        let greeting = {
             type: 'text',
-            text: $textarea.val(),
-            createdTime: Date.now()
+            text: $textarea.val()
         };
-        return api.appsGreetings.insert(appId, userId, greetingData).then(function(resJson) {
+        return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
             $('#' + trId).remove();
             let greeting = resJson.data[appId].greetings;
             let greetingId = Object.keys(greeting)[0];

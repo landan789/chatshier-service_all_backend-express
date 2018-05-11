@@ -130,6 +130,8 @@ module.exports = (function() {
         insert(appId, postGreeting, callback) {
             let greetId = this.Types.ObjectId();
             postGreeting._id = greetId;
+            postGreeting.createdTime = Date.now();
+            postGreeting.updatedTime = Date.now();
 
             return this.AppsModel.findById(appId).then((app) => {
                 app.greetings.push(postGreeting);
