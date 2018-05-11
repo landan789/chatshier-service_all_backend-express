@@ -55,7 +55,7 @@ window.oneSignalHelper = (function() {
                             disable: false,
                             title: '歡迎',
                             message: '感謝訂閱好棒棒！',
-                            url: 'http://www.chatshier.com'
+                            url: 'https://www.chatshier.com'
                         },
                         notifyButton: {
                             enable: false
