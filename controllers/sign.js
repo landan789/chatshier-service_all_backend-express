@@ -368,7 +368,8 @@ module.exports = (function() {
                 }
                 let userId = Object.keys(users)[0];
                 let token = jwtHlp.sign(userId, 5 * 60 * 1000); // 使用者必須在 5 分鐘之內完成此次重設密碼動作
-                return emailHlp.sendResetPWMail(email, token).then((result) => {
+                let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':3002' : '');
+                return emailHlp.sendResetPWMail(serverAddr, email, token).then((result) => {
                     if (result.rejected.indexOf(email) >= 0) {
                         return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);
                     }

@@ -1,6 +1,4 @@
 module.exports = (function() {
-    const os = require('os');
-    const path = require('path');
     const nodemailer = require('nodemailer');
     const Email = require('email-templates');
     const chatshierCfg = require('../config/chatshier');
@@ -9,10 +7,6 @@ module.exports = (function() {
         constructor() {
             this.senderName = '錢掌櫃 Chatshier';
             this.sender = chatshierCfg.GMAIL.user;
-
-            let hostname = os.hostname();
-            let port = hostname.includes('fea.chatshier.com') ? ':3002' : '';
-            this.serverAddr = 'http://service.' + hostname + port;
 
             this.smtpTransport = nodemailer.createTransport({
                 service: 'gmail',
@@ -44,10 +38,11 @@ module.exports = (function() {
         }
 
         /**
+         * @param {string} serverAddr
          * @param {string} to - 接收者的 email
          * @param {string} token - Chatshier 使用者的 access token
          */
-        sendResetPWMail(to, token) {
+        sendResetPWMail(serverAddr, to, token) {
             let email = new Email(this.emailCfg);
             let params = {
                 mailHeader: '重置您的密碼',
@@ -55,21 +50,20 @@ module.exports = (function() {
                 resetText: '重置密碼',
                 buttonNotWork: '重置密碼按鈕無法動作？',
                 copyDescription: '請拷貝以下連結貼至您的瀏覽器:',
-                resetPasswordLink: this.serverAddr + '/api/sign/reset-password/' + token,
+                resetPasswordLink: serverAddr + '/api/sign/reset-password/' + token,
                 signinText: '登入',
-                signinLink: this.serverAddr + '/signin',
+                signinLink: serverAddr + '/signin',
                 copyright: 'Copyright© 2018 - 錢掌櫃 Chatshier'
             };
 
             return email.render('../emails/reset_password.ejs', params).then((emailHtml) => {
+                /** @type {any} */
                 let emailOpts = {
-                    template: '',
                     message: {
                         to: to,
                         subject: '重置您的密碼',
                         html: emailHtml
-                    },
-                    locals: {}
+                    }
                 };
 
                 return email.send(emailOpts);
