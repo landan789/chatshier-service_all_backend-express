@@ -176,7 +176,7 @@ module.exports = (function() {
                 return appsRichmenusMdl.update(appIds, richmenuId, postRichmenu);
             }).then((appsRichmenus) => {
                 if (!appsRichmenus) {
-                    return Promise.reject(API_ERROR.RICHMENU_UPDATE_FAIL);
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
                 }
                 return Promise.resolve(appsRichmenus);
             }).then((appsRichmenus) => {

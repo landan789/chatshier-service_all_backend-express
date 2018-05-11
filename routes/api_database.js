@@ -5,6 +5,7 @@ const formData = require('express-form-data');
 const appsAutorepliesCtl = require('../controllers/apps_autoreplies');
 const appsComposesCtl = require('../controllers/apps_composes');
 const appsTemplateCtl = require('../controllers/apps_templates');
+const appsImagemapsCtl = require('../controllers/apps_imagemaps');
 const appsCtl = require('../controllers/apps');
 const appsTicketsCtl = require('../controllers/apps_tickets');
 const calendarsEventsCtl = require('../controllers/calendars_events');
@@ -122,6 +123,16 @@ router.get('/apps-templates/apps/:appid/templates/:templateid/users/:userid', ap
 router.post('/apps-templates/apps/:appid/users/:userid', appsTemplateCtl.postOne);
 router.put('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.putOne);
 router.delete('/apps-templates/apps/:appid/templates/:templateid/users/:userid', appsTemplateCtl.deleteOne);
+// ==========
+
+// ==========
+// 圖文訊息
+router.get('/apps-imagemaps/users/:userid', appsImagemapsCtl.getAll);
+router.get('/apps-imagemaps/apps/:appid/users/:userid', appsImagemapsCtl.getAll);
+router.get('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', appsImagemapsCtl.getOne);
+router.post('/apps-imagemaps/apps/:appid/users/:userid', appsImagemapsCtl.postOne);
+router.put('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', appsImagemapsCtl.putOne);
+router.delete('/apps-imagemaps/apps/:appid/imagemaps/:imagemapid/users/:userid', appsImagemapsCtl.deleteOne);
 // ==========
 
 // ===============

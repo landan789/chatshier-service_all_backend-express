@@ -38,7 +38,7 @@ module.exports = (function() {
                 }, {
                     // 篩選項目
                     $project: {
-                        richmenus: 1
+                        richmenus: true
                     }
                 }
             ];

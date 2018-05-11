@@ -38,7 +38,7 @@ module.exports = (function() {
                 }, {
                     // 篩選項目
                     $project: {
-                        imagemaps: 1
+                        imagemaps: true
                     }
                 }
             ];
@@ -48,7 +48,6 @@ module.exports = (function() {
                 if (0 === results.length) {
                     return appsImagemaps;
                 }
-
                 appsImagemaps = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || { imagemaps: {} };
                     Object.assign(output[app._id].imagemaps, this.toObject(app.imagemaps));
