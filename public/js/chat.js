@@ -985,6 +985,12 @@
             }
         }
 
+        var $slideActive = $('#ctrlPanel .swiper-slide.swiper-slide-active');
+        var maxScrollHeight = $slideActive.prop('scrollHeight') - $slideActive.prop('clientHeight');
+        if (maxScrollHeight > 0) {
+            $('#ctrlPanel .scroll-bottom').removeClass('d-none');
+        }
+
         // 根據訊息時間排序聊天室(訊息時間越晚越上面)
         var sortByMessageTime = function(elA, elB) {
             var tA = parseInt(new Date($(elA).find('.client-message').attr('message-time')).getTime());

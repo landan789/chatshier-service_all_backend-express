@@ -4,16 +4,6 @@
     // var BREAKPOINT_MD = 768;
     // var BREAKPOINT_LG = 992;
 
-    // var chatshier = window.chatshier || {};
-    // var api = window.restfulAPI;
-    // var userId;
-    // try {
-    //     var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
-    //     userId = payload.uid;
-    // } catch (ex) {
-    //     userId = '';
-    // }
-
     var $pageWrappers = $('.page-wrapper');
     var $toolbar = $('.toolbar');
     var $ctrlPanel = $('#ctrlPanel');
@@ -23,8 +13,17 @@
     $ctrlPanel.on('click', '.has-collapse', toggleCollapse);
     $ctrlPanelBackdrop.on('click', closeCtrlPanel);
 
-    var $ctrlPanelAddApp = $('#ctrlPanelAddApp');
-    $ctrlPanelAddApp.on('click', showAppInsertModal);
+    var $scrollTop = $ctrlPanel.find('.scroll-top');
+    var $scrollBottom = $ctrlPanel.find('.scroll-bottom');
+    $scrollTop.on('click', function(ev) {
+        var $slideActive = $ctrlPanel.find('.swiper-slide.swiper-slide-active');
+        $slideActive.animate({ scrollTop: 0 }, 300);
+    });
+    $scrollBottom.on('click', function(ev) {
+        var $slideActive = $ctrlPanel.find('.swiper-slide.swiper-slide-active');
+        $slideActive.animate({ scrollTop: $slideActive.prop('scrollHeight') }, 300);
+    });
+    $ctrlPanel.find('.swiper-slide').on('scroll', onScrollCtrlPanel);
 
     var $edgeToggleContainer = $('#edgeToggleContainer');
     $edgeToggleContainer.on('click', '.edge-toggle-btn', switchCtrlPanel);
@@ -75,6 +74,7 @@
             init: function() {
                 // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
                 isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+                onScrollCtrlPanel({ target: $ctrlPanel.find('.swiper-slide.swiper-slide-active').get(0) });
             }
         }
     });
@@ -166,7 +166,18 @@
         });
     }
 
-    function showAppInsertModal() {
+    function onScrollCtrlPanel(ev) {
+        var maxScrollHeight = ev.target.scrollHeight - ev.target.clientHeight;
+        if (ev.target.scrollTop >= maxScrollHeight * 0.75) {
+            $scrollBottom.addClass('d-none');
+        } else {
+            $scrollBottom.removeClass('d-none');
+        }
 
+        if (ev.target.scrollTop <= maxScrollHeight * 0.25) {
+            $scrollTop.addClass('d-none');
+        } else {
+            $scrollTop.removeClass('d-none');
+        }
     }
 })();
