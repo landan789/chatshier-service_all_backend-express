@@ -198,7 +198,7 @@
                 '<td>' + greeting[greetingId].text + '</td>' +
                 '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
                 '<td>' +
-                    '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                    '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                 '</td>' +
             '</tr>';
             if (0 === greetingIdsLength) {
