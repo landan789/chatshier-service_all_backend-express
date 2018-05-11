@@ -42,8 +42,7 @@
 
     // 動態載入 gapi
     gClientHlp.loadAPI().then(function() {
-        var url = gCalendarHlp.configJsonUrl;
-        return gClientHlp.init(url);
+        return gClientHlp.init(window.chatshier.GOOGLE.CALENDAR);
     }).then(function(isSignedIn) {
         var $gCalendarRow = $('#gcalendar_row');
         $gCalendarRow.removeClass('d-none');
