@@ -118,3 +118,25 @@ tr:nth-child(even) {
     border: 1px solid;
     width: 100%;
 }
+
+.chsr-form .row {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.chsr-form .form-group {
+    padding: 0 1.5rem;
+}
+
+.chsr-form .col-sm-12 {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.chsr-form .form-label {
+    padding: 0 1.5rem;
+}
+
+.chsr .modal-content .modal-footer {
+    padding: 1rem 1.5rem;
+}

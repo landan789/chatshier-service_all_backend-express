@@ -89,7 +89,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form class="chsr-form">
                         <!-- app -->
                         <div class="form-group">
                             <label class="col-form-label">App:</label>
@@ -116,60 +116,71 @@
                         </div>
                         <!-- 圖片種類 -->
                         <div class="row col-sm-12">
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-01.png"/>
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form1">
                                     <strong>圖片種類 1</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-02.png">
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form2">
                                     <strong>圖片種類 2</strong>
                                 </label>
                             </div>                            
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-03.png">
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form3">
                                     <strong>圖片種類 3</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                        </div>
+                        <div class="row col-sm-12">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-04.png">                                    
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form4">
                                     <strong>圖片種類 4</strong>
                                 </label>
                             </div>
-                        </div>
-                        <div class="row col-sm-12">
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-05.png">                                   
                                     <input type="radio" class="richmenu-form"  name="richmenu-form" value="form5">
                                     <strong>圖片種類 5</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-06.png">                                  
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form6">
                                     <strong>圖片種類 6</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                        </div>
+                        <div class="row col-sm-12">
+                            <div class="form-group col-sm-4">
                                 <label class="col-form-label richmenu-form-label">
                                     <img src="image/type-richmenu-07.png">
                                     <input class="richmenu-form" type="radio" name="richmenu-form" value="form7">
                                     <strong>圖片種類 7</strong>
                                 </label>
                             </div>
+                            <div class="form-group col-sm-4">
+                                <label class="col-form-label richmenu-form-label">
+                                    <img src="image/type-richmenu-08.png">
+                                    <input class="richmenu-form" type="radio" name="richmenu-form" value="form8">
+                                    <strong>圖片種類 8</strong>
+                                </label>
+                            </div>
+                            <div class="form-group col-sm-4">
+                            </div>
                         </div>
                         <!-- 內容設定 -->
-                        <div class="col-sm-12">
+                        <div class="form-label col-sm-12">
                             <label class="col-form-label"><strong>內容設定:</strong></label>
                             <label class="col-form-label btn btn-light btn-border">
                                 <strong>上傳圖片</strong>
@@ -217,6 +228,16 @@
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
                             <div class="form-group col-sm-12" id="box6-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box7-input">
+                                <select id="keyword" class="form-control content-input"></select>
+                                <input id="text" type="text" class="form-control content-input" >
+                                <input id="url" type="url" class="form-control content-input"  placeholder="http://">
+                            </div>
+                            <div class="form-group col-sm-12" id="box8-input">
                                 <select id="keyword" class="form-control content-input"></select>
                                 <input id="text" type="text" class="form-control content-input" >
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">

@@ -35,7 +35,6 @@
     $jqDoc.on('click', '#deactivate-btn', activateMenu);
     $jqDoc.on('click', '#activate-btn', deactivateMenu);
     $jqDoc.on('click', '#update-btn', appenedData);
-    // $jqDoc.on('click', '#modal-update-save', update);
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
@@ -181,6 +180,8 @@
         let box4Input = '';
         let box5Input = '';
         let box6Input = '';
+        let box7Input = '';
+        let box8Input = '';
         switch (checked) {
             case 'form1':
                 box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
@@ -272,6 +273,30 @@
                 box1Input = showBoxInputs('box1');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input);
+                $('.content-bar').addClass('d-none');
+                break;
+            case 'form8':
+                let widthForm8 = boxWidth;
+                widthForm8 = (widthForm8 * 3) / 4;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm8 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + widthForm8 * 2 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + widthForm8 * 3 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box5 = '<div class="box" id="box5" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box6 = '<div class="box" id="box6" data-x="' + widthForm8 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                let box7 = '<div class="box" id="box7" data-x="' + widthForm8 * 2 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                let box8 = '<div class="box" id="box8" data-x="' + widthForm8 * 3 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6 + box7 + box8);
+                box1Input = showBoxInputs('box1');
+                box2Input = showBoxInputs('box2');
+                box3Input = showBoxInputs('box3');
+                box4Input = showBoxInputs('box4');
+                box5Input = showBoxInputs('box5');
+                box6Input = showBoxInputs('box6');
+                box7Input = showBoxInputs('box7');
+                box8Input = showBoxInputs('box8');
+                $modal.find('.boxes-inputs').empty();
+                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input + box7Input + box8Input);
                 $('.content-bar').addClass('d-none');
                 break;
             default:
@@ -379,6 +404,7 @@
     }
 
     function saveRichMenus() {
+        $(this).attr('disabled', 'disabled');
         let appId = $appSelector.find('option:selected').val();
         let selected = $('#richmenu-selected').val();
         let title = $('#title').val();
@@ -416,10 +442,12 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             loadRichmenus(appId, userId);
+            $(this).removeAttr('disalbed');
         });
     }
 
     function activateMenu() {
+        $(this).attr('disabled', 'disabled').text('啟用中...');
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
         return Promise.resolve().then(() => {
@@ -431,17 +459,21 @@
             });
         }).then(() => {
             $('#' + richmenuId).remove();
+            $(this).removeAttr('disabled');
         }).catch(() => {
             $.notify('失敗', { type: 'danger' });
+            $(this).removeAttr('disabled');
         });
     }
 
     function deactivateMenu() {
+        $(this).attr('disabled', 'disabled').text('取消啟用...');
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
         return api.bot.deactivateMenu(appId, richmenuId, userId).then((resJson) => {
             let deactivedMenu = resJson.data;
             loadRichmenus(appId, userId);
+            $(this).removeAttr('disabled');
         });
     }
 
@@ -506,7 +538,8 @@
         $('#modal-update-save').removeClass('d-none');
         let url = '';
 
-        $modal.find('#modal-update-save').off('click').on('click', function() {
+        $modal.find('#modal-update-save').off('click').on('click', () => {
+            $('#modal-update-save').attr('disabled', 'disabled');
             let selected = $('#richmenu-selected').val();
             let title = $('#title').val();
             let chatBarText = $('#chatbar-text').val();
@@ -531,6 +564,7 @@
                     let richmenuId = Object.keys(richemnu)[0];
                     $('#richmenu-modal').modal('hide');
                     loadRichmenus(appId, userId);
+                    $('#modal-update-save').removeAttr('disabled');
                 });
             }
 
@@ -543,6 +577,7 @@
                     let richmenuId = Object.keys(richemnu)[0];
                     $('#richmenu-modal').modal('hide');
                     loadRichmenus(appId, userId);
+                    $('#modal-update-save').removeAttr('disabled');
                 });
             });
         });
@@ -627,36 +662,29 @@
     function remove() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
-        let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
-        // TODO 
-        return showDialog('確定要刪除嗎？').then(function(isOK) {
+        // let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
+        // TODO
+        return Promise.resolve().then(() => {
+            return showDialog('確定要刪除嗎？');
+        }).then(function(isOK) {
             if (!isOK) {
-                return;
+                let cancelDelete = '取消刪除';
+                return Promise.reject(cancelDelete);
             }
-            if (status) {
-                return api.bot.deleteMenu(appId, richmenuId, userId).then((resJson) => {
-                    let appsRichmenu = resJson.data;
-                    $('#' + richmenuId).remove();
-                    $.notify('刪除成功！', { type: 'success' });
-                }).catch((resJson) => {
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $.notify('無此權限', { type: 'danger' });
-                        return;
-                    }
-                    $.notify('失敗', { type: 'danger' });
-                });
-            } else {
-                return api.appsRichmenus.remove(appId, richmenuId, userId).then(function(resJson) {
-                    $('#' + richmenuId).remove();
-                    $.notify('刪除成功！', { type: 'success' });
-                }).catch((resJson) => {
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $.notify('無此權限', { type: 'danger' });
-                        return;
-                    }
-                    $.notify('失敗', { type: 'danger' });
-                });
+            return Promise.resolve();
+        }).then(() => {
+            return api.appsRichmenus.remove(appId, richmenuId, userId);
+        }).then((resJson) => {
+            $('#' + richmenuId).remove();
+            $.notify('刪除成功！', { type: 'success' });
+        }).catch((ERR) => {
+            if (NO_PERMISSION_CODE === ERR.code) {
+                return $.notify('無此權限', { type: 'danger' });
             }
+            if ('取消刪除' === ERR) {
+                return $.notify(ERR, { type: 'warning' });
+            }
+            return $.notify('失敗', { type: 'danger' });
         });
     }
 
