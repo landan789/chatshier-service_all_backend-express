@@ -73,7 +73,7 @@
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
                             '<td>' + greeting[greetingId].text + '</td>' +
-                            '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
+                            '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
                             '<td>' +
                                 '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                             '</td>' +
@@ -114,7 +114,7 @@
         $('table #MsgCanvas').append(
             '<tr id="new' + rowCount + '" rel="' + appId + '">' +
                 '<td><textarea class="greeting-textarea"></textarea></td>' +
-                '<td>' + ToLocalTimeString(nowTime) + '</td>' +
+                '<td>' + new Date(nowTime).toLocaleString() + '</td>' +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="check-btn">' +
                         '<i class="fa fa-check"></i>' +
@@ -196,7 +196,7 @@
             var trGrop =
             '<tr id="' + greetingId + '" rel="' + appId + '">' +
                 '<td>' + greeting[greetingId].text + '</td>' +
-                '<td>' + ToLocalTimeString(greeting[greetingId].createdTime) + '</td>' +
+                '<td>' + new Date(nowTime).toLocaleString() + '</td>' +
                 '<td>' +
                     '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                 '</td>' +
@@ -222,14 +222,6 @@
             return;
         });
     } // end of modalSubmit
-
-    function ToLocalTimeString(millisecond) {
-        var date = new Date(millisecond);
-        var localDate = date.toLocaleDateString();
-        var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        var localTimeString = localDate + localTime;
-        return localTimeString;
-    }
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
