@@ -86,15 +86,17 @@ module.exports = (function() {
             let type = req.body.type || '';
             let baseUri = req.body.baseUri || '';
             let altText = req.body.altText || '';
-            let baseSize = req.body.baseSize || '';
-            let actions = req.body.actions || '';
+            let baseSize = req.body.baseSize || {};
+            let actions = req.body.actions || {};
+            let form = req.body.form || '';
 
             let postImagemap = {
                 type,
                 baseUri,
                 altText,
                 baseSize,
-                actions
+                actions,
+                form
             };
 
             return this.appsRequestVerify(req).then(() => {

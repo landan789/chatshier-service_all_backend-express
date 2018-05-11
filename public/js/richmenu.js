@@ -628,6 +628,7 @@
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
         let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
+        // TODO 
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;

@@ -233,7 +233,6 @@
         $(`#${boxInput} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInput} #${contentInputId}`).change(function() {
             var val = $(this).val();
-            console.log(val);
             if (val) {
                 let boxId = $('.box.checked').attr('id');
                 $('#' + boxId).attr('ref', val);
@@ -251,9 +250,9 @@
         $modal.find('input[type = datetime-local]').val('');
         $modal.find('input[type = url]').val('');
         $modal.find('input[type = file]').val('');
-        $modal.find('.show-richmenu-form').removeAttr('style');
-        $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
-        $modal.find('.show-richmenu-form').find('.box').remove();
+        $modal.find('.show-imagemap-form').removeAttr('style');
+        $modal.find('.show-imagemap-form').css('background-color', 'rgba(158,158,158)');
+        $modal.find('.show-imagemap-form').find('.box').remove();
         $modal.find('input[value = "form1"]').prop('checked', true);
         $modal.find('input[name = "content"]').prop('checked', false);
         photoFormShow();
@@ -285,17 +284,18 @@
                     height: 1040,
                     width: 1040
                 },
-                actions: actions
+                actions,
+                form
             };
-            return api.appsImagemap.insert(appId, userId, postImagemap);
+            return api.appsImagemaps.insert(appId, userId, postImagemap);
         }).then((resJson) => {
-            let appsImagemap = resJson.data;
-            let imagemap = appsImagemap[appId].richmenus;
+            let appsImagemaps = resJson.data;
+            let imagemap = appsImagemaps[appId].richmenus;
             let imagemapId = Object.keys(imagemap)[0];
             return api.bot.moveFile(appId, imagemapId, userId, originalFilePath);
         }).then(() => {
             $('#imagemap-modal').modal('hide');
-            // loadRichmenus(appId, userId);
+            loadImagemaps(appId, userId);
         });
     }
 
@@ -358,6 +358,58 @@
         return actions;
     }
 
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        loadImagemaps(nowSelectAppId, userId);
+    }
+
+    function loadImagemaps(appId, userId) {
+        $('table #imagemap-list').empty();
+        return api.appsImagemaps.findAll(appId, userId).then(function(resJson) {
+            let appsImagemaps = resJson.data;
+            let imagemaps = appsImagemaps[appId] ? appsImagemaps[appId].imagemaps : {};
+            for (let imagemapId in imagemaps) {
+                if (!imagemaps[imagemapId].isDeleted) {
+                    groupType(imagemapId, imagemaps[imagemapId], appId);
+                }
+            }
+        });
+    }
+
+    function groupType(imagemapId, imagemap, appId) {
+        let linkText = '';
+        for (let i = 0; i < imagemap.actions.length; i++) {
+            if (0 === i) {
+                linkText = linkText + actionType(imagemap.actions[i]);
+            } else {
+                linkText = linkText + '，' + actionType(imagemap.actions[i]);
+            }
+        }
+        var trGrop =
+            '<tr id="' + imagemapId + '" rel="' + appId + '">' +
+                '<th>' + imagemap.title + '</th>' +
+                '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUri + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
+                '<td>' + linkText + '</td>' +
+                '<td>' +
+                    '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
+                    '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
+                '</td>' +
+            '</tr>';
+        $('table #imagemap-list').append(trGrop);
+    }
+
+    function actionType(action) {
+        switch (action.type) {
+            case 'uri':
+                return action.linkUri;
+            case 'message':
+                return action.text;
+            default:
+                return '';
+        }
+    }
+
     function showBoxInputs(className) {
         return '<div class="row col-sm-12 content-bar" id="' + className + '-input">' +
             '<div class="form-group px-3">' +
@@ -390,16 +442,15 @@
                 delete appsData[appId];
                 continue;
             }
-
             $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-            // $appDropdown.find('#' + appId).on('click', appSourceChanged);
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
             $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-            // loadRichmenus(nowSelectAppId, userId);
+            loadImagemaps(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
