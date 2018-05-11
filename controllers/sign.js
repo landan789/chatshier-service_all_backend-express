@@ -31,10 +31,9 @@ module.exports = (function() {
             this.postSignup = this.postSignup.bind(this);
             this.postRefresh = this.postRefresh.bind(this);
 
+            this.postResetPassword = this.postResetPassword.bind(this);
             this.postChangePassword = this.postChangePassword.bind(this);
             this.putChangePassword = this.putChangePassword.bind(this);
-            this.getResetPassword = this.getResetPassword.bind(this);
-            this.postResetPassword = this.postResetPassword.bind(this);
         }
 
         postSignin(req, res, next) {
@@ -314,35 +313,6 @@ module.exports = (function() {
             });
         }
 
-        getResetPassword(req, res, next) {
-            let jwt = req.params.jwt;
-
-            return new Promise((resolve, reject) => {
-                let jwtOpts = {
-                    jwtFromRequest: () => jwt,
-                    secretOrKey: CHATSHIER.JWT.SECRET
-                };
-
-                passport.use(new JwtStrategy(jwtOpts, (payload, done) => done(null, payload)));
-                passport.authenticate('jwt', { session: false }, (err, payload) => {
-                    if (err) {
-                        reject(API_ERROR.USER_WAS_NOT_AUTHORIZED);
-                        return;
-                    }
-
-                    if (payload.exp < Date.now()) {
-                        reject(API_ERROR.JWT_HAD_EXPIRED);
-                        return;
-                    }
-                    resolve(payload.uid);
-                })(req, res, next);
-            }).then(() => {
-                res.redirect('/change-password/' + jwt);
-            }).catch((ERROR) => {
-                res.redirect('/change-password?errcode=' + ERROR.CODE);
-            });
-        }
-
         postResetPassword(req, res) {
             let email = req.body.email;
             let recaptchaResponse = req.body.recaptchaResponse;
@@ -366,9 +336,11 @@ module.exports = (function() {
                 if (!users || (users && 1 !== Object.keys(users).length)) {
                     return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                 }
+
                 let userId = Object.keys(users)[0];
                 let token = jwtHlp.sign(userId, 5 * 60 * 1000); // 使用者必須在 5 分鐘之內完成此次重設密碼動作
                 let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':3002' : '');
+
                 return emailHlp.sendResetPWMail(serverAddr, email, token).then((result) => {
                     if (result.rejected.indexOf(email) >= 0) {
                         return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);

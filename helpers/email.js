@@ -50,7 +50,7 @@ module.exports = (function() {
                 resetText: '重置密碼',
                 buttonNotWork: '重置密碼按鈕無法動作？',
                 copyDescription: '請拷貝以下連結貼至您的瀏覽器:',
-                resetPasswordLink: serverAddr + '/api/sign/reset-password/' + token,
+                resetPasswordLink: serverAddr + '/change-password/' + token,
                 signinText: '登入',
                 signinLink: serverAddr + '/signin',
                 copyright: 'Copyright© 2018 - 錢掌櫃 Chatshier'
