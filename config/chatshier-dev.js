@@ -57,6 +57,9 @@ module.exports = {
         user: 'support@chatshier.com',
         clientId: '185667191445-g4es10vb23gm1jbt12m3c5me5vm5h8pr.apps.googleusercontent.com',
         clientSecret: 'n9FV99oB3x6b4kMzKtDa8baV',
+        // Google 所配發的 refreshToken 不會失效，會失效可能是以下原因
+        // 1. 使用者解除授權 app
+        // 2. 使用者授權 app 時，授權的 scope 發生變更
         refreshToken: '1/J0sZ7lej6vGQgO_9ThiZ_kXTB-cx8m51AbWtEU8433M'
     }
 };

@@ -7,7 +7,10 @@
     const CHATSHIER = 'CHATSHIER';
     const ACTIVE = '啟用';
     const INACTIVE = '未啟用';
+
     const NO_PERMISSION_CODE = '3.16';
+    const PASSWORD_WAS_INCORRECT = '2.2';
+    const NEW_PASSWORD_WAS_INCONSISTENT = '2.4';
 
     var apps = {};
     var appsFields = {};
@@ -30,6 +33,8 @@
     } catch (ex) {
         userId = '';
     }
+
+    fbHlp.init();
 
     translate.ready.then(function(json) {
         transJson = json;
@@ -65,8 +70,6 @@
         });
     });
 
-    fbHlp.init();
-
     // ACTIONS
     $(document).on('click', '#edit', function() {
         let appId = $(this).attr('rel');
@@ -76,6 +79,65 @@
     $(document).on('click', '#del', function() {
         let appId = $(this).attr('rel');
         removeOneApp(appId);
+    });
+
+    $(document).on('click', '#changePasswordBtn', function() {
+        var $changePasswordCollapse = $('#changePasswordCollapse');
+        if ($changePasswordCollapse.hasClass('show')) {
+            var $changePasswordForm = $changePasswordCollapse.find('.change-password-form');
+            $changePasswordForm.find('[name="password"]').val('');
+            $changePasswordForm.find('[name="newPassword"]').val('');
+            $changePasswordForm.find('[name="newPasswordCfm"]').val('');
+        }
+        $changePasswordCollapse.collapse('toggle');
+    });
+
+    $(document).on('submit', '.change-password-form ', function(ev) {
+        ev.preventDefault();
+
+        var $changePasswordForm = $(ev.target);
+        var $password = $changePasswordForm.find('[name="password"]');
+        var $newPassword = $changePasswordForm.find('[name="newPassword"]');
+        var $newPasswordCfm = $changePasswordForm.find('[name="newPasswordCfm"]');
+        var password = $password.val();
+        var newPassword = $newPassword.val();
+        var newPasswordCfm = $newPasswordCfm.val();
+
+        if (!password) {
+            return $.notify('舊密碼不能為空', { type: 'warning' });
+        } else if (!newPassword) {
+            return $.notify('新密碼不能為空', { type: 'warning' });
+        } else if (!newPasswordCfm || newPassword !== newPasswordCfm) {
+            return $.notify('輸入的新密碼不一致', { type: 'warning' });
+        }
+
+        var user = {
+            password: password,
+            newPassword: newPassword,
+            newPasswordCfm: newPasswordCfm
+        };
+        return api.sign.changePassword(userId, user).then(function(resJson) {
+            var jwt = resJson.jwt;
+            window.localStorage.setItem('jwt', jwt);
+            api.setJWT(jwt);
+            window.jwtRefresh();
+
+            $password.val('');
+            $newPassword.val('');
+            $newPasswordCfm.val('');
+            $('#changePasswordCollapse').collapse('hide');
+
+            return $.notify('密碼變更成功', { type: 'success' });
+        }).catch(function(err) {
+            switch (err.code) {
+                case PASSWORD_WAS_INCORRECT:
+                    return $.notify('輸入的舊密碼不正確', { type: 'danger' });
+                case NEW_PASSWORD_WAS_INCONSISTENT:
+                    return $.notify('輸入的新密碼不一致', { type: 'danger' });
+                default:
+                    return $.notify('密碼變更失敗', { type: 'danger' });
+            }
+        });
     });
 
     $settingModal.on('hidden.bs.modal', clearSettingModalBody);

@@ -76,7 +76,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
                 };
                 // user password must never reponse to client
-                users[userId].password = '';
+                users[userId].password = void 0;
                 return Promise.resolve();
             }).then(() => {
                 userId = Object.keys(users).shift() || '';
@@ -368,7 +368,12 @@ module.exports = (function() {
                 }
                 let userId = Object.keys(users)[0];
                 let token = jwtHlp.sign(userId, 5 * 60 * 1000); // 使用者必須在 5 分鐘之內完成此次重設密碼動作
-                return emailHlp.sendResetPWMail(email, token);
+                return emailHlp.sendResetPWMail(email, token).then((result) => {
+                    if (result.rejected.indexOf(email) >= 0) {
+                        return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);
+                    }
+                    return result;
+                });
             }).then(() => {
                 let json = {
                     status: 1,
@@ -400,19 +405,24 @@ module.exports = (function() {
                 }
 
                 return usersMdl.find(userId).then((users) => {
-                    if (!users || (users && 0 === Object.keys(users).length)) {
+                    if (!users || (users && 1 !== Object.keys(users).length)) {
                         return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
                     }
 
-                    let user = {
+                    let user = users[userId];
+                    if (ciperHlp.encode(password) !== user.password) {
+                        return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
+                    }
+
+                    let postUser = {
                         password: ciperHlp.encode(newPassword)
                     };
-                    return usersMdl.update(userId, user).then((users) => {
+                    return usersMdl.update(userId, postUser).then((users) => {
                         if (!users || (users && 0 === Object.keys(users).length)) {
                             return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
                         }
                         // user password must never reponse to client
-                        users[userId].password = '';
+                        users[userId].password = void 0;
                         token = jwtHlp.sign(userId);
                         return users;
                     });
@@ -466,7 +476,7 @@ module.exports = (function() {
                             return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
                         }
                         // user password must never reponse to client
-                        users[userId].password = '';
+                        users[userId].password = void 0;
                         token = jwtHlp.sign(userId);
                         return users;
                     });

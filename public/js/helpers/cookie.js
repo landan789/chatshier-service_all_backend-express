@@ -16,12 +16,13 @@ window.chatshierCookie = (function() {
     var cookieManager = {
         /**
          * @param {string} name
-         * @param {string} val
-         * @param {string} expires
-         * @param {string} domain
+         * @param {string} [val]
+         * @param {string} [expires]
+         * @param {string} [domain]
+         * @param {string} [path]
          * @returns {boolean}
          */
-        setCookie: function(name, val, expires, domain) {
+        setCookie: function(name, val, expires, domain, path) {
             if (!name) {
                 return false;
             }
@@ -29,8 +30,9 @@ window.chatshierCookie = (function() {
             val = val || '';
             expires = expires || new Date(Date.now() + yearTimeGap).toGMTString();
             domain = domain || DEFAULT_DOMAIN;
+            path = path || '/';
 
-            document.cookie = name + '=' + encodeURIComponent(unescape(val)) + ';expires=' + expires + ';domain=' + domain;
+            document.cookie = name + '=' + encodeURIComponent(unescape(val)) + ';expires=' + expires + ';domain=' + domain + ';path=' + path;
             return true;
         },
         /**
