@@ -65,6 +65,11 @@
     background-color: #33ccff;
 }
 
+.table-user-information .prof-label-col {
+    width: 30%; }
+.table-user-information .prof-content-col {
+    width: 70%; }
+
 .feature-icon {
     display: inline-block;
     width: 24px;

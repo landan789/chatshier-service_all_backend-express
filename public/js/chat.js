@@ -785,7 +785,7 @@
 
                         var newPersonProfileJqNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newPersonProfileJqNode.shift()).insertAfter($personProfileCard.find('.photo-container'));
-                        $personProfileCard.find('.consumer-avatar').attr('src', consumer.photo);
+                        $personProfileCard.find('.consumer-avatar').attr('src', fixHttpsResource(consumer.photo));
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -1025,7 +1025,7 @@
 
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" ' + (!isGroupChatroom ? 'platform-uid="' + opts.platformUid + '"' : '') + ' app-type="' + opts.appType + '">' +
-                '<img class="app-icon consumer-photo" src="' + chatroomPhoto + '" />' +
+                '<img class="app-icon consumer-photo" src="' + fixHttpsResource(chatroomPhoto) + '" />' +
                 '<span class="app-name">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
@@ -1164,7 +1164,7 @@
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
                 consumer.photo = consumer.photo || 'image/user_large.png';
-                $consumerPhotos.attr('src', consumer.photo);
+                $consumerPhotos.attr('src', fixHttpsResource(consumer.photo));
                 Object.assign(consumers, _consumers);
             });
         });
@@ -1367,7 +1367,7 @@
             '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
                 '<div class="person-profile profile-content table-responsive">' +
                     '<div class="photo-container">' +
-                        '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
+                        '<img class="consumer-avatar larger" src="' + fixHttpsResource(person.photo) + '" alt="無法顯示相片" />' +
                     '</div>' +
                     (function generateProfileHtml() {
                         var html = '';
@@ -1638,7 +1638,7 @@
                                     var memberUser = users[memberUserId];
                                     html += (
                                         '<div class="person-chip">' +
-                                            '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
+                                            '<img src="' + (fixHttpsResource(memberUser.photo) || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
                                             '<span>' + memberUser.name + '</span>' +
                                         '</div>'
                                     );
@@ -1653,7 +1653,7 @@
                                     var consumer = consumers[messager.platformUid];
                                     html +=
                                         '<div class="person-chip">' +
-                                            '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
+                                            '<img src="' + fixHttpsResource(consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
                                             '<span>' + consumer.name + '</span>' +
                                         '</div>';
                                 }
@@ -2093,7 +2093,7 @@
             var consumer = consumers[platformUid];
             if (consumer) {
                 if (consumer.photo) {
-                    $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
+                    $chatroomTablinks.find('.app-icon').attr('src', fixHttpsResource(consumer.photo));
                 }
 
                 if (consumer.name) {
@@ -2606,6 +2606,16 @@
 
     function addZero(val) {
         return val < 10 ? '0' + val : val;
+    }
+
+    /**
+     * @param {string} resourceLink
+     */
+    function fixHttpsResource(resourceLink) {
+        if ('https:' === window.location.protocol && 0 === resourceLink.indexOf('http://')) {
+            return resourceLink.replace('/^http:/i', window.location.protocol);
+        }
+        return resourceLink;
     }
 
     /**

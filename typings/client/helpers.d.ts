@@ -33,7 +33,7 @@ interface Window {
             USER_NAME: '_chsr_username'
         },
         manager: {
-            setCookie: (name: string, val: string, expires: string, domain: string) => boolean,
+            setCookie: (name: string, val?: string, expires?: string, domain?: string, path?: string) => boolean,
             getCookie: (name: string) => string,
             deleteCookie: (name: string) => string
         }
@@ -181,9 +181,16 @@ interface UsersAPI {
     update: (userId: string, userData: any) => Promise<any>;
 }
 
+interface UserChangePassword {
+    password: string;
+    newPassword: string;
+    newPasswordCfm: string;
+}
+
 interface SignAPI {
     refresh: (userId: string) => Promise<any>;
     signOut: () => Promise<any>;
+    changePassword: (userId: string, user: UserChangePassword) => Promise<any>;
 }
 
 interface BotAPI {
