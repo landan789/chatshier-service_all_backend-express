@@ -95,7 +95,7 @@ module.exports = (function() {
                 let templateId = Object.keys(appsTemplates[appId].templates)[0];
                 if (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl) {
                     let fromPathArray = (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                    let src = fromPathArray[5];
+                    let src = fromPathArray[fromPathArray.length - 1];
                     let fromPath = `/temp/${src}`;
                     let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
                     storageHlp.filesMoveV2(fromPath, toPath);
@@ -103,7 +103,7 @@ module.exports = (function() {
                 }
                 return Promise.all(Object.keys(appsTemplates[appId].templates[templateId].template.columns).map((img) => {
                     let fromPathArray = (appsTemplates[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                    let src = fromPathArray[5];
+                    let src = fromPathArray[fromPathArray.length - 1];
                     let fromPath = `/temp/${src}`;
                     let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
                     storageHlp.filesMoveV2(fromPath, toPath);
