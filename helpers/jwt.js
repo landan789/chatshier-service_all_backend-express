@@ -12,41 +12,49 @@ module.exports = (function() {
     const HEADER = 'HEADER';
 
     class Jwt {
+        constructor() {
+            this.authenticate = this.authenticate.bind(this);
+        }
+
+        getJwtFromRequest(req) {
+            if (0 === req.originalUrl.indexOf('/api/') ||
+                0 === req.hostname.indexOf('api.')) {
+                return ExtractJwt.fromHeader('authorization');
+            }
+
+            let jwtFromRequest = (req) => {
+                let token = null;
+                if (req && req.cookies) {
+                    token = req.cookies.jwt;
+                }
+                return token;
+            };
+            return jwtFromRequest;
+        }
+
         /**
          * middleware: Authnticate the HTTP request via jwt
          */
         authenticate(req, res, next) {
-            let jwtFromRequest;
-
-            jwtFromRequest = (req) => {
-                let token = null;
-                if (req && req.cookies) {
-                    token = req.cookies['jwt'];
-                };
-                return token;
-            };
-
-            if (0 === req.originalUrl.indexOf('/api/') || 0 === req.hostname.indexOf('api.')) {
-                jwtFromRequest = ExtractJwt.fromHeader('authorization');
-            }
-
+            let jwtFromRequest = this.getJwtFromRequest(req);
             let options = {
                 jwtFromRequest: jwtFromRequest, // must be lower
                 secretOrKey: CHATSHIER.JWT.SECRET
             };
 
-            passport.use(new JwtStrategy(options, function(payload, next) {
+            passport.use(new JwtStrategy(options, (payload, next) => {
                 let err;
                 let users;
                 let info;
-                Promise.resolve().then(() => {
+
+                return Promise.resolve().then(() => {
                     return new Promise((resolve, reject) => {
                         let userId = payload.uid;
 
                         if (payload.exp < Date.now()) {
                             reject(API_ERROR.JWT_HAD_EXPIRED);
                             return;
-                        };
+                        }
                         if (payload.uid !== req.params.userid) {
                             reject(API_ERROR.USER_WAS_NOT_PERMITTED);
                             return;
@@ -87,21 +95,23 @@ module.exports = (function() {
                 // the request of this userid and jwt is also authorized, permmited and does not expire
                 if (!err && users) {
                     next();
-                    return;
                 }
             })(req, res, next);
         }
 
         /**
          * sign(create) a json web token via userid
-         * @param {String} userId
+         * @param {string} userId
+         * @param {number} [expires]
          */
-        sign(userId) {
+        sign(userId, expires) {
+            expires = expires || CHATSHIER.JWT.EXPIRES; // jwt expires after 1 hour (default)
+
             let payload = {
                 sub: CHATSHIER.JWT.SUBJECT,
                 iss: CHATSHIER.JWT.ISSUER,
                 adu: CHATSHIER.JWT.AUDIENCE,
-                exp: Date.now() + CHATSHIER.JWT.EXPIRES, // jwt expires after 1 hour
+                exp: Date.now() + expires,
                 iat: Date.now(),
                 uid: userId
             };

@@ -32,12 +32,13 @@ module.exports = (function() {
                 query['_id'] = {
                     $in: userIds.map((userId) => this.Types.ObjectId(userId))
                 };
-            };
+            }
+
             if (emails instanceof Array) {
                 query['email'] = {
-                    $in: emails.map((email) => email)
+                    $in: emails
                 };
-            };
+            }
 
             return this.Model.find(query).then((results) => {
                 let users = {};

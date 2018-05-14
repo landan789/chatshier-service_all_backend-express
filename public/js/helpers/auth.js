@@ -7,20 +7,19 @@
     var NO_USER = parseInt('000', 2);
     var NOT_LOGIN_SIGNUP_PAGE = parseInt('000', 2);
 
+    var PREPARE_TIME = 3 * 60 * 1000;
     var CHSR_COOKIE = window.chatshierCookie.CHSR_COOKIE;
     var cookieManager = window.chatshierCookie.manager;
     var api = window.restfulAPI;
-    const PREPARE_TIME = 3 * 60 * 1000;
+
+    var remainingTimer = null;
 
     /**
      * jwt automatically refreshes 10 minutes before jwt expires
      */
     function jwtRefresh() {
-        return nextPromise().then(() => {
-            // nothing to do
-        }).catch(() => {
-            window.location.replace('/signout');
-        });
+        remainingTimer && window.clearTimeout(remainingTimer);
+        remainingTimer = void 0;
 
         function nextPromise() {
             let userId;
@@ -41,7 +40,8 @@
                 if (remainingTime < 0) {
                     remainingTime = 0;
                 }
-                window.setTimeout(resolve, remainingTime);
+                remainingTimer && window.clearTimeout(remainingTimer);
+                remainingTimer = window.setTimeout(resolve, remainingTime);
             }).then(() => {
                 return api.sign.refresh(userId);
             }).then((response) => {
@@ -51,7 +51,12 @@
                 return nextPromise();
             });
         }
+
+        return nextPromise().catch(() => {
+            window.location.replace('/signout');
+        });
     }
+    window.jwtRefresh = jwtRefresh;
 
     let state = getState();
     if (state === (NOT_LOGIN_SIGNUP_PAGE | NO_USER | HAS_COOKIES) ||

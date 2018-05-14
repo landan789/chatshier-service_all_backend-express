@@ -87,11 +87,9 @@ module.exports = (function() {
         postOne(req, res) {
             let type = req.body.type;
             let text = req.body.text;
-            let createdTime = req.body.createdTime;
             let postGreeting = {
                 type: type,
-                text: text,
-                createdTime: createdTime
+                text: text
             };
             let appId;
 

@@ -23,4 +23,8 @@ router.post('/signin/', signCtl.postSignin);
 router.post('/signout/', signCtl.postSignout);
 router.post('/refresh/users/:userid', jwtHlp.authenticate, signCtl.postRefresh);
 
+router.post('/reset-password/', signCtl.postResetPassword);
+router.post('/change-password/users/:userid', jwtHlp.authenticate, signCtl.postChangePassword);
+router.put('/change-password/users/:userid', jwtHlp.authenticate, signCtl.putChangePassword);
+
 module.exports = router;

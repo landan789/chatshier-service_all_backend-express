@@ -31,7 +31,7 @@ window.googleClientHelper = (function() {
                 document.head.appendChild(apiScript);
             });
         },
-        init: function(configUrl) {
+        init: function(config) {
             if (initPromise) {
                 return initPromise;
             }
@@ -41,10 +41,6 @@ window.googleClientHelper = (function() {
                     resolve();
                 });
             }).then(function() {
-                return window.fetch(configUrl);
-            }).then(function(res) {
-                return res.json();
-            }).then(function(config) {
                 // 此 google calendar 的 key 使用 9thflr.rd@gmail.com
                 return window.gapi.client.init({
                     apiKey: config.API_KEY,

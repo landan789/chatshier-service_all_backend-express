@@ -1,4 +1,7 @@
 module.exports = (function() {
+    const passport = require('passport');
+    const JwtStrategy = require('passport-jwt').Strategy;
+
     const ControllerCore = require('../cores/controller');
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
@@ -7,7 +10,9 @@ module.exports = (function() {
     const CHATSHIER = require('../config/chatshier');
     const DEFAULT = 'DEFAULT';
 
+    let grecaptchaHlp = require('../helpers/grecaptcha');
     let ciperHlp = require('../helpers/cipher');
+    let emailHlp = require('../helpers/email');
     let jwtHlp = require('../helpers/jwt');
     let fuseHlp = require('../helpers/fuse');
     let redisHlp = require('../helpers/redis');
@@ -25,6 +30,10 @@ module.exports = (function() {
             this.postSignout = this.postSignout.bind(this);
             this.postSignup = this.postSignup.bind(this);
             this.postRefresh = this.postRefresh.bind(this);
+
+            this.postResetPassword = this.postResetPassword.bind(this);
+            this.postChangePassword = this.postChangePassword.bind(this);
+            this.putChangePassword = this.putChangePassword.bind(this);
         }
 
         postSignin(req, res, next) {
@@ -66,7 +75,7 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
                 };
                 // user password must never reponse to client
-                users[userId].password = '';
+                users[userId].password = void 0;
                 return Promise.resolve();
             }).then(() => {
                 userId = Object.keys(users).shift() || '';
@@ -303,6 +312,172 @@ module.exports = (function() {
                 res.status(500).json(json);
             });
         }
-    };
+
+        postResetPassword(req, res) {
+            let email = req.body.email;
+            let recaptchaResponse = req.body.recaptchaResponse;
+
+            return Promise.resolve().then(() => {
+                if (!email) {
+                    return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
+                }
+
+                if (!recaptchaResponse) {
+                    return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                }
+
+                return grecaptchaHlp.verifyingUserResponse(recaptchaResponse);
+            }).then((resJson) => {
+                if (!resJson.success) {
+                    return Promise.reject(API_ERROR.PASSWORD_FAILED_TO_RESET);
+                }
+                return usersMdl.find(null, email);
+            }).then((users) => {
+                if (!users || (users && 1 !== Object.keys(users).length)) {
+                    return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                }
+
+                let userId = Object.keys(users)[0];
+                let token = jwtHlp.sign(userId, 5 * 60 * 1000); // 使用者必須在 5 分鐘之內完成此次重設密碼動作
+                let serverAddr = req.protocol + '://' + req.hostname + (req.subdomains.includes('fea') ? ':3002' : '');
+
+                return emailHlp.sendResetPWMail(serverAddr, email, token).then((result) => {
+                    if (result.rejected.indexOf(email) >= 0) {
+                        return Promise.reject(API_ERROR.EMAIL_FAILED_TO_SEND);
+                    }
+                    return result;
+                });
+            }).then(() => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
+                };
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(500).json(json);
+            });
+        }
+
+        postChangePassword(req, res, next) {
+            let password = req.body.password;
+            let newPassword = req.body.newPassword;
+            let newPasswordCfm = req.body.newPasswordCfm;
+            let userId = req.params.userid;
+            let token;
+
+            return Promise.resolve().then(() => {
+                if (!password) {
+                    return Promise.reject(API_ERROR.PASSWORD_WAS_EMPTY);
+                } else if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
+                    return Promise.reject(API_ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                }
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!users || (users && 1 !== Object.keys(users).length)) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+
+                    let user = users[userId];
+                    if (ciperHlp.encode(password) !== user.password) {
+                        return Promise.reject(API_ERROR.PASSWORD_WAS_INCORRECT);
+                    }
+
+                    let postUser = {
+                        password: ciperHlp.encode(newPassword)
+                    };
+                    return usersMdl.update(userId, postUser).then((users) => {
+                        if (!users || (users && 0 === Object.keys(users).length)) {
+                            return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                        }
+                        // user password must never reponse to client
+                        users[userId].password = void 0;
+                        token = jwtHlp.sign(userId);
+                        return users;
+                    });
+                });
+            }).then((users) => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
+                    jwt: token,
+                    data: users
+                };
+                let options = {
+                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    maxAge: CHATSHIER.JWT.EXPIRES,
+                    httpOnly: true,
+                    expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
+                };
+                res.cookie('jwt', token, options);
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            });
+        }
+
+        putChangePassword(req, res, next) {
+            let newPassword = req.body.newPassword;
+            let newPasswordCfm = req.body.newPasswordCfm;
+            let userId = req.params.userid;
+            let token;
+
+            return Promise.resolve().then(() => {
+                if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
+                    return Promise.reject(API_ERROR.NEW_PASSWORD_WAS_INCONSISTENT);
+                }
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!users || (users && 0 === Object.keys(users).length)) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+
+                    let user = {
+                        password: ciperHlp.encode(newPassword)
+                    };
+                    return usersMdl.update(userId, user).then((users) => {
+                        if (!users || (users && 0 === Object.keys(users).length)) {
+                            return Promise.reject(API_ERROR.USER_FAILED_TO_UPDATE);
+                        }
+                        // user password must never reponse to client
+                        users[userId].password = void 0;
+                        token = jwtHlp.sign(userId);
+                        return users;
+                    });
+                });
+            }).then((users) => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
+                    jwt: token,
+                    data: users
+                };
+                let options = {
+                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    maxAge: CHATSHIER.JWT.EXPIRES,
+                    httpOnly: true,
+                    expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
+                };
+                res.cookie('jwt', token, options);
+                res.status(200).json(json);
+            }).catch((ERROR) => {
+                let json = {
+                    status: 0,
+                    msg: ERROR.MSG,
+                    code: ERROR.CODE
+                };
+                res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            });
+        }
+    }
     return new SignController();
 })();

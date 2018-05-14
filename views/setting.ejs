@@ -65,34 +65,57 @@
                                 <table class="table table-user-information">
                                     <tbody>
                                         <tr>
-                                            <td>ID: </td>
-                                            <td class="long-token" id="prof-IDnumber"></td>
+                                            <td class="prof-label-col">ID:</td>
+                                            <td class="prof-content-col" id="prof-IDnumber"></td>
                                         </tr>
                                         <tr>
-                                            <td>公司: </td>
-                                            <td class="long-token" id="prof-company"></td>
+                                            <td class="prof-label-col">公司:</td>
+                                            <td class="prof-content-col" id="prof-company"></td>
                                         </tr>
                                         <tr>
-                                            <td>手機: </td>
-                                            <td id="prof-phonenumber"></td>
+                                            <td class="prof-label-col">手機:</td>
+                                            <td class="prof-content-col" id="prof-phonenumber"></td>
                                         </tr>
                                         <tr>
-                                            <td>Email: </td>
-                                            <td class="long-token" id="prof-email"></td>
+                                            <td class="prof-label-col">Email:</td>
+                                            <td class="prof-content-col" id="prof-email"></td>
 
                                         </tr>
                                         <tr>
-                                            <td>地址: </td>
-                                            <td class="long-token" id="prof-address"></td>
+                                            <td class="prof-label-col">地址:</td>
+                                            <td class="prof-content-col" id="prof-address"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="prof-label-col">變更密碼:</td>
+                                            <td class="prof-content-col">
+                                                <button class="btn btn-info" id="changePasswordBtn">變更</button>
+                                                <div class="collapse" id="changePasswordCollapse">
+                                                    <form class="change-password-form">
+                                                        <div class="form-group">
+                                                            <label class="col-form-label font-weight-bold">舊密碼:</label>
+                                                            <input type="password" class="form-control" name="password" />
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="col-form-label font-weight-bold">新密碼:</label>
+                                                            <input type="password" class="form-control" name="newPassword" />
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="col-form-label font-weight-bold">確認新密碼:</label>
+                                                            <input type="password" class="form-control" name="newPasswordCfm" />
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary btn-sm btn-submit">確認</button>
+                                                    </form>
+                                                </div>
+                                            </td>
                                         </tr>
                                         <tr class="d-none" id="gcalendar_row">
-                                            <td>
+                                            <td class="prof-label-col">
                                                 <div class="feature-icon">
-                                                    <img src="image/google_calendar.png" alt="Google Calendar Logo" />
+                                                    <img src="image/google_calendar.png" alt="Google Calendar" />
                                                 </div>
-                                                Google 行事曆:
+                                                <span>Google 行事曆:</span>
                                             </td>
-                                            <td>
+                                            <td class="prof-content-col">
                                                 <div class="form-check setting-cbx">
                                                     <input class="form-check-input" type="checkbox" id="gcalendar_cbx">
                                                     <label class="form-check-label" for="gcalendar_cbx">啟用</label>
