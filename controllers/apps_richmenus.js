@@ -21,21 +21,17 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsRichmenusMdl.find(appIds, null, (richmenus) => {
-                        if (!richmenus) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(richmenus);
-                    });
-                });
-            }).then((richmenus) => {
-                let result = richmenus !== undefined ? richmenus : {};
+                return appsRichmenusMdl.find(appIds, null);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                return Promise.resolve(appsRichmenus);
+            }).then((appsRichmenus) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsRichmenus || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -58,40 +54,30 @@ module.exports = (function() {
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 };
-                return new Promise((resolve, reject) => { // 取得目前appId下所有richmenuIds
-                    appsRichmenusMdl.findRichmenus(appId, (richmenus) => {
-                        if (!richmenus) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                            return;
-                        }
-                        let richmenuIds = Object.keys(richmenus);
-                        resolve(richmenuIds);
-                    });
-                });
+                return appsRichmenusMdl.findRichmenus(appId);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                let richmenuIds = Object.keys(appsRichmenus);
+                return Promise.resolve(richmenuIds);
             }).then((richmenuIds) => { // 判斷appId中是否有目前richmenuId
-                return new Promise((resolve, reject) => {
-                    if (false === richmenuIds.includes(richmenuId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
-                        return;
-                    }
-                    resolve();
-                });
+                if (false === richmenuIds.includes(richmenuId)) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                }
+                return Promise.resolve();
             }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsRichmenusMdl.find(appId, richmenuId, (richmenu) => {
-                        if (!richmenu) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(richmenu);
-                    });
-                });
-            }).then((richmenu) => {
-                let result = richmenu !== undefined ? richmenu : {};
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                return Promise.resolve(appsRichmenus);
+            }).then((appsRichmenus) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsRichmenus || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -105,7 +91,6 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
-            res.setHeader('Content-Type', 'application/json');
             let appId = '';
 
             let postRichmenu = {
@@ -126,7 +111,8 @@ module.exports = (function() {
                 if (!appsRichmenus) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                 }
-
+                return appsRichmenus;
+            }).then((appsRichmenus) => {
                 let richmenu = appsRichmenus[appId].richmenus;
                 let richmenuId = Object.keys(richmenu)[0] || '';
                 let src = richmenu[richmenuId].src;
@@ -140,7 +126,7 @@ module.exports = (function() {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsRichmenus
+                    data: appsRichmenus || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -174,39 +160,30 @@ module.exports = (function() {
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 };
-                return new Promise((resolve, reject) => { // 取得目前appId下所有richmenuIds
-                    appsRichmenusMdl.findRichmenus(appIds, (richmenus) => {
-                        if (!richmenus) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                            return;
-                        }
-                        let richmenuIds = Object.keys(richmenus);
-                        resolve(richmenuIds);
-                    });
-                });
+                return appsRichmenusMdl.findRichmenus(appIds);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                let richmenuIds = Object.keys(appsRichmenus);
+                return Promise.resolve(richmenuIds);
             }).then((richmenuIds) => { // 判斷appId中是否有目前richmenuId
-                return new Promise((resolve, reject) => {
-                    if (false === richmenuIds.includes(richmenuId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
-                        return;
-                    }
-                    resolve();
-                });
+                if (false === richmenuIds.includes(richmenuId)) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                }
+                return Promise.resolve();
             }).then(() => { // 更新目前richmenu
-                return new Promise((resolve, reject) => {
-                    appsRichmenusMdl.update(appIds, richmenuId, postRichmenu, (richmenu) => {
-                        if (false === richmenu) {
-                            reject(API_ERROR.RICHMENU_UPDATE_FAIL);
-                            return;
-                        }
-                        resolve(richmenu);
-                    });
-                });
-            }).then((richmenu) => {
+                return appsRichmenusMdl.update(appIds, richmenuId, postRichmenu);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_UPDATE);
+                }
+                return Promise.resolve(appsRichmenus);
+            }).then((appsRichmenus) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: richmenu
+                    data: appsRichmenus || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -228,39 +205,30 @@ module.exports = (function() {
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 };
-                return new Promise((resolve, reject) => { // 取得目前appId下所有richmenuIds
-                    appsRichmenusMdl.findRichmenus(appIds, (richmenus) => {
-                        if (!richmenus) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
-                            return;
-                        }
-                        let richmenuIds = Object.keys(richmenus);
-                        resolve(richmenuIds);
-                    });
-                });
+                return appsRichmenusMdl.findRichmenus(appIds);
+            }).then((appsRichmenus) => {
+                if (!appsRichmenus) {
+                    return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
+                }
+                let richmenuIds = Object.keys(appsRichmenus);
+                return Promise.resolve(richmenuIds);
             }).then((richmenuIds) => { // 判斷appId中是否有目前richmenuId
-                return new Promise((resolve, reject) => {
-                    if (false === richmenuIds.includes(richmenuId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
-                        return;
-                    }
-                    resolve();
-                });
+                if (!richmenuIds.includes(richmenuId)) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
+                }
+                return Promise.resolve();
             }).then(() => { // 刪除目前richmenu
-                return new Promise((resolve, reject) => {
-                    appsRichmenusMdl.remove(appIds, richmenuId, (richmenu) => {
-                        if (!richmenu) {
-                            reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(richmenu);
-                    });
+                return appsRichmenusMdl.remove(appIds, richmenuId, (appsRichmenus) => {
+                    if (!appsRichmenus) {
+                        return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_REMOVE);
+                    }
+                    return Promise.resolve(appsRichmenus);
                 });
-            }).then((richmenu) => {
+            }).then((appsRichmenus) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: richmenu
+                    data: appsRichmenus || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {

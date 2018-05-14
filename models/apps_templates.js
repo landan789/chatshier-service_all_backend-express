@@ -83,7 +83,6 @@ module.exports = (function() {
         insert(appId, postTemplate, callback) {
             let templateId = this.Types.ObjectId();
             postTemplate._id = templateId;
-
             return this.AppsModel.findById(appId).then((app) => {
                 app.templates.push(postTemplate);
                 return app.save();

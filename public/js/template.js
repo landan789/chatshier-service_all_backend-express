@@ -82,8 +82,8 @@
                         '<td id="type">' + template.template.type + '</td>' +
                         '<td id="keyword">' + template.keyword + '</td>' +
                         '<td>' +
-                            '<button type="button" class="btn btn-border fas fa-edit" id="edit-btn" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>' +
-                            '<button type="button" class="btn btn-danger fas fa-trash-alt" id="delete-btn"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" id="edit-btn" data-toggle="modal" data-target="#template-modal" aria-hidden="true"></button>' +
+                            '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
                         '</td>' +
                     '</tr>'
                 );

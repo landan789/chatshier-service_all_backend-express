@@ -132,6 +132,22 @@ module.exports = (function() {
         'areas': [RichmenusAreasSchema]
     }, { minimize: false });
 
+    const ImagemapsActionsSchema = new mongoose.Schema({
+        // TODO
+    }, { minimize: false });
+
+    const ImagemapsSchema = new mongoose.Schema({
+        'isDeleted': {type: Boolean, default: false},
+        'createdTime': {type: Date, default: Date.now()},
+        'updatedTime': {type: Date, default: Date.now()},
+        'type': {type: String, default: ''},
+        'baseUri': {type: String, default: ''},
+        'altText': {type: String, default: ''},
+        'form': {type: String, default: ''},
+        'baseSize': {type: Object, default: {}},
+        'areas': [RichmenusAreasSchema]
+    }, { minimize: false });
+
     const FieldsSchema = new mongoose.Schema({
         'text': {type: String, default: ''},
         'alias': {type: String, default: ''},

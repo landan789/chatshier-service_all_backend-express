@@ -2,7 +2,7 @@ module.exports = (function() {
     const ModelCore = require('../cores/model');
     const APPS = 'apps';
 
-    class AppsRichmenusModel extends ModelCore {
+    class AppsImagemapsModel extends ModelCore {
         constructor() {
             super();
             this.AppsModel = this.model(APPS, this.AppsSchema);
@@ -12,11 +12,11 @@ module.exports = (function() {
          * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string} richmenuId
-         * @param {(appsRichmenus: any) => any} [callback]
+         * @param {any|string} imagemapId
+         * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */
-        find(appIds, richmenuId, callback) {
+        find(appIds, imagemapId, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -26,39 +26,37 @@ module.exports = (function() {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 }
             };
-            richmenuId && (query['richmenus._id'] = this.Types.ObjectId(richmenuId));
+            imagemapId && (query['imagemaps._id'] = this.Types.ObjectId(imagemapId));
 
             let aggregations = [
                 {
                     // 只針對特定 document 處理
-                    $unwind: '$richmenus'
+                    $unwind: '$imagemaps'
                 }, {
                     // 尋找符合 ID 的欄位
                     $match: query
                 }, {
                     // 篩選項目
                     $project: {
-                        richmenus: true
+                        imagemaps: true
                     }
                 }
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
-                let appsRichmenus = {};
+                let appsImagemaps = {};
                 if (0 === results.length) {
-                    return appsRichmenus;
+                    return appsImagemaps;
                 }
-
-                appsRichmenus = results.reduce((output, app) => {
-                    output[app._id] = output[app._id] || { richmenus: {} };
-                    Object.assign(output[app._id].richmenus, this.toObject(app.richmenus));
+                appsImagemaps = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { imagemaps: {} };
+                    Object.assign(output[app._id].imagemaps, this.toObject(app.imagemaps));
                     return output;
                 }, {});
-
-                return appsRichmenus;
-            }).then((appsRichmenus) => {
-                ('function' === typeof callback) && callback(appsRichmenus);
-                return appsRichmenus;
+                return appsImagemaps;
+            }).then((appsImagemaps) => {
+                ('function' === typeof callback) && callback(appsImagemaps);
+                return appsImagemaps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -66,13 +64,13 @@ module.exports = (function() {
         }
 
         /**
-         * 找到 圖文選單未刪除的資料包，不含 apps 結構
+         * 找到 圖文訊息未刪除的資料包，不含 apps 結構
          *
          * @param {string|string[]} appIds
-         * @param {(appsRichmenus: any) => any} [callback]
+         * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */
-        findRichmenus(appIds, callback) {
+        findImagemaps(appIds, callback) {
             if (!(appIds instanceof Array)) {
                 appIds = [appIds];
             }
@@ -86,33 +84,33 @@ module.exports = (function() {
             let aggregations = [
                 {
                     // 只針對特定 document 處理
-                    $unwind: '$richmenus'
+                    $unwind: '$imagemaps'
                 }, {
                     // 尋找符合 ID 的欄位
                     $match: query
                 }, {
                     // 篩選項目
                     $project: {
-                        richmenus: true
+                        imagemaps: true
                     }
                 }
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
-                let appsRichmenus = {};
+                let appsImagemaps = {};
                 if (0 === results.length) {
-                    return appsRichmenus;
+                    return appsImagemaps;
                 }
 
-                appsRichmenus = results.reduce((output, app) => {
-                    Object.assign(output, this.toObject(app.richmenus));
+                appsImagemaps = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.imagemaps));
                     return output;
                 }, {});
 
-                return appsRichmenus;
-            }).then((appsRichmenus) => {
-                ('function' === typeof callback) && callback(appsRichmenus);
-                return appsRichmenus;
+                return appsImagemaps;
+            }).then((appsImagemaps) => {
+                ('function' === typeof callback) && callback(appsImagemaps);
+                return appsImagemaps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -123,21 +121,21 @@ module.exports = (function() {
          * 輸入 指定 appId 的陣列清單，新增一筆圖文選單的資料
          *
          * @param {string} appId
-         * @param {any} postRichmenu
-         * @param {(appsRichmenus: any) => any} [callback]
+         * @param {any} postImagemap
+         * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */
-        insert(appId, postRichmenu, callback) {
-            let richmenuId = this.Types.ObjectId();
-            postRichmenu._id = richmenuId;
+        insert(appId, postImagemap, callback) {
+            let imagemapId = this.Types.ObjectId();
+            postImagemap._id = imagemapId;
             return this.AppsModel.findById(appId).then((app) => {
-                app.richmenus.push(postRichmenu);
+                app.imagemaps.push(postImagemap);
                 return app.save();
             }).then(() => {
-                return this.find(appId, richmenuId);
-            }).then((appsRichmenus) => {
-                ('function' === typeof callback) && callback(appsRichmenus);
-                return appsRichmenus;
+                return this.find(appId, imagemapId);
+            }).then((appsImagemaps) => {
+                ('function' === typeof callback) && callback(appsImagemaps);
+                return appsImagemaps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -145,85 +143,91 @@ module.exports = (function() {
         }
 
         /**
-         * 輸入 指定 appId 的陣列清單，修改一筆圖文選單的資料
+         * 輸入 指定 appId 的陣列清單，修改一筆圖文訊息的資料
          *
          * @param {string} appId
-         * @param {string} richmenuId
-         * @param {any} putRichmenu
-         * @param {(appsRichmenus: any) => any} [callback]
+         * @param {string} imagemapId
+         * @param {any} putImagemap
+         * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */
-        update(appId, richmenuId, putRichmenu, callback) {
-            putRichmenu._id = richmenuId;
-            putRichmenu.updatedTime = Date.now();
+        update(appId, imagemapId, putImagemap, callback) {
+            putImagemap._id = imagemapId;
+            putImagemap.updatedTime = Date.now();
 
             let query = {
                 '_id': appId,
-                'richmenus._id': richmenuId
+                'imagemaps._id': imagemapId
             };
 
             let updateOper = { $set: {} };
-            for (let prop in putRichmenu) {
-                updateOper.$set['richmenus.$.' + prop] = putRichmenu[prop];
+            for (let prop in putImagemap) {
+                updateOper.$set[`imagemaps.$.${prop}`] = putImagemap[prop];
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
-                return this.find(appId, richmenuId);
-            }).then((appsRichmenus) => {
-                ('function' === typeof callback) && callback(appsRichmenus);
-                return appsRichmenus;
+                return this.find(appId, imagemapId);
+            }).then((appsImagemaps) => {
+                ('function' === typeof callback) && callback(appsImagemaps);
+                return appsImagemaps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
         }
 
-        remove(appIds, richmenuId, callback) {
-            let richmenu = {
-                _id: richmenuId,
+        /**
+         *
+         * @param {*} appIds
+         * @param {string} imagemapId
+         * @param {*} callback
+         */
+        remove(appIds, imagemapId, callback) {
+            let imagemap = {
+                _id: imagemapId,
                 isDeleted: true,
                 updatedTime: Date.now()
             };
 
             let query = {
                 '_id': appIds.map((appId) => this.Types.ObjectId(appId)),
-                'richmenus._id': this.Types.ObjectId(richmenuId)
+                'imagemaps._id': this.Types.ObjectId(imagemapId)
             };
 
             let updateOper = { $set: {} };
-            for (let prop in richmenu) {
-                updateOper.$set['richmenus.$.' + prop] = richmenu[prop];
+            for (let prop in imagemap) {
+                updateOper.$set[`imagemaps.$.${prop}`] = imagemap[prop];
             }
 
             return this.AppsModel.update(query, updateOper).then(() => {
                 let aggregations = [
                     {
-                        $unwind: '$richmenus'
+                        $unwind: '$imagemaps'
                     }, {
                         $match: query
                     }, {
                         $project: {
-                            richmenus: true
+                            imagemaps: true
                         }
                     }
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {
-                    let appsRichmenus = {};
+                    let appsImagemaps = {};
                     if (0 === results.length) {
                         return Promise.reject(new Error());
                     }
 
-                    appsRichmenus = results.reduce((output, app) => {
-                        output[app._id] = output[app._id] || { richmenus: {} };
-                        Object.assign(output[app._id].richmenus, this.toObject(app.richmenus));
+                    appsImagemaps = results.reduce((output, app) => {
+                        output[app._id] = output[app._id] || { imagemaps: {} };
+                        Object.assign(output[app._id].imagemaps, this.toObject(app.imagemaps));
                         return output;
                     }, {});
-                    return appsRichmenus;
+                    return appsImagemaps;
                 });
-            }).then((appsRichmenus) => {
-                ('function' === typeof callback) && callback(appsRichmenus);
-                return appsRichmenus;
+            }).then((appsImagemaps) => {
+                ('function' === typeof callback) && callback(appsImagemaps);
+                return appsImagemaps;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -231,5 +235,5 @@ module.exports = (function() {
         }
     }
 
-    return new AppsRichmenusModel();
+    return new AppsImagemapsModel();
 })();

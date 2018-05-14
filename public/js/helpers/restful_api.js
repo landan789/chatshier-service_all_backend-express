@@ -18,6 +18,7 @@ window.restfulAPI = (function() {
         appsKeywordreplies: apiDatabaseUrl + 'apps-keywordreplies/',
         appsTemplates: apiDatabaseUrl + 'apps-templates/',
         appsRichmenus: apiDatabaseUrl + 'apps-richmenus/',
+        appsImagemaps: apiDatabaseUrl + 'apps-imagemaps/',
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
         bot: apiBotUrl,
@@ -1215,6 +1216,95 @@ window.restfulAPI = (function() {
         return AppsRichmenusAPI;
     })();
 
+    var AppsImagemapsAPI = (function() {
+        function AppsImagemapsAPI() {
+            this.urlPrefix = apiUrlTable.appsImagemaps;
+        };
+
+        /**
+         * 取得使用者所有Imagemap資料
+         *
+         * @param {*} appId
+         * @param {*} userId
+         */
+        AppsImagemapsAPI.prototype.findAll = function(appId, userId) {
+            var destUrl = this.urlPrefix + (appId ? ('apps/' + appId + '/') : '') + 'users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 取得一筆Imagemap資料
+         *
+         * @param {*} appId
+         * @param {*} imagemapId
+         * @param {*} userId
+         */
+        AppsImagemapsAPI.prototype.findOne = function(appId, imagemapId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/imagemaps/' + imagemapId + '/users/' + userId;
+            var reqInit = {
+                method: 'GET',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 新增一筆Imagemap資料
+         *
+         * @param {*} appId
+         * @param {*} userId
+         * @param {*} postImagemapData
+         */
+        AppsImagemapsAPI.prototype.insert = function(appId, userId, postImagemapData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(postImagemapData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 修改一筆Imagemap資料
+         *
+         * @param {*} appId
+         * @param {*} imagemapId
+         * @param {*} userId
+         * @param {*} putImagemapData
+         */
+        AppsImagemapsAPI.prototype.update = function(appId, imagemapId, userId, putImagemapData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/imagemaps/' + imagemapId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(putImagemapData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * 刪除一筆Imagemap資料
+         *
+         * @param {*} appId
+         * @param {*} imagemapId
+         * @param {*} userId
+         */
+        AppsImagemapsAPI.prototype.remove = function(appId, imagemapId, userId) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/imagemaps/' + imagemapId + '/users/' + userId;
+            var reqInit = {
+                method: 'DELETE',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+        return AppsImagemapsAPI;
+    })();
+
     var SignAPI = (function() {
         function SignAPI() {};
 
@@ -1381,6 +1471,7 @@ window.restfulAPI = (function() {
         appsGreetings: new AppsGreetingsAPI(),
         appsKeywordreplies: new AppsKeywordrepliesAPI(),
         appsRichmenus: new AppsRichmenusAPI(),
+        appsImagemaps: new AppsImagemapsAPI(),
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
         bot: new BotAPI(),
