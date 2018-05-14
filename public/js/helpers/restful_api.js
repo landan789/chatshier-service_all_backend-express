@@ -28,7 +28,8 @@ window.restfulAPI = (function() {
         groups: apiDatabaseUrl + 'groups/',
         users: apiDatabaseUrl + 'users/',
         signRefresh: apiSignUrl + 'refresh/',
-        signOut: apiSignUrl + 'signout/'
+        signOut: apiSignUrl + 'signout/',
+        changePassword: apiSignUrl + 'change-password/'
     });
 
     // ======================
@@ -1321,6 +1322,16 @@ window.restfulAPI = (function() {
             var reqInit = {
                 method: 'POST',
                 headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        SignAPI.prototype.changePassword = function(userId, user) {
+            var destUrl = apiUrlTable.changePassword + 'users/' + userId;
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders,
+                body: JSON.stringify(user)
             };
             return sendRequest(destUrl, reqInit);
         };
