@@ -14,6 +14,18 @@
 
     const NO_PERMISSION_CODE = '3.16';
 
+    const BLOCKS = { // for the forms, still thinking about how to arrange the boxes
+        box1: {},
+        box2: {},
+        box3: {},
+        box4: {},
+        box5: {},
+        box6: {},
+        box7: {},
+        box8: {},
+        box9: {}
+    };
+
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -174,6 +186,9 @@
         let box4 = '';
         let box5 = '';
         let box6 = '';
+        let box7 = '';
+        let box8 = '';
+        let box9 = '';
         let box1Input = '';
         let box2Input = '';
         let box3Input = '';
@@ -182,53 +197,36 @@
         let box6Input = '';
         let box7Input = '';
         let box8Input = '';
+        let box9Input = '';
         switch (checked) {
             case 'form1':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>';
-                box4 = '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>';
-                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
-                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1);
                 box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                box5Input = showBoxInputs('box5');
-                box6Input = showBoxInputs('box6');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input);
+                $modal.find('.boxes-inputs').append(box1Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form2':
-                let widthForm2 = boxWidth;
-                widthForm2 = (widthForm2 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px"></div>';
-                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + widthForm2 + '" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
+                let widthForm6 = boxWidth;
+                widthForm6 = (widthForm6 * 3) / 2;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm6 + '" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
+                $modal.find('.boxes-inputs').append(box1Input + box2Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form3':
                 box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
+                $modal.find('.boxes-inputs').append(box1Input + box2Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form4':
@@ -246,33 +244,51 @@
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form5':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2);
+                let widthForm2 = boxWidth;
+                widthForm2 = (widthForm2 * 3) / 2;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px"></div>';
+                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + widthForm2 + '" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
+                box3Input = showBoxInputs('box3');
+                box4Input = showBoxInputs('box4');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input);
+                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form6':
-                let widthForm6 = boxWidth;
-                widthForm6 = (widthForm6 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm6 + '" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
+                box3Input = showBoxInputs('box3');
+                box4Input = showBoxInputs('box4');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input);
+                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form7':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1);
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>';
+                box4 = '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>';
+                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
+                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6);
                 box1Input = showBoxInputs('box1');
+                box2Input = showBoxInputs('box2');
+                box3Input = showBoxInputs('box3');
+                box4Input = showBoxInputs('box4');
+                box5Input = showBoxInputs('box5');
+                box6Input = showBoxInputs('box6');
                 $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input);
+                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input);
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form8':
@@ -284,8 +300,8 @@
                 box4 = '<div class="box" id="box4" data-x="' + widthForm8 * 3 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
                 box5 = '<div class="box" id="box5" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
                 box6 = '<div class="box" id="box6" data-x="' + widthForm8 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                let box7 = '<div class="box" id="box7" data-x="' + widthForm8 * 2 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                let box8 = '<div class="box" id="box8" data-x="' + widthForm8 * 3 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box7 = '<div class="box" id="box7" data-x="' + widthForm8 * 2 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
+                box8 = '<div class="box" id="box8" data-x="' + widthForm8 * 3 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
                 $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6 + box7 + box8);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
@@ -297,6 +313,32 @@
                 box8Input = showBoxInputs('box8');
                 $modal.find('.boxes-inputs').empty();
                 $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input + box7Input + box8Input);
+                $('.content-bar').addClass('d-none');
+                break;
+            case 'form9':
+                let heightForm9 = boxHeight;
+                heightForm9 = (heightForm9 * 2) / 3;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
+                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
+                box4 = '<div class="box" id="box4" data-x="0" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
+                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
+                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
+                box7 = '<div class="box" id="box7" data-x="0" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
+                box8 = '<div class="box" id="box8" data-x="' + boxWidth + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
+                box9 = '<div class="box" id="box9" data-x="' + boxWidth * 2 + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
+                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6 + box7 + box8 + box9);
+                box1Input = showBoxInputs('box1');
+                box2Input = showBoxInputs('box2');
+                box3Input = showBoxInputs('box3');
+                box4Input = showBoxInputs('box4');
+                box5Input = showBoxInputs('box5');
+                box6Input = showBoxInputs('box6');
+                box7Input = showBoxInputs('box7');
+                box8Input = showBoxInputs('box8');
+                box9Input = showBoxInputs('box9');
+                $modal.find('.boxes-inputs').empty();
+                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input + box7Input + box8Input + box9Input);
                 $('.content-bar').addClass('d-none');
                 break;
             default:
