@@ -916,19 +916,19 @@
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
-                '<i class="fas fa-user-times"></i>' +
+                '<i class="fas fa-user-times fa-fw fa-1p5x"></i>' +
                 '<span>未讀</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested unread show"></div>' +
             '<li class="text-light nested list-group-item has-collapse assigned">' +
-                '<i class="fas fa-check-circle"></i>' +
+                '<i class="fas fa-check-circle fa-fw fa-1p5x"></i>' +
                 '<span>已指派</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
             '</li>' +
             '<div class="collapse nested assigned show"></div>' +
             '<li class="text-light nested list-group-item has-collapse unassigned">' +
-                '<i class="fas fa-times-circle"></i>' +
+                '<i class="fas fa-times-circle fa-fw fa-1p5x"></i>' +
                 '<span>未指派</span>' +
                 '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
@@ -985,6 +985,12 @@
             }
         }
 
+        var $slideActive = $('#ctrlPanel .swiper-slide.swiper-slide-active');
+        var maxScrollHeight = $slideActive.prop('scrollHeight') - $slideActive.prop('clientHeight');
+        if (maxScrollHeight > 0) {
+            $('#ctrlPanel .scroll-bottom').removeClass('d-none');
+        }
+
         // 根據訊息時間排序聊天室(訊息時間越晚越上面)
         var sortByMessageTime = function(elA, elB) {
             var tA = parseInt(new Date($(elA).find('.client-message').attr('message-time')).getTime());
@@ -1039,11 +1045,11 @@
             var sender = CHATSHIER === messager.type ? users[platformUid] : consumers[platformUid];
         }
 
-        var senderrName = (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) || (sender && sender.name) || '';
+        var senderName = (messagerSelf && messagerSelf.namings && messagerSelf.namings[platformUid]) || (sender && sender.name) || '';
         if (SYSTEM === message.from) {
-            senderrName = '由系統發送';
+            senderName = '由系統發送';
         } else if (VENDOR === message.from) {
-            senderrName = '經由平台軟體發送';
+            senderName = '經由平台軟體發送';
         }
 
         var isMedia = (
@@ -1063,7 +1069,7 @@
         return (
             '<div class="mb-3 message" message-time="' + message.time + '" message-type="' + message.type + '">' +
                 '<div class="messager-name ' + (shouldRightSide ? 'text-right' : 'text-left') + '">' +
-                    '<span>' + senderrName + '</span>' +
+                    '<span>' + senderName + '</span>' +
                 '</div>' +
                 '<span class="message-group ' + (shouldRightSide ? 'right-side' : 'left-side') + '">' +
                     '<span class="content ' + (isMedia ? 'media' : 'words') + '">' + srcHtml + '</span>' +

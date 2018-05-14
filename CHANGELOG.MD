@@ -8,6 +8,7 @@ Released: Not Ready
  * created: add sound and title blink when new message is come
  * created: user can link fan pages by facebook login
  * created: add link of line developers on add modal
+ * created: add scroll button for scroll to top or bottom
  * created: user can reset password now
  * changed: remove manually add facebook fan page
 
