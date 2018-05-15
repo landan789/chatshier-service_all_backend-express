@@ -3,6 +3,8 @@
 # https://hub.docker.com/r/library/node/tags/
 image: node:8.11.1
 
+stages:
+  - build
 before_script:
 
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
@@ -17,7 +19,8 @@ before_script:
 # Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-a-service
 services:
 
-build:
+dev:
+  stage: build
   script:
    - echo "[STEP 1] start to git pull on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_DEV_IP} -p 22 "cd ${API_DIR} && git stash && git checkout develop && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
