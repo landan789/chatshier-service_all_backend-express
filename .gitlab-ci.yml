@@ -33,6 +33,6 @@ dev:
   
    - echo "[SUCCEEDED] develop has been deployed."
   only:
-  refs:
-    - develop
+    refs:
+      - develop
 
