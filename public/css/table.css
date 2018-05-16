@@ -16,11 +16,11 @@ label *:not(strong) {
     display: inline-block;
 }
 
-.chsr.carousel-inner {
+/* .chsr.carousel-inner {
     left: 3%;
     width: 540px;
     height: 430px;
-}
+} */
 
 .show-richmenu-type {
     position: relative;
