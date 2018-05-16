@@ -2,7 +2,7 @@ const EXPIRES = (60 * 60 * 1000); // 1 hour -> 60 minutes * 60 seconds * 1000 mi
 
 module.exports = {
     REDIS: {
-        HOST: '127.0.0.1',
+        HOST: '127.0.0.1', // redis
         PORT: 6379,
         PASSWORD: 'dba1748eac27602147dfb1b06557a4fd'
     },
@@ -10,7 +10,7 @@ module.exports = {
         DROPBOX_ACCESS_TOKEN: 'DJzCRts8daAAAAAAAAAABnNeJJuJiYqx51BL3jrees0iA3Inz_Xu14eoRCQ8KD25'
     },
     MONGODB: {
-        HOST: '127.0.0.1',
+        HOST: '127.0.0.1', // mongodb
         PORT: 27017,
         DATABASE: 'chatshier',
         USERNAME: 'chsr',
