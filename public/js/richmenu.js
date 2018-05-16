@@ -551,7 +551,7 @@
             '<tr id="' + richmenuId + '" rel="' + appId + '">' +
                 '<th>' + richmenu.name + '</th>' +
                 '<td>' + richmenu.chatBarText + '</td>' +
-                '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">種類 ' + richmenu.form.slice(-1) + '</td>' +
+                '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">版型 ' + richmenu.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>';
         if (!richmenu.platformMenuId) {
             trGrop +=

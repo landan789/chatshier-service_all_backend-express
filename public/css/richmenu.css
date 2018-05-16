@@ -16,15 +16,15 @@
 @media (max-width: 575px) {
     .chsr.carousel-inner {
         width: 32.82rem;
-        height: 16.875rem;
+        height: 24rem;
     }
     .show-richmenu-form {
         width: 32.82rem;
-        height: 12.5rem;
+        height: 16rem;
     }
     .box {
         width: 10.94rem;
-        height: 6.25rem;
+        height: 8rem;
     }
 }
 

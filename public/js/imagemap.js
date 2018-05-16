@@ -19,7 +19,6 @@
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
-        console.log(userId);
     } catch (ex) {
         userId = '';
     }
