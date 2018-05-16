@@ -31,8 +31,8 @@ module.exports = {
     },
     JWT: {
         EXPIRES: EXPIRES,
-        SUBJECT: '9thflr.service@gmail.com',
-        ISSUER: '9thflr.service@gmail.com',
+        SUBJECT: 'support@chatshier.com',
+        ISSUER: 'support@chatshier.com',
         AUDIENCE: 'chatshier.com',
         SECRET: 'ilovechatshier'
     },
@@ -41,7 +41,7 @@ module.exports = {
         SECRET: 'ilovechatshier'
     },
     COOKIE: {
-        DOMAIN: '.fea.chatshier.com',
+        DOMAIN: '.dev.chatshier.com',
         EXPIRES: EXPIRES
     },
     CORS: { // the attributes of CORS must be lower case
