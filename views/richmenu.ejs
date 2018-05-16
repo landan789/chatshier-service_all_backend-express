@@ -5,7 +5,6 @@
     <% include ../views/partials/meta_tags.ejs %>
     <% include ../views/partials/favicon.ejs %>
     <title><%= title %></title>
-
     <% include ../views/partials/require_css.ejs %>
     <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/richmenu.css" />
@@ -35,8 +34,8 @@
                         </div>
                         <div class="search-add mb-2">
                             <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true" disabled="true">
+                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
+                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -92,7 +91,7 @@
                     <form>
                         <!-- app -->
                         <div class="form-group">
-                            <label class="col-form-label">機器人:</label>
+                            <label class="col-form-label"><strong>機器人:</strong></label>
                             <div class="select-container">
                                 <select class="form-control" id="app-select"></select>
                             </div>
@@ -289,6 +288,7 @@
             $('.row.col-12 .form-group.col-4:nth-child(3)').toggleClass('pr-0 pl-5');
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="js/richmenu.js"></script>
 </body>
 

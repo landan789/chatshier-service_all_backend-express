@@ -46,10 +46,10 @@ label *:not(strong) {
     color: gray;
 }
 
-.carousel-inner {
+/* .carousel-inner {
     left: 10%;
     width: 80%;
-}
+} */
 
 .rounded-border {
     border: 2px #ccc solid;
