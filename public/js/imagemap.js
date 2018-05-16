@@ -9,24 +9,31 @@
     var nowSelectAppId = '';
     var size = {};
     var imageFile = '';
+    var currentImageUri = '';
 
     var $modal = $('#imagemap-modal');
 
-    const NO_PERMISSION_CODE = '3.16';
+    // const NO_PERMISSION_CODE = '3.16'; // not sure what this is for
 
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
+        console.log(userId);
     } catch (ex) {
         userId = '';
     }
 
     $jqDoc.on('change', '.image-ghost', uploadImage);
-    $jqDoc.on('click', 'input[name = imagemap-form]', photoFormShow);
+    $jqDoc.on('click', 'input[name ="imagemap-form"]', photoFormShow);
     $jqDoc.on('click', '.box', contentBarShow);
-    $jqDoc.on('click', 'input[name = content]', contentInputShow);
+    $jqDoc.on('click', 'input[name="content"]', contentInputShow);
     $jqDoc.on('click', '#insert-btn', insertImagemap);
+    $jqDoc.on('click', '#remove-btn', removeImagemap);
+    $jqDoc.on('click', '#turnOn-update-btn', turnOnUpdateModal);
+    $modal.on('show.bs.modal', function() {
+        $('#update-btn').addClass('d-none');
+    });
     $modal.on('hidden.bs.modal', function() {
         cleanmodal();
     });
@@ -77,6 +84,7 @@
     }
 
     function photoFormShow() {
+        $('.form-group.col-sm-12 input').val('');
         let width = $modal.find('.show-imagemap-form').width();
         let height = $modal.find('.show-imagemap-form').height();
         let boxWidth = width / 3;
@@ -100,12 +108,12 @@
         let box6Input = '';
         switch (checked) {
             case 'form8':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>';
-                box4 = '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>';
-                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
-                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
+                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="height: ${boxHeight}px"></div>`;
+                box2 = `<div class="box" id="box2" data-x="${boxWidth}" data-y="0" style="height: ${boxHeight}px"></div>`;
+                box3 = `<div class="box" id="box3" data-x="${boxWidth * 2}" data-y="0" style="height: ${boxHeight}px"></div>`;
+                box4 = `<div class="box" id="box4" data-x="0" data-y="${boxHeight}" style="height: ${boxHeight}px"></div>`;
+                box5 = `<div class="box" id="box5" data-x="${boxWidth}" data-y="${boxHeight}" style="height: ${boxHeight}px"></div>`;
+                box6 = `<div class="box" id="box6" data-x="${boxWidth * 2}" data-y="${boxHeight}" style="height: ${boxHeight}px"></div>`;
                 $modal.find('.show-imagemap-form').append(box1 + box2 + box3 + box4 + box5 + box6);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
@@ -120,7 +128,7 @@
             case 'form7':
                 let heightForm7 = boxHeight;
                 heightForm7 = heightForm7 / 2;
-                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px"></div>`;
+                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px; height: ${boxHeight}px"></div>`;
                 box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${width}px; height: ${heightForm7}px"></div>`;
                 box3 = `<div class="box" id="box3" data-x="0" data-y="${heightForm7}" style="width: ${width}px; height: ${heightForm7}px"></div>`;
                 $modal.find('.show-imagemap-form').append(box1 + box2 + box3);
@@ -134,9 +142,9 @@
             case 'form6':
                 let widthForm6 = boxWidth;
                 widthForm6 = (widthForm6 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${(width / 2)}px"></div>`;
-                box3 = `<div class="box" id="box3" data-x="${widthForm6}" data-y="${boxHeight}" style="width: ${(width / 2)}px"></div>`;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px"></div>';
+                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px"></div>`;
+                box3 = `<div class="box" id="box3" data-x="${widthForm6}" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px"></div>`;
                 $modal.find('.show-imagemap-form').append(box1 + box2 + box3);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
@@ -148,10 +156,10 @@
             case 'form5':
                 let widthForm5 = boxWidth;
                 widthForm5 = (widthForm5 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm5 + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm5 + '" data-y="0" style="width:' + widthForm5 + 'px"></div>';
-                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + widthForm5 + '" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px"></div>';
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm5 + '" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px"></div>';
+                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px"></div>';
+                box4 = '<div class="box" id="box4" data-x="' + widthForm5 + '" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px"></div>';
                 $modal.find('.show-imagemap-form').append(box1 + box2 + box3 + box4);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
@@ -175,8 +183,8 @@
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form3':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>';
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px"></div>';
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px; height: ' + boxHeight + 'px"></div>';
                 $modal.find('.show-imagemap-form').append(box1 + box2);
                 box1Input = showBoxInputs('box1');
                 box2Input = showBoxInputs('box2');
@@ -243,9 +251,9 @@
     }
 
     function cleanmodal() {
-        $('#insert-btn').removeClass('d-none');
-        $('#update-btn').addClass('d-none');
+        $('#insert-btn').removeAttr('disabled').removeClass('d-none').siblings('#update-btn').removeClass('d-none');
         $('.form-group.col-sm-12').addClass('d-none');
+        $('.chsr-form > div').removeClass('d-none');
         $modal.find('input[type = text]').val('');
         $modal.find('input[type = datetime-local]').val('');
         $modal.find('input[type = url]').val('');
@@ -259,10 +267,10 @@
     }
 
     function insertImagemap() {
+        $(this).attr('disabled', 'disabled');
         let appId = $appSelector.find('option:selected').val();
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
-        let originalFilePath = '';
 
         if (!appId || !title) {
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
@@ -274,7 +282,6 @@
             return api.bot.uploadFile(appId, userId, imageFile);
         }).then((resJson) => {
             let url = resJson.data.url;
-            originalFilePath = resJson.data.originalFilePath;
 
             let postImagemap = {
                 type: 'imagemap',
@@ -285,17 +292,118 @@
                     width: 1040
                 },
                 actions,
-                form
+                form,
+                title
             };
             return api.appsImagemaps.insert(appId, userId, postImagemap);
-        }).then((resJson) => {
-            let appsImagemaps = resJson.data;
-            let imagemap = appsImagemaps[appId].richmenus;
-            let imagemapId = Object.keys(imagemap)[0];
-            return api.bot.moveFile(appId, imagemapId, userId, originalFilePath);
+        }).then(() => {
+            $('#imagemap-modal').modal('hide');
+            return $.notify('新增成功', { type: 'success' });
+        }).then(() => {
+            loadImagemaps(appId, userId);
+        }).catch(() => {
+            $('#insert-btn').removeAttr('disalbed');
+        });
+    }
+
+    function removeImagemap() {
+        let appId = $appSelector.find('option:selected').val();
+        let imagemapId = $(this).parent().parent().attr('id');
+
+        return Promise.resolve().then(() => {
+            return showDialog('確定要刪除嗎？');
+        }).then((isOK) => {
+            if (!isOK) {
+                let cancelDelete = '取消刪除';
+                return Promise.reject(cancelDelete);
+            }
+            return api.appsImagemaps.remove(appId, imagemapId, userId);
         }).then(() => {
             $('#imagemap-modal').modal('hide');
             loadImagemaps(appId, userId);
+            return $.notify('成功刪除', { type: 'success' });
+        }).catch((ERR) => {
+            if ('取消刪除' === ERR) {
+                return $.notify(ERR, { type: 'warning' });
+            }
+            return $.notify('失敗', { type: 'danger' });
+        });
+    }
+
+    function turnOnUpdateModal() {
+        let appId = $appSelector.find('option:selected').val();
+        let imagemapId = $(this).parent().parent().attr('id');
+
+        $appSelector.parent().parent().addClass('d-none');
+        $('#insert-btn').addClass('d-none');
+        $('#update-btn').removeClass('d-none');
+
+        $('#update-btn').on('click', () => {
+            $('#update-btn').attr('disabled', 'disabled');
+            let title = $('#title').val();
+            let form = $('input[name = imagemap-form]:checked').val();
+
+            if (!title) {
+                return $.notify('標題不可為空', { type: 'warning' });
+            }
+
+            let actions = composeActions();
+
+            let putImagemap = {
+                type: 'imagemap',
+                baseUri: currentImageUri,
+                altText: 'imagemap create by chatshier via line',
+                baseSize: {
+                    height: 1040,
+                    width: 1040
+                },
+                actions,
+                form,
+                title
+            };
+
+            if (!imageFile) {
+                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then((resJson) => {
+                    $('#imagemap-modal').modal('hide');
+                    return $.notify('修改成功', { type: 'success' });
+                }).then(() => {
+                    loadImagemaps(appId, userId);
+                });
+            }
+
+            return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+                putImagemap.baseUri = resJson.data;
+                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
+            }).then((resJson) => {
+                $('#imagemap-modal').modal('hide');
+                return $.notify('修改成功', { type: 'success' });
+            }).then(() => {
+                loadImagemaps(appId, userId);
+            });
+        });
+
+        return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
+            let appsImagemaps = resJson.data;
+            let imagemap = appsImagemaps[imagemapId];
+            size = imagemap.baseSize;
+            currentImageUri = imagemap.baseUri;
+            $('#title').val(imagemap.title);
+            $(`[value="${imagemap.form}"]`).prop('checked', true);
+            $('.show-imagemap-form')
+                .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
+                .css('background-size', 'cover');
+            photoFormShow();
+            let boxElements = $('.box');
+            boxElements.each(function(i) {
+                let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
+                $(this).css('background-color', 'rgba(158,158,158, 0.7)');
+                $(this).text(output);
+                $(this).addClass('marked')
+                    .attr('ref', output);
+                let id = $(this).attr('id');
+                imagemap.actions[i].text ? $(`#${id}-input #text`).val(imagemap.actions[i].text) : $(`#${id}-input #url`).val(imagemap.actions[i].linkUri);
+                imagemap.actions[i].text ? $(`.boxes-inputs #${id}-input [value="text"]`).attr('checked', true) : $(`.boxes-inputs #${id}-input [value="url"]`).attr('checked', true);
+            });
         });
     }
 
@@ -392,7 +500,7 @@
                 '<td id="photoForm" data-form="' + imagemap.form + '" data-url="' + imagemap.baseUri + '">種類 ' + imagemap.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>' +
                 '<td>' +
-                    '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
+                    '<button type="button" id="turnOn-update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true"></button>' +
                     '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
                 '</td>' +
             '</tr>';
@@ -425,6 +533,31 @@
                 '</label>' +
             '</div>' +
         '</div>';
+    }
+
+    function showDialog(textContent) {
+        return new Promise(function(resolve) {
+            $('#textContent').text(textContent);
+
+            var isOK = false;
+            var $dialogModal = $('#dialog_modal');
+
+            $dialogModal.find('.btn-primary').on('click', function() {
+                isOK = true;
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.find('.btn-secondary').on('click', function() {
+                resolve(isOK);
+                $dialogModal.modal('hide');
+            });
+
+            $dialogModal.modal({
+                backdrop: false,
+                show: true
+            });
+        });
     }
 
     return api.apps.findAll(userId).then(function(resJson) {

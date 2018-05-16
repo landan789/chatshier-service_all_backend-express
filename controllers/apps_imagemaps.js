@@ -60,7 +60,8 @@ module.exports = (function() {
                 }
                 return Promise.resolve(appsImagemaps);
             }).then((appsImagemaps) => {
-                if (!appsImagemaps.includes(imagemapId)) {
+                let imagemap = appsImagemaps[imagemapId];
+                if (!imagemap) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                 }
                 return Promise.resolve(appsImagemaps);
@@ -89,6 +90,7 @@ module.exports = (function() {
             let baseSize = req.body.baseSize || {};
             let actions = req.body.actions || {};
             let form = req.body.form || '';
+            let title = req.body.title || '';
 
             let postImagemap = {
                 type,
@@ -96,7 +98,8 @@ module.exports = (function() {
                 altText,
                 baseSize,
                 actions,
-                form
+                form,
+                title
             };
 
             return this.appsRequestVerify(req).then(() => {
@@ -109,8 +112,8 @@ module.exports = (function() {
             }).then((appsImagemaps) => {
                 let imagemaps = appsImagemaps[appId].imagemaps;
                 let imagemapId = Object.keys(imagemaps)[0] || '';
-                let src = imagemaps[imagemapId].src;
-                let fileName = src.split('/').pop();
+                let baseUri = imagemaps[imagemapId].baseUri;
+                let fileName = baseUri.split('/').pop();
                 let fromPath = `/temp/${fileName}`;
                 let toPath = `/apps/${appId}/imagemaps/${imagemapId}/src/${fileName}`;
                 return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
@@ -134,21 +137,25 @@ module.exports = (function() {
         }
 
         putOne(req, res) {
-            let imagemapId = req.params.imagemapId;
+            let imagemapId = req.params.imagemapid;
 
             let appId = req.params.appid;
             let type = req.body.type || '';
             let baseUri = req.body.baseUri || '';
             let altText = req.body.altText || '';
-            let baseSize = req.body.baseSize || '';
-            let actions = req.body.actions || '';
+            let baseSize = req.body.baseSize || {};
+            let actions = req.body.actions || {};
+            let form = req.body.form || '';
+            let title = req.body.title || '';
 
             let putImagemap = {
                 type,
                 baseUri,
                 altText,
                 baseSize,
-                actions
+                actions,
+                form,
+                title
             };
 
             return this.appsRequestVerify(req).then((checkedAppId) => {

@@ -38,6 +38,7 @@
 
     $('.content-bar').addClass('d-none');
     $('.content-input').addClass('d-none');
+    $('.chsr-form .form-inputs .form-group.col-sm-12').addClass('d-none');
     $jqDoc.on('click', '#modal-save', saveRichMenus); // add richmenu, not activated.
     $jqDoc.on('click', '#add-btn', cleanmodal); // cleaning the options in modal.
     $jqDoc.on('change', '.image-ghost', uploadImage);
@@ -50,6 +51,7 @@
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
+        $('#modal-save').removeAttr('disabled');
     });
 
     $modal.on('show.bs.modal', function() {
@@ -383,6 +385,7 @@
             $('.content-input').val('');
         }
         $('.content-input').addClass('d-none');
+        $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none').siblings().addClass('d-none');
         $(`#${boxInput} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInput} #${contentInputId}`).change(function() {
             var val = $(this).val();
@@ -484,7 +487,7 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             loadRichmenus(appId, userId);
-            $(this).removeAttr('disalbed');
+            return $.notify('新增成功', { type: 'success' });
         });
     }
 
@@ -502,6 +505,7 @@
         }).then(() => {
             $('#' + richmenuId).remove();
             $(this).removeAttr('disabled');
+            return $.notify('成功啟用', { type: 'success' });
         }).catch(() => {
             $.notify('失敗', { type: 'danger' });
             $(this).removeAttr('disabled');
@@ -516,6 +520,7 @@
             let deactivedMenu = resJson.data;
             loadRichmenus(appId, userId);
             $(this).removeAttr('disabled');
+            return $.notify('成功取消啟用', { type: 'success' });
         });
     }
 
@@ -607,20 +612,20 @@
                     $('#richmenu-modal').modal('hide');
                     loadRichmenus(appId, userId);
                     $('#modal-update-save').removeAttr('disabled');
+                    return $.notify('修改成功', { type: 'success' });
                 });
             }
 
             return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
                 putRichmenu.src = resJson.data;
-
-                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
-                    let appsRichmenu = resJson.data;
-                    let richemnu = appsRichmenu[appId].richmenus;
-                    let richmenuId = Object.keys(richemnu)[0];
-                    $('#richmenu-modal').modal('hide');
-                    loadRichmenus(appId, userId);
-                    $('#modal-update-save').removeAttr('disabled');
-                });
+                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
+            }).then((resJson) => {
+                let appsRichmenu = resJson.data;
+                let richemnu = appsRichmenu[appId].richmenus;
+                let richmenuId = Object.keys(richemnu)[0];
+                $('#richmenu-modal').modal('hide');
+                loadRichmenus(appId, userId);
+                return $.notify('修改成功', { type: 'success' });
             });
         });
 
