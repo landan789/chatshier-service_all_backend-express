@@ -5,27 +5,22 @@
     <% include ../views/partials/meta_tags.ejs %>
     <% include ../views/partials/favicon.ejs %>
     <title><%= title %></title>
-
     <% include ../views/partials/require_css.ejs %>
-    <link rel="stylesheet" href="css/_main.css" />
     <link rel="stylesheet" href="css/table.css" />
     <link rel="stylesheet" href="css/template.css" />
 </head>
 
 <body>
     <% include ../views/partials/loading.ejs %>
-
     <div class="root d-flex w-100 h-100">
         <% include ../views/partials/control_panel.ejs %>
-
         <div class="ml-auto w-100 page-wrapper">
             <% include ../views/partials/toolbar.ejs %>
-
             <div class="container mt-5">
                 <div class="chsr card">
                     <div class="title">
                         <h3 class="pt-3 pb-0 px-5">自訂 Line Template</h3>
-                        <p class="pt-0 pb-4 px-5">首頁 / 訊息 / 自訂聊天模板</p>
+                        <p class="pt-0 pb-4 px-5">首頁 / 圖文影音內容 / 自訂聊天模板</p>
                     </div>
                     <div class="px-5 my-3" id="appSelector">
                         <div class="dropdown app-dropdown">
@@ -79,7 +74,7 @@
                         </div>
                         <!-- channelId -->
                         <div class="form-group app-select-bar">
-                            <label class="col-form-label">App:</label>
+                            <label class="col-form-label"><strong>機器人:</strong></label>
                             <div>
                                 <select class="form-control" id="app-select">
                                 </select>
@@ -96,7 +91,7 @@
                         </div>
                         <!-- Type -->
                         <div class="form-group">
-                            <label class=" col-form-label"><strong>類型:</strong>
+                            <label class=" col-form-label"><strong>類型:</strong></label>
                             <div>
                                 <select class="form-control" id="template-type">
                                     <option disabled selected value> -- 請選擇 -- </option>
@@ -106,7 +101,6 @@
                                     <!-- <option value="image_carousel">圖片多欄</option> -->
                                 </select>
                             </div>
-                        </label>
                         </div>
                         <!-- AltText -->
                         <div class="form-group">
@@ -248,7 +242,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
+                        <div class="modal-footer px-0">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary" id="modal-save">確認</button>
                             <button type="button" class="btn btn-primary" id="edit-modal-save">確認</button>

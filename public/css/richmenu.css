@@ -1,29 +1,29 @@
 @media (min-width: 576px) {
     .chsr.carousel-inner {
-        width: 27.375rem;
+        width: 29.1rem;
         height: 22.625rem;
     }
     .show-richmenu-form {
-        width: 27.375rem;
+        width: 29.1rem;
         height: 18.25rem;
     }
     .box {
-        width: 9.125rem;
+        width: 9.7rem;
         height: 9.125rem;
     }
 }
 
 @media (max-width: 575px) {
     .chsr.carousel-inner {
-        width: 18.75rem;
+        width: 32.82rem;
         height: 16.875rem;
     }
     .show-richmenu-form {
-        width: 18.75rem;
+        width: 32.82rem;
         height: 12.5rem;
     }
     .box {
-        width: 6.25rem;
+        width: 10.94rem;
         height: 6.25rem;
     }
 }
@@ -42,9 +42,9 @@
     display: inline-block;
 }
 
-.chsr.carousel-inner {
+/* .chsr.carousel-inner {
     left: 3%;
-}
+} */
 
 .show-richmenu-form {
     position: relative;
@@ -117,26 +117,4 @@ tr:nth-child(even) {
 .linebar {
     border: 1px solid;
     width: 100%;
-}
-
-.chsr-form .row {
-    margin-left: 0px;
-    margin-right: 0px;
-}
-
-.chsr-form .form-group {
-    padding: 0 1.5rem;
-}
-
-.chsr-form .col-sm-12 {
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
-.chsr-form .form-label {
-    padding: 0 1.5rem;
-}
-
-.chsr .modal-content .modal-footer {
-    padding: 1rem 1.5rem;
 }

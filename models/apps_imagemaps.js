@@ -183,28 +183,23 @@ module.exports = (function() {
          * @param {*} callback
          */
         remove(appIds, imagemapId, callback) {
-            let imagemap = {
-                _id: imagemapId,
-                isDeleted: true,
-                updatedTime: Date.now()
-            };
-
             let query = {
-                '_id': appIds.map((appId) => this.Types.ObjectId(appId)),
-                'imagemaps._id': this.Types.ObjectId(imagemapId)
+                '_id': appIds,
+                'imagemaps._id': imagemapId
             };
 
-            let updateOper = { $set: {} };
-            for (let prop in imagemap) {
-                updateOper.$set[`imagemaps.$.${prop}`] = imagemap[prop];
-            }
+            let operate = {
+                $set: {
+                    'imagemaps.$._id': imagemapId,
+                    'imagemaps.$.isDeleted': true,
+                    'imagemaps.$.updatedTime': Date.now()
+                }
+            };
 
-            return this.AppsModel.update(query, updateOper).then(() => {
+            return this.AppsModel.update(query, operate).then(() => {
                 let aggregations = [
                     {
                         $unwind: '$imagemaps'
-                    }, {
-                        $match: query
                     }, {
                         $project: {
                             imagemaps: true

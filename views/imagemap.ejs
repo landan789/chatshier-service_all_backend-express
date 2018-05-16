@@ -31,8 +31,8 @@
                         </div>
                         <div class="search-add mb-2">
                             <span class="icon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="search-bar" placeholder="搜尋" aria-hidden="true">
-                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add p-1 insert" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true" disabled="true">
+                            <input type="text" class="search-bar align-middle" placeholder="搜尋" aria-hidden="true">
+                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#imagemap-modal" aria-hidden="true" disabled="true">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -69,7 +69,7 @@
                     <form>
                         <!-- app -->
                         <div class="form-group">
-                            <label class="col-form-label">App:</label>
+                            <label class="col-form-label"><strong>機器人:</strong></label>
                             <div class="select-container">
                                 <select class="form-control" id="app-select"></select>
                             </div>
@@ -80,68 +80,71 @@
                             <input class="form-control mb-2" type="text" id="title">
                         </div>
                         <!-- 圖片種類 -->
-                        <div class="row col-sm-12">
-                            <div class="form-group col-sm-3">
+                        <div class="row col-12 px-0 mx-0">
+                            <div class="form-group col-4 pr-4 pl-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-01.png" width="104" height="104">
+                                    <img src="image/type-imagemap-01.png" class="pb-1"/>
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form1">
                                     <strong>圖片種類 1</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-4 px-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-02.png" width="104" height="104">
+                                    <img src="image/type-imagemap-02.png" class="pb-1"/>
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form2">
                                     <strong>圖片種類 2</strong>
                                 </label>
                             </div>                            
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-4 pr-0 pl-4">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-03.png" width="104" height="104">
+                                    <img src="image/type-imagemap-03.png" class="pb-1"/>
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form3">
                                     <strong>圖片種類 3</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                        </div>
+                        <div class="row col-12 px-0 mx-0">
+                            <div class="form-group col-4 pr-4 pl-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-04.png" width="104" height="104">                                    
+                                    <img src="image/type-imagemap-04.png" class="pb-1"/>                                    
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form4">
                                     <strong>圖片種類 4</strong>
                                 </label>
                             </div>
-                        </div>
-                        <div class="row col-sm-12">
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-4 px-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-05.png" width="104" height="104">                                   
+                                    <img src="image/type-imagemap-05.png" class="pb-1"/>                                   
                                     <input type="radio" class="imagemap-form" name="imagemap-form" value="form5">
                                     <strong>圖片種類 5</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-4 pr-0 pl-4">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-06.png" width="104" height="104">                                  
+                                    <img src="image/type-imagemap-06.png" class="pb-1"/>                                  
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form6">
                                     <strong>圖片種類 6</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                        </div>
+                        <div class="row col-12 px-0 mx-0">
+                            <div class="form-group col-4 pr-4 pl-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-07.png" width="104" height="104">
+                                    <img src="image/type-imagemap-07.png" class="pb-1"/>
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form7">
                                     <strong>圖片種類 7</strong>
                                 </label>
                             </div>
-                            <div class="form-group col-sm-3">
+                            <div class="form-group col-4 px-0">
                                 <label class="col-form-label imagemap-form-label">
-                                    <img src="image/type-imagemap-08.png" width="104" height="104">
+                                    <img src="image/type-imagemap-08.png" class="pb-1"/>
                                     <input class="imagemap-form" type="radio" name="imagemap-form" value="form8">
                                     <strong>圖片種類 8</strong>
                                 </label>
                             </div>
+                            <div class="form-group col-4 pr-0 pl-4"></div>
                         </div>
                         <!-- 內容設定 -->
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 pl-0 pb-3">
                             <label class="col-form-label"><strong>內容設定:</strong></label>
                             <label class="col-form-label btn btn-light btn-border">
                                 <strong>上傳圖片</strong>
@@ -209,11 +212,14 @@
         </div>
     </div>
     <% include ../views/partials/require_js.ejs %>
-    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
-    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+    <script>
+        if (575 < $(window).width()) {
+            console.log($(window).width());
+            $('.row.col-12 .form-group.col-4:nth-child(1)').removeClass('pr-4').addClass('pr-2');
+            $('.row.col-12 .form-group.col-4:nth-child(3)').removeClass('pl-4').addClass('pl-2');
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="https://mermaidjs.github.io/scripts/mermaid.min.js"></script>
     <script src="js/imagemap.js"></script>
 </body>
 </html>
