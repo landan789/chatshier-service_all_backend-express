@@ -160,3 +160,15 @@ tr:nth-child(even) {
     width: 30%;
     display: inline;
 }
+.template-upload-desc {
+    position: absolute;
+    top: 75%;
+    left: 18%;
+    color: #5b5b5b;
+    text-shadow: .02rem .02rem #8e8e8e;
+}
+@media (max-width: 575px) {
+    .template-upload-desc {
+        left: 20%;
+    }
+}
