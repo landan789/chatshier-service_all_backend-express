@@ -389,11 +389,15 @@ function init(server) {
         });
 
         // 訊息已讀
-        socket.on(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, (data) => {
+        socket.on(SOCKET_EVENTS.READ_CHATROOM_MESSAGES, (data, callback) => {
             let appId = data.appId;
             let chatroomId = data.chatroomId;
             let userId = data.userId;
-            return appsChatroomsMessagersMdl.resetUnReadByPlatformUid(appId, chatroomId, userId);
+            return appsChatroomsMessagersMdl.resetUnReadByPlatformUid(appId, chatroomId, userId).then(() => {
+                ('function' === typeof callback) && callback();
+            }).catch((err) => {
+                ('function' === typeof callback) && callback(err);
+            });
         });
         /* ===聊天室end=== */
     });
