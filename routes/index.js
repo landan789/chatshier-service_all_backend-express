@@ -7,7 +7,7 @@ let reactReadyPaths = [
     '/signin',
     '/signup',
     '/reset-password',
-    '/change-password/*'
+    '/change-password'
 ];
 router.get(reactReadyPaths, function(req, res) {
     res.render('react');
