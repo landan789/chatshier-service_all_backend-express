@@ -66,7 +66,8 @@ module.exports = (function() {
             'text': {type: String, default: ''},
             'time': {type: Date, default: Date.now()},
             'type': {type: String, default: 'text'},
-            'template': {type: Object, default: {}}
+            'template': {type: Object, default: {}},
+            'imagemap': {type: Object, default: {}}
         }]
     }, { minimize: false });
 
