@@ -133,19 +133,23 @@ module.exports = (function() {
     }, { minimize: false });
 
     const ImagemapsActionsSchema = new mongoose.Schema({
-        // TODO
+        'type': {type: String, default: ''},
+        'linkUri': {type: String, default: ''},
+        'text': {type: String, default: ''},
+        'area': {type: Object, default: {}}
     }, { minimize: false });
 
     const ImagemapsSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
         'updatedTime': {type: Date, default: Date.now()},
-        'type': {type: String, default: ''},
+        'type': {type: String, default: 'imagemap'},
         'baseUri': {type: String, default: ''},
         'altText': {type: String, default: ''},
         'form': {type: String, default: ''},
+        'title': {type: String, default: ''},
         'baseSize': {type: Object, default: {}},
-        'areas': [RichmenusAreasSchema]
+        'actions': [ImagemapsActionsSchema]
     }, { minimize: false });
 
     const FieldsSchema = new mongoose.Schema({
@@ -194,6 +198,7 @@ module.exports = (function() {
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],
+        'imagemaps': [ImagemapsSchema],
         'webhook_id': {type: String, default: ''}
     });
 

@@ -250,7 +250,9 @@
     }
 
     function cleanmodal() {
-        $('#insert-btn').removeAttr('disabled').removeClass('d-none').siblings('#update-btn').removeClass('d-none');
+        imageFile = '';
+        $('#insert-btn').removeAttr('disabled').removeClass('d-none');
+        $('#update-btn').removeAttr('disabled').removeClass('d-none');
         $('.form-group.col-sm-12').addClass('d-none');
         $('.chsr-form > div').removeClass('d-none');
         $modal.find('input[type = text]').val('');
@@ -301,7 +303,8 @@
         }).then(() => {
             loadImagemaps(appId, userId);
         }).catch(() => {
-            $('#insert-btn').removeAttr('disalbed');
+            $('#imagemap-modal').modal('hide');
+            return $.notify('新增失敗', { type: 'danger' });
         });
     }
 
@@ -367,6 +370,9 @@
                     return $.notify('修改成功', { type: 'success' });
                 }).then(() => {
                     loadImagemaps(appId, userId);
+                }).catch(() => {
+                    $('#imagemap-modal').modal('hide');
+                    return $.notify('修改失敗', { type: 'danger' });
                 });
             }
 
@@ -378,6 +384,9 @@
                 return $.notify('修改成功', { type: 'success' });
             }).then(() => {
                 loadImagemaps(appId, userId);
+            }).catch(() => {
+                $('#imagemap-modal').modal('hide');
+                return $.notify('修改失敗', { type: 'danger' });
             });
         });
 

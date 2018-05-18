@@ -170,7 +170,7 @@ module.exports = (function() {
             }).then((appsImagemaps) => {
                 ('function' === typeof callback) && callback(appsImagemaps);
                 return appsImagemaps;
-            }).catch(() => {
+            }).catch((ERR) => {
                 ('function' === typeof callback) && callback(null);
                 return null;
             });
