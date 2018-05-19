@@ -52,6 +52,7 @@
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
         $('#modal-save').removeAttr('disabled');
+        $('#modal-update-save').removeAttr('disabled');
     });
 
     $modal.on('show.bs.modal', function() {
@@ -487,6 +488,7 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             loadRichmenus(appId, userId);
+            imageFile = '';
             return $.notify('新增成功', { type: 'success' });
         });
     }
@@ -508,7 +510,7 @@
             return $.notify('成功啟用', { type: 'success' });
         }).catch(() => {
             $.notify('失敗', { type: 'danger' });
-            $(this).removeAttr('disabled');
+            $(this).removeAttr('disabled').text('未啟用');
         });
     }
 
@@ -603,6 +605,8 @@
                 size: size,
                 areas: areas
             };
+            console.log(imageFile);
+            debugger;
 
             if (!imageFile) {
                 return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
@@ -617,7 +621,7 @@
             }
 
             return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putRichmenu.src = resJson.data;
+                putRichmenu.src = resJson.data.url;
                 return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
             }).then((resJson) => {
                 let appsRichmenu = resJson.data;
@@ -626,6 +630,9 @@
                 $('#richmenu-modal').modal('hide');
                 loadRichmenus(appId, userId);
                 return $.notify('修改成功', { type: 'success' });
+            }).catch(() => {
+                $('#richmenu-modal').modal('hide');
+                return $.notify('修改失敗', { type: 'danger' });
             });
         });
 

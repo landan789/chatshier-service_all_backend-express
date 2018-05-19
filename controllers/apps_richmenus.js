@@ -92,7 +92,7 @@ module.exports = (function() {
 
         postOne(req, res, next) {
             let appId = '';
-
+            let appsRichmenus;
             let postRichmenu = {
                 size: req.body.size || '',
                 name: req.body.name || '',
@@ -107,22 +107,21 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds[0];
                 return appsRichmenusMdl.insert(appId, postRichmenu);
-            }).then((appsRichmenus) => {
+            }).then((_appsRichmenus) => {
+                appsRichmenus = _appsRichmenus;
                 if (!appsRichmenus) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
                 }
-                return appsRichmenus;
-            }).then((appsRichmenus) => {
+                return Promise.resolve();
+            }).then(() => {
                 let richmenu = appsRichmenus[appId].richmenus;
                 let richmenuId = Object.keys(richmenu)[0] || '';
                 let src = richmenu[richmenuId].src;
                 let fileName = src.split('/').pop();
                 let fromPath = `/temp/${fileName}`;
                 let toPath = `/apps/${appId}/richmenus/${richmenuId}/src/${fileName}`;
-                return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
-                    return appsRichmenus;
-                });
-            }).then((appsRichmenus) => {
+                return storageHlp.filesMoveV2(fromPath, toPath);
+            }).then(() => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
