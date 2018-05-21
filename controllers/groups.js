@@ -80,28 +80,24 @@ module.exports = (function() {
             };
 
             return Promise.resolve().then(() => {
-                return new Promise((resolve, reject) => {
-                    if (!userId) {
-                        return reject(API_ERROR.USERID_WAS_EMPTY);
-                    } else if (!postGroup.name) {
-                        return reject(API_ERROR.NAME_WAS_EMPTY);
-                    };
+                if (!userId) {
+                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                } else if (!postGroup.name) {
+                    return Promise.reject(API_ERROR.NAME_WAS_EMPTY);
+                }
 
-                    usersMdl.find(userId, null, (users) => {
-                        if (!users) {
-                            return reject(API_ERROR.USER_FAILED_TO_FIND);
-                        }
-                        resolve(users[userId]);
-                    });
+                return usersMdl.find(userId).then((users) => {
+                    if (!users) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+                    return users[userId];
                 });
             }).then((user) => {
-                return new Promise((resolve, reject) => {
-                    groupsMdl.insert(userId, postGroup, (groups) => {
-                        if (!groups) {
-                            return reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
-                        }
-                        resolve(groups);
-                    });
+                return groupsMdl.insert(userId, postGroup).then((groups) => {
+                    if (!groups) {
+                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                    }
+                    return groups;
                 }).then((groups) => {
                     // group 成功新增之後，將 user 的 group_ids 更新
                     let groupId = Object.keys(groups).shift() || '';
@@ -109,12 +105,14 @@ module.exports = (function() {
                         return groups;
                     }
 
-                    let group = groups[groupId];
-                    user.group_ids = user.group_ids || [];
-                    user.group_ids.push(groupId);
+                    let _user = {
+                        group_ids: user.group_ids || []
+                    };
+                    _user.group_ids.push(groupId);
 
-                    return usersMdl.update(userId, user).then(() => {
+                    return usersMdl.update(userId, _user).then(() => {
                         // 群組新增處理完畢後，自動新增一個內部聊天室的 App
+                        let group = groups[groupId];
                         let postApp = {
                             name: 'Chatshier - ' + group.name,
                             type: 'CHATSHIER',
