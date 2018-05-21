@@ -139,11 +139,15 @@ module.exports = (function() {
                     text: message.text || '',
                     time: Date.now() + i,
                     type: message.type,
-                    src: message.src || ''
+                    src: message.src || message.baseUri || ''
                 };
 
                 if (message.template) {
                     _message.template = message.template;
+                }
+
+                if (message.baseUri) {
+                    _message.imagemap = message;
                 }
 
                 let query = {

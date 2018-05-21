@@ -53,6 +53,7 @@
         $appSelector.parent().parent().removeClass('d-none');
         $('#modal-save').removeAttr('disabled');
         $('#modal-update-save').removeAttr('disabled');
+        imageFile = '';
     });
 
     $modal.on('show.bs.modal', function() {
@@ -488,7 +489,6 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             loadRichmenus(appId, userId);
-            imageFile = '';
             return $.notify('新增成功', { type: 'success' });
         });
     }
@@ -605,8 +605,6 @@
                 size: size,
                 areas: areas
             };
-            console.log(imageFile);
-            debugger;
 
             if (!imageFile) {
                 return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {

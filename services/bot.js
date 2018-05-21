@@ -637,6 +637,13 @@ module.exports = (function() {
                         _message.type = 'text';
                         _message.text = message.text + message.src;
                     }
+                    if ('imagemap' === message.type) {
+                        _message.type = message.type;
+                        _message.baseUrl = message.baseUri;
+                        _message.altText = message.altText;
+                        _message.baseSize = message.baseSize;
+                        _message.actions = message.actions;
+                    }
 
                     return bot.pushMessage(recipientUid, _message);
                 case FACEBOOK:

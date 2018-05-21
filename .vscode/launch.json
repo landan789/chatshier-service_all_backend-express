@@ -7,7 +7,7 @@
         "address": "127.0.0.1",
         "port": 9229,
         "localRoot": "${workspaceFolder}",
-        "remoteRoot": "/home/vagrant/www/service.chatshier/"
-        //"remoteRoot": "E://service.chatshier/"
+        "remoteRoot": "/home/vagrant/www/api-chatshier/"
+        //"remoteRoot": "E://api-chatshier/"
     }]
 }
