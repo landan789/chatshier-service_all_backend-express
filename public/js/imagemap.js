@@ -340,7 +340,7 @@
         $('#insert-btn').addClass('d-none');
         $('#update-btn').removeClass('d-none');
 
-        $('#update-btn').on('click', () => {
+        $('#update-btn').off('click').on('click', () => {
             $('#update-btn').attr('disabled', 'disabled');
             let title = $('#title').val();
             let form = $('input[name = imagemap-form]:checked').val();
@@ -365,11 +365,10 @@
             };
 
             if (!imageFile) {
-                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then((resJson) => {
+                return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap).then(() => {
                     $('#imagemap-modal').modal('hide');
-                    return $.notify('修改成功', { type: 'success' });
-                }).then(() => {
                     loadImagemaps(appId, userId);
+                    return $.notify('修改成功', { type: 'success' });
                 }).catch(() => {
                     $('#imagemap-modal').modal('hide');
                     return $.notify('修改失敗', { type: 'danger' });
@@ -381,9 +380,8 @@
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
             }).then((resJson) => {
                 $('#imagemap-modal').modal('hide');
-                return $.notify('修改成功', { type: 'success' });
-            }).then(() => {
                 loadImagemaps(appId, userId);
+                return $.notify('修改成功', { type: 'success' });
             }).catch(() => {
                 $('#imagemap-modal').modal('hide');
                 return $.notify('修改失敗', { type: 'danger' });
@@ -481,15 +479,18 @@
     }
 
     function loadImagemaps(appId, userId) {
-        $('table #imagemap-list').empty();
-        return api.appsImagemaps.findAll(appId, userId).then(function(resJson) {
+        return Promise.resolve().then(() => {
+            return $('#imagemap-list').empty();
+        }).then(() => {
+            return api.appsImagemaps.findAll(appId, userId);
+        }).then(function(resJson) {
             let appsImagemaps = resJson.data;
             let imagemaps = appsImagemaps[appId] ? appsImagemaps[appId].imagemaps : {};
-            for (let imagemapId in imagemaps) {
-                if (!imagemaps[imagemapId].isDeleted) {
-                    groupType(imagemapId, imagemaps[imagemapId], appId);
-                }
-            }
+            let imagemapIds = Object.keys(imagemaps);
+            let activeImagemaps = imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+            activeImagemaps.map((imagemapId) => {
+                groupType(imagemapId, imagemaps[imagemapId], appId);
+            });
         });
     }
 
@@ -512,7 +513,7 @@
                     '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
                 '</td>' +
             '</tr>';
-        $('table #imagemap-list').append(trGrop);
+        $('#imagemap-list').append(trGrop);
     }
 
     function actionType(action) {

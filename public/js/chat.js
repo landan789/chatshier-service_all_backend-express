@@ -1261,7 +1261,7 @@
                 return (
                     '<div class="imagemap-message-container">' +
                         `<img class="imagemap-image" src="${message.src || ''}" />` +
-                        `<div class="imagemap-message-content">${'輸出文字：' + (message.imagemap ? photoFormShow(message) : 'Hello')}</div>` +
+                        `<div class="imagemap-message-content">${'輸出內容：' + (message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
                 );
             default:
