@@ -488,7 +488,7 @@
             let imagemaps = appsImagemaps[appId] ? appsImagemaps[appId].imagemaps : {};
             let imagemapIds = Object.keys(imagemaps);
             let activeImagemaps = imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
-            activeImagemaps.map((imagemapId) => {
+            activeImagemaps.forEach((imagemapId) => {
                 groupType(imagemapId, imagemaps[imagemapId], appId);
             });
         });

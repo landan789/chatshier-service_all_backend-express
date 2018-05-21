@@ -105,13 +105,13 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 return appsImagemapsMdl.insert(appId, postImagemap);
-            }).then((appsImagemaps_) => {
-                if (!appsImagemaps_) {
+            }).then((_appsImagemaps) => {
+                if (!_appsImagemaps) {
                     return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
                 }
-                return appsImagemaps_;
-            }).then((appsImagemaps_) => {
-                appsImagemaps = appsImagemaps_;
+                return _appsImagemaps;
+            }).then((_appsImagemaps) => {
+                appsImagemaps = _appsImagemaps;
                 let imagemaps = appsImagemaps[appId].imagemaps;
                 let imagemapId = Object.keys(imagemaps)[0] || '';
                 let baseUri = imagemaps[imagemapId].baseUri;
