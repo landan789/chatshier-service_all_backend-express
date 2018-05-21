@@ -8,6 +8,6 @@
         "port": 9229,
         "localRoot": "${workspaceFolder}",
         "remoteRoot": "/home/vagrant/www/api-chatshier/"
-        //"remoteRoot": "E://service.chatshier/"
+        //"remoteRoot": "E://api-chatshier/"
     }]
 }
