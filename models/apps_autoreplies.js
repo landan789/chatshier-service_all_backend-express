@@ -199,12 +199,12 @@ module.exports = (function() {
                 'autoreplies._id': autoreplyId
             };
 
-            let operate = {
-                $set: {
-                    'autoreplies.$': putAutoreply
-                }
-            };
-            return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
+            let updateOper = { $set: {} };
+            for (let prop in putAutoreply) {
+                updateOper.$set['autoreplies.$.' + prop] = putAutoreply[prop];
+            }
+
+            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);

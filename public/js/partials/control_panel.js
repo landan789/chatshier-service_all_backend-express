@@ -167,6 +167,11 @@
     }
 
     function onScrollCtrlPanel(ev) {
+        if (!(ev && ev.target)) {
+            $scrollBottom.addClass('d-none');
+            return;
+        }
+
         var maxScrollHeight = ev.target.scrollHeight - ev.target.clientHeight;
         if (ev.target.scrollTop >= maxScrollHeight * 0.75) {
             $scrollBottom.addClass('d-none');

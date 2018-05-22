@@ -80,24 +80,21 @@ module.exports = (function() {
         }
 
         postOne(req, res, next) {
+            let appId = req.params.appid;
             let autoreply = {
-                title: undefined === req.body.title ? '' : req.body.title,
-                startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
-                endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-                text: undefined === req.body.text ? '' : req.body.text
+                title: req.body.title || '',
+                startedTime: undefined !== req.body.startedTime ? req.body.startedTime : 0,
+                endedTime: undefined !== req.body.endedTime ? req.body.endedTime : 0,
+                text: req.body.text || '',
+                schedule: req.body.schedule || []
             };
-            let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsAutorepliesMdl.insert(appId, autoreply, (appsAutoreplies) => {
-                        if (null === appsAutoreplies || undefined === appsAutoreplies || '' === appsAutoreplies) {
-                            reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(appsAutoreplies);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsAutorepliesMdl.insert(appId, autoreply).then((appsAutoreplies) => {
+                    if (!appsAutoreplies) {
+                        return Promise.reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_INSERT);
+                    }
+                    return appsAutoreplies;
                 });
             }).then((appsAutoreplies) => {
                 let json = {
@@ -119,27 +116,19 @@ module.exports = (function() {
         putOne(req, res, next) {
             let appId = req.params.appid;
             let autoreplyId = req.params.autoreplyid;
-            let autoreply = {
-                title: undefined === req.body.title ? null : req.body.title,
-                startedTime: undefined === req.body.startedTime ? 0 : req.body.startedTime,
-                endedTime: undefined === req.body.endedTime ? 0 : req.body.endedTime,
-                text: undefined === req.body.text ? null : req.body.text
-            };
+            let autoreply = {};
+            ('string' === typeof req.body.title) && (autoreply.title = req.body.title);
+            ('number' === typeof req.body.startedTime) && (autoreply.startedTime = req.body.startedTime);
+            ('number' === typeof req.body.endedTime) && (autoreply.endedTime = req.body.endedTime);
+            ('string' === typeof req.body.text) && (autoreply.text = req.body.text);
+            (req.body.schedule instanceof Array) && (autoreply.schedule = req.body.schedule);
 
-            // 前端未填入的訊息，不覆蓋
-            for (let key in autoreply) {
-                if (null === autoreply[key]) {
-                    delete autoreply[key];
-                }
-            }
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-
+            return this.appsRequestVerify(req).then(() => {
                 if (!autoreplyId) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_AUTOREPLYID_WAS_EMPTY);
                 };
 
-                if ('' === autoreply.tittle) {
+                if ('' === autoreply.title) {
                     return Promise.reject(API_ERROR.APP_AUTOREPLY_TITLE_WAS_EMPTY);
                 };
 
@@ -148,12 +137,12 @@ module.exports = (function() {
                 };
 
                 return new Promise((resolve, reject) => { // 取得目前appId下所有autoreplies
-                    appsAutorepliesMdl.findAutoreplies(appId, (data) => {
-                        if (null === data || '' === data || undefined === data) {
+                    appsAutorepliesMdl.findAutoreplies(appId, (appsAutoreplies) => {
+                        if (!appsAutoreplies) {
                             reject(API_ERROR.APP_AUTOREPLY_FAILED_TO_FIND);
                             return;
                         }
-                        let autoreplyIds = Object.keys(data);
+                        let autoreplyIds = Object.keys(appsAutoreplies);
                         resolve(autoreplyIds);
                     });
                 });

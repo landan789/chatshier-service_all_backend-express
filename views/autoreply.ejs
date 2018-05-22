@@ -89,27 +89,76 @@
                                 <input class="form-control" type="text" id="modal-task-name" placeholder="請輸入標題" />
                             </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="startDatetime" class="col-form-label font-weight-bold">開始時間:</label>
+                            <div class="form-check form-check-inline">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="dateType" value="RANGE_DATE" checked />
+                                    <span>日期範圍</span>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="dateType" value="RANGE_SCHEDULE" />
+                                    <span>時程</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group animated fadeIn" id="dateSelectGroup">
+                            <label class="col-form-label font-weight-bold">開始日期:</label>
                             <div class="my-2 input-group date" id="startDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
-                                <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始時間" />
+                                <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始日期" />
                             </div>
 
-                            <label for="endDatetime" class="col-form-label font-weight-bold">結束時間:</label>
+                            <label class="col-form-label font-weight-bold">結束日期:</label>
                             <div class="my-2 input-group date" id="endDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
                                     <span class="input-group-text">
                                         <i class="far fa-calendar-alt"></i>
                                     </span>
                                 </span>
-                                <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束時間" />
+                                <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束日期" />
                             </div>
                         </div>
+
+                        <div class="form-group animated fadeIn d-none" id="timeSelectGroup">
+                            <label class="col-form-label font-weight-bold">時間設定:</label>
+                            <div class="my-2 input-group date" id="startTimePicker">
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" id="startTime" name="startTime" placeholder="請選擇開始時間" />
+                            </div>
+
+                            <div class="my-2 input-group date" id="endTimePicker">
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" id="endTime" name="endTime" placeholder="請選擇結束時間" />
+                            </div>
+
+                            <label class="col-form-label font-weight-bold">重複:<span class="px-1" id="repeatText"></span></label>
+                            <div class="w-100 btn-group schedule-days" role="group" >
+                                <button type="button" class="btn btn-light schedule-day" day="0">日</button>
+                                <button type="button" class="btn btn-light schedule-day" day="1">一</button>
+                                <button type="button" class="btn btn-light schedule-day" day="2">二</button>
+                                <button type="button" class="btn btn-light schedule-day" day="3">三</button>
+                                <button type="button" class="btn btn-light schedule-day" day="4">四</button>
+                                <button type="button" class="btn btn-light schedule-day" day="5">五</button>
+                                <button type="button" class="btn btn-light schedule-day" day="6">六</button>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label for="enter-text" class="col-form-label font-weight-bold">內容:</label>
                             <div id="text" class="textarea-container">
@@ -146,7 +195,23 @@
                                 <input class="form-control" type="text" id="edit-taskTitle">
                             </div>
                         </div>
+
                         <div class="form-group">
+                            <div class="form-check form-check-inline">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="dateType" value="RANGE_DATE" checked />
+                                    <span>日期範圍</span>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="radio" name="dateType" value="RANGE_SCHEDULE" />
+                                    <span>時程</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group animated fadeIn" id="dateSelectGroup">
                             <label for="edit-taskStart" class="col-form-label font-weight-bold">開始時間:</label>
                             <div class="my-2 input-group date" id="startDatetimePicker">
                                 <span class="input-group-addon input-group-prepend">
@@ -167,10 +232,43 @@
                                 <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="請選擇結束時間" />
                             </div>
                         </div>
+                        
+                        <div class="form-group animated fadeIn d-none" id="timeSelectGroup">
+                            <label class="col-form-label font-weight-bold">時間設定:</label>
+                            <div class="my-2 input-group date" id="startTimePicker">
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" id="startTime" name="startTime" placeholder="請選擇開始時間" />
+                            </div>
+
+                            <div class="my-2 input-group date" id="endTimePicker">
+                                <span class="input-group-addon input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" id="endTime" name="endTime" placeholder="請選擇結束時間" />
+                            </div>
+
+                            <label class="col-form-label font-weight-bold">重複:<span class="px-1" id="repeatText"></span></label>
+                            <div class="w-100 btn-group schedule-days" role="group" >
+                                <button type="button" class="btn btn-light schedule-day" day="0">日</button>
+                                <button type="button" class="btn btn-light schedule-day" day="1">一</button>
+                                <button type="button" class="btn btn-light schedule-day" day="2">二</button>
+                                <button type="button" class="btn btn-light schedule-day" day="3">三</button>
+                                <button type="button" class="btn btn-light schedule-day" day="4">四</button>
+                                <button type="button" class="btn btn-light schedule-day" day="5">五</button>
+                                <button type="button" class="btn btn-light schedule-day" day="6">六</button>
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label for="edit-taskContent" class="col-form-label font-weight-bold">內容:</label>
+                            <label for="editTaskContent" class="col-form-label font-weight-bold">內容:</label>
                             <div class="textarea-container">
-                                <textarea class="form-control" id="edit-taskContent" placeholder="請輸入內容"></textarea>
+                                <textarea class="form-control" id="editTaskContent" placeholder="請輸入內容"></textarea>
                             </div>
                         </div>
                     </form>

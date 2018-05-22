@@ -31,8 +31,8 @@ button:focus {
     font-size: 1.5em;
 }
 
-.root .animated {
-    animation-duration: 300ms;
+.animated {
+    animation-duration: 300ms !important;
 }
 
 .page-wrapper {
