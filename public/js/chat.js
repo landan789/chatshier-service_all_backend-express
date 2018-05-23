@@ -1565,11 +1565,24 @@
                     // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
                     var fields = appsFields[appId].fields;
                     var fieldIds = Object.keys(fields);
+
+                    var SETS_TYPES = api.appsFields.enums.setsType;
+                    var FIELD_TYPES = api.appsFields.enums.type;
                     fieldIds.sort(function(a, b) {
-                        return appsFields[appId].fields[a].order - appsFields[appId].fields[b].order;
+                        let fieldsA = appsFields[appId].fields[a];
+                        let fieldsB = appsFields[appId].fields[b];
+
+                        // DEFAULT, SYSTEM 在前 CUSTOM 在後
+                        if (FIELD_TYPES.CUSTOM !== fieldsA.type &&
+                            FIELD_TYPES.CUSTOM === fieldsB.type) {
+                            return false;
+                        } else if (FIELD_TYPES.CUSTOM === fieldsA.type &&
+                            FIELD_TYPES.CUSTOM !== fieldsB.type) {
+                            return true;
+                        }
+                        return fieldsA.order - fieldsB.order;
                     });
 
-                    var setsTypeEnums = api.appsFields.enums.setsType;
                     var customFields = messager.custom_fields || {};
 
                     return fieldIds.map(function(fieldId) {
@@ -1586,7 +1599,7 @@
                         }
 
                         switch (field.setsType) {
-                            case setsTypeEnums.SELECT:
+                            case SETS_TYPES.SELECT:
                                 return (
                                     '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
                                         '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
@@ -1604,7 +1617,7 @@
                                         '</div>' +
                                     '</div>'
                                 );
-                            case setsTypeEnums.MULTI_SELECT:
+                            case SETS_TYPES.MULTI_SELECT:
                                 var selectValues = fieldValue instanceof Array ? fieldValue : [];
                                 var multiSelectTextArr = selectValues.reduce(function(output, value, i) {
                                     if (!value) {
@@ -1640,7 +1653,7 @@
                                         '</div>' +
                                     '</div>'
                                 );
-                            case setsTypeEnums.CHECKBOX:
+                            case SETS_TYPES.CHECKBOX:
                                 return (
                                     '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
                                         '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
@@ -1649,7 +1662,7 @@
                                         '</div>' +
                                     '</div>'
                                 );
-                            case setsTypeEnums.DATE:
+                            case SETS_TYPES.DATE:
                                 fieldValue = fieldValue || 0;
                                 var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
                                 return (
@@ -1660,10 +1673,10 @@
                                         '</div>' +
                                     '</div>'
                                 );
-                            case setsTypeEnums.TEXT:
-                            case setsTypeEnums.NUMBER:
+                            case SETS_TYPES.TEXT:
+                            case SETS_TYPES.NUMBER:
                             default:
-                                var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
+                                var inputType = SETS_TYPES.NUMBER === field.setsType ? 'tel' : 'text';
                                 inputType = 'email' === field.alias ? 'email' : inputType;
                                 return (
                                     '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +

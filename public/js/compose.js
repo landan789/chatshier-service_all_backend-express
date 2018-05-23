@@ -929,7 +929,6 @@
                 }
 
                 $.notify('失敗', { type: 'danger' });
-                return;
             });
         });
     }
