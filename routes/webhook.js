@@ -134,6 +134,7 @@ router.post('/:webhookid', (req, res, next) => {
                     if (!(platformInfo && !platformInfo.isEcho)) {
                         return;
                     }
+                    // TODO, the user who unfollows this Line@ bot can not be gotten profile via botSvc.getProfile(platformInfo, appId, app)
                     return botSvc.getProfile(platformInfo, appId, app);
                 }).then((profile) => {
                     let platformUid = platformInfo.platformUid;
