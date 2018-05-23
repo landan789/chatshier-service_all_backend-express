@@ -393,11 +393,7 @@
                             groups[groupId].app_ids.push(appId);
                             generateAppItem(appId, apps[appId]);
                         }
-                        return fbHlp.setFanPageSubscribeApp(app.id1, app.token2);
-                    }).then(function() {
-                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
-                    }).then(function(res) {
-                        responses.push(res);
+                        responses.push(resJson);
                         return nextRequest(i + 1);
                     });
                 }
@@ -670,9 +666,7 @@
                         break;
                 }
 
-                return FACEBOOK === app.type && fbHlp.setFanPageUnsubscribeApp(app.id1, app.token2);
-            }).then(() => {
-                $.notify('成功刪除!', { type: 'success' });
+                $.notify('刪除成功!', { type: 'success' });
             }).catch((resJson) => {
                 if (!resJson.status) {
                     $.notify('刪除失敗', { type: 'danger' });
