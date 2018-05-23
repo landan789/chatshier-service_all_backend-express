@@ -90,6 +90,10 @@ window.facebookHelper = (function() {
             var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
             return sendAPI(apiPath, 'POST');
         },
+        setFanPageUnsubscribeApp: function(pageId, pageToken) {
+            var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
+            return sendAPI(apiPath, 'DELETE');
+        },
         /**
          * @returns {Promise<fb.AuthResponse>}
          */

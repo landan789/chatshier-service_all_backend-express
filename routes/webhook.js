@@ -252,12 +252,12 @@ router.post('/:webhookid', (req, res, next) => {
                         !res.headersSent && res.status(200).send('');
                         return;
                     };
+                    let replyToken = receivedMessages[0].replyToken || '';
+                    let platformUid = platformInfo.platformUid;
 
                     // 因各平台處理方式不同
                     // 所以將 http request 做 response 傳入
                     // 待訊息回覆後直接做 http response
-                    let replyToken = receivedMessages[0].replyToken || '';
-                    let platformUid = platformInfo.platformUid;
                     return botSvc.replyMessage(res, platformUid, replyToken, repliedMessages, appId, app);
                 }).then(() => {
                     return chatshierHlp.getKeywordreplies(receivedMessages, appId, app);
