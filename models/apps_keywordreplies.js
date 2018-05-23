@@ -17,75 +17,43 @@ module.exports = (function() {
                 appIds = [appIds];
             }
 
-            return Promise.resolve().then(() => {
-                if (!keywordreplyIds) {
-                    let query = {
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'keywordreplies.isDeleted': false
-                    };
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'keywordreplies.isDeleted': false
+            };
 
-                    let aggregations = [
-                        {
-                            $unwind: '$keywordreplies' // 只針對 document 處理
-                        }, {
-                            $match: query
-                        }, {
-                            $project: {
-                                // 篩選項目
-                                keywordreplies: true
-                            }
-                        }
-                    ];
+            if (keywordreplyIds) {
+                query['keywordreplies._id'] = {
+                    $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
+                };
+            }
 
-                    return this.AppsModel.aggregate(aggregations).then((results) => {
-                        let appsKeywordreplies = {};
-                        if (0 === results.length) {
-                            return appsKeywordreplies;
-                        }
-                        appsKeywordreplies = results.reduce((output, app) => {
-                            output[app._id] = output[app._id] || { keywordreplies: {} };
-                            Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
-                            return output;
-                        }, {});
-                        return appsKeywordreplies;
-                    });
+            let aggregations = [
+                {
+                    $unwind: '$keywordreplies' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        keywordreplies: true
+                    }
                 }
-                let aggregations = [
-                    {
-                        $unwind: '$keywordreplies' // 只針對 keywordreplies document 處理
-                    }, {
-                        $match: {
-                            // 尋找符合 appId 及 autoreplyIds 的欄位
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'keywordreplies._id': {
-                                $in: keywordreplyIds.map((keywordreplyId) => this.Types.ObjectId(keywordreplyId))
-                            },
-                            'keywordreplies.isDeleted': false
-                        }
-                    }, {
-                        $project: {
-                            // 篩選項目
-                            keywordreplies: true
-                        }
-                    }
-                ];
-                return this.AppsModel.aggregate(aggregations).then((results) => {
-                    let appsKeywordreplies = {};
-                    if (0 === results.length) {
-                        return appsKeywordreplies;
-                    }
+            ];
 
-                    appsKeywordreplies = results.reduce((output, app) => {
-                        output[app._id] = output[app._id] || { keywordreplies: {} };
-                        Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
-                        return output;
-                    }, {});
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsKeywordreplies = {};
+                if (0 === results.length) {
                     return appsKeywordreplies;
-                });
+                }
+                appsKeywordreplies = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { keywordreplies: {} };
+                    Object.assign(output[app._id].keywordreplies, this.toObject(app.keywordreplies));
+                    return output;
+                }, {});
+                return appsKeywordreplies;
             }).then((appsKeywordreplies) => {
                 ('function' === typeof callback) && callback(appsKeywordreplies);
                 return appsKeywordreplies;

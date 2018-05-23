@@ -154,6 +154,7 @@ module.exports = (function() {
                 type: 'string' === typeof req.body.type ? req.body.type : '',
                 group_id: 'string' === typeof req.body.group_id ? req.body.group_id : ''
             };
+            let isNew = true;
 
             // 如果新增的 Facebook 類型的機器人沒有帶有 fb app 的資料
             // 則帶入 Chatshier 自己的 fb app
@@ -255,13 +256,21 @@ module.exports = (function() {
                             id1: postApp.id1,
                             group_id: postApp.group_id
                         };
+
                         return appsMdl.find(null, null, query).then((apps) => {
                             if (!apps || (apps && 0 === Object.keys(apps).length)) {
                                 return appsMdl.insert(req.params.userid, postApp);
                             }
-                            postApp.isDeleted = false;
+
+                            postApp.isDeleted = isNew = false;
                             let appId = Object.keys(apps).shift() || '';
                             return appsMdl.update(appId, postApp);
+                        }).then((apps) => {
+                            return fbSvc.setFanPageSubscribeApp(postApp.id1, postApp.token2).then(() => {
+                                return apps;
+                            });
+                        }).catch(() => {
+                            return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP);
                         });
                     }
                     return appsMdl.insert(req.params.userid, postApp);
@@ -273,12 +282,16 @@ module.exports = (function() {
                     return apps;
                 });
             }).then((apps) => {
+                if (!isNew) {
+                    return apps;
+                }
+
                 let appId = Object.keys(apps).shift() || '';
                 return appsFieldsMdl.insertDefaultFields(appId).then((appsFields) => {
                     if (!appsFields) {
-                        return Promise.reject(API_ERROR.APP_FAILED_TO_INSERT);
+                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
                     }
-                    return appsFields;
+                    return Promise.resolve();
                 });
             }).then(() => {
                 let json = {
@@ -420,28 +433,19 @@ module.exports = (function() {
             let appId = req.params.appid;
 
             Promise.resolve().then(() => {
-                return new Promise((resolve, reject) => {
-                    if ('' === userId || null === userId || undefined === userId) {
-                        reject(API_ERROR.USERID_WAS_EMPTY);
-                        return;
-                    }
+                if (!userId) {
+                    return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
+                }
 
-                    if ('' === appId || null === appId || undefined === appId) {
-                        reject(API_ERROR.APPID_WAS_EMPTY);
-                        return;
-                    };
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    let userId = req.params.userid;
-                    usersMdl.find(userId, null, (users) => {
-                        if (!users) {
-                            reject(API_ERROR.USER_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(users[userId]);
-                    });
+                if (!appId) {
+                    return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                }
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!users) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+                    return users[userId];
                 });
             }).then((user) => {
                 return appsMdl.find(appId).then((apps) => {
@@ -451,16 +455,13 @@ module.exports = (function() {
                     return apps;
                 });
             }).then((apps) => {
-                let app = Object.values(apps)[0];
+                let app = apps[appId];
                 let groupId = app.group_id;
-                return new Promise((resolve, reject) => {
-                    groupsMdl.find(groupId, req.params.userid, (groups) => {
-                        if (null === groups || undefined === groups || '' === groups) {
-                            reject(API_ERROR.GROUP_FAILED_TO_FIND);
-                            return;
-                        };
-                        resolve(groups);
-                    });
+                return groupsMdl.find(groupId, userId).then((groups) => {
+                    if (!groups) {
+                        return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                    }
+                    return groups;
                 });
             }).then((groups) => {
                 let group = Object.values(groups)[0];
@@ -469,41 +470,45 @@ module.exports = (function() {
                 let userIds = Object.values(members).map((member) => {
                     if (!member.isDeleted) {
                         return member.user_id;
-                    };
+                    }
                 });
 
                 let index = userIds.indexOf(req.params.userid);
-
                 if (0 > index) {
                     return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
-                };
+                }
 
                 let member = Object.values(members)[index];
-
                 if (0 === member.status) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_WAS_NOT_ACTIVE_IN_THIS_GROUP);
-                };
+                }
 
                 if (READ === member.type) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
-                };
+                }
 
-                return Promise.resolve();
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsMdl.remove(req.params.appid, (apps) => {
-                        if (!apps) {
-                            reject(API_ERROR.APP_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(apps);
-                    });
+                return appsMdl.remove(appId).then((apps) => {
+                    if (!apps) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_REMOVE);
+                    }
+                    return apps;
                 });
-            }).then((data) => {
+            }).then((apps) => {
+                let app = apps[appId];
+                if (FACEBOOK !== app.type) {
+                    return apps;
+                }
+
+                return fbSvc.setFanPageUnsubscribeApp(app.id1, app.token2).then(() => {
+                    return apps;
+                }).catch(() => {
+                    return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
+                });
+            }).then((apps) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: data
+                    data: apps
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {

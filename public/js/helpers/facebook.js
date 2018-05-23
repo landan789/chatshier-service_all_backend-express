@@ -82,14 +82,6 @@ window.facebookHelper = (function() {
             var apiPath = '/' + pageId;
             return sendAPI(apiPath);
         },
-        getFanPageSubscribeApp: function(pageId, pageToken) {
-            var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
-            return sendAPI(apiPath);
-        },
-        setFanPageSubscribeApp: function(pageId, pageToken) {
-            var apiPath = '/' + pageId + '/subscribed_apps?access_token=' + pageToken;
-            return sendAPI(apiPath, 'POST');
-        },
         /**
          * @returns {Promise<fb.AuthResponse>}
          */
