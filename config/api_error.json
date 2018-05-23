@@ -156,5 +156,8 @@
     "APP_IMAGEMAP_FAILED_TO_FIND": { "MSG": "app imagemap failed to find", "CODE": "20.1" },
     "APP_IMAGEMAP_FAILED_TO_INSERT": { "MSG": "app imagemap failed to insert", "CODE": "20.2" },
     "APP_IMAGEMAP_FAILED_TO_UPDATE": { "MSG": "app imagemap failed to update", "CODE": "20.3" },
-    "APP_IMAGEMAP_FAILED_TO_REMOVE": { "MSG": "app imagemap failed to remove", "CODE": "20.4" }
+    "APP_IMAGEMAP_FAILED_TO_REMOVE": { "MSG": "app imagemap failed to remove", "CODE": "20.4" },
+
+    "FACEBOOK_PAGE_FAILED_TO_SUBSCRIBE_APP": {"MSG": "facebook page failed to subscribe app", "CODE": "21.1"},
+    "FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP": {"MSG": "facebook page failed to unsubscribe app", "CODE": "21.2"}
 }

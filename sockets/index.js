@@ -80,7 +80,7 @@ function init(server) {
                     let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
-                        if ('text' === message.type) {
+                        if ('text' === message.type || 'imagemap' === message.type) {
                             return;
                         }
                         return storageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
@@ -111,7 +111,7 @@ function init(server) {
                         let messageId = Object.keys(messagesInDB).shift() || '';
                         let _message = messagesInDB[messageId];
                         socketBody.messages[i] = _message;
-                        if (!_message.src) {
+                        if (!_message.src || 'imagemap' === _message.type) {
                             return Promise.resolve(null);
                         }
                         let newFilePath = `/apps/${appId}/chatrooms/${chatroomId}/messages/${messageId}/src/${fileName}`;

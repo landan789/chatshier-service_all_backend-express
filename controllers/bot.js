@@ -252,7 +252,10 @@ module.exports = (function() {
             return Promise.resolve().then(() => {
                 if (!appId) {
                     return Promise.reject(API_ERROR.APPID_WAS_EMPTY);
+                } else if (!platformUid) {
+                    return Promise.reject(API_ERROR.PLATFORMUID_WAS_EMPTY);
                 }
+
                 return appsMdl.find(appId).then((apps) => {
                     if (!apps) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
@@ -263,7 +266,10 @@ module.exports = (function() {
                 app = apps[appId];
                 return botSvc.create(appId, app);
             }).then(() => {
-                return botSvc.getProfile(platformUid, appId, app);
+                let platformInfo = {
+                    platformUid: platformUid
+                };
+                return botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
                 if (!profile) {
                     return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);

@@ -52,6 +52,8 @@
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
         $('#modal-save').removeAttr('disabled');
+        $('#modal-update-save').removeAttr('disabled');
+        imageFile = '';
     });
 
     $modal.on('show.bs.modal', function() {
@@ -120,10 +122,14 @@
 
         let config = window.chatshier.config;
         if (file.type.indexOf('image') < 0) {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
             $.notify('請上傳圖檔');
             return;
         }
         if (file.type.indexOf('image') >= 0 && file.size > (config.imageFileMaxSize / 2)) {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
             $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000 * 2)) + ' MB');
             return;
         }
@@ -157,6 +163,8 @@
             let image = new Image();
             image.onload = function() {
                 if (2500 !== image.width && (1686 !== image.height || 843 !== image.height)) {
+                    $('#modal-save').removeAttr('disabled');
+                    $('#modal-update-save').removeAttr('disabled');
                     $.notify('圖檔尺寸不符，須為: 2500 * 1686 px 或 2500 * 843 px');
                     return;
                 }
@@ -458,6 +466,8 @@
         let originalFilePath = '';
 
         if (!appId || !title || !chatBarText) {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
@@ -508,7 +518,7 @@
             return $.notify('成功啟用', { type: 'success' });
         }).catch(() => {
             $.notify('失敗', { type: 'danger' });
-            $(this).removeAttr('disabled');
+            $(this).removeAttr('disabled').text('未啟用');
         });
     }
 
@@ -542,9 +552,9 @@
         let linkText = '';
         for (let i = 0; i < richmenu.areas.length; i++) {
             if (0 === i) {
-                linkText = linkText + richmenu.areas[i].action.text;
+                linkText += getRichmenuActionType(richmenu.areas[i].action);
             } else {
-                linkText = linkText + '，' + richmenu.areas[i].action.text;
+                linkText = linkText + '，' + getRichmenuActionType(richmenu.areas[i].action);
             }
         }
         var trGrop =
@@ -576,6 +586,17 @@
             return;
         }
         $('table #richmenu').append(trGrop);
+    }
+
+    function getRichmenuActionType(action) {
+        switch (action.type) {
+            case 'postback':
+                return '未設定';
+            case 'uri':
+                return action.uri;
+            default:
+                return action.text;
+        }
     }
 
     function appenedData() {
@@ -617,7 +638,7 @@
             }
 
             return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putRichmenu.src = resJson.data;
+                putRichmenu.src = resJson.data.url;
                 return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
             }).then((resJson) => {
                 let appsRichmenu = resJson.data;
@@ -626,6 +647,9 @@
                 $('#richmenu-modal').modal('hide');
                 loadRichmenus(appId, userId);
                 return $.notify('修改成功', { type: 'success' });
+            }).catch(() => {
+                $('#richmenu-modal').modal('hide');
+                return $.notify('修改失敗', { type: 'danger' });
             });
         });
 
@@ -666,6 +690,8 @@
         let imgWidth = size.width;
         let imgHeight = size.height;
         if (!imgWidth || !imgHeight) {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
             return $.notify('請上傳圖片', { type: 'warning' });
         }
 
@@ -688,6 +714,8 @@
             let scaledX = Math.round(x * widthRate);
             let scaledY = Math.round(y * heightRate);
 
+            let action = getRichmenuTextType(text);
+
             let areaDataObj = {
                 bounds: {
                     x: scaledX,
@@ -695,15 +723,34 @@
                     width: sacledWidth,
                     height: scaledHeight
                 },
-                action: {
-                    type: 'message',
-                    text: text
-                }
+                action
             };
 
             areas.push(areaDataObj);
         });
         return areas;
+    }
+
+    function getRichmenuTextType(text) {
+        if (!text) {
+            return {
+                type: 'postback',
+                data: 'message=none'
+            };
+        }
+
+        if (text.includes('http://') || text.includes('https://')) {
+            return {
+                type: 'uri',
+                uri: text
+
+            };
+        }
+
+        return {
+            type: 'message',
+            text: text
+        };
     }
 
     function remove() {

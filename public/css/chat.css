@@ -207,7 +207,8 @@
             white-space: pre-wrap; }
         .message .content .image-content,
         .message .content .sticker-content,
-        .message .content .video-content {
+        .message .content .video-content,
+        .message .content .imagemap-image {
             width: 100%;
             max-width: 20rem;
             height: auto;
@@ -215,6 +216,19 @@
         .message .content .image-container {
             width: 100%;
             height: 100%; }
+        .message .content .imagemap-message-container {
+            width: auto;
+            height: auto;
+            position: relative; }
+        .message .content .imagemap-message-container .imagemap-message-content {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            right: 0;
+            bottom: 0; 
+            border: 1px solid #000000; }
+        .send-imagemap-btn {
+            margin-left: .5rem; }
         .message .content .image-container:hover {
             cursor: pointer; }
             .message .content .image-container.stretch {
@@ -380,13 +394,18 @@
             height: 80%;
             border: none;
             resize: none; }
-    .message-input .submit-message-btn {
+    .message-input .submit-message-btn, .message-input .imagemap-area {
         position: relative;
         width: 2rem;
         height: 2rem;
         cursor: pointer;
         color: transparent;
         border: none; }
+        .message-input .imagemap-area {
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            display: inline; }
         .message-input .submit-message-btn::before {
             content: "";
             position: absolute;
@@ -410,7 +429,10 @@
         .message-input .media-btn:hover,
         .message-input .media-btn[active~='true'] {
             background-color: #ccc; }
-
+    .message-input .imagemap-container {
+        position: absolute;
+        right: 0.5%;
+    }
 .chsr.ticket {
     display: flex;
     justify-content: center;
@@ -581,8 +603,9 @@
 .template-button1, .template-button2, .template-button3 {
     position: relative;
     height: 3rem;
-    text-align: center;
     line-height: 3rem;
+    font-size: .5rem;
+    padding-left: 1rem;
 }
 
 /* small template */

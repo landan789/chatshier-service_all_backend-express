@@ -552,13 +552,13 @@ module.exports = (function() {
         }
 
         /**
-         * @param {string} messagerId
+         * @param {string} platformUid
          * @param {string} replyToken
          * @param {any[]|any} messages
          * @param {string} appId
          * @param {any} app
          */
-        replyMessage(res, messagerId, replyToken, messages, appId, app) {
+        replyMessage(res, platformUid, replyToken, messages, appId, app) {
             let bot = this.bots[appId];
             if (!bot) {
                 return Promise.reject(new Error('BOT_NOT_FOUND'));
@@ -577,18 +577,18 @@ module.exports = (function() {
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
                             if ('text' === message.type) {
-                                return bot.sendTextMessage(messagerId, message.text);
-                            };
+                                return bot.sendTextMessage(platformUid, message.text);
+                            }
                             if ('image' === message.type) {
-                                return bot.sendImageMessage(messagerId, message.src, true);
-                            };
+                                return bot.sendImageMessage(platformUid, message.src, true);
+                            }
                             if ('audio' === message.type) {
-                                return bot.sendAudioMessage(messagerId, message.src, true);
-                            };
+                                return bot.sendAudioMessage(platformUid, message.src, true);
+                            }
                             if ('video' === message.type) {
-                                return bot.sendVideoMessage(messagerId, message.src, true);
-                            };
-                            return bot.sendTextMessage(messagerId, message.text);
+                                return bot.sendVideoMessage(platformUid, message.src, true);
+                            }
+                            return bot.sendTextMessage(platformUid, message.text);
                         })).then(() => {
                             // 一同將 webhook 打過來的 http request 回覆 200 狀態
                             return !res.headersSent && res.status(200).send('');
@@ -636,6 +636,13 @@ module.exports = (function() {
                     if ('file' === message.type) {
                         _message.type = 'text';
                         _message.text = message.text + message.src;
+                    }
+                    if ('imagemap' === message.type) {
+                        _message.type = message.type;
+                        _message.baseUrl = message.baseUri;
+                        _message.altText = message.altText;
+                        _message.baseSize = message.baseSize;
+                        _message.actions = message.actions;
                     }
 
                     return bot.pushMessage(recipientUid, _message);

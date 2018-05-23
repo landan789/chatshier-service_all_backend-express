@@ -91,6 +91,7 @@ module.exports = (function() {
             let actions = req.body.actions || {};
             let form = req.body.form || '';
             let title = req.body.title || '';
+            let appsImagemaps;
 
             let postImagemap = {
                 type,
@@ -104,22 +105,21 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 return appsImagemapsMdl.insert(appId, postImagemap);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
+            }).then((_appsImagemaps) => {
+                if (!_appsImagemaps) {
                     return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
                 }
-                return appsImagemaps;
-            }).then((appsImagemaps) => {
+                return _appsImagemaps;
+            }).then((_appsImagemaps) => {
+                appsImagemaps = _appsImagemaps;
                 let imagemaps = appsImagemaps[appId].imagemaps;
                 let imagemapId = Object.keys(imagemaps)[0] || '';
                 let baseUri = imagemaps[imagemapId].baseUri;
                 let fileName = baseUri.split('/').pop();
                 let fromPath = `/temp/${fileName}`;
                 let toPath = `/apps/${appId}/imagemaps/${imagemapId}/src/${fileName}`;
-                return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
-                    return appsImagemaps;
-                });
-            }).then((appsImagemaps) => {
+                return storageHlp.filesMoveV2(fromPath, toPath);
+            }).then(() => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,

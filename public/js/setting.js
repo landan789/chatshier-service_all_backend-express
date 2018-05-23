@@ -20,7 +20,6 @@
     var api = window.restfulAPI;
     var translate = window.translate;
     var gClientHlp = window.googleClientHelper;
-    var gCalendarHlp = window.googleCalendarHelper;
     var fbHlp = window.facebookHelper;
     var transJson = {};
 
@@ -394,11 +393,7 @@
                             groups[groupId].app_ids.push(appId);
                             generateAppItem(appId, apps[appId]);
                         }
-                        return fbHlp.setFanPageSubscribeApp(app.id1, app.token2);
-                    }).then(function() {
-                        return fbHlp.getFanPageSubscribeApp(app.id1, app.token2);
-                    }).then(function(res) {
-                        responses.push(res);
+                        responses.push(resJson);
                         return nextRequest(i + 1);
                     });
                 }
@@ -423,49 +418,49 @@
 
         var itemsHtml = {
             [LINE]: (
-                '<hr class="mt-5 mb-0"/>' + 
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
                     '</div>' +
                 '</div>' +
-                '<hr class="mt-5 mb-0"/>' + 
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
-                    '<img class="img-fluid my-1" src="./image/apps-1.jpg"/>' + 
+                    '<img class="img-fluid my-1" src="./image/apps-1.jpg"/>' +
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appId1" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
-                '<hr class="mt-5 mb-0"/>' + 
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
-                    '<img class="img-fluid my-1" src="./image/apps-2.jpg"/>' + 
+                    '<img class="img-fluid my-1" src="./image/apps-2.jpg"/>' +
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appSecret" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
-                '<hr class="mt-5 mb-0"/>' + 
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
-                    '<img class="img-fluid my-1" src="./image/apps-3.jpg"/>' + 
+                    '<img class="img-fluid my-1" src="./image/apps-3.jpg"/>' +
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appToken1" placeholder="請至 LINE Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
-                '<hr class="mt-5 mb-0"/>' + 
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">Use webhooks:</label>' +
-                    '<img class="img-fluid my-1" src="./image/apps-4.jpg"/>' + 
+                    '<img class="img-fluid my-1" src="./image/apps-4.jpg"/>' +
                     '<div class="">' +
                         '<span class="pl-3 text-muted">請至 Line Developer 啟用 webhook</span>' +
                     '</div>' +
-                '</div>' + 
-                '<hr class="mt-5 mb-0"/>' + 
+                '</div>' +
+                '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
                     '<label class="col-form-label font-weight-bold">webhook URL:</label>' +
-                    '<img class="img-fluid my-1" src="./image/apps-5.jpg"/>' + 
+                    '<img class="img-fluid my-1" src="./image/apps-5.jpg"/>' +
                     '<div class="">' +
                         '<span class="pl-3 text-muted">請至 Line Developer 貼上 webhook URL</span>' +
                     '</div>' +
@@ -643,10 +638,9 @@
             return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
                 let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
                 $('#app-group').html(str);
-                $.notify('成功刪除!', { type: 'success' });
                 var _apps = resJson.data;
-                delete apps[appId];
                 var app = _apps[appId];
+                delete apps[appId];
 
                 switch (app.type) {
                     case LINE:
@@ -670,7 +664,9 @@
                         break;
                     default:
                         break;
-                };
+                }
+
+                $.notify('刪除成功!', { type: 'success' });
             }).catch((resJson) => {
                 if (!resJson.status) {
                     $.notify('刪除失敗', { type: 'danger' });

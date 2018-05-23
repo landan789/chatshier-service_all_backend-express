@@ -466,6 +466,8 @@
     $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
+    $(document).on('click', '#imagemap', showImagemapArea);
+    $(document).on('click', '#send-imagemap-btn', sendImagemap);
     $mediaBtns.on('click', triggerFileUpload); // 傳圖，音，影檔功能
     $('.ghost-file').on('change', fileUpload); // 傳圖，音，影檔功能
     $('[data-toggle="tooltip"]').tooltip();
@@ -711,6 +713,7 @@
                 var message = messages[i];
                 var senderMsgerId = message.messager_id;
                 senderMsger = messagers[senderMsgerId];
+
                 return Promise.resolve().then(function() {
                     if (SYSTEM === message.from) {
                         return users[userId];
@@ -785,7 +788,7 @@
 
                         var newPersonProfileJqNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
                         $(newPersonProfileJqNode.shift()).insertAfter($personProfileCard.find('.photo-container'));
-                        $personProfileCard.find('.consumer-avatar').attr('src', fixHttpsResource(consumer.photo));
+                        $personProfileCard.find('.consumer-avatar').attr('src', consumer.photo);
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -1031,7 +1034,7 @@
 
         var html = (
             '<li class="text-light nested list-group-item tablinks" ' + 'app-id="' + opts.appId + '" chatroom-id="' + opts.chatroomId + '" ' + (!isGroupChatroom ? 'platform-uid="' + opts.platformUid + '"' : '') + ' app-type="' + opts.appType + '">' +
-                '<img class="app-icon consumer-photo" src="' + fixHttpsResource(chatroomPhoto) + '" />' +
+                '<img class="app-icon consumer-photo" src="' + chatroomPhoto + '" />' +
                 '<span class="app-name">' + chatroomName + '</span>' +
                 '<span class="unread-msg badge badge-pill ml-auto bg-warning' + (!opts.unRead ? ' d-none' : '') + '">' + unReadStr + '</span>' +
             '</li>'
@@ -1057,7 +1060,8 @@
             'audio' === message.type ||
             'video' === message.type ||
             'sticker' === message.type ||
-            'template' === message.type
+            'template' === message.type ||
+            'imagemap' === message.type
         );
 
         // 如果訊息是來自於 Chatshier 或 系統自動回覆 的話，訊息一律放在右邊
@@ -1170,7 +1174,7 @@
                 var consumer = _consumers[platformUid] || {};
                 // 如果取得 photo 失敗則使用預設頭像
                 consumer.photo = consumer.photo || 'image/user_large.png';
-                $consumerPhotos.attr('src', fixHttpsResource(consumer.photo));
+                $consumerPhotos.attr('src', consumer.photo);
                 Object.assign(consumers, _consumers);
             });
         });
@@ -1253,9 +1257,112 @@
                     '<i class="fas fa-file fa-fw file-icon"></i>' +
                     '<span class="text-content">' + message.text + '<a href="' + message.src + '" download="' + message.src + '" target="_blank">' + message.src + '</a></span>'
                 );
+            case 'imagemap':
+                return (
+                    '<div class="imagemap-message-container">' +
+                        `<img class="imagemap-image" src="${message.src || ''}" />` +
+                        `<div class="imagemap-message-content">${'輸出內容：' + (message.imagemap ? photoFormShow(message) : '')}</div>` +
+                    '</div>'
+                );
             default:
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
+        }
+    }
+
+    function photoFormShow(message) {
+        let width = $('.imagemap-message-container').width();
+        let height = $('.imagemap-message-container').height();
+        let boxWidth = width / 3;
+        let boxHeight = height / 2;
+        let box1 = '';
+        let box2 = '';
+        let box3 = '';
+        let box4 = '';
+        let box5 = '';
+        let box6 = '';
+        let str1 = '';
+        let str2 = '';
+        let str3 = '';
+        let str4 = '';
+        let str5 = '';
+        let str6 = '';
+        switch (message.imagemap.form) {
+            case 'form8':
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
+                str4 = !message.imagemap.actions[3].text ? message.imagemap.actions[3].linkUri : message.imagemap.actions[3].text;
+                str5 = !message.imagemap.actions[4].text ? message.imagemap.actions[4].linkUri : message.imagemap.actions[4].text;
+                str6 = !message.imagemap.actions[5].text ? message.imagemap.actions[5].linkUri : message.imagemap.actions[5].text;
+                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="height: ${boxHeight}px">${str1}</div>`;
+                box2 = `<div class="box" id="box2" data-x="${boxWidth}" data-y="0" style="height: ${boxHeight}px">${str2}</div>`;
+                box3 = `<div class="box" id="box3" data-x="${boxWidth * 2}" data-y="0" style="height: ${boxHeight}px">${str3}</div>`;
+                box4 = `<div class="box" id="box4" data-x="0" data-y="${boxHeight}" style="height: ${boxHeight}px">${str4}</div>`;
+                box5 = `<div class="box" id="box5" data-x="${boxWidth}" data-y="${boxHeight}" style="height: ${boxHeight}px">${str5}</div>`;
+                box6 = `<div class="box" id="box6" data-x="${boxWidth * 2}" data-y="${boxHeight}" style="height: ${boxHeight}px">${str6}</div>`;
+                return box1 + box2 + box3 + box4 + box5 + box6;
+            case 'form7':
+                let heightForm7 = boxHeight;
+                heightForm7 = heightForm7 / 2;
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
+                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px; height: ${boxHeight}px">${str1}</div>`;
+                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${width}px; height: ${heightForm7}px">${str2}</div>`;
+                box3 = `<div class="box" id="box3" data-x="0" data-y="${heightForm7}" style="width: ${width}px; height: ${heightForm7}px">${str3}</div>`;
+                return box1 + box2 + box3;
+            case 'form6':
+                let widthForm6 = boxWidth;
+                widthForm6 = (widthForm6 * 3) / 2;
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
+                box2 = `<div class="box" id="box2" data-x="0" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px">${str2}</div>`;
+                box3 = `<div class="box" id="box3" data-x="${widthForm6}" data-y="${boxHeight}" style="width: ${(width / 2)}px; height: ${boxHeight}px">${str3}</div>`;
+                return box1 + box2 + box3;
+            case 'form5':
+                let widthForm5 = boxWidth;
+                widthForm5 = (widthForm5 * 3) / 2;
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
+                str4 = !message.imagemap.actions[3].text ? message.imagemap.actions[3].linkUri : message.imagemap.actions[3].text;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm5 + '" data-y="0" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str2 + '</div>';
+                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str3 + '</div>';
+                box4 = '<div class="box" id="box4" data-x="' + widthForm5 + '" data-y="' + boxHeight + '" style="width:' + widthForm5 + 'px; height: ' + boxHeight + 'px">' + str4 + '</div>';
+                return box1 + box2 + box3 + box4;
+            case 'form4':
+                let heightForm4 = boxHeight * 2 / 3;
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                str3 = !message.imagemap.actions[2].text ? message.imagemap.actions[2].linkUri : message.imagemap.actions[2].text;
+                box1 = `<div class="box" id="box1" data-x="0" data-y="0" style="width: ${width}px; height: ${heightForm4}px">${str1}</div>`;
+                box2 = `<div class="box" id="box2" data-x="0" data-y="${heightForm4}" style="width: ${width}px; height: ${heightForm4}px">${str2}</div>`;
+                box3 = `<div class="box" id="box3" data-x="0" data-y="${heightForm4 * 2}" style="width: ${width}px; height: ${heightForm4}px">${str3}</div>`;
+                return box1 + box2 + box3;
+            case 'form3':
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str1 + '</div>';
+                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px; height: ' + boxHeight + 'px">' + str2 + '</div>';
+                return box1 + box2;
+            case 'form2':
+                let widthForm2 = boxWidth;
+                widthForm2 = (widthForm2 * 3) / 2;
+                str1 = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                str2 = !message.imagemap.actions[1].text ? message.imagemap.actions[1].linkUri : message.imagemap.actions[1].text;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px; height:' + height + 'px">' + str1 + '</div>';
+                box2 = '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px; height:' + height + 'px">' + str2 + '</div>';
+                return box1 + box2;
+            case 'form1':
+                let str = !message.imagemap.actions[0].text ? message.imagemap.actions[0].linkUri : message.imagemap.actions[0].text;
+                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px">' + str + '</div>';
+                return box1;
+            default:
+                return '';
         }
     }
 
@@ -1266,8 +1373,8 @@
                     '<div class="template-sm">' +
                         `<div class="template-sm-title">${template.text}</div>` +
                         '<div class="template-sm-buttons">' +
-                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
+                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1278,9 +1385,9 @@
                         `<div class="template-title">${template.title}</div>` +
                         `<div class="template-desc">${template.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
-                            `<div class="template-button3">${template.actions[2].label} (輸出：${template.actions[2].text})</div>` +
+                            `<div class="template-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
+                            `<div class="template-button3">${template.actions[2].label} (輸出：${getTemplateOutput(template.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1291,13 +1398,22 @@
                         `<div class="template-title">${column.title}</div>` +
                         `<div class="template-desc">${column.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${column.actions[0].label} (輸出：${column.actions[0].text})</div>` +
-                            `<div class="template-button2">${column.actions[1].label} (輸出：${column.actions[1].text})</div>` +
-                            `<div class="template-button3">${column.actions[2].label} (輸出：${column.actions[2].text})</div>` +
+                            `<div class="template-button1">${column.actions[0].label} (輸出：${getTemplateOutput(column.actions[0])})</div>` +
+                            `<div class="template-button2">${column.actions[1].label} (輸出：${getTemplateOutput(column.actions[1])})</div>` +
+                            `<div class="template-button3">${column.actions[2].label} (輸出：${getTemplateOutput(column.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 ));
             default:
+        }
+    }
+
+    function getTemplateOutput(action) {
+        switch (action.type) {
+            case 'uri':
+                return action.uri;
+            default:
+                return action.text;
         }
     }
 
@@ -1373,7 +1489,7 @@
             '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
                 '<div class="person-profile profile-content table-responsive">' +
                     '<div class="photo-container">' +
-                        '<img class="consumer-avatar larger" src="' + fixHttpsResource(person.photo) + '" alt="無法顯示相片" />' +
+                        '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
                     '</div>' +
                     (function generateProfileHtml() {
                         var html = '';
@@ -1644,7 +1760,7 @@
                                     var memberUser = users[memberUserId];
                                     html += (
                                         '<div class="person-chip">' +
-                                            '<img src="' + (fixHttpsResource(memberUser.photo) || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
+                                            '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
                                             '<span>' + memberUser.name + '</span>' +
                                         '</div>'
                                     );
@@ -1659,7 +1775,7 @@
                                     var consumer = consumers[messager.platformUid];
                                     html +=
                                         '<div class="person-chip">' +
-                                            '<img src="' + fixHttpsResource(consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
+                                            '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
                                             '<span>' + consumer.name + '</span>' +
                                         '</div>';
                                 }
@@ -2027,6 +2143,93 @@
         });
     }
 
+    function showImagemapArea() {
+        $('.imagemap-area').toggleClass('d-none').siblings().toggleClass('d-none');
+        let appId = $(this).parent().parent().parent().siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+        return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
+            let appsImagemaps = resJson.data;
+            let imagemaps = appsImagemaps[appId].imagemaps;
+            let imagemapIds = Object.keys(imagemaps);
+            if (0 >= imagemapIds.length) {
+                return;
+            }
+            return Promise.resolve(imagemaps);
+        }).then((imagemaps) => {
+            let imagemapIds = Object.keys(imagemaps);
+            $('.imagemap-area').empty();
+            imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
+                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                $('.imagemap-area').append(str);
+            });
+        }).catch((ERR) => {
+            $.notify('載入imagemap失敗', { type: 'danger' });
+        });
+    }
+
+    function sendImagemap(ev) {
+        ev.preventDefault();
+        var $evElem = $(ev.target);
+        var $contentPanel = $evElem.parentsUntil('.chat-content-panel');
+        var $messageView = $contentPanel.siblings('.chatroom-body').find('.chat-content.shown');
+
+        let appId = $(this).attr('app-id');
+        let imagemapId = $(this).attr('imagemap-id');
+        var appType = apps[appId].type;
+        var chatroomId = $messageView.attr('chatroom-id');
+        var platformMessager = findChatroomMessager(appId, chatroomId, appType);
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+
+        if (!(appId && chatroomId)) {
+            return;
+        }
+
+        return api.appsImagemaps.findOne(appId, imagemapId, userId).then((resJson) => {
+            let imagemap = {
+                type: resJson.data[imagemapId].type,
+                baseUri: resJson.data[imagemapId].baseUri,
+                altText: resJson.data[imagemapId].altText,
+                baseSize: resJson.data[imagemapId].baseSize,
+                actions: resJson.data[imagemapId].actions,
+                form: resJson.data[imagemapId].form,
+                messager_id: messagerSelf._id
+            };
+            /** @type {ChatshierChatSocketBody} */
+            var socketBody = {
+                app_id: appId,
+                type: 'LINE',
+                chatroom_id: chatroomId,
+                senderUid: userId,
+                recipientUid: platformMessager.platformUid,
+                messages: [imagemap]
+            };
+
+            var $loadingElem = generateLoadingJqElem();
+            $messageView.find('.message-panel').append($loadingElem);
+            scrollMessagePanelToBottom(appId, chatroomId);
+
+            return new Promise(function(resolve, reject) {
+                $submitMessageInput.val('');
+                chatshierSocket.emit(SOCKET_EVENTS.EMIT_MESSAGE_TO_SERVER, socketBody, function(err) {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                });
+            }).then(() => {
+                $loadingElem.remove();
+                $loadingElem = void 0;
+            }).catch(() => {
+                $.notify('發送失敗', { type: 'danger' });
+                $loadingElem.remove();
+                $loadingElem = void 0;
+            });
+        }).catch((ERR) => {
+            $.notify('發送imagemap失敗', { type: 'danger' });
+        });
+    }
+
     function triggerFileUpload(e) {
         var eId = $(this).data('id');
         $('#' + eId).trigger('click');
@@ -2099,7 +2302,7 @@
             var consumer = consumers[platformUid];
             if (consumer) {
                 if (consumer.photo) {
-                    $chatroomTablinks.find('.app-icon').attr('src', fixHttpsResource(consumer.photo));
+                    $chatroomTablinks.find('.app-icon').attr('src', consumer.photo);
                 }
 
                 if (consumer.name) {
@@ -2356,6 +2559,7 @@
         var chatroomId = $profileGroup.attr('chatroom-id');
 
         return api.bot.leaveGroupRoom(appId, chatroomId, userId).then(function(resJson) {
+            // console.log(JSON.stringify(resJson, void 0, 2));
             var $navTitle = $('#navTitle');
             var chatroomTitle = document.title.replace(' | Chatshier', '');
             $navTitle.text(chatroomTitle);
@@ -2611,16 +2815,6 @@
 
     function addZero(val) {
         return val < 10 ? '0' + val : val;
-    }
-
-    /**
-     * @param {string} resourceLink
-     */
-    function fixHttpsResource(resourceLink) {
-        if ('https:' === window.location.protocol && 0 === resourceLink.indexOf('http://')) {
-            return resourceLink.replace('/^http:/i', window.location.protocol);
-        }
-        return resourceLink;
     }
 
     /**
