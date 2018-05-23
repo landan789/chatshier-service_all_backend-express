@@ -461,9 +461,7 @@
     });
 
     // =====start chat event=====
-    $(document).on('click', '.chat-app-item', showChatApp);
-    $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
-    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
+    $(document).on('click', '.ctrl-panel .tablinks', userClickTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $(document).on('click', '#imagemap', showImagemapArea);
@@ -630,8 +628,7 @@
         }
         return Promise.all(socketRegPromises);
     }).then(function() {
-        generateAppsIcons(apps);
-        responseChatData(apps);
+        return initChatData(apps);
     });
     // #endregion
     // ==========
@@ -856,68 +853,7 @@
         });
     }
 
-    function generateAppsIcons(apps) {
-        var $chatAppList = $('#chatAppList');
-        var $ctrlPanel = $('#ctrlPanel');
-        var $lineSideCollapse = $ctrlPanel.find('.line-collapse').empty();
-        var $fbSideCollapse = $ctrlPanel.find('.fb-collapse').empty();
-        var $wechatSideCollapse = $ctrlPanel.find('.wechat-collapse').empty();
-        var $chatshierSideCollapse = $ctrlPanel.find('.chatshier-collapse').empty();
-
-        for (var appId in apps) {
-            var app = apps[appId];
-
-            var buildHtml = function(type, imgSrc) {
-                var html =
-                    '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + app.name + '">' +
-                        '<img class="software-icon" src="' + imgSrc + '">' +
-                        '<div class="unread-count d-none"></div>' +
-                    '</div>';
-                return html;
-            };
-
-            var tabAppItem = buildHtml(app.type, logos[app.type]);
-            switch (app.type) {
-                case LINE:
-                    $lineSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-line"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case FACEBOOK:
-                    $fbSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-facebook-messenger"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case WECHAT:
-                    $wechatSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-weixin"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case CHATSHIER:
-                    $chatshierSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fas fa-copyright"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                default:
-                    break;
-            }
-            tabAppItem && $chatAppList.prepend(tabAppItem);
-        }
-    }
-
-    function responseChatData(apps) {
+    function initChatData(apps) {
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
@@ -995,21 +931,6 @@
         if (maxScrollHeight > 0) {
             $('#ctrlPanel .scroll-bottom').removeClass('d-none');
         }
-
-        // 根據訊息時間排序聊天室(訊息時間越晚越上面)
-        var sortByMessageTime = function(elA, elB) {
-            var tA = parseInt(new Date($(elA).find('.client-message').attr('message-time')).getTime());
-            var tB = parseInt(new Date($(elB).find('.client-message').attr('message-time')).getTime());
-            return tA < tB;
-        };
-
-        var $tablinksArea = $('#person .tablinks-area');
-        var $clients = $tablinksArea.find('#clients');
-        var $clientTabs = $clients.find('.tablinks');
-        $clientTabs.sort(sortByMessageTime);
-
-        $clients.empty();
-        $clients.append($clientTabs);
     }
 
     function generateLoadingJqElem() {
@@ -1829,55 +1750,7 @@
     // ==========end initialize function========== //
 
     // =====start chat function=====
-    function showChatApp() {
-        var selectRel = $(this).attr('rel');
-        var $tablinksArea = $('#person .tablinks-area');
-        var $allTablinks = $tablinksArea.find('.tablinks');
-
-        switch (selectRel) {
-            case 'all':
-                $allTablinks.removeClass('d-none');
-                break;
-            case 'group':
-                $allTablinks.addClass('d-none');
-                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').removeClass('d-none');
-                break;
-            case 'unread':
-                $tablinksArea.find('.unread-msg').each(function() {
-                    var $unReadElem = $(this);
-                    var $tablinkWrapper = $unReadElem.parentsUntil('.list-group').last();
-
-                    if (!parseInt($unReadElem.text(), 10)) {
-                        $tablinkWrapper.addClass('d-none');
-                    } else {
-                        $tablinkWrapper.removeClass('d-none');
-                    }
-                });
-                break;
-            case 'assigned':
-            case 'unassigned':
-                $allTablinks.addClass('d-none');
-                var isFindAssigned = ('assigned' === selectRel);
-                $('[alias="assigned"] .multi-select-wrapper .multi-select-values').each(function() {
-                    var assignedText = $(this).text();
-                    var assignedUsers = assignedText ? assignedText.split(',') : [];
-
-                    if ((isFindAssigned && assignedUsers.length) ||
-                        (!isFindAssigned && !assignedUsers.length)) {
-                        var $parentCard = $(this).parents('.profile-group');
-                        var appId = $parentCard.attr('app-id');
-                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').removeClass('d-none');
-                    }
-                });
-                break;
-            default:
-                $allTablinks.addClass('d-none');
-                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').removeClass('d-none');
-                break;
-        }
-    }
-
-    function clickUserTablink() {
+    function userClickTablink() {
         var $eventTablink = $(this);
         var $messageInputContainer = $('.message-input-container');
 
