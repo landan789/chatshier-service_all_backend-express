@@ -215,6 +215,8 @@
             right: 0;
             bottom: 0; 
             border: 1px solid #000000; }
+        .send-imagemap-btn {
+            margin-left: .5rem; }
         .message .content .image-container:hover {
             cursor: pointer; }
             .message .content .image-container.stretch {
@@ -596,8 +598,9 @@
 .template-button1, .template-button2, .template-button3 {
     position: relative;
     height: 3rem;
-    text-align: center;
     line-height: 3rem;
+    font-size: .5rem;
+    padding-left: 1rem;
 }
 
 /* small template */
