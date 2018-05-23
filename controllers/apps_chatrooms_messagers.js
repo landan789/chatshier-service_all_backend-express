@@ -51,10 +51,18 @@ module.exports = (function() {
             let messagerId = req.params.messagerid;
             let platformUid = useUid ? messagerId : '';
 
+            // 只允許更新 API 可編輯的屬性，且傳送的型別必須嚴謹
             let putMessager = {};
-            (undefined !== req.body.assigned_ids) && (putMessager.assigned_ids = req.body.assigned_ids);
-            (undefined !== req.body.unRead) && (putMessager.unRead = req.body.unRead);
-            (undefined !== req.body.tags) && (putMessager.tags = req.body.tags);
+            ('number' === typeof req.body.unRead) && (putMessager.unRead = req.body.unRead);
+            ('number' === typeof req.body.age) && (putMessager.age = req.body.age);
+            ('string' === typeof req.body.email) && (putMessager.email = req.body.email);
+            ('string' === typeof req.body.phone) && (putMessager.phone = req.body.phone);
+            ('string' === typeof req.body.gender) && (putMessager.gender = req.body.gender);
+            ('string' === typeof req.body.remark) && (putMessager.remark = req.body.remark);
+            ('object' === typeof req.body.namings) && (putMessager.namings = req.body.namings);
+            ('object' === typeof req.body.custom_fields) && (putMessager.custom_fields = req.body.custom_fields);
+            (req.body.assigned_ids instanceof Array) && (putMessager.assigned_ids = req.body.assigned_ids);
+            (req.body.tags instanceof Array) && (putMessager.tags = req.body.tags);
 
             return this.appsRequestVerify(req).then(() => {
                 if (useUid) {
