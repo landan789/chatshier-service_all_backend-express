@@ -779,7 +779,7 @@
                         var $chatroomProfile = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
                         $chatroomProfile.find('.panel-table').remove();
 
-                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, app.type, chatroom));
+                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, chatroomId));
                         $(chatroomProfileJqNode.shift()).insertAfter($chatroomProfile.find('.photo-container'));
                     } else if (senderUid && consumer) {
                         var consumerUid = consumer.platformUid;
@@ -1476,7 +1476,7 @@
                     var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
                     var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
                     return isGroupChatroom
-                        ? generateChatroomProfileHtml(appId, app.type, chatroom)
+                        ? generateChatroomProfileHtml(appId, chatroomId)
                         : generatePersonProfileHtml(appId, chatroomId, platformUid, person);
                 })() +
             '</div>'
@@ -1709,11 +1709,12 @@
         );
     }
 
-    function generateChatroomProfileHtml(appId, appType, chatroom) {
+    function generateChatroomProfileHtml(appId, chatroomId) {
+        var app = apps[appId];
+        var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
         var groupId = apps[appId].group_id;
         var group = groups[groupId];
         var chatroomName = chatroom.name || '';
-        var isChatshierApp = CHATSHIER === appType;
 
         return (
             '<div class="px-2 d-flex align-items-center form-group">' +
@@ -1724,11 +1725,11 @@
                 '</div>' +
             '</div>' +
             '<div class="px-2 d-flex align-items-center form-group">' +
-                '<label class="px-0 col-3 col-form-label">' + (isChatshierApp ? '群組成員' : '客戶成員') + '</label>' +
+                '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '群組成員' : '客戶成員') + '</label>' +
                 '<div class="pr-0 col-9 d-flex profile-content">' +
                     (function() {
                         var html = '';
-                        if (isChatshierApp) {
+                        if (CHATSHIER === app.type) {
                             for (var memberId in group.members) {
                                 var memberUserId = group.members[memberId].user_id;
                                 var memberUser = users[memberUserId];
@@ -1759,7 +1760,7 @@
                 '</div>' +
             '</div>' +
 
-            '<div class="p-2 leave-group-room text-right">' +
+            '<div class="p-2 leave-group-room text-right' + (CHATSHIER === app.type ? ' d-none' : '') + '">' +
                 '<button type="button" class="btn btn-danger">' +
                     '<i class="fas fa-sign-out-alt fa-fw"></i>' +
                     '<span>離開群組</span>' +
