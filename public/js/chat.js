@@ -1373,8 +1373,8 @@
                     '<div class="template-sm">' +
                         `<div class="template-sm-title">${template.text}</div>` +
                         '<div class="template-sm-buttons">' +
-                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
+                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1385,9 +1385,9 @@
                         `<div class="template-title">${template.title}</div>` +
                         `<div class="template-desc">${template.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
-                            `<div class="template-button3">${template.actions[2].label} (輸出：${template.actions[2].text})</div>` +
+                            `<div class="template-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
+                            `<div class="template-button3">${template.actions[2].label} (輸出：${getTemplateOutput(template.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1398,13 +1398,22 @@
                         `<div class="template-title">${column.title}</div>` +
                         `<div class="template-desc">${column.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${column.actions[0].label} (輸出：${column.actions[0].text})</div>` +
-                            `<div class="template-button2">${column.actions[1].label} (輸出：${column.actions[1].text})</div>` +
-                            `<div class="template-button3">${column.actions[2].label} (輸出：${column.actions[2].text})</div>` +
+                            `<div class="template-button1">${column.actions[0].label} (輸出：${getTemplateOutput(column.actions[0])})</div>` +
+                            `<div class="template-button2">${column.actions[1].label} (輸出：${getTemplateOutput(column.actions[1])})</div>` +
+                            `<div class="template-button3">${column.actions[2].label} (輸出：${getTemplateOutput(column.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 ));
             default:
+        }
+    }
+
+    function getTemplateOutput(action) {
+        switch (action.type) {
+            case 'uri':
+                return action.uri;
+            default:
+                return action.text;
         }
     }
 
@@ -2149,7 +2158,7 @@
             let imagemapIds = Object.keys(imagemaps);
             $('.imagemap-area').empty();
             imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
-                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
                 $('.imagemap-area').append(str);
             });
         }).catch((ERR) => {
