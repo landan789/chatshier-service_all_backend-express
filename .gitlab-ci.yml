@@ -4,7 +4,7 @@
 image: node:8.11.1
 
 stages:
-  - API_CHATSHIER
+  - API-CHATSHIER
 before_script:
 
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
@@ -22,7 +22,7 @@ before_script:
 services:
 
 DEVELOP:
-  stage: API_CHATSHIER
+  stage: API-CHATSHIER
   script:
    - echo "[STEP 1] start to git pull on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${DEV_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout develop && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
@@ -39,7 +39,7 @@ DEVELOP:
       - develop
 
 RELEASE:
-  stage: API_CHATSHIER
+  stage: API-CHATSHIER
   script:
    - echo "[STEP 1] start to git pull on all servers."
    - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_REL_1_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout release && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
@@ -60,4 +60,27 @@ RELEASE:
   only:
     refs:
       - release
+
+MASTER:
+  stage: API-CHATSHIER
+  script:
+   - echo "[STEP 1] start to git pull on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout release && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout release && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && git stash && git checkout release && git fetch && git pull" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   
+   - echo "[STEP 2] start to npm install on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && npm install" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+  
+   - echo "[STEP 3] restart each node via pm2 on all servers."
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${SCHEDULE_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only schedule-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_1_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+   - ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER}@${API_2_HOST} -p 22 "cd ${API_DIR} && pm2 restart pm2.json --only api-chatshier" # must be Double quotes, the single quotes will return ${SERVICE_DIR} string instead of ${SERVICE_DIR} varible
+  
+   - echo "[SUCCEEDED] develop has been deployed."
+  only:
+    refs:
+      - master
 
