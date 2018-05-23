@@ -643,13 +643,13 @@
         (function keepConnection() {
             return new Promise(function(resolve) {
                 socket.once(SOCKET_EVENTS.DISCONNECT, function() {
-                    console.info('=== chatroom disconnected ===');
+                    $.notify('與伺服器失去了連線', { type: 'warning' });
                     resolve();
                 });
             }).then(function() {
                 return new Promise(function(resolve) {
                     socket.once(SOCKET_EVENTS.RECONNECT, function() {
-                        console.info('=== chatroom reconnected ===');
+                        $.notify('已恢復與伺服器的連線', { type: 'info' });
                         resolve();
                     });
                 });
