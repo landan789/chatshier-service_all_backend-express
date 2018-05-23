@@ -191,6 +191,7 @@
             color:white;
             background-color: #33ccff !important; }
         .message .content .text-content {
+            line-height: 1.25rem;
             white-space: pre-wrap; }
         .message .content .image-content,
         .message .content .sticker-content,
@@ -244,6 +245,8 @@
     align-items: flex-end; }
     .message-group.right-side {
         flex-direction: row-reverse; }
+        .message-group.right-side .words {
+            text-align: right; }
 
 .chatroom-container {
     width: 100%;
@@ -332,18 +335,21 @@
     width: 100%; }
     .chatroom-body .chat-content {
         border: 1px solid #ccc;
+        width: 100%;
         height: 100%;
         border-left: none;
-        width: 100%;
     }
 
 .message-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding-bottom: 5%;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch; }
+    .message-panel::after {
+        content: '';
+        display: block;
+        padding-bottom: 5%; }
     .message-panel .loading-container {
         width: 3rem;
         height: 3rem; }

@@ -1938,9 +1938,9 @@
         var chatroomId = $messageView.attr('chatroom-id');
         var platformMessager = findChatroomMessager(appId, chatroomId, appType);
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var msgText = $submitMessageInput.val();
+        var messageText = $submitMessageInput.val();
 
-        if (!(appId && chatroomId && msgText)) {
+        if (!(appId && chatroomId && messageText)) {
             return;
         }
 
@@ -1948,7 +1948,8 @@
         var messageToSend = {
             from: CHATSHIER,
             time: Date.now(),
-            text: msgText,
+            // 文字訊息前面加上自己的名稱當成前輟
+            text: '[' + users[userId].name + ']\n' + messageText,
             src: '',
             type: 'text',
             messager_id: messagerSelf._id
@@ -2602,7 +2603,7 @@
         var idx = assignedIds.indexOf(assignedId);
 
         if (isChecked) {
-            idx < 0 && assignedIds.push(assignedId);
+            idx < 0 && assignedId && assignedIds.push(assignedId);
         } else {
             idx >= 0 && assignedIds.splice(idx, 1);
         }
