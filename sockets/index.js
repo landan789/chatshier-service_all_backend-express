@@ -72,13 +72,11 @@ function init(server) {
 
     app.post('/webhook/:webhookid', (req, res, next) => {
         let webhookid = req.params.webhookid;
-        console.log('75.................................');
-        console.log(req);
+
         let webhookPromise = Promise.all(webhookProcQueue).then(() => {
             let appId = '';
             let app = {};
-            console.log('80.................................');
-            console.log(req);
+
             let receivedMessages = [];
             let repliedMessages = [];
             let totalMessages = [];
@@ -292,9 +290,13 @@ function init(server) {
                 msg: ERROR.MSG,
                 code: ERROR.CODE
             };
-            console.log('295.............................................');
+            console.log('293.................................');
+            console.log(req);            
             console.log(JSON.stringify(ERROR, null, 4));
             console.trace(json);
+            let idx = webhookProcQueue.indexOf(webhookPromise);
+            idx >= 0 && webhookProcQueue.splice(idx, 1);
+    
             !res.headersSent && res.sendStatus(500);
         });
 
