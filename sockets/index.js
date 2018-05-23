@@ -294,6 +294,9 @@ function init(server) {
             console.log(req);            
             console.log(JSON.stringify(ERROR, null, 4));
             console.trace(json);
+            let idx = webhookProcQueue.indexOf(webhookPromise);
+            idx >= 0 && webhookProcQueue.splice(idx, 1);
+    
             !res.headersSent && res.sendStatus(500);
         });
 
