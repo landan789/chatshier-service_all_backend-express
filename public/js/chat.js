@@ -775,20 +775,13 @@
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     var consumer = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
+                    var consumerUid = consumer.platformUid;
                     if (isGroupChatroom) {
-                        var $chatroomProfile = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        $chatroomProfile.find('.panel-table').remove();
-
-                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, chatroomId));
-                        $(chatroomProfileJqNode.shift()).insertAfter($chatroomProfile.find('.photo-container'));
+                        var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+                        $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, consumer));
                     } else if (senderUid && consumer) {
-                        var consumerUid = consumer.platformUid;
-                        var $personProfileCard = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        $personProfileCard.find('.panel-table').remove();
-
-                        var newPersonProfileJqNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
-                        $(newPersonProfileJqNode.shift()).insertAfter($personProfileCard.find('.photo-container'));
-                        $personProfileCard.find('.consumer-avatar').attr('src', consumer.photo);
+                        var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
+                        $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, consumer));
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
