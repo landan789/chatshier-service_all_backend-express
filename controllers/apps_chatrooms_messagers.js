@@ -54,6 +54,7 @@ module.exports = (function() {
             let putMessager = {};
             (undefined !== req.body.assigned_ids) && (putMessager.assigned_ids = req.body.assigned_ids);
             (undefined !== req.body.unRead) && (putMessager.unRead = req.body.unRead);
+            (undefined !== req.body.tags) && (putMessager.tags = req.body.tags);
 
             return this.appsRequestVerify(req).then(() => {
                 if (useUid) {

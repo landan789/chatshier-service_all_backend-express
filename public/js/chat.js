@@ -564,6 +564,8 @@
     });
     $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
     $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
+    $profilePanel.on('click', '.tag-chip .remove-chip', userRemoveTag);
+    $profilePanel.on('keydown', '.tags-wrapper .tag-input', userAddTag);
     // =====end profile event=====
 
     // =====start utility event=====
@@ -1464,51 +1466,16 @@
     }
 
     function createProfilePanel(requireData) {
-        var appId = requireData.appId;
-        var appType = requireData.type;
-        var chatroom = requireData.chatroom;
-        var chatroomId = requireData.chatroomId;
-        var platformUid = requireData.platformUid;
         var person = requireData.person;
         if (!person) {
             return;
         }
 
+        var appId = requireData.appId;
+        var chatroomId = requireData.chatroomId;
+        var platformUid = requireData.platformUid;
         person.photo = person.photo || 'image/user_large.png';
-        var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
-        var profilePanelHtml = (
-            '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
-                '<div class="person-profile profile-content table-responsive">' +
-                    '<div class="photo-container">' +
-                        '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
-                    '</div>' +
-                    (function generateProfileHtml() {
-                        var html = '';
-
-                        if (isGroupChatroom) {
-                            html = (
-                                generateChatroomProfileHtml(appId, appType, chatroom) +
-                                '<div class="p-2 leave-group-room text-right">' +
-                                    '<button type="button" class="btn btn-danger">' +
-                                        '<i class="fas fa-sign-out-alt fa-fw"></i>' +
-                                        '<span>離開群組</span>' +
-                                    '</button>' +
-                                '</div>'
-                            );
-                        } else {
-                            html = (
-                                generatePersonProfileHtml(appId, chatroomId, platformUid, person) +
-                                '<div class="profile-confirm text-center">' +
-                                    '<button type="button" class="btn btn-info">確認</button>' +
-                                '</div>'
-                            );
-                        }
-                        return html;
-                    })() +
-                '</div>' +
-            '</div>'
-        );
-        $profileWrapper.append(profilePanelHtml);
+        $profileWrapper.append(generateProfileHtml(appId, chatroomId, platformUid, person));
     }
 
     function createTicketPanel(requireData) {
@@ -1553,176 +1520,251 @@
         $ticketWrapper.append(ticketPanelHtml);
     }
 
+    function generateProfileHtml(appId, chatroomId, platformUid, person) {
+        return (
+            '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
+                '<div class="photo-container">' +
+                    '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
+                '</div>' +
+                (function() {
+                    var app = apps[appId];
+                    var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+                    var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
+                    return isGroupChatroom
+                        ? generateChatroomProfileHtml(appId, app.type, chatroom)
+                        : generatePersonProfileHtml(appId, chatroomId, platformUid, person);
+                })() +
+            '</div>'
+        );
+    }
+
     function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
-        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-        var customFields = messager.custom_fields || {};
+        // 不處理已棄用的 fields
+        var skipAliases = ['name', 'assigned', 'createdTime', 'lastTime', 'chatCount'];
+
         var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var personDisplayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || '';
 
-        var messagerCase = ['age', 'email', 'gender', 'phone', 'remark', 'custom_fields'];
-        var messagerSelfCase = ['createdTime', 'lastTime', 'chatCount'];
+        var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
+        var agents = appsAgents[appId].agents;
+        var assignedIds = messager.assigned_ids || [];
+        var assignerNames = assignedIds.map(function(agentUserId) {
+            return agents[agentUserId].name;
+        });
+        var assignerNamesText = assignerNames.length > 1 ? assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名' : assignerNames.join('');
 
-        var tdHtmlBuilder = function(fieldId, field) {
-            var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-            var setsTypeEnums = api.appsFields.enums.setsType;
-            var readonly = 'name' !== field.alias && field.type === api.appsFields.enums.type.SYSTEM;
-            var fieldValue = '';
+        return (
+            '<form class="about-form">' +
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Name'] + '</label>' +
+                    '<div class="pr-0 col-9 d-flex">' +
+                        '<input class="form-control" type="text" placeholder="' + person.name + '" value="' + personDisplayName + '" autocapitalize="none" />' +
+                        '<button class="ml-2 btn btn-primary btn-update-name">更新</button>' +
+                    '</div>' +
+                '</div>' +
 
-            if (field.type === api.appsFields.enums.type.CUSTOM) {
-                fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
-            } else {
-                if (messagerCase.indexOf(field.alias) >= 0) {
-                    fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
-                } else if (messagerSelfCase.indexOf(field.alias) >= 0) {
-                    fieldValue = undefined !== messagerSelf[field.alias] ? messagerSelf[field.alias] : '';
-                } else {
-                    // 如果是名稱的話則是取用 displayName
-                    if ('name' === field.alias) {
-                        fieldValue = (messagerSelf.namings && messagerSelf.namings[platformUid]) || '';
-                    } else {
-                        fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
-                    }
-                }
-            }
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['First chat date'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                    '</div>' +
+                '</div>' +
 
-            // 在 html append 到 dom 上後，抓取資料找到指派人的欄位把資料填入
-            if ('assigned' === field.alias) {
-                // 指派人存放的位置在每個 chatroom 的 messager 裡
-                // 取得 chatroom messager 的 assigned_ids 來確認有指派給 chatshier 那些 users
-                var agents = appsAgents[appId].agents;
-                var assignedIds = messager.assigned_ids;
-                field.sets = [];
-                fieldValue = [];
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Recent chat date'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                    '</div>' +
+                '</div>' +
 
-                for (var agentUserId in agents) {
-                    field.sets.push({
-                        agentUserId: agentUserId,
-                        agentName: agents[agentUserId].name
-                    });
-                    fieldValue.push(0 <= assignedIds.indexOf(agentUserId));
-                }
-            }
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Chat time(s)'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="text" value="' + messagerSelf.chatCount + '" disabled />' +
+                    '</div>' +
+                '</div>' +
 
-            switch (field.setsType) {
-                case setsTypeEnums.SELECT:
-                    return (
-                        '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<select class="form-control td-inner" value="' + fieldValue + '">' +
-                                (function(sets) {
-                                    var opts = '<option value="">未選擇</option>';
-                                    for (var i in sets) {
-                                        opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                    }
-                                    return opts;
-                                })(field.sets) +
-                            '</select>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.MULTI_SELECT:
-                    var selectValues = fieldValue instanceof Array ? fieldValue : [];
-                    var multiSelectText = selectValues.reduce(function(output, value, i) {
-                        if (!value) {
-                            return output;
-                        }
+                '<div class="px-2 d-flex form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Assigned'] + '</label>' +
+                    '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
+                        '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                            '<span class="multi-select-values">' + assignerNamesText + '</span>' +
+                            '<span class="caret"></span>' +
+                        '</button>' +
+                        '<div class="multi-select-container dropdown-menu">' +
+                            (function() {
+                                return Object.keys(agents).map(function(agentUserId) {
+                                    var isAssigned = assignedIds.indexOf(agentUserId) >= 0;
+                                    return (
+                                        '<div class="dropdown-item">' +
+                                            '<div class="form-check form-check-inline">' +
+                                                '<label class="form-check-label">' +
+                                                    '<input type="checkbox" class="form-check-input" value="' + agentUserId + '"' + (isAssigned ? ' checked="true"' : '') + '>' +
+                                                    agents[agentUserId].name +
+                                                '</label>' +
+                                            '</div>' +
+                                        '</div>'
+                                    );
+                                }).join('');
+                            })() +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</form>' +
 
-                        output.push('assigned' === field.alias ? field.sets[i].agentName : field.sets[i]);
-                        return output;
-                    }, []).join(',');
+            '<hr />' +
 
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                                '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                                    '<span class="multi-select-values">' + multiSelectText + '</span>' +
-                                    '<span class="caret"></span>' +
-                                '</button>' +
-                                '<div class="multi-select-container dropdown-menu">' +
-                                    (function(sets) {
-                                        var checkboxes = '';
-                                        for (var i in sets) {
-                                            if (!sets[i]) {
-                                                continue;
-                                            }
-
-                                            if ('assigned' === field.alias) {
-                                                checkboxes += (
-                                                    '<div class="dropdown-item">' +
-                                                        '<div class="form-check form-check-inline">' +
-                                                            '<label class="form-check-label">' +
-                                                                '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                                sets[i].agentName +
-                                                            '</label>' +
-                                                        '</div>' +
-                                                    '</div>'
-                                                );
-                                            } else {
-                                                checkboxes += (
-                                                    '<div class="dropdown-item">' +
-                                                        '<div class="form-check form-check-inline">' +
-                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                            '<label class="form-check-label">' + sets[i] + '</label>' +
-                                                        '</div>' +
-                                                    '</div>'
-                                                );
-                                            }
-                                        }
-                                        return checkboxes;
-                                    })(field.sets) +
-                                '</div>' +
-                            '</div>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.CHECKBOX:
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.DATE:
-                    fieldValue = fieldValue || 0;
-                    var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.TEXT:
-                case setsTypeEnums.NUMBER:
-                default:
-                    var placeholder = 'name' === field.alias ? person.name : '尚未輸入';
-                    var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
-                    inputType = 'email' === field.alias ? 'email' : inputType;
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="' + placeholder + '" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + ' autocapitalize="none" />' +
-                        '</td>'
-                    );
-            }
-        };
-
-        var messagerProfileHtml =
-            '<table class="table table-hover panel-table">' +
+            '<form class="fields-form">' +
                 (function() {
                     // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
-                    var fieldKeys = Object.keys(appsFields[appId].fields);
-                    fieldKeys.sort(function(a, b) {
+                    var fields = appsFields[appId].fields;
+                    var fieldIds = Object.keys(fields);
+                    fieldIds.sort(function(a, b) {
                         return appsFields[appId].fields[a].order - appsFields[appId].fields[b].order;
                     });
-                    var rowsHtml = '';
 
-                    for (var i in fieldKeys) {
-                        var fieldId = fieldKeys[i];
-                        var field = appsFields[appId].fields[fieldId];
-                        rowsHtml +=
-                            '<tr id="' + fieldId + '">' +
-                                '<th class="profile-label user-info-th" alias="' + field.alias + '">' + (transJson[field.text] || field.text) + '</th>' +
-                                tdHtmlBuilder(fieldId, field) +
-                            '</tr>';
-                    }
-                    return rowsHtml;
+                    var setsTypeEnums = api.appsFields.enums.setsType;
+                    var customFields = messager.custom_fields || {};
+
+                    return fieldIds.map(function(fieldId) {
+                        var field = fields[fieldId];
+                        if (skipAliases.includes(field.alias)) {
+                            return '';
+                        }
+
+                        var fieldValue = '';
+                        if (field.type === api.appsFields.enums.type.CUSTOM) {
+                            fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
+                        } else {
+                            fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
+                        }
+
+                        switch (field.setsType) {
+                            case setsTypeEnums.SELECT:
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" alias="' + field.alias + '" type="' + field.setsType + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<select class="form-control" value="' + fieldValue + '">' +
+                                                '<option value="">未選擇</option>' +
+                                                (function(sets) {
+                                                    return sets.map(function(set, i) {
+                                                        return (
+                                                            '<option value="' + set + '" ' + (set === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>'
+                                                        );
+                                                    }).join('');
+                                                })(field.sets) +
+                                            '</select>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case setsTypeEnums.MULTI_SELECT:
+                                var selectValues = fieldValue instanceof Array ? fieldValue : [];
+                                var multiSelectText = selectValues.reduce(function(output, value, i) {
+                                    if (!value) {
+                                        return output;
+                                    }
+                                    output.push(field.sets[i]);
+                                    return output;
+                                }, []).join(',');
+
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" alias="' + field.alias + '" type="' + field.setsType + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
+                                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
+                                                '<span class="caret"></span>' +
+                                            '</button>' +
+                                            '<div class="multi-select-container dropdown-menu">' +
+                                                (function(sets) {
+                                                    return sets.map(function(set, i) {
+                                                        return (
+                                                            '<div class="dropdown-item">' +
+                                                                '<div class="form-check form-check-inline">' +
+                                                                    '<input type="checkbox" class="form-check-input" value="' + set + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                                    '<label class="form-check-label">' + set + '</label>' +
+                                                                '</div>' +
+                                                            '</div>'
+                                                        );
+                                                    }).join('');
+                                                })(field.sets) +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case setsTypeEnums.CHECKBOX:
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" alias="' + field.alias + '" type="' + field.setsType + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + '/>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case setsTypeEnums.DATE:
+                                fieldValue = fieldValue || 0;
+                                var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" alias="' + field.alias + '" type="' + field.setsType + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control" type="datetime-local" value="' + fieldDateStr + '" ' + '/>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case setsTypeEnums.TEXT:
+                            case setsTypeEnums.NUMBER:
+                            default:
+                                var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
+                                inputType = 'email' === field.alias ? 'email' : inputType;
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" alias="' + field.alias + '" type="' + field.setsType + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" autocapitalize="none" />' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                        }
+                    }).join('');
                 })() +
-            '</table>';
+                '<div class="text-center profile-confirm">' +
+                    '<button type="button" class="btn btn-info">更新資料</button>' +
+                '</div>' +
 
-        return messagerProfileHtml;
+                '<hr />' +
+
+                '<div class="px-2 d-flex align-items-center form-group tags-wrapper">' +
+                    '<label class="px-0 col-3 col-form-label">標籤</label>' +
+                    '<div class="pr-0 col-9 tags-container">' +
+                        (function() {
+                            var tags = messager.tags || [];
+                            if (0 === tags.length) {
+                                return '<span>無標籤</span>';
+                            }
+
+                            return tags.map(function(tag) {
+                                return (
+                                    '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                        '<span class="pt-2 pb-2 pl-2 chip-text">' + tag + '</span>' +
+                                        '<i class="p-2 fas fa-times remove-chip"></i>' +
+                                    '</div>'
+                                );
+                            }).join('');
+                        })() +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex align-items-center form-group tags-wrapper">' +
+                    '<label class="px-0 col-3 col-form-label"></label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control tag-input" type="text" placeholder="新增標籤" autocapitalize="none" />' +
+                    '</div>' +
+                '</div>' +
+            '</form>'
+        );
     }
 
     function generateChatroomProfileHtml(appId, appType, chatroom) {
@@ -1731,53 +1773,57 @@
         var chatroomName = chatroom.name || '';
         var isChatshierApp = CHATSHIER === appType;
 
-        var html =
-            '<table class="table table-hover panel-table">' +
-                '<tr>' +
-                    '<th class="profile-label">群組名稱</th>' +
-                    '<td class="d-flex profile-content">' +
-                        '<input class="form-control td-inner chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
-                        '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
-                    '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="py-3 profile-label align-top">' + (isChatshierApp ? '群組成員' : '客戶成員') + '</th>' +
-                    '<td class="profile-content">' +
-                        (function() {
-                            var html = '';
-                            if (isChatshierApp) {
-                                for (var memberId in group.members) {
-                                    var memberUserId = group.members[memberId].user_id;
-                                    var memberUser = users[memberUserId];
-                                    html += (
-                                        '<div class="person-chip">' +
-                                            '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
-                                            '<span>' + memberUser.name + '</span>' +
-                                        '</div>'
-                                    );
-                                }
-                            } else {
-                                var messagers = chatroom.messagers;
-                                for (var messagerId in messagers) {
-                                    var messager = messagers[messagerId];
-                                    if (CHATSHIER === messager.type) {
-                                        continue;
-                                    }
-                                    var consumer = consumers[messager.platformUid];
-                                    html +=
-                                        '<div class="person-chip">' +
-                                            '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
-                                            '<span>' + consumer.name + '</span>' +
-                                        '</div>';
-                                }
+        return (
+            '<div class="px-2 d-flex align-items-center form-group">' +
+                '<label class="px-0 col-3 col-form-label">群組名稱</label>' +
+                '<div class="pr-0 col-9 d-flex profile-content">' +
+                    '<input class="form-control chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
+                    '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="px-2 d-flex align-items-center form-group">' +
+                '<label class="px-0 col-3 col-form-label">' + (isChatshierApp ? '群組成員' : '客戶成員') + '</label>' +
+                '<div class="pr-0 col-9 d-flex profile-content">' +
+                    (function() {
+                        var html = '';
+                        if (isChatshierApp) {
+                            for (var memberId in group.members) {
+                                var memberUserId = group.members[memberId].user_id;
+                                var memberUser = users[memberUserId];
+                                html += (
+                                    '<div class="person-chip">' +
+                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
+                                        '<span>' + memberUser.name + '</span>' +
+                                    '</div>'
+                                );
                             }
-                            return html;
-                        })() +
-                    '</td>' +
-                '</tr>' +
-            '</table>';
+                        } else {
+                            var messagers = chatroom.messagers;
+                            for (var messagerId in messagers) {
+                                var messager = messagers[messagerId];
+                                if (CHATSHIER === messager.type) {
+                                    continue;
+                                }
+                                var consumer = consumers[messager.platformUid];
+                                html +=
+                                    '<div class="person-chip">' +
+                                        '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
+                                        '<span>' + consumer.name + '</span>' +
+                                    '</div>';
+                            }
+                        }
+                        return html;
+                    })() +
+                '</div>' +
+            '</div>' +
 
-        return html;
+            '<div class="p-2 leave-group-room text-right">' +
+                '<button type="button" class="btn btn-danger">' +
+                    '<i class="fas fa-sign-out-alt fa-fw"></i>' +
+                    '<span>離開群組</span>' +
+                '</button>' +
+            '</div>'
+        );
     }
 
     // ==========end initialize function========== //
@@ -1812,7 +1858,7 @@
             case 'unassigned':
                 $allTablinks.addClass('d-none');
                 var isFindAssigned = ('assigned' === selectRel);
-                $('[alias="assigned"] .td-inner .multi-select-values').each(function() {
+                $('[alias="assigned"] .multi-select-wrapper .multi-select-values').each(function() {
                     var assignedText = $(this).text();
                     var assignedUsers = assignedText ? assignedText.split(',') : [];
 
@@ -1917,6 +1963,10 @@
             }
         } else {
             $chatContentPanel.removeClass('d-none');
+            $profileToggle.addClass('active');
+            $profilePanel.addClass('d-none');
+            $ticketToggle.removeClass('active');
+            $ticketPanel.removeClass('d-none');
         }
         scrollMessagePanelToBottom(appId, chatroomId);
 
@@ -2134,25 +2184,27 @@
         });
     }
 
-    function showImagemapArea() {
+    function showImagemapArea(ev) {
         $('.imagemap-area').toggleClass('d-none').siblings().toggleClass('d-none');
-        let appId = $(this).parent().parent().parent().siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+        let appId = $(ev.target).parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+
         return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
             let appsImagemaps = resJson.data;
+            if (!appsImagemaps[appId]) {
+                return;
+            }
             let imagemaps = appsImagemaps[appId].imagemaps;
             let imagemapIds = Object.keys(imagemaps);
             if (0 >= imagemapIds.length) {
                 return;
             }
-            return Promise.resolve(imagemaps);
-        }).then((imagemaps) => {
-            let imagemapIds = Object.keys(imagemaps);
+
             $('.imagemap-area').empty();
             imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
                 let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
                 $('.imagemap-area').append(str);
             });
-        }).catch((ERR) => {
+        }).catch(() => {
             $.notify('載入imagemap失敗', { type: 'danger' });
         });
     }
@@ -2367,6 +2419,75 @@
         if (13 === code) {
             $(this).blur(); // 如果按了ENTER就離開此INPUT，觸發on blur事件
         }
+    }
+
+    function userRemoveTag(ev) {
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+        var tags = messager.tags || [];
+
+        var tag = $(ev.target).siblings('.chip-text').text();
+        var tagIdx = tags.indexOf(tag);
+        if (tagIdx < 0) {
+            return Promise.resolve();
+        }
+
+        tags.splice(tagIdx, 1);
+        var putMessager = {
+            tags: tags
+        };
+
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
+        });
+    }
+
+    function userAddTag(ev) {
+        if (13 !== ev.keyCode) {
+            return;
+        }
+        ev.preventDefault();
+
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+        var tags = messager.tags || [];
+
+        var tag = ev.target.value;
+        if (tags.indexOf(tag) >= 0) {
+            // 已存在的標籤不要重複加入
+            return Promise.resolve();
+        }
+
+        tags.unshift(tag);
+        var putMessager = {
+            tags: tags
+        };
+
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
+        });
     }
 
     function userInfoConfirm(ev) {
@@ -2784,7 +2905,7 @@
 
     function multiSelectChange(ev) {
         var $selectContainer = $(ev.target).parents('.multi-select-container');
-        var $selectValues = $selectContainer.parents('.td-inner').find('.multi-select-values');
+        var $selectValues = $selectContainer.parents('.multi-select-wrapper').find('.multi-select-values');
 
         var valArr = [];
         var textArr = [];

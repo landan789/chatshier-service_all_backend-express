@@ -515,11 +515,13 @@
     .profile-group .panel-table {
         margin: 0%;
         table-layout: fixed; }
-    .profile-group .profile-label {
-        width: 35%; }
-    .profile-group .profile-label,
-    .profile-group .user-info-td {
-        vertical-align: middle; }
+    .profile-group .tag-chip {
+        background-color: #ffbfe8;
+        border-radius: 1.5rem; }
+        .profile-group .tag-chip .chip-text {
+            white-space: pre-line; }
+        .profile-group .tag-chip .remove-chip {
+            cursor: pointer; }
     .profile-group input,
     .profile-group select, 
     .profile-group button {
