@@ -100,7 +100,10 @@ function init(server) {
             }).then(() => {
                 return botSvc.create(appId, app);
             }).then(() => {
+                return botSvc.eventType(req, res, appId, app);
+            }).then(() => {
                 return botSvc.retrievePlatformUid(req, app);
+
             }).then((_platformUid) => {
                 platformUid = _platformUid;
                 return platformUid && botSvc.getProfile(platformUid, appId, app);
@@ -291,9 +294,10 @@ function init(server) {
                 code: ERROR.CODE
             };
             console.log('293.................................');
-            console.log(req);            
-            console.log(JSON.stringify(ERROR, null, 4));
-            console.trace(json);
+            console.log(req);
+            console.log(ERROR);
+            console.trace();
+            console.log('300.................................');
             let idx = webhookProcQueue.indexOf(webhookPromise);
             idx >= 0 && webhookProcQueue.splice(idx, 1);
     

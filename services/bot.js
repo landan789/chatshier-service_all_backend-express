@@ -15,6 +15,7 @@ module.exports = (function() {
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const WECHAT = 'WECHAT';
+    const UNFOLLOW = 'unfollow'
 
     const LINE_WEBHOOK_VERIFY_UID = 'Udeadbeefdeadbeefdeadbeefdeadbeef';
     const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
@@ -175,6 +176,28 @@ module.exports = (function() {
             return platformUId;
         }
 
+        eventType(req, res, appId, app) {
+            let body = req.body;
+            switch (app.type) {
+                case LINE:
+                    let events = body.events;
+                    let i;
+                    for(i in events){
+                        let event = events[i];
+                        if ( UNFOLLOW === event.type) {
+                            return Promise.reject(new Error('unfollow'));
+                        };
+                    };
+                    return Promise.resolve();
+
+                case FACEBOOK:
+                    return Promise.resolve();
+                case WECHAT:
+                    return Promise.resolve();
+                default:
+                    return Promise.resolve();
+            }
+        }
         /**
          * 根據不同 BOT 把 webhook 打進來的 HTTP BODY 轉換成 message 格式
          *
