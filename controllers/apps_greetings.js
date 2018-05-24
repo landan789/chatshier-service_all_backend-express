@@ -13,6 +13,7 @@ module.exports = (function() {
             this.getAll = this.getAll.bind(this);
             this.getOne = this.getOne.bind(this);
             this.postOne = this.postOne.bind(this);
+            this.putOne = this.putOne.bind(this);
             this.deleteOne = this.deleteOne.bind(this);
         }
 
@@ -110,6 +111,42 @@ module.exports = (function() {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: result
+                };
+                res.status(200).json(json);
+            }).catch((ERR) => {
+                let json = {
+                    status: 0,
+                    msg: ERR.MSG,
+                    code: ERR.CODE
+                };
+                res.status(500).json(json);
+            });
+        }
+
+        putOne(req, res) {
+            let appId = req.params.appid;
+            let greetingId = req.params.greetingid;
+            let type = req.body.type;
+            let text = req.body.text;
+            let putGreeting = {
+                type,
+                text
+            };
+            return this.appsRequestVerify(req).then((checkedAppId) => {
+                return new Promise((resolve, reject) => {
+                    appsGreetingsMdl.update(appId, greetingId, putGreeting, (appsGreetings) => {
+                        if (!appsGreetings) {
+                            reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
+                            return;
+                        }
+                        resolve(appsGreetings);
+                    });
+                });
+            }).then((appsGreetings) => {
+                let json = {
+                    status: 1,
+                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
+                    data: appsGreetings || {}
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
