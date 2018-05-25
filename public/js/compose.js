@@ -468,9 +468,9 @@
         }
 
         function refreshAvailable() {
-            let availableConut = findAvailableConut();
+            let availableCount = findavailableCount();
             let $availableCount = $composeAddModal.find('#availableCount');
-            $availableCount.text('有 ' + availableConut + ' 筆符合的發送對象').removeClass('d-none');
+            $availableCount.text('有 ' + availableCount + ' 筆符合的發送對象').removeClass('d-none');
         }
 
         function retrieveConditions() {
@@ -519,8 +519,8 @@
             return conditions;
         }
 
-        function findAvailableConut() {
-            let availableConut = 0;
+        function findavailableCount() {
+            let availableCount = 0;
             let conditions = retrieveConditions();
             // console.log(JSON.stringify(conditions, void 0, 2));
 
@@ -602,12 +602,12 @@
                             }
                         }
 
-                        isAvailable && availableConut++;
+                        isAvailable && availableCount++;
                     }
                 }
             }
 
-            return availableConut;
+            return availableCount;
         }
 
         function insertSubmit() {
@@ -689,27 +689,21 @@
                 composes.push(compose);
             });
 
-            let nextRequest = function(i) {
-                if (i >= appIds.length) {
-                    return Promise.resolve();
-                }
-
-                let appId = appIds[i];
-                return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
-                    resJsons.forEach((resJson) => {
-                        let _appsComposes = resJson.data;
-                        let _composes = _appsComposes[appId].composes;
-                        Object.assign(appsComposes[appId].composes, _composes);
-                    });
-                }).then(() => {
-                    return nextRequest(i + 1);
-                });
-            };
-
             $composeAddModal.find('#composeAddSubmitBtn').attr('disabled', true);
-            // 如果是屬於草稿則不做立即發送動作
-            // 將群發訊息存入資料庫，等待使用者再行編輯
-            return nextRequest(0).then(() => {
+            let appId = nowSelectAppId;
+            let insertedAppsComposes = {
+                [appId]: {
+                    composes: {}
+                }
+            };
+            return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
+                resJsons.forEach((resJson) => {
+                    let _appsComposes = resJson.data;
+                    let _composes = _appsComposes[appId].composes;
+                    Object.assign(insertedAppsComposes[appId].composes, _composes);
+                    Object.assign(appsComposes[appId].composes, _composes);
+                });
+            }).then(() => {
                 // 立即群發動作將資料包裝為 socket 資料
                 // 使用 socket 發送至所有用戶端
                 if (!isDraft && isSendNow) {
@@ -719,19 +713,41 @@
                     };
 
                     return new Promise((resolve, reject) => {
-                        socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
-                            if (err) {
-                                return reject(err);
+                        socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (json) => {
+                            if (!json || (json && !json.status)) {
+                                return reject(json);
                             }
-                            resolve();
+                            resolve(json);
+                        });
+                    }).then((json) => {
+                        let availableCount = json.data.availableCount;
+                        let successCount = json.data.successCount;
+
+                        return Promise.all(Object.keys(insertedAppsComposes).map((appId) => {
+                            let composes = insertedAppsComposes[appId].composes;
+                            return Promise.all(Object.keys(composes).map((composeId) => {
+                                let putCompose = {
+                                    availableCount: availableCount,
+                                    successCount: successCount
+                                };
+                                return api.appsComposes.update(appId, composeId, userId, putCompose).then((resJson) => {
+                                    let _appsComposes = resJson.data;
+                                    let _composes = _appsComposes[appId].composes;
+                                    Object.assign(appsComposes[appId].composes, _composes);
+                                });
+                            }));
+                        })).then(() => {
+                            return json;
                         });
                     });
                 }
-            }).then(() => {
+            }).then((json) => {
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $composeAddModal.modal('hide');
                 if (isSendNow) {
-                    $.notify('發送成功', { type: 'success' });
+                    let availableCount = json.data.availableCount;
+                    let successCount = json.data.successCount;
+                    $.notify('符合條件的有 ' + availableCount + ' 位，已成功發送給 ' + successCount + ' 位', { type: 'success' });
                 } else {
                     $.notify('新增成功', { type: 'success' });
                 }
@@ -856,6 +872,7 @@
                             }).join('');
                         })(compose.conditions || []) +
                     '</td>' +
+                    '<td>' + (compose.successCount ? compose.successCount : '無紀錄') + '</td>' +
                     '<td>' +
                         '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isHistory ? 'fa-share-square' : 'fa-edit') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
                         (isHistory ? '' : '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>') +

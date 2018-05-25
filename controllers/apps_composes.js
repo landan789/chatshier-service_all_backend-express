@@ -124,30 +124,29 @@ module.exports = (function() {
         }
 
         putOne(req, res) {
+            let appId = req.params.appid;
             let composeId = req.params.composeid;
-            let appIds;
-            let putCompose = {
-                type: req.body.type,
-                text: req.body.text,
-                time: req.body.time,
-                status: !!req.body.status,
-                ageRange: '' === req.body.ageRange ? [] : req.body.ageRange,
-                gender: req.body.gender,
-                field_ids: req.body.field_ids || {}
-            };
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appIds = checkedAppIds;
+            let putCompose = {};
+            ('string' === typeof req.body.type) && (putCompose.type = req.body.type);
+            ('string' === typeof req.body.text) && (putCompose.text = req.body.text);
+            ('number' === typeof req.body.time) && (putCompose.time = req.body.time);
+            (undefined !== req.body.status) && (putCompose.status = !!req.body.status);
+            (req.body.conditions instanceof Array) && (putCompose.conditions = req.body.conditions);
+            ('number' === typeof req.body.availableCount) && (putCompose.availableCount = req.body.availableCount);
+            ('number' === typeof req.body.successCount) && (putCompose.successCount = req.body.successCount);
+
+            return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {
                     return Promise.reject(API_ERROR.COMPOSEID_WAS_EMPTY);
                 };
 
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許更新
-                if (!putCompose.time || new Date(putCompose.time).getTime() < new Date().getTime()) {
+                if (putCompose.time && new Date(putCompose.time).getTime() < Date.now()) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
-                return appsComposesMdl.update(appIds, composeId, putCompose).then((_appsComposes) => {
+                return appsComposesMdl.update(appId, composeId, putCompose).then((_appsComposes) => {
                     if (!_appsComposes) {
                         return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_UPDATE);
                     }

@@ -191,6 +191,9 @@ function init(server) {
                 return message;
             });
 
+            let availableCount = 0;
+            let successCount = 0;
+
             return composeHlp.findAvailableMessagers(conditions).then((appsChatroomsMessagers) => {
                 let appIds = Object.keys(appsChatroomsMessagers);
                 return Promise.all(appIds.map((appId) => {
@@ -201,7 +204,15 @@ function init(server) {
                         let messagers = chatroom.messagers;
                         let messagerIds = Object.keys(chatroom.messagers);
                         let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
-                        return recipientUids.length > 0 && botSvc.multicast(recipientUids, messages, appId, app);
+
+                        if (0 === recipientUids.length) {
+                            return Promise.resolve();
+                        }
+
+                        availableCount++;
+                        return botSvc.multicast(recipientUids, messages, appId, app).then(() => {
+                            successCount++;
+                        }).catch((err) => console.error(err));
                     })).then(() => {
                         return Promise.all(chatroomIds.map((chatroomId) => {
                             return Promise.all(messages.map((message) => {
@@ -237,7 +248,14 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                ('function' === typeof callback) && callback();
+                let json = {
+                    status: 1,
+                    data: {
+                        availableCount: availableCount,
+                        successCount: successCount
+                    }
+                };
+                ('function' === typeof callback) && callback(json);
             }).catch((ERR) => {
                 let json = {
                     status: 0,

@@ -3,27 +3,24 @@ module.exports = (function() {
     const appsChatroomsMdl = require('../models/apps_chatrooms');
 
     const CHATSHIER = 'CHATSHIER';
+    const ALL = 'ALL';
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
 
     class ComposeHelper {
         /**
          * @param {Array<any>} conditions
-         * @param {string} [appId]
          */
-        findAvailableMessagers(conditions, appId) {
+        findAvailableMessagers(conditions) {
             let availableMessagers = {};
             let apps;
             let appIds;
-            let appsChatrooms;
 
             return appsMdl.find().then((_apps) => {
                 apps = _apps || {};
-                appIds = appId ? [appId] : Object.keys(apps);
+                appIds = Object.keys(apps);
                 return appsChatroomsMdl.find(appIds);
-            }).then((_appsChatrooms) => {
-                appsChatrooms = _appsChatrooms;
-
+            }).then((appsChatrooms) => {
                 for (let i in appIds) {
                     let _appId = appIds[i];
                     let app = apps[_appId];
@@ -50,7 +47,7 @@ module.exports = (function() {
                                 let condition = conditions[i];
 
                                 if ('CHATBOT' === condition.type) {
-                                    if (condition.values.includes('ALL')) {
+                                    if (condition.values.includes(ALL)) {
                                         isAvailable = true;
                                     } else if (condition.values.includes(LINE)) {
                                         isAvailable = LINE === app.type;
