@@ -775,7 +775,7 @@
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     var consumer = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
-                    var consumerUid = consumer.platformUid;
+                    var consumerUid = consumer ? consumer.platformUid : '';
                     if (isGroupChatroom) {
                         var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
                         $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, consumer));

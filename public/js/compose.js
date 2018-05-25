@@ -16,7 +16,6 @@
     let nowSelectAppId = '';
     let $jqDoc = $(document);
     let $appSelector = $('#appSelector');
-    let timeInMs = (Date.now() + 1000);
 
     let $historyTableBody = $('#composesHistoryTable tbody');
     let $reservationTableBody = $('#composesReservationTable tbody');
@@ -81,6 +80,14 @@
             $composesEditDtInput.focus();
         });
     }
+
+    // 當有收到訊息發送的事件時更新 compose
+    socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, function(data) {
+        /** @type {ChatshierChatSocketBody} */
+        let socketBody = data;
+        let appId = socketBody.app_id;
+        appId === nowSelectAppId && loadComposes(nowSelectAppId);
+    });
 
     Promise.all([
         api.apps.findAll(userId),
@@ -675,7 +682,8 @@
                     type: 'text',
                     text: $(this).val(),
                     status: !isDraft,
-                    time: isSendNow ? Date.now() + 30000 : reserveTime,
+                    time: isSendNow ? Date.now() : reserveTime,
+                    isImmediately: isSendNow,
                     conditions: conditions
                 };
                 composes.push(compose);
@@ -693,25 +701,6 @@
                         let _composes = _appsComposes[appId].composes;
                         Object.assign(appsComposes[appId].composes, _composes);
                     });
-
-                    // 立即群發動作將資料包裝為 socket 資料
-                    // 使用 socket 發送至所有用戶端
-                    if (!isDraft && isSendNow) {
-                        let socketBody = {
-                            userId: userId,
-                            appId: appId,
-                            composes: composes
-                        };
-
-                        return new Promise((resolve, reject) => {
-                            socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
-                                if (err) {
-                                    return reject(err);
-                                }
-                                resolve();
-                            });
-                        });
-                    }
                 }).then(() => {
                     return nextRequest(i + 1);
                 });
@@ -721,9 +710,31 @@
             // 如果是屬於草稿則不做立即發送動作
             // 將群發訊息存入資料庫，等待使用者再行編輯
             return nextRequest(0).then(() => {
+                // 立即群發動作將資料包裝為 socket 資料
+                // 使用 socket 發送至所有用戶端
+                if (!isDraft && isSendNow) {
+                    let socketBody = {
+                        conditions: conditions,
+                        composes: composes
+                    };
+
+                    return new Promise((resolve, reject) => {
+                        socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
+                            if (err) {
+                                return reject(err);
+                            }
+                            resolve();
+                        });
+                    });
+                }
+            }).then(() => {
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $composeAddModal.modal('hide');
-                $.notify('發送成功', { type: 'success' });
+                if (isSendNow) {
+                    $.notify('發送成功', { type: 'success' });
+                } else {
+                    $.notify('新增成功', { type: 'success' });
+                }
                 return loadComposes(nowSelectAppId);
             }).catch((err) => {
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
@@ -738,7 +749,7 @@
                     $.notify('群發時間必須大於現在時間', { type: 'danger' });
                     return;
                 }
-                $.notify('發送失敗', { type: 'danger' });
+                $.notify('處理失敗', { type: 'danger' });
             });
         }
     })();
@@ -780,7 +791,11 @@
         $reservationTableBody.empty();
 
         let composes = appsComposes[appId].composes;
-        for (let composeId in composes) {
+        let composeIds = Object.keys(composes);
+        composeIds.sort((a, b) => new Date(composes[b].time) - new Date(composes[a].time));
+
+        for (let i in composeIds) {
+            let composeId = composeIds[i];
             let compose = composes[composeId];
             if (compose.isDeleted) {
                 continue;
@@ -788,6 +803,7 @@
 
             let composeTime = new Date(compose.time).getTime();
             let isDraft = !compose.status;
+            let timeInMs = (Date.now() + 1000);
             let isReservation = compose.status && composeTime > timeInMs;
             let isHistory = composeTime <= timeInMs;
 

@@ -91,6 +91,8 @@ module.exports = (function() {
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
         'conditions': {type: Array, default: []},
+        'availableConut': {type: Number, default: 0},
+        'successConut': {type: Number, default: 0},
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });

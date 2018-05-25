@@ -81,6 +81,8 @@ module.exports = (function() {
 
         postOne(req, res) {
             let appId = req.params.appid;
+            let isImmediately = !!req.body.isImmediately;
+
             let postCompose = {
                 type: req.body.type,
                 text: req.body.text,
@@ -91,7 +93,7 @@ module.exports = (function() {
 
             return Promise.resolve().then(() => {
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許新增
-                if (!postCompose.time || new Date(postCompose.time).getTime() < Date.now()) {
+                if (!isImmediately && (!postCompose.time || new Date(postCompose.time).getTime() < Date.now())) {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 

@@ -1,13 +1,16 @@
 const schedule = require('node-schedule');
 const timerHlp = require('../helpers/timer');
+const composeHlp = require('../helpers/compose');
+const socketHlp = require('../helpers/socket');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
 const appsComposesMdl = require('../models/apps_composes');
-const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 /** @type {any} */
 const API_ERROR = require('../config/api_error.json');
+const SOCKET_EVENTS = require('../config/socket-events');
+
 const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 
@@ -19,112 +22,94 @@ let jobProcess = () => {
         if (!apps) {
             return Promise.reject(API_ERROR.APPS_FAILED_TO_FIND);
         }
+
         // LINE BOT 相異 apps 允許 同時間群發。
         // LINE BOT 相同 apps 只能 同時間發最多五則訊息。
         let appIds = Object.keys(apps);
         return Promise.all(appIds.map((appId) => {
             let app = apps[appId];
-            let messages = [];
-            let matchedChatrooms = {};
 
             if (CHATSHIER === app.type || app.isDeleted) {
                 return Promise.resolve(null);
             }
 
-            return Promise.all([
-                appsComposesMdl.find(appId),
-                appsChatroomsMessagersMdl.find(appId, null, null, app.type)
-            ]).then((results) => {
-                let appsComposes = results[0];
+            return appsComposesMdl.find(appId).then((appsComposes) => {
                 if (!appsComposes) {
                     return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
                 }
-
-                let appsChatroomsMessagers = results[1];
-                if (!appsChatroomsMessagers) {
-                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
-                }
-
                 let composes = appsComposes[appId].composes;
-                let chatrooms = appsChatroomsMessagers[appId].chatrooms;
-
-                for (let composeId in composes) {
+                let composeIds = Object.keys(composes);
+                composeIds = composeIds.filter((composeId) => {
                     let compose = composes[composeId];
-                    if (compose.isDeleted ||
-                        !(compose.text && compose.status && timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(compose.time))) {
-                        continue;
-                    }
+                    return (
+                        !compose.isDeleted &&
+                        !!compose.text &&
+                        compose.status &&
+                        timerHlp.minutedUnixTime(startedUnixTime) === timerHlp.minutedUnixTime(compose.time)
+                    );
+                });
 
-                    let composeAgeRange = compose.ageRange;
-                    let composeGender = compose.gender;
-                    let composeFields = compose.field_ids || {};
-
+                return Promise.all(composeIds.map((composeId) => {
+                    let compose = composes[composeId];
+                    let conditions = compose.conditions;
                     let message = {
+                        from: SYSTEM,
+                        messager_id: '',
                         type: compose.type,
                         text: compose.text,
+                        time: Date.now(),
                         src: compose.src || ''
                     };
-                    messages.push(message);
+                    let messages = [message];
 
-                    for (let chatroomId in chatrooms) {
-                        let chatroom = chatrooms[chatroomId];
-                        let messagers = chatroom.messagers;
-
-                        for (let messagerId in messagers) {
-                            let messager = messagers[messagerId];
-                            let messagerAge = messager.age;
-                            let messagerGender = messager.gender;
-                            let messagerFields = messager.custom_fields || {};
-                            let isMatch = true;
-
-                            if (composeAgeRange && messagerAge &&
-                                (messagerAge < composeAgeRange[0] || messagerAge > composeAgeRange[1])) {
-                                isMatch = false;
-                            }
-
-                            if (composeGender && messagerGender && messagerGender !== composeGender) {
-                                isMatch = false;
-                            }
-
-                            for (let fieldId in composeFields) {
-                                let messagerFieldValue = messagerFields[fieldId].value;
-                                let composeFieldValue = composeFields[fieldId].value;
-
-                                if (messagerFieldValue instanceof Array) {
-                                    for (let k in messagerFieldValue) {
-                                        if (messagerFieldValue[k] && composeFieldValue && messagerFieldValue[k] !== composeFieldValue) {
-                                            isMatch = false;
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    if (messagerFieldValue && composeFieldValue && messagerFieldValue !== composeFieldValue) {
-                                        isMatch = false;
-                                    }
-                                }
-                            }
-
-                            if (isMatch && !chatroom.platformGroupId) {
-                                matchedChatrooms[chatroomId] = messager.platformUid;
-                            }
+                    return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
+                        let _app = appsChatroomsMessagers[appId];
+                        if (!appsChatroomsMessagers[appId]) {
+                            return Promise.resolve([]);
                         }
-                    }
-                }
 
-                // 沒有訊息對象 或 沒有群發訊息 就不做處理
-                let recipientUids = Object.values(matchedChatrooms);
-                return recipientUids.length > 0 && messages.length > 0 && botSvc.multicast(recipientUids, messages, appId, app);
-            }).then(() => {
-                let chatroomIds = Object.keys(matchedChatrooms);
-                // 將所有已發送的訊息加到隸屬於 consumer 的 chatroom 中
-                return Promise.all(chatroomIds.map((chatroomId) => {
-                    return Promise.all(messages.map((message) => {
-                        message.from = SYSTEM;
-                        message.messager_id = '';
-                        message.time = Date.now();
-                        console.log('[database] insert each message to chatroom - ' + chatroomId);
-                        return appsChatroomsMessagesMdl.insert(appId, chatroomId, message);
-                    }));
+                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
+                        return Promise.all(chatroomIds.map((chatroomId) => {
+                            let chatroom = _app.chatrooms[chatroomId];
+                            let messagers = chatroom.messagers;
+                            let messagerIds = Object.keys(chatroom.messagers);
+                            let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+                            return recipientUids.length > 0 && botSvc.multicast(recipientUids, messages, appId, app);
+                        })).then(() => {
+                            return Promise.all(chatroomIds.map((chatroomId) => {
+                                return Promise.all(messages.map((message) => {
+                                    console.log('[database] insert each message to chatroom - ' + chatroomId);
+                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                                        if (!appsChatroomsMessages) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                        }
+
+                                        let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                                        let messageId = Object.keys(messagesInDB).shift() || '';
+                                        return messagesInDB[messageId];
+                                    });
+                                })).then((messages) => {
+                                    let chatroom = _app.chatrooms[chatroomId];
+                                    let messagers = chatroom.messagers;
+                                    let messagerIds = Object.keys(messagers);
+                                    let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+
+                                    /** @type {ChatshierChatSocketBody} */
+                                    let socketBody = {
+                                        app_id: appId,
+                                        type: _app.type,
+                                        chatroom_id: chatroomId,
+                                        chatroom: chatroom,
+                                        senderUid: '',
+                                        recipientUid: recipientUids.shift(),
+                                        messages: messages
+                                    };
+                                    // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                    return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                });
+                            }));
+                        });
+                    });
                 }));
             });
         }));
