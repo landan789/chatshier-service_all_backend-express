@@ -63,8 +63,11 @@ let jobProcess = () => {
 
                     return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
                         let _app = appsChatroomsMessagers[appId];
-                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
+                        if (!_app) {
+                            return Promise.resolve([]);
+                        }
 
+                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
                         return Promise.all(chatroomIds.map((chatroomId) => {
                             let chatroom = _app.chatrooms[chatroomId];
                             let messagers = chatroom.messagers;

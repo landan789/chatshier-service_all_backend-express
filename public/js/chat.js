@@ -1664,7 +1664,9 @@
                                 );
                             case SETS_TYPES.DATE:
                                 fieldValue = fieldValue || 0;
-                                var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
+                                var fieldDateTime = new Date(fieldValue).getTime();
+                                fieldDateTime = isNaN(fieldDateTime) ? new Date() : fieldDateTime - timezoneGap;
+                                var fieldDateStr = new Date(fieldDateTime).toJSON().split('.').shift();
                                 return (
                                     '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
                                         '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +

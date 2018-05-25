@@ -195,6 +195,10 @@ function init(server) {
             return Promise.all(appIds.map((appId) => {
                 return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
                     let app = appsChatroomsMessagers[appId];
+                    if (!app) {
+                        return Promise.resolve([]);
+                    }
+
                     let chatroomIds = Object.keys(app.chatrooms);
                     return Promise.all(chatroomIds.map((chatroomId) => {
                         let chatroom = app.chatrooms[chatroomId];

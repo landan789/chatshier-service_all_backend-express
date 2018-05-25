@@ -1096,7 +1096,8 @@
                     var tempFieldId = NEW_TAG_ID_PREFIX + Date.now();
                     _this.addFieldItem(appId, tempFieldId, {
                         text: '新客戶分類條件',
-                        type: fieldEnums.type.CUSTOM
+                        type: fieldEnums.type.CUSTOM,
+                        setsType: fieldEnums.setsType.MULTI_SELECT
                     });
 
                     var $tempField = $('#' + tempFieldId);
@@ -1117,25 +1118,18 @@
                             setsType: $row.find('.field-type select option:selected').val(),
                             order: i
                         };
-                        var setsValue = 0;
 
                         switch (data.setsType) {
                             case fieldEnums.setsType.MULTI_SELECT:
-                            case fieldEnums.setsType.CHECKBOX:
                             case fieldEnums.setsType.SELECT:
                                 // 單選的資料將 textarea 中的文字依照換行符號切割成陣列
                                 data.sets = $row.find('.field-sets .sets-item').val().split('\n');
                                 break;
+                            case fieldEnums.setsType.CHECKBOX:
                             case fieldEnums.setsType.NUMBER:
-                            case fieldEnums.setsType.DATE:
-                                // 文字、數字及日期資料用陣列的長度來定義顯示單行或多行
-                                setsValue = parseInt($row.find('.field-sets option:selected').val());
-                                data.sets = setsValue ? [0, 0] : [0];
-                                break;
                             case fieldEnums.setsType.TEXT:
                             default:
-                                setsValue = parseInt($row.find('.field-sets option:selected').val());
-                                data.sets = setsValue ? ['', ''] : [''];
+                                data.sets = [];
                                 break;
                         }
 
@@ -1162,7 +1156,7 @@
                 var fieldCollapseId = appId + '_collapse';
                 var $fieldBody = this.$appsFieldsWapper.find('#' + fieldCollapseId + ' .field-body');
 
-                var getSetsHtml = function(setsType, setsData) {
+                var generateSetsHtml = function(setsType, setsData) {
                     switch (setsType) {
                         case fieldEnums.setsType.SELECT:
                         case fieldEnums.setsType.MULTI_SELECT:
@@ -1178,23 +1172,17 @@
                                 '</textarea>'
                             );
                         case fieldEnums.setsType.CHECKBOX:
-                            return (
-                                '<input type="text" class="sets-item form-control" value="無設定" disabled />'
-                            );
                         case fieldEnums.setsType.TEXT:
                         case fieldEnums.setsType.DATE:
                         case fieldEnums.setsType.NUMBER:
                         default:
                             return (
-                                '<select class="sets-item form-control">' +
-                                    '<option value="0">單行</option>' +
-                                    '<option value="1">段落</option>' +
-                                '</select>'
+                                '<input type="text" class="sets-item form-control" value="無設定" disabled />'
                             );
                     }
                 };
 
-                $fieldBody.append(
+                var $fieldContent = $(
                     '<div class="card m-2 p-2 col-12 col-lg-6 field-content" id="' + fieldId + '">' +
                         '<div class="form-group row field-item field-name mb-1">' +
                             '<label class="col-3 col-form-label">名稱:</label>' +
@@ -1205,20 +1193,18 @@
                         '<div class="form-group row field-item field-type my-1">' +
                             '<label class="col-3 col-form-label">類型:</label>' +
                             '<div class="col-9 d-flex align-items-center">' +
-                                '<select class="form-control">' +
-                                    '<option value="' + fieldEnums.setsType.TEXT + '">文字</option>' +
+                                '<select class="form-control" value="' + field.setsType + '">' +
+                                    '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多選項</option>' +
+                                    '<option value="' + fieldEnums.setsType.SELECT + '">單一選項</option>' +
+                                    '<option value="' + fieldEnums.setsType.CHECKBOX + '">勾選</option>' +
                                     '<option value="' + fieldEnums.setsType.NUMBER + '">數字</option>' +
-                                    '<option value="' + fieldEnums.setsType.DATE + '">時間</option>' +
-                                    '<option value="' + fieldEnums.setsType.SELECT + '">單項選擇</option>' +
-                                    '<option value="' + fieldEnums.setsType.MULTI_SELECT + '">多項選擇</option>' +
-                                    '<option value="' + fieldEnums.setsType.CHECKBOX + '">單項勾選</option>' +
                                 '</select>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="form-group row field-item field-sets my-1">' +
+                        '<div class="form-group row field-item field-sets my-1 field-options">' +
                             '<label class="col-3 col-form-label">選項:</label>' +
-                            '<div class="col-9 d-flex align-items-center">' +
-                                getSetsHtml(field.setsType, field.sets) +
+                            '<div class="col-9 d-flex align-items-center option-content">' +
+                                generateSetsHtml(field.setsType, field.sets) +
                             '</div>' +
                         '</div>' +
                         '<div class="field-item field-delete mt-auto mb-1 py-2 w-100 text-right">' +
@@ -1229,23 +1215,37 @@
                         '</div>' +
                     '</div>'
                 );
-                var $fieldRow = $fieldBody.find('#' + fieldId);
-                var $fieldTypeSelect = $fieldRow.find('.field-type select');
+                $fieldBody.append($fieldContent);
+
+                var $fieldTypeSelect = $fieldContent.find('.field-type select');
                 $fieldTypeSelect.find('option[value="' + field.setsType + '"]').prop('selected', true);
 
                 if (field.type !== fieldEnums.type.CUSTOM) {
                     $fieldTypeSelect.prop('disabled', true);
-                    $fieldRow.find('.field-name input').prop('disabled', true);
-                    $fieldRow.find('.field-sets .sets-item').prop('disabled', true);
+                    $fieldContent.find('.field-name input').prop('disabled', true);
+                    $fieldContent.find('.field-sets .sets-item').prop('disabled', true);
                 }
 
                 $fieldTypeSelect.on('change', function(ev) {
-                    var $nextCol = $(ev.target.parentElement.nextElementSibling);
                     var selectedVal = ev.target.value;
-                    $nextCol.html(getSetsHtml(selectedVal, ['']));
+                    var $fieldItem = $(ev.target).parents('.field-item');
+                    var $fieldOptions = $fieldItem.siblings('.field-options');
+                    if (0 === $fieldOptions.length) {
+                        $fieldOptions = $(
+                            '<div class="form-group row field-item field-sets my-1 field-options">' +
+                                '<label class="col-3 col-form-label">選項:</label>' +
+                                '<div class="col-9 d-flex align-items-center option-content">' +
+                                    generateSetsHtml(selectedVal, ['']) +
+                                '</div>' +
+                            '</div>'
+                        );
+                        $fieldOptions.insertAfter($fieldItem);
+                    } else {
+                        $fieldOptions.find('.option-content').html(generateSetsHtml(selectedVal, ['']));
+                    }
                 });
 
-                $fieldRow.find('.btn.field-delete-btn').on('click', function(ev) {
+                $fieldContent.on('click', '.btn.field-delete-btn', function(ev) {
                     $(ev.target).parents('.field-content').remove();
                     for (var idx in _this.deleteListeners) {
                         _this.deleteListeners[idx]({

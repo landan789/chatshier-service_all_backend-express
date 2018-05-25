@@ -1,6 +1,7 @@
 module.exports = (function() {
     const appsMdl = require('../models/apps');
     const appsChatroomsMdl = require('../models/apps_chatrooms');
+    const appsFieldsMdl = require('../models/apps_fields');
     /** @type {any} */
     const API_ERROR = require('../config/api_error.json');
 
@@ -20,9 +21,12 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                 }
                 app = apps[appId];
-                return appsChatroomsMdl.find(appId);
-            }).then((appsChatrooms) => {
-                if (CHATSHIER === app.type) {
+                return Promise.all([
+                    appsChatroomsMdl.find(appId),
+                    appsFieldsMdl.find(appId)
+                ]);
+            }).then(([ appsChatrooms, appsFields ]) => {
+                if (CHATSHIER === app.type || !appsChatrooms || !appsFields) {
                     return availableMessagers;
                 }
 
@@ -76,11 +80,34 @@ module.exports = (function() {
                             } else if ('CUSTOM_FIELD' === condition.type) {
                                 let fieldId = condition.field_id;
                                 let customField = messager.custom_fields[fieldId];
+
                                 if (!customField) {
                                     isAvailable = false;
                                 } else {
+                                    let field = appsFields[appId].fields[fieldId];
                                     let customFieldValue = customField.value;
-                                    isAvailable = customFieldValue.indexOf(condition.values[0]) >= 0;
+                                    let SETS_TYPES = appsFieldsMdl.SetsTypes;
+
+                                    switch (field.setsType) {
+                                        case SETS_TYPES.SELECT:
+                                        case SETS_TYPES.MULTI_SELECT:
+                                            isAvailable = customFieldValue.indexOf(condition.values[0]) >= 0;
+                                            break;
+                                        case SETS_TYPES.NUMBER:
+                                            customFieldValue = parseFloat(customFieldValue);
+                                            let numberDown = parseFloat(condition.values[0]);
+                                            let numberUp = parseFloat(condition.values[1]);
+                                            isAvailable =
+                                                !isNaN(customFieldValue) &&
+                                                customFieldValue >= numberDown &&
+                                                customFieldValue <= numberUp;
+                                            break;
+                                        case SETS_TYPES.CHECKBOX:
+                                            isAvailable = customFieldValue && 'true' === condition.values[0];
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
                             }
 
