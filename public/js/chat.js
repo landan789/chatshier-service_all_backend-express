@@ -440,8 +440,6 @@
         return instance;
     })();
 
-    var preventUpdateProfile = false;
-
     // 攜帶欲 appId 向伺服器端註冊依據
     // 使伺服器端可以針對特定 app 發送 socket 資料
     var chatshierSocket = io(SOCKET_SERVER_URL);
@@ -461,9 +459,7 @@
     });
 
     // =====start chat event=====
-    $(document).on('click', '.chat-app-item', showChatApp);
-    $(document).on('click', '.ctrl-panel .tablinks', clickUserTablink);
-    $(document).on('click', '.tablinks-area .tablinks', clickUserTablink);
+    $(document).on('click', '.ctrl-panel .tablinks', userClickTablink);
     $(document).on('focus', '.message-input-container #submitMessageInput', readClientMsg); // 已讀客戶訊息
     $(document).on('click', '.message-input-container #submitMessageBtn', submitMessage); // 訊息送出
     $(document).on('click', '#imagemap', showImagemapArea);
@@ -562,12 +558,17 @@
             $.notify('更新失敗', { type: 'danger' });
         });
     });
+
+    $profilePanel.on('click', '.user-info .btn-update-name', changeConsumerDisplayName);
+    $profilePanel.on('click', '.assigners-select .multi-select-container .dropdown-item', userAssignMessager);
+    $profilePanel.on('click', '.fields-select .multi-select-container .dropdown-item', multiSelectChange);
     $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
     $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
+    $profilePanel.on('click', '.tag-chip .remove-chip', userRemoveTag);
+    $profilePanel.on('keydown', '.tags-wrapper .tag-input', userAddTag);
     // =====end profile event=====
 
     // =====start utility event=====
-    $(document).on('click', '.multi-select-container input[type="checkbox"]', multiSelectChange);
     $.extend($.expr[':'], {
         'containsi': function(elem, i, match, array) {
             return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || '').toLowerCase()) >= 0;
@@ -628,8 +629,7 @@
         }
         return Promise.all(socketRegPromises);
     }).then(function() {
-        generateAppsIcons(apps);
-        responseChatData(apps);
+        return initChatData(apps);
     });
     // #endregion
     // ==========
@@ -643,13 +643,13 @@
         (function keepConnection() {
             return new Promise(function(resolve) {
                 socket.once(SOCKET_EVENTS.DISCONNECT, function() {
-                    console.info('=== chatroom disconnected ===');
+                    $.notify('與伺服器失去了連線', { type: 'warning' });
                     resolve();
                 });
             }).then(function() {
                 return new Promise(function(resolve) {
                     socket.once(SOCKET_EVENTS.RECONNECT, function() {
-                        console.info('=== chatroom reconnected ===');
+                        $.notify('已恢復與伺服器的連線', { type: 'info' });
                         resolve();
                     });
                 });
@@ -775,20 +775,13 @@
                     updateMessagePanel(senderMsger, message, appId, chatroomId); // update 聊天室
 
                     var consumer = CHATSHIER === message.from ? consumers[recipientUid] : consumers[senderUid];
+                    var consumerUid = consumer ? consumer.platformUid : '';
                     if (isGroupChatroom) {
-                        var $chatroomProfile = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
-                        $chatroomProfile.find('.panel-table').remove();
-
-                        var chatroomProfileJqNode = $.parseHTML(generateChatroomProfileHtml(appId, app.type, chatroom));
-                        $(chatroomProfileJqNode.shift()).insertAfter($chatroomProfile.find('.photo-container'));
+                        var $chatroomProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]');
+                        $chatroomProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, consumer));
                     } else if (senderUid && consumer) {
-                        var consumerUid = consumer.platformUid;
-                        var $personProfileCard = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
-                        $personProfileCard.find('.panel-table').remove();
-
-                        var newPersonProfileJqNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, consumerUid, consumer));
-                        $(newPersonProfileJqNode.shift()).insertAfter($personProfileCard.find('.photo-container'));
-                        $personProfileCard.find('.consumer-avatar').attr('src', consumer.photo);
+                        var $personProfileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + consumerUid + '"]');
+                        $personProfileGroup.replaceWith(generateProfileHtml(appId, chatroomId, consumerUid, consumer));
                     }
                 }).then(function() {
                     return nextMessage(i + 1);
@@ -802,37 +795,44 @@
             });
         });
 
-        socket.on(SOCKET_EVENTS.UPDATE_MESSAGER_TO_CLIENT, function(data) {
-            if (preventUpdateProfile) {
-                preventUpdateProfile = false;
+        socket.on(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_CLIENT, function(data) {
+            var senderUid = data.senderUid;
+            if (senderUid === userId) {
                 return;
             }
+
             var appId = data.appId;
-            var platformUid = data.platformUid;
             var chatroomId = data.chatroomId;
             var messager = data.messager;
-            var consumer = consumers[platformUid];
-            appsChatrooms[appId].chatrooms[chatroomId].messagers[messager._id] = messager;
+            var messagerId = messager._id;
+            var platformUid = messager.platformUid;
 
-            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
-            // 有的話檢查此聊天室是否已有被加入至已指派
-            // 沒有的話複製聊天室的 tablink 至已指派中
             var app = apps[appId];
             var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
             var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
             var assignedIds = messager.assigned_ids;
+
             var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
             var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
-
             var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
             !isGroupChatroom && (tablinksSelectQuery += '[platform-uid="' + platformUid + '"]');
             var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
 
-            if (assignedIds.indexOf(userId) >= 0) {
+            var assignedIdsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].assigned_ids || [];
+            var tagsOld = appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId].tags || [];
+            var isAlreadyAssignedToMe = assignedIdsOld.indexOf(userId) >= 0;
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager;
+            var isAssignedToMe = assignedIds.indexOf(userId) >= 0;
+
+            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
+            // 有的話檢查此聊天室是否已有被加入至已指派
+            // 沒有的話複製聊天室的 tablink 至已指派中
+            if (isAssignedToMe) {
                 $unassignedCollapse.find(tablinksSelectQuery).remove();
                 var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
                 if (0 === $assignedChatroom.length) {
                     $assignedCollapse.prepend($appChatroom.clone());
+                    $.notify('"' + users[senderUid].name + '" 將客戶 "' + consumers[platformUid].name + '" 指派給你處理', { type: 'info' });
                 }
             } else {
                 $assignedCollapse.find(tablinksSelectQuery).remove();
@@ -840,82 +840,37 @@
                 if (0 === $unassignedChatroom.length) {
                     $unassignedCollapse.prepend($appChatroom.clone());
                 }
+
+                if (isAlreadyAssignedToMe) {
+                    $.notify('"' + users[senderUid].name + '" 移除了客戶 "' + consumers[platformUid].name + '" 給你的指派', { type: 'info' });
+                }
             }
 
             // 更新 UI 資料
-            var $profileCards = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
-            $profileCards.find('.panel-table').remove();
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            var $profileGroup = $('.profile-group[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]');
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
 
-            $profileCards.each(function() {
-                var $profileCard = $(this);
-                var newProfileNode = $.parseHTML(generatePersonProfileHtml(appId, chatroomId, platformUid, consumer));
-                $(newProfileNode.shift()).insertAfter($profileCard.find('.photo-container'));
+            var tagsNew = messager.tags || [];
+            var tagsAdd = tagsNew.filter(function(tag) {
+                return tagsOld.indexOf(tag) < 0;
             });
+            var tagsRemove = tagsOld.filter(function(tag) {
+                return tagsNew.indexOf(tag) < 0;
+            });
+
+            if (1 === tagsAdd.length) {
+                $.notify('"' + users[senderUid].name + '" 對客戶 "' + consumers[platformUid].name + '" 新增了 "' + tagsAdd.join('') + '" 標籤', { type: 'info' });
+            } else if (1 === tagsRemove.length) {
+                $.notify('"' + users[senderUid].name + '" 對客戶 "' + consumers[platformUid].name + '" 移除了 "' + tagsRemove.join('') + '" 標籤', { type: 'info' });
+            } else {
+                $.notify('"' + users[senderUid].name + '" 更新了客戶 "' + consumers[platformUid].name + '" 的資料', { type: 'info' });
+            }
         });
     }
 
-    function generateAppsIcons(apps) {
-        var $chatAppList = $('#chatAppList');
-        var $ctrlPanel = $('#ctrlPanel');
-        var $lineSideCollapse = $ctrlPanel.find('.line-collapse').empty();
-        var $fbSideCollapse = $ctrlPanel.find('.fb-collapse').empty();
-        var $wechatSideCollapse = $ctrlPanel.find('.wechat-collapse').empty();
-        var $chatshierSideCollapse = $ctrlPanel.find('.chatshier-collapse').empty();
-
-        for (var appId in apps) {
-            var app = apps[appId];
-
-            var buildHtml = function(type, imgSrc) {
-                var html =
-                    '<div class="chat-app-item" app-type="' + type + '" rel="' + appId + '" open="true" data-toggle="tooltip" data-placement="right" title="' + app.name + '">' +
-                        '<img class="software-icon" src="' + imgSrc + '">' +
-                        '<div class="unread-count d-none"></div>' +
-                    '</div>';
-                return html;
-            };
-
-            var tabAppItem = buildHtml(app.type, logos[app.type]);
-            switch (app.type) {
-                case LINE:
-                    $lineSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-line"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case FACEBOOK:
-                    $fbSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-facebook-messenger"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case WECHAT:
-                    $wechatSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fab fa-weixin"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                case CHATSHIER:
-                    $chatshierSideCollapse.append(
-                        '<li class="text-light nested list-group-item app-bot" app-id="' + appId + '">' +
-                            '<i class="fas fa-copyright"></i>' +
-                            '<span>' + app.name + '</span>' +
-                        '</li>'
-                    );
-                    break;
-                default:
-                    break;
-            }
-            tabAppItem && $chatAppList.prepend(tabAppItem);
-        }
-    }
-
-    function responseChatData(apps) {
+    function initChatData(apps) {
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
@@ -939,15 +894,15 @@
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
                 '<img class="app-icon" src="' + logos[LINE] + '" />' +
                 '<span>' + LINE + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested app-types show" app-type="' + LINE + '"></div>' +
+            '<div class="collapse nested app-types" app-type="' + LINE + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
                 '<img class="app-icon" src="' + logos[FACEBOOK] + '" />' +
                 '<span>' + FACEBOOK + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested app-types show" app-type="' + FACEBOOK + '"></div>' +
+            '<div class="collapse nested app-types" app-type="' + FACEBOOK + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
                 '<img class="app-icon" src="' + logos[CHATSHIER] + '" />' +
                 '<span>' + CHATSHIER + '</span>' +
@@ -993,21 +948,6 @@
         if (maxScrollHeight > 0) {
             $('#ctrlPanel .scroll-bottom').removeClass('d-none');
         }
-
-        // 根據訊息時間排序聊天室(訊息時間越晚越上面)
-        var sortByMessageTime = function(elA, elB) {
-            var tA = parseInt(new Date($(elA).find('.client-message').attr('message-time')).getTime());
-            var tB = parseInt(new Date($(elB).find('.client-message').attr('message-time')).getTime());
-            return tA < tB;
-        };
-
-        var $tablinksArea = $('#person .tablinks-area');
-        var $clients = $tablinksArea.find('#clients');
-        var $clientTabs = $clients.find('.tablinks');
-        $clientTabs.sort(sortByMessageTime);
-
-        $clients.empty();
-        $clients.append($clientTabs);
     }
 
     function generateLoadingJqElem() {
@@ -1373,8 +1313,8 @@
                     '<div class="template-sm">' +
                         `<div class="template-sm-title">${template.text}</div>` +
                         '<div class="template-sm-buttons">' +
-                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
+                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1385,9 +1325,9 @@
                         `<div class="template-title">${template.title}</div>` +
                         `<div class="template-desc">${template.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${template.actions[0].label} (輸出：${template.actions[0].text})</div>` +
-                            `<div class="template-button2">${template.actions[1].label} (輸出：${template.actions[1].text})</div>` +
-                            `<div class="template-button3">${template.actions[2].label} (輸出：${template.actions[2].text})</div>` +
+                            `<div class="template-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
+                            `<div class="template-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
+                            `<div class="template-button3">${template.actions[2].label} (輸出：${getTemplateOutput(template.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 );
@@ -1398,13 +1338,22 @@
                         `<div class="template-title">${column.title}</div>` +
                         `<div class="template-desc">${column.text}</div>` +
                         '<div class="template-buttons">' +
-                            `<div class="template-button1">${column.actions[0].label} (輸出：${column.actions[0].text})</div>` +
-                            `<div class="template-button2">${column.actions[1].label} (輸出：${column.actions[1].text})</div>` +
-                            `<div class="template-button3">${column.actions[2].label} (輸出：${column.actions[2].text})</div>` +
+                            `<div class="template-button1">${column.actions[0].label} (輸出：${getTemplateOutput(column.actions[0])})</div>` +
+                            `<div class="template-button2">${column.actions[1].label} (輸出：${getTemplateOutput(column.actions[1])})</div>` +
+                            `<div class="template-button3">${column.actions[2].label} (輸出：${getTemplateOutput(column.actions[2])})</div>` +
                         '</div>' +
                     '</div>'
                 ));
             default:
+        }
+    }
+
+    function getTemplateOutput(action) {
+        switch (action.type) {
+            case 'uri':
+                return action.uri;
+            default:
+                return action.text;
         }
     }
 
@@ -1464,51 +1413,16 @@
     }
 
     function createProfilePanel(requireData) {
-        var appId = requireData.appId;
-        var appType = requireData.type;
-        var chatroom = requireData.chatroom;
-        var chatroomId = requireData.chatroomId;
-        var platformUid = requireData.platformUid;
         var person = requireData.person;
         if (!person) {
             return;
         }
 
+        var appId = requireData.appId;
+        var chatroomId = requireData.chatroomId;
+        var platformUid = requireData.platformUid;
         person.photo = person.photo || 'image/user_large.png';
-        var isGroupChatroom = CHATSHIER === appType || !!chatroom.platformGroupId;
-        var profilePanelHtml = (
-            '<div class="profile-group animated fadeIn" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
-                '<div class="person-profile profile-content table-responsive">' +
-                    '<div class="photo-container">' +
-                        '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
-                    '</div>' +
-                    (function generateProfileHtml() {
-                        var html = '';
-
-                        if (isGroupChatroom) {
-                            html = (
-                                generateChatroomProfileHtml(appId, appType, chatroom) +
-                                '<div class="p-2 leave-group-room text-right">' +
-                                    '<button type="button" class="btn btn-danger">' +
-                                        '<i class="fas fa-sign-out-alt fa-fw"></i>' +
-                                        '<span>離開群組</span>' +
-                                    '</button>' +
-                                '</div>'
-                            );
-                        } else {
-                            html = (
-                                generatePersonProfileHtml(appId, chatroomId, platformUid, person) +
-                                '<div class="profile-confirm text-center">' +
-                                    '<button type="button" class="btn btn-info">確認</button>' +
-                                '</div>'
-                            );
-                        }
-                        return html;
-                    })() +
-                '</div>' +
-            '</div>'
-        );
-        $profileWrapper.append(profilePanelHtml);
+        $profileWrapper.append(generateProfileHtml(appId, chatroomId, platformUid, person));
     }
 
     function createTicketPanel(requireData) {
@@ -1553,285 +1467,329 @@
         $ticketWrapper.append(ticketPanelHtml);
     }
 
-    function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
-        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-        var customFields = messager.custom_fields || {};
-        var messagerSelf = findMessagerSelf(appId, chatroomId);
-
-        var messagerCase = ['age', 'email', 'gender', 'phone', 'remark', 'custom_fields'];
-        var messagerSelfCase = ['createdTime', 'lastTime', 'chatCount'];
-
-        var tdHtmlBuilder = function(fieldId, field) {
-            var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
-            var setsTypeEnums = api.appsFields.enums.setsType;
-            var readonly = 'name' !== field.alias && field.type === api.appsFields.enums.type.SYSTEM;
-            var fieldValue = '';
-
-            if (field.type === api.appsFields.enums.type.CUSTOM) {
-                fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
-            } else {
-                if (messagerCase.indexOf(field.alias) >= 0) {
-                    fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
-                } else if (messagerSelfCase.indexOf(field.alias) >= 0) {
-                    fieldValue = undefined !== messagerSelf[field.alias] ? messagerSelf[field.alias] : '';
-                } else {
-                    // 如果是名稱的話則是取用 displayName
-                    if ('name' === field.alias) {
-                        fieldValue = (messagerSelf.namings && messagerSelf.namings[platformUid]) || '';
-                    } else {
-                        fieldValue = undefined !== person[field.alias] ? person[field.alias] : '';
-                    }
-                }
-            }
-
-            // 在 html append 到 dom 上後，抓取資料找到指派人的欄位把資料填入
-            if ('assigned' === field.alias) {
-                // 指派人存放的位置在每個 chatroom 的 messager 裡
-                // 取得 chatroom messager 的 assigned_ids 來確認有指派給 chatshier 那些 users
-                var agents = appsAgents[appId].agents;
-                var assignedIds = messager.assigned_ids;
-                field.sets = [];
-                fieldValue = [];
-
-                for (var agentUserId in agents) {
-                    field.sets.push({
-                        agentUserId: agentUserId,
-                        agentName: agents[agentUserId].name
-                    });
-                    fieldValue.push(0 <= assignedIds.indexOf(agentUserId));
-                }
-            }
-
-            switch (field.setsType) {
-                case setsTypeEnums.SELECT:
-                    return (
-                        '<td class="profile-content user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<select class="form-control td-inner" value="' + fieldValue + '">' +
-                                (function(sets) {
-                                    var opts = '<option value="">未選擇</option>';
-                                    for (var i in sets) {
-                                        opts += '<option value="' + sets[i] + '" ' + (sets[i] === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>';
-                                    }
-                                    return opts;
-                                })(field.sets) +
-                            '</select>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.MULTI_SELECT:
-                    var selectValues = fieldValue instanceof Array ? fieldValue : [];
-                    var multiSelectText = selectValues.reduce(function(output, value, i) {
-                        if (!value) {
-                            return output;
-                        }
-
-                        output.push('assigned' === field.alias ? field.sets[i].agentName : field.sets[i]);
-                        return output;
-                    }, []).join(',');
-
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<div class="btn-group btn-block td-inner multi-select-wrapper">' +
-                                '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
-                                    '<span class="multi-select-values">' + multiSelectText + '</span>' +
-                                    '<span class="caret"></span>' +
-                                '</button>' +
-                                '<div class="multi-select-container dropdown-menu">' +
-                                    (function(sets) {
-                                        var checkboxes = '';
-                                        for (var i in sets) {
-                                            if (!sets[i]) {
-                                                continue;
-                                            }
-
-                                            if ('assigned' === field.alias) {
-                                                checkboxes += (
-                                                    '<div class="dropdown-item">' +
-                                                        '<div class="form-check form-check-inline">' +
-                                                            '<label class="form-check-label">' +
-                                                                '<input type="checkbox" class="form-check-input" value="' + sets[i].agentUserId + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                                sets[i].agentName +
-                                                            '</label>' +
-                                                        '</div>' +
-                                                    '</div>'
-                                                );
-                                            } else {
-                                                checkboxes += (
-                                                    '<div class="dropdown-item">' +
-                                                        '<div class="form-check form-check-inline">' +
-                                                            '<input type="checkbox" class="form-check-input" value="' + sets[i] + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                            '<label class="form-check-label">' + sets[i] + '</label>' +
-                                                        '</div>' +
-                                                    '</div>'
-                                                );
-                                            }
-                                        }
-                                        return checkboxes;
-                                    })(field.sets) +
-                                '</div>' +
-                            '</div>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.CHECKBOX:
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="td-inner" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + (readonly ? ' disabled' : '') + '/>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.DATE:
-                    fieldValue = fieldValue || 0;
-                    var fieldDateStr = new Date(new Date(fieldValue).getTime() - timezoneGap).toJSON().split('.').shift();
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="form-control td-inner" type="datetime-local" value="' + fieldDateStr + '" ' + (readonly ? 'readonly disabled' : '') + '/>' +
-                        '</td>'
-                    );
-                case setsTypeEnums.TEXT:
-                case setsTypeEnums.NUMBER:
-                default:
-                    var placeholder = 'name' === field.alias ? person.name : '尚未輸入';
-                    var inputType = setsTypeEnums.NUMBER === field.setsType ? 'tel' : 'text';
-                    inputType = 'email' === field.alias ? 'email' : inputType;
-                    return (
-                        '<td class="user-info-td" alias="' + field.alias + '" type="' + field.setsType + '" modify="' + (readonly ? 'false' : 'true') + '">' +
-                            '<input class="form-control td-inner" type="' + inputType + '" placeholder="' + placeholder + '" value="' + fieldValue + '" ' + (readonly ? 'readonly disabled' : '') + ' autocapitalize="none" />' +
-                        '</td>'
-                    );
-            }
-        };
-
-        var messagerProfileHtml =
-            '<table class="table table-hover panel-table">' +
+    function generateProfileHtml(appId, chatroomId, platformUid, person) {
+        return (
+            '<div class="profile-group" app-id="' + appId + '" chatroom-id="' + chatroomId + '" platform-uid="' + platformUid + '">' +
+                '<div class="photo-container">' +
+                    '<img class="consumer-avatar larger" src="' + person.photo + '" alt="無法顯示相片" />' +
+                '</div>' +
                 (function() {
-                    // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
-                    var fieldKeys = Object.keys(appsFields[appId].fields);
-                    fieldKeys.sort(function(a, b) {
-                        return appsFields[appId].fields[a].order - appsFields[appId].fields[b].order;
-                    });
-                    var rowsHtml = '';
-
-                    for (var i in fieldKeys) {
-                        var fieldId = fieldKeys[i];
-                        var field = appsFields[appId].fields[fieldId];
-                        rowsHtml +=
-                            '<tr id="' + fieldId + '">' +
-                                '<th class="profile-label user-info-th" alias="' + field.alias + '">' + (transJson[field.text] || field.text) + '</th>' +
-                                tdHtmlBuilder(fieldId, field) +
-                            '</tr>';
-                    }
-                    return rowsHtml;
+                    var app = apps[appId];
+                    var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
+                    var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
+                    return isGroupChatroom
+                        ? generateChatroomProfileHtml(appId, chatroomId)
+                        : generatePersonProfileHtml(appId, chatroomId, platformUid, person);
                 })() +
-            '</table>';
-
-        return messagerProfileHtml;
+            '</div>'
+        );
     }
 
-    function generateChatroomProfileHtml(appId, appType, chatroom) {
+    function generatePersonProfileHtml(appId, chatroomId, platformUid, person) {
+        // 不處理已棄用的 fields
+        var skipAliases = ['name', 'assigned', 'createdTime', 'lastTime', 'chatCount'];
+
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var personDisplayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || '';
+
+        var timezoneGap = new Date().getTimezoneOffset() * 60 * 1000;
+        var agents = appsAgents[appId].agents;
+        var assignedIds = messager.assigned_ids || [];
+        var assignerNames = assignedIds.map(function(agentUserId) {
+            return agents[agentUserId].name;
+        });
+        var assignerNamesText = assignerNames.length > 1 ? assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名' : assignerNames.join('');
+
+        return (
+            '<form class="about-form">' +
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Name'] + '</label>' +
+                    '<div class="pr-0 col-9 d-flex">' +
+                        '<input class="form-control" type="text" placeholder="' + person.name + '" value="' + personDisplayName + '" autocapitalize="none" />' +
+                        '<button type="button" class="ml-2 btn btn-primary btn-update-name">更新</button>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['First chat date'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.createdTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Recent chat date'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="datetime-local" value="' + new Date(new Date(messagerSelf.lastTime).getTime() - timezoneGap).toJSON().split('.').shift() + '" disabled />' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex align-items-center form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Chat time(s)'] + '</label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control" type="text" value="' + messagerSelf.chatCount + '" disabled />' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex form-group user-info">' +
+                    '<label class="px-0 col-3 col-form-label">' + transJson['Assigned'] + '</label>' +
+                    '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper assigners-select">' +
+                        '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                            '<span class="multi-select-values">' + assignerNamesText + '</span>' +
+                            '<span class="caret"></span>' +
+                        '</button>' +
+                        '<div class="multi-select-container dropdown-menu">' +
+                            (function() {
+                                return Object.keys(agents).map(function(agentUserId) {
+                                    var isAssigned = assignedIds.indexOf(agentUserId) >= 0;
+                                    return (
+                                        '<div class="px-3 dropdown-item">' +
+                                            '<div class="form-check form-check-inline">' +
+                                                '<label class="form-check-label">' +
+                                                    '<input type="checkbox" class="form-check-input" value="' + agentUserId + '"' + (isAssigned ? ' checked="true"' : '') + '>' +
+                                                    agents[agentUserId].name +
+                                                '</label>' +
+                                            '</div>' +
+                                        '</div>'
+                                    );
+                                }).join('');
+                            })() +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</form>' +
+            '<hr />' +
+            '<form class="fields-form">' +
+                (function() {
+                    // 呈現客戶分類條件資料之前先把客戶分類條件資料設定的順序排列
+                    var fields = appsFields[appId].fields;
+                    var fieldIds = Object.keys(fields);
+
+                    var SETS_TYPES = api.appsFields.enums.setsType;
+                    var FIELD_TYPES = api.appsFields.enums.type;
+                    fieldIds.sort(function(a, b) {
+                        let fieldsA = appsFields[appId].fields[a];
+                        let fieldsB = appsFields[appId].fields[b];
+
+                        // DEFAULT, SYSTEM 在前 CUSTOM 在後
+                        if (FIELD_TYPES.CUSTOM !== fieldsA.type &&
+                            FIELD_TYPES.CUSTOM === fieldsB.type) {
+                            return false;
+                        } else if (FIELD_TYPES.CUSTOM === fieldsA.type &&
+                            FIELD_TYPES.CUSTOM !== fieldsB.type) {
+                            return true;
+                        }
+                        return fieldsA.order - fieldsB.order;
+                    });
+
+                    var customFields = messager.custom_fields || {};
+
+                    return fieldIds.map(function(fieldId) {
+                        var field = fields[fieldId];
+                        if (skipAliases.indexOf(field.alias) >= 0) {
+                            return '';
+                        }
+
+                        var fieldValue;
+                        if (field.type === api.appsFields.enums.type.CUSTOM) {
+                            fieldValue = customFields[fieldId] ? customFields[fieldId].value : '';
+                        } else {
+                            fieldValue = undefined !== messager[field.alias] ? messager[field.alias] : '';
+                        }
+
+                        switch (field.setsType) {
+                            case SETS_TYPES.SELECT:
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<select class="form-control field-value" value="' + fieldValue + '">' +
+                                                '<option value="">未選擇</option>' +
+                                                (function(sets) {
+                                                    return sets.map(function(set, i) {
+                                                        return (
+                                                            '<option value="' + set + '" ' + (set === fieldValue ? 'selected' : '') + '>' + (transJson[sets[i]] || sets[i]) + '</option>'
+                                                        );
+                                                    }).join('');
+                                                })(field.sets) +
+                                            '</select>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case SETS_TYPES.MULTI_SELECT:
+                                var selectValues = fieldValue instanceof Array ? fieldValue : [];
+                                var multiSelectTextArr = selectValues.reduce(function(output, value, i) {
+                                    if (!value) {
+                                        return output;
+                                    }
+                                    output.push(field.sets[i]);
+                                    return output;
+                                }, []);
+                                var multiSelectText = multiSelectTextArr.length > 1 ? multiSelectTextArr[0] + ' 及其他 ' + (multiSelectTextArr.length - 1) + ' 項' : multiSelectTextArr.join('');
+
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper fields-select">' +
+                                            '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
+                                                '<span class="multi-select-values">' + multiSelectText + '</span>' +
+                                                '<span class="caret"></span>' +
+                                            '</button>' +
+                                            '<div class="multi-select-container dropdown-menu field-value">' +
+                                                (function(sets) {
+                                                    return sets.map(function(set, i) {
+                                                        return (
+                                                            '<div class="px-3 dropdown-item">' +
+                                                                '<div class="form-check form-check-inline">' +
+                                                                    '<input class="form-check-input" type="checkbox" value="' + set + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
+                                                                    '<label class="form-check-label">' + set + '</label>' +
+                                                                '</div>' +
+                                                            '</div>'
+                                                        );
+                                                    }).join('');
+                                                })(field.sets) +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case SETS_TYPES.CHECKBOX:
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control field-value" type="checkbox"' + (fieldValue ? ' checked="true"' : '') + '/>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case SETS_TYPES.DATE:
+                                fieldValue = fieldValue || 0;
+                                var fieldDateTime = new Date(fieldValue).getTime();
+                                fieldDateTime = isNaN(fieldDateTime) ? new Date() : fieldDateTime - timezoneGap;
+                                var fieldDateStr = new Date(fieldDateTime).toJSON().split('.').shift();
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control field-value" type="datetime-local" value="' + fieldDateStr + '" ' + '/>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            case SETS_TYPES.TEXT:
+                            case SETS_TYPES.NUMBER:
+                            default:
+                                var inputType = SETS_TYPES.NUMBER === field.setsType ? 'tel' : 'text';
+                                inputType = 'email' === field.alias ? 'email' : inputType;
+                                return (
+                                    '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
+                                        '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
+                                        '<div class="pr-0 col-9">' +
+                                            '<input class="form-control field-value" type="' + inputType + '" placeholder="尚未輸入" value="' + fieldValue + '" autocapitalize="none" />' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                        }
+                    }).join('');
+                })() +
+                '<div class="text-center profile-confirm">' +
+                    '<button type="button" class="btn btn-info">更新資料</button>' +
+                '</div>' +
+                '<hr />' +
+                '<div class="px-2 d-flex align-items-center form-group tags-wrapper">' +
+                    '<label class="px-0 col-3 col-form-label">標籤</label>' +
+                    '<div class="pr-0 col-9 tags-container">' +
+                        (function() {
+                            var tags = messager.tags || [];
+                            if (0 === tags.length) {
+                                return '<span>無標籤</span>';
+                            }
+
+                            return tags.map(function(tag) {
+                                return (
+                                    '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                        '<span class="pt-2 pb-2 pl-2 chip-text">' + tag + '</span>' +
+                                        '<i class="p-2 fas fa-times remove-chip"></i>' +
+                                    '</div>'
+                                );
+                            }).join('');
+                        })() +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="px-2 d-flex align-items-center form-group tags-wrapper">' +
+                    '<label class="px-0 col-3 col-form-label"></label>' +
+                    '<div class="pr-0 col-9">' +
+                        '<input class="form-control tag-input" type="text" placeholder="新增標籤" autocapitalize="none" />' +
+                    '</div>' +
+                '</div>' +
+            '</form>'
+        );
+    }
+
+    function generateChatroomProfileHtml(appId, chatroomId) {
+        var app = apps[appId];
+        var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
         var groupId = apps[appId].group_id;
         var group = groups[groupId];
         var chatroomName = chatroom.name || '';
-        var isChatshierApp = CHATSHIER === appType;
 
-        var html =
-            '<table class="table table-hover panel-table">' +
-                '<tr>' +
-                    '<th class="profile-label">群組名稱</th>' +
-                    '<td class="d-flex profile-content">' +
-                        '<input class="form-control td-inner chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
-                        '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
-                    '</td>' +
-                '</tr>' +
-                '<tr>' +
-                    '<th class="py-3 profile-label align-top">' + (isChatshierApp ? '群組成員' : '客戶成員') + '</th>' +
-                    '<td class="profile-content">' +
-                        (function() {
-                            var html = '';
-                            if (isChatshierApp) {
-                                for (var memberId in group.members) {
-                                    var memberUserId = group.members[memberId].user_id;
-                                    var memberUser = users[memberUserId];
-                                    html += (
-                                        '<div class="person-chip">' +
-                                            '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
-                                            '<span>' + memberUser.name + '</span>' +
-                                        '</div>'
-                                    );
-                                }
-                            } else {
-                                var messagers = chatroom.messagers;
-                                for (var messagerId in messagers) {
-                                    var messager = messagers[messagerId];
-                                    if (CHATSHIER === messager.type) {
-                                        continue;
-                                    }
-                                    var consumer = consumers[messager.platformUid];
-                                    html +=
-                                        '<div class="person-chip">' +
-                                            '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
-                                            '<span>' + consumer.name + '</span>' +
-                                        '</div>';
-                                }
+        return (
+            '<div class="px-2 d-flex align-items-center form-group">' +
+                '<label class="px-0 col-3 col-form-label">群組名稱</label>' +
+                '<div class="pr-0 col-9 d-flex profile-content">' +
+                    '<input class="form-control chatroom-name" type="text" value="' + chatroomName + '" placeholder="' + DEFAULT_CHATROOM_NAME + '"/>' +
+                    '<button class="ml-2 btn btn-primary btn-update-chatroom">更新</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="px-2 d-flex align-items-center form-group">' +
+                '<label class="px-0 col-3 col-form-label">' + (CHATSHIER === app.type ? '群組成員' : '客戶成員') + '</label>' +
+                '<div class="pr-0 col-9 d-flex profile-content">' +
+                    (function() {
+                        var html = '';
+                        if (CHATSHIER === app.type) {
+                            for (var memberId in group.members) {
+                                var memberUserId = group.members[memberId].user_id;
+                                var memberUser = users[memberUserId];
+                                html += (
+                                    '<div class="person-chip">' +
+                                        '<img src="' + (memberUser.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" />' +
+                                        '<span>' + memberUser.name + '</span>' +
+                                    '</div>'
+                                );
                             }
-                            return html;
-                        })() +
-                    '</td>' +
-                '</tr>' +
-            '</table>';
+                        } else {
+                            var messagers = chatroom.messagers;
+                            for (var messagerId in messagers) {
+                                var messager = messagers[messagerId];
+                                if (CHATSHIER === messager.type) {
+                                    continue;
+                                }
+                                var consumer = consumers[messager.platformUid];
+                                html +=
+                                    '<div class="person-chip">' +
+                                        '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
+                                        '<span>' + consumer.name + '</span>' +
+                                    '</div>';
+                            }
+                        }
+                        return html;
+                    })() +
+                '</div>' +
+            '</div>' +
 
-        return html;
+            '<div class="p-2 leave-group-room text-right' + (CHATSHIER === app.type ? ' d-none' : '') + '">' +
+                '<button type="button" class="btn btn-danger">' +
+                    '<i class="fas fa-sign-out-alt fa-fw"></i>' +
+                    '<span>離開群組</span>' +
+                '</button>' +
+            '</div>'
+        );
     }
 
     // ==========end initialize function========== //
 
     // =====start chat function=====
-    function showChatApp() {
-        var selectRel = $(this).attr('rel');
-        var $tablinksArea = $('#person .tablinks-area');
-        var $allTablinks = $tablinksArea.find('.tablinks');
-
-        switch (selectRel) {
-            case 'all':
-                $allTablinks.removeClass('d-none');
-                break;
-            case 'group':
-                $allTablinks.addClass('d-none');
-                $tablinksArea.find('.tablinks[app-type="' + CHATSHIER + '"]').removeClass('d-none');
-                break;
-            case 'unread':
-                $tablinksArea.find('.unread-msg').each(function() {
-                    var $unReadElem = $(this);
-                    var $tablinkWrapper = $unReadElem.parentsUntil('.list-group').last();
-
-                    if (!parseInt($unReadElem.text(), 10)) {
-                        $tablinkWrapper.addClass('d-none');
-                    } else {
-                        $tablinkWrapper.removeClass('d-none');
-                    }
-                });
-                break;
-            case 'assigned':
-            case 'unassigned':
-                $allTablinks.addClass('d-none');
-                var isFindAssigned = ('assigned' === selectRel);
-                $('[alias="assigned"] .td-inner .multi-select-values').each(function() {
-                    var assignedText = $(this).text();
-                    var assignedUsers = assignedText ? assignedText.split(',') : [];
-
-                    if ((isFindAssigned && assignedUsers.length) ||
-                        (!isFindAssigned && !assignedUsers.length)) {
-                        var $parentCard = $(this).parents('.profile-group');
-                        var appId = $parentCard.attr('app-id');
-                        $tablinksArea.find('.tablinks[app-id="' + appId + '"]').removeClass('d-none');
-                    }
-                });
-                break;
-            default:
-                $allTablinks.addClass('d-none');
-                $tablinksArea.find('.tablinks[app-id="' + selectRel + '"]').removeClass('d-none');
-                break;
-        }
-    }
-
-    function clickUserTablink() {
+    function userClickTablink() {
         var $eventTablink = $(this);
         var $messageInputContainer = $('.message-input-container');
 
@@ -1917,6 +1875,10 @@
             }
         } else {
             $chatContentPanel.removeClass('d-none');
+            $profileToggle.addClass('active');
+            $profilePanel.addClass('d-none');
+            $ticketToggle.removeClass('active');
+            $ticketPanel.removeClass('d-none');
         }
         scrollMessagePanelToBottom(appId, chatroomId);
 
@@ -1993,9 +1955,9 @@
         var chatroomId = $messageView.attr('chatroom-id');
         var platformMessager = findChatroomMessager(appId, chatroomId, appType);
         var messagerSelf = findMessagerSelf(appId, chatroomId);
-        var msgText = $submitMessageInput.val();
+        var messageText = $submitMessageInput.val();
 
-        if (!(appId && chatroomId && msgText)) {
+        if (!(appId && chatroomId && messageText)) {
             return;
         }
 
@@ -2003,7 +1965,8 @@
         var messageToSend = {
             from: CHATSHIER,
             time: Date.now(),
-            text: msgText,
+            // 文字訊息前面加上自己的名稱當成前輟
+            text: '[' + users[userId].name + ']\n' + messageText,
             src: '',
             type: 'text',
             messager_id: messagerSelf._id
@@ -2134,25 +2097,27 @@
         });
     }
 
-    function showImagemapArea() {
+    function showImagemapArea(ev) {
         $('.imagemap-area').toggleClass('d-none').siblings().toggleClass('d-none');
-        let appId = $(this).parent().parent().parent().siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+        let appId = $(ev.target).parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+
         return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
             let appsImagemaps = resJson.data;
+            if (!appsImagemaps[appId]) {
+                return;
+            }
             let imagemaps = appsImagemaps[appId].imagemaps;
             let imagemapIds = Object.keys(imagemaps);
             if (0 >= imagemapIds.length) {
                 return;
             }
-            return Promise.resolve(imagemaps);
-        }).then((imagemaps) => {
-            let imagemapIds = Object.keys(imagemaps);
+
             $('.imagemap-area').empty();
             imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
-                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
                 $('.imagemap-area').append(str);
             });
-        }).catch((ERR) => {
+        }).catch(() => {
             $.notify('載入imagemap失敗', { type: 'danger' });
         });
     }
@@ -2369,44 +2334,173 @@
         }
     }
 
+    function userRemoveTag(ev) {
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+        var tags = messager.tags || [];
+
+        var tag = $(ev.target).siblings('.chip-text').text();
+        var tagIdx = tags.indexOf(tag);
+        if (tagIdx < 0) {
+            return Promise.resolve();
+        }
+
+        tags.splice(tagIdx, 1);
+        var putMessager = {
+            tags: tags
+        };
+
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
+
+            return new Promise(function(resolve, reject) {
+                chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
+                    appId: appId,
+                    chatroomId: chatroomId,
+                    messager: _messager,
+                    senderUid: userId
+                }, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            });
+        });
+    }
+
+    function userAddTag(ev) {
+        if (13 !== ev.keyCode) {
+            return;
+        }
+        ev.preventDefault();
+
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+        var tags = messager.tags || [];
+
+        var tag = ev.target.value;
+        if (tags.indexOf(tag) >= 0) {
+            // 已存在的標籤不要重複加入
+            return Promise.resolve();
+        }
+
+        tags.unshift(tag);
+        var putMessager = {
+            tags: tags
+        };
+
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+            $profilePanel.scrollTop($profilePanel.prop('scrollHeight'));
+
+            return new Promise(function(resolve, reject) {
+                chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
+                    appId: appId,
+                    chatroomId: chatroomId,
+                    messager: _messager,
+                    senderUid: userId
+                }, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            });
+        });
+    }
+
+    function changeConsumerDisplayName(ev) {
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messagerSelf = findMessagerSelf(appId, chatroomId);
+        var messagerId = messagerSelf._id;
+
+        var namings = messagerSelf.namings || {};
+        var naming = $(ev.target).siblings('.form-control').val() || '';
+        namings[platformUid] = naming;
+
+        var putMessager = {
+            namings: namings
+        };
+
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+
+            var person = consumers[platformUid];
+            person.photo = person.photo || 'image/user_large.png';
+            $profileGroup.replaceWith(generateProfileHtml(appId, chatroomId, platformUid, person));
+
+            // 將聊天訊息的名稱以及聊天室的名稱做更新
+            var consumer = consumers[platformUid];
+            var displayName = (putMessager.namings && putMessager.namings[platformUid]) || consumer.name;
+            var $messagePanel = $chatContentPanel.find('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
+            $messagePanel.find('.messager-name.text-left span').text(displayName);
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            $(tablinksSelectQuery + ' .app-name').text(displayName);
+        });
+    }
+
     function userInfoConfirm(ev) {
         if (!confirm('確定要更新對象用戶的個人資料嗎？')) {
             return;
         }
 
-        $('.profile-wrapper').scrollTop(0);
-        var messagerUiData = {};
-        var $tds = $(ev.target).parents('.profile-group').find('.panel-table tbody td');
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
 
-        $tds.each(function() {
-            var $td = $(this);
-            var fieldId = $td.parentsUntil('tbody').last().attr('id');
+        var $fieldRows = $profileGroup.find('.fields-form .user-info');
+        var fields = appsFields[appId].fields;
+        var setsTypeEnums = api.appsFields.enums.setsType;
 
-            var alias = $td.attr('alias');
-            var setsType = $td.attr('type');
-            var setsTypeEnums = api.appsFields.enums.setsType;
-
-            // 此欄位不允許編輯的話，不處理資料
-            if ('true' !== $td.attr('modify')) {
-                return;
-            }
+        var putMessager = {};
+        $fieldRows.each(function() {
+            var $fieldRow = $(this);
+            var fieldId = $fieldRow.attr('field-id');
+            var field = fields[fieldId];
 
             var value = '';
-            var $tdDataElem = $td.find('.td-inner');
-            switch (setsType) {
+            var $fieldValue = $fieldRow.find('.field-value');
+            switch (field.setsType) {
                 case setsTypeEnums.NUMBER:
-                    value = parseInt($tdDataElem.val(), 10);
+                    value = parseInt($fieldValue.val(), 10);
                     value = !isNaN(value) ? value : '';
                     break;
                 case setsTypeEnums.DATE:
-                    value = $tdDataElem.val();
+                    value = $fieldValue.val();
                     value = value ? new Date(value).getTime() : 0;
                     break;
                 case setsTypeEnums.CHECKBOX:
-                    value = $tdDataElem.prop('checked');
+                    value = $fieldValue.prop('checked');
                     break;
                 case setsTypeEnums.MULTI_SELECT:
-                    var $checkboxes = $tdDataElem.find('input[type="checkbox"]:checked');
+                    var $checkboxes = $fieldValue.find('input[type="checkbox"]:checked');
                     var selectVals = [];
                     $checkboxes.each(function() {
                         selectVals.push($(this).val());
@@ -2416,17 +2510,17 @@
                 case setsTypeEnums.TEXT:
                 case setsTypeEnums.SELECT:
                 default:
-                    value = $tdDataElem.val();
+                    value = $fieldValue.val();
                     break;
             }
 
             if (value !== null && value !== undefined) {
-                if (alias) {
-                    messagerUiData[alias] = value;
+                if (field.alias) {
+                    putMessager[field.alias] = value;
                 } else {
                     // 沒有別名的屬性代表是自定義的客戶分類條件資料
-                    messagerUiData.custom_fields = messagerUiData.custom_fields || {};
-                    messagerUiData.custom_fields[fieldId] = {
+                    putMessager.custom_fields = putMessager.custom_fields || {};
+                    putMessager.custom_fields[fieldId] = {
                         value: value
                     };
                 }
@@ -2435,105 +2529,40 @@
 
         var phoneRule = /^0\d{9,}$/;
         var emailRule = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>().,;\s@"]+\.{0,1})+[^<>().,;:\s@"]{2,})$/;
-        if ('number' === typeof messagerUiData.age && !(messagerUiData.age >= 0 && messagerUiData.age <= 150)) {
-            $.notify('年齡限制 0 ~ 150 歲', { type: 'warning' });
+        if ('number' === typeof putMessager.age && !(putMessager.age >= 1 && putMessager.age <= 150)) {
+            $.notify('年齡限制 1 ~ 150 歲', { type: 'warning' });
             return;
-        } else if (messagerUiData.email && !emailRule.test(messagerUiData.email)) {
+        } else if (putMessager.email && !emailRule.test(putMessager.email)) {
             $.notify('電子郵件不符合格式', { type: 'warning' });
             return;
-        } else if (messagerUiData.phone && !phoneRule.test(messagerUiData.phone)) {
+        } else if (putMessager.phone && !phoneRule.test(putMessager.phone)) {
             $.notify('電話號碼不符合格式, ex: 0912XXXXXX', { type: 'warning' });
             return;
         }
 
-        var $personCard = $(this).parents('.profile-group');
-        var appId = $personCard.attr('app-id');
-        var chatroomId = $personCard.attr('chatroom-id');
-        var platformUid = $personCard.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            // 將成功更新的資料覆蓋前端本地端的全域 app 資料
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = messager = _messager;
 
-        // 如果有編輯的資料變更再發出更新請求
-        if (0 === Object.keys(messagerUiData).length) {
-            return;
-        }
-
-        // 將 assigned 資料改為資料欄位名稱
-        if (messagerUiData.assigned) {
-            messagerUiData.assigned_ids = messagerUiData.assigned;
-            delete messagerUiData.assigned;
-        }
-
-        var socketRequest = {
-            params: {
-                userid: userId,
-                appid: appId,
-                chatroomid: chatroomId,
-                platformuid: platformUid
-            },
-            body: messagerUiData
-        };
-
-        // 資料送出後，會再收到群組內的 socket 資料
-        // 設置 flag 防止再次更新 profile
-        preventUpdateProfile = true;
-        return new Promise(function(resolve, reject) {
-            var waitTimer = window.setTimeout(reject, 3000);
-            chatshierSocket.emit(SOCKET_EVENTS.UPDATE_MESSAGER_TO_SERVER, socketRequest, function(err) {
-                window.clearTimeout(waitTimer);
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve();
+            // 將更新的用戶資料廣播給群組內的使用者
+            return new Promise(function(resolve, reject) {
+                chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
+                    appId: appId,
+                    chatroomId: chatroomId,
+                    messager: _messager,
+                    senderUid: userId
+                }, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
             });
         }).then(function() {
-            // 將成功更新的資料覆蓋前端本地端的全域 app 資料
-            var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
-            var messagerSelf = findMessagerSelf(appId, chatroomId);
-            if (messagerUiData.name) {
-                messagerSelf.namings = messagerSelf.namings || {};
-                messagerSelf.namings[platformUid] = messagerUiData.name;
-            }
-            delete messagerUiData.name;
-            Object.assign(messager, messagerUiData);
-
-            // 檢查 messager 更新內容的 assigned_ids 是否有包含自已
-            // 有的話檢查此聊天室是否已有被加入至已指派
-            // 沒有的話複製聊天室的 tablink 至已指派中
-            var app = apps[appId];
-            var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
-            var consumer = consumers[platformUid];
-            var isGroupChatroom = CHATSHIER === app.type || !!chatroom.platformGroupId;
-            var assignedIds = messager.assigned_ids;
-
-            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
-            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
-
-            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
-            !isGroupChatroom && (tablinksSelectQuery += '[platform-uid="' + platformUid + '"]');
-
-            // 如果有進行自定義客戶命名的話，則將聊天訊息的名稱以及聊天室的名稱做更新
-            if (messagerSelf.namings && messagerSelf.namings[platformUid]) {
-                var displayName = (messagerSelf.namings && messagerSelf.namings[platformUid]) || consumer.name;
-                var $messagePanel = $chatContentPanel.find('[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"] .message-panel');
-                $messagePanel.find('.messager-name.text-left span').text(displayName);
-                $(tablinksSelectQuery + ' .app-name').text(displayName);
-            }
-
-            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + app.type + '"] ' + tablinksSelectQuery);
-            if (assignedIds.indexOf(userId) >= 0) {
-                $unassignedCollapse.find(tablinksSelectQuery).remove();
-                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
-                if (0 === $assignedChatroom.length) {
-                    $assignedCollapse.prepend($appChatroom.clone());
-                }
-            } else {
-                $assignedCollapse.find(tablinksSelectQuery).remove();
-                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
-                if (0 === $unassignedChatroom.length) {
-                    $unassignedCollapse.prepend($appChatroom.clone());
-                }
-            }
-
             $.notify('用戶資料更新成功', { type: 'success' });
         }).catch(function() {
             $.notify('用戶資料更新失敗', { type: 'danger' });
@@ -2570,6 +2599,116 @@
 
             delete appsChatrooms[appId].chatrooms[chatroomId];
         });
+    }
+
+    function userAssignMessager(ev) {
+        ev.preventDefault();
+
+        var $checkInput = $(ev.target).find('.form-check-input');
+        var isChecked = !$checkInput.prop('checked');
+        $checkInput.prop('checked', isChecked);
+
+        var $profileGroup = $(ev.target).parents('.profile-group');
+        var appId = $profileGroup.attr('app-id');
+        var chatroomId = $profileGroup.attr('chatroom-id');
+        var platformUid = $profileGroup.attr('platform-uid');
+        var messager = findChatroomMessager(appId, chatroomId, apps[appId].type);
+        var messagerId = messager._id;
+
+        var assignedIds = messager.assigned_ids || [];
+        var assignedId = $(ev.target).find('.form-check-input').val();
+        var idx = assignedIds.indexOf(assignedId);
+
+        if (isChecked) {
+            idx < 0 && assignedId && assignedIds.push(assignedId);
+        } else {
+            idx >= 0 && assignedIds.splice(idx, 1);
+        }
+
+        var putMessager = {
+            assigned_ids: assignedIds
+        };
+
+        var $dropdownToggle = $(ev.target).parents('.dropdown-menu').siblings('.dropdown-toggle');
+        $dropdownToggle.attr('disabled', true);
+        return api.appsChatroomsMessagers.update(appId, chatroomId, messagerId, userId, putMessager).then(function(resJson) {
+            var _appsChatroomsMessagers = resJson.data;
+            var _messager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messagerId];
+            appsChatrooms[appId].chatrooms[chatroomId].messagers[messagerId] = _messager;
+            assignedIds = _messager.assigned_ids || [];
+
+            return new Promise(function(resolve, reject) {
+                chatshierSocket.emit(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, {
+                    appId: appId,
+                    chatroomId: chatroomId,
+                    messager: _messager,
+                    senderUid: userId
+                }, function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            });
+        }).then(function() {
+            var assignerNames = assignedIds.map(function(assignedId) {
+                return users[assignedId].name;
+            });
+            var displayText = assignerNames.join(',');
+            if (assignerNames.length > 1) {
+                displayText = assignerNames[0] + ' 及其他 ' + (assignerNames.length - 1) + ' 名';
+            }
+            $dropdownToggle.find('.multi-select-values').text(displayText);
+
+            var $assignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.assigned');
+            var $unassignedCollapse = $ctrlPanelChatroomCollapse.find('.collapse.unassigned');
+            var tablinksSelectQuery = '.tablinks[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"][platform-uid="' + platformUid + '"]';
+            var $appChatroom = $ctrlPanelChatroomCollapse.find('.collapse.app-types[app-type="' + apps[appId].type + '"] ' + tablinksSelectQuery);
+
+            if (assignedIds.indexOf(userId) >= 0) {
+                $unassignedCollapse.find(tablinksSelectQuery).remove();
+                var $assignedChatroom = $assignedCollapse.find(tablinksSelectQuery);
+                if (0 === $assignedChatroom.length) {
+                    $assignedCollapse.prepend($appChatroom.clone());
+                }
+            } else {
+                $assignedCollapse.find(tablinksSelectQuery).remove();
+                var $unassignedChatroom = $unassignedCollapse.find(tablinksSelectQuery);
+                if (0 === $unassignedChatroom.length) {
+                    $unassignedCollapse.prepend($appChatroom.clone());
+                }
+            }
+
+            $dropdownToggle.removeAttr('disabled');
+        });
+    }
+
+    function multiSelectChange(ev) {
+        ev.preventDefault();
+
+        var $checkInput = $(ev.target).find('.form-check-input');
+        var isChecked = !$checkInput.prop('checked');
+        $checkInput.prop('checked', isChecked);
+
+        var $selectContainer = $(ev.target).parents('.multi-select-container');
+        var $selectValues = $selectContainer.parents('.multi-select-wrapper').find('.multi-select-values');
+
+        var valArr = [];
+        var textArr = [];
+        var $checkboxes = $selectContainer.find('input[type="checkbox"]');
+        $checkboxes.each(function() {
+            var $checkbox = $(this);
+            if ($checkbox.is(':checked')) {
+                valArr.push($checkbox.val());
+                textArr.push($checkbox.parents('.dropdown-item').text());
+            }
+        });
+
+        var displayText = textArr.join(',');
+        if (textArr.length > 1) {
+            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 名';
+        }
+        $selectValues.text(displayText).attr('rel', valArr.join(','));
     }
     // =====end profile function=====
 
@@ -2780,28 +2919,6 @@
         var date = new Date(input);
         var dateStr = ' (' + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ') ';
         return dateStr;
-    }
-
-    function multiSelectChange(ev) {
-        var $selectContainer = $(ev.target).parents('.multi-select-container');
-        var $selectValues = $selectContainer.parents('.td-inner').find('.multi-select-values');
-
-        var valArr = [];
-        var textArr = [];
-        var $checkboxes = $selectContainer.find('input[type="checkbox"]');
-        $checkboxes.each(function() {
-            var $checkbox = $(this);
-            if ($checkbox.is(':checked')) {
-                valArr.push($checkbox.val());
-                textArr.push($checkbox.parents('.dropdown-item').text());
-            }
-        });
-
-        var displayText = textArr.join(',');
-        if (textArr.length > 1) {
-            displayText = textArr[0] + ' 及其他 ' + (textArr.length - 1) + ' 名';
-        }
-        $selectValues.text(displayText).attr('rel', valArr.join(','));
     }
 
     function addZero(val) {

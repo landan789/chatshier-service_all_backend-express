@@ -8,7 +8,6 @@
     overflow: hidden;
 }
 
-.tablinks-area::-webkit-scrollbar-track,
 .message-panel::-webkit-scrollbar-track,
 .profile-wrapper::-webkit-scrollbar-track,
 .ticket-wrapper::-webkit-scrollbar-track {
@@ -17,7 +16,6 @@
     background-color: transparent;
 }
 
-.tablinks-area::-webkit-scrollbar,
 .message-panel::-webkit-scrollbar,
 .profile-wrapper::-webkit-scrollbar,
 .ticket-wrapper::-webkit-scrollbar {
@@ -25,7 +23,6 @@
     background-color: transparent;
 }
 
-.tablinks-area::-webkit-scrollbar-thumb,
 .message-panel::-webkit-scrollbar-thumb,
 .profile-wrapper::-webkit-scrollbar-thumb,
 .ticket-wrapper::-webkit-scrollbar-thumb {
@@ -87,16 +84,6 @@
     .person hr {
         padding: 0;
         margin: 0; }
-    .person .tablinks-area {
-        flex: 1;
-        position: relative;
-        background-color: inherit;
-        height: 88%;
-        overflow-y: scroll;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-        z-index: 2; }
     .person .tablinks {
         width: 100%;
         height: 100px;
@@ -204,6 +191,7 @@
             color:white;
             background-color: #33ccff !important; }
         .message .content .text-content {
+            line-height: 1.25rem;
             white-space: pre-wrap; }
         .message .content .image-content,
         .message .content .sticker-content,
@@ -227,6 +215,8 @@
             right: 0;
             bottom: 0; 
             border: 1px solid #000000; }
+        .send-imagemap-btn {
+            margin-left: .5rem; }
         .message .content .image-container:hover {
             cursor: pointer; }
             .message .content .image-container.stretch {
@@ -257,6 +247,8 @@
     align-items: flex-end; }
     .message-group.right-side {
         flex-direction: row-reverse; }
+        .message-group.right-side .words {
+            text-align: right; }
 
 .chatroom-container {
     width: 100%;
@@ -304,8 +296,6 @@
     background-color: #f7f8f9; }
     .profile-panel:not(.d-none) {
         border: 1px solid lightgray; }
-    .profile-panel td {
-        word-wrap: break-word; }
     .profile-panel .person-chip {
         margin: .5rem .5rem .5rem 0;
         padding: 0 .5rem;
@@ -320,11 +310,6 @@
             float: left;
             margin-right: .5rem;
             border-radius: 50%; }
-    .profile-panel .td-inner:not(.btn-group) {
-        width: 100%;
-        margin: 0 auto; }
-    .profile-panel .td-inner[type="datetime-local"] {
-        margin-top: 2px; }
     .profile-panel .photo-container {
         text-align: center;
         margin: 5% 0; }
@@ -345,18 +330,21 @@
     width: 100%; }
     .chatroom-body .chat-content {
         border: 1px solid #ccc;
+        width: 100%;
         height: 100%;
         border-left: none;
-        width: 100%;
     }
 
 .message-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding-bottom: 5%;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch; }
+    .message-panel::after {
+        content: '';
+        display: block;
+        padding-bottom: 5%; }
     .message-panel .loading-container {
         width: 3rem;
         height: 3rem; }
@@ -511,15 +499,14 @@
 
 .profile-group {
     font-size: .85rem;
-    min-height: 102.5%; }
-    .profile-group .panel-table {
-        margin: 0%;
-        table-layout: fixed; }
-    .profile-group .profile-label {
-        width: 35%; }
-    .profile-group .profile-label,
-    .profile-group .user-info-td {
-        vertical-align: middle; }
+    min-height: 100%; }
+    .profile-group .tag-chip {
+        background-color: #ffbfe8;
+        border-radius: 1.5rem; }
+        .profile-group .tag-chip .chip-text {
+            white-space: pre-line; }
+        .profile-group .tag-chip .remove-chip {
+            cursor: pointer; }
     .profile-group input,
     .profile-group select, 
     .profile-group button {
@@ -601,8 +588,9 @@
 .template-button1, .template-button2, .template-button3 {
     position: relative;
     height: 3rem;
-    text-align: center;
     line-height: 3rem;
+    font-size: .5rem;
+    padding-left: 1rem;
 }
 
 /* small template */

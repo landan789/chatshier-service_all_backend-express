@@ -6,9 +6,9 @@ module.exports = (function() {
     let usersMdl = require('../models/users');
     let groupsMdl = require('../models/groups');
 
-    const OWNER = 'OWNER';
-    const ADMIN = 'ADMIN';
-    const WRITE = 'WRITE';
+    // const OWNER = 'OWNER';
+    // const ADMIN = 'ADMIN';
+    // const WRITE = 'WRITE';
     const READ = 'READ';
 
     const GET = 'GET';
@@ -20,7 +20,7 @@ module.exports = (function() {
         /**
          * @returns {Promise<string[]>}
          */
-        static appsRequestVerify(req) {
+        appsRequestVerify(req) {
             let appId = req.params.appid || req.query.appid;
             let userId = req.params.userid;
             let method = req.method;
@@ -101,10 +101,6 @@ module.exports = (function() {
             }).then((appIds) => {
                 return Promise.resolve(appIds);
             });
-        }
-
-        constructor() {
-            this.appsRequestVerify = ControllerCore.appsRequestVerify;
         }
     }
 

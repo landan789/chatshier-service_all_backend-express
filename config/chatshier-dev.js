@@ -23,7 +23,8 @@ module.exports = {
         // https://developers.facebook.com/apps
         appId: '178381762879392',
         appSecret: '27aad72319bf154c059f696bce055ac2',
-        appAccessToken: '8eeabaf3c836d295edb26264ec76e975'
+        appAccessToken: '8eeabaf3c836d295edb26264ec76e975',
+        apiVersion: 'v3.0'
     },
     GOOGLE: {
         // https://www.google.com/recaptcha/admin
