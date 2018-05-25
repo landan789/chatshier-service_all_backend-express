@@ -60,71 +60,55 @@ let jobProcess = () => {
                         src: compose.src || ''
                     };
                     let messages = [message];
-                    let availableCount = 0;
-                    let successCount = 0;
 
-                    return composeHlp.findAvailableMessagers(conditions).then((appsChatroomsMessagers) => {
-                        let _appIds = Object.keys(appsChatroomsMessagers);
+                    return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
+                        let _app = appsChatroomsMessagers[appId];
+                        let chatroomIds = Object.keys(appsChatroomsMessagers[appId].chatrooms);
 
-                        return Promise.all(_appIds.map((_appId) => {
-                            let _app = appsChatroomsMessagers[_appId];
-                            let chatroomIds = Object.keys(appsChatroomsMessagers[_appId].chatrooms);
+                        return Promise.all(chatroomIds.map((chatroomId) => {
+                            let chatroom = _app.chatrooms[chatroomId];
+                            let messagers = chatroom.messagers;
+                            let messagerIds = Object.keys(chatroom.messagers);
+                            let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
 
+                            if (0 === recipientUids.length) {
+                                return Promise.resolve();
+                            }
+                            return botSvc.multicast(recipientUids, messages, appId, _app);
+                        })).then(() => {
                             return Promise.all(chatroomIds.map((chatroomId) => {
-                                let chatroom = _app.chatrooms[chatroomId];
-                                let messagers = chatroom.messagers;
-                                let messagerIds = Object.keys(chatroom.messagers);
-                                let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+                                return Promise.all(messages.map((message) => {
+                                    console.log('[database] insert each message to chatroom - ' + chatroomId);
+                                    return appsChatroomsMessagesMdl.insert(appId, chatroomId, message).then((appsChatroomsMessages) => {
+                                        if (!appsChatroomsMessages) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
+                                        }
 
-                                if (0 === recipientUids.length) {
-                                    return Promise.resolve();
-                                }
-
-                                availableCount++;
-                                return botSvc.multicast(recipientUids, messages, _appId, _app).then(() => {
-                                    successCount++;
-                                }).catch((err) => console.error(err));
-                            })).then(() => {
-                                return Promise.all(chatroomIds.map((chatroomId) => {
-                                    return Promise.all(messages.map((message) => {
-                                        console.log('[database] insert each message to chatroom - ' + chatroomId);
-                                        return appsChatroomsMessagesMdl.insert(_appId, chatroomId, message).then((appsChatroomsMessages) => {
-                                            if (!appsChatroomsMessages) {
-                                                return Promise.reject(API_ERROR.APP_CHATROOM_MESSAGES_FAILED_TO_INSERT);
-                                            }
-
-                                            let messagesInDB = appsChatroomsMessages[_appId].chatrooms[chatroomId].messages;
-                                            let messageId = Object.keys(messagesInDB).shift() || '';
-                                            return messagesInDB[messageId];
-                                        });
-                                    })).then((messages) => {
-                                        let chatroom = _app.chatrooms[chatroomId];
-                                        let messagers = chatroom.messagers;
-                                        let messagerIds = Object.keys(messagers);
-                                        let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
-
-                                        /** @type {ChatshierChatSocketBody} */
-                                        let socketBody = {
-                                            app_id: _appId,
-                                            type: _app.type,
-                                            chatroom_id: chatroomId,
-                                            chatroom: chatroom,
-                                            senderUid: '',
-                                            recipientUid: recipientUids.shift(),
-                                            messages: messages
-                                        };
-                                        // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                                        return socketHlp.emitToAll(_appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                        let messagesInDB = appsChatroomsMessages[appId].chatrooms[chatroomId].messages;
+                                        let messageId = Object.keys(messagesInDB).shift() || '';
+                                        return messagesInDB[messageId];
                                     });
-                                }));
-                            });
-                        }));
-                    }).then(() => {
-                        let putCompose = {
-                            availableCount: availableCount,
-                            successCount: successCount
-                        };
-                        return appsComposesMdl.update(appId, composeId, putCompose);
+                                })).then((messages) => {
+                                    let chatroom = _app.chatrooms[chatroomId];
+                                    let messagers = chatroom.messagers;
+                                    let messagerIds = Object.keys(messagers);
+                                    let recipientUids = messagerIds.map((messagerId) => messagers[messagerId].platformUid);
+
+                                    /** @type {ChatshierChatSocketBody} */
+                                    let socketBody = {
+                                        app_id: appId,
+                                        type: _app.type,
+                                        chatroom_id: chatroomId,
+                                        chatroom: chatroom,
+                                        senderUid: '',
+                                        recipientUid: recipientUids.shift(),
+                                        messages: messages
+                                    };
+                                    // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                    return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                });
+                            }));
+                        });
                     });
                 }));
             });

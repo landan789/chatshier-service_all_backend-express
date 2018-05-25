@@ -133,8 +133,6 @@ module.exports = (function() {
             ('number' === typeof req.body.time) && (putCompose.time = req.body.time);
             (undefined !== req.body.status) && (putCompose.status = !!req.body.status);
             (req.body.conditions instanceof Array) && (putCompose.conditions = req.body.conditions);
-            ('number' === typeof req.body.availableCount) && (putCompose.availableCount = req.body.availableCount);
-            ('number' === typeof req.body.successCount) && (putCompose.successCount = req.body.successCount);
 
             return this.appsRequestVerify(req).then(() => {
                 if (!composeId) {

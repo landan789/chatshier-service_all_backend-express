@@ -55,7 +55,6 @@
                                         <th>內容</th>
                                         <th>時間</th>
                                         <th>發送條件</th>
-                                        <th>成功發送</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -69,7 +68,6 @@
                                         <th>內容</th>
                                         <th>時間</th>
                                         <th>發送條件</th>
-                                        <th>成功發送</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -83,7 +81,6 @@
                                         <th>內容</th>
                                         <th>時間</th>
                                         <th>發送條件</th>
-                                        <th>成功發送</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -107,15 +104,25 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label class="col-form-label font-weight-bold">聊天機器人:</label>
+                        <div class="dropdown" id="appsDropdown">
+                            <button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                <span class="dropdown-value">已選擇的機器人 (0)</span>
+                            </button>
+                            <form class="px-2 dropdown-menu dropdown-menu-right"></form>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header">
                             <span>發送條件</span>
                             <small class="mx-1 text-info d-none" id="availableCount"></small>
-                            <small class="d-block text-danger">如果有相同條件，只會套用最後一筆 (聊天機器人除外)</small>
+                            <small class="d-block text-danger">如果有相同條件，只會套用最後一筆</small>
                         </div>
                         <div class="card-body">
                             <div class="condition-container" id="conditionContainer"></div>
-                            <button class="mt-3 btn btn-light condition-add-btn">
+                            <button class="btn btn-light condition-add-btn">
                                 <i class="fas fa-plus"></i>
                                 <span>新增發送條件</span>
                             </button>
@@ -243,6 +250,7 @@
 
     <% include ../views/partials/require_js.ejs %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
     <script src="js/compose.js"></script>

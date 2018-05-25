@@ -39,7 +39,8 @@ button:focus {
     font-size: 1.5em;
 }
 
-.root .animated {
+.root .animated,
+.modal .animated {
     animation-duration: 300ms;
 }
 

@@ -124,11 +124,6 @@
     // Compose add modal 的處理全部寫在此閉包中
     (function() {
         let DEFAULT_CONDITION_TYPES = {
-            CHATBOT: {
-                type: 'CHATBOT',
-                text: '聊天機器人',
-                field_id: ''
-            },
             AGE_RANGE: {
                 type: 'AGE_RANGE',
                 text: '年齡',
@@ -149,18 +144,25 @@
 
         let allFields = {};
         let allTags = [];
+        let icons = {
+            LINE: 'fab fa-line fa-fw line-color',
+            FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+        };
 
         let $composeAddModal = $('#composeAddModal');
         let $composesAddDtPicker = $composeAddModal.find('#sendDatetimePicker');
         let $composesAddDtInput = $composesAddDtPicker.find('input[name="sendDatetime"]');
         let $conditionContainer = $composeAddModal.find('#conditionContainer');
+        let $appsDropdownMenu = $composeAddModal.find('#appsDropdown .dropdown-menu');
 
         $composeAddModal.on('show.bs.modal', resetAddModal);
+        $composeAddModal.on('change', '#appsDropdown .dropdown-item .form-check-input', updateAppsDropdownText);
         $composeAddModal.on('click', '#composeAddSubmitBtn', insertSubmit);
         $composeAddModal.on('click', '.condition-add-btn', addConditionItem);
         $composeAddModal.on('click', '.condition-remove-btn', removeConditionItem);
         $composeAddModal.on('click', '.condition-item .condition-types-menu .dropdown-item', conditionTypeChanged);
         $composeAddModal.on('click', '.condition-item .condition-content-menu .dropdown-item', conditionContentChanged);
+        $composeAddModal.on('click', '.condition-item .tag-chip .remove-chip', removeTag);
 
         if (!window.isMobileBrowser()) {
             $composesAddDtPicker.datetimepicker(datetimePickerInitOpts);
@@ -174,39 +176,55 @@
         function resetAddModal() {
             conditionTypes = {};
             allFields = {};
+            allTags.length = 0;
 
-            for (let appId in appsFields) {
-                let _fields = appsFields[appId].fields;
-                for (let fieldId in _fields) {
-                    let field = _fields[fieldId];
-                    if (api.appsFields.enums.type.CUSTOM !== field.type) {
-                        continue;
-                    }
+            $appsDropdownMenu.empty();
+            for (let appId in apps) {
+                let app = apps[appId];
+                $appsDropdownMenu.append(
+                    '<div class="form-check dropdown-item">' +
+                        '<label class="form-check-label">' +
+                            '<input class="form-check-input mr-2" type="checkbox" app-id="' + appId + '" />' +
+                            (icons[app.type] ? '<i class="' + icons[app.type] + '"></i>' : '') +
+                            '<span>' + app.name + '</span>' +
+                        '</label>' +
+                    '</div>'
+                );
 
-                    allFields[fieldId] = field;
-                    conditionTypes[fieldId] = {
-                        type: 'CUSTOM_FIELD',
-                        text: field.text,
-                        field_id: fieldId
-                    };
-                }
-            }
+                if (appsFields[appId]) {
+                    let _fields = appsFields[appId].fields;
 
-            for (let appId in appsChatrooms) {
-                let _chatrooms = appsChatrooms[appId].chatrooms;
-                for (let chatroomId in _chatrooms) {
-                    let chatroom = _chatrooms[chatroomId];
-                    if (chatroom.platformGroupId) {
-                        continue;
-                    }
-
-                    let messengers = chatroom.messengers;
-                    for (let messengerId in messengers) {
-                        let messenger = messengers[messengerId];
-                        if ('CHATSHIER' === messenger.type || !messenger.tags) {
+                    for (let fieldId in _fields) {
+                        let field = _fields[fieldId];
+                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
                             continue;
                         }
-                        allTags.concat(messenger.tags);
+
+                        allFields[fieldId] = field;
+                        conditionTypes[fieldId] = {
+                            type: 'CUSTOM_FIELD',
+                            text: field.text,
+                            field_id: fieldId
+                        };
+                    }
+                }
+
+                if (appsChatrooms[appId]) {
+                    let _chatrooms = appsChatrooms[appId].chatrooms;
+                    for (let chatroomId in _chatrooms) {
+                        let chatroom = _chatrooms[chatroomId];
+                        if (chatroom.platformGroupId) {
+                            continue;
+                        }
+
+                        let messagers = chatroom.messagers;
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            if ('CHATSHIER' === messager.type || !messager.tags) {
+                                continue;
+                            }
+                            allTags = allTags.concat(messager.tags);
+                        }
                     }
                 }
             }
@@ -222,7 +240,6 @@
             $composeAddModal.find('#availableCount').empty().addClass('d-none');
 
             $conditionContainer.empty();
-            addConditionItem();
 
             let $inputWarpper = $composeAddModal.find('#inputWarpper');
             $inputWarpper.find('.input-container').first().val('');
@@ -239,6 +256,13 @@
 
             inputNum = 1;
             deleteNum = 0;
+            updateAppsDropdownText();
+        }
+
+        function updateAppsDropdownText() {
+            let $checkedInputs = $appsDropdownMenu.find('input:checked');
+            $appsDropdownMenu.parent().find('.dropdown-value').text('已選擇的機器人 (' + $checkedInputs.length + ')');
+            refreshAvailable();
         }
 
         /**
@@ -246,11 +270,11 @@
          * @param {string} [type]
          */
         function addConditionItem(ev, type) {
-            type = type || 'CHATBOT';
+            type = type || 'AGE_RANGE';
             let conditionType = DEFAULT_CONDITION_TYPES[type] || conditionTypes[type];
 
             let $conditionItem = $(
-                '<div class="my-1 d-flex align-items-center condition-item">' +
+                '<div class="my-1 d-flex flex-wrap align-items-center condition-item">' +
                     '<div class="d-inline-block mr-2 dropdown condition-types">' +
                         '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                             '<span class="dropdown-value" value="' + type + '" field-id="' + conditionType.field_id + '">' + conditionType.text + '</span>' +
@@ -270,15 +294,10 @@
                         '</div>' +
                     '</div>' +
                     generateConditionContent(type) +
-                    '<i class="ml-auto p-2 fas fa-times-circle condition-remove-btn d-none"></i>' +
+                    '<i class="ml-auto p-2 fas fa-times-circle condition-remove-btn"></i>' +
                 '</div>'
             );
             $conditionContainer.append($conditionItem);
-
-            let $conditionItems = $composeAddModal.find('.condition-item');
-            if ($conditionItems.length > 1) {
-                $composeAddModal.find('.condition-remove-btn').removeClass('d-none');
-            }
             refreshAvailable();
         }
 
@@ -289,35 +308,6 @@
             let conditionType = DEFAULT_CONDITION_TYPES[type] || conditionTypes[type];
 
             switch (type) {
-                case 'CHATBOT':
-                    return (
-                        '<div class="d-inline-block dropdown condition-content">' +
-                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                                '<span class="dropdown-value" value="ALL">全部</span>' +
-                            '</button>' +
-                            '<div class="dropdown-menu condition-content-menu">' +
-                                '<a class="dropdown-item" value="ALL">全部</a>' +
-                                '<a class="dropdown-item" value="LINE">LINE</a>' +
-                                '<a class="dropdown-item" value="FACEBOOK">Facebook</a>' +
-                                '<div class="dropdown-divider"></div>' +
-                                (function() {
-                                    let icons = {
-                                        LINE: 'fab fa-line fa-fw line-color',
-                                        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
-                                    };
-                                    return Object.keys(apps).map(function(appId) {
-                                        let app = apps[appId];
-                                        return (
-                                            '<a class="dropdown-item" value="' + app.type + '" app-id="' + appId + '">' +
-                                                (icons[app.type] ? '<i class="' + icons[app.type] + '"></i>' : '') +
-                                                '<span>' + app.name + '</span>' +
-                                            '</a>'
-                                        );
-                                    }).join('');
-                                })() +
-                            '</div>' +
-                        '</div>'
-                    );
                 case 'AGE_RANGE':
                     return (
                         '<div class="d-inline-block dropdown condition-content range range-down">' +
@@ -373,7 +363,7 @@
                 case 'TAGS':
                     return (
                         '<div class="d-inline-block condition-content">' +
-                            '<input class="form-control" type="text" placeholder="請輸入標籤關鍵字" />' +
+                            '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
                         '</div>'
                     );
                 default:
@@ -426,10 +416,14 @@
          */
         function removeConditionItem(ev) {
             $(ev.target).parent().remove();
-            let $conditionItems = $composeAddModal.find('.condition-item');
-            if ($conditionItems.length <= 1) {
-                $composeAddModal.find('.condition-remove-btn').addClass('d-none');
-            }
+            refreshAvailable();
+        }
+
+        /**
+         * @param {MouseEvent} ev
+         */
+        function removeTag(ev) {
+            $(ev.target).parents('.tag-chip').remove();
             refreshAvailable();
         }
 
@@ -446,11 +440,41 @@
             let $conditionTypeValue = $conditionTypes.find('.dropdown-value');
             $conditionTypeValue.attr('value', typeValue).attr('field-id', typeFieldId).text(typeText);
 
-            let $conditionContent = $conditionTypes.siblings('.condition-content');
-            $conditionContent.remove();
+            $conditionTypes.siblings('.condition-content').remove();
             $conditionTypes.siblings('span').remove();
-            $(generateConditionContent(typeFieldId || typeValue)).insertAfter($conditionTypes);
+            let $conditionContent = $(generateConditionContent(typeFieldId || typeValue));
+            $conditionContent.insertAfter($conditionTypes);
             refreshAvailable();
+
+            if ('TAGS' === typeValue) {
+                let $conditionItem = $conditionContent.parents('.condition-item');
+                let $tagsContainer = $('<div class="my-2 tags-container"></div>');
+                $conditionItem.append($tagsContainer);
+
+                let $tagsTypeahead = $conditionContent.find('.typeahead');
+                $tagsTypeahead.typeahead({
+                    minLength: 1,
+                    fitToElement: true,
+                    showHintOnFocus: false,
+                    items: 4,
+                    source: allTags,
+                    autoSelect: false,
+                    afterSelect: function() {
+                        let tag = $tagsTypeahead.val();
+                        $tagsContainer.append(
+                            '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                '<span class="pt-2 pb-2 pl-2 chip-text">' + tag + '</span>' +
+                                '<i class="p-2 fas fa-times remove-chip"></i>' +
+                            '</div>'
+                        );
+                    }
+                });
+
+                $tagsTypeahead.on('keyup', function(ev) {
+                    var typeaheadData = $(ev.target).data('typeahead');
+                    typeaheadData.lookup();
+                });
+            }
         }
 
         /**
@@ -479,17 +503,24 @@
             $conditionItems.each(function() {
                 let $conditionItem = $(this);
                 let $typeValues = $conditionItem.find('.condition-types .dropdown-value');
-                let $contentValues = $conditionItem.find('.condition-content .dropdown-value');
 
                 let typeFieldId = $typeValues.attr('field-id');
                 let conditionType = $typeValues.attr('value');
 
                 let contentValues = [];
-                $contentValues.each(function() {
-                    let value = $(this).attr('value');
-                    let appId = $(this).attr('app-id');
-                    contentValues.push(appId || value);
-                });
+                if ('TAGS' === conditionType) {
+                    let $tags = $conditionItem.find('.tags-container .chip-text');
+                    $tags.each(function() {
+                        let tag = $(this).text();
+                        contentValues.push(tag);
+                    });
+                } else {
+                    let $contentValues = $conditionItem.find('.condition-content .dropdown-value');
+                    $contentValues.each(function() {
+                        let value = $(this).attr('value');
+                        contentValues.push(value);
+                    });
+                }
 
                 let condition = {
                     type: conditionType,
@@ -501,16 +532,7 @@
                 for (let i in conditions) {
                     if (conditions[i].type === condition.type) {
                         hasContain = true;
-                        if ('CHATBOT' === condition.type &&
-                            condition.values[0] &&
-                            !conditions[i].values.includes(condition.values[0])) {
-                            conditions[i].values = conditions[i].values.concat(condition.values);
-                            if (conditions[i].values.includes('ALL')) {
-                                conditions[i].values = ['ALL'];
-                            }
-                        } else {
-                            conditions[i].values = condition.values;
-                        }
+                        conditions[i].values = condition.values;
                         break;
                     }
                 }
@@ -524,7 +546,14 @@
             let conditions = retrieveConditions();
             // console.log(JSON.stringify(conditions, void 0, 2));
 
-            for (let appId in apps) {
+            let appIds = [];
+            let $checkedInputs = $appsDropdownMenu.find('input:checked');
+            $checkedInputs.each(function() {
+                appIds.push($(this).attr('app-id'));
+            });
+
+            for (let i in appIds) {
+                let appId = appIds[i];
                 let app = apps[appId];
                 if (CHATSHIER === app.type || !appsChatrooms[appId]) {
                     continue;
@@ -543,21 +572,11 @@
                             continue;
                         }
 
-                        let isAvailable = false;
-                        for (let cType in conditions) {
-                            let condition = conditions[cType];
+                        let isAvailable = !conditions.length;
+                        for (let i in conditions) {
+                            let condition = conditions[i];
 
-                            if ('CHATBOT' === condition.type) {
-                                if (condition.values.includes('ALL')) {
-                                    isAvailable = true;
-                                } else if (condition.values.includes(LINE)) {
-                                    isAvailable = LINE === app.type;
-                                } else if (condition.values.includes(FACEBOOK)) {
-                                    isAvailable = FACEBOOK === app.type;
-                                } else {
-                                    isAvailable = condition.values.includes(appId);
-                                }
-                            } else if ('AGE_RANGE' === condition.type) {
+                            if ('AGE_RANGE' === condition.type) {
                                 if (!messager.age) {
                                     isAvailable = false;
                                 } else {
@@ -606,7 +625,6 @@
                     }
                 }
             }
-
             return availableCount;
         }
 
@@ -630,39 +648,14 @@
             let isReserveSend = $('#send-sometime').prop('checked');
             let conditions = retrieveConditions();
 
-            let appIds = (function() {
-                let condition;
-                for (let i in conditions) {
-                    if ('CHATBOT' === conditions[i].type) {
-                        condition = conditions[i];
-                    }
-                }
-
-                if (!condition) {
-                    return [];
-                }
-
-                let appIds = Object.keys(apps);
-                let conditionValues = condition.values.slice();
-                while (conditionValues.length > 0) {
-                    if (conditionValues.includes('ALL')) {
-                        conditionValues.splice(conditionValues.indexOf('ALL'), 1);
-                    } else if (conditionValues.includes(LINE)) {
-                        appIds = appIds.filter((appId) => LINE === apps[appId].type && !conditionValues.includes(appId));
-                        conditionValues.splice(conditionValues.indexOf(LINE), 1);
-                    } else if (conditionValues.includes(FACEBOOK)) {
-                        appIds = appIds.filter((appId) => FACEBOOK === apps[appId].type && !conditionValues.includes(appId));
-                        conditionValues.splice(conditionValues.indexOf(FACEBOOK), 1);
-                    } else {
-                        appIds = appIds.concat(conditionValues);
-                        conditionValues.length = 0;
-                    }
-                }
-                return appIds;
-            })();
+            let appIds = [];
+            let $checkedInputs = $appsDropdownMenu.find('input:checked');
+            $checkedInputs.each(function() {
+                appIds.push($(this).attr('app-id'));
+            });
 
             if (0 === appIds.length) {
-                $.notify('條件中至少需包含欲使用群發的目標機器人', { type: 'warning' });
+                $.notify('至少需選擇一個目標機器人', { type: 'warning' });
                 return;
             }
 
@@ -682,7 +675,7 @@
                     type: 'text',
                     text: $(this).val(),
                     status: !isDraft,
-                    time: isSendNow ? Date.now() : reserveTime,
+                    time: isSendNow ? Date.now() - 60000 : reserveTime,
                     isImmediately: isSendNow,
                     conditions: conditions
                 };
@@ -690,69 +683,54 @@
             });
 
             $composeAddModal.find('#composeAddSubmitBtn').attr('disabled', true);
-            let appId = nowSelectAppId;
-            let insertedAppsComposes = {
-                [appId]: {
-                    composes: {}
+
+            let insertedAppsComposes = {};
+            let nextRequest = function(i) {
+                if (i >= appIds.length) {
+                    return Promise.resolve();
                 }
-            };
-            return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
-                resJsons.forEach((resJson) => {
-                    let _appsComposes = resJson.data;
-                    let _composes = _appsComposes[appId].composes;
-                    Object.assign(insertedAppsComposes[appId].composes, _composes);
-                    Object.assign(appsComposes[appId].composes, _composes);
+
+                let appId = appIds[i];
+                insertedAppsComposes[appId] = { composes: {} };
+                return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
+                    resJsons.forEach((resJson) => {
+                        let _appsComposes = resJson.data;
+                        let _composes = _appsComposes[appId].composes;
+                        Object.assign(insertedAppsComposes[appId].composes, _composes);
+                        Object.assign(appsComposes[appId].composes, _composes);
+                    });
+                }).then(() => {
+                    return nextRequest(i + 1);
                 });
-            }).then(() => {
+            };
+
+            return nextRequest(0).then(() => {
+                if (isDraft || isReserveSend) {
+                    return;
+                }
+
                 // 立即群發動作將資料包裝為 socket 資料
                 // 使用 socket 發送至所有用戶端
-                if (!isDraft && isSendNow) {
-                    let socketBody = {
-                        conditions: conditions,
-                        composes: composes
-                    };
-
-                    return new Promise((resolve, reject) => {
-                        socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (json) => {
-                            if (!json || (json && !json.status)) {
-                                return reject(json);
-                            }
-                            resolve(json);
-                        });
-                    }).then((json) => {
-                        let availableCount = json.data.availableCount;
-                        let successCount = json.data.successCount;
-
-                        return Promise.all(Object.keys(insertedAppsComposes).map((appId) => {
-                            let composes = insertedAppsComposes[appId].composes;
-                            return Promise.all(Object.keys(composes).map((composeId) => {
-                                let putCompose = {
-                                    availableCount: availableCount,
-                                    successCount: successCount
-                                };
-                                return api.appsComposes.update(appId, composeId, userId, putCompose).then((resJson) => {
-                                    let _appsComposes = resJson.data;
-                                    let _composes = _appsComposes[appId].composes;
-                                    Object.assign(appsComposes[appId].composes, _composes);
-                                });
-                            }));
-                        })).then(() => {
-                            return json;
-                        });
+                let socketBody = {
+                    appIds: appIds,
+                    composes: composes,
+                    conditions: conditions
+                };
+                return new Promise((resolve, reject) => {
+                    socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve();
                     });
-                }
-            }).then((json) => {
+                });
+            }).then(() => {
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $composeAddModal.modal('hide');
-                if (isSendNow) {
-                    let availableCount = json.data.availableCount;
-                    let successCount = json.data.successCount;
-                    $.notify('符合條件的有 ' + availableCount + ' 位，已成功發送給 ' + successCount + ' 位', { type: 'success' });
-                } else {
-                    $.notify('新增成功', { type: 'success' });
-                }
+                $.notify('處理成功', { type: 'success' });
                 return loadComposes(nowSelectAppId);
             }).catch((err) => {
+                console.log(err);
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
                 $composeAddModal.modal('hide');
 
@@ -806,6 +784,10 @@
         $draftTableBody.empty();
         $reservationTableBody.empty();
 
+        if (!appsComposes[appId]) {
+            return;
+        }
+
         let composes = appsComposes[appId].composes;
         let composeIds = Object.keys(composes);
         composeIds.sort((a, b) => new Date(composes[b].time) - new Date(composes[a].time));
@@ -834,13 +816,9 @@
                             }
 
                             let typeText = {
-                                CHATBOT: '聊天機器人',
                                 AGE_RANGE: '年齡範圍',
                                 GENDER: '性別',
-                                TAGS: '標籤',
-                                ALL: '全部',
-                                LINE: 'LINE',
-                                FACEBOOK: 'Facebook'
+                                TAGS: '標籤'
                             };
 
                             return conditions.map((condition) => {
@@ -854,16 +832,6 @@
                                     conditionText = field ? field.text : '無此自定義條件';
                                 }
 
-                                if ('CHATBOT' === condition.type) {
-                                    conditionContent = condition.values.map((value) => {
-                                        let text = typeText[value];
-                                        if (!text) {
-                                            return apps[value].name;
-                                        }
-                                        return text;
-                                    }).join(', ');
-                                }
-
                                 return (
                                     '<div class="condition-col">' +
                                         conditionText + ': ' + conditionContent +
@@ -872,7 +840,6 @@
                             }).join('');
                         })(compose.conditions || []) +
                     '</td>' +
-                    '<td>' + (compose.successCount ? compose.successCount : '無紀錄') + '</td>' +
                     '<td>' +
                         '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isHistory ? 'fa-share-square' : 'fa-edit') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
                         (isHistory ? '' : '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>') +

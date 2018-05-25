@@ -177,6 +177,7 @@ function init(server) {
 
         // 推播全部人
         socket.on(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, (data, callback) => {
+            let appIds = data.appIds || [];
             let composes = data.composes || [];
             let conditions = data.conditions || [];
             let messages = composes.map((compose) => {
@@ -191,12 +192,8 @@ function init(server) {
                 return message;
             });
 
-            let availableCount = 0;
-            let successCount = 0;
-
-            return composeHlp.findAvailableMessagers(conditions).then((appsChatroomsMessagers) => {
-                let appIds = Object.keys(appsChatroomsMessagers);
-                return Promise.all(appIds.map((appId) => {
+            return Promise.all(appIds.map((appId) => {
+                return composeHlp.findAvailableMessagers(conditions, appId).then((appsChatroomsMessagers) => {
                     let app = appsChatroomsMessagers[appId];
                     let chatroomIds = Object.keys(app.chatrooms);
                     return Promise.all(chatroomIds.map((chatroomId) => {
@@ -208,11 +205,7 @@ function init(server) {
                         if (0 === recipientUids.length) {
                             return Promise.resolve();
                         }
-
-                        availableCount++;
-                        return botSvc.multicast(recipientUids, messages, appId, app).then(() => {
-                            successCount++;
-                        }).catch((err) => console.error(err));
+                        return botSvc.multicast(recipientUids, messages, appId, app);
                     })).then(() => {
                         return Promise.all(chatroomIds.map((chatroomId) => {
                             return Promise.all(messages.map((message) => {
@@ -246,16 +239,9 @@ function init(server) {
                             });
                         }));
                     });
-                }));
-            }).then(() => {
-                let json = {
-                    status: 1,
-                    data: {
-                        availableCount: availableCount,
-                        successCount: successCount
-                    }
-                };
-                ('function' === typeof callback) && callback(json);
+                });
+            })).then(() => {
+                ('function' === typeof callback) && callback();
             }).catch((ERR) => {
                 let json = {
                     status: 0,
