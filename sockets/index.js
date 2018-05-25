@@ -184,7 +184,6 @@ function init(server) {
             let userId = data.userId;
             let appId = data.appId;
             let composes = data.composes;
-            let appsInsertedComposes = {};
             let req = {
                 method: 'POST',
                 params: {
@@ -272,17 +271,6 @@ function init(server) {
                 let recipientUids = Object.values(matchedChatrooms);
                 return recipientUids.length > 0 && botSvc.multicast(recipientUids, composes, appId, app);
             }).then(() => {
-                return Promise.all(composes.map((compose) => {
-                    return appsComposes.insert(appId, compose).then((_appsComposes) => {
-                        // 失敗需要 reject, catch
-                        if (!_appsComposes) {
-                            return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_INSERT);
-                        }
-                        Object.assign(appsInsertedComposes, _appsComposes);
-                        return _appsComposes;
-                    });
-                }));
-            }).then(() => {
                 let chatroomIds = Object.keys(matchedChatrooms);
                 return Promise.all(chatroomIds.map((chatroomId) => {
                     return Promise.all(composes.map((compose) => {
@@ -323,12 +311,7 @@ function init(server) {
                     });
                 }));
             }).then(() => {
-                let json = {
-                    status: 1,
-                    msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsInsertedComposes
-                };
-                ('function' === typeof callback) && callback(json);
+                ('function' === typeof callback) && callback();
             }).catch((ERR) => {
                 let json = {
                     status: 0,

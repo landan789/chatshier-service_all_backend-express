@@ -80,16 +80,14 @@ module.exports = (function() {
         }
 
         postOne(req, res) {
+            let appId = req.params.appid;
             let postCompose = {
                 type: req.body.type,
                 text: req.body.text,
                 time: req.body.time,
                 status: !!req.body.status,
-                ageRange: '' === req.body.ageRange ? [] : req.body.ageRange,
-                gender: req.body.gender,
-                field_ids: req.body.field_ids || {}
+                conditions: req.body.conditions
             };
-            let appId;
 
             return Promise.resolve().then(() => {
                 // 檢查欲更新的群發發送時間比現在的時間還早的話不允許新增
@@ -97,16 +95,12 @@ module.exports = (function() {
                     return Promise.reject(API_ERROR.APP_COMPOSE_TIME_MUST_BE_LATER_THAN_NOW);
                 }
 
-                return this.appsRequestVerify(req).then((checkedAppIds) => {
-                    appId = checkedAppIds;
-                    return new Promise((resolve, reject) => {
-                        appsComposesMdl.insert(appId, postCompose, (result) => {
-                            if (!result) {
-                                reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
-                                return;
-                            }
-                            resolve(result);
-                        });
+                return this.appsRequestVerify(req).then(() => {
+                    return appsComposesMdl.insert(appId, postCompose).then((appsComposes) => {
+                        if (!appsComposes || (appsComposes && 0 === Object.keys(appsComposes).length)) {
+                            return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                        }
+                        return appsComposes;
                     });
                 });
             }).then((compose) => {

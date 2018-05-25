@@ -30,14 +30,14 @@
                         <p class="mb-3 pt-0 px-3">首頁 / 訊息 / 群發</p>
                         <p class="mb-3 pt-0 px-3">機器人向您的群體客戶發送的訊息</p>
                     </div>
-                    <div class="px-3 my-3" id="appSelector">
-                        <div class="dropdown app-dropdown">
-                            <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                <span class="dropdown-text">請選擇聊天機器人</span>
-                            </button>
-                            <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
-                        </div>
+
+                    <div class="px-3 my-3 dropdown app-dropdown" id="appSelector">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="appsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span class="dropdown-text">請選擇聊天機器人</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                     </div>
+
                     <div class="px-3 my-3" id="searchWidget">
                         <div class="search-add mb-2">
                             <span class="icon"><i class="fa fa-search"></i></span>
@@ -54,7 +54,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類</th>
+                                        <th>發送條件</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -67,7 +67,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類</th>
+                                        <th>發送條件</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -80,7 +80,7 @@
                                     <tr>
                                         <th>內容</th>
                                         <th>時間</th>
-                                        <th>分類</th>
+                                        <th>發送條件</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -94,7 +94,7 @@
     </div>
 
     <!-- Add Modal -->
-    <div class="chsr modal fade" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
+    <div class="chsr modal fade compose-modal" id="composeAddModal" tabindex="-1" role="dialog" aria-labelledby="composeAddModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-xs" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -104,29 +104,19 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Form Content -->
-                    <div class="form-group">
-                        <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
-                        <div class="select-container">
-                            <select class="form-control" id="app-select"></select>
+                    <div class="card">
+                        <div class="card-header">
+                            <span>發送條件</span>
+                            <small class="mx-1 text-info d-none" id="availableCount"></small>
+                            <small class="d-block text-danger">如果有相同條件，只會套用最後一筆 (聊天機器人除外)</small>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-form-label font-weight-bold">篩選發送:</label>
-                        <br/>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" class="form-check-input" name="who-send" id="send-all" checked="true" rel="limit-user">
-                            <label for="send-all" class="form-check-label">全部發送</label>
+                        <div class="card-body">
+                            <div class="condition-container" id="conditionContainer"></div>
+                            <button class="mt-3 btn btn-light condition-add-btn">
+                                <i class="fas fa-plus"></i>
+                                <span>新增發送條件</span>
+                            </button>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" class="form-check-input" name="who-send" id="send-somebody" rel="limit-user">
-                            <label for="send-somebody" class="form-check-label">限制發送對象</label>
-                        </div>
-                    </div>
-
-                    <div id="limit-user" class="card d-none">
-                        <div class="card-header">條件</div>
-                        <div class="card-body" id="custom-fields"></div>
                     </div>
 
                     <div class="form-group">
@@ -156,8 +146,8 @@
                         </button>
                         <span>(一次最多 3 則)</span>
 
-                        <span class="error-msg font-weight-bold">超過訊息上限</span>
-                        <p class="error-input font-weight-bold"></p>
+                        <span class="text-danger font-weight-bold error-msg d-none">超過訊息上限</span>
+                        <p class="text-danger font-weight-bold error-input d-none"></p>
                         <div class="w-100 input-warpper" id="inputWarpper">
                             <div class="position-relative input-container">
                                 <textarea class="px-2 compose-textarea text-input"></textarea>

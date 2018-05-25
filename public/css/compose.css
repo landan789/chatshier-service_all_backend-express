@@ -1,21 +1,12 @@
-.error-msg,
-.error-input {
-    display: none;
-    color: red;
-}
-
 .remove-btn {
     cursor: pointer;
     color: #000;
     top: 0;
-    right: 0.3rem;
+    right: .3rem;
     font-size: 1.5em;
-    opacity: 0.5;
-}
-
-.remove-btn:hover {
-    opacity: 1;
-}
+    opacity: .5; }
+    .remove-btn:hover {
+        opacity: 1; }
 
 .compose-textarea {
     resize: none;
@@ -23,3 +14,12 @@
     height: 5rem;
     padding-right: 1.8rem;
 }
+
+.compose-modal .condition-types,
+.compose-modal .condition-content {
+    width: calc(50% - 1.5rem); }
+    .compose-modal .condition-content.range {
+        width: calc(25% - 1.5rem); }
+
+.compose-modal .condition-remove-btn {
+    cursor: pointer; }

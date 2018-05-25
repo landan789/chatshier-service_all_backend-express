@@ -894,15 +894,15 @@
             '<li class="text-light nested list-group-item has-collapse" app-type="' + LINE + '">' +
                 '<img class="app-icon" src="' + logos[LINE] + '" />' +
                 '<span>' + LINE + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested app-types show" app-type="' + LINE + '"></div>' +
+            '<div class="collapse nested app-types" app-type="' + LINE + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + FACEBOOK + '">' +
                 '<img class="app-icon" src="' + logos[FACEBOOK] + '" />' +
                 '<span>' + FACEBOOK + '</span>' +
-                '<i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>' +
+                '<i class="ml-auto py-1 fas fa-chevron-down collapse-icon"></i>' +
             '</li>' +
-            '<div class="collapse nested app-types show" app-type="' + FACEBOOK + '"></div>' +
+            '<div class="collapse nested app-types" app-type="' + FACEBOOK + '"></div>' +
             '<li class="text-light nested list-group-item has-collapse" app-type="' + CHATSHIER + '">' +
                 '<img class="app-icon" src="' + logos[CHATSHIER] + '" />' +
                 '<span>' + CHATSHIER + '</span>' +
