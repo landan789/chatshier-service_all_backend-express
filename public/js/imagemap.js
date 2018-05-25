@@ -90,7 +90,7 @@
         let boxHeight = height / 2;
         $('.content-input').addClass('d-none');
         $('.form-group.col-sm-12').addClass('d-none');
-        $modal.find('.show-imagemap-form').css('background-color', 'rgba(158,158,158)');
+        $modal.find('.show-imagemap-form').css('background-color', '#CBCBCB');
         $modal.find('.show-imagemap-form').find('.box').remove();
         let checked = $('input[name = imagemap-form]:checked').val();
         let box1 = '';
@@ -285,7 +285,7 @@
         $modal.find('input[type = url]').val('');
         $modal.find('input[type = file]').val('');
         $modal.find('.show-imagemap-form').removeAttr('style');
-        $modal.find('.show-imagemap-form').css('background-color', 'rgba(158,158,158)');
+        $modal.find('.show-imagemap-form').css('background-color', '#CBCBCB');
         $modal.find('.show-imagemap-form').find('.box').remove();
         $modal.find('input[value = "form1"]').prop('checked', true);
         $modal.find('input[name = "content"]').prop('checked', false);

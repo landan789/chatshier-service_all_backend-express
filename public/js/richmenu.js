@@ -176,7 +176,7 @@
         let boxWidth = width / 3;
         let boxHeight = height / 2;
         $('.content-input').addClass('d-none');
-        // $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
+        $modal.find('.show-richmenu-form').css('background-color', '#CBCBCB');
         $modal.find('.show-richmenu-form').find('.box').remove();
         let checked = $('input[name = richmenu-form]:checked').val();
         let box1 = '';
@@ -450,7 +450,7 @@
         $modal.find('input[type = url]').val('');
         $modal.find('input[type = file]').val('');
         $modal.find('.show-richmenu-form').removeAttr('style');
-        // $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
+        $modal.find('.show-richmenu-form').css('background-color', '#CBCBCB');
         $modal.find('.show-richmenu-form').find('.box').remove();
         $modal.find('input[value = "form1"]').prop('checked', true);
         $modal.find('input[name = "content"]').prop('checked', false);
