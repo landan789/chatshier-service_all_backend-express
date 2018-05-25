@@ -148,6 +148,39 @@ module.exports = (function() {
         };
 
         /**
+         * 輸入指定的 appId 修改一筆加好友回覆的資料
+         *
+         * @param {string} appId
+         * @param {string} greetingId
+         * @param {(appsGreetings: any) => any} [callback]
+         * @param {Promise<any>} callback
+         */
+        update(appId, greetingId, putGreeting, callback) {
+            putGreeting._id = greetingId;
+            putGreeting.updatedTime = Date.now();
+
+            let query = {
+                '_id': appId,
+                'greetings._id': greetingId
+            };
+
+            let updateOper = { $set: {} };
+            for (let prop in putGreeting) {
+                updateOper.$set[`greetings.$.${prop}`] = putGreeting[prop];
+            }
+
+            return this.AppsModel.update(query, updateOper).then(() => {
+                return this.find(appId, greetingId);
+            }).then((appsGreetings) => {
+                ('function' === typeof callback) && callback(appsGreetings);
+                return appsGreetings;
+            }).catch((ERR) => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
          * 輸入指定的 appId 與 greetingId 刪除該加好友回覆的資料
          *
          * @param {string} appId

@@ -102,6 +102,7 @@ router.get('/apps-greetings/users/:userid', appsGreetingsCtl.getAll);
 router.get('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.getAll);
 router.get('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.getOne);
 router.post('/apps-greetings/apps/:appid/users/:userid', appsGreetingsCtl.postOne);
+router.put('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.putOne);
 router.delete('/apps-greetings/apps/:appid/greetings/:greetingid/users/:userid', appsGreetingsCtl.deleteOne);
 // ==========
 
