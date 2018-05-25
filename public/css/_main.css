@@ -6,6 +6,14 @@ body, html {
     overflow: hidden;
 }
 
+.line-color {
+    color: #43b901;
+}
+
+.fb-messsenger-color {
+    color: #407fff
+}
+
 /* disable input 時間元素時一併隱藏內建按鈕 */
 input[type="datetime-local"][disabled]::-webkit-inner-spin-button,
 input[type="datetime-local"][disabled]::-webkit-clear-button,
@@ -31,7 +39,8 @@ button:focus {
     font-size: 1.5em;
 }
 
-.root .animated {
+.root .animated,
+.modal .animated {
     animation-duration: 300ms;
 }
 
