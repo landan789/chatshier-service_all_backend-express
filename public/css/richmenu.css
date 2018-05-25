@@ -48,6 +48,10 @@
 
 .show-richmenu-form {
     position: relative;
+    background-image: url("../image/upload.png");
+    background-repeat: no-repeat;
+    background-position: 0% 0%;
+    background-size: 100% 100%;
 }
 
 .image-ghost {

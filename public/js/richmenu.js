@@ -14,18 +14,6 @@
 
     const NO_PERMISSION_CODE = '3.16';
 
-    const BLOCKS = { // for the forms, still thinking about how to arrange the boxes
-        box1: {},
-        box2: {},
-        box3: {},
-        box4: {},
-        box5: {},
-        box6: {},
-        box7: {},
-        box8: {},
-        box9: {}
-    };
-
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -53,6 +41,7 @@
         $appSelector.parent().parent().removeClass('d-none');
         $('#modal-save').removeAttr('disabled');
         $('#modal-update-save').removeAttr('disabled');
+        $(`.form-inputs input`).val('');
         imageFile = '';
     });
 
@@ -187,7 +176,7 @@
         let boxWidth = width / 3;
         let boxHeight = height / 2;
         $('.content-input').addClass('d-none');
-        $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
+        // $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
         $modal.find('.show-richmenu-form').find('.box').remove();
         let checked = $('input[name = richmenu-form]:checked').val();
         let box1 = '';
@@ -409,17 +398,27 @@
     function contentBarShow() {
         let id = $(this).attr('id');
         $(this).siblings().removeClass('checked');
+        let inputValue = $(this).attr('ref');
         if ($(this).hasClass('marked')) {
-            let inputValue = $(this).attr('ref');
             inputTypeCheck(id, inputValue);
         }
+        $(`.form-inputs input`).val('');
         $('.content-input').addClass('d-none');
         $(`#${id} input[name = content]`).removeAttr('checked');
-        $(`.boxes-inputs .content-bar`).removeClass('d-none');
-        $(`.boxes-inputs .content-bar`).addClass('d-none');
-        $(`.boxes-inputs .content-bar#${id}-input`).removeClass('d-none');
+        $(`.boxes-inputs .content-bar`).removeClass('d-none').addClass('d-none');
+        $(`.boxes-inputs #${id}-input`).removeClass('d-none');
+        $(`.form-inputs .form-group.col-sm-12`).addClass('d-none');
+        $(`.form-inputs #${id}-input`).removeClass('d-none');
         $(this).css('background-color', 'rgba(158,158,158,0.7)');
         $(this).addClass('checked');
+        if (!inputValue) {
+        } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
+            $(`.form-inputs #${id}-input #url`).val(inputValue);
+            $(`.form-inputs #${id}-input #url`).removeClass('d-none');
+        } else {
+            $(`.form-inputs #${id}-input #text`).val(inputValue);
+            $(`.form-inputs #${id}-input #text`).removeClass('d-none');
+        }
     }
 
     function inputTypeCheck(id, inputValue) {
@@ -427,16 +426,18 @@
         keywordOptionElement.each(function() {
             if ($(this).val() === inputValue) {
                 $(this).prop('select', true);
-                $('input[value = keyword]').prop('checked', true);
+                $(`#${id}-input input[value = keyword]`).prop('checked', true);
             }
         });
 
-        if (inputValue.includes('http://') || inputValue.includes('https://')) {
+        if (!inputValue) {
+            $(`#${id}-input input[value="no-action"]`).prop('checked', true);
+        } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
             $(`#${id}-input #url`).val(inputValue);
-            $(`input[value = url]`).prop('checked', true);
+            $(`#${id}-input input[value="url"]`).prop('checked', true);
         } else {
             $(`#${id}-input #text`).val(inputValue);
-            $(`input[value = text]`).prop('checked', true);
+            $(`#${id}-input input[value="text"]`).prop('checked', true);
         }
         contentInputShow();
     }
@@ -449,7 +450,7 @@
         $modal.find('input[type = url]').val('');
         $modal.find('input[type = file]').val('');
         $modal.find('.show-richmenu-form').removeAttr('style');
-        $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
+        // $modal.find('.show-richmenu-form').css('background-color', 'rgba(158,158,158)');
         $modal.find('.show-richmenu-form').find('.box').remove();
         $modal.find('input[value = "form1"]').prop('checked', true);
         $modal.find('input[name = "content"]').prop('checked', false);
@@ -629,7 +630,6 @@
                 return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
                     let appsRichmenu = resJson.data;
                     let richemnu = appsRichmenu[appId].richmenus;
-                    let richmenuId = Object.keys(richemnu)[0];
                     $('#richmenu-modal').modal('hide');
                     loadRichmenus(appId, userId);
                     $('#modal-update-save').removeAttr('disabled');

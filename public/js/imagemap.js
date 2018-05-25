@@ -219,13 +219,38 @@
     function contentBarShow() {
         let id = $(this).attr('id');
         $(this).siblings().removeClass('checked');
+        let inputValue = $(this).attr('ref');
+        if ($(this).hasClass('marked')) {
+            inputTypeCheck(id, inputValue);
+        }
+        $(`.form-inputs input`).val('');
         $('.content-input').addClass('d-none');
         $(`#${id} input[name = content]`).removeAttr('checked');
-        $(`.boxes-inputs .content-bar`).removeClass('d-none');
-        $(`.boxes-inputs .content-bar`).addClass('d-none');
-        $(`.boxes-inputs .content-bar#${id}-input`).removeClass('d-none');
+        $(`.boxes-inputs .content-bar`).removeClass('d-none').addClass('d-none');
+        $(`.boxes-inputs #${id}-input`).removeClass('d-none');
+        $(`.form-inputs .form-group.col-sm-12`).addClass('d-none');
+        $(`.form-inputs #${id}-input`).removeClass('d-none');
         $(this).css('background-color', 'rgba(158,158,158,0.7)');
         $(this).addClass('checked');
+        if (!inputValue) {
+        } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
+            $(`.form-inputs #${id}-input #url`).val(inputValue);
+            $(`.form-inputs #${id}-input #url`).removeClass('d-none');
+        } else {
+            $(`.form-inputs #${id}-input #text`).val(inputValue);
+            $(`.form-inputs #${id}-input #text`).removeClass('d-none');
+        }
+    }
+
+    function inputTypeCheck(id, inputValue) {
+        if (inputValue.includes('http://') || inputValue.includes('https://')) {
+            $(`#${id}-input #url`).val(inputValue);
+            $(`#${id}-input input[value="url"]`).prop('checked', true);
+        } else {
+            $(`#${id}-input #text`).val(inputValue);
+            $(`#${id}-input input[value="text"]`).prop('checked', true);
+        }
+        contentInputShow();
     }
 
     function contentInputShow() {
@@ -236,7 +261,7 @@
             $('.content-input').val('');
         }
         $('.content-input').addClass('d-none');
-        $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none');
+        $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none').siblings().addClass('d-none');
         $(`#${boxInput} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInput} #${contentInputId}`).change(function() {
             var val = $(this).val();
@@ -274,6 +299,7 @@
         let form = $('input[name = imagemap-form]:checked').val();
 
         if (!appId || !title) {
+            $(this).removeAttr('disabled');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
@@ -346,6 +372,7 @@
             let form = $('input[name = imagemap-form]:checked').val();
 
             if (!title) {
+                $(this).removeAttr('disabled');
                 return $.notify('標題不可為空', { type: 'warning' });
             }
 
