@@ -414,10 +414,10 @@
         if (!inputValue) {
         } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
             $(`.form-inputs #${id}-input #url`).val(inputValue);
-            $(`.form-inputs #${id}-input #url`).removeClass('d-none');
+            $(`.form-inputs #${id}-input #url`).attr('value', inputValue);
         } else {
             $(`.form-inputs #${id}-input #text`).val(inputValue);
-            $(`.form-inputs #${id}-input #text`).removeClass('d-none');
+            $(`.form-inputs #${id}-input #text`).attr('value', inputValue);
         }
     }
 
