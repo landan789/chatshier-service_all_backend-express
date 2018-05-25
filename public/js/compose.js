@@ -150,7 +150,6 @@
              * @param {string} [type]
              */
             addConditionItem(ev, type, values, fieldId) {
-                console.log(this);
                 type = type || 'AGE_RANGE';
                 let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type] || this._conditionTypes[fieldId];
                 let options = {
@@ -360,6 +359,8 @@
 
                 $conditionTypes.siblings('.condition-content').remove();
                 $conditionTypes.siblings('span').remove();
+                $conditionTypes.siblings('.tags-container').remove();
+
                 let type = typeFieldId || typeValue;
                 let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type];
                 let options = {
@@ -389,9 +390,12 @@
                 this.refreshAvailable();
             }
 
+            /**
+             * @param {JQuery<HTMLElement>} $conditionContent
+             */
             enableTypeahead($conditionContent) {
-                let $conditionItem = $conditionContent.parents('.condition-item');
                 let $tagsContainer = $('<div class="my-2 tags-container"></div>');
+                let $conditionItem = $conditionContent.parents('.condition-item');
                 $conditionItem.append($tagsContainer);
 
                 let $tagsTypeahead = $conditionContent.find('.typeahead');
@@ -411,15 +415,12 @@
                                     '<i class="p-2 fas fa-times remove-chip"></i>' +
                                 '</div>'
                             );
+                            this.refreshAvailable();
                         }
                         $tagsTypeahead.val('');
                     }
                 });
-
-                $tagsTypeahead.on('keyup', (ev) => {
-                    var typeaheadData = $(ev.target).data('typeahead');
-                    typeaheadData.lookup();
-                });
+                $tagsTypeahead.on('keyup', (ev) => $(ev.target).data('typeahead').lookup());
             }
 
             refreshAvailable() {
