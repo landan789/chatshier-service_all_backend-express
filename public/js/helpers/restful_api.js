@@ -1017,6 +1017,24 @@ window.restfulAPI = (function() {
         };
 
         /**
+         * 修改一筆加好友回覆資料
+         *
+         * @param {string} appId
+         * @param {string} greetingId
+         * @param {string} userId
+         * @param {*} newGreetingData
+         */
+        AppsGreetingsAPI.prototype.update = function(appId, greetingId, userId, newGreetingData) {
+            var destUrl = this.urlPrefix + 'apps/' + appId + '/greetings/' + greetingId + '/users/' + userId;
+            var reqInit = {
+                method: 'PUT',
+                headers: reqHeaders,
+                body: JSON.stringify(newGreetingData)
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
          * 刪除一筆加好友回覆資料
          *
          * @param {string} appId - 目標加好友回覆的 App ID

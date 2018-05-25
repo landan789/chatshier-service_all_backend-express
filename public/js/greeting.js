@@ -1,18 +1,18 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    var appsData = {};
     var rowCount = 0;
-    var findedGreetingIds = {};
-    var api = window.restfulAPI;
+    var userId;
     var nowSelectAppId = '';
+    var appsData = {};
+    var findedGreetingIds = {};
 
-    var $jqDoc = $(document);
-    var $appDropdown = $('.app-dropdown');
-
+    const api = window.restfulAPI;
     const NO_PERMISSION_CODE = '3.16';
 
-    var userId;
+    const $appDropdown = $('.app-dropdown');
+    const $modal = $('#greeting_modal');
+
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
@@ -20,121 +20,106 @@
         userId = '';
     }
 
-    $(document).on('click', '#check-btn', modalSubmit);
-    $(document).on('click', '#close-btn', modalClose);
-    $(document).on('click', '#add-btn', addMsgCanvas);
-    $(document).on('click', '#delete-btn', delMsgCanvas);
-
-    return api.apps.findAll(userId).then(function(respJson) {
-        appsData = respJson.data;
-
-        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-
-        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
-        // 將所有的 messages 的物件全部塞到一個陣列之中
-        nowSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
-                continue;
-            }
-
-            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
-            $appDropdown.find('#' + appId).on('click', appSourceChanged);
-
-            if (!nowSelectAppId) {
-                nowSelectAppId = appId;
-            }
-        }
-
-        if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-            loadGreetings(nowSelectAppId, userId);
-            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
-        }
+    $(document).on('click', '#add-btn', turnOnAddModal);
+    $(document).on('click', '#modal-insert-btn', insertGreeting);
+    $(document).on('click', '#edit-btn', turnOnEdit);
+    $(document).on('click', '#modal-update-btn', updateGreeting);
+    $(document).on('click', '#delete-btn', removeGretting);
+    $modal.on('hidden.bs.modal', function() {
+        $('#modal-insert-btn').removeClass('d-none');
+        $('#modal-update-btn').removeClass('d-none');
+        $('#modal-greeting-text').val('');
     });
 
-    function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        findedGreetingIds = {};
-        loadGreetings(nowSelectAppId, userId);
+    function turnOnAddModal() {
+        $('#modal-update-btn').addClass('d-none');
     }
 
-    function loadGreetings(appId, userId) {
-        $('#MsgCanvas').empty();
-        rowCount = 0;
-        return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
-            let appsGreetings = resJson.data;
-            if (appsGreetings && appsGreetings[appId]) {
-                let greeting = appsGreetings[appId].greetings;
-                for (let greetingId in greeting) {
-                    $('table #MsgCanvas').append(
-                        '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<td>' + greeting[greetingId].text + '</td>' +
-                            '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
-                            '<td>' +
-                                '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
-                            '</td>' +
-                        '</tr>'
-                    );
+    function insertGreeting() {
+        if (rowCount >= 5) {
+            return $.notify('訊息則數已達上限', { type: 'warning' });
+        }
+        rowCount++;
+        console.log(`訊息數：${rowCount}`);
+        let appId = $('#add-btn').attr('app-id');
+        let text = $('#modal-greeting-text').val();
+        if (!text) {
+            return $.notify('文字欄位不可空白', { type: 'warning' });
+        }
+        let greeting = {
+            type: 'text',
+            text
+        };
+        return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
+            let greeting = resJson.data[appId].greetings;
+            let greetingId = Object.keys(greeting)[0];
 
-                    rowCount++;
-                    findedGreetingIds[greetingId] = greetingId;
-                }
+            var trGrop =
+            '<tr id="' + greetingId + '" rel="' + appId + '">' +
+                '<td>' + greeting[greetingId].text + '</td>' +
+                '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
+                '<td>' +
+                    '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="edit-btn" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true"><i class="fas fa-edit update"></i></button>' +
+                    '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
+                '</td>' +
+            '</tr>';
+            findedGreetingIds[greetingId] = greetingId;
+            $('table #MsgCanvas').append(trGrop);
+            $modal.modal('hide');
+            return $.notify('新增成功', { type: 'success' });
+        }).catch((resJson) => {
+            $modal.modal('hide');
+            if (undefined === resJson.status) {
+                return $.notify('新增失敗', { type: 'danger' });
             }
-
-            if (rowCount < 5) {
-                appendNewTr(appId);
+            if (NO_PERMISSION_CODE === resJson.code) {
+                return $.notify('無此權限', { type: 'danger' });
             }
+            return $.notify('新增失敗', { type: 'danger' });
         });
     }
 
-    function appendNewTr(appId) {
-        $('table #MsgCanvas').append(
-            '<tr rel="' + appId + '">' +
-                '<td></td>' +
-                '<td></td>' +
-                '<td>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-border btn-light insert" id="add-btn">' +
-                        '<i class="fas fa-plus"></i>' +
-                    '</button>' +
-                '</td>' +
-            '</tr>'
-        );
+    function turnOnEdit() {
+        $('#modal-insert-btn').addClass('d-none');
+        let appId = $(this).parent().parent().attr('rel');
+        let greetingId = $(this).parent().parent().attr('id');
+        let text = $(this).parent().siblings('td:first').text();
+        $('#modal-app-id').val(appId);
+        $('#modal-greeting-id').val(greetingId);
+        $('#modal-greeting-text').val(text);
     }
 
-    function addMsgCanvas() {
-        rowCount++;
-        $(this).parent().parent().remove('tr');
-        let nowTime = Date.now();
-        let appId = $(this).parent().parent().attr('rel');
-
-        $('table #MsgCanvas').append(
-            '<tr id="new' + rowCount + '" rel="' + appId + '">' +
-                '<td><textarea class="greeting-textarea"></textarea></td>' +
-                '<td>' + new Date(nowTime).toLocaleString() + '</td>' +
-                '<td>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="check-btn">' +
-                        '<i class="fa fa-check"></i>' +
-                    '</button>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-danger remove" id="delete-btn">' +
-                        '<i class="fas fa-trash-alt"></i>' +
-                    '</button>' +
-                '</td>' +
-            '</tr>'
-        );
-
-        if (rowCount < 5) {
-            appendNewTr(appId);
+    function updateGreeting() {
+        let appId = $('#modal-app-id').val();
+        let greetingId = $('#modal-greeting-id').val();
+        let text = $('#modal-greeting-text').val();
+        if ('' === text.trim()) {
+            return $.notify('請填入文字內容', { type: 'warning' });
         }
-    } // end of addMsgCanvas
+        let greeting = {
+            type: 'text',
+            text
+        };
+        return api.appsGreetings.update(appId, greetingId, userId, greeting).then((resJson) => {
+            let appsgreetings = resJson.data;
+            let modifiedText = appsgreetings[appId].greetings[greetingId].text;
+            $(`#${greetingId}[rel=${appId}]`).find('td:first').text(modifiedText);
+            $modal.modal('hide');
+            return $.notify('修改成功', { type: 'success' });
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                return $.notify('修改失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                return $.notify('無此權限', { type: 'danger' });
+            }
+            return $.notify('修改失敗', { type: 'danger' });
+        });
+    }
 
-    function delMsgCanvas() {
+    function removeGretting() {
         var appId = $(this).parent().parent().attr('rel');
         var greetingId = $(this).parent().parent().attr('id');
-
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
@@ -143,85 +128,19 @@
                 $('#' + greetingId).remove();
                 delete findedGreetingIds[greetingId];
                 rowCount--;
-                if (4 === rowCount) {
-                    appendNewTr(appId);
-                }
-                $.notify('刪除成功', { type: 'success' });
+                return $.notify('刪除成功', { type: 'success' });
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
-                    $.notify('刪除失敗', { type: 'danger' });
-                    return;
+                    return $.notify('刪除失敗', { type: 'danger' });
                 }
                 if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                    return;
+                    return $.notify('無此權限', { type: 'danger' });
                 }
 
-                $.notify('刪除失敗', { type: 'danger' });
-                return;
+                return $.notify('刪除失敗', { type: 'danger' });
             });
         });
     }
-
-    function modalClose() {
-        let id = $(this).parent().parent().attr('id');
-        let appId = $(this).parent().parent().attr('rel');
-        $('#' + id).remove();
-        rowCount--;
-        if (4 === rowCount) {
-            appendNewTr(appId);
-        }
-    }
-
-    function modalSubmit() {
-        var greetingIds = Object.keys(findedGreetingIds);
-        var greetingIdsLength = greetingIds.length;
-        var appendId = greetingIds[greetingIdsLength - 1];
-        var appId = $(this).parent().parent().attr('rel');
-        var $textarea = $(this).parent().parent().children().children('textarea');
-        var trId = $(this).parent().parent().attr('id');
-        if ('' === $textarea.val().trim()) {
-            $.notify('請填入文字內容', { type: 'warning' });
-            return;
-        }
-        let greeting = {
-            type: 'text',
-            text: $textarea.val()
-        };
-        return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
-            $('#' + trId).remove();
-            let greeting = resJson.data[appId].greetings;
-            let greetingId = Object.keys(greeting)[0];
-
-            var trGrop =
-            '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                '<td>' + greeting[greetingId].text + '</td>' +
-                '<td>' + new Date(nowTime).toLocaleString() + '</td>' +
-                '<td>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
-                '</td>' +
-            '</tr>';
-            if (0 === greetingIdsLength) {
-                $('table #MsgCanvas').prepend(trGrop);
-                findedGreetingIds[greetingId] = greetingId;
-                return;
-            }
-            $(trGrop).insertAfter('#' + appendId);
-            findedGreetingIds[greetingId] = greetingId;
-            $.notify('新增成功', { type: 'success' });
-        }).catch((resJson) => {
-            if (undefined === resJson.status) {
-                $.notify('新增失敗', { type: 'danger' });
-                return;
-            }
-            if (NO_PERMISSION_CODE === resJson.code) {
-                $.notify('無此權限', { type: 'danger' });
-                return;
-            }
-            $.notify('新增失敗', { type: 'danger' });
-            return;
-        });
-    } // end of modalSubmit
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
@@ -247,4 +166,68 @@
             });
         });
     }
+
+    function appSourceChanged(ev) {
+        nowSelectAppId = ev.target.id;
+        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        findedGreetingIds = {};
+        loadGreetings(nowSelectAppId, userId);
+    }
+
+    function loadGreetings(appId, userId) {
+        $('#MsgCanvas').empty();
+        rowCount = 0;
+        return api.appsGreetings.findAll(appId, userId).then(function(resJson) {
+            let appsGreetings = resJson.data;
+            if (appsGreetings && appsGreetings[appId]) {
+                let greeting = appsGreetings[appId].greetings;
+                for (let greetingId in greeting) {
+                    $('table #MsgCanvas').append(
+                        '<tr id="' + greetingId + '" rel="' + appId + '">' +
+                            '<td>' + greeting[greetingId].text + '</td>' +
+                            '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
+                            '<td>' +
+                                '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="edit-btn" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true"><i class="fas fa-edit update"></i></button>' +
+                                '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
+                            '</td>' +
+                        '</tr>'
+                    );
+
+                    rowCount++;
+                    findedGreetingIds[greetingId] = greetingId;
+                }
+            }
+        });
+    }
+
+    return api.apps.findAll(userId).then(function(respJson) {
+        appsData = respJson.data;
+
+        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+
+        // 必須把訊息資料結構轉換為 chart 使用的陣列結構
+        // 將所有的 messages 的物件全部塞到一個陣列之中
+        nowSelectAppId = '';
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+                delete appsData[appId];
+                continue;
+            }
+
+            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
+            $appDropdown.find('#' + appId).on('click', appSourceChanged);
+
+            if (!nowSelectAppId) {
+                nowSelectAppId = appId;
+            }
+        }
+
+        if (nowSelectAppId) {
+            $('#add-btn').removeAttr('app-id').attr('app-id', nowSelectAppId);
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            loadGreetings(nowSelectAppId, userId);
+            $(document).find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+        }
+    });
 })();

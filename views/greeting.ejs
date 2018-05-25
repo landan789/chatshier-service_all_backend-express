@@ -37,6 +37,11 @@
                             </button>
                             <div class="dropdown-menu" aria-labelledby="appsDropdown"></div>
                         </div>
+                        <div class="search-add mb-2">
+                            <button type="button" id="add-btn" class="btn btn-light btn-border inner-add insert" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="px-3 my-3 chsr table">
                         <table class="chsr table">
@@ -55,6 +60,33 @@
         </div>
     </div>
 
+    <div id="greeting_modal" class="chsr modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group d-none">
+                            <input class="form-control" type="text" name="greeting=text" id="modal-greeting-id" />
+                        </div>
+                        <div class="form-group d-none">
+                            <input class="form-control" type="text" name="greeting=text" id="modal-app-id" />
+                        </div>
+                        <div class="form-group">
+                            <label for="greeting=text" class="col-form-label font-weight-bold">文字:</label>
+                            <input class="form-control" type="text" name="greeting=text" id="modal-greeting-text" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="modal-insert-btn">新增</button>
+                    <button type="button" class="btn btn-primary" id="modal-update-btn">修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除確認訊息 -->
     <div id="dialog_modal" class="chsr modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
