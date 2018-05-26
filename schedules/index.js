@@ -33,7 +33,7 @@ let jobProcess = () => {
             }
 
             return appsComposesMdl.find(appId).then((appsComposes) => {
-                if (!appsComposes) {
+                if (!(appsComposes && appsComposes[appId])) {
                     return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
                 }
                 let composes = appsComposes[appId].composes;

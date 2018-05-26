@@ -44,6 +44,9 @@
 
 .show-imagemap-form {
     position: relative;
+    background-image: url("../image/upload.png");
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .image-ghost {
