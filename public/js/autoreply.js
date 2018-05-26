@@ -24,16 +24,6 @@
     var NO_PERMISSION_CODE = '3.16';
     var MAX_CHATSHIER_UNIX_TIME = 4701945599000;
 
-    var week = {
-        0: '日',
-        1: '一',
-        2: '二',
-        3: '三',
-        4: '四',
-        5: '五',
-        6: '六'
-    };
-
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -51,7 +41,7 @@
         var checkInputVal = ev.target.value;
 
         switch (checkInputVal) {
-            case 'RANGE_SCHEDULE':
+            case 'PERIODS':
                 $autoreplyAddModal.find('#timeSelectGroup').removeClass('d-none');
                 $autoreplyAddModal.find('#dateSelectGroup').addClass('d-none');
                 break;
@@ -67,7 +57,7 @@
         var checkInputVal = ev.target.value;
 
         switch (checkInputVal) {
-            case 'RANGE_SCHEDULE':
+            case 'PERIODS':
                 $autoreplyEditModal.find('#timeSelectGroup').removeClass('d-none');
                 $autoreplyEditModal.find('#dateSelectGroup').addClass('d-none');
                 break;
@@ -115,6 +105,8 @@
 
         $autoreplyAddModal.on('show.bs.modal', function() {
             var resetDate = new Date();
+            var timezoneOffset = resetDate.getTimezoneOffset();
+
             $autoreplyAddSdtPicker.data('DateTimePicker').date(resetDate);
             $autoreplyAddEdtPicker.data('DateTimePicker').clear();
 
@@ -124,6 +116,7 @@
 
             $autoreplyAddModal.find('.schedule-day').addClass('active');
             $autoreplyAddModal.find('#repeatText').text('全部');
+            $autoreplyAddModal.find('select[name="timezoneOffset"]').val(timezoneOffset);
         });
 
         $autoreplyAddModal.on('click', '.schedule-day', function(ev) {
@@ -231,18 +224,23 @@
             '<tr app-id="' + appId + '" autoreply-id="' + autoreplyId + '">' +
                 '<td class="mb-2" data-title="' + autoreply.title + '">' + autoreply.title + '</td>' +
                 (function() {
-                    if (autoreply.schedule && autoreply.schedule.length > 0) {
+                    if (autoreply.periods && autoreply.periods.length > 0) {
                         var startedTimeDays = [];
                         var endedTimeDays = [];
 
-                        autoreply.schedule.forEach((plan, i) => {
-                            startedTimeDays.push(week[plan.day]);
-                            endedTimeDays.push(week[plan.day]);
+                        autoreply.periods.forEach((period) => {
+                            for (let day in period) {
+                                if ('timezoneOffset' === day || !period[day].isActivated) {
+                                    continue;
+                                }
+                                startedTimeDays.push(day + ': ' + period[day].startedTime);
+                                endedTimeDays.push(day + ': ' + period[day].endedTime);
+                            }
                         });
 
                         return (
-                            '<td class="text-pre">' + startedTimeDays.join(' ') + '\n' + autoreply.schedule[0].startedTime + '</td>' +
-                            '<td class="text-pre">' + endedTimeDays.join(' ') + '\n' + autoreply.schedule[0].endedTime + '</td>'
+                            '<td class="text-pre">' + startedTimeDays.join('\n') + '</td>' +
+                            '<td class="text-pre">' + endedTimeDays.join('\n') + '</td>'
                         );
                     }
 
@@ -283,31 +281,38 @@
         var $autoreplyAddEtInput = $autoreplyAddEtPicker.find('input[name="endTime"]');
 
         switch (checkedDateType) {
-            case 'RANGE_SCHEDULE':
+            case 'PERIODS':
                 autoreply.startedTime = autoreply.endedTime = 0;
-                autoreply.schedule = [];
-                var $scheduleDays = $autoreplyAddModal.find('.schedule-day.active');
+                autoreply.periods = [];
+
+                var $scheduleDays = $autoreplyAddModal.find('.schedule-day');
                 var stPickerData = $autoreplyAddStPicker.data('DateTimePicker');
                 var etPickerData = $autoreplyAddEtPicker.data('DateTimePicker');
+                var timezoneOffset = new Date().getTimezoneOffset();
 
-                $scheduleDays.each((i) => {
-                    var scheduleTime = {
-                        day: parseInt($($scheduleDays[i]).attr('day'), 10)
+                var period = {
+                    timezoneOffset: timezoneOffset
+                };
+
+                $scheduleDays.each(function() {
+                    var day = $(this).attr('day');
+                    period[day] = {
+                        isActivated: $(this).hasClass('active')
                     };
 
                     if (stPickerData && etPickerData) {
                         var stDate = stPickerData.date().toDate();
                         var etDate = etPickerData.date().toDate();
-                        scheduleTime.startedTime = formatTime(stDate, false);
-                        scheduleTime.endedTime = formatTime(etDate, false);
+                        period[day].startedTime = formatTime(stDate, false);
+                        period[day].endedTime = formatTime(etDate, false);
                     } else {
                         var stDateMobile = new Date($autoreplyAddStInput.val());
                         var etDateMobile = new Date($autoreplyAddEtInput.val());
-                        scheduleTime.startedTime = formatTime(stDateMobile, false);
-                        scheduleTime.endedTime = formatTime(etDateMobile, false);
+                        period[day].startedTime = formatTime(stDateMobile, false);
+                        period[day].endedTime = formatTime(etDateMobile, false);
                     }
-                    autoreply.schedule.push(scheduleTime);
                 });
+                autoreply.periods.push(period);
                 break;
             case 'RANGE_DATE':
             default:
@@ -360,34 +365,40 @@
         var autoreply = {
             title: $('#edit-taskTitle').val(),
             text: $('#editTaskContent').val(),
-            schedule: []
+            periods: []
         };
 
         var checkedDateType = $autoreplyEditModal.find('.form-check-input[name="dateType"]:checked').val();
         switch (checkedDateType) {
-            case 'RANGE_SCHEDULE':
-                var $scheduleDays = $autoreplyEditModal.find('.schedule-day.active');
+            case 'PERIODS':
+                var $scheduleDays = $autoreplyEditModal.find('.schedule-day');
                 var stPickerData = $autoreplyEditStPicker.data('DateTimePicker');
                 var etPickerData = $autoreplyEditEtPicker.data('DateTimePicker');
+                var timezoneOffset = new Date().getTimezoneOffset();
 
-                $scheduleDays.each((i) => {
-                    var scheduleTime = {
-                        day: parseInt($($scheduleDays[i]).attr('day'), 10)
+                var period = {
+                    timezoneOffset: timezoneOffset
+                };
+
+                $scheduleDays.each(function() {
+                    var day = $(this).attr('day');
+                    period[day] = {
+                        isActivated: $(this).hasClass('active')
                     };
 
                     if (stPickerData && etPickerData) {
                         var stDate = stPickerData.date().toDate();
                         var etDate = etPickerData.date().toDate();
-                        scheduleTime.startedTime = formatTime(stDate, false);
-                        scheduleTime.endedTime = formatTime(etDate, false);
+                        period[day].startedTime = formatTime(stDate, false);
+                        period[day].endedTime = formatTime(etDate, false);
                     } else {
                         var stDateMobile = new Date($autoreplyEditStInput.val());
                         var etDateMobile = new Date($autoreplyEditEtInput.val());
-                        scheduleTime.startedTime = formatTime(stDateMobile, false);
-                        scheduleTime.endedTime = formatTime(etDateMobile, false);
+                        period[day].startedTime = formatTime(stDateMobile, false);
+                        period[day].endedTime = formatTime(etDateMobile, false);
                     }
-                    autoreply.schedule.push(scheduleTime);
                 });
+                autoreply.periods.push(period);
                 break;
             case 'RANGE_DATE':
             default:
@@ -449,10 +460,10 @@
         });
     }
 
-    function autoreplyRemove() {
-        var $autoreplyRow = $(this).parents('tr');
-        var appId = $autoreplyRow.attr('rel');
-        var autoreplyId = $autoreplyRow.attr('id');
+    function autoreplyRemove(ev) {
+        var $autoreplyRow = $(ev.target).parents('tr');
+        var appId = $autoreplyRow.attr('app-id');
+        var autoreplyId = $autoreplyRow.attr('autoreply-id');
 
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
@@ -478,12 +489,12 @@
         });
     }
 
-    function openEdit() {
-        var $autoreplyRow = $(this).parents('tr');
+    function openEdit(ev) {
+        var $autoreplyRow = $(ev.target).parents('tr');
         var appId = $autoreplyRow.attr('app-id');
         var autoreplyId = $autoreplyRow.attr('autoreply-id');
         var autoreply = appsAutoreplies[appId].autoreplies[autoreplyId];
-        var schedule = autoreply.schedule || [];
+        var periods = autoreply.periods || [];
 
         $autoreplyEditModal.find('#edit-appid').text(appId);
         $autoreplyEditModal.find('#edit-autoreplyid').text(autoreplyId);
@@ -516,14 +527,14 @@
 
         var stDate = new Date();
         stDate.setHours(0, 0, 0, 0);
-        var stTime = schedule && schedule.length > 0 ? schedule[0].startedTime : '00:00';
+        var stTime = periods && periods.length > 0 ? periods[0].Sun.startedTime : '00:00';
         var stTimeHour = parseInt(stTime.split(':').shift());
         var stTimeMinute = parseInt(stTime.split(':').pop());
         stDate.setHours(stTimeHour, stTimeMinute, 0, 0);
 
         var etDate = new Date();
         etDate.setHours(0, 0, 0, 0);
-        var etTime = schedule && schedule.length > 0 ? schedule[0].endedTime : '00:00';
+        var etTime = periods && periods.length > 0 ? periods[0].Sun.endedTime : '00:00';
         var etTimeHour = parseInt(etTime.split(':').shift());
         var etTimeMinute = parseInt(etTime.split(':').pop());
         etDate.setHours(etTimeHour, etTimeMinute, 0, 0);
@@ -536,26 +547,36 @@
             $autoreplyEditEtInput.val(formatTime(etDate, false));
         }
 
-        var checkedDateType = schedule && schedule.length > 0 ? 'RANGE_SCHEDULE' : 'RANGE_DATE';
-
+        var checkedDateType = periods && periods.length > 0 ? 'PERIODS' : 'RANGE_DATE';
         switch (checkedDateType) {
-            case 'RANGE_SCHEDULE':
+            case 'PERIODS':
                 $autoreplyEditModal.find('.form-check-input[value="RANGE_DATE"]').removeAttr('checked');
-                $autoreplyEditModal.find('.form-check-input[value="RANGE_SCHEDULE"]').attr('checked', true);
+                $autoreplyEditModal.find('.form-check-input[value="PERIODS"]').attr('checked', true);
                 $autoreplyEditModal.find('#dateSelectGroup').addClass('d-none');
                 $autoreplyEditModal.find('#timeSelectGroup').removeClass('d-none');
 
                 let daysText = [];
-                schedule.forEach((plan) => {
-                    $autoreplyEditModal.find('.schedule-day[day="' + plan.day + '"]').addClass('active');
-                    daysText.push(week[plan.day]);
+                periods.forEach((period) => {
+                    for (let day in period) {
+                        if ('timezoneOffset' === day) {
+                            continue;
+                        }
+
+                        if (period[day].isActivated) {
+                            $autoreplyEditModal.find('.schedule-day[day="' + day + '"]').addClass('active');
+                            daysText.push(day);
+                        } else {
+                            $autoreplyEditModal.find('.schedule-day[day="' + day + '"]').removeClass('active');
+                        }
+                    }
+                    $autoreplyEditModal.find('select[name="timezoneOffset"]').val(period.timezoneOffset);
                 });
                 $autoreplyEditModal.find('#repeatText').text(daysText.length >= 7 ? '全部' : daysText.join(' '));
                 break;
             case 'RANGE_DATE':
             default:
                 $autoreplyEditModal.find('.form-check-input[value="RANGE_DATE"]').attr('checked', true);
-                $autoreplyEditModal.find('.form-check-input[value="RANGE_SCHEDULE"]').removeAttr('checked');
+                $autoreplyEditModal.find('.form-check-input[value="PERIODS"]').removeAttr('checked');
                 $autoreplyEditModal.find('#dateSelectGroup').removeClass('d-none');
                 $autoreplyEditModal.find('#timeSelectGroup').addClass('d-none');
                 break;
