@@ -186,6 +186,17 @@
 
                 if ('TAGS' === type) {
                     this.enableTypeahead($conditionItem.find('.condition-content'));
+                    if (options.values && options.values.length > 0) {
+                        let $tagsContainer = $conditionItem.find('.tags-container');
+                        $tagsContainer.append(options.values.map((tag) => {
+                            return (
+                                '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                    '<span class="pt-2 pb-2 pl-2 chip-text" tag="' + tag + '">' + tag + '</span>' +
+                                    '<i class="p-2 fas fa-times remove-chip"></i>' +
+                                '</div>'
+                            );
+                        }).join(''));
+                    }
                 }
 
                 this.refreshAvailable();
