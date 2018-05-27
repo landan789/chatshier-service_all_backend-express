@@ -263,7 +263,7 @@
         width: 100%;
         text-indent: 1rem;
         text-align: center;
-        top: calc(50% + 4rem);
+        top: calc(50% + 4rem + 50px);
         transform: translate3d(0, -50%, 0);
     }
     .chatroom-container.open::before,
@@ -273,7 +273,7 @@
         content: "";
         position: absolute;
         left: calc(50% - 8rem);
-        top: 0;
+        top: 50px;
         width: 16rem;
         height: 100%;
         opacity: .5;
