@@ -4,54 +4,18 @@
             <i class="fas fa-chevron-circle-up fa-2x animated zoomInUp"></i>
         </div>
 
-        <div class="swiper-slide" id="appsSlide">
-            <ul class="list-group detail-list">
-                <li class="text-light py-0 pl-2 list-group-item logo-item">
-                    <div class="p-1 ctrl-panel-logo" onclick="window.location.assign(window.urlConfig.wwwUrl)">
-                        <img class="w-100 h-100" src="image/logo-small.png" alt="" />
-                    </div>
-                    <span class="ctrl-panel-title" onclick="window.location.assign(window.urlConfig.wwwUrl)">Chatshier</span>
-                    <i class="ml-auto p-2 fas fa-times d-sm-none menu-toggle"></i>
-                </li>
-                <li class="text-light list-group-item">
-                    <span>機器人</span>
-                </li>
-                <div class="collapse show">
-                    <li class="text-light nested list-group-item has-collapse">
-                        <img class="app-icon" src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" />
-                        <span>LINE</span>
-                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
-                    </li>
-                    <div class="nested collapse line-collapse show"></div>
-                    <li class="text-light nested list-group-item has-collapse">
-                        <img class="app-icon" src="https://facebookbrand.com/wp-content/themes/fb-branding/prj-fb-branding/assets/images/fb-art.png" />
-                        <span>FACEBOOK</span>
-                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
-                    </li>
-                    <div class="nested collapse fb-collapse show"></div>
-                    <li class="text-light nested list-group-item has-collapse">
-                        <img class="app-icon" src="image/logo-no-transparent.png" />
-                        <span>CHATSHIER</span>
-                        <i class="ml-auto py-1 fas fa-chevron-up collapse-icon"></i>
-                    </li>
-                    <div class="nested collapse chatshier-collapse show"></div>
+        <ul class="list-group detail-list">
+            <li class="text-light py-0 pl-2 list-group-item logo-item">
+                <div class="p-1 ctrl-panel-logo" onclick="window.location.assign(window.urlConfig.wwwUrl)">
+                    <img class="w-100 h-100" src="image/logo-small.png" alt="" />
                 </div>
-                <li class="text-light list-group-item" id="ctrlPanelAddApp">
-                    <i class="fas fa-plus"></i>
-                    <span>新增</span>
-                </li>
-            </ul>
-        </div>
+                <span class="ctrl-panel-title" onclick="window.location.assign(window.urlConfig.wwwUrl)">Chatshier</span>
+                <i class="ml-auto p-2 fas fa-times d-sm-none menu-toggle"></i>
+            </li>
+        </ul>
 
         <div class="swiper-slide">
             <ul class="list-group detail-list">
-                <li class="text-light py-0 pl-2 list-group-item logo-item">
-                    <div class="p-1 ctrl-panel-logo" onclick="window.location.assign(window.urlConfig.wwwUrl)">
-                        <img class="w-100 h-100" src="image/logo-small.png" alt="" />
-                    </div>
-                    <span class="ctrl-panel-title" onclick="window.location.assign(window.urlConfig.wwwUrl)">Chatshier</span>
-                    <i class="ml-auto p-2 fas fa-times d-sm-none menu-toggle"></i>
-                </li>
                 <li class="search message-search text-light list-group-item" id="messageSearch">
                     <input type="text" class="mx-0 search-box" placeholder="搜尋文字訊息...">
                     <div class="search-results d-none">
@@ -109,6 +73,7 @@
                         <span>加好友回覆</span>
                     </li>
                 </div>
+
                 <li class="text-light list-group-item has-collapse" id="ctrlPanelMenu">
                     <i class="far fa-images fa-fw"></i>
                     <span>圖文影音內容</span>
@@ -158,7 +123,6 @@
             <i class="fas fa-chevron-circle-down fa-2x animated zoomInDown"></i>
         </div>
     </div>
-    <div class="swiper-pagination"></div>
 </div>
 
 <div class="d-none d-sm-flex edge-toggle-container" id="edgeToggleContainer">
