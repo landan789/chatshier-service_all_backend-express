@@ -28,6 +28,7 @@ module.exports = (function() {
                 isDeleted: false
             };
 
+            console.log(userIds);
             if (userIds instanceof Array) {
                 query['_id'] = {
                     $in: userIds.map((userId) => this.Types.ObjectId(userId))
