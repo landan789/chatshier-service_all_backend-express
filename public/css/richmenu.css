@@ -110,6 +110,7 @@ tr:nth-child(even) {
 .box {
     border:1px solid;
     float: left;
+    font-size: .5rem;
 }
 
 .box:hover {

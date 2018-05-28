@@ -673,10 +673,10 @@
             photoFormShow();
             let boxElements = $('.box');
             boxElements.each(function(i) {
-                let text = areas[i].action.text;
-                let type = areas[i].action.type;
+                let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
+                let type = 'postback' === areas[i].action.type ? '未設定' : areas[i].action.type;
                 $(this).css('background-color', 'rgba(158,158,158, 0.7)');
-                $(this).text(type);
+                $(this).text(`${type}:\n${text || ''}`);
                 $(this).addClass('marked')
                     .attr('ref', text);
             });

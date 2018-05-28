@@ -29,6 +29,7 @@
     $('.template-view').addClass('d-none');
     $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
     $(document).on('click', '.image-upload', clickImageUpload);
+    $(document).on('click', '#image-upload', uploadImageFromButton);
     $(document).on('change', '.image-ghost', uploadImage);
     $(document).on('click', '#modal-save', saveTemplate);
     $(document).on('click', '#edit-btn', editTemplate);
@@ -296,7 +297,12 @@
     }
 
     function clickImageUpload() {
-        let imageGhost = $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
+        $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
+    }
+
+    function uploadImageFromButton() {
+        let name = $(this).attr('id');
+        $(`.carousel-item.template-view.active .${name}`).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
     }
 
     function uploadImage() {
