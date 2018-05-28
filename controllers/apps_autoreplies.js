@@ -85,6 +85,7 @@ module.exports = (function() {
                 title: req.body.title || '',
                 startedTime: undefined !== req.body.startedTime ? req.body.startedTime : 0,
                 endedTime: undefined !== req.body.endedTime ? req.body.endedTime : 0,
+                timezoneOffset: undefined !== req.body.timezoneOffset ? req.body.timezoneOffset : 0,
                 text: req.body.text || '',
                 periods: req.body.periods || []
             };
@@ -121,6 +122,7 @@ module.exports = (function() {
             ('number' === typeof req.body.startedTime) && (autoreply.startedTime = req.body.startedTime);
             ('number' === typeof req.body.endedTime) && (autoreply.endedTime = req.body.endedTime);
             ('string' === typeof req.body.text) && (autoreply.text = req.body.text);
+            ('number' === typeof req.body.timezoneOffset) && (autoreply.timezoneOffset = req.body.timezoneOffset);
             (req.body.periods instanceof Array) && (autoreply.periods = req.body.periods);
 
             return this.appsRequestVerify(req).then(() => {

@@ -27,13 +27,11 @@ module.exports = (function() {
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
+        'timezoneOffset': {type: Number, default: 0},
         'periods': [{
-            'timezoneOffset': {type: Number, default: 0},
-            'days': [{
-                'day': {type: Number, default: 0},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            }]
+            'days': {type: Array, default: []},
+            'startedTime': {type: String, default: '00:00'},
+            'endedTime': {type: String, default: '00:00'}
         }],
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},

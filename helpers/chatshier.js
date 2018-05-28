@@ -58,41 +58,34 @@ module.exports = (function() {
 
                     for (let autoreplyId in _autoreplies) {
                         let autoreply = _autoreplies[autoreplyId];
+                        let timezoneOffset = autoreply.timezoneOffset ? autoreply.timezoneOffset : 0;
+                        let localeNow = timeNow - (timezoneOffset * 60 * 1000);
+                        let localeDate = new Date(localeNow);
+                        let localeDay = localeDate.getDay();
+
+                        let timeStrToTime = (timeStr) => {
+                            let datetime = new Date(localeNow);
+                            let timeStrSplits = timeStr.split(':');
+                            datetime.setHours(
+                                parseInt(timeStrSplits[0], 10),
+                                parseInt(timeStrSplits[1], 10),
+                                0, 0
+                            );
+                            return datetime.getTime();
+                        };
+
                         if (autoreply.periods && autoreply.periods.length > 0) {
                             let isMatch = false;
                             for (let i in autoreply.periods) {
                                 let period = autoreply.periods[i];
-                                let timezoneOffset = period.timezoneOffset;
-                                let localeNow = timeNow - (timezoneOffset * 60 * 1000);
-                                let localeDate = new Date(localeNow);
-                                let localeDay = localeDate.getDay();
-
-                                let timeStrToTime = (timeStr) => {
-                                    let datetime = new Date(localeNow);
-                                    let timeStrSplits = timeStr.split(':');
-                                    datetime.setHours(
-                                        parseInt(timeStrSplits[0], 10),
-                                        parseInt(timeStrSplits[1], 10),
-                                        0, 0
-                                    );
-                                    return datetime.getTime();
-                                };
-
-                                for (let j in period.days) {
-                                    let periodDay = period.days[j];
-                                    if (periodDay.day === localeDay) {
-                                        let startedTime = timeStrToTime(periodDay.startedTime);
-                                        let endedTime = timeStrToTime(periodDay.endedTime);
-                                        (startedTime > endedTime) && (endedTime += 24 * 60 * 60 * 1000);
-                                        isMatch = startedTime <= localeNow && localeNow <= endedTime;
-                                        if (isMatch) {
-                                            break;
-                                        }
+                                if (period.days.indexOf(localeDay) >= 0) {
+                                    let startedTime = timeStrToTime(period.startedTime);
+                                    let endedTime = timeStrToTime(period.endedTime);
+                                    (startedTime > endedTime) && (endedTime += 24 * 60 * 60 * 1000);
+                                    isMatch = startedTime <= localeNow && localeNow <= endedTime;
+                                    if (isMatch) {
+                                        break;
                                     }
-                                }
-
-                                if (isMatch) {
-                                    break;
                                 }
                             }
 
