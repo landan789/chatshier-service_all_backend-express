@@ -102,21 +102,20 @@ module.exports = (function() {
                         return reject(API_ERROR.GROUPID_WAS_EMPTY);
                     };
 
-                    usersMdl.find(req.body.userid, null, (users) => {
-                        if (!users) {
+                    usersMdl.find(postMember.user_id, null, (users) => {
+                        if (!(users && users[postMember.user_id])) {
                             // 不存在的 user 無法加入 群組
                             return reject(API_ERROR.USER_FAILED_TO_FIND);
                         }
-                        memberUser = users[req.body.userid];
+                        memberUser = users[postMember.user_id];
                         resolve();
                     });
                 });
             }).then(() => {
                 return new Promise((resolve, reject) => {
                     usersMdl.find(userId, null, (users) => {
-                        if (!users) {
+                        if (!(users && users[userId])) {
                             reject(API_ERROR.USER_FAILED_TO_FIND);
-                            // 不存在的 user 無法加入 群組
                             return;
                         }
                         resolve(users[userId]);
