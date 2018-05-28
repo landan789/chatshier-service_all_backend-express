@@ -1,6 +1,7 @@
 .chsr.toolbar {
   position: fixed;
   background-color: #33ccff;
+  width: calc(100% - 16rem);
   height: 50px;
   font-size: .9rem;
   z-index: 1030; }
@@ -29,6 +30,14 @@
       color: #f8f9fa; }
       .chsr.toolbar .btn:not(.active).transparent {
         background-color: transparent; }
+.put-away .chsr.toolbar {
+  width: calc(100% - 4rem);
+}
+@media (max-width: 576px) {
+  .chsr.toolbar {
+      width: 100%;
+  }
+}
 
 .chsr .dropdown-menu {
   color: black;

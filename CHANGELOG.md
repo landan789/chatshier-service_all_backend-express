@@ -12,6 +12,8 @@ Released: Not Ready
  * created: user can reset password now
  * created: tags feature
  * changed: remove manually add facebook fan page
+ * updated: update the compose filter logic
+ * updated: add periods setting for autoreply
 
 == Bug Fixes ==
  * Fixed: signin form not auto complete email

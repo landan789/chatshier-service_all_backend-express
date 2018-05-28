@@ -86,3 +86,7 @@ tr:nth-child(even) {
     font-size: .85em;
     color: #909090;
 }
+
+.text-pre {
+    white-space: pre-wrap;
+}
