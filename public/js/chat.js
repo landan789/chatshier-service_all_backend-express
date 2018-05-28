@@ -945,7 +945,7 @@
 
         var $slideActive = $('#ctrlPanel .swiper-slide.swiper-slide-active');
         var maxScrollHeight = $slideActive.prop('scrollHeight') - $slideActive.prop('clientHeight');
-        if (maxScrollHeight > 0) {
+        if (maxScrollHeight > 0 && !window.localStorage.getItem('isCtrlPanelPutAway')) {
             $('#ctrlPanel .scroll-bottom').removeClass('d-none');
         }
     }
@@ -1507,7 +1507,7 @@
                     '<label class="px-0 col-3 col-form-label">' + transJson['Name'] + '</label>' +
                     '<div class="pr-0 col-9 d-flex">' +
                         '<input class="form-control" type="text" placeholder="' + person.name + '" value="' + personDisplayName + '" autocapitalize="none" />' +
-                        '<button type="button" class="ml-2 btn btn-primary btn-update-name">更新</button>' +
+                        '<button type="button" class="ml-2 btn btn-primary btn-update-name">變更</button>' +
                     '</div>' +
                 '</div>' +
 

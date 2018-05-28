@@ -20,7 +20,7 @@
   .ctrl-panel .ctrl-panel-title {
     font-size: 1.25rem; }
   .ctrl-panel .swiper-wrapper {
-    height: 90%; }
+    height: calc(100% - 3rem); }
     .ctrl-panel .swiper-wrapper .scroll-arrow {
       position: absolute;
       left: 50%;
