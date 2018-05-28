@@ -26,7 +26,8 @@ module.exports = (function() {
                     appsFieldsMdl.find(appId)
                 ]);
             }).then(([ appsChatrooms, appsFields ]) => {
-                if (CHATSHIER === app.type || !appsChatrooms || !appsFields) {
+                if (CHATSHIER === app.type ||
+                    !(appsChatrooms && appsChatrooms[appId]) || !appsFields) {
                     return availableMessagers;
                 }
 
@@ -83,7 +84,7 @@ module.exports = (function() {
 
                                 if (!customField) {
                                     isAvailable = false;
-                                } else {
+                                } else if (appsFields[appId]) {
                                     let field = appsFields[appId].fields[fieldId];
                                     let customFieldValue = customField.value;
                                     let SETS_TYPES = appsFieldsMdl.SetsTypes;

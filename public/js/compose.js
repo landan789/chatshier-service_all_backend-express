@@ -779,7 +779,8 @@
                 }
 
                 let appId = appIds[i];
-                insertedAppsComposes[appId] = { composes: {} };
+                (!insertedAppsComposes[appId]) && (insertedAppsComposes[appId] = { composes: {} });
+                (!appsComposes[appId]) && (appsComposes[appId] = { composes: {} });
                 return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
                     resJsons.forEach((resJson) => {
                         let _appsComposes = resJson.data;
