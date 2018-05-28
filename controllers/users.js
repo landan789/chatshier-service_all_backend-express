@@ -55,7 +55,7 @@ module.exports = (function() {
                         return result;
                     });
                 }
-
+                console.log(groupIds);
                 return groupsMdl.findUserIds(groupIds, true).then((userIds) => {
                     if (!userIds) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_USER_FAILED_TO_FIND);
