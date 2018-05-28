@@ -90,6 +90,7 @@ module.exports = (function() {
                     msg: ERROR.MSG,
                     code: ERROR.CODE
                 };
+                console.log(ERROR);
                 res.status(500).json(json);
             });
         }
