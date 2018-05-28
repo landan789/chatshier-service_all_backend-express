@@ -79,8 +79,10 @@
         removeOneApp(appId);
     });
 
-    $(document).on('click', '#changePasswordBtn', function() {
+    $(document).on('click', '#changePasswordBtn', function(ev) {
         var $changePasswordCollapse = $('#changePasswordCollapse');
+        $(ev.target).text($changePasswordCollapse.hasClass('show') ? '展開' : '關閉');
+
         if ($changePasswordCollapse.hasClass('show')) {
             var $changePasswordForm = $changePasswordCollapse.find('.change-password-form');
             $changePasswordForm.find('[name="password"]').val('');
