@@ -24,6 +24,8 @@
     var NO_PERMISSION_CODE = '3.16';
     var MAX_CHATSHIER_UNIX_TIME = 4701945599000;
 
+    var DAYS_TEXT = ['日', '一', '二', '三', '四', '五', '六'];
+
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -117,6 +119,7 @@
             $autoreplyAddModal.find('.schedule-day').addClass('active');
             $autoreplyAddModal.find('#repeatText').text('全部');
             $autoreplyAddModal.find('select[name="timezoneOffset"]').val(timezoneOffset);
+            $autoreplyAddModal.find('.form-check-input[name="dateType"][value="RANGE_DATE"]').trigger('click');
         });
 
         $autoreplyAddModal.on('click', '.schedule-day', function(ev) {
@@ -162,12 +165,19 @@
 
         $autoreplyAddModal.on('show.bs.modal', function() {
             var resetDate = new Date();
+            var timezoneOffset = resetDate.getTimezoneOffset();
+
             $autoreplyAddSdtInput.val(toDatetimeLocal(resetDate));
             $autoreplyAddEdtInput.val('');
 
             resetDate.setHours(0, 0, 0, 0);
             $autoreplyAddStInput.val(formatTime(resetDate, false));
             $autoreplyAddEtInput.val(formatTime(resetDate, false));
+
+            $autoreplyAddModal.find('.schedule-day').addClass('active');
+            $autoreplyAddModal.find('#repeatText').text('全部');
+            $autoreplyAddModal.find('select[name="timezoneOffset"]').val(timezoneOffset);
+            $autoreplyAddModal.find('.form-check-input[name="dateType"][value="RANGE_DATE"]').trigger('click');
         });
     }
 
@@ -229,13 +239,20 @@
                         var endedTimeDays = [];
 
                         autoreply.periods.forEach((period) => {
-                            for (let day in period) {
-                                if ('timezoneOffset' === day || !period[day].isActivated) {
-                                    continue;
-                                }
-                                startedTimeDays.push(day + ': ' + period[day].startedTime);
-                                endedTimeDays.push(day + ': ' + period[day].endedTime);
+                            var days = period.days || [];
+                            if (0 === days.length) {
+                                return;
                             }
+
+                            var activatedDays = [];
+                            for (let i in days) {
+                                activatedDays.push(DAYS_TEXT[days[i].day]);
+                            }
+
+                            let timezoneOffset = parseInt(period.timezoneOffset, 10);
+                            let offsetText = 'GMT ' + (timezoneOffset >= 0 ? '-' : '+') + (-period.timezoneOffset / 60).toFixed(0);
+                            startedTimeDays.push(activatedDays.join(' ') + '\n' + days[0].startedTime + ' ' + offsetText);
+                            endedTimeDays.push(activatedDays.join(' ') + '\n' + days[0].endedTime + ' ' + offsetText);
                         });
 
                         return (
@@ -285,32 +302,31 @@
                 autoreply.startedTime = autoreply.endedTime = 0;
                 autoreply.periods = [];
 
-                var $scheduleDays = $autoreplyAddModal.find('.schedule-day');
+                var $scheduleDays = $autoreplyAddModal.find('.schedule-day.active');
                 var stPickerData = $autoreplyAddStPicker.data('DateTimePicker');
                 var etPickerData = $autoreplyAddEtPicker.data('DateTimePicker');
-                var timezoneOffset = new Date().getTimezoneOffset();
+                var timezoneOffset = parseInt($autoreplyAddModal.find('select[name="timezoneOffset"]').val(), 10);
 
                 var period = {
-                    timezoneOffset: timezoneOffset
+                    timezoneOffset: timezoneOffset,
+                    days: []
                 };
 
                 $scheduleDays.each(function() {
-                    var day = $(this).attr('day');
-                    period[day] = {
-                        isActivated: $(this).hasClass('active')
+                    var day = {
+                        day: parseInt($(this).attr('day'), 10)
                     };
 
                     if (stPickerData && etPickerData) {
                         var stDate = stPickerData.date().toDate();
                         var etDate = etPickerData.date().toDate();
-                        period[day].startedTime = formatTime(stDate, false);
-                        period[day].endedTime = formatTime(etDate, false);
+                        day.startedTime = formatTime(stDate, false);
+                        day.endedTime = formatTime(etDate, false);
                     } else {
-                        var stDateMobile = new Date($autoreplyAddStInput.val());
-                        var etDateMobile = new Date($autoreplyAddEtInput.val());
-                        period[day].startedTime = formatTime(stDateMobile, false);
-                        period[day].endedTime = formatTime(etDateMobile, false);
+                        day.startedTime = $autoreplyAddStInput.val();
+                        day.endedTime = $autoreplyAddEtInput.val();
                     }
+                    period.days.push(day);
                 });
                 autoreply.periods.push(period);
                 break;
@@ -371,32 +387,31 @@
         var checkedDateType = $autoreplyEditModal.find('.form-check-input[name="dateType"]:checked').val();
         switch (checkedDateType) {
             case 'PERIODS':
-                var $scheduleDays = $autoreplyEditModal.find('.schedule-day');
+                var $scheduleDays = $autoreplyEditModal.find('.schedule-day.active');
                 var stPickerData = $autoreplyEditStPicker.data('DateTimePicker');
                 var etPickerData = $autoreplyEditEtPicker.data('DateTimePicker');
-                var timezoneOffset = new Date().getTimezoneOffset();
+                var timezoneOffset = parseInt($autoreplyEditModal.find('select[name="timezoneOffset"]').val(), 10);
 
                 var period = {
-                    timezoneOffset: timezoneOffset
+                    timezoneOffset: timezoneOffset,
+                    days: []
                 };
 
                 $scheduleDays.each(function() {
-                    var day = $(this).attr('day');
-                    period[day] = {
-                        isActivated: $(this).hasClass('active')
+                    var day = {
+                        day: parseInt($(this).attr('day'), 10)
                     };
 
                     if (stPickerData && etPickerData) {
                         var stDate = stPickerData.date().toDate();
                         var etDate = etPickerData.date().toDate();
-                        period[day].startedTime = formatTime(stDate, false);
-                        period[day].endedTime = formatTime(etDate, false);
+                        day.startedTime = formatTime(stDate, false);
+                        day.endedTime = formatTime(etDate, false);
                     } else {
-                        var stDateMobile = new Date($autoreplyEditStInput.val());
-                        var etDateMobile = new Date($autoreplyEditEtInput.val());
-                        period[day].startedTime = formatTime(stDateMobile, false);
-                        period[day].endedTime = formatTime(etDateMobile, false);
+                        day.startedTime = $autoreplyEditStInput.val();
+                        day.endedTime = $autoreplyEditEtInput.val();
                     }
+                    period.days.push(day);
                 });
                 autoreply.periods.push(period);
                 break;
@@ -527,24 +542,26 @@
 
         var stDate = new Date();
         stDate.setHours(0, 0, 0, 0);
-        var stTime = periods && periods.length > 0 ? periods[0].Sun.startedTime : '00:00';
-        var stTimeHour = parseInt(stTime.split(':').shift());
-        var stTimeMinute = parseInt(stTime.split(':').pop());
+        var stTime = periods && periods.length > 0 ? periods[0].days[0].startedTime : '00:00';
+        var stTimeSplits = stTime.split(':');
+        var stTimeHour = parseInt(stTimeSplits.shift());
+        var stTimeMinute = parseInt(stTimeSplits.pop());
         stDate.setHours(stTimeHour, stTimeMinute, 0, 0);
 
         var etDate = new Date();
         etDate.setHours(0, 0, 0, 0);
-        var etTime = periods && periods.length > 0 ? periods[0].Sun.endedTime : '00:00';
-        var etTimeHour = parseInt(etTime.split(':').shift());
-        var etTimeMinute = parseInt(etTime.split(':').pop());
+        var etTime = periods && periods.length > 0 ? periods[0].days[0].endedTime : '00:00';
+        var etTimeSplits = etTime.split(':');
+        var etTimeHour = parseInt(etTimeSplits.shift());
+        var etTimeMinute = parseInt(etTimeSplits.pop());
         etDate.setHours(etTimeHour, etTimeMinute, 0, 0);
 
         if (stPickerData && etPickerData) {
             stPickerData.date(stDate);
             etPickerData.date(etDate);
         } else {
-            $autoreplyEditStInput.val(formatTime(stDate, false));
-            $autoreplyEditEtInput.val(formatTime(etDate, false));
+            $autoreplyEditStInput.val(stTime);
+            $autoreplyEditEtInput.val(etTime);
         }
 
         var checkedDateType = periods && periods.length > 0 ? 'PERIODS' : 'RANGE_DATE';
@@ -557,17 +574,11 @@
 
                 let daysText = [];
                 periods.forEach((period) => {
-                    for (let day in period) {
-                        if ('timezoneOffset' === day) {
-                            continue;
-                        }
-
-                        if (period[day].isActivated) {
-                            $autoreplyEditModal.find('.schedule-day[day="' + day + '"]').addClass('active');
-                            daysText.push(day);
-                        } else {
-                            $autoreplyEditModal.find('.schedule-day[day="' + day + '"]').removeClass('active');
-                        }
+                    let days = period.days || [];
+                    $autoreplyEditModal.find('.schedule-day').removeClass('active');
+                    for (let i in days) {
+                        $autoreplyEditModal.find('.schedule-day[day="' + days[i].day + '"]').addClass('active');
+                        daysText.push(DAYS_TEXT[days[i].day]);
                     }
                     $autoreplyEditModal.find('select[name="timezoneOffset"]').val(period.timezoneOffset);
                 });

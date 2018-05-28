@@ -88,5 +88,5 @@ tr:nth-child(even) {
 }
 
 .text-pre {
-    white-space: pre;
+    white-space: pre-wrap;
 }

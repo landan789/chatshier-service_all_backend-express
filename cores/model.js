@@ -29,41 +29,11 @@ module.exports = (function() {
         'startedTime': {type: Date, default: Date.now()},
         'periods': [{
             'timezoneOffset': {type: Number, default: 0},
-            'Sun': {
-                'isActivated': {type: Boolean, default: false},
+            'days': [{
+                'day': {type: Number, default: 0},
                 'startedTime': {type: String, default: '00:00'},
                 'endedTime': {type: String, default: '00:00'}
-            },
-            'Mon': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            },
-            'Tue': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            },
-            'Wed': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            },
-            'Thu': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            },
-            'Fri': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            },
-            'Sat': {
-                'isActivated': {type: Boolean, default: false},
-                'startedTime': {type: String, default: '00:00'},
-                'endedTime': {type: String, default: '00:00'}
-            }
+            }]
         }],
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
