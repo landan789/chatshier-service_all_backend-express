@@ -560,8 +560,8 @@
     });
 
     $profilePanel.on('click', '.user-info .btn-update-name', changeConsumerDisplayName);
-    $profilePanel.on('click', '.assigners-select .multi-select-container .dropdown-item', userAssignMessager);
-    $profilePanel.on('click', '.fields-select .multi-select-container .dropdown-item', multiSelectChange);
+    $profilePanel.on('click', '.assigners-select .dropdown-item', userAssignMessager);
+    $profilePanel.on('click', '.fields-select .dropdown-item', multiSelectChange);
     $profilePanel.on('click', '.leave-group-room button', userLeaveGroupRoom);
     $profilePanel.on('click', '.profile-confirm button', userInfoConfirm);
     $profilePanel.on('click', '.tag-chip .remove-chip', userRemoveTag);
@@ -1534,12 +1534,12 @@
 
                 '<div class="px-2 d-flex form-group user-info">' +
                     '<label class="px-0 col-3 col-form-label">' + transJson['Assigned'] + '</label>' +
-                    '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper assigners-select">' +
+                    '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
                         '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
                             '<span class="multi-select-values">' + assignerNamesText + '</span>' +
                             '<span class="caret"></span>' +
                         '</button>' +
-                        '<div class="multi-select-container dropdown-menu">' +
+                        '<div class="multi-select-container dropdown-menu assigners-select">' +
                             (function() {
                                 return Object.keys(agents).map(function(agentUserId) {
                                     var isAssigned = assignedIds.indexOf(agentUserId) >= 0;
@@ -1631,19 +1631,21 @@
                                 return (
                                     '<div class="px-2 d-flex align-items-center form-group profile-content user-info" field-id="' + fieldId + '">' +
                                         '<label class="px-0 col-3 col-form-label">' + (transJson[field.text] || field.text) + '</label>' +
-                                        '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper fields-select">' +
+                                        '<div class="pr-0 col-9 btn-group btn-block multi-select-wrapper">' +
                                             '<button class="btn btn-light btn-border btn-block dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
                                                 '<span class="multi-select-values">' + multiSelectText + '</span>' +
                                                 '<span class="caret"></span>' +
                                             '</button>' +
-                                            '<div class="multi-select-container dropdown-menu field-value">' +
+                                            '<div class="multi-select-container dropdown-menu fields-select">' +
                                                 (function(sets) {
                                                     return sets.map(function(set, i) {
                                                         return (
                                                             '<div class="px-3 dropdown-item">' +
                                                                 '<div class="form-check form-check-inline">' +
-                                                                    '<input class="form-check-input" type="checkbox" value="' + set + '"' + (selectValues[i] ? ' checked="true"' : '') + '>' +
-                                                                    '<label class="form-check-label">' + set + '</label>' +
+                                                                    '<label class="form-check-label">' +
+                                                                        '<input class="form-check-input" type="checkbox" value="' + set + '"' + (selectValues[i] ? ' checked="true"' : '') + '/>' +
+                                                                        set +
+                                                                    '</label>' +
                                                                 '</div>' +
                                                             '</div>'
                                                         );
@@ -2688,13 +2690,16 @@
     }
 
     function multiSelectChange(ev) {
-        ev.preventDefault();
+        var $checkInput;
+        if ('input' !== ev.target.localName) {
+            $checkInput = $(ev.target).find('.form-check-input');
+            $checkInput.prop('checked', !$checkInput.prop('checked'));
+            ev.preventDefault();
+        } else {
+            $checkInput = $(ev.target);
+        }
 
-        var $checkInput = $(ev.target).find('.form-check-input');
-        var isChecked = !$checkInput.prop('checked');
-        $checkInput.prop('checked', isChecked);
-
-        var $selectContainer = $(ev.target).parents('.multi-select-container');
+        var $selectContainer = $checkInput.parents('.multi-select-container');
         var $selectValues = $selectContainer.parents('.multi-select-wrapper').find('.multi-select-values');
 
         var valArr = [];
