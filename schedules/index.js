@@ -33,10 +33,12 @@ let jobProcess = () => {
             }
 
             return appsComposesMdl.find(appId).then((appsComposes) => {
-                if (!(appsComposes && appsComposes[appId])) {
-                    return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                if (!appsComposes) {
+                    return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                 }
-                let composes = appsComposes[appId].composes;
+
+                let appComposes = appsComposes[appId] || {};
+                let composes = appComposes.composes || {};
                 let composeIds = Object.keys(composes);
                 composeIds = composeIds.filter((composeId) => {
                     let compose = composes[composeId];
@@ -50,7 +52,7 @@ let jobProcess = () => {
 
                 return Promise.all(composeIds.map((composeId) => {
                     let compose = composes[composeId];
-                    let conditions = compose.conditions;
+                    let conditions = compose.conditions || [];
                     let message = {
                         from: SYSTEM,
                         messager_id: '',
