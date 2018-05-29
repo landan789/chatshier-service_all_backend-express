@@ -69,15 +69,8 @@
     });
 
     // ACTIONS
-    $(document).on('click', '#edit', function() {
-        let appId = $(this).attr('rel');
-        findOneApp(appId); // 點選編輯後根據appId列出指定的APP
-    });
-
-    $(document).on('click', '#del', function() {
-        let appId = $(this).attr('rel');
-        removeOneApp(appId);
-    });
+    $(document).on('click', '.edit-app-btn', editOneApp);
+    $(document).on('click', '.remove-app-btn', removeOneApp);
 
     $(document).on('click', '#changePasswordBtn', function(ev) {
         var $changePasswordCollapse = $('#changePasswordCollapse');
@@ -147,58 +140,62 @@
 
         let $modalContent = $(ev.target).parents('.modal-content');
         let type = $modalContent.find('#type').text();
+
         // updateProfile, updateApp
         switch (type) {
             case 'updateProfile':
                 profSubmitBasic();
                 break;
             case 'updateApp':
-                let appId = $modalContent.find('#webhook-id').text();
+                let $appForm = $modalContent.find('.app-form');
+                let appId = $appForm.attr('app-id');
+                let app = apps[appId];
+                let appType = app.type;
 
-                if ($('#name').val()) {
-                    let name = $('#name').val();
-                    let id1 = $('#channel-id').val();
-                    let secret = $('#channel-secret').val();
-                    let token1 = $('#channel-token').val();
-                    let type = LINE;
-                    let app = {
+                if (LINE === appType) {
+                    let name = $appForm.find('input[name="appName"]').val();
+                    let id1 = $appForm.find('input[name="appId1"]').val();
+                    let secret = $appForm.find('input[name="appSecret"]').val();
+                    let token1 = $appForm.find('input[name="appToken1"]').val();
+
+                    let putApp = {
                         name: name,
                         id1: id1,
                         secret: secret,
                         token1: token1,
-                        type: type
+                        type: app.type
                     };
-                    updateOneApp(appId, app); // 點送出後更新APP的資訊
-                } else if ($('#facebook-name').val()) {
-                    let name = $('#facebook-name').val();
-                    let id1 = $('#facebook-page-id').val();
-                    let id2 = $('#facebook-app-id').val();
-                    let secret = $('#facebook-app-secret').val();
-                    let token1 = $('#facebook-valid-token').val();
-                    let token2 = $('#facebook-page-token').val();
-                    let type = FACEBOOK;
-                    let app = {
+                    updateOneApp(appId, putApp); // 點送出後更新APP的資訊
+                } else if (FACEBOOK === appType) {
+                    let name = $appForm.find('input[name="appName"]').val();
+                    let id1 = $appForm.find('input[name="appId1"]').val();
+                    let id2 = $appForm.find('input[name="appId2"]').val();
+                    let secret = $appForm.find('input[name="appSecret"]').val();
+                    let token1 = $appForm.find('input[name="appToken1"]').val();
+                    let token2 = $appForm.find('input[name="appToken2"]').val();
+
+                    let putApp = {
                         name: name,
                         id1: id1,
                         id2: id2,
                         secret: secret,
                         token1: token1,
                         token2: token2,
-                        type: type
+                        type: app.type
                     };
-                    updateOneApp(appId, app); // 點送出後更新APP的資訊
-                } else if ($('#wechat-app-name').val()) {
-                    let name = $('#wechat-app-name').val();
-                    let id1 = $('#wechat-app-id').val();
-                    let secret = $('#wechat-app-secret').val();
-                    let type = WECHAT;
-                    let app = {
+                    updateOneApp(appId, putApp); // 點送出後更新APP的資訊
+                } else if (WECHAT === appType) {
+                    let name = $appForm.find('input[name="appName"]').val();
+                    let id1 = $appForm.find('input[name="appId1"]').val();
+                    let secret = $appForm.find('input[name="appSecret"]').val();
+
+                    let putApp = {
                         name: name,
                         id1: id1,
                         secret: secret,
-                        type: type
+                        type: app.type
                     };
-                    updateOneApp(appId, app);
+                    updateOneApp(appId, putApp);
                 }
                 break;
             default:
@@ -432,23 +429,23 @@
                     '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
                     '<img class="img-fluid my-1" src="./image/apps-1.jpg"/>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appId1" placeholder="請至 LINE Developers 查詢" />' +
+                        '<input class="form-control" type="text" name="appId1" placeholder="在此貼上您的 Channel ID" />' +
                     '</div>' +
                 '</div>' +
                 '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">Channel Secret: </label>' +
+                    '<label class="col-form-label font-weight-bold">Channel secret: </label>' +
                     '<img class="img-fluid my-1" src="./image/apps-2.jpg"/>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appSecret" placeholder="請至 LINE Developers 查詢" />' +
+                        '<input class="form-control" type="text" name="appSecret" placeholder="在此貼上您的 Channel secret" />' +
                     '</div>' +
                 '</div>' +
                 '<hr class="mt-5 mb-0"/>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
+                    '<label class="col-form-label font-weight-bold">Channel access token:</label>' +
                     '<img class="img-fluid my-1" src="./image/apps-3.jpg"/>' +
                     '<div class="input-container">' +
-                        '<input class="form-control" type="text" name="appToken1" placeholder="請至 LINE Developers 查詢" />' +
+                        '<input class="form-control" type="text" name="appToken1" placeholder="在此貼上您的 Channel access token" />' +
                     '</div>' +
                 '</div>' +
                 '<hr class="mt-5 mb-0"/>' +
@@ -469,11 +466,47 @@
                 '</div>'
             ),
             [FACEBOOK]: (
-                '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
-                    '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
-                        '<i class="fab fa-facebook-square fa-fw"></i>' +
-                        '<span>連結粉絲專頁</span>' +
-                    '</button>' +
+                // '<div class="form-group fb-sdk-item" group-id="' + groupId + '">' +
+                //     '<button type="button" class="px-4 py-2 text-center fb-import-button">' +
+                //         '<i class="fab fa-facebook-square fa-fw"></i>' +
+                //         '<span>連結粉絲專頁</span>' +
+                //     '</button>' +
+                // '</div>'
+                '<div class="form-group">' +
+                    '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appName" placeholder="請輸入名稱" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App ID:</label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appId1" placeholder="在此貼上您的 粉絲專頁 ID" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App ID:</label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appId2" placeholder="在此貼上您的 App ID" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App secret:</label>' +
+                    '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appSecret" placeholder="在此貼上您的 App secret" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">App client token:</label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appToken1" placeholder="在此貼上您的 App client token" />' +
+                    '</div>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<label class="col-form-label">Page token:</label>' +
+                        '<div class="input-container">' +
+                        '<input class="form-control" type="text" name="appToken2" placeholder="在此貼上您的 Page token" />' +
+                    '</div>' +
                 '</div>'
             ),
             [WECHAT]: (
@@ -484,13 +517,13 @@
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">App ID: </label>' +
+                    '<label class="col-form-label">App ID:</label>' +
                         '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appId1" placeholder="請至 Wechat Developers 查詢" />' +
                     '</div>' +
                 '</div>' +
                 '<div class="form-group">' +
-                    '<label class="col-form-label">App Secret: </label>' +
+                    '<label class="col-form-label">App Secret:</label>' +
                     '<div class="input-container">' +
                         '<input class="form-control" type="text" name="appSecret" placeholder="請至 Wechat Developers 查詢" />' +
                     '</div>' +
@@ -555,11 +588,13 @@
         });
     }
 
-    function findOneApp(appId) {
+    function editOneApp(ev) {
+        var appId = $(this).attr('app-id');
+
         return api.apps.findOne(appId, userId).then(function(resJson) {
             let _apps = resJson.data;
             apps[appId] = _apps[appId];
-            showAppContent(appId, apps[appId]);
+            generateEditAppForm(appId, apps[appId]);
         });
     }
 
@@ -586,39 +621,19 @@
 
     function updateOneApp(appId, appData) {
         return api.apps.update(appId, userId, appData).then(function(resJson) {
-            $settingModal.modal('hide');
-
-            var str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
-            $('#app-group').html(str);
-
-            $.notify('更新成功!', { type: 'success' });
             var _apps = resJson.data;
             apps[appId] = _apps[appId];
             var app = apps[appId];
 
-            switch (app.type) {
-                case LINE:
-                    $('[app-id="' + appId + '"] #prof-name1').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-channelId_1').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-channelSecret_1').html(app.secret);
-                    $('[app-id="' + appId + '"] #prof-channelAccessToken_1').html(app.token1);
-                    break;
-                case FACEBOOK:
-                    $('[app-id="' + appId + '"] #prof-fbPageName').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-fbPageId').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-fbAppId').html(app.id2);
-                    $('[app-id="' + appId + '"] #prof-fbAppSecret').html(app.secret);
-                    $('[app-id="' + appId + '"] #prof-fbValidToken').html(app.token1);
-                    $('[app-id="' + appId + '"] #prof-fbPageToken').html(app.token2);
-                    break;
-                case WECHAT:
-                    $('[app-id="' + appId + '"] #prof-wechat-app-name').html(app.name);
-                    $('[app-id="' + appId + '"] #prof-wechat-app-id').html(app.id1);
-                    $('[app-id="' + appId + '"] #prof-wechat-app-secret').html(app.secret);
-                    break;
-                default:
-                    break;
-            };
+            $('tr[app-id="' + appId + '"] td[name="appName"]').html(app.name);
+            $('tr[app-id="' + appId + '"] td[name="appId1"]').html(app.id1);
+            $('tr[app-id="' + appId + '"] td[name="appId2"]').html(app.id2);
+            $('tr[app-id="' + appId + '"] td[name="appSecret"]').html(app.secret);
+            $('tr[app-id="' + appId + '"] td[name="appToken1"]').html(app.token1);
+            $('tr[app-id="' + appId + '"] td[name="appToken2"]').html(app.token2);
+
+            $settingModal.modal('hide');
+            $.notify('更新成功!', { type: 'success' });
         }).catch((resJson) => {
             if (!resJson.status) {
                 $settingModal.modal('hide');
@@ -631,42 +646,17 @@
         });
     }
 
-    function removeOneApp(appId) {
+    function removeOneApp(ev) {
+        let appId = $(this).attr('app-id');
+
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
             }
 
-            return api.apps.remove(appId, userId).then(function(resJson) { // 強烈建議這裡也放resJson這樣才可以清空table，table的id會掛group id不然會出現重複資料
-                let str = '<tr class="d-none"><td>ID: </td><td id="prof-id"></td></tr>';
-                $('#app-group').html(str);
-                var _apps = resJson.data;
-                var app = _apps[appId];
+            return api.apps.remove(appId, userId).then(function() {
                 delete apps[appId];
-
-                switch (app.type) {
-                    case LINE:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    case FACEBOOK:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    case WECHAT:
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        $('[app-id="' + appId + '"]').remove();
-                        break;
-                    default:
-                        break;
-                }
+                $('tr[app-id="' + appId + '"]').remove();
 
                 $.notify('刪除成功!', { type: 'success' });
             }).catch((resJson) => {
@@ -725,7 +715,7 @@
                         '<span>新增聊天機器人</span>' +
                     '</button>' +
                     '<table class="table chsr-group chsr-table">' +
-                        '<tbody id="' + groupId + '-body"></tbody>' +
+                        '<tbody class="group-body" group-id="' + groupId + '"></tbody>' +
                     '</table>' +
                 '</div>' +
             '</div>'
@@ -739,16 +729,16 @@
 
         switch (app.type) {
             case LINE:
-                itemHtml =
+                itemHtml = (
                     '<tr class="active" app-id="' + appId + '">' +
-                        '<th>LINE</th>' +
+                        '<th class="align-middle">LINE</th>' +
                         '<th class="text-right">' +
                             '<div id="group1" class="line">' +
-                                '<button type="button" class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                '<button type="button" class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -757,38 +747,39 @@
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-name1">' + app.name + '</td>' +
+                        '<td class="long-token" name="appName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">Channel ID:</td>' +
-                        '<td class="long-token" id="prof-channelId_1">' + app.id1 + '</td>' +
+                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel Secret:</td>' +
-                        '<td class="long-token" id="prof-channelSecret_1">' + app.secret + '</td>' +
+                        '<td class="font-weight-bold">Channel secret:</td>' +
+                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">Channel Access Token:</td>' +
-                        '<td class="long-token" id="prof-channelAccessToken_1">' + app.token1 + '</td>' +
+                        '<td class="font-weight-bold">Channel access token:</td>' +
+                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
-                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
-                    '</tr>';
+                    '</tr>'
+                );
                 break;
             case FACEBOOK:
-                itemHtml =
+                itemHtml = (
                     '<tr class="active" app-id="' + appId + '">' +
-                        '<th>Facebook</th>' +
+                        '<th class="align-middle">Facebook</th>' +
                         '<th class="text-right">' +
                             '<div id="group3" class="fb">' +
-                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="m-2 btn btn-border edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -797,24 +788,47 @@
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-fbPageName">' + app.name + '</td>' +
+                        '<td class="long-token" name="appName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">粉絲頁 ID:</td>' +
-                        '<td class="long-token" id="prof-fbPageId">' + app.id1 + '</td>' +
-                    '</tr>';
+                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">App ID:</td>' +
+                        '<td class="long-token" name="appId2">' + app.id2 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">App secret:</td>' +
+                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">App client token:</td>' +
+                        '<td class="long-token" name="appToken1">' + app.token1 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Page token:</td>' +
+                        '<td class="long-token" name="appToken2">' + app.token2 + '</td>' +
+                    '</tr>' +
+                    '<tr app-id="' + appId + '">' +
+                        '<td class="font-weight-bold">Webhook URL:</td>' +
+                        '<td class="long-token">' +
+                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                        '</td>' +
+                    '</tr>'
+                );
                 break;
             case WECHAT:
-                itemHtml =
+                itemHtml = (
                     '<tr class="active" app-id="' + appId + '">' +
-                        '<th>Wechat</th>' +
+                        '<th class="align-middle">Wechat</th>' +
                         '<th class="text-right">' +
                             '<div id="group1" class="wechat">' +
-                                '<button class="btn btn-danger m-2" id="del" rel="' + appId + '">' +
+                                '<button class="m-2 btn btn-danger remove-app-btn" app-id="' + appId + '">' +
                                     '<i class="fas fa-trash-alt fa-fw"></i>' +
                                     '<span>刪除</span>' +
                                 '</button>' +
-                                '<button type="button" class="btn btn-border btn-light m-2" rel="' + appId + '" id="edit" data-toggle="modal" data-target="#setting-modal">' +
+                                '<button type="button" class="m-2 btn btn-border btn-light edit-app-btn" app-id="' + appId + '" data-toggle="modal" data-target="#setting-modal">' +
                                     '<i class="fas fa-edit fa-fw"></i>' +
                                     '<span>編輯</span>' +
                                 '</button>' +
@@ -823,114 +837,133 @@
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">機器人名稱:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-name">' + app.name + '</td>' +
+                        '<td class="long-token" name="appName">' + app.name + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">App ID:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-id">' + app.id1 + '</td>' +
+                        '<td class="long-token" name="appId1">' + app.id1 + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
-                        '<td class="font-weight-bold">App Secret:</td>' +
-                        '<td class="long-token" id="prof-wechat-app-secret">' + app.secret + '</td>' +
+                        '<td class="font-weight-bold">App secret:</td>' +
+                        '<td class="long-token" name="appSecret">' + app.secret + '</td>' +
                     '</tr>' +
                     '<tr app-id="' + appId + '">' +
                         '<td class="font-weight-bold">Webhook URL:</td>' +
                         '<td class="long-token">' +
-                            '<span id="prof-webhookUrl-1">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
+                            '<span name="appWebhookId">' + createWebhookUrl(baseWebhookUrl, app.webhook_id) + '</span>' +
                         '</td>' +
-                    '</tr>';
+                    '</tr>'
+                );
                 break;
             default:
                 break;
         }
-        itemHtml && $('#' + app.group_id + '-body').append(itemHtml);
+        itemHtml && $('.group-body[group-id="' + app.group_id + '"]').append(itemHtml);
     }
 
-    function showAppContent(appId, app) {
+    function generateEditAppForm(appId, app) {
         apps[appId] = app;
 
         var appHtml;
         switch (app.type) {
             case LINE:
                 appHtml =
-                    '<form>' +
+                    '<form class="app-form" app-id="' + appId + '" group-id="' + app.group_id + '">' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + appId + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
-                        '<div id="prof-edit-line-1">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="name" />' +
-                                '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.name + '" name="appName" />' +
                             '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">Channel ID:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="channel-id"/>' +
-                                '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Channel ID:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.id1 + '" name="appId1" />' +
                             '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">Channel Secret:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.secret + '" id="channel-secret"/>' +
-                                '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Channel Secret:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.secret + '" name="appSecret" />' +
                             '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelAccessToken_1" class="col-form-label font-weight-bold">Channel Access Token:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.token1 + '" id="channel-token"/>' +
-                                '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Channel Access Token:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.token1 + '" name="appToken1" />' +
                             '</div>' +
                         '</div>' +
                     '</form>';
                 break;
             case FACEBOOK:
                 appHtml =
-                    '<form>' +
+                    '<form class="app-form" app-id="' + appId + '" group-id="' + app.group_id + '">' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + appId + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
-                        '<div id="prof-edit-fb">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="facebook-name">' +
-                                '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">機器人名稱:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.name + '" name="appName" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">粉絲專頁 ID:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.id1 + '" name="appId1" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App ID:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.id2 + '" name="appId2" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App secret:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.secret + '" name="appSecret" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App client token:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.token1 + '" name="appToken1" />' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">Page token:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.token2 + '" name="appToken2" />' +
                             '</div>' +
                         '</div>' +
                     '</form>';
                 break;
             case WECHAT:
                 appHtml =
-                    '<form>' +
+                    '<form class="app-form" app-id="' + appId + '" group-id="' + app.group_id + '">' +
                         '<div class="form-group d-none">' +
                             '<label id="type" class="col-form-label font-weight-bold">updateApp</label>' +
-                            '<span id="webhook-id">' + appId + '</span>' +
-                            '<span id="groupId">' + app.group_id + '</span>' +
                         '</div>' +
-                        '<div id="prof-edit-line-1">' +
-                            '<div class="form-group">' +
-                                '<label class="col-form-label font-weight-bold">App Name: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.name + '" id="wechat-app-name"/>' +
-                                '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App Name:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.name + '" name="appName" />' +
                             '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelId_1" class="col-form-label font-weight-bold">App ID: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.id1 + '" id="wechat-app-id"/>' +
-                                '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App ID:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.id1 + '" name="appId1" />' +
                             '</div>' +
-                            '<div class="form-group">' +
-                                '<label for="prof-edit-channelSecret_1" class="col-form-label font-weight-bold">App Secret: </label>' +
-                                '<div class="input-container">' +
-                                    '<input class="form-control" type="text" value="' + app.secret + '" id="wechat-app-secret"/>' +
-                                '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="col-form-label font-weight-bold">App secret:</label>' +
+                            '<div class="input-container">' +
+                                '<input class="form-control" type="text" value="' + app.secret + '" name="appSecret" />' +
                             '</div>' +
                         '</div>' +
                     '</form>';
