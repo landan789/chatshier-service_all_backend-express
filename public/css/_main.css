@@ -92,6 +92,15 @@ button:focus {
     height: 50px;
 }
 
+.chsr .fa-search {
+    color: #9c9c9c
+}
+
+.search .fa-search {
+    position: absolute;
+    left: .7rem;
+}
+
 .chsr.navbar {
     height: 100%;
     background-color: #33ccff; }
@@ -152,7 +161,6 @@ button:focus {
         font-family: 'HelveticaNeue', 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 13px;
         color: #555860;
-        background: white url("http://cssdeck.com/uploads/media/items/5/5JuDgOa.png") 8px 6px no-repeat;
         border-width: 1px;
         border-style: solid;
         border-color: #a8acbc #babdcc #c0c3d2;
