@@ -2665,7 +2665,6 @@
         var chatroomId = $profileGroup.attr('chatroom-id');
 
         return api.bot.leaveGroupRoom(appId, chatroomId, userId).then(function(resJson) {
-            // console.log(JSON.stringify(resJson, void 0, 2));
             var $navTitle = $('#navTitle');
             var chatroomTitle = document.title.replace(' | Chatshier', '');
             $navTitle.text(chatroomTitle);
@@ -2684,6 +2683,7 @@
             $chatroomContainer.removeClass('open');
 
             delete appsChatrooms[appId].chatrooms[chatroomId];
+            chatroomList.splice(chatroomList.indexOf(chatroomId), 1);
         });
     }
 

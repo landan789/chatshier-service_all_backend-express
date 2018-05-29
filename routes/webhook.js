@@ -219,7 +219,7 @@ router.post('/:webhookid', (req, res, next) => {
                         });
                     }).then((groupChatroom) => {
                         chatroomId = groupChatroom ? chatroomId : void 0;
-                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid).then((appsChatroomsMessagers) => {
+                        return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, platformUid, !!groupChatroom).then((appsChatroomsMessagers) => {
                             // 如果平台用戶已屬於某個聊天室中並已存在，則直接與用其 messager 資訊
                             if (appsChatroomsMessagers && appsChatroomsMessagers[appId]) {
                                 let chatrooms = appsChatroomsMessagers[appId].chatrooms;
