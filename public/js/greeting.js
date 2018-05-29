@@ -12,6 +12,7 @@
 
     const $appDropdown = $('.app-dropdown');
     const $modal = $('#greeting_modal');
+    const $appSelector = $('.modal-body select[name="greeting-app-name"]');
 
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -25,6 +26,15 @@
     $(document).on('click', '#edit-btn', turnOnEdit);
     $(document).on('click', '#modal-update-btn', updateGreeting);
     $(document).on('click', '#delete-btn', removeGretting);
+
+    $modal.on('show.bs.modal', function() {
+        $appSelector.empty();
+        for (var appId in appsData) {
+            var app = appsData[appId];
+            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
+        }
+    });
+
     $modal.on('hidden.bs.modal', function() {
         $('#modal-insert-btn').removeClass('d-none');
         $('#modal-update-btn').removeClass('d-none');
@@ -40,8 +50,7 @@
             return $.notify('訊息則數已達上限', { type: 'warning' });
         }
         rowCount++;
-        console.log(`訊息數：${rowCount}`);
-        let appId = $('#add-btn').attr('app-id');
+        let appId = $appSelector.find('option:selected').val();
         let text = $('#modal-greeting-text').val();
         if (!text) {
             return $.notify('文字欄位不可空白', { type: 'warning' });
@@ -81,16 +90,14 @@
 
     function turnOnEdit() {
         $('#modal-insert-btn').addClass('d-none');
-        let appId = $(this).parent().parent().attr('rel');
         let greetingId = $(this).parent().parent().attr('id');
         let text = $(this).parent().siblings('td:first').text();
-        $('#modal-app-id').val(appId);
         $('#modal-greeting-id').val(greetingId);
         $('#modal-greeting-text').val(text);
     }
 
     function updateGreeting() {
-        let appId = $('#modal-app-id').val();
+        let appId = $appSelector.find('option:selected').val();
         let greetingId = $('#modal-greeting-id').val();
         let text = $('#modal-greeting-text').val();
         if ('' === text.trim()) {
@@ -118,8 +125,8 @@
     }
 
     function removeGretting() {
-        var appId = $(this).parent().parent().attr('rel');
-        var greetingId = $(this).parent().parent().attr('id');
+        let appId = $(this).parent().parent().attr('rel');
+        let greetingId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
