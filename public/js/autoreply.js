@@ -77,7 +77,10 @@
                 this.removePeriodSelect();
                 this.$timeSelectGroup = $(
                     '<div class="card pt-2 pb-3 px-3 form-group animated fadeIn" id="timeSelectGroup">' +
-                        '<label class="col-form-label font-weight-bold">時段設定:</label>' +
+                        '<label class="d-inline-flex align-items-center col-form-label">' +
+                            '<span class="font-weight-bold">時段設定:</span>' +
+                            '<i class="ml-auto fas fa-times fa-1p5x cursor-pointer remove-select"></i>' +
+                        '</label>' +
                         '<div class="d-flex time-picker-wrapper">' +
                             '<div class="my-2 mr-1 input-group date" id="startTimePicker">' +
                                 '<span class="input-group-addon input-group-prepend">' +
@@ -133,6 +136,10 @@
                     var daysText = [];
                     $periodDays.each((i) => daysText.push($periodDays[i].textContent));
                     this.$timeSelectGroup.find('#repeatText').text(daysText.length >= 7 ? '全部' : daysText.join(' '));
+                });
+
+                this.$timeSelectGroup.on('click', '.remove-select', () => {
+                    this.removePeriodSelect();
                 });
 
                 this.$timeSelectGroup.on('click', '.period-submit', (ev) => {
@@ -191,7 +198,7 @@
                                 })() +
                             '</div>' +
                         '</div>' +
-                        '<i class="ml-auto p-2 fas fa-times-circle cursor-pointer period-remove-btn"></i>' +
+                        '<i class="ml-auto p-2 fas fa-times-circle fa-1p5x cursor-pointer period-remove-btn"></i>' +
                     '</div>'
                 );
 
