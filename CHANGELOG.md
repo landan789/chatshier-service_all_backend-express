@@ -1,24 +1,29 @@
 = Release 1.3.0 =
 Released: Not Ready
 == Features ==
- * created: support LINE group and room chat with LINE
- * created: custom naming platform group chatroom name
- * created: custom naming platform consumer name
- * created: click image content will stretch the image
- * created: add sound and title blink when new message is come
- * created: user can link fan pages by facebook login
- * created: add link of line developers on add modal
- * created: add scroll button for scroll to top or bottom
- * created: user can reset password now
- * created: tags feature
- * changed: remove manually add facebook fan page
- * updated: update the compose filter logic
- * updated: add periods setting for autoreply
-
+ * Created: support LINE group and room chat with LINE
+ * Created: custom naming platform group chatroom name
+ * Created: custom naming platform consumer name
+ * Created: click image content will stretch the image
+ * Created: add sound and title blink when new message is come
+ * Created: user can link fan pages by facebook login
+ * Created: add link of line developers on add modal
+ * Created: add scroll button for scroll to top or bottom
+ * Created: user can reset password now
+ * Created: tags feature
+ * Created: vendor can send files to the consumors via Dropbox
+ * Creared: Alis name of consumors
+ 
 == Bug Fixes ==
  * Fixed: signin form not auto complete email
  * Fixed: sometime refresh token is too late
  * Fixed: support file type message for LINE
+ * Fixed: UI changes when line consumer unfollow
+ * Fixed: remove manually add facebook fan page
+ * Fixed: update the compose filter logic
+ * Fixed: add periods setting for autoreply
+ * Fixed: greeting can be updated
+ * Fixed: customized compose
 
 = Release 1.2.4 =
 Released: 2018-04-27
@@ -38,14 +43,14 @@ Released: 2018-04-25
  = Release 1.2.2 =
 Released: 2018-04-24
 == Features ==
- * created: [MASTER 1.2.2][chat][UI:RWD]
- * created: [MASTER 1.2.2][calendar][UI:RWD]
- * created: [MASTER 1.2.2][ticket][UI:RWD]
- * created: [MASTER 1.2.2][analyze][UI:RWD]
- * created: [MASTER 1.2.2][compose][UI:RWD]
- * created: [MASTER 1.2.2][autoreply][UI:RWD]
- * created: [MASTER 1.2.2][keywordsreply][UI:RWD]
- * created: [MASTER 1.2.2][greeting][UI:RWD]
+ * Created: [MASTER 1.2.2][chat][UI:RWD]
+ * Created: [MASTER 1.2.2][calendar][UI:RWD]
+ * Created: [MASTER 1.2.2][ticket][UI:RWD]
+ * Created: [MASTER 1.2.2][analyze][UI:RWD]
+ * Created: [MASTER 1.2.2][compose][UI:RWD]
+ * Created: [MASTER 1.2.2][autoreply][UI:RWD]
+ * Created: [MASTER 1.2.2][keywordsreply][UI:RWD]
+ * Created: [MASTER 1.2.2][greeting][UI:RWD]
 == Bug Fixes ==
  * Fixed: some UI bugs
  * Fixed: [MASTER 1.2.2][chat][isDeleted group member or none status group member should not chat on the group]
@@ -83,10 +88,10 @@ Released: 2018-04-12
 Released: 2018-03-14
 
 == Features ==
- * created: keywordreply with fizzy searching
- * created: compose with fields (customized fields)
- * created: google calandar
- * created: storage via Dropbox
+ * Created: keywordreply with fizzy searching
+ * Created: compose with fields (customized fields)
+ * Created: google calandar
+ * Created: storage via Dropbox
  * changed: signup page from jQuery to React
  * changed: signin page from jQuery to React
  * changed: ticket page from jQuery to React
@@ -101,21 +106,21 @@ Released: 2018-03-5
 Released: 2018-03-5
 
 == Features ==
- * created: chat one on one page
- * created: internal chat group page
- * created: indivisiual calendar page
- * created: ticket page
- * created: analysis page
- * created: compose page
- * created: autoreply page
- * created: keywordreply page
- * created: greeting page
- * created: app setting
- * created: group setting page
- * created: user setting page
- * created: signout page
- * created: signup page
- * created: signin page
+ * Created: chat one on one page
+ * Created: internal chat group page
+ * Created: indivisiual calendar page
+ * Created: ticket page
+ * Created: analysis page
+ * Created: compose page
+ * Created: autoreply page
+ * Created: keywordreply page
+ * Created: greeting page
+ * Created: app setting
+ * Created: group setting page
+ * Created: user setting page
+ * Created: signout page
+ * Created: signup page
+ * Created: signin page
 
 == Bug Fixes ==
  * Fixed issue #0039: [MASTER 1.0.0] 若有兩個群組以上，聊天室中內部群組成員會顯示所有群組成員
