@@ -622,9 +622,7 @@
 
             // 向 server 登記此 socket 有多少 appId
             socketRegPromises.push(new Promise(function(resolve) {
-                chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, function() {
-                    resolve();
-                });
+                chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, resolve);
             }));
         }
         return Promise.all(socketRegPromises);
@@ -678,8 +676,15 @@
             var senderUid = socketBody.senderUid;
             var recipientUid = socketBody.recipientUid;
             var consumersFromSocket = socketBody.consumers;
-            consumersFromSocket && Object.assign(consumers, consumersFromSocket);
             var senderMsger;
+
+            if (consumersFromSocket) {
+                for (let _platformUid in consumersFromSocket) {
+                    let _consumer = consumersFromSocket[_platformUid];
+                    _consumer.photo = fixHttpsLink(_consumer.photo);
+                }
+                Object.assign(consumers, consumersFromSocket);
+            }
 
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
@@ -975,6 +980,13 @@
             '</li>' +
             '<div class="collapse nested app-types show" app-type="' + CHATSHIER + '"></div>'
         );
+
+        // 架設 https 時，request 必須使用 https
+        // 由於 LINE 的圖像屬於 http 前綴開頭，因此需檢測所有頭像連結
+        for (let platformUid in consumers) {
+            let consumer = consumers[platformUid];
+            consumer.photo = fixHttpsLink(consumer.photo);
+        }
 
         for (var appId in apps) {
             var app = apps[appId];
@@ -3082,6 +3094,16 @@
             }
             return Promise.reject(err);
         });
+    }
+
+    /**
+     * @param {string} resourceLink
+     */
+    function fixHttpsLink(resourceLink) {
+        if ('https:' === window.location.protocol && 0 === resourceLink.indexOf('http://')) {
+            return resourceLink.replace('http:', window.location.protocol);
+        }
+        return resourceLink;
     }
 
     // =====end utility function
