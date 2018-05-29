@@ -42,7 +42,6 @@ module.exports = {
         SECRET: 'ilovechatshier'
     },
     COOKIE: {
-        DOMAIN: '.dev.chatshier.com',
         EXPIRES: EXPIRES
     },
     CORS: { // the attributes of CORS must be lower case
