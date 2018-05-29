@@ -2,7 +2,7 @@ module.exports = (function() {
     const crypto = require('crypto');
     const CHATSHIER = require('../config/chatshier');
 
-    class Cipher {
+    class CipherHelper {
         /**
          * encode user.password from original string to encoded string
          * @param {string} password
@@ -16,5 +16,5 @@ module.exports = (function() {
             return hmac.digest('hex');
         }
     }
-    return new Cipher();
+    return new CipherHelper();
 })();
