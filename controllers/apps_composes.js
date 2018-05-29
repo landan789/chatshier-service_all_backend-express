@@ -23,7 +23,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsComposesMdl.find(appIds, null, (data) => {
                         if (undefined === data || null === data || '' === data) {
-                            reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                             return;
                         }
                         resolve(data);
@@ -55,7 +55,7 @@ module.exports = (function() {
                 return new Promise((resolve, reject) => {
                     appsComposesMdl.find(appIds, composeId, (data) => {
                         if (!data) {
-                            reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                             return;
                         }
                         resolve(data);
@@ -100,7 +100,7 @@ module.exports = (function() {
                 return this.appsRequestVerify(req).then(() => {
                     return appsComposesMdl.insert(appId, postCompose).then((appsComposes) => {
                         if (!appsComposes || (appsComposes && 0 === Object.keys(appsComposes).length)) {
-                            return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                            return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                         }
                         return appsComposes;
                     });
@@ -178,7 +178,7 @@ module.exports = (function() {
                 return appsComposesMdl.find(appId, composeId);
             }).then((appsComposes) => {
                 if (!appsComposes) {
-                    return Promise.reject(API_ERROR.APP_COMPOSES_FAILED_TO_FIND);
+                    return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
                 }
 
                 let app = appsComposes[appId];
