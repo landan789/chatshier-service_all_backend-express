@@ -11,7 +11,7 @@ module.exports = (function() {
     const COOKIE = 'COOKIE';
     const HEADER = 'HEADER';
 
-    class Jwt {
+    class JwtHelper {
         constructor() {
             this.authenticate = this.authenticate.bind(this);
         }
@@ -120,5 +120,5 @@ module.exports = (function() {
             return token;
         }
     };
-    return new Jwt();
+    return new JwtHelper();
 })();
