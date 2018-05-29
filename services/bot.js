@@ -25,11 +25,22 @@ module.exports = (function() {
 
     const FACEBOOK_OAUTH_EXCEPTION = 190;
 
+    const LINE_EVENT_TYPES = Object.freeze({
+        MESSAGE: 'message',
+        FOLLOW: 'follow',
+        UNFOLLOW: 'unfollow',
+        JOIN: 'join',
+        LEAVE: 'leave',
+        POSTBACK: 'postback',
+        BEACON: 'beacon'
+    });
+
     /** @type {Map<string, boolean>} */
     let messageCacheMap = new Map();
 
     class BotService {
         constructor() {
+            this.LINE_EVENT_TYPES = LINE_EVENT_TYPES;
             this.bots = {};
         }
 
@@ -141,11 +152,13 @@ module.exports = (function() {
         /**
          * @param {any} req
          * @param {any} app
-         * @returns {{ platformGroupId: string, platformGroupType: string, platformUid: string }}
+         * @returns {Webhook.Chatshier.Information}
          */
-        retrievePlatformInfo(req, app) {
+        retrieveWebhookInfo(req, app) {
             let body = req.body || {};
-            let info = {
+
+            /** @type {Webhook.Chatshier.Information} */
+            let webhookInfo = {
                 isEcho: false,
                 platformGroupId: '',
                 platformGroupType: '',
@@ -154,38 +167,43 @@ module.exports = (function() {
 
             switch (app.type) {
                 case LINE:
-                    let events = body.events || [];
-                    events.forEach((event) => {
+                    /** @type {Webhook.Line.Event[]} */
+                    let lineEvents = body.events || [];
+                    lineEvents.forEach((ev) => {
                         // LINE 系統 webhook 測試不理會
-                        if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                        if (LINE_WEBHOOK_VERIFY_UID === ev.source.userId) {
                             return;
                         }
-                        info.platformGroupId = info.platformGroupId || event.source.roomId || event.source.groupId;
-                        info.platformGroupType = info.platformGroupType || event.source.type;
-                        info.platformUid = info.platformUid || event.source.userId;
+                        webhookInfo.eventType = webhookInfo.eventType || ev.type;
+                        webhookInfo.platformGroupId = webhookInfo.platformGroupId || ev.source.roomId || ev.source.groupId;
+                        webhookInfo.platformGroupType = webhookInfo.platformGroupType || ev.source.type;
+                        webhookInfo.platformUid = webhookInfo.platformUid || ev.source.userId;
                     });
                     break;
                 case FACEBOOK:
-                    let entries = body.entry || [];
-                    for (let i in entries) {
-                        let messagings = entries[i].messaging || [];
+                    /** @type {Webhook.Facebook.Entry[]} */
+                    let fbEntries = body.entry || [];
+                    for (let i in fbEntries) {
+                        let messagings = fbEntries[i].messaging || [];
                         for (let j in messagings) {
-                            info.isEcho = !!(messagings[j].message.is_echo && messagings[j].message.app_id);
-                            if (info.isEcho) {
-                                continue;
-                            }
-                            info.platformUid = info.platformUid || (!messagings[j].message.is_echo ? messagings[j].sender.id : messagings[j].recipient.id);
+                            let messaging = messagings[j];
+                            webhookInfo.isEcho = !!messaging.message.is_echo;
+                            webhookInfo.platfromAppId = webhookInfo.platfromAppId || messaging.message.app_id;
+
+                            // 正常時，發送者是顧客，接收者是粉絲專頁
+                            // echo 時，發送者是粉絲專頁，接收者是顧客
+                            webhookInfo.platformUid = webhookInfo.platformUid || (messaging.message.is_echo ? messaging.recipient.id : messaging.sender.id);
                         }
                     }
                     break;
                 case WECHAT:
                     let weixin = req.weixin;
-                    info.platformUid = weixin.FromUserName;
+                    webhookInfo.platformUid = weixin.FromUserName;
                     break;
                 default:
                     break;
             }
-            return info;
+            return webhookInfo;
         }
 
         /**
@@ -203,6 +221,12 @@ module.exports = (function() {
             };
 
             return Promise.resolve().then(() => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, app);
+                }
+                return bot;
+            }).then((bot) => {
                 let messages = [];
 
                 switch (app.type) {
@@ -252,7 +276,6 @@ module.exports = (function() {
                                 return;
                             };
 
-                            let bot = this.bots[appId];
                             if (event.message && ['image', 'audio', 'video', 'file'].includes(event.message.type)) {
                                 return bot.getMessageContent(event.message.id).then((contentStream) => {
                                     return new Promise((resolve, reject) => {
@@ -394,11 +417,6 @@ module.exports = (function() {
                                 message.type = 'video';
                             }
 
-                            let bot = this.bots[appId];
-                            if (!bot) {
-                                return Promise.reject(new Error('BOT_NOT_FOUND'));
-                            }
-
                             if ('text' === message.type) {
                                 message.text = weixin.Content;
                             } else if (weixin.MediaId) {
@@ -462,25 +480,26 @@ module.exports = (function() {
 
         /**
          * 多型處理， 取得 LINE 或 FACEBOOK 來的 customer 用戶端資料
-         * @param {{ platformGroupId?: string, platformGroupType?: string, platformUid?: string }} platformInfo
+         * @param {Webhook.Chatshier.Information} webhookInfo
          * @param {string} appId
          * @param {any} app
          */
-        getProfile(platformInfo, appId, app) {
-            let bot = this.bots[appId];
-            if (!bot) {
-                return Promise.reject(new Error('BOT_NOT_FOUND'));
-            }
-
+        getProfile(webhookInfo, appId, app) {
             return Promise.resolve().then(() => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, app);
+                }
+                return bot;
+            }).then((bot) => {
                 let senderProfile = {
                     type: app.type,
                     name: '',
                     photo: ''
                 };
-                let platformGroupId = platformInfo.platformGroupId;
-                let platformGroupType = platformInfo.platformGroupType;
-                let platformUid = platformInfo.platformUid;
+                let platformGroupId = webhookInfo.platformGroupId;
+                let platformGroupType = webhookInfo.platformGroupType;
+                let platformUid = webhookInfo.platformUid;
 
                 if (!platformGroupId && !platformGroupType && !platformUid) {
                     return senderProfile;
@@ -505,7 +524,8 @@ module.exports = (function() {
                         }).catch((err) => {
                             // 無法抓到使用者 profile 時，回傳 undefined
                             // 其餘狀況擲出錯誤
-                            if (404 === err.statusCode) {
+                            if (403 === err.statusCode ||
+                                404 === err.statusCode) {
                                 return Promise.resolve();
                             }
                             return Promise.reject(err);
@@ -559,15 +579,17 @@ module.exports = (function() {
          * @param {any} app
          */
         replyMessage(res, platformUid, replyToken, messages, appId, app) {
-            let bot = this.bots[appId];
-            if (!bot) {
-                return Promise.reject(new Error('BOT_NOT_FOUND'));
-            };
             if (!(messages instanceof Array)) {
                 messages = [messages];
-            };
+            }
 
             return Promise.resolve().then(() => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, app);
+                }
+                return bot;
+            }).then((bot) => {
                 switch (app.type) {
                     case LINE:
                         return bot.replyMessage(replyToken, messages).then(() => {

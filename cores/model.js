@@ -28,11 +28,7 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'timezoneOffset': {type: Number, default: 0},
-        'periods': [{
-            'days': {type: Array, default: []},
-            'startedTime': {type: String, default: '00:00'},
-            'endedTime': {type: String, default: '00:00'}
-        }],
+        'periods': {type: Array, default: []},
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
@@ -63,7 +59,8 @@ module.exports = (function() {
             'unRead': {type: Number, default: 0},
             'remark': {type: String, default: ''},
             'assigned_ids': {type: [{type: String}], default: []},
-            'tags': {type: [{type: String}], default: []}
+            'tags': {type: [{type: String}], default: []},
+            'isUnfollow': {type: Boolean, default: false}
         }],
         'messages': [{
             'from': {type: String, default: 'SYSTEM'},
@@ -96,11 +93,7 @@ module.exports = (function() {
         'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'conditions': [{
-            'type': {type: String, default: ''},
-            'values': {type: Array, default: []},
-            'field_id': {type: String, default: ''}
-        }],
+        'conditions': {type: Array, default: []},
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });
@@ -192,12 +185,13 @@ module.exports = (function() {
         'group_id': {type: String, default: ''},
         'id1': {type: String, default: ''},
         'id2': {type: String, default: ''},
-        'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
         'secret': {type: String, default: ''},
         'token1': {type: String, default: ''},
         'token2': {type: String, default: ''},
         'type': {type: String, default: ''},
+        'webhook_id': {type: String, default: ''},
+        'isDeleted': {type: Boolean, default: false},
 
         'autoreplies': [AutorepliesSchema],
         'chatrooms': [ChatroomsSchema],
@@ -208,8 +202,7 @@ module.exports = (function() {
         'fields': [FieldsSchema],
         'tickets': [TicketsSchema],
         'richmenus': [RichmenusSchema],
-        'imagemaps': [ImagemapsSchema],
-        'webhook_id': {type: String, default: ''}
+        'imagemaps': [ImagemapsSchema]
     });
 
     const EventsSchema = new mongoose.Schema({

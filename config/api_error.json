@@ -118,6 +118,7 @@
     "APP_CHATROOM_MESSAGES_FAILED_TO_FIND": { "MSG": "app chatroom message failed to find", "CODE": "11.21" },
     "APP_CHATROOM_MESSAGES_FAILED_TO_INSERT": { "MSG": "app chatroom message failed to insert", "CODE": "11.22" },
     "APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND": { "MSG": "app chatroom messager failed to find", "CODE": "11.31" },
+    "APP_CHATROOMS_MESSAGERS_FAILED_TO_INSERT": { "MSG": "app chatroom messager failed to insert", "CODE": "11.32" },
     "APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE": { "MSG": "app chatroom messager failed to update", "CODE": "11.33" },
     "APP_CHATROOMS_MESSAGERS_FAILED_TO_REMOVE": { "MSG": "app chatroom messager failed to remove", "CODE": "11.34" },
 
