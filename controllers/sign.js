@@ -16,6 +16,7 @@ module.exports = (function() {
     let jwtHlp = require('../helpers/jwt');
     let fuseHlp = require('../helpers/fuse');
     let redisHlp = require('../helpers/redis');
+    let domainHlp = require('../helpers/domain');
 
     let appsMdl = require('../models/apps');
     let appsChatroomsMdl = require('../models/apps_chatrooms');
@@ -45,6 +46,7 @@ module.exports = (function() {
                 password: req.body.password || ''
             };
 
+            let domain = domainHlp.get(req.hostname);
             return Promise.resolve().then(() => {
                 if (!req.body.email) {
                     return Promise.reject(API_ERROR.EMAIL_WAS_EMPTY);
@@ -89,7 +91,7 @@ module.exports = (function() {
                     data: users
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: CHATSHIER.JWT.EXPIRES,
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
@@ -108,6 +110,8 @@ module.exports = (function() {
         }
 
         postSignout(req, res, next) {
+            let domain = domainHlp.get(req.hostname);
+
             return Promise.resolve().then(() => {
                 let json = {
                     status: 1,
@@ -116,7 +120,7 @@ module.exports = (function() {
                     data: {}
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: 0,
                     httpOnly: true,
                     expires: Date.now()
@@ -139,6 +143,7 @@ module.exports = (function() {
             let userId;
             let groups;
             let groupId;
+            let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
                 if (!req.body.name) {
@@ -246,7 +251,7 @@ module.exports = (function() {
                     data: users
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: CHATSHIER.JWT.EXPIRES,
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
@@ -266,6 +271,8 @@ module.exports = (function() {
         postRefresh(req, res, next) {
             let token;
             let users;
+            let domain = domainHlp.get(req.hostname);
+
             return Promise.resolve().then(() => {
                 if (!req.params.userid) {
                     return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
@@ -296,7 +303,7 @@ module.exports = (function() {
                     data: users
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: CHATSHIER.JWT.EXPIRES,
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
@@ -316,6 +323,7 @@ module.exports = (function() {
         postResetPassword(req, res) {
             let email = req.body.email;
             let recaptchaResponse = req.body.recaptchaResponse;
+            let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
                 if (!email) {
@@ -369,6 +377,7 @@ module.exports = (function() {
             let newPasswordCfm = req.body.newPasswordCfm;
             let userId = req.params.userid;
             let token;
+            let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
                 if (!password) {
@@ -408,7 +417,7 @@ module.exports = (function() {
                     data: users
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: CHATSHIER.JWT.EXPIRES,
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
@@ -430,6 +439,7 @@ module.exports = (function() {
             let newPasswordCfm = req.body.newPasswordCfm;
             let userId = req.params.userid;
             let token;
+            let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
                 if (!(newPassword && newPasswordCfm && newPassword === newPasswordCfm)) {
@@ -462,7 +472,7 @@ module.exports = (function() {
                     data: users
                 };
                 let options = {
-                    domain: CHATSHIER.COOKIE.DOMAIN,
+                    domain: domain,
                     maxAge: CHATSHIER.JWT.EXPIRES,
                     httpOnly: true,
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)

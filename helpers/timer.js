@@ -1,5 +1,5 @@
 module.exports = (function() {
-    class Timer {
+    class TimerHelper {
         /**
          * 輸入 unix time 回傳分鐘化的 unix time
          *
@@ -16,5 +16,5 @@ module.exports = (function() {
             return minutedUnixTime;
         }
     }
-    return new Timer();
+    return new TimerHelper();
 })();

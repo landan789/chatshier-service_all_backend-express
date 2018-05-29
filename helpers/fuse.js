@@ -7,7 +7,7 @@ module.exports = (function() {
     const redisHlp = require('./redis');
     const REDIS_API_CHANNEL = redisHlp.CHANNELS.REDIS_API_CHANNEL;
 
-    class Fuse {
+    class FuseHelper {
         constructor() {
             this._ready = usersMdl.find().then((users) => {
                 /** @type {{ [userId: string]: FuzzySearchUser }} */
@@ -231,5 +231,5 @@ module.exports = (function() {
         };
     }
 
-    return new Fuse();
+    return new FuseHelper();
 })();
