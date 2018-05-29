@@ -1,525 +1,1244 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
-    // var RESERVATION = 'RESERVATION';
-    var HISTORY = 'HISTORY';
-    // var DRAFT = 'DRAFT';
+    let api = window.restfulAPI;
+    let SOCKET_NAMESPACE = '/chatshier';
+    let SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    let socket = io(SOCKET_SERVER_URL);
 
-    var apps = {};
-    var appsComposes = {};
-    var api = window.restfulAPI;
+    let apps = {};
+    let appsChatrooms = {};
+    let appsFields = {};
+    let appsComposes = {};
 
-    var SOCKET_NAMESPACE = '/chatshier';
-    var SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
-    var socket = io(SOCKET_SERVER_URL);
+    let nowSelectAppId = '';
 
-    var inputNum = 0; // 計算訊息的數量
-    var ageRange = [];
-    var gender = '';
-    var fieldIds = {};
-    var appsFields = '';
-    var deleteNum = 0;
-    var nowSelectAppId = '';
-    var modelSelectAppId = '';
-    var $jqDoc = $(document);
-    var $appDropdown = $('.app-dropdown');
-    var $appSelector = $('#app-select');
-    var $customFields = $('#custom-fields');
-    var $historyTableBody = null;
-    var $draftTableBody = null;
-    var $reservationTableBody = null;
-    var timeInMs = (Date.now() + 1000);
-    var fieldEnums = api.appsFields.enums;
+    let $jqDoc = $(document);
+    let $appSelector = $('#appSelector');
+    let $historyTableBody = $('#composesHistoryTable tbody');
+    let $reservationTableBody = $('#composesReservationTable tbody');
+    let $draftTableBody = $('#composesDraftTable tbody');
 
-    var $composeAddModal = $('#composeAddModal');
-    var $composesAddDtPicker = $composeAddModal.find('#sendDatetimePicker');
-    var $composesAddDtInput = $composesAddDtPicker.find('input[name="sendDatetime"]');
-
-    var $composeEditModal = $('#composeEditModal');
-    var $composesEditDtPicker = $composeEditModal.find('#sendDatetimePicker');
-    var $composesEditDtInput = $composesEditDtPicker.find('input[name="sendDatetime"]');
-
+    const CHATSHIER = 'CHATSHIER';
     const NO_PERMISSION_CODE = '3.16';
     const MUST_BE_LATER_THAN_NOW = '15.5';
-    const DID_NOT_HAVE_TAGS = '15.6';
 
-    var userId;
+    const DEFAULT_CONDITION_TYPES = {
+        AGE_RANGE: {
+            type: 'AGE_RANGE',
+            text: '年齡',
+            field_id: ''
+        },
+        GENDER: {
+            type: 'GENDER',
+            text: '性別',
+            field_id: ''
+        },
+        TAGS: {
+            type: 'TAGS',
+            text: '標籤',
+            field_id: ''
+        }
+    };
+
+    let userId;
     try {
-        var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
+        let payload = window.jwt_decode(window.localStorage.getItem('jwt'));
         userId = payload.uid;
     } catch (ex) {
         userId = '';
     }
 
+    let datetimePickerInitOpts = {
+        sideBySide: true,
+        locale: 'zh-tw',
+        icons: {
+            time: 'far fa-clock',
+            date: 'far fa-calendar-alt',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-sun',
+            clear: 'far fa-trash-alt',
+            close: 'fas fa-times'
+        }
+    };
+
     // ACTIONS
-    $composeAddModal.on('click', '#composeAddSubmitBtn', insertSubmit);
-    $(document).on('change', '#app-select', storeApp);
-    $(document).on('click', '.tablinks', clickMsg);
-    $(document).on('click', '#addComposeText', addComposeText);
-    $(document).on('click', '.remove-btn', removeInput);
-    $(document).on('click', '#delete-btn', remove);
-    $(document).on('click', '#send-all', function () {
-        let id = $(this).attr('rel');
-        $('#' + id).addClass('d-none');
-    });
-    $(document).on('click', '#send-somebody', function () {
-        let id = $(this).attr('rel');
-        $('#' + id).removeClass('d-none');
-    });
-    $(document).on('click', 'button#field', appendInput);
-    $(document).on('change paste keyup', '.search-bar', dataSearch);
-    $(document).on('click', '#condition-close-btn', function() {
-        let $conditionDiv = $(this).parent();
-        let $fieldBtn = $(this).parent().parent().find('button#field');
+    $appSelector.on('click', '.dropdown-item', appSourceChanged);
+    $(document).on('click', '.remove.delete-btn', removeCompose);
+    $(document).on('change paste keyup', '.search-bar', composesSearch);
 
-        let btnName = $fieldBtn.attr('name');
-
-        $fieldBtn.removeClass();
-        $fieldBtn.attr('class', 'btn btn-border');
-        $fieldBtn.text(btnName);
-        $fieldBtn.show();
-        $conditionDiv.remove();
-    });
-    $(document).on('click', '#condition-check-btn', function() {
-        let $conditionDiv = $(this).parent();
-        let $conditionInput = $(this).parent().find('input');
-        let $fieldBtn = $(this).parent().parent().find('button#field');
-
-        let btnName = $fieldBtn.attr('name');
-        let conditionValue = $conditionInput.val();
-
-        $conditionDiv.hide();
-
-        if (!conditionValue) {
-            $fieldBtn.show();
-            return;
-        }
-
-        let checkResult = fieldsCheck(btnName, conditionValue);
-
-        if (!checkResult) {
-            $fieldBtn.show();
-            return;
-        }
-        $conditionInput.attr('value', conditionValue);
-        $fieldBtn.removeClass();
-        $fieldBtn.attr('class', 'btn btn-info');
-        $fieldBtn.text(btnName + ':' + conditionValue).show();
+    // 當有收到訊息發送的事件時更新 compose
+    socket.on(SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, function(data) {
+        /** @type {ChatshierChatSocketBody} */
+        let socketBody = data;
+        let appId = socketBody.app_id;
+        appId === nowSelectAppId && refreshComposes(nowSelectAppId);
     });
 
-    $historyTableBody = $('#composesHistoryTable tbody');
-    $reservationTableBody = $('#composesReservationTable tbody');
-    $draftTableBody = $('#composesDraftTable tbody');
-
-    if (!window.isMobileBrowser()) {
-        var datetimePickerInitOpts = {
-            sideBySide: true,
-            locale: 'zh-tw',
-            icons: {
-                time: 'far fa-clock',
-                date: 'far fa-calendar-alt',
-                up: 'fas fa-chevron-up',
-                down: 'fas fa-chevron-down',
-                previous: 'fas fa-chevron-left',
-                next: 'fas fa-chevron-right',
-                today: 'fas fa-sun',
-                clear: 'far fa-trash-alt',
-                close: 'fas fa-times'
-            }
-        };
-        $composesAddDtPicker.datetimepicker(datetimePickerInitOpts);
-        $composesEditDtPicker.datetimepicker(datetimePickerInitOpts);
-    } else {
-        $composesAddDtInput.attr('type', 'datetime-local');
-        $composesEditDtInput.attr('type', 'datetime-local');
-        $composesAddDtPicker.on('click', '.input-group-prepend', function() {
-            $composesAddDtInput.focus();
-        });
-        $composesEditDtPicker.on('click', '.input-group-prepend', function() {
-            $composesEditDtInput.focus();
-        });
-    }
-
-    $composeAddModal.on('show.bs.modal', resetAddModal);
-
-    // FUNCTIONs
-
-    function storeApp() {
-        modelSelectAppId = $(this).find(':selected').val();
-        appCustomerTagChanged();
-    } // end of loadFriendsReply
-
-    function removeInput() {
-        deleteNum++;
-        if (inputNum - deleteNum < 4) {
-            $('.error-msg').hide();
-        };
-        $(this).parent().remove();
-    }
-
-    function clickMsg() { // 更換switch
-        var target = $(this).attr('rel');
-        $('#' + target).show().siblings().hide();
-    }
-
-    function addComposeText() {
-        inputNum++;
-        if (inputNum - deleteNum > 3) {
-            $('.error-msg').show();
-            inputNum--;
-        } else {
-            let textAreaHtml = (
-                '<div class="position-relative mt-3 input-container">' +
-                    '<textarea class="pl-2 compose-textarea text-input"></textarea>' +
-                    '<i class="position-absolute fas fa-times remove-btn"></i>' +
-                '</div>'
-            );
-            $('#inputWarpper').append(textAreaHtml);
-        }
-    }
-
-    $composeEditModal.on('shown.bs.modal', function(ev) {
-        $('#edit-custom-fields').empty();
-        var $targetRow = $(ev.relatedTarget).parents('tr');
-        var $targetTable = $targetRow.parents('table');
-
-        var appId = $targetRow.attr('text');
-        var composeId = $targetRow.attr('id');
-        var $editForm = $composeEditModal.find('.modal-body form');
-        var targetCompose = appsComposes[appId].composes[composeId];
-        var customFieldsElement = $targetRow.find('#fields > #field');
-        var customFields = {};
-
-        customFieldsElement.each(function() {
-            let fieldValue = $(this).text();
-            let fieldId = 'ageRange' === $(this).attr('data-type') ? 'age' : $(this).attr('data-type');
-            customFields[fieldId] = fieldValue;
-        });
-
-        var fields = appsFields[appId].fields;
-        for (let fieldId in fields) {
-            let field = fields[fieldId];
-            if (field.isDeleted || ('age' !== field.alias && 'gender' !== field.alias && '' !== field.alias)) {
-                delete fields[fieldId];
-                continue;
-            }
-
-            switch (field.alias) {
-                case 'age':
-                    if (!customFields[field.alias]) {
-                        TagBtn('age', '年齡', field.setsType, 'edit-custom-fields');
-                        break;
-                    }
-
-                    $('#edit-custom-fields').append(
-                        '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="年齡" data-type="' + field.setsType + '" id="field">年齡:' + customFields[field.alias] + '</button>' +
-                            '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="年齡" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
-                                    '<i class="fa fa-check"></i>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-times"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>'
-                    );
-                    break;
-                case 'gender':
-                    if (!customFields[field.alias]) {
-                        TagBtn('gender', '性別', field.setsType, 'edit-custom-fields');
-                        break;
-                    }
-                    $('#edit-custom-fields').append(
-                        '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + field.alias + '" class="btn btn-info" name="性別" data-type="' + field.setsType + '" id="field">性別:' + customFields[field.alias] + '</button>' +
-                            '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + field.alias + '" data-type="' + field.setsType + '" placeholder="性別" id="condition-input" value="' + customFields[field.alias] + '">' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
-                                    '<i class="fa fa-check"></i>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-times"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>'
-                    );
-                    break;
-                case '':
-                    if (!customFields[fieldId]) {
-                        TagBtn(fieldId, field.text, field.setsType, 'edit-custom-fields');
-                        break;
-                    }
-                    $('#edit-custom-fields').append(
-                        '<div class="form-group col-sm-6">' +
-                            '<button type="button" rel="' + fieldId + '" class="btn btn-info" name="' + field.text + '" data-type="' + field.setsType + '" id="field">' + field.text + ':' + customFields[fieldId] + '</button>' +
-                            '<div id="condition" style="display: none;">' +
-                                '<input type="text" class="form-gruop" rel="' + fieldId + '" data-type="' + field.setsType + '" placeholder="' + field.text + '" id="condition-input" value="' + customFields[fieldId] + '">' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
-                                    '<i class="fa fa-check"></i>' +
-                                '</button>' +
-                                '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                                    '<i class="fa fa-times"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>'
-                    );
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        var category = $targetTable.attr('category');
-        var composeDateTime = new Date(targetCompose.time);
-
-        if (HISTORY === category) {
-            composeDateTime = new Date(Date.now() + (5 * 60 * 1000));
-            $composeEditModal.find('#edit-submit').text('重發');
-        } else {
-            $composeEditModal.find('#edit-submit').text('更新');
-        }
-
-        var composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
-        if (composesEditDtPickerData) {
-            composesEditDtPickerData.date(composeDateTime);
-        } else {
-            $composesEditDtInput.val(toDatetimeLocal(composeDateTime));
-        }
-
-        $editForm.find('#edutinput').val(targetCompose.text);
-        $editForm.find('input[name="modal-draft"]').prop('checked', !targetCompose.status);
-
-        $composeEditModal.find('#edit-submit').off('click').on('click', function() {
-            $composeEditModal.find('#edit-submit').attr('disabled', 'disabled');
-            var isDraft = $composeEditModal.find('input[name="modal-draft"]').prop('checked');
-            var conditionInputElement = $composeEditModal.find('input#condition-input');
-
-            fieldsObjCompose(conditionInputElement);
-            targetCompose.text = $editForm.find('#edutinput').val();
-            targetCompose.time = composesEditDtPickerData ? composesEditDtPickerData.date().toDate().getTime() : new Date($composesEditDtInput.val()).getTime();
-            targetCompose.ageRange = ageRange;
-            targetCompose.gender = gender;
-            targetCompose.field_ids = 0 === Object.keys(fieldIds).length ? {} : fieldIds;
-            targetCompose.status = !isDraft;
-
-            return Promise.resolve().then(() => {
-                if (HISTORY === category) {
-                    return api.appsComposes.insert(appId, userId, targetCompose);
-                }
-                return api.appsComposes.update(appId, composeId, userId, targetCompose);
-            }).then((resJson) => {
-                ageRange = [];
-                gender = '';
-                fieldIds = {};
-                $composeEditModal.modal('hide');
-                $.notify(HISTORY === category ? '新增成功！' : '更新成功！', { type: 'success' });
-                $composeEditModal.find('#edit-submit').removeAttr('disabled');
-                return loadComposes(appId, userId);
-            }).catch((resJson) => {
-                $composeEditModal.find('#edit-submit').removeAttr('disabled');
-
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                    $composeEditModal.modal('hide');
-                }
-
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                    $composeEditModal.modal('hide');
-                }
-
-                if (MUST_BE_LATER_THAN_NOW === resJson.code) {
-                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
-                }
-            });
-        });
-    });
-
-    return api.apps.findAll(userId).then(function(respJson) {
-        apps = respJson.data;
-        var $dropdownMenu = $appDropdown.find('.dropdown-menu');
+    Promise.all([
+        api.apps.findAll(userId),
+        api.appsChatrooms.findAll(userId),
+        api.appsComposes.findAll(void 0, userId),
+        api.appsFields.findAll(userId)
+    ]).then(function(respJsons) {
+        apps = respJsons[0].data;
+        appsChatrooms = respJsons[1].data;
+        appsComposes = respJsons[2].data;
+        appsFields = respJsons[3].data;
 
         nowSelectAppId = '';
-        modelSelectAppId = '';
-        for (var appId in apps) {
-            var app = apps[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+        let $dropdownMenu = $appSelector.find('.dropdown-menu');
+        for (let appId in apps) {
+            let app = apps[appId];
+            if (app.isDeleted || app.type === CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
             socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
             $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
-            $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
-            $appDropdown.find('.dropdown-item[app-id="' + appId + '"]').on('click', appSourceChanged);
-
-            if (!nowSelectAppId && !modelSelectAppId) {
-                nowSelectAppId = appId;
-                modelSelectAppId = appId;
-            }
+            nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
-            loadComposes(nowSelectAppId, userId);
-            $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            $appSelector.find('.dropdown-text').text(apps[nowSelectAppId].name);
+            refreshComposes(nowSelectAppId);
+        }
+        $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+    });
+
+    const ConditionComponent = (function() {
+        class ConditionComponent {
+            /**
+             * @param {JQuery<HTMLElement>} $composeModal
+             */
+            constructor($composeModal) {
+                this.$composeModal = $composeModal;
+                this._appIds = [];
+                this._conditionTypes = {};
+                this._allFields = {};
+                this._allTags = [];
+
+                this.$conditionContainer = $composeModal.find('#conditionContainer');
+
+                this.addConditionItem = this.addConditionItem.bind(this);
+                this.generateConditionContent = this.generateConditionContent.bind(this);
+                this.fieldSetsToConditionInput = this.fieldSetsToConditionInput.bind(this);
+                this.removeConditionItem = this.removeConditionItem.bind(this);
+                this.removeTag = this.removeTag.bind(this);
+                this.conditionTypeChanged = this.conditionTypeChanged.bind(this);
+                this.conditionContentChanged = this.conditionContentChanged.bind(this);
+
+                $composeModal.on('click', '.condition-add-btn', this.addConditionItem);
+                $composeModal.on('click', '.condition-remove-btn', this.removeConditionItem);
+                $composeModal.on('click', '.condition-item .condition-types-menu .dropdown-item', this.conditionTypeChanged);
+                $composeModal.on('click', '.condition-item .condition-content-menu .dropdown-item', this.conditionContentChanged);
+                $composeModal.on('change', '.condition-item input.condition-value', this.conditionContentChanged);
+                $composeModal.on('click', '.condition-item .tag-chip .remove-chip', this.removeTag);
+            }
+
+            set appIds(value) { this._appIds = value; }
+            set conditionTypes(value) { this._conditionTypes = value; }
+            set allFields(value) { this._allFields = value; }
+            set allTags(value) { this._allTags = value; }
+
+            /**
+             * @param {MouseEvent} [ev]
+             * @param {string} [type]
+             */
+            addConditionItem(ev, type, values, fieldId) {
+                type = type || 'AGE_RANGE';
+                let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type] || this._conditionTypes[fieldId];
+                let options = {
+                    type: type,
+                    field: this._allFields[conditionType.field_id],
+                    values: values
+                };
+
+                let $conditionItem = $(
+                    '<div class="my-1 d-flex flex-wrap align-items-center condition-item">' +
+                        '<div class="d-inline-block mr-2 dropdown condition-types">' +
+                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                '<span class="condition-value" value="' + type + '" field-id="' + conditionType.field_id + '">' + conditionType.text + '</span>' +
+                            '</button>' +
+                            '<div class="dropdown-menu condition-types-menu">' +
+                                (() => {
+                                    return Object.keys(DEFAULT_CONDITION_TYPES).map((type) => {
+                                        return '<a class="dropdown-item" value="' + type + '">' + DEFAULT_CONDITION_TYPES[type].text + '</a>';
+                                    }).join('');
+                                })() +
+                                (Object.keys(this._conditionTypes).length > 0 ? '<div class="dropdown-divider"></div>' : '') +
+                                (() => {
+                                    return Object.keys(this._conditionTypes).map((fieldId) => {
+                                        return '<a class="dropdown-item" value="CUSTOM_FIELD" field-id="' + fieldId + '">' + this._conditionTypes[fieldId].text + '</a>';
+                                    }).join('');
+                                })() +
+                            '</div>' +
+                        '</div>' +
+                        generateConditionContent(options) +
+                        '<i class="ml-auto p-2 fas fa-times-circle condition-remove-btn"></i>' +
+                    '</div>'
+                );
+                this.$conditionContainer.append($conditionItem);
+
+                if ('TAGS' === type) {
+                    this.enableTypeahead($conditionItem.find('.condition-content'));
+                    if (options.values && options.values.length > 0) {
+                        let $tagsContainer = $conditionItem.find('.tags-container');
+                        $tagsContainer.append(options.values.map((tag) => {
+                            return (
+                                '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                    '<span class="pt-2 pb-2 pl-2 chip-text" tag="' + tag + '">' + tag + '</span>' +
+                                    '<i class="p-2 fas fa-times remove-chip"></i>' +
+                                '</div>'
+                            );
+                        }).join(''));
+                    }
+                }
+
+                this.refreshAvailable();
+            }
+
+            /**
+             * @param {any} options
+             */
+            generateConditionContent(options) {
+                options = options || {};
+                let type = options.type;
+                let field = options.field;
+                let values = options.values || [];
+
+                switch (type) {
+                    case 'AGE_RANGE':
+                        let ageDown = values[0] || '10';
+                        let ageUp = values[1] || '50';
+                        return (
+                            '<div class="d-inline-block dropdown condition-content range range-down">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + ageDown + '">' + ageDown + ' 歲</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    (() => {
+                                        let age = 10;
+                                        let items = '';
+                                        while (age <= 80) {
+                                            items += (
+                                                '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
+                                            );
+                                            age += 5;
+                                        }
+                                        return items;
+                                    })() +
+                                '</div>' +
+                            '</div>' +
+                            '<span class="mx-1">~</span>' +
+                            '<div class="d-inline-block dropdown condition-content range range-up">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + ageUp + '">' + ageUp + ' 歲</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    (() => {
+                                        let age = 15;
+                                        let items = '';
+                                        while (age <= 80) {
+                                            items += (
+                                                '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
+                                            );
+                                            age += 5;
+                                        }
+                                        return items;
+                                    })() +
+                                '</div>' +
+                            '</div>'
+                        );
+                    case 'GENDER':
+                        let gender = values[0] ? values[0] : 'MALE';
+                        let genderText = 'MALE' === gender ? '男' : '女';
+                        return (
+                            '<div class="d-inline-block dropdown condition-content">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + gender + '">' + genderText + '</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    '<a class="dropdown-item" value="MALE">男</a>' +
+                                    '<a class="dropdown-item" value="FEMALE">女</a>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                    case 'TAGS':
+                        return (
+                            '<div class="d-inline-block condition-content">' +
+                                '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
+                            '</div>'
+                        );
+                    default:
+                        if (field) {
+                            return fieldSetsToConditionInput(field);
+                        }
+                        return '';
+                }
+            }
+
+            /**
+             * @param {any} field
+             */
+            fieldSetsToConditionInput(field) {
+                let SETS_TYPES = api.appsFields.enums.setsType;
+
+                switch (field.setsType) {
+                    case SETS_TYPES.CHECKBOX:
+                        return (
+                            '<div class="d-inline-block dropdown condition-content">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="true">是</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    '<a class="dropdown-item" value="true">是</a>' +
+                                    '<a class="dropdown-item" value="false">否</a>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                    case SETS_TYPES.NUMBER:
+                        return (
+                            '<div class="d-inline-block condition-content range">' +
+                                '<input class="form-control condition-value" type="number" value="0" min="0" />' +
+                            '</div>' +
+                            '<span class="mx-1">~</span>' +
+                            '<div class="d-inline-block condition-content range">' +
+                                '<input class="form-control condition-value" type="number" value="1" min="1" />' +
+                            '</div>'
+                        );
+                    case SETS_TYPES.SELECT:
+                    case SETS_TYPES.MULTI_SELECT:
+                        return (
+                            '<div class="d-inline-block dropdown condition-content">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-content-menu">' +
+                                    (() => {
+                                        return field.sets.map((set) => {
+                                            if (!set) {
+                                                return '';
+                                            }
+                                            return (
+                                                '<a class="dropdown-item" value="' + set + '">' +
+                                                    '<span>' + set + '</span>' +
+                                                '</a>'
+                                            );
+                                        }).join('');
+                                    })() +
+                                '</div>' +
+                            '</div>'
+                        );
+                    default:
+                        return '';
+                }
+            }
+
+            /**
+             * @param {MouseEvent} ev
+             */
+            removeConditionItem(ev) {
+                $(ev.target).parent().remove();
+                this.refreshAvailable();
+            }
+
+            /**
+             * @param {MouseEvent} ev
+             */
+            removeTag(ev) {
+                $(ev.target).parents('.tag-chip').remove();
+                this.refreshAvailable();
+            }
+
+            /**
+             * @param {MouseEvent} ev
+             */
+            conditionTypeChanged(ev) {
+                let $target = $(ev.target).hasClass('dropdown-item') ? $(ev.target) : $(ev.target).parents('.dropdown-item');
+                let typeValue = $target.attr('value');
+                let typeFieldId = $target.attr('field-id');
+                let typeText = $target.text();
+                let $conditionTypes = $target.parents('.condition-types');
+
+                let $conditionTypeValue = $conditionTypes.find('.condition-value');
+                $conditionTypeValue.attr('value', typeValue).attr('field-id', typeFieldId).text(typeText);
+
+                $conditionTypes.siblings('.condition-content').remove();
+                $conditionTypes.siblings('span').remove();
+                $conditionTypes.siblings('.tags-container').remove();
+
+                let type = typeFieldId || typeValue;
+                let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type];
+                let options = {
+                    type: type,
+                    field: this._allFields[conditionType.field_id]
+                };
+                let $conditionContent = $(generateConditionContent(options));
+                $conditionContent.insertAfter($conditionTypes);
+                this.refreshAvailable();
+
+                if ('TAGS' === typeValue) {
+                    this.enableTypeahead($conditionContent);
+                }
+            }
+
+            /**
+             * @param {MouseEvent} ev
+             */
+            conditionContentChanged(ev) {
+                let $target = $(ev.target).hasClass('dropdown-item') ? $(ev.target) : $(ev.target).parents('.dropdown-item');
+                let contentValue = $target.attr('value');
+                let contentText = $target.text();
+                let appId = $target.attr('app-id');
+
+                let $conditionContent = $target.parents('.condition-content');
+                $conditionContent.find('.condition-value').attr('value', contentValue).attr('app-id', appId || '').text(contentText);
+                this.refreshAvailable();
+            }
+
+            /**
+             * @param {JQuery<HTMLElement>} $conditionContent
+             */
+            enableTypeahead($conditionContent) {
+                let $tagsContainer = $('<div class="my-2 tags-container"></div>');
+                let $conditionItem = $conditionContent.parents('.condition-item');
+                $conditionItem.append($tagsContainer);
+
+                let $tagsTypeahead = $conditionContent.find('.typeahead');
+                $tagsTypeahead.typeahead({
+                    minLength: 1,
+                    fitToElement: true,
+                    showHintOnFocus: false,
+                    items: 4,
+                    source: this._allTags,
+                    autoSelect: false,
+                    afterSelect: () => {
+                        let tag = $tagsTypeahead.val();
+                        if (0 === $tagsContainer.find('[tag="' + tag + '"]').length) {
+                            $tagsContainer.append(
+                                '<div class="d-inline-flex align-items-center mx-2 my-1 tag-chip">' +
+                                    '<span class="pt-2 pb-2 pl-2 chip-text" tag="' + tag + '">' + tag + '</span>' +
+                                    '<i class="p-2 fas fa-times remove-chip"></i>' +
+                                '</div>'
+                            );
+                            this.refreshAvailable();
+                        }
+                        $tagsTypeahead.val('');
+                    }
+                });
+                $tagsTypeahead.on('keyup', (ev) => $(ev.target).data('typeahead').lookup());
+            }
+
+            refreshAvailable() {
+                let appIds = this._appIds;
+                let availableCount = 0;
+                let conditions = this.retrieveConditions();
+
+                for (let i in appIds) {
+                    let appId = appIds[i];
+                    let app = apps[appId];
+                    if (CHATSHIER === app.type || !appsChatrooms[appId]) {
+                        continue;
+                    }
+                    let chatrooms = appsChatrooms[appId].chatrooms;
+                    for (let chatroomId in chatrooms) {
+                        let chatroom = chatrooms[chatroomId];
+                        if (chatroom.platformGroupId) {
+                            continue;
+                        }
+                        let messagers = chatroom.messagers;
+
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            if (CHATSHIER === messager.type) {
+                                continue;
+                            }
+
+                            let isAvailable = !conditions.length;
+                            for (let i in conditions) {
+                                let condition = conditions[i];
+
+                                if ('AGE_RANGE' === condition.type) {
+                                    if (!messager.age) {
+                                        isAvailable = false;
+                                    } else {
+                                        let ageDown = condition.values[0];
+                                        let ageUp = condition.values[1];
+                                        isAvailable = ageDown <= messager.age && ageUp >= messager.age;
+                                    }
+                                } else if ('GENDER' === condition.type) {
+                                    if (!messager.gender) {
+                                        isAvailable = false;
+                                    } else {
+                                        let gender = condition.values[0];
+                                        isAvailable = gender === messager.gender;
+                                    }
+                                } else if ('TAGS' === condition.type) {
+                                    if (!messager.tags || (messager.tags && 0 === messager.tags.length)) {
+                                        isAvailable = false;
+                                    } else {
+                                        let tags = condition.values;
+                                        let hasContainTag = false;
+                                        for (let i in tags) {
+                                            if (messager.tags.includes(tags[i])) {
+                                                hasContainTag = true;
+                                                break;
+                                            }
+                                        }
+                                        isAvailable = hasContainTag;
+                                    }
+                                } else if ('CUSTOM_FIELD' === condition.type) {
+                                    let fieldId = condition.field_id;
+                                    let customField = messager.custom_fields[fieldId];
+
+                                    if (!customField) {
+                                        isAvailable = false;
+                                    } else {
+                                        let field = this._allFields[fieldId];
+                                        let customFieldValue = customField.value;
+                                        let SETS_TYPES = api.appsFields.enums.setsType;
+
+                                        switch (field.setsType) {
+                                            case SETS_TYPES.SELECT:
+                                            case SETS_TYPES.MULTI_SELECT:
+                                                isAvailable = customFieldValue.indexOf(condition.values[0]) >= 0;
+                                                break;
+                                            case SETS_TYPES.NUMBER:
+                                                customFieldValue = parseFloat(customFieldValue);
+                                                let numberDown = parseFloat(condition.values[0]);
+                                                let numberUp = parseFloat(condition.values[1]);
+                                                isAvailable =
+                                                    !isNaN(customFieldValue) &&
+                                                    customFieldValue >= numberDown &&
+                                                    customFieldValue <= numberUp;
+                                                break;
+                                            case SETS_TYPES.CHECKBOX:
+                                                isAvailable = customFieldValue && 'true' === condition.values[0];
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+
+                                if (!isAvailable) {
+                                    break;
+                                }
+                            }
+
+                            isAvailable && availableCount++;
+                        }
+                    }
+                }
+
+                let $availableCount = this.$composeModal.find('#availableCount');
+                $availableCount.text('有 ' + availableCount + ' 筆符合的發送對象').removeClass('d-none');
+            }
+
+            retrieveConditions() {
+                let conditions = [];
+                let $conditionItems = this.$composeModal.find('.condition-item');
+                $conditionItems.each(function() {
+                    let $conditionItem = $(this);
+                    let $typeValues = $conditionItem.find('.condition-types .condition-value');
+
+                    let typeFieldId = $typeValues.attr('field-id');
+                    let conditionType = $typeValues.attr('value');
+
+                    let contentValues = [];
+                    if ('TAGS' === conditionType) {
+                        let $tags = $conditionItem.find('.tags-container .chip-text');
+                        $tags.each(function() {
+                            let tag = $(this).text();
+                            contentValues.push(tag);
+                        });
+                    } else {
+                        let $contentValues = $conditionItem.find('.condition-content .condition-value');
+                        $contentValues.each(function() {
+                            let value = $(this).val() || $(this).attr('value');
+                            contentValues.push(value);
+                        });
+                    }
+
+                    let condition = {
+                        type: conditionType,
+                        values: contentValues,
+                        field_id: typeFieldId
+                    };
+
+                    let hasContain = false;
+                    for (let i in conditions) {
+                        if (conditions[i].type === condition.type &&
+                            conditions[i].field_id === condition.field_id) {
+                            hasContain = true;
+                            conditions[i].values = condition.values;
+                            break;
+                        }
+                    }
+                    !hasContain && conditions.push(condition);
+                });
+                return conditions;
+            }
         }
 
-        if (modelSelectAppId) {
-            appCustomerTagChanged();
+        return ConditionComponent;
+    })();
+
+    // #region Add modal 的處理全部寫在此閉包中
+    (function() {
+        const ICONS = {
+            LINE: 'fab fa-line fa-fw line-color',
+            FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+        };
+        let conditionTypes = {};
+
+        let allFields = {};
+        let allTags = [];
+        let inputNum = 0; // 計算訊息的數量
+        let deleteNum = 0;
+
+        let $composeAddModal = $('#composeAddModal');
+        let $composesAddDtPicker = $composeAddModal.find('#sendDatetimePicker');
+        let $composesAddDtInput = $composesAddDtPicker.find('input[name="sendDatetime"]');
+        let $appsDropdownMenu = $composeAddModal.find('#appsDropdown .dropdown-menu');
+        let conditionCmp = new ConditionComponent($composeAddModal);
+
+        $composeAddModal.on('show.bs.modal', resetAddModal);
+        $composeAddModal.on('change', '#appsDropdown .dropdown-item .form-check-input', updateAppsDropdownText);
+        $composeAddModal.on('click', '#saveAsDraftBtn', (ev) => insertSubmit(ev, true));
+        $composeAddModal.on('click', '#composeAddSubmitBtn', insertSubmit);
+        $composeAddModal.on('click', '#addComposeText', addComposeText);
+        $composeAddModal.on('click', '.input-container .remove-btn', removeInput);
+
+        if (!window.isMobileBrowser()) {
+            $composesAddDtPicker.datetimepicker(datetimePickerInitOpts);
+        } else {
+            $composesAddDtInput.attr('type', 'datetime-local');
+            $composesAddDtPicker.on('click', '.input-group-prepend', function() {
+                $composesAddDtInput.focus();
+            });
         }
-    });
+
+        function resetAddModal() {
+            conditionTypes = {};
+            allFields = {};
+            allTags.length = 0;
+
+            $appsDropdownMenu.empty();
+            for (let appId in apps) {
+                let app = apps[appId];
+                $appsDropdownMenu.append(
+                    '<div class="form-check dropdown-item">' +
+                        '<label class="form-check-label">' +
+                            '<input class="form-check-input mr-2" type="checkbox" app-id="' + appId + '" />' +
+                            (ICONS[app.type] ? '<i class="' + ICONS[app.type] + '"></i>' : '') +
+                            '<span>' + app.name + '</span>' +
+                        '</label>' +
+                    '</div>'
+                );
+
+                if (appsFields[appId]) {
+                    let _fields = appsFields[appId].fields;
+
+                    for (let fieldId in _fields) {
+                        let field = _fields[fieldId];
+                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                            continue;
+                        }
+
+                        allFields[fieldId] = field;
+                        conditionTypes[fieldId] = {
+                            type: 'CUSTOM_FIELD',
+                            text: field.text,
+                            field_id: fieldId
+                        };
+                    }
+                }
+
+                if (appsChatrooms[appId]) {
+                    let _chatrooms = appsChatrooms[appId].chatrooms;
+                    for (let chatroomId in _chatrooms) {
+                        let chatroom = _chatrooms[chatroomId];
+                        if (chatroom.platformGroupId) {
+                            continue;
+                        }
+
+                        let messagers = chatroom.messagers;
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            if ('CHATSHIER' === messager.type || !messager.tags) {
+                                continue;
+                            }
+                            allTags = allTags.concat(messager.tags);
+                        }
+                    }
+                }
+            }
+
+            conditionCmp.conditionTypes = conditionTypes;
+            conditionCmp.allFields = allFields;
+            conditionCmp.allTags = allTags;
+            conditionCmp.$conditionContainer.empty();
+
+            $composeAddModal.find('.error-msg').addClass('d-none');
+            $composeAddModal.find('.error-input').addClass('d-none');
+            $composeAddModal.find('.text-input').val('');
+            $composeAddModal.find('#condition').remove();
+            $composeAddModal.find('#send-now').prop('checked', true);
+            $composeAddModal.find('#checkbox_value').prop('checked', false);
+            $composeAddModal.find('#availableCount').empty().addClass('d-none');
+
+            let $inputWarpper = $composeAddModal.find('#inputWarpper');
+            $inputWarpper.find('.input-container').first().val('');
+            $inputWarpper.find('.input-container').not(':first').remove();
+
+            let composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
+            // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
+            let dateNowLater = Date.now() + (5 * 60 * 1000);
+            if (composesAddDtPickerData) {
+                composesAddDtPickerData.date(new Date(dateNowLater));
+            } else {
+                $composesAddDtInput.val(toDatetimeLocal(new Date(dateNowLater)));
+            }
+
+            inputNum = 1;
+            deleteNum = 0;
+            updateAppsDropdownText();
+        }
+
+        function updateAppsDropdownText() {
+            let $checkedInputs = $appsDropdownMenu.find('input:checked');
+            $appsDropdownMenu.parent().find('.dropdown-value').text('已選擇的機器人 (' + $checkedInputs.length + ')');
+
+            let appIds = [];
+            $checkedInputs.each((i) => appIds.push($($checkedInputs[i]).attr('app-id')));
+            conditionCmp.appIds = appIds;
+            conditionCmp.refreshAvailable();
+        }
+
+        function insertSubmit(ev, isSaveAsDraft) {
+            let isTextVaild = true;
+            let $textInputs = $composeAddModal.find('#inputWarpper .text-input');
+            $textInputs.each(function() {
+                isTextVaild &= !!$(this).val();
+            });
+
+            if (!isTextVaild) {
+                $.notify('請輸入群發的內容', { type: 'warning' });
+                return;
+            }
+
+            let isDraft = !!isSaveAsDraft;
+            let isSendNow = $('#send-now').prop('checked');
+            let isReserveSend = $('#send-sometime').prop('checked');
+            let conditions = conditionCmp.retrieveConditions();
+
+            let appIds = [];
+            let $checkedInputs = $appsDropdownMenu.find('input:checked');
+            $checkedInputs.each((i) => appIds.push($($checkedInputs[i]).attr('app-id')));
+
+            if (0 === appIds.length) {
+                $.notify('至少需選擇一個目標機器人', { type: 'warning' });
+                return;
+            }
+
+            let composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
+            let reserveTime = composesAddDtPickerData
+                ? composesAddDtPickerData.date().toDate().getTime()
+                : new Date($composesAddDtInput.val()).getTime();
+
+            if (isReserveSend && reserveTime < Date.now()) {
+                $.notify('群發時間必須大於現在時間', { type: 'warning' });
+                return;
+            }
+
+            let composes = [];
+            $textInputs.each(function() {
+                let compose = {
+                    type: 'text',
+                    text: $(this).val(),
+                    status: !isDraft,
+                    time: isSendNow ? Date.now() - 60000 : reserveTime,
+                    isImmediately: isSendNow,
+                    conditions: conditions
+                };
+                composes.push(compose);
+            });
+
+            $composeAddModal.find('#composeAddSubmitBtn').attr('disabled', true);
+
+            let insertedAppsComposes = {};
+            let nextRequest = function(i) {
+                if (i >= appIds.length) {
+                    return Promise.resolve();
+                }
+
+                let appId = appIds[i];
+                (!insertedAppsComposes[appId]) && (insertedAppsComposes[appId] = { composes: {} });
+                (!appsComposes[appId]) && (appsComposes[appId] = { composes: {} });
+                return api.appsComposes.insert(appId, userId, composes, true).then((resJsons) => {
+                    resJsons.forEach((resJson) => {
+                        let _appsComposes = resJson.data;
+                        let _composes = _appsComposes[appId].composes;
+                        Object.assign(insertedAppsComposes[appId].composes, _composes);
+                        Object.assign(appsComposes[appId].composes, _composes);
+                    });
+                }).then(() => {
+                    return nextRequest(i + 1);
+                });
+            };
+
+            return nextRequest(0).then(() => {
+                if (isDraft || isReserveSend) {
+                    return;
+                }
+
+                // 立即群發動作將資料包裝為 socket 資料
+                // 使用 socket 發送至所有用戶端
+                let socketBody = {
+                    appIds: appIds,
+                    composes: composes,
+                    conditions: conditions
+                };
+                return new Promise((resolve, reject) => {
+                    socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, socketBody, (err) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve();
+                    });
+                });
+            }).then(() => {
+                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
+                $composeAddModal.modal('hide');
+                $.notify('處理成功', { type: 'success' });
+                return refreshComposes(nowSelectAppId);
+            }).catch((err) => {
+                $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
+                $composeAddModal.modal('hide');
+
+                if (NO_PERMISSION_CODE === err.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                    return;
+                }
+
+                if (MUST_BE_LATER_THAN_NOW === err.code) {
+                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
+                    return;
+                }
+                $.notify('處理失敗', { type: 'danger' });
+            });
+        }
+
+        function addComposeText() {
+            inputNum++;
+            if (inputNum - deleteNum > 3) {
+                $('.error-msg').removeClass('d-none');
+                inputNum--;
+            } else {
+                let textAreaHtml = (
+                    '<div class="position-relative mt-3 input-container">' +
+                        '<textarea class="pl-2 compose-textarea text-input"></textarea>' +
+                        '<i class="position-absolute fas fa-times remove-btn"></i>' +
+                    '</div>'
+                );
+                $('#inputWarpper').append(textAreaHtml);
+            }
+        }
+
+        function removeInput() {
+            deleteNum++;
+            if (inputNum - deleteNum < 4) {
+                $('.error-msg').addClass('d-none');
+            };
+            $(this).parent().remove();
+        }
+    })();
+    // #endregion
+
+    // #region Edit modal 的處理全部寫在此閉包中
+    (function() {
+        let allFields = {};
+        let allTags = [];
+        let conditionTypes = {};
+
+        let appId;
+        let composeId;
+
+        let $composeEditModal = $('#composeEditModal');
+        let $composesEditDtPicker = $composeEditModal.find('#sendDatetimePicker');
+        let $composesEditDtInput = $composesEditDtPicker.find('input[name="sendDatetime"]');
+        let conditionCmp = new ConditionComponent($composeEditModal);
+
+        $composeEditModal.on('show.bs.modal', initEditCompose);
+        $composeEditModal.on('click', '#editSubmitBtn', updateCompose);
+
+        if (!window.isMobileBrowser()) {
+            $composesEditDtPicker.datetimepicker(datetimePickerInitOpts);
+        } else {
+            $composesEditDtInput.attr('type', 'datetime-local');
+            $composesEditDtPicker.on('click', '.input-group-prepend', function() {
+                $composesEditDtInput.focus();
+            });
+        }
+
+        /**
+         * @param {JQuery.Event} ev
+         */
+        function initEditCompose(ev) {
+            let $composeRow = $(ev.relatedTarget).parents('.compose-row');
+
+            appId = $composeRow.attr('app-id');
+            composeId = $composeRow.attr('compose-id');
+            let compose = appsComposes[appId].composes[composeId];
+
+            let composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
+            if (composesEditDtPickerData) {
+                composesEditDtPickerData.date(new Date(compose.time));
+            } else {
+                $composesEditDtInput.val(toDatetimeLocal(new Date(compose.time)));
+            }
+
+            $composeEditModal.find('.compose-textarea').val(compose.text);
+            $composeEditModal.find('.form-check-input[name="modal-draft"]').attr('checked', !compose.status);
+
+            conditionTypes = {};
+            allFields = {};
+            allTags.length = 0;
+
+            for (let appId in apps) {
+                if (appsFields[appId]) {
+                    let _fields = appsFields[appId].fields;
+
+                    for (let fieldId in _fields) {
+                        let field = _fields[fieldId];
+                        if (api.appsFields.enums.type.CUSTOM !== field.type) {
+                            continue;
+                        }
+
+                        allFields[fieldId] = field;
+                        conditionTypes[fieldId] = {
+                            type: 'CUSTOM_FIELD',
+                            text: field.text,
+                            field_id: fieldId
+                        };
+                    }
+                }
+
+                if (appsChatrooms[appId]) {
+                    let _chatrooms = appsChatrooms[appId].chatrooms;
+                    for (let chatroomId in _chatrooms) {
+                        let chatroom = _chatrooms[chatroomId];
+                        if (chatroom.platformGroupId) {
+                            continue;
+                        }
+
+                        let messagers = chatroom.messagers;
+                        for (let messagerId in messagers) {
+                            let messager = messagers[messagerId];
+                            if ('CHATSHIER' === messager.type || !messager.tags) {
+                                continue;
+                            }
+                            allTags = allTags.concat(messager.tags);
+                        }
+                    }
+                }
+            }
+
+            conditionCmp.appIds = [appId];
+            conditionCmp.conditionTypes = conditionTypes;
+            conditionCmp.allFields = allFields;
+            conditionCmp.allTags = allTags;
+            conditionCmp.$conditionContainer.empty();
+
+            let conditions = compose.conditions || [];
+            for (let i in conditions) {
+                let condition = conditions[i];
+                conditionCmp.addConditionItem(null, condition.type, condition.values, condition.field_id);
+            }
+
+            conditionCmp.refreshAvailable();
+        }
+
+        function updateCompose() {
+            let composeText = $composeEditModal.find('.compose-textarea').val();
+            if (!composeText) {
+                $.notify('請輸入群發的內容', { type: 'warning' });
+                return;
+            }
+
+            let isDraft = $composeEditModal.find('.form-check-input[name="modal-draft"]').attr('checked');
+            let composesEditDtPickerData = $composesEditDtPicker.data('DateTimePicker');
+            let reserveTime = composesEditDtPickerData
+                ? composesEditDtPickerData.date().toDate().getTime()
+                : new Date($composesEditDtInput.val()).getTime();
+
+            let conditions = conditionCmp.retrieveConditions();
+            let putCompose = {
+                status: !isDraft,
+                time: reserveTime,
+                text: composeText,
+                conditions: conditions
+            };
+
+            $composeEditModal.find('#editSubmitBtn').attr('disabled', true);
+            return api.appsComposes.update(appId, composeId, userId, putCompose).then((resJson) => {
+                $composeEditModal.find('#editSubmitBtn').removeAttr('disabled');
+                $composeEditModal.modal('hide');
+
+                let _appsComposes = resJson.data;
+                let _composes = _appsComposes[appId].composes;
+                Object.assign(appsComposes[appId].composes, _composes);
+
+                $.notify('更新成功', { type: 'success' });
+                return refreshComposes(nowSelectAppId);
+            }).catch((err) => {
+                $composeEditModal.find('#editSubmitBtn').removeAttr('disabled');
+                $composeEditModal.modal('hide');
+
+                if (NO_PERMISSION_CODE === err.code) {
+                    $.notify('無此權限', { type: 'danger' });
+                    return;
+                }
+
+                if (MUST_BE_LATER_THAN_NOW === err.code) {
+                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
+                    return;
+                }
+                $.notify('更新失敗', { type: 'danger' });
+            });
+        }
+    })();
+    // #endregion
 
     function appSourceChanged(ev) {
         nowSelectAppId = $(ev.target).attr('app-id');
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadComposes(nowSelectAppId, userId);
+        $appSelector.find('.dropdown-text').text(ev.target.text);
+        refreshComposes(nowSelectAppId);
     }
 
-    function appCustomerTagChanged() {
-        $customFields.empty();
-        if (!modelSelectAppId) {
-            modelSelectAppId = $(this).find(':selected').val();
-        }
-        return api.appsFields.findAll(userId).then((resJson) => {
-            appsFields = resJson.data;
-            let fields = resJson.data[modelSelectAppId].fields;
-            for (let fieldId in fields) {
-                let field = fields[fieldId];
-                if (field.isDeleted) {
-                    delete fields[fieldId];
-                    continue;
-                }
-                switch (field.alias) {
-                    case 'age':
-                        TagBtn('age', '年齡', field.setsType, 'custom-fields');
-                        break;
-                    case 'gender':
-                        TagBtn('gender', '性別', field.setsType, 'custom-fields');
-                        break;
-                    case '':
-                        TagBtn(fieldId, field.text, field.setsType, 'custom-fields');
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
-    }
-
-    function TagBtn(id, text, type, elementId) {
-        let div = $('<div>').attr('class', 'form-group col-sm-6');
-        let btn = $('<button>').attr('type', 'button')
-            .attr('rel', id)
-            .attr('class', 'btn btn-border')
-            .attr('name', text)
-            .attr('data-type', type)
-            .attr('id', 'field')
-            .text(text);
-        div.append(btn);
-        $('#' + elementId).append(div);
-    }
-
-    function loadComposes(appId, userId) {
+    function refreshComposes(appId) {
         // 先取得使用者所有的 AppId 清單更新至本地端
         $historyTableBody.empty();
         $draftTableBody.empty();
         $reservationTableBody.empty();
 
-        return api.appsComposes.findAll(appId, userId).then(function(resJson) {
-            if (!resJson.data[appId]) {
-                return;
-            }
+        if (!appsComposes[appId]) {
+            return;
+        }
 
-            Object.assign(appsComposes, resJson.data || {});
-            var composes = appsComposes[appId].composes;
+        let composes = appsComposes[appId].composes;
+        let composeIds = Object.keys(composes);
+        composeIds.sort((a, b) => new Date(composes[b].time) - new Date(composes[a].time));
 
-            for (var composeId in composes) {
-                var compose = composes[composeId];
-                if (compose.isDeleted) {
-                    continue;
-                }
-
-                var composeTime = new Date(compose.time).getTime();
-                var isDraft = !compose.status;
-                var isReservation = compose.status && composeTime > timeInMs;
-                var isHistory = composeTime <= timeInMs;
-
-                var tr =
-                    '<tr id="' + composeId + '" text="' + appId + '">' +
-                        '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
-                        '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                        appendFields(compose) +
-                        '<td>' +
-                            '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isHistory ? 'fa-share-square' : 'fa-edit') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
-                            (isHistory ? '' : '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>') +
-                        '</td>' +
-                    '</tr>';
-
-                if (isReservation) {
-                    $reservationTableBody.append(tr);
-                } else if (isHistory) {
-                    $historyTableBody.append(tr);
-                } else if (isDraft) {
-                    $draftTableBody.append(tr);
-                }
-            }
-        });
-    }
-
-    function appendFields(compose) {
-        let composeFields = {
-            'ageRange': {
-                'value': ''
-            },
-            'gender': {
-                'value': ''
-            }
-        };
-        let fieldsTd = '<td id="fields">';
-        let composeAgeRange = compose.ageRange || '';
-        let composeAgeString = '';
-        for (let i = 0; i < composeAgeRange.length; i++) {
-            if (i % 2) {
-                composeAgeString += '-' + composeAgeRange[i];
+        for (let i in composeIds) {
+            let composeId = composeIds[i];
+            let compose = composes[composeId];
+            if (compose.isDeleted) {
                 continue;
-            } else {
-                composeAgeString += composeAgeRange[i];
-                continue;
+            }
+
+            let composeTime = new Date(compose.time).getTime();
+            let isDraft = !compose.status;
+            let timeInMs = (Date.now() + 1000);
+            let isReservation = compose.status && composeTime > timeInMs;
+            let isHistory = composeTime <= timeInMs;
+
+            let $composeRow = $(
+                '<tr class="compose-row" app-id="' + appId + '" compose-id="' + composeId + '">' +
+                    '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
+                    '<td id="time">' + toLocalTimeString(compose.time) + '</td>' +
+                    '<td>' +
+                        (function generateConditionsCol(conditions) {
+                            if (0 === conditions.length) {
+                                return '無';
+                            }
+
+                            let typeText = {
+                                AGE_RANGE: '年齡範圍',
+                                GENDER: '性別',
+                                TAGS: '標籤'
+                            };
+
+                            return conditions.map((condition) => {
+                                let conditionText = typeText[condition.type] || '無';
+                                let conditionContent = condition.values.join(', ');
+                                if (condition.field_id) {
+                                    let field = appsFields[appId].fields[condition.field_id];
+                                    if (!field) {
+                                        return '';
+                                    }
+                                    conditionText = field ? field.text : '無此自定義條件';
+                                }
+
+                                return (
+                                    '<div class="condition-col">' +
+                                        conditionText + ': ' + conditionContent +
+                                    '<div>'
+                                );
+                            }).join('');
+                        })(compose.conditions || []) +
+                    '</td>' +
+                    '<td>' +
+                        '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas ' + (isReservation || isDraft ? 'fa-edit' : 'fa-share-square') + ' update" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
+                        (isReservation || isDraft ? '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove delete-btn"></button>' : '') +
+                    '</td>' +
+                '</tr>'
+            );
+
+            if (isDraft) {
+                $draftTableBody.append($composeRow);
+            } else if (isReservation) {
+                $reservationTableBody.append($composeRow);
+            } else if (isHistory) {
+                $historyTableBody.append($composeRow);
             }
         }
-        let composeGender;
-        switch (compose.gender) {
-            case 'MALE':
-                composeGender = '男';
-                break;
-            case 'FEMALE':
-                composeGender = '女';
-                break;
+    }
+
+    /**
+     * @param {any} options
+     */
+    function generateConditionContent(options) {
+        options = options || {};
+        let type = options.type;
+        let field = options.field;
+        let conditionValues = options.conditionValues || [];
+
+        switch (type) {
+            case 'AGE_RANGE':
+                let ageDown = conditionValues[0] || '10';
+                let ageUp = conditionValues[1] || '50';
+                return (
+                    '<div class="d-inline-block dropdown condition-content range range-down">' +
+                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                            '<span class="condition-value" value="' + ageDown + '">' + ageDown + ' 歲</span>' +
+                        '</button>' +
+                        '<div class="dropdown-menu condition-content-menu">' +
+                            (function() {
+                                let age = 10;
+                                let items = '';
+                                while (age <= 80) {
+                                    items += (
+                                        '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
+                                    );
+                                    age += 5;
+                                }
+                                return items;
+                            })() +
+                        '</div>' +
+                    '</div>' +
+                    '<span class="mx-1">~</span>' +
+                    '<div class="d-inline-block dropdown condition-content range range-up">' +
+                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                            '<span class="condition-value" value="' + ageUp + '">' + ageUp + ' 歲</span>' +
+                        '</button>' +
+                        '<div class="dropdown-menu condition-content-menu">' +
+                            (function() {
+                                let age = 15;
+                                let items = '';
+                                while (age <= 80) {
+                                    items += (
+                                        '<a class="dropdown-item" value="' + age + '">' + age + ' 歲</a>'
+                                    );
+                                    age += 5;
+                                }
+                                return items;
+                            })() +
+                        '</div>' +
+                    '</div>'
+                );
+            case 'GENDER':
+                let gender = conditionValues[0] ? conditionValues[0] : 'MALE';
+                let genderText = 'MALE' === gender ? '男' : '女';
+                return (
+                    '<div class="d-inline-block dropdown condition-content">' +
+                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                            '<span class="condition-value" value="' + gender + '">' + genderText + '</span>' +
+                        '</button>' +
+                        '<div class="dropdown-menu condition-content-menu">' +
+                            '<a class="dropdown-item" value="MALE">男</a>' +
+                            '<a class="dropdown-item" value="FEMALE">女</a>' +
+                        '</div>' +
+                    '</div>'
+                );
+            case 'TAGS':
+                return (
+                    '<div class="d-inline-block condition-content">' +
+                        '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
+                    '</div>'
+                );
             default:
-                composeGender = '';
+                if (field) {
+                    return fieldSetsToConditionInput(field);
+                }
+                return '';
         }
-        if (0 === Object.keys(compose.field_ids).length && 0 === compose.ageRange.length && '' === composeGender) {
-            fieldsTd += '<snap id="sendAll" data-title="無"></snap>';
-            return fieldsTd;
-        }
-        composeFields = Object.assign(composeFields, compose.field_ids) || composeFields;
-        composeFields['ageRange'].value = composeAgeString;
-        composeFields['gender'].value = composeGender;
-        for (var fieldId in composeFields) {
-            let composeTag = composeFields[fieldId];
-            if (!composeTag.value) {
-                continue;
-            }
-            fieldsTd += '<snap id="field" data-title="' + composeTag.value + '" data-type="' + fieldId + '">' + composeTag.value + '</snap>';
-        }
-        fieldsTd += '</td>';
-        return fieldsTd;
     }
 
-    function dataSearch(ev) {
+    /**
+     * @param {any} field
+     */
+    function fieldSetsToConditionInput(field) {
+        let SETS_TYPES = api.appsFields.enums.setsType;
+
+        switch (field.setsType) {
+            case SETS_TYPES.CHECKBOX:
+                return (
+                    '<div class="d-inline-block dropdown condition-content">' +
+                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                            '<span class="condition-value" value="true">是</span>' +
+                        '</button>' +
+                        '<div class="dropdown-menu condition-content-menu">' +
+                            '<a class="dropdown-item" value="true">是</a>' +
+                            '<a class="dropdown-item" value="false">否</a>' +
+                        '</div>' +
+                    '</div>'
+                );
+            case SETS_TYPES.NUMBER:
+                return (
+                    '<div class="d-inline-block condition-content range">' +
+                        '<input class="form-control condition-value" type="number" value="0" min="0" />' +
+                    '</div>' +
+                    '<span class="mx-1">~</span>' +
+                    '<div class="d-inline-block condition-content range">' +
+                        '<input class="form-control condition-value" type="number" value="1" min="1" />' +
+                    '</div>'
+                );
+            case SETS_TYPES.SELECT:
+            case SETS_TYPES.MULTI_SELECT:
+                return (
+                    '<div class="d-inline-block dropdown condition-content">' +
+                        '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                            '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
+                        '</button>' +
+                        '<div class="dropdown-menu condition-content-menu">' +
+                            (function() {
+                                return field.sets.map(function(set) {
+                                    if (!set) {
+                                        return '';
+                                    }
+                                    return (
+                                        '<a class="dropdown-item" value="' + set + '">' +
+                                            '<span>' + set + '</span>' +
+                                        '</a>'
+                                    );
+                                }).join('');
+                            })() +
+                        '</div>' +
+                    '</div>'
+                );
+            default:
+                return '';
+        }
+    }
+
+    function composesSearch(ev) {
         // debugger;
         let searchText = $(this).val().toLocaleLowerCase();
         let target = $('tbody > tr > [data-title*="' + searchText + '"]').parent();
@@ -530,31 +1249,23 @@
             $('tbody > tr > :not([data-title*="' + searchText + '"])').parent().removeAttr('style');
             return;
         }
-        var code = ev.keyCode || ev.which;
+        let code = ev.keyCode || ev.which;
         if (13 === code) {
             // 按下enter鍵
             if (0 === target.length) {
                 $('tbody > tr ').hide();
             }
-            $('.table>tbody > tr').hide();
+            $('.table > tbody > tr').hide();
             target.show();
         }
-    }
-
-    function ToLocalTimeString(millisecond) {
-        var date = new Date(millisecond);
-        var localDate = date.toLocaleDateString();
-        var localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        var localTimeString = localDate + localTime;
-        return localTimeString;
     }
 
     function showDialog(textContent) {
         return new Promise(function(resolve) {
             $('#textContent').text(textContent);
 
-            var isOK = false;
-            var $dialogModal = $('#dialog_modal');
+            let isOK = false;
+            let $dialogModal = $('#dialog_modal');
 
             $dialogModal.find('.btn-primary').on('click', function() {
                 isOK = true;
@@ -574,348 +1285,19 @@
         });
     }
 
-    function resetAddModal() {
-        $('.error-msg').hide();
-        $('.error-input').hide();
-        $('.text-input').val('');
-        $('#send-all').prop('checked', true);
-        $('#limit-user').addClass('d-none');
-        $('#condition').remove();
-        $('button[id="field"]').show();
-        $('#send-now').prop('checked', true);
-        $('#checkbox_value').prop('checked', false);
-
-        var $inputWarpper = $('#inputWarpper');
-        $inputWarpper.find('.input-container').first().val('');
-        $inputWarpper.find('.input-container').not(':first').remove();
-
-        var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
-        // 顯示新增視窗時，快速設定傳送時間預設為 5 分鐘後
-        var dateNowLater = Date.now() + (5 * 60 * 1000);
-        if (composesAddDtPickerData) {
-            composesAddDtPickerData.date(new Date(dateNowLater));
-        } else {
-            $composesAddDtInput.val(toDatetimeLocal(new Date(dateNowLater)));
-        }
-
-        inputNum = 1;
-        deleteNum = 0;
-        ageRange = [];
-        gender = '';
-        fieldIds = {};
-
-        appCustomerTagChanged();
-    }
-
-    function appendInput() {
-        let text = $(this).text();
-        let rel = $(this).attr('rel');
-        let dataType = $(this).attr('data-type');
-        let $fieldDiv = $(this).parent();
-        let $conditionDiv = $(this).parent().find('div');
-
-        let conditionId = $conditionDiv.attr('id');
-
-        $(this).hide();
-        if (!conditionId) {
-            $fieldDiv.append(
-                '<div id="condition">' +
-                    '<input type="text" class="form-gruop" rel="' + rel + '" data-type="' + dataType + '" placeholder="' + text + '" id="condition-input">' +
-                    '<button type="button" class="btn btn-light btn-border" id="condition-check-btn">' +
-                        '<i class="fa fa-check"></i>' +
-                    '</button>' +
-                    '<button type="button" class="btn btn-light btn-border" id="condition-close-btn">' +
-                        '<i class="fa fa-times"></i>' +
-                    '</button>' +
-                '</div>'
-            );
-        }
-        $conditionDiv.show();
-    }
-
-    function insertSubmit() {
-        var $inputWarpper = $('#inputWarpper');
-        var $errorMsgElem = $composeAddModal.find('.error-input');
-        var appId = $appSelector.find('option:selected').val();
-        var isDraft = $composeAddModal.find('input[name="modal-draft"]').prop('checked');
-
-        var time;
-        var composesAddDtPickerData = $composesAddDtPicker.data('DateTimePicker');
-        if (composesAddDtPickerData) {
-            time = composesAddDtPickerData.date().toDate().getTime();
-        } else {
-            time = new Date($composesAddDtInput.val()).getTime();
-        }
-
-        var conditionInputElement = $composeAddModal.find('input#condition-input');
-        fieldsObjCompose(conditionInputElement);
-        $errorMsgElem.empty().hide();
-
-        var isTextVaild = true;
-        $('.text-input').each(function() {
-            isTextVaild &= !!$(this).val();
-        });
-
-        if (!isTextVaild) {
-            $errorMsgElem.text('請輸入群發的內容').show();
-            return;
-        }
-
-        let options = {
-            time: time,
-            isDraft: isDraft,
-            ageRange: ageRange,
-            gender: gender,
-            field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
-        };
-
-        let messages = [];
-        if ($('#send-now').prop('checked')) {
-            $inputWarpper.find('.input-container textarea').each(function() {
-                let compose = {
-                    type: 'text',
-                    text: $(this).val(),
-                    status: 1,
-                    time: Date.now() - 60000,
-                    ageRange: ageRange,
-                    gender: gender,
-                    field_ids: 0 === Object.keys(fieldIds).length ? {} : fieldIds
-                };
-                messages.push(compose);
-            });
-
-            // 如果是屬於草稿則不做立即發送動作
-            // 將群發訊息存入資料庫，等待使用者再行編輯
-            if (isDraft) {
-                return insert(appId, userId, messages, options).then(() => {
-                    $composeAddModal.modal('hide');
-                    $('.form-control').val(apps[appId].name);
-                    $('.text-input').val('');
-                    $composesAddDtInput.val('');
-
-                    inputNum = 1;
-                    $.notify('新增成功', { type: 'success' });
-                    $appDropdown.find('.dropdown-text').text(apps[appId].name);
-                    $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
-                    return loadComposes(appId, userId);
-                });
-            }
-
-            // 立即群發動作將資料包裝為 socket 資料
-            // 使用 socket 發送至所有用戶端
-            return new Promise((resolve) => {
-                var emitData = {
-                    userId: userId,
-                    appId: appId,
-                    composes: messages
-                };
-
-                socket.emit(SOCKET_EVENTS.PUSH_COMPOSES_TO_ALL, emitData, (json) => {
-                    $composeAddModal.modal('hide');
-                    $composeAddModal.find('button.btn-update-submit').removeAttr('disabled');
-                    if (1 === json.status) {
-                        $('.form-control').val(apps[appId].name);
-                        $('.text-input').val('');
-                        $composesAddDtInput.val('');
-                        inputNum = 1;
-
-                        $.notify('發送成功', { type: 'success' });
-                        $appDropdown.find('.dropdown-text').text(apps[appId].name);
-                    } else {
-                        let errText = '';
-                        if (NO_PERMISSION_CODE === json.code) {
-                            errText = '無此權限';
-                        }
-                        if (DID_NOT_HAVE_TAGS === json.code) {
-                            errText = '無符合的客戶條件';
-                        } else {
-                            errText = '失敗';
-                        }
-                        $.notify(errText, { type: 'danger' });
-                    }
-                    resolve();
-                });
-            }).then(() => {
-                return loadComposes(appId, userId);
-            });
-        } else if ($('#send-sometime').prop('checked')) {
-            if (time < Date.now()) {
-                $errorMsgElem.text('群發時間必須大於現在時間').show();
-                return;
-            };
-
-            $inputWarpper.find('.input-container textarea').each(function() {
-                let message = {
-                    type: 'text',
-                    text: $(this).val()
-                };
-                messages.push(message);
-            });
-
-            return insert(appId, userId, messages, options).then((responses) => {
-                responses.forEach((response) => {
-                    if (0 === response.stats) {
-                        return;
-                    };
-                    let _appsComposes = response.data || {};
-                    let appId = Object.keys(_appsComposes)[0];
-                    let composes = _appsComposes[appId].composes;
-                    let composeId = Object.keys(composes)[0];
-                    let compose = composes[composeId];
-
-                    var trGrop =
-                        '<tr id="' + composeId + '" text="' + appId + '">' +
-                            '<td id="text" data-title="' + compose.text.toLowerCase() + '">' + compose.text + '</td>' +
-                            '<td id="time">' + ToLocalTimeString(compose.time) + '</td>' +
-                            appendFields(compose) +
-                            '<td>' +
-                                '<button type="button" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit insert" id="edit-btn" data-toggle="modal" data-target="#composeEditModal" aria-hidden="true"></button>' +
-                                '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
-                            '</td>' +
-                        '</tr>';
-                    if (!compose.status) {
-                        $draftTableBody.append(trGrop);
-                    } else if (compose.status && new Date(compose.time) > timeInMs) {
-                        $reservationTableBody.append(trGrop);
-                    } else if (compose.status && new Date(compose.time) <= timeInMs) {
-                        $historyTableBody.append(trGrop);
-                    }
-                });
-                $composeAddModal.modal('hide');
-                $.notify('新增成功', { type: 'success' });
-            }).then(() => {
-                return loadComposes(appId, userId);
-            });
-        }
-    }
-
-    function fieldsObjCompose(conditionInputElement) {
-        conditionInputElement.each(function () {
-            var conditionVal = $(this).val();
-            var conditionRel = $(this).attr('rel');
-            var conditionDataType = $(this).attr('data-type');
-            if (!conditionVal) {
-                return;
-            }
-
-            switch (conditionDataType) {
-                case fieldEnums.setsType.NUMBER:
-                    let ageRange = conditionVal.split(/[-~]/);
-                    for (let i in ageRange) {
-                        ageRange[i] = parseInt(ageRange[i]);
-                    }
-                    conditionVal = ageRange;
-                    break;
-                default:
-                    break;
-            }
-
-            switch (conditionRel) {
-                case 'age':
-                    ageRange = conditionVal;
-                    break;
-                case 'gender':
-                    switch (conditionVal) {
-                        case '男':
-                            gender = 'MALE';
-                            break;
-                        case '女':
-                            gender = 'FEMALE';
-                            break;
-                        default:
-                            gender = conditionVal.toUpperCase();
-                    }
-                    break;
-                default:
-                    fieldIds[conditionRel] = {
-                        value: conditionVal
-                    };
-            }
-        });
-    }
-
-    function fieldsCheck(btnName, value) {
-        switch (btnName) {
-            case '年齡':
-                if (value && !value.includes('~')) {
-                    $.notify('請輸入兩數字區間 e.g.10~20', { type: 'warning' });
-                    return false;
-                }
-                let ageRange = value.split('~');
-                for (let i in ageRange) {
-                    ageRange[i] = parseInt(ageRange[i]);
-                    if (ageRange[i] < 0 && ageRange[i] > 130) {
-                        $.notify('請輸入 0 到 130 之間的數字區間', { type: 'warning' });
-                        return false;
-                    }
-                }
-                return true;
-            case '性別':
-                if (value && ('男' === value || '女' === value ||
-                'MALE' === value.toUpperCase() || 'FEMALE' === value.toUpperCase()
-                )) {
-                    return true;
-                }
-
-                $.notify('請輸入 男/女 或 male/female', { type: 'warning' });
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    function insert(appId, userId, messages, options) {
-        options = options || {};
-
-        let composes = messages.map(function(message) {
-            let compose = {
-                type: message.type,
-                text: message.text,
-                status: options.isDraft ? 0 : 1,
-                time: options.time,
-                ageRange: options.ageRange,
-                gender: options.gender,
-                field_ids: options.field_ids
-            };
-            return compose;
-        });
-
-        return api.appsComposes.insert(appId, userId, composes, true).catch((resJson) => {
-            $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
-
-            if (undefined === resJson.status) {
-                $.notify('失敗', { type: 'danger' });
-                $composeAddModal.modal('hide');
-            }
-
-            if (NO_PERMISSION_CODE === resJson.code) {
-                $.notify('無此權限', { type: 'danger' });
-                $composeAddModal.modal('hide');
-            }
-
-            if (MUST_BE_LATER_THAN_NOW === resJson.code) {
-                $.notify('群發時間必須大於現在時間', { type: 'danger' });
-            }
-        });
-    }
-
-    function remove() {
-        var userId;
-        try {
-            var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
-            userId = payload.uid;
-        } catch (ex) {
-            userId = '';
-        }
-        var targetRow = $(event.target).parent().parent();
-        var appId = targetRow.attr('text');
-        var composeId = targetRow.attr('id');
+    function removeCompose(ev) {
         return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 return;
             }
+
+            let $composeRow = $(ev.target).parents('.compose-row');
+            let appId = $composeRow.attr('app-id');
+            let composeId = $composeRow.attr('compose-id');
+
             return api.appsComposes.remove(appId, composeId, userId).then(function(resJson) {
-                $('#' + composeId).remove();
+                delete appsComposes[appId].composes[composeId];
+                $composeRow.remove();
                 $.notify('刪除成功！', { type: 'success' });
             }).catch((resJson) => {
                 if (NO_PERMISSION_CODE === resJson.code) {
@@ -929,21 +1311,28 @@
                 }
 
                 $.notify('失敗', { type: 'danger' });
-                return;
             });
         });
+    }
+
+    function toLocalTimeString(millisecond) {
+        let date = new Date(millisecond);
+        let localDate = date.toLocaleDateString();
+        let localTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let localTimeString = localDate + ' ' + localTime;
+        return localTimeString;
     }
 
     /**
      * @param {Date} date
      */
     function toDatetimeLocal(date) {
-        var YYYY = date.getFullYear();
-        var MM = ten(date.getMonth() + 1);
-        var DD = ten(date.getDate());
-        var hh = ten(date.getHours());
-        var mm = ten(date.getMinutes());
-        var ss = ten(date.getSeconds());
+        let YYYY = date.getFullYear();
+        let MM = ten(date.getMonth() + 1);
+        let DD = ten(date.getDate());
+        let hh = ten(date.getHours());
+        let mm = ten(date.getMinutes());
+        let ss = ten(date.getSeconds());
 
         function ten(i) {
             return (i < 10 ? '0' : '') + i;

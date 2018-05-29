@@ -57,23 +57,20 @@
         });
     });
 
-    // Todo: 功能尚未完成，關閉新增，編輯 apps 功能
-    $ctrlPanel.find('#appsSlide').remove();
-    $ctrlPanel.find('.swiper-pagination').remove();
-
     var isCtrlPanelPutAway = 'true' === window.localStorage.getItem('isCtrlPanelPutAway');
     var Swiper = window.Swiper;
     var ctrlPanelSwiper = new Swiper('#ctrlPanel.swiper-container', {
         loop: false,
         initialSlide: 1,
         threshold: 10, // 撥動超過 10px 才進行 slide 動作
-        pagination: {
-            el: '#ctrlPanel .swiper-pagination'
-        },
         on: {
             init: function() {
                 // 如果從 localStorage 得知目前 Control Panel 是處於收起狀態，則一載入頁面後就將之收起
-                isCtrlPanelPutAway && window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+                if (isCtrlPanelPutAway) {
+                    window.innerWidth >= BREAKPOINT_SM && switchCtrlPanel();
+                    $scrollTop.addClass('d-none');
+                    $scrollBottom.addClass('d-none');
+                }
                 onScrollCtrlPanel({ target: $ctrlPanel.find('.swiper-slide.swiper-slide-active').get(0) });
             }
         }
@@ -157,6 +154,11 @@
         isCtrlPanelPutAway = $ctrlPanel.hasClass('put-away');
         window.localStorage.setItem('isCtrlPanelPutAway', isCtrlPanelPutAway);
 
+        if (isCtrlPanelPutAway) {
+            $scrollTop.addClass('d-none');
+            $scrollBottom.addClass('d-none');
+        }
+
         return new Promise(function(resolve) {
             window.setTimeout(resolve, PUT_ANINATE_DRATION + 100);
         }).then(function() {
@@ -167,6 +169,11 @@
     }
 
     function onScrollCtrlPanel(ev) {
+        if (!(ev && ev.target)) {
+            $scrollBottom.addClass('d-none');
+            return;
+        }
+
         var maxScrollHeight = ev.target.scrollHeight - ev.target.clientHeight;
         if (ev.target.scrollTop >= maxScrollHeight * 0.75) {
             $scrollBottom.addClass('d-none');

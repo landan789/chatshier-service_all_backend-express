@@ -19,16 +19,10 @@ module.exports = (function() {
 
     const defaultFields = [
         {
-            text: 'Name',
-            alias: 'name',
-            type: FieldsTypes.SYSTEM,
-            sets: [''],
-            setsType: SetsTypes.TEXT
-        }, {
             text: 'Age',
             alias: 'age',
             type: FieldsTypes.DEFAULT,
-            sets: [0],
+            sets: [],
             setsType: SetsTypes.NUMBER
         }, {
             text: 'Gender',
@@ -40,57 +34,22 @@ module.exports = (function() {
             text: 'Email',
             alias: 'email',
             type: FieldsTypes.DEFAULT,
-            sets: [''],
+            sets: [],
             setsType: SetsTypes.TEXT
         }, {
             text: 'Phone',
             alias: 'phone',
             type: FieldsTypes.DEFAULT,
-            sets: [''],
+            sets: [],
             setsType: SetsTypes.TEXT
-        }, {
-            text: 'Assigned',
-            alias: 'assigned',
-            type: FieldsTypes.DEFAULT,
-            sets: [''],
-            setsType: SetsTypes.MULTI_SELECT
-        }, {
-            text: 'First chat date',
-            alias: 'createdTime',
-            type: FieldsTypes.SYSTEM,
-            sets: [0],
-            setsType: SetsTypes.DATE
-        }, {
-            text: 'Recent chat date',
-            alias: 'lastTime',
-            type: FieldsTypes.SYSTEM,
-            sets: [0],
-            setsType: SetsTypes.DATE
-        }, {
-            text: 'Chat time(s)',
-            alias: 'chatCount',
-            type: FieldsTypes.SYSTEM,
-            sets: [0],
-            setsType: SetsTypes.NUMBER
         }, {
             text: 'Remark',
             alias: 'remark',
             type: FieldsTypes.DEFAULT,
-            sets: [''],
+            sets: [],
             setsType: SetsTypes.TEXT
         }
     ];
-
-    const docUnwind = {
-        $unwind: '$fields' // 只針對 document 處理
-    };
-
-    const docOutput = {
-        // 篩選輸出項目
-        $project: {
-            fields: 1
-        }
-    };
 
     class AppsFieldsModel extends ModelCore {
         constructor() {
@@ -105,7 +64,7 @@ module.exports = (function() {
          * 根據輸入的 appId 陣列清單取得所有的客戶分類條件
          *
          * @param {string|string[]} appIds
-         * @param {any|null} fieldId
+         * @param {string} [fieldId]
          * @param {(appsField: any|null) => any} [callback]
          */
         find(appIds, fieldId, callback) {
@@ -126,11 +85,16 @@ module.exports = (function() {
             }
 
             let aggregations = [
-                docUnwind,
                 {
+                    $unwind: '$fields' // 只針對 document 處理
+                }, {
                     $match: query
-                },
-                docOutput
+                }, {
+                    // 篩選輸出項目
+                    $project: {
+                        fields: 1
+                    }
+                }
             ];
             return this.AppsModel.aggregate(aggregations).then((results) => {
                 let appsFields = {};
@@ -272,11 +236,16 @@ module.exports = (function() {
 
             return this.AppsModel.update(query, updateOper).then(() => {
                 let aggregations = [
-                    docUnwind,
                     {
+                        $unwind: '$fields' // 只針對 document 處理
+                    }, {
                         $match: query
-                    },
-                    docOutput
+                    }, {
+                        // 篩選輸出項目
+                        $project: {
+                            fields: 1
+                        }
+                    }
                 ];
 
                 return this.AppsModel.aggregate(aggregations).then((results) => {

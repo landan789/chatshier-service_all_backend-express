@@ -135,19 +135,19 @@ module.exports = (function() {
             ];
 
             return this.AppsModel.aggregate(aggregations).then((results) => {
-                let appsAutoreplies = {};
+                let autoreplies = {};
                 if (0 === results.length) {
-                    return appsAutoreplies;
+                    return autoreplies;
                 }
 
-                appsAutoreplies = results.reduce((output, app) => {
+                autoreplies = results.reduce((output, app) => {
                     Object.assign(output, this.toObject(app.autoreplies));
                     return output;
                 }, {});
-                return appsAutoreplies;
-            }).then((appsAutoreplies) => {
-                ('function' === typeof callback) && callback(appsAutoreplies);
-                return appsAutoreplies;
+                return autoreplies;
+            }).then((autoreplies) => {
+                ('function' === typeof callback) && callback(autoreplies);
+                return autoreplies;
             }).catch(() => {
                 ('function' === typeof callback) && callback(null);
                 return null;
@@ -199,12 +199,12 @@ module.exports = (function() {
                 'autoreplies._id': autoreplyId
             };
 
-            let operate = {
-                $set: {
-                    'autoreplies.$': putAutoreply
-                }
-            };
-            return this.AppsModel.findOneAndUpdate(query, operate).then(() => {
+            let updateOper = { $set: {} };
+            for (let prop in putAutoreply) {
+                updateOper.$set['autoreplies.$.' + prop] = putAutoreply[prop];
+            }
+
+            return this.AppsModel.findOneAndUpdate(query, updateOper).then(() => {
                 return this.find(appId, autoreplyId);
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);

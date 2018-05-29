@@ -10,7 +10,10 @@ Released: Not Ready
  * created: add link of line developers on add modal
  * created: add scroll button for scroll to top or bottom
  * created: user can reset password now
+ * created: tags feature
  * changed: remove manually add facebook fan page
+ * updated: update the compose filter logic
+ * updated: add periods setting for autoreply
 
 == Bug Fixes ==
  * Fixed: signin form not auto complete email

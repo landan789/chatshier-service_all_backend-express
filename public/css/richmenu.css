@@ -48,6 +48,9 @@
 
 .show-richmenu-form {
     position: relative;
+    background-image: url("../image/upload.png");
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .image-ghost {
@@ -107,6 +110,7 @@ tr:nth-child(even) {
 .box {
     border:1px solid;
     float: left;
+    font-size: .5rem;
 }
 
 .box:hover {

@@ -1,7 +1,7 @@
 .tabs-container {
     position: relative;
     height: 100%;
-    max-height: calc(100% - 50px);
+    max-height: calc(100% - 1.5rem);
     font-size: .85rem; }
     .tabs-container .prof-wid {
         overflow: auto;
@@ -20,7 +20,7 @@
 }
 
 .card > .card-header {
-    color: #fff;
+    color: white;
     background-color: #33ccff;
     border-color: #33ccff;
 }
@@ -35,25 +35,12 @@
         border-top-left-radius: .5rem;
         border-top-right-radius: .5rem; }
 
-.field-content {
-    display: inherit;
-    margin: .5rem auto;
-    padding: .5rem;
-    border: 1px solid #ddd;
-    border-radius: .5rem; }
+@media (min-width: 992px) {
+.field-content.col-lg-6 {
+    flex: 0 0 calc(50% - 1rem);
+    max-width: calc(50% - 1rem); }}
     .field-content .field-drag-icon i {
         color: #c0c0c0; }
-
-/* .chsr.fields .field-name {
-    width: 22.5%; }
-.chsr.fields .field-type {
-    width: 17.5%; }
-.chsr.fields .field-sets {
-    width: 30%; }
-.chsr.fields .field-delete {
-    width: 15%; }
-.chsr.fields .field-drag-icon {
-    width: 10%; } */
 
 .long-token {
     max-width: 600px;

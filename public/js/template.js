@@ -29,6 +29,7 @@
     $('.template-view').addClass('d-none');
     $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
     $(document).on('click', '.image-upload', clickImageUpload);
+    $(document).on('click', '#image-upload', uploadImageFromButton);
     $(document).on('change', '.image-ghost', uploadImage);
     $(document).on('click', '#modal-save', saveTemplate);
     $(document).on('click', '#edit-btn', editTemplate);
@@ -227,6 +228,7 @@
         let templateId = $('#template-id').text();
         let document = 'template';
         if (!altText) {
+            $('#edit-modal-save').removeAttr('disabled');
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -295,7 +297,12 @@
     }
 
     function clickImageUpload() {
-        let imageGhost = $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
+        $(this).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
+    }
+
+    function uploadImageFromButton() {
+        let name = $(this).attr('id');
+        $(`.carousel-item.template-view.active .${name}`).parents('.line-thumbnailImageUrl').find('.image-ghost').click();
     }
 
     function uploadImage() {
@@ -312,6 +319,8 @@
             var fileReader = new FileReader();
             var config = window.chatshier.config;
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
+                $('#modal-save').removeAttr('disabled');
+                $('#edit-modal-save').removeAttr('disabled');
                 $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
                 return;
             }
@@ -347,7 +356,8 @@
         keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
         if (!keyword || !type) {
-            $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
+            $('#modal-save').removeAttr('disabled');
+            return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         } else {
             let template = createTemplate(type);
             if (template) {
@@ -383,6 +393,7 @@
     function createTemplate(type) {
         let altText = $('#template-altText').val();
         if (!altText) {
+            $('#modal-save').removeAttr('disabled');
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -408,6 +419,8 @@
         let container = $('.template-view[rel="confirm"] .rounded-border');
         let text = container.find('.line-text').val();
         if (!text) {
+            $('#modal-save').removeAttr('disabled');
+            $('#edit-modal-save').removeAttr('disabled');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -428,6 +441,8 @@
         let text = container.find('.line-text').val();
         let actions = getAction(container);
         if (!text) {
+            $('#modal-save').removeAttr('disabled');
+            $('#edit-modal-save').removeAttr('disabled');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         } else {

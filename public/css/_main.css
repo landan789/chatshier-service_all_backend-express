@@ -6,6 +6,14 @@ body, html {
     overflow: hidden;
 }
 
+.line-color {
+    color: #43b901;
+}
+
+.fb-messsenger-color {
+    color: #407fff
+}
+
 /* disable input 時間元素時一併隱藏內建按鈕 */
 input[type="datetime-local"][disabled]::-webkit-inner-spin-button,
 input[type="datetime-local"][disabled]::-webkit-clear-button,
@@ -26,12 +34,17 @@ button:focus {
     outline: none !important;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 /* 自定義 font awesome class */
 .fa-1p5x {
     font-size: 1.5em;
 }
 
-.root .animated {
+.root .animated,
+.modal .animated {
     animation-duration: 300ms;
 }
 
@@ -44,6 +57,8 @@ button:focus {
     transition: max-width 200ms; }
     .page-wrapper.put-away  {
         max-width: calc(100% - 4rem); }
+    .page-wrapper > div:first-of-type  {
+        padding-top: 50px; }
 
 @media (max-width: 576px) {
     .page-wrapper {
@@ -75,6 +90,15 @@ button:focus {
 /*導覽列*/
 .chsr.toolbar {
     height: 50px;
+}
+
+.chsr .fa-search {
+    color: #9c9c9c
+}
+
+.search .fa-search {
+    position: absolute;
+    left: .7rem;
 }
 
 .chsr.navbar {
@@ -137,7 +161,6 @@ button:focus {
         font-family: 'HelveticaNeue', 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 13px;
         color: #555860;
-        background: white url("http://cssdeck.com/uploads/media/items/5/5JuDgOa.png") 8px 6px no-repeat;
         border-width: 1px;
         border-style: solid;
         border-color: #a8acbc #babdcc #c0c3d2;

@@ -27,6 +27,12 @@ module.exports = (function() {
         'endedTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
+        'timezoneOffset': {type: Number, default: 0},
+        'periods': [{
+            'days': {type: Array, default: []},
+            'startedTime': {type: String, default: '00:00'},
+            'endedTime': {type: String, default: '00:00'}
+        }],
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
@@ -56,7 +62,8 @@ module.exports = (function() {
             'chatCount': {type: Number, default: 0},
             'unRead': {type: Number, default: 0},
             'remark': {type: String, default: ''},
-            'assigned_ids': {type: [{type: String}], default: []}
+            'assigned_ids': {type: [{type: String}], default: []},
+            'tags': {type: [{type: String}], default: []}
         }],
         'messages': [{
             'from': {type: String, default: 'SYSTEM'},
@@ -89,10 +96,12 @@ module.exports = (function() {
         'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'ageRange': {type: Array},
+        'conditions': [{
+            'type': {type: String, default: ''},
+            'values': {type: Array, default: []},
+            'field_id': {type: String, default: ''}
+        }],
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
-        'gender': {type: String, default: ''},
-        'field_ids': {type: Object, default: {}},
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });
 

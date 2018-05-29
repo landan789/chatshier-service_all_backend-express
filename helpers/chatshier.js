@@ -55,15 +55,48 @@ module.exports = (function() {
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
                     let timeNow = Date.now();
-                    for (let key in _autoreplies) {
-                        let endedTime = _autoreplies[key].endedTime;
-                        let startedTime = _autoreplies[key].startedTime;
-                        if (startedTime <= timeNow && timeNow < endedTime) {
-                            continue;
+
+                    for (let autoreplyId in _autoreplies) {
+                        let autoreply = _autoreplies[autoreplyId];
+                        let endedTime = new Date(autoreply.endedTime).getTime();
+                        let startedTime = new Date(autoreply.startedTime).getTime();
+
+                        if (startedTime <= timeNow && timeNow <= endedTime) {
+                            if (autoreply.periods && autoreply.periods.length > 0) {
+                                let timezoneOffset = autoreply.timezoneOffset ? autoreply.timezoneOffset : 0;
+                                let localeNow = timeNow - (timezoneOffset * 60 * 1000);
+                                let localeDate = new Date(localeNow);
+                                let localeDay = localeDate.getDay();
+
+                                let timeStrToTime = (timeStr) => {
+                                    let datetime = new Date(localeNow);
+                                    let timeStrSplits = timeStr.split(':');
+                                    datetime.setHours(
+                                        parseInt(timeStrSplits[0], 10),
+                                        parseInt(timeStrSplits[1], 10),
+                                        0, 0
+                                    );
+                                    return datetime.getTime();
+                                };
+
+                                for (let i in autoreply.periods) {
+                                    let period = autoreply.periods[i];
+                                    if (period.days.indexOf(localeDay) >= 0) {
+                                        let startedTime = timeStrToTime(period.startedTime);
+                                        let endedTime = timeStrToTime(period.endedTime);
+                                        (startedTime > endedTime) && (endedTime += 24 * 60 * 60 * 1000);
+                                        if (startedTime <= localeNow && localeNow <= endedTime) {
+                                            autoreplies[autoreplyId] = autoreply;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                autoreplies[autoreplyId] = autoreply;
+                            }
                         }
-                        delete _autoreplies[key];
+                        delete _autoreplies[autoreplyId];
                     }
-                    autoreplies = Object.assign(autoreplies, _autoreplies);
                     return autoreplies;
                 });
             })).then(() => {

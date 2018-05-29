@@ -76,47 +76,63 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
                 <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
-                            <div class="select-container">
-                                <select class="form-control" id="app-select"></select>
-                            </div>
+                    <div class="form-group">
+                        <label for="app-select" class="col-form-label font-weight-bold">目標機器人:</label>
+                        <div class="select-container">
+                            <select class="form-control" id="app-select"></select>
                         </div>
-                        <div class="form-group">
-                            <label for="modal-task-name" class="col-form-label font-weight-bold">標題:</label>
-                            <div class="input-container">
-                                <input class="form-control" type="text" id="modal-task-name" placeholder="請輸入標題" />
-                            </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-task-name" class="col-form-label font-weight-bold">標題:</label>
+                        <div class="input-container">
+                            <input class="form-control" type="text" id="modal-task-name" placeholder="請輸入標題" />
                         </div>
-                        <div class="form-group">
-                            <label for="startDatetime" class="col-form-label font-weight-bold">開始時間:</label>
-                            <div class="my-2 input-group date" id="startDatetimePicker">
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="far fa-clock fa-fw"></i>
+                            <span>設定啟用期間</span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="form-group animated fadeIn" id="dateSelectGroup">
+                                <label class="col-form-label font-weight-bold">開始日期:</label>
+                                <div class="input-group date" id="startDatetimePicker">
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
                                     </span>
-                                </span>
-                                <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始時間" />
+                                    <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始日期" />
+                                </div>
+        
+                                <label class="col-form-label font-weight-bold">結束日期:</label>
+                                <div class="input-group date" id="endDatetimePicker">
+                                    <span class="input-group-addon input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </span>
+                                    </span>
+                                    <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束日期" />
+                                </div>
                             </div>
 
-                            <label for="endDatetime" class="col-form-label font-weight-bold">結束時間:</label>
-                            <div class="my-2 input-group date" id="endDatetimePicker">
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
-                                    </span>
-                                </span>
-                                <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束時間" />
-                            </div>
+                            <div class="period-container" id="periodContainer"></div>
+                            <button type="button" class="btn btn-light period-add-btn" id="periodAddBtn">
+                                <i class="fas fa-plus"></i>
+                                <span>新增時段</span>
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label for="enter-text" class="col-form-label font-weight-bold">內容:</label>
-                            <div id="text" class="textarea-container">
-                                <textarea class="form-control" id="enter-text" placeholder="請輸入內容"></textarea>
-                            </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="enter-text" class="col-form-label font-weight-bold">內容:</label>
+                        <div id="text" class="textarea-container">
+                            <textarea class="form-control" id="enter-text" placeholder="請輸入內容" rows="3"></textarea>
                         </div>
-                    </form>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -137,40 +153,55 @@
                 </div>
                 <div class="modal-body">
                     <form>
-                        <span class="d-none" id="edit-appid"></span>
-                        <span class="d-none" id="edit-autoreplyid"></span>
-
                         <div class="form-group">
                             <label for="edit-taskTitle" class="col-form-label font-weight-bold">標題:</label>
                             <div class="input-container">
                                 <input class="form-control" type="text" id="edit-taskTitle">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="edit-taskStart" class="col-form-label font-weight-bold">開始時間:</label>
-                            <div class="my-2 input-group date" id="startDatetimePicker">
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
-                                    </span>
-                                </span>
-                                <input type="text" class="form-control" name="startDatetime" id="edit-taskStart" placeholder="請選擇開始時間" />
-                            </div>
 
-                            <label for="edit-taskEnd" class="col-form-label font-weight-bold">結束時間:</label>
-                            <div class="my-2 input-group date" id="endDatetimePicker">
-                                <span class="input-group-addon input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="far fa-calendar-alt"></i>
-                                    </span>
-                                </span>
-                                <input type="text" class="form-control" name="endDatetime" id="edit-taskEnd" placeholder="請選擇結束時間" />
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="far fa-clock fa-fw"></i>
+                                <span>設定啟用期間</span>
+                            </div>
+    
+                            <div class="card-body">
+                                <div class="form-group animated fadeIn" id="dateSelectGroup">
+                                    <label class="col-form-label font-weight-bold">開始日期:</label>
+                                    <div class="input-group date" id="startDatetimePicker">
+                                        <span class="input-group-addon input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="far fa-calendar-alt"></i>
+                                            </span>
+                                        </span>
+                                        <input type="text" class="form-control" id="startDatetime" name="startDatetime" placeholder="請選擇開始日期" />
+                                    </div>
+            
+                                    <label class="col-form-label font-weight-bold">結束日期:</label>
+                                    <div class="input-group date" id="endDatetimePicker">
+                                        <span class="input-group-addon input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="far fa-calendar-alt"></i>
+                                            </span>
+                                        </span>
+                                        <input type="text" class="form-control" id="endDatetime" name="endDatetime" placeholder="請選擇結束日期" />
+                                    </div>
+                                </div>
+    
+                                <div class="period-container" id="periodContainer"></div>
+                                <button type="button" class="btn btn-light period-add-btn" id="periodAddBtn">
+                                    <i class="fas fa-plus"></i>
+                                    <span>新增時段</span>
+                                </button>
                             </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="edit-taskContent" class="col-form-label font-weight-bold">內容:</label>
+                            <label for="editTaskContent" class="col-form-label font-weight-bold">內容:</label>
                             <div class="textarea-container">
-                                <textarea class="form-control" id="edit-taskContent" placeholder="請輸入內容"></textarea>
+                                <textarea class="form-control" id="editTaskContent" placeholder="請輸入內容"></textarea>
                             </div>
                         </div>
                     </form>
