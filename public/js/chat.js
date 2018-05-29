@@ -2602,11 +2602,15 @@
     }
 
     function userAssignMessager(ev) {
-        ev.preventDefault();
-
-        var $checkInput = $(ev.target).find('.form-check-input');
-        var isChecked = !$checkInput.prop('checked');
-        $checkInput.prop('checked', isChecked);
+        var $checkInput;
+        if ('input' !== ev.target.localName) {
+            $checkInput = $(ev.target).find('.form-check-input');
+            $checkInput.prop('checked', !$checkInput.prop('checked'));
+            ev.preventDefault();
+        } else {
+            $checkInput = $(ev.target);
+        }
+        var isChecked = $checkInput.prop('checked');
 
         var $profileGroup = $(ev.target).parents('.profile-group');
         var appId = $profileGroup.attr('app-id');
@@ -2616,7 +2620,7 @@
         var messagerId = messager._id;
 
         var assignedIds = messager.assigned_ids || [];
-        var assignedId = $(ev.target).find('.form-check-input').val();
+        var assignedId = $checkInput.val();
         var idx = assignedIds.indexOf(assignedId);
 
         if (isChecked) {
