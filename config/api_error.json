@@ -26,6 +26,9 @@
     "TEMPLATEID_WAS_EMPTY": {"MSG": "templateid was empty", "CODE": "1.19"},
     "RICHMENUID_WAS_EMPTY": {"MSG": "richmenuid was empty", "CODE": "1.20"},
     "IMAGEMAPID_WAS_EMPTY": {"MSG": "imagemapid was empty", "CODE": "1.21"},
+    "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
+    "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
+
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
     "PASSWORD_FAILED_TO_RESET": { "MSG": "password failed to reset", "CODE": "2.3"},

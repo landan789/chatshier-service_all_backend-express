@@ -61,45 +61,51 @@ router.post('/:webhookid', (req, res, next) => {
             // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
             if (webhookid && FACEBOOK === webhookid.toUpperCase()) {
-                return new Promise((resolve) => {
-                    bodyParser.json()(req, res, () => resolve());
-                }).then(() => {
-                    let entries = req.body.entry || [];
-                    let senderUid;
-                    let recipientUid;
+                !res.headersSent && res.status(200).send('');
+                return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
 
-                    // 從 facebook 打過來的訊息中，抓取出發送者與接收者的 facebook uid
-                    for (let i in entries) {
-                        let messagings = entries[i].messaging || [];
-                        for (let j in messagings) {
-                            senderUid = messagings[j].sender.id;
-                            recipientUid = messagings[j].recipient.id;
-                            break;
-                        }
-                        break;
-                    }
+                // return new Promise((resolve) => {
+                //     bodyParser.json()(req, res, () => resolve());
+                // }).then(() => {
+                //     let entries = req.body.entry || [];
+                //     let senderUid;
+                //     let recipientUid;
 
-                    // 如果發送者與接收者的其中資料缺一，代表 webhook 傳過來的資料有誤
-                    if (!(senderUid && recipientUid)) {
-                        return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
-                    }
+                //     // 從 facebook 打過來的訊息中，抓取出發送者與接收者的 facebook uid
+                //     for (let i in entries) {
+                //         let messagings = entries[i].messaging || [];
+                //         for (let j in messagings) {
+                //             senderUid = messagings[j].sender.id;
+                //             recipientUid = messagings[j].recipient.id;
+                //             break;
+                //         }
+                //         break;
+                //     }
 
-                    // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
-                    // 因此使用發送者與接收者 facebook uid 來查找 app
-                    let query = {
-                        id1: { $in: [senderUid, recipientUid] }
-                    };
-                    return appsMdl.find(null, null, query).then((apps) => {
-                        if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                            return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
-                        }
-                        return apps;
-                    });
-                });
+                //     // 如果發送者與接收者的其中資料缺一，代表 webhook 傳過來的資料有誤
+                //     if (!(senderUid && recipientUid)) {
+                //         return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
+                //     }
+
+                //     // 發送者與接收者其中之一會是 facebook 粉絲專頁的 ID
+                //     // 因此使用發送者與接收者 facebook uid 來查找 app
+                //     let query = {
+                //         id1: { $in: [senderUid, recipientUid] }
+                //     };
+                //     return appsMdl.find(null, null, query).then((apps) => {
+                //         if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                //             return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+                //         }
+                //         return apps;
+                //     });
+                // });
             }
 
             return appsMdl.find(null, webhookid).then((apps) => {
                 if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                    // 找不到 app 時需回應 200
+                    // 防止 facebook 收到非 200 回應時，會重新嘗試再傳送
+                    !res.headersSent && res.status(200).send('');
                     return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
                 }
 
