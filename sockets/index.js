@@ -247,6 +247,7 @@ function init(server) {
             })).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((ERR) => {
+                console.error(ERR);
                 let json = {
                     status: 0,
                     msg: ERR.MSG,
@@ -264,6 +265,7 @@ function init(server) {
             return appsChatroomsMessagersMdl.resetUnReadByPlatformUid(appId, chatroomId, userId).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
+                console.error(err);
                 ('function' === typeof callback) && callback(err);
             });
         });

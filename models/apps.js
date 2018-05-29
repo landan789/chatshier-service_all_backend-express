@@ -21,14 +21,14 @@ module.exports = (function() {
                 id1: true,
                 id2: true,
                 group_id: true,
-                isDeleted: true,
-                webhook_id: true,
                 secret: true,
                 token1: true,
                 token2: true,
                 type: true,
                 createdTime: true,
-                updatedTime: true
+                updatedTime: true,
+                webhook_id: true,
+                isDeleted: true
             };
         }
 
