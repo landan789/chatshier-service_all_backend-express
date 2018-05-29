@@ -253,7 +253,6 @@
 .chatroom-container {
     width: 100%;
     height: 100%;
-    max-height: calc(100% - 50px);
     overflow: hidden;
     background-color: #f7f8f9; }
     .chatroom-container .watermark-text {
@@ -361,6 +360,10 @@
     height: 8rem;
     border-top: 1px solid lightgray;
     background-color: lightgray; }
+    .message-input-container button[disabled],
+    .message-input-container inpu[disabled] {
+        opacity: .5; }
+
 .message-input {
     display: flex;
     align-items: center; }

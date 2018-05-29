@@ -1,14 +1,14 @@
 /*
  * Fix https://github.com/Eonasdan/bootstrap-datetimepicker/ for bootstrap v4
  */
-.bootstrap-datetimepicker-widget.dropdown-menu {
-    font-size: .85rem; }
-
-.bootstrap-datetimepicker-widget .table-condensed td,
-.bootstrap-datetimepicker-widget .table-condensed th {
-    padding: .3rem; }
-
-.bootstrap-datetimepicker-widget .collapse {
-    display: none; }
-    .bootstrap-datetimepicker-widget .collapse.in {
-        display: block; }
+.bootstrap-datetimepicker-widget {
+    z-index: 9999; }
+    .bootstrap-datetimepicker-widget.dropdown-menu {
+        font-size: .85rem; }
+    .bootstrap-datetimepicker-widget .table-condensed td,
+    .bootstrap-datetimepicker-widget .table-condensed th {
+        padding: .3rem; }
+    .bootstrap-datetimepicker-widget .collapse {
+        display: none; }
+        .bootstrap-datetimepicker-widget .collapse.in {
+            display: block; }

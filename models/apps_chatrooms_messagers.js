@@ -146,36 +146,46 @@ module.exports = (function() {
 
         /**
          * @param {string} appId
-         * @param {string|null} chatroomId
+         * @param {string|null} [chatroomId]
          * @param {string|string[]} platformUids
-         * @param {any} [query]
+         * @param {boolean} shouldIncludeGroupRoom
          * @param {(appsChatroomMessager: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        findByPlatformUid(appId, chatroomId, platformUids, query, callback) {
+        findByPlatformUid(appId, chatroomId, platformUids, shouldIncludeGroupRoom = false, callback) {
             if (!(platformUids instanceof Array)) {
                 platformUids = [platformUids];
             }
 
             // 尋找符合的欄位
-            let _query = query || {};
-            _query['_id'] = this.Types.ObjectId(appId);
-            _query['isDeleted'] = false;
-            _query['chatrooms.isDeleted'] = false;
-            _query['chatrooms.messagers.isDeleted'] = false;
-            _query['chatrooms.messagers.platformUid'] = {
-                $in: platformUids
+            let query = {
+                '_id': this.Types.ObjectId(appId),
+                'isDeleted': false,
+                'chatrooms.isDeleted': false,
+                'chatrooms.messagers.isDeleted': false,
+                'chatrooms.messagers.platformUid': {
+                    $in: platformUids
+                }
             };
 
+            if (!shouldIncludeGroupRoom) {
+                // 只搜尋單一 consumer 的聊天室
+                // 由於舊資料沒有 platformGroupId 欄位，因此需要進行 or 條件
+                query.$or = [
+                    { 'chatrooms.platformGroupId': null },
+                    { 'chatrooms.platformGroupId': '' }
+                ];
+            }
+
             if (chatroomId) {
-                _query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
+                query['chatrooms._id'] = this.Types.ObjectId(chatroomId);
             }
 
             let aggregations = [
                 {
                     $unwind: '$chatrooms'
                 }, {
-                    $match: _query
+                    $match: query
                 }, {
                     $project: {
                         // 篩選需要的項目
@@ -269,7 +279,7 @@ module.exports = (function() {
                 if (isExist) {
                     return this.updateByPlatformUid(appId, chatroomId, platformUid, messager, callback);
                 } else {
-                    return this.insertByPlatformUid(appId, chatroomId, messager, callback);
+                    return this.insert(appId, chatroomId, messager, callback);
                 }
             });
         }
@@ -280,7 +290,7 @@ module.exports = (function() {
          * @param {(appChatroomMessager: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        insertByPlatformUid(appId, chatroomId, messager, callback) {
+        insert(appId, chatroomId, messager, callback) {
             let messagerId = this.Types.ObjectId();
             messager = messager || {};
             messager._id = messagerId;
@@ -313,7 +323,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, doc, options).then(() => {
-                return this.findByPlatformUid(appId, chatroomId, platformUid);
+                return this.find(appId, chatroomId, messagerId);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
@@ -399,7 +409,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, doc, options).then(() => {
-                return this.findByPlatformUid(appId, chatroomId, platformUid);
+                return this.findByPlatformUid(appId, chatroomId, platformUid, true);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
@@ -472,7 +482,7 @@ module.exports = (function() {
                     return this.AppsModel.update(query, doc, options);
                 });
             })).then(() => {
-                return this.findByPlatformUid(appId, chatroomId, platformUids);
+                return this.findByPlatformUid(appId, chatroomId, platformUids, true);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;
@@ -516,7 +526,7 @@ module.exports = (function() {
             };
 
             return this.AppsModel.update(query, updateOper, options).then(() => {
-                return this.findByPlatformUid(appId, chatroomId, platformUid);
+                return this.findByPlatformUid(appId, chatroomId, platformUid, true);
             }).then((appsChatroomsMessagers) => {
                 ('function' === typeof callback) && callback(appsChatroomsMessagers);
                 return appsChatroomsMessagers;

@@ -18,7 +18,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
         return appsAfterTest.run();
     });
 
-    const checkAndRetrieve = (appsChatroomsMessagers, platformUid) => {
+    const checkAndRetrieve = (appsChatroomsMessagers) => {
         expect(appsChatroomsMessagers).to.not.be.null;
         expect(appsChatroomsMessagers).to.be.an('object');
         let appIds = Object.keys(appsChatroomsMessagers);
@@ -39,22 +39,22 @@ describe('Test AppsChatroomsMessagers Model', () => {
 
         let messagers = chatroom.messagers;
         expect(messagers).to.be.an('object');
-        let messagerId = chatroomIds.shift();
+        let messagerId = Object.keys(messagers).shift();
         expect(messagerId).to.be.string;
-        let messager = messagers[platformUid];
+        let messager = messagers[messagerId];
         expect(messager).to.be.an('object');
         expect(messager._id).to.be.string;
         expect(messager.assigned_ids).to.be.an('array');
         return messager;
     };
 
-    const replace = (messager) => {
+    const insert = (messager) => {
         let appId = appsBeforeTest.appId;
         let chatroomId = appsChatroomsBeforeTest.chatroomId;
         let platformUid = messager.platformUid;
 
-        return appsChatroomsMessagersMdl.replace(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+        return appsChatroomsMessagersMdl.insert(appId, chatroomId, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             expect(_messager.platformUid).eq(platformUid);
             expect(_messager.type).eq(messager.type);
             expect(_messager.unRead).eq(0);
@@ -62,13 +62,13 @@ describe('Test AppsChatroomsMessagers Model', () => {
         });
     };
 
-    it('Replace a messager', () => {
+    it('Insert a messager', () => {
         let platformUid = 'U54345CDABEF2323245778B';
         let messager = {
             type: 'LINE',
             platformUid: platformUid
         };
-        return replace(messager);
+        return insert(messager);
     });
 
     it('Increase messager unRead count', () => {
@@ -82,16 +82,16 @@ describe('Test AppsChatroomsMessagers Model', () => {
         };
         let unReadCount = 0;
 
-        return replace(messager).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+        return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             unReadCount = _messager.unRead + 5;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             expect(_messager.unRead).eq(unReadCount);
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             expect(_messager.unRead).eq(unReadCount + 1);
         });
     });
@@ -107,16 +107,16 @@ describe('Test AppsChatroomsMessagers Model', () => {
         };
         let unReadCount = 0;
 
-        return replace(messager).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+        return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             unReadCount = _messager.unRead + 3;
             return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, platformUid, unReadCount);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             expect(_messager.unRead).eq(unReadCount);
             return appsChatroomsMessagersMdl.resetUnReadByPlatformUid(appId, chatroomId, platformUid);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             expect(_messager.unRead).eq(0);
         });
     });
@@ -133,8 +133,8 @@ describe('Test AppsChatroomsMessagers Model', () => {
         };
         let messagerId;
 
-        return replace(messager).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+        return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             messagerId = _messager._id;
 
             messager = {
@@ -143,7 +143,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
 
             return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, messager);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, messagerId);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             messagerId = _messager._id;
             let _assignedIds = _messager.assigned_ids;
             expect(_assignedIds).to.be.an('array').that.does.include(userId);
@@ -153,7 +153,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
             };
             return appsChatroomsMessagersMdl.update(appId, chatroomId, messagerId, messager);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, messagerId);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             messagerId = _messager._id;
             let _assignedIds = _messager.assigned_ids;
             expect(_assignedIds).to.be.an('array').that.does.empty;
@@ -163,7 +163,7 @@ describe('Test AppsChatroomsMessagers Model', () => {
             };
             return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             let _assignedIds = _messager.assigned_ids;
             expect(_assignedIds).to.be.an('array').that.does.include(userId);
         });
@@ -179,13 +179,13 @@ describe('Test AppsChatroomsMessagers Model', () => {
             platformUid: platformUid
         };
 
-        return replace(messager).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+        return appsChatroomsMessagersMdl.updateByPlatformUid(appId, chatroomId, platformUid, messager).then((appsChatroomsMessagers) => {
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             let isDeleted = _messager.isDeleted;
             expect(isDeleted).to.be.false;
             return appsChatroomsMessagersMdl.remove(appId, chatroomId, platformUid);
         }).then((appsChatroomsMessagers) => {
-            let _messager = checkAndRetrieve(appsChatroomsMessagers, platformUid);
+            let _messager = checkAndRetrieve(appsChatroomsMessagers);
             let isDeleted = _messager.isDeleted;
             expect(isDeleted).to.be.true;
         });
