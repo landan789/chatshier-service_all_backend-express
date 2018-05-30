@@ -62,6 +62,8 @@
             loadTemplates(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
+    }).catch((ERR) => {
+        return $.notify('載入失敗', { type: 'danger' });
     });
 
     function appSourceChanged(ev) {
@@ -89,6 +91,8 @@
                     '</tr>'
                 );
             }
+        }).catch((ERR) => {
+            return $.notify('載入失敗', { type: 'danger' });
         });
     }
     // =====load template start=====
@@ -174,6 +178,8 @@
             if ('carousel' === type) {
                 showCarousel(template);
             };
+        }).catch((ERR) => {
+            return $.notify('載入失敗', { type: 'danger' });
         });
     }
     function showConfirm(template) {
@@ -248,11 +254,11 @@
                 };
                 return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
                     if ('' !== imageFile[imageFileNum]) {
-                        return api.bot.uploadFile(appId, document, templateId, userId, imageFile[imageFileNum]).then((resJson) => {
-                            return resJson.data;
-                        });
+                        return api.bot.uploadFile(appId, document, templateId, userId, imageFile[imageFileNum]);
                     }
-                })).then((imageUrl) => {
+                })).then((resJson) => {
+                    return resJson.data;
+                }).then((imageUrl) => {
                     if ('buttons' === putTemplate.template.type) {
                         putTemplate.template.thumbnailImageUrl = imageUrl[0] || btnImage || carouselImage[0];
                     }
@@ -333,6 +339,8 @@
                 previewImage = imgBase64;
                 $(input).siblings('img').attr('src', imgBase64);
                 $('.template-upload-desc').addClass('d-none');
+            }).catch((ERR) => {
+                return $.notify('載入失敗', { type: 'danger' });
             });
         }
     }
@@ -385,6 +393,9 @@
                         $appDropdown.find('#' + appId).click();
                     }, 1000);
                     $('#template-modal').modal('toggle');
+                }).catch((ERR) => {
+                    $('#modal-save').removeAttr('disabled');
+                    return $.notify('新增失敗', { type: 'danger' });
                 });
             }
         }
@@ -528,17 +539,17 @@
             if (!isOK) {
                 return;
             }
-            return api.appsTemplates.remove(appId, templateId, userId).then(function(resJson) {
-                $('#' + templateId).remove();
-                $.notify('刪除成功！', { type: 'success' });
-            }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                }
-            });
+            return api.appsTemplates.remove(appId, templateId, userId);
+        }).then(function(resJson) {
+            $('#' + templateId).remove();
+            $.notify('刪除成功！', { type: 'success' });
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $.notify('失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
         });
     }
 
