@@ -1891,6 +1891,8 @@
 
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
+        if (LINE !== appType) $('.imagemap-container').addClass('d-none');
+        else $('.imagemap-container').removeClass('d-none');
         if (CHATSHIER !== appType) {
             var messagers = chatroom.messagers;
 

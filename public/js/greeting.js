@@ -39,6 +39,7 @@
         $('#modal-insert-btn').removeClass('d-none');
         $('#modal-update-btn').removeClass('d-none');
         $('#modal-greeting-text').val('');
+        $('#modal-greeting-id').val('');
     });
 
     function turnOnAddModal() {
@@ -62,18 +63,8 @@
         return api.appsGreetings.insert(appId, userId, greeting).then(function(resJson) {
             let greeting = resJson.data[appId].greetings;
             let greetingId = Object.keys(greeting)[0];
-
-            var trGrop =
-            '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                '<td>' + greeting[greetingId].text + '</td>' +
-                '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
-                '<td>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="edit-btn" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true"><i class="fas fa-edit update"></i></button>' +
-                    '<button type="button" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove" id="delete-btn"></button>' +
-                '</td>' +
-            '</tr>';
             findedGreetingIds[greetingId] = greetingId;
-            $('table #MsgCanvas').append(trGrop);
+            $appDropdown.find('#' + appId).click();
             $modal.modal('hide');
             return $.notify('新增成功', { type: 'success' });
         }).catch((resJson) => {
@@ -90,8 +81,10 @@
 
     function turnOnEdit() {
         $('#modal-insert-btn').addClass('d-none');
+        let appId = $(this).parent().parent().attr('rel');
         let greetingId = $(this).parent().parent().attr('id');
         let text = $(this).parent().siblings('td:first').text();
+        $(`[name="greeting-app-name"] option[value="${appId}"]`).attr('selected', true);
         $('#modal-greeting-id').val(greetingId);
         $('#modal-greeting-text').val(text);
     }
