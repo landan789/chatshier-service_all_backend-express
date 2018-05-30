@@ -28,7 +28,11 @@ module.exports = (function() {
         'isDeleted': {type: Boolean, default: false},
         'startedTime': {type: Date, default: Date.now()},
         'timezoneOffset': {type: Number, default: 0},
-        'periods': {type: Array, default: []},
+        'periods': [{
+            'days': {type: Array, default: []},
+            'startedTime': {type: String, default: '00:00'},
+            'endedTime': {type: String, default: '00:00'}
+        }],
         'text': {type: String, default: ''},
         'title': {type: String, default: ''},
         'type': {type: String, default: 'text'},
@@ -93,7 +97,11 @@ module.exports = (function() {
         'src': {type: String, default: ''},
         'type': {type: String, default: 'text'},
         'updatedTime': {type: Date, default: Date.now()},
-        'conditions': {type: Array, default: []},
+        'conditions': [{
+            'type': {type: String, default: ''},
+            'values': {type: Array, default: []},
+            'field_id': {type: String, default: ''}
+        }],
         'status': {type: Boolean, default: false}, // false 為草稿，true 為開放
         'time': {type: Date, default: Date.now() - 60000} // 立刻群發後讓訊息變成歷史訊息
     }, { minimize: false });
@@ -116,11 +124,6 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()}
     });
 
-    const RichmenusAreasSchema = new mongoose.Schema({
-        'bounds': {type: Object, default: {}},
-        'action': {type: Object, default: {}}
-    }, { minimize: false });
-
     const RichmenusSchema = new mongoose.Schema({
         'isDeleted': {type: Boolean, default: false},
         'createdTime': {type: Date, default: Date.now()},
@@ -132,14 +135,10 @@ module.exports = (function() {
         'src': {type: String, default: ''},
         'platformMenuId': {type: String, default: ''},
         'size': {type: Object, default: {}},
-        'areas': [RichmenusAreasSchema]
-    }, { minimize: false });
-
-    const ImagemapsActionsSchema = new mongoose.Schema({
-        'type': {type: String, default: ''},
-        'linkUri': {type: String, default: ''},
-        'text': {type: String, default: ''},
-        'area': {type: Object, default: {}}
+        'areas': [{
+            'bounds': {type: Object, default: {}},
+            'action': {type: Object, default: {}}
+        }]
     }, { minimize: false });
 
     const ImagemapsSchema = new mongoose.Schema({
@@ -152,7 +151,12 @@ module.exports = (function() {
         'form': {type: String, default: ''},
         'title': {type: String, default: ''},
         'baseSize': {type: Object, default: {}},
-        'actions': [ImagemapsActionsSchema]
+        'actions': [{
+            'type': {type: String, default: ''},
+            'linkUri': {type: String, default: ''},
+            'text': {type: String, default: ''},
+            'area': {type: Object, default: {}}
+        }]
     }, { minimize: false });
 
     const FieldsSchema = new mongoose.Schema({

@@ -453,9 +453,11 @@
     window.addEventListener('blur', function() {
         hasUserFocus = false;
     });
+
     window.addEventListener('focus', function() {
         hasUserFocus = true;
         blinkPageTitle();
+        readClientMsg();
     });
 
     // =====start chat event=====
@@ -680,8 +682,7 @@
 
             if (consumersFromSocket) {
                 for (let _platformUid in consumersFromSocket) {
-                    let _consumer = consumersFromSocket[_platformUid];
-                    _consumer.photo = fixHttpsLink(_consumer.photo);
+                    consumersFromSocket[_platformUid].photo = fixHttpsLink(consumersFromSocket[_platformUid].photo);
                 }
                 Object.assign(consumers, consumersFromSocket);
             }
@@ -984,8 +985,7 @@
         // 架設 https 時，request 必須使用 https
         // 由於 LINE 的圖像屬於 http 前綴開頭，因此需檢測所有頭像連結
         for (let platformUid in consumers) {
-            let consumer = consumers[platformUid];
-            consumer.photo = fixHttpsLink(consumer.photo);
+            consumers[platformUid].photo = fixHttpsLink(consumers[platformUid].photo);
         }
 
         for (var appId in apps) {

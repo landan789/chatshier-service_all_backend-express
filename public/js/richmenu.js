@@ -6,6 +6,11 @@
     var $appSelector = $('#app-select');
 
     var api = window.restfulAPI;
+
+    var apps = {};
+    var appsKeywordreplies = {};
+    var appsRichmenus = {};
+
     var nowSelectAppId = '';
     var size = {};
     var imageFile = '';
@@ -26,16 +31,15 @@
 
     $('.content-bar').addClass('d-none');
     $('.content-input').addClass('d-none');
-    $('.chsr-form .form-inputs .form-group.col-sm-12').addClass('d-none');
-    $jqDoc.on('click', '#modal-save', saveRichMenus); // add richmenu, not activated.
-    $jqDoc.on('click', '#add-btn', cleanmodal); // cleaning the options in modal.
+    $jqDoc.on('click', '#modal-save', insertRichmenu); // add richmenu, not activated.
+    $jqDoc.on('click', '#add-btn', cleanModal); // cleaning the options in modal.
     $jqDoc.on('change', '.image-ghost', uploadImage);
     $jqDoc.on('click', 'input[name = richmenu-form]', photoFormShow);
     $jqDoc.on('click', 'input[name = content]', contentInputShow);
     $jqDoc.on('click', '.box', contentBarShow);
     $jqDoc.on('click', '#deactivate-btn', activateMenu);
     $jqDoc.on('click', '#activate-btn', deactivateMenu);
-    $jqDoc.on('click', '#update-btn', appenedData);
+    $jqDoc.on('click', '#update-btn', appendRichmenu);
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
@@ -47,34 +51,45 @@
 
     $modal.on('show.bs.modal', function() {
         $('#keyword').empty();
-        let keywordreplyStr = '<option>請選擇關鍵字</option>';
         let appId = $appSelector.find('option:selected').val();
 
-        return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
-            let appsKeywordreplies = resJson.data;
-            let keywordreply = appsKeywordreplies[appId].keywordreplies;
-            for (let keywordreplyId in keywordreply) {
-                let keyword = keywordreply[keywordreplyId].keyword;
+        return Promise.resolve().then(() => {
+            if (!appsKeywordreplies[appId]) {
+                appsKeywordreplies[appId] = { keywordreplies: {} };
+
+                return api.appsKeywordreplies.findAll(appId, userId).then((resJson) => {
+                    let _appsKeywordreplies = resJson.data;
+                    if (!(_appsKeywordreplies && _appsKeywordreplies[appId])) {
+                        return appsKeywordreplies[appId].keywordreplies;
+                    }
+                    Object.assign(appsKeywordreplies[appId].keywordreplies, _appsKeywordreplies[appId].keywordreplies);
+                    return appsKeywordreplies[appId].keywordreplies;
+                });
+            }
+            return appsKeywordreplies[appId].keywordreplies;
+        }).then((keywordreplies) => {
+            let keywordreplyStr = '<option>請選擇關鍵字</option>';
+            for (let keywordreplyId in keywordreplies) {
+                let keyword = keywordreplies[keywordreplyId].keyword;
                 keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
             }
-            $(`#box1-input #keyword`).append(keywordreplyStr);
-            $(`#box2-input #keyword`).append(keywordreplyStr);
-            $(`#box3-input #keyword`).append(keywordreplyStr);
-            $(`#box4-input #keyword`).append(keywordreplyStr);
-            $(`#box5-input #keyword`).append(keywordreplyStr);
-            $(`#box6-input #keyword`).append(keywordreplyStr);
+
+            let $keywordsSelectors = $('.form-inputs select#keyword');
+            $keywordsSelectors.each((i) => {
+                $($keywordsSelectors[i]).html(keywordreplyStr);
+            });
         });
     });
 
     return api.apps.findAll(userId).then(function(resJson) {
-        var appsData = resJson.data;
+        apps = resJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
 
         nowSelectAppId = '';
-        for (var appId in appsData) {
-            var app = appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
             if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+                delete apps[appId];
                 continue;
             }
 
@@ -85,16 +100,16 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
-            loadRichmenus(nowSelectAppId, userId);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+            return loadRichmenus(nowSelectAppId, userId);
         }
     });
 
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadRichmenus(nowSelectAppId, userId);
+        return loadRichmenus(nowSelectAppId, userId);
     }
 
     function uploadImage() {
@@ -171,173 +186,163 @@
     }
 
     function photoFormShow() {
-        let width = $modal.find('.show-richmenu-form').width();
-        let height = $modal.find('.show-richmenu-form').height();
+        let $showRichmenuForm = $modal.find('.show-richmenu-form');
+        let width = $showRichmenuForm.width();
+        let height = $showRichmenuForm.height();
         let boxWidth = width / 3;
         let boxHeight = height / 2;
+
         $('.content-input').addClass('d-none');
-        $modal.find('.show-richmenu-form').css('background-color', '#CBCBCB');
-        $modal.find('.show-richmenu-form').find('.box').remove();
+        $showRichmenuForm.css('background-color', '#CBCBCB');
+        $showRichmenuForm.find('.box').remove();
         let checked = $('input[name = richmenu-form]:checked').val();
-        let box1 = '';
-        let box2 = '';
-        let box3 = '';
-        let box4 = '';
-        let box5 = '';
-        let box6 = '';
-        let box7 = '';
-        let box8 = '';
-        let box9 = '';
-        let box1Input = '';
-        let box2Input = '';
-        let box3Input = '';
-        let box4Input = '';
-        let box5Input = '';
-        let box6Input = '';
-        let box7Input = '';
-        let box8Input = '';
-        let box9Input = '';
+
         switch (checked) {
             case 'form1':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1);
-                box1Input = showBoxInputs('box1');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input);
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px; height:' + height + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form2':
-                let widthForm6 = boxWidth;
-                widthForm6 = (widthForm6 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm6 + '" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input);
+                let widthForm6 = (boxWidth * 3) / 2;
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="' + widthForm6 + '" data-y="0" style="width:' + widthForm6 + 'px; height:' + height + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form3':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input);
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '" style="width:' + width + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form4':
-                let widthForm4 = boxWidth;
-                widthForm4 = widthForm4 * 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm4 + 'px; height:' + height + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm4 + '" data-y="0"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + widthForm4 + '" data-y="' + boxHeight + '"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input);
+                let widthForm4 = boxWidth * 2;
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm4 + 'px; height:' + height + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="' + widthForm4 + '" data-y="0"></div>' +
+                    '<div class="box" id="box3" data-x="' + widthForm4 + '" data-y="' + boxHeight + '"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form5':
                 let widthForm2 = boxWidth;
                 widthForm2 = (widthForm2 * 3) / 2;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px"></div>';
-                box3 = '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + widthForm2 + '" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm2 + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="' + widthForm2 + '" data-y="0" style="width:' + widthForm2 + 'px"></div>' +
+                    '<div class="box" id="box3" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>' +
+                    '<div class="box" id="box4" data-x="' + widthForm2 + '" data-y="' + boxHeight + '" style="width:' + widthForm2 + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3') +
+                    generateBoxInputs('box4')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form6':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input);
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + width + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="0" data-y="' + boxHeight + '"></div>' +
+                    '<div class="box" id="box3" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>' +
+                    '<div class="box" id="box4" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3') +
+                    generateBoxInputs('box4')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form7':
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>';
-                box4 = '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>';
-                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>';
-                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                box5Input = showBoxInputs('box5');
-                box6Input = showBoxInputs('box6');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input);
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0"></div>' +
+                    '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0"></div>' +
+                    '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0"></div>' +
+                    '<div class="box" id="box4" data-x="0" data-y="' + boxHeight + '"></div>' +
+                    '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + boxHeight + '"></div>' +
+                    '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + boxHeight + '"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3') +
+                    generateBoxInputs('box4') +
+                    generateBoxInputs('box5') +
+                    generateBoxInputs('box6')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form8':
-                let widthForm8 = boxWidth;
-                widthForm8 = (widthForm8 * 3) / 4;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + widthForm8 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + widthForm8 * 2 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box4 = '<div class="box" id="box4" data-x="' + widthForm8 * 3 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box5 = '<div class="box" id="box5" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box6 = '<div class="box" id="box6" data-x="' + widthForm8 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box7 = '<div class="box" id="box7" data-x="' + widthForm8 * 2 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                box8 = '<div class="box" id="box8" data-x="' + widthForm8 * 3 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6 + box7 + box8);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                box5Input = showBoxInputs('box5');
-                box6Input = showBoxInputs('box6');
-                box7Input = showBoxInputs('box7');
-                box8Input = showBoxInputs('box8');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input + box7Input + box8Input);
+                let widthForm8 = (boxWidth * 3) / 4;
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="' + widthForm8 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box3" data-x="' + widthForm8 * 2 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box4" data-x="' + widthForm8 * 3 + '" data-y="0" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box5" data-x="0" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box6" data-x="' + widthForm8 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box7" data-x="' + widthForm8 * 2 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>' +
+                    '<div class="box" id="box8" data-x="' + widthForm8 * 3 + '" data-y="' + boxHeight + '" style="width:' + widthForm8 + 'px; height:' + boxHeight + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3') +
+                    generateBoxInputs('box4') +
+                    generateBoxInputs('box5') +
+                    generateBoxInputs('box6') +
+                    generateBoxInputs('box7') +
+                    generateBoxInputs('box8')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             case 'form9':
-                let heightForm9 = boxHeight;
-                heightForm9 = (heightForm9 * 2) / 3;
-                box1 = '<div class="box" id="box1" data-x="0" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
-                box2 = '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
-                box3 = '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>';
-                box4 = '<div class="box" id="box4" data-x="0" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
-                box5 = '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
-                box6 = '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>';
-                box7 = '<div class="box" id="box7" data-x="0" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
-                box8 = '<div class="box" id="box8" data-x="' + boxWidth + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
-                box9 = '<div class="box" id="box9" data-x="' + boxWidth * 2 + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>';
-                $modal.find('.show-richmenu-form').append(box1 + box2 + box3 + box4 + box5 + box6 + box7 + box8 + box9);
-                box1Input = showBoxInputs('box1');
-                box2Input = showBoxInputs('box2');
-                box3Input = showBoxInputs('box3');
-                box4Input = showBoxInputs('box4');
-                box5Input = showBoxInputs('box5');
-                box6Input = showBoxInputs('box6');
-                box7Input = showBoxInputs('box7');
-                box8Input = showBoxInputs('box8');
-                box9Input = showBoxInputs('box9');
-                $modal.find('.boxes-inputs').empty();
-                $modal.find('.boxes-inputs').append(box1Input + box2Input + box3Input + box4Input + box5Input + box6Input + box7Input + box8Input + box9Input);
+                let heightForm9 = (boxHeight * 2) / 3;
+                $showRichmenuForm.append(
+                    '<div class="box" id="box1" data-x="0" data-y="0" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box2" data-x="' + boxWidth + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box3" data-x="' + boxWidth * 2 + '" data-y="0" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box4" data-x="0" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box5" data-x="' + boxWidth + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box6" data-x="' + boxWidth * 2 + '" data-y="' + heightForm9 + '" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box7" data-x="0" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box8" data-x="' + boxWidth + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>' +
+                    '<div class="box" id="box9" data-x="' + boxWidth * 2 + '" data-y="' + (heightForm9 * 2) + '" style="height: ' + heightForm9 + 'px"></div>'
+                );
+                $modal.find('.boxes-inputs').html(
+                    generateBoxInputs('box1') +
+                    generateBoxInputs('box2') +
+                    generateBoxInputs('box3') +
+                    generateBoxInputs('box4') +
+                    generateBoxInputs('box5') +
+                    generateBoxInputs('box6') +
+                    generateBoxInputs('box7') +
+                    generateBoxInputs('box8') +
+                    generateBoxInputs('box9')
+                );
                 $('.content-bar').addClass('d-none');
                 break;
             default:
@@ -345,46 +350,51 @@
         }
     }
 
-    function showBoxInputs(className) {
-        return '<div class="row col-sm-12 content-bar" id="' + className + '-input">' +
-            '<div class="form-group px-3">' +
-                '<label class="col-form-label">' +
-                    '<input type="radio" name="content" value="keyword">' +
-                    '<strong>關鍵字</strong>' +
-                '</label>' +
-            '</div>' +
-            '<div class="form-group px-3">' +
-                '<label class="col-form-label">' +
-                    '<input type="radio" name="content" value="url">' +
-                    '<strong>網址</strong>' +
-                '</label>' +
-            '</div>' +
-            '<div class="form-group px-3">' +
-                '<label class="col-form-label">' +
-                    '<input type="radio" name="content" value="text">' +
-                    '<strong>文字</strong>' +
-                '</label>' +
-            '</div>' +
-            '<div class="form-group px-3">' +
-                '<label class="col-form-label">' +
-                    '<input type="radio" name="content" value="no-action">' +
-                    '<strong>不設定</strong>' +
-                '</label>' +
-            '</div>' +
-        '</div>';
+    function generateBoxInputs(boxId) {
+        return (
+            '<div class="px-1 content-bar" id="' + boxId + '-input">' +
+                '<div class="form-check mx-1">' +
+                    '<label class="col-form-label">' +
+                        '<input class="form-check-input" type="radio" name="content" value="keyword">' +
+                        '<strong>關鍵字</strong>' +
+                    '</label>' +
+                '</div>' +
+                '<div class="form-check mx-1">' +
+                    '<label class="col-form-label">' +
+                        '<input class="form-check-input" type="radio" name="content" value="url">' +
+                        '<strong>網址</strong>' +
+                    '</label>' +
+                '</div>' +
+                '<div class="form-check mx-1">' +
+                    '<label class="col-form-label">' +
+                        '<input class="form-check-input" type="radio" name="content" value="text">' +
+                        '<strong>文字</strong>' +
+                    '</label>' +
+                '</div>' +
+                '<div class="form-check mx-1">' +
+                    '<label class="col-form-label">' +
+                        '<input class="form-check-input" type="radio" name="content" value="no-action">' +
+                        '<strong>不設定</strong>' +
+                    '</label>' +
+                '</div>' +
+            '</div>'
+        );
     }
 
     function contentInputShow() {
-        let boxInput = $(this).parent().parent().parent().attr('id');
-        let contentInputId = $('input[name = content]:checked').val();
+        let boxInputId = $(this).parents('.content-bar').attr('id');
+        let $formInput = $('.form-inputs .form-input#' + boxInputId);
+        $formInput.removeClass('d-none').siblings().addClass('d-none');
+
+        let contentInputId = $('input[name="content"]:checked').val();
         let contentInputValue = $('#' + contentInputId).val();
         if (!contentInputValue) {
             $('.content-input').val('');
         }
+
         $('.content-input').addClass('d-none');
-        $(`.form-group.col-sm-12#${boxInput}`).removeClass('d-none').siblings().addClass('d-none');
-        $(`#${boxInput} #${contentInputId}`).removeClass('d-none');
-        $(`#${boxInput} #${contentInputId}`).change(function() {
+        $(`#${boxInputId} #${contentInputId}`).removeClass('d-none');
+        $(`#${boxInputId} #${contentInputId}`).change(function() {
             var val = $(this).val();
             if (val) {
                 let boxId = $('.box.checked').attr('id');
@@ -396,28 +406,37 @@
     }
 
     function contentBarShow() {
-        let id = $(this).attr('id');
-        $(this).siblings().removeClass('checked');
-        let inputValue = $(this).attr('ref');
-        if ($(this).hasClass('marked')) {
-            inputTypeCheck(id, inputValue);
+        let $box = $(this);
+        let $boxesInputs = $('.boxes-inputs');
+        let $formInputs = $('.form-inputs');
+
+        let boxId = $box.attr('id');
+        let inputValue = $box.attr('ref');
+        if ($box.hasClass('marked')) {
+            inputTypeCheck(boxId, inputValue);
         }
-        $(`.form-inputs input`).val('');
+
+        $box.siblings().removeClass('checked').css('background-color', '');
+        $box.addClass('checked').css('background-color', 'rgba(158, 158, 158, .7)');
+
         $('.content-input').addClass('d-none');
-        $(`#${id} input[name = content]`).removeAttr('checked');
-        $(`.boxes-inputs .content-bar`).removeClass('d-none').addClass('d-none');
-        $(`.boxes-inputs #${id}-input`).removeClass('d-none');
-        $(`.form-inputs .form-group.col-sm-12`).addClass('d-none');
-        $(`.form-inputs #${id}-input`).removeClass('d-none');
-        $(this).css('background-color', 'rgba(158,158,158,0.7)');
-        $(this).addClass('checked');
-        if (!inputValue) {
-        } else if (inputValue.includes('http://') || inputValue.includes('https://')) {
-            $(`.form-inputs #${id}-input #url`).val(inputValue);
-            $(`.form-inputs #${id}-input #url`).attr('value', inputValue);
-        } else {
-            $(`.form-inputs #${id}-input #text`).val(inputValue);
-            $(`.form-inputs #${id}-input #text`).attr('value', inputValue);
+        $('#' + boxId + ' input[name="content"]').removeAttr('checked');
+        $boxesInputs.find('.content-bar').addClass('d-none').trigger('click');
+        $boxesInputs.find('#' + boxId + '-input').removeClass('d-none');
+
+        $formInputs.find('input').val('');
+        $formInputs.find('.content-bar').addClass('d-none');
+
+        let $formInput = $formInputs.find('#' + boxId + '-input');
+        $formInput.removeClass('d-none').siblings().addClass('d-none');
+
+        if (inputValue) {
+            $formInputs.removeClass('d-none');
+            if (inputValue.startsWith('http://') || inputValue.startsWith('https://')) {
+                $formInput.find('#url').attr('value', inputValue).val(inputValue).removeClass('d-none');
+            } else {
+                $formInput.find('#text').attr('value', inputValue).val(inputValue).removeClass('d-none');
+            }
         }
     }
 
@@ -439,87 +458,41 @@
             $(`#${id}-input #text`).val(inputValue);
             $(`#${id}-input input[value="text"]`).prop('checked', true);
         }
-        contentInputShow();
     }
 
-    function cleanmodal() {
+    function cleanModal() {
         $('#modal-save').removeClass('d-none');
         $('#modal-update-save').addClass('d-none');
-        $modal.find('input[type = text]').val('');
-        $modal.find('input[type = datetime-local]').val('');
-        $modal.find('input[type = url]').val('');
-        $modal.find('input[type = file]').val('');
-        $modal.find('.show-richmenu-form').removeAttr('style');
-        $modal.find('.show-richmenu-form').css('background-color', '#CBCBCB');
-        $modal.find('.show-richmenu-form').find('.box').remove();
-        $modal.find('input[value = "form1"]').prop('checked', true);
-        $modal.find('input[name = "content"]').prop('checked', false);
+
+        $modal.find('input[type="text"]').val('');
+        $modal.find('input[type="datetime-local"]').val('');
+        $modal.find('input[type="url"]').val('');
+        $modal.find('input[type="file"]').val('');
+
+        let $showRichmenuForm = $modal.find('.show-richmenu-form');
+        $showRichmenuForm.removeAttr('style');
+        $showRichmenuForm.css('background-color', '#CBCBCB');
+        $showRichmenuForm.empty();
+
+        $modal.find('input[value="form1"]').prop('checked', true);
+        $modal.find('input[name="content"]').prop('checked', false);
         photoFormShow();
-    }
-
-    function saveRichMenus() {
-        $(this).attr('disabled', 'disabled');
-        let appId = $appSelector.find('option:selected').val();
-        let selected = $('#richmenu-selected').val();
-        let title = $('#title').val();
-        let chatBarText = $('#chatbar-text').val();
-        let form = $('input[name = richmenu-form]:checked').val();
-        let originalFilePath = '';
-
-        if (!appId || !title || !chatBarText) {
-            $('#modal-save').removeAttr('disabled');
-            $('#modal-update-save').removeAttr('disabled');
-            return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
-        }
-
-        let areas = composeAreaObject();
-
-        Promise.resolve().then(() => {
-            return api.bot.uploadFile(appId, userId, imageFile);
-        }).then((resJson) => {
-            let url = resJson.data.url;
-            originalFilePath = resJson.data.originalFilePath;
-
-            let postRichmenu = {
-                selected: selected,
-                name: title,
-                chatBarText: chatBarText,
-                form: form,
-                src: url,
-                size: size,
-                areas: areas
-            };
-            return api.appsRichmenus.insert(appId, userId, postRichmenu);
-        }).then((resJson) => {
-            let appsRichmenu = resJson.data;
-            let richemnu = appsRichmenu[appId].richmenus;
-            let richmenuId = Object.keys(richemnu)[0];
-            return api.bot.moveFile(appId, richmenuId, userId, originalFilePath);
-        }).then(() => {
-            $('#richmenu-modal').modal('hide');
-            loadRichmenus(appId, userId);
-            return $.notify('新增成功', { type: 'success' });
-        });
     }
 
     function activateMenu() {
         $(this).attr('disabled', 'disabled').text('啟用中...');
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
-        return Promise.resolve().then(() => {
-            return api.bot.activateMenu(appId, richmenuId, userId);
-        }).then(() => {
-            return new Promise((resolve, reject) => {
-                loadRichmenus(appId, userId);
-                resolve();
-            });
-        }).then(() => {
-            $('#' + richmenuId).remove();
+
+        return api.bot.activateMenu(appId, richmenuId, userId).then(() => {
             $(this).removeAttr('disabled');
-            return $.notify('成功啟用', { type: 'success' });
+            $('#' + richmenuId).remove();
+            return loadRichmenus(appId, userId);
+        }).then(() => {
+            $.notify('成功啟用', { type: 'success' });
         }).catch(() => {
-            $.notify('失敗', { type: 'danger' });
             $(this).removeAttr('disabled').text('未啟用');
+            $.notify('失敗', { type: 'danger' });
         });
     }
 
@@ -527,29 +500,15 @@
         $(this).attr('disabled', 'disabled').text('取消啟用...');
         let appId = $(this).parents().parents().attr('rel');
         let richmenuId = $(this).parents().parents().attr('id');
-        return api.bot.deactivateMenu(appId, richmenuId, userId).then((resJson) => {
-            let deactivedMenu = resJson.data;
-            loadRichmenus(appId, userId);
+        return api.bot.deactivateMenu(appId, richmenuId, userId).then(() => {
+            return loadRichmenus(appId, userId);
+        }).then(() => {
             $(this).removeAttr('disabled');
             return $.notify('成功取消啟用', { type: 'success' });
         });
     }
 
-    function loadRichmenus(appId, userId) {
-        $('table #richmenu').empty();
-        $('table #activated-richmenu').empty();
-        return api.appsRichmenus.findAll(appId, userId).then(function(resJson) {
-            let data = resJson.data;
-            let richmenus = data[appId].richmenus;
-            for (let richmenuId in richmenus) {
-                if (!richmenus[richmenuId].isDeleted || richmenus[richmenuId].platformMenuId) {
-                    groupType(richmenuId, richmenus[richmenuId], appId);
-                }
-            }
-        });
-    }
-
-    function groupType(richmenuId, richmenu, appId) {
+    function generateRichmenuRow(richmenuId, richmenu, appId) {
         let linkText = '';
         for (let i = 0; i < richmenu.areas.length; i++) {
             if (0 === i) {
@@ -558,35 +517,41 @@
                 linkText = linkText + '，' + getRichmenuActionType(richmenu.areas[i].action);
             }
         }
-        var trGrop =
+
+        var richmenuRow = (
             '<tr id="' + richmenuId + '" rel="' + appId + '">' +
                 '<th>' + richmenu.name + '</th>' +
                 '<td>' + richmenu.chatBarText + '</td>' +
                 '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">版型 ' + richmenu.form.slice(-1) + '</td>' +
-                '<td>' + linkText + '</td>';
-        if (!richmenu.platformMenuId) {
-            trGrop +=
-                '<td>' +
-                    '<button type="button" id="deactivate-btn" class="btn btn-light btn-border" data-status="false">未啟用</button>' +
-                '</td>' +
-                '<td>' +
-                    '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
-                    '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
-                '</td>' +
-            '</tr>';
-        } else {
-            trGrop +=
-                '<td>' +
-                    '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用</button>' +
-                '</td>' +
-                '<td></td>' +
-            '</tr>';
-        }
+                '<td>' + linkText + '</td>' +
+                (() => {
+                    if (richmenu.platformMenuId) {
+                        return (
+                            '<td>' +
+                                '<button type="button" id="activate-btn" class="btn btn-success btn-border" data-status="true">已啟用</button>' +
+                            '</td>' +
+                            '<td></td>'
+                        );
+                    }
+
+                    return (
+                        '<td>' +
+                            '<button type="button" id="deactivate-btn" class="btn btn-light btn-border" data-status="false">未啟用</button>' +
+                        '</td>' +
+                        '<td>' +
+                            '<button type="button" id="update-btn" class="mb-1 mr-1 btn btn-border btn-light fas fa-edit update" data-toggle="modal" data-target="#richmenu-modal" aria-hidden="true"></button>' +
+                            '<button type="button" id="remove-btn" class="mb-1 mr-1 btn btn-danger fas fa-trash-alt remove"></button>' +
+                        '</td>'
+                    );
+                })() +
+            '</tr>'
+        );
+
         if (richmenu.platformMenuId) {
-            $('table #activated-richmenu').append(trGrop);
+            $('table #activated-richmenu').append(richmenuRow);
             return;
         }
-        $('table #richmenu').append(trGrop);
+        $('table #richmenu').append(richmenuRow);
     }
 
     function getRichmenuActionType(action) {
@@ -600,92 +565,192 @@
         }
     }
 
-    function appenedData() {
+    function appendRichmenu() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
         $('#modal-save').addClass('d-none');
         $('#modal-update-save').removeClass('d-none');
-        let url = '';
+        $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId));
 
-        $modal.find('#modal-update-save').off('click').on('click', () => {
-            $('#modal-update-save').attr('disabled', 'disabled');
-            let selected = $('#richmenu-selected').val();
-            let title = $('#title').val();
-            let chatBarText = $('#chatbar-text').val();
-            let form = $('input[name = richmenu-form]:checked').val();
+        return Promise.resolve().then(() => {
+            let richemnu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
+            if (!richemnu) {
+                return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
+                    let _appsRichmenus = resJson.data;
+                    if (!appsRichmenus[appId]) {
+                        appsRichmenus[appId] = { richmenus: {} };
+                    }
+                    Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+                    richemnu = _appsRichmenus[appId].richmenus[richmenuId];
+                    return richemnu;
+                });
+            }
+            return richemnu;
+        }).then((richemnu) => {
+            let areas = richemnu.areas;
+            let photoForm = richemnu.form;
+            size = richemnu.size;
+
+            $appSelector.parents('.form-group').addClass('d-none');
+
+            let $richmenuForm = $modal.find('.richmenu-form');
+            $richmenuForm.find('.richmenu-select').val(richemnu.selected + '');
+            $richmenuForm.find('input[name="richmenuName"]').val(richemnu.name);
+            $richmenuForm.find('input[name="chatbarText"]').val(richemnu.chatBarText);
+            $richmenuForm.find('input[value=' + photoForm + ']').prop('checked', true);
+
+            richemnu.src && $('.show-richmenu-form')
+                .css('background', 'url(' + richemnu.src + ') center no-repeat')
+                .css('background-size', 'cover');
+
+            photoFormShow();
+
+            let $showRichmenuForm = $richmenuForm.find('.show-richmenu-form');
+            let $boxes = $showRichmenuForm.find('.box');
+
+            $boxes.each(function(i) {
+                let $box = $($boxes[i]);
+                let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
+                let type = 'postback' === areas[i].action.type ? '未設定' : areas[i].action.type;
+
+                $box.css('background-color', 'rgba(158,158,158, 0.7)');
+                $box.text(`${type}:\n${text || ''}`);
+                $box.addClass('marked');
+                $box.attr('ref', text);
+            });
+        });
+    }
+
+    function loadRichmenus(appId, userId, noFetch) {
+        $('table #richmenu').empty();
+        $('table #activated-richmenu').empty();
+
+        return Promise.resolve().then(() => {
+            if (!noFetch) {
+                return api.appsRichmenus.findAll(appId, userId).then((resJson) => {
+                    return resJson.data;
+                });
+            }
+            return appsRichmenus;
+        }).then(function(_appsRichmenus) {
+            if (!(_appsRichmenus && _appsRichmenus[appId])) {
+                return;
+            }
+
+            if (!appsRichmenus[appId]) {
+                appsRichmenus[appId] = { richmenus: {} };
+            }
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
+            let richmenus = appsRichmenus[appId].richmenus;
+            for (let richmenuId in richmenus) {
+                let richmenu = richmenus[richmenuId];
+                if (richmenu.isDeleted) {
+                    continue;
+                }
+                generateRichmenuRow(richmenuId, richmenu, appId);
+            }
+        });
+    }
+
+    function insertRichmenu() {
+        $(this).attr('disabled', 'disabled');
+        let appId = $appSelector.find('option:selected').val();
+        let selected = $('.richmenu-select').val();
+        let richmenuName = $('input[name="richmenuName"]').val();
+        let chatBarText = $('input[name="chatbarText"]').val();
+        let form = $('input[name = richmenu-form]:checked').val();
+        let originalFilePath = '';
+
+        if (!appId || !richmenuName || !chatBarText) {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
+            return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
+        }
+
+        return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+            let url = resJson.data.url;
+            originalFilePath = resJson.data.originalFilePath;
 
             let areas = composeAreaObject();
-
-            let putRichmenu = {
+            let postRichmenu = {
                 selected: selected,
-                name: title,
+                name: richmenuName,
                 chatBarText: chatBarText,
                 form: form,
                 src: url,
                 size: size,
                 areas: areas
             };
-
-            if (!imageFile) {
-                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
-                    let appsRichmenu = resJson.data;
-                    let richemnu = appsRichmenu[appId].richmenus;
-                    $('#richmenu-modal').modal('hide');
-                    loadRichmenus(appId, userId);
-                    $('#modal-update-save').removeAttr('disabled');
-                    return $.notify('修改成功', { type: 'success' });
-                });
+            return api.appsRichmenus.insert(appId, userId, postRichmenu);
+        }).then((resJson) => {
+            let _appsRichmenus = resJson.data;
+            if (!appsRichmenus[appId]) {
+                appsRichmenus[appId] = { richmenus: {} };
             }
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
 
-            return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
-                putRichmenu.src = resJson.data.url;
-                return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
-            }).then((resJson) => {
-                let appsRichmenu = resJson.data;
-                let richemnu = appsRichmenu[appId].richmenus;
-                let richmenuId = Object.keys(richemnu)[0];
-                $('#richmenu-modal').modal('hide');
-                loadRichmenus(appId, userId);
-                return $.notify('修改成功', { type: 'success' });
-            }).catch(() => {
-                $('#richmenu-modal').modal('hide');
-                return $.notify('修改失敗', { type: 'danger' });
-            });
+            let richemnu = _appsRichmenus[appId].richmenus;
+            let richmenuId = Object.keys(richemnu)[0];
+            return api.bot.moveFile(appId, richmenuId, userId, originalFilePath);
+        }).then(() => {
+            $('#richmenu-modal').modal('hide');
+            $.notify('新增成功', { type: 'success' });
+            return loadRichmenus(appId, userId, true);
         });
+    }
 
-        return api.appsRichmenus.findOne(appId, richmenuId, userId).then((resJson) => {
-            let appRichmenu = resJson.data;
-            let richemnu = appRichmenu[appId].richmenus[richmenuId];
-            let areas = richemnu.areas;
-            let photoForm = richemnu.form;
-            size = richemnu.size;
-            $appSelector.parent().parent().addClass('d-none');
+    function updateRichmenu(appId, richmenuId) {
+        let selected = $('.richmenu-select').val();
+        let richmenuName = $('input[name="richmenuName"]').val();
+        let chatBarText = $('input[name="chatbarText"]').val();
+        let form = $('input[name="richmenu-form"]:checked').val();
+        let areas = composeAreaObject();
 
-            $('#richmenu-selected').find('[value = "' + richemnu.selected + '"]').prop('selected', true);
-            $('#title').val(richemnu.name);
-            $('#chatbar-text').val(richemnu.chatBarText);
-            $('input[value =' + photoForm + ']').prop('checked', true);
-            $('.show-richmenu-form')
-                .css('background', 'url(' + richemnu.src + ') center no-repeat')
-                .css('background-size', 'cover');
+        let putRichmenu = {
+            selected: selected,
+            name: richmenuName,
+            chatBarText: chatBarText,
+            form: form,
+            src: '',
+            size: size,
+            areas: areas
+        };
 
-            url = richemnu.src;
-            photoFormShow();
-            let boxElements = $('.box');
-            boxElements.each(function(i) {
-                let text = !areas[i].action.text ? areas[i].action.uri : areas[i].action.text;
-                let type = 'postback' === areas[i].action.type ? '未設定' : areas[i].action.type;
-                $(this).css('background-color', 'rgba(158,158,158, 0.7)');
-                $(this).text(`${type}:\n${text || ''}`);
-                $(this).addClass('marked')
-                    .attr('ref', text);
+        $('#modal-update-save').attr('disabled', true);
+        if (!imageFile) {
+            return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
+                let _appsRichmenus = resJson.data;
+                Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+                $('#richmenu-modal').modal('hide');
+                return loadRichmenus(appId, userId, true);
+            }).then(() => {
+                $('#modal-update-save').removeAttr('disabled');
+                return $.notify('修改成功', { type: 'success' });
             });
+        }
+
+        return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+            putRichmenu.src = resJson.data.url;
+            return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
+        }).then((resJson) => {
+            let _appsRichmenus = resJson.data;
+            Object.assign(appsRichmenus[appId].richmenus, _appsRichmenus[appId].richmenus);
+
+            $('#richmenu-modal').modal('hide');
+            $.notify('修改成功', { type: 'success' });
+            return loadRichmenus(appId, userId, true);
+        }).catch(() => {
+            $('#richmenu-modal').modal('hide');
+            $.notify('修改失敗', { type: 'danger' });
         });
     }
 
     function composeAreaObject() {
-        let width = $modal.find('.show-richmenu-form').width();
-        let height = $modal.find('.show-richmenu-form').height();
+        let $richmenuForm = $modal.find('.richmenu-form');
+        let $showRichmenuForm = $richmenuForm.find('.show-richmenu-form');
+        let width = $showRichmenuForm.width();
+        let height = $showRichmenuForm.height();
 
         let imgWidth = size.width;
         let imgHeight = size.height;
@@ -699,58 +764,64 @@
         let widthRate = imgWidth / width;
         let heightRate = imgHeight / height;
 
-        let boxElements = $('.box');
+        let $boxesInputs = $richmenuForm.find('.boxes-inputs');
+        let $formInputs = $richmenuForm.find('.form-inputs');
+
+        let $boxes = $showRichmenuForm.find('.box');
         let areas = [];
-        boxElements.each(function() {
-            let boxWidth = $(this).width();
-            let boxHeight = $(this).height();
-            let x = parseInt($(this).attr('data-x'));
-            let y = parseInt($(this).attr('data-y'));
-            let text = $(this).attr('ref');
+        $boxes.each(function() {
+            let $box = $(this);
+            let boxId = $box.attr('id');
+            let textType = $boxesInputs.find('#' + boxId + '-input input[name="content"]:checked').val();
+            let $textInput = $formInputs.find('#' + boxId + '-input #' + textType);
+            let text = $textInput.val() || $box.attr('ref');
 
-            // 將 長寬 及 座標 依圖片大小縮放並四捨五入
-            let sacledWidth = Math.round(boxWidth * widthRate);
-            let scaledHeight = Math.round(boxHeight * heightRate);
-            let scaledX = Math.round(x * widthRate);
-            let scaledY = Math.round(y * heightRate);
+            if ('url' === textType && text) {
+                if (!text.startsWith('http://') || !text.startsWith('https://')) {
+                    text = window.location.protocol + '//' + text;
+                }
+            }
 
-            let action = getRichmenuTextType(text);
+            let boxWidth = $box.width();
+            let boxHeight = $box.height();
+            let x = parseInt($box.data('x'));
+            let y = parseInt($box.data('y'));
 
-            let areaDataObj = {
+            let area = {
+                // 將 長寬 及 座標 依圖片大小縮放並四捨五入
                 bounds: {
-                    x: scaledX,
-                    y: scaledY,
-                    width: sacledWidth,
-                    height: scaledHeight
+                    x: Math.round(x * widthRate),
+                    y: Math.round(y * heightRate),
+                    width: Math.round(boxWidth * widthRate),
+                    height: Math.round(boxHeight * heightRate)
                 },
-                action
+                action: getRichmenuTextType(text)
             };
 
-            areas.push(areaDataObj);
+            areas.push(area);
         });
         return areas;
     }
 
     function getRichmenuTextType(text) {
+        let richmenuTextType = {};
+
         if (!text) {
-            return {
-                type: 'postback',
-                data: 'message=none'
-            };
+            richmenuTextType.type = 'postback';
+            richmenuTextType.data = 'message=none';
+            return richmenuTextType;
         }
 
-        if (text.includes('http://') || text.includes('https://')) {
-            return {
-                type: 'uri',
-                uri: text
-
-            };
+        if (text.startsWith('http://') ||
+            text.startsWith('https://')) {
+            richmenuTextType.type = 'uri';
+            richmenuTextType.uri = text;
+            return richmenuTextType;
         }
 
-        return {
-            type: 'message',
-            text: text
-        };
+        richmenuTextType.type = 'message';
+        richmenuTextType.text = text;
+        return richmenuTextType;
     }
 
     function remove() {

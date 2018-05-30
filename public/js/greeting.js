@@ -184,7 +184,7 @@
                 for (let greetingId in greeting) {
                     $('table #MsgCanvas').append(
                         '<tr id="' + greetingId + '" rel="' + appId + '">' +
-                            '<td>' + greeting[greetingId].text + '</td>' +
+                            '<td class="text-pre">' + greeting[greetingId].text + '</td>' +
                             '<td>' + new Date(greeting[greetingId].createdTime).toLocaleString() + '</td>' +
                             '<td>' +
                                 '<button type="button" class="mb-1 mr-1 btn btn-light btn-border check" id="edit-btn" data-toggle="modal" data-target="#greeting_modal" aria-hidden="true"><i class="fas fa-edit update"></i></button>' +
