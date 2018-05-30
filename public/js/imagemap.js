@@ -426,8 +426,8 @@
                 .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
                 .css('background-size', 'cover');
             photoFormShow();
-            let boxElements = $('.box');
-            boxElements.each(function(i) {
+            let $boxes = $('.box');
+            $boxes.each(function(i) {
                 let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
                 $(this).css('background-color', 'rgba(158,158,158, 0.7)');
                 $(this).text(output);
@@ -454,14 +454,15 @@
         let widthRate = imgWidth / width;
         let heightRate = imgHeight / height;
 
-        let boxElements = $('.box');
+        let $boxes = $('.box');
         let actions = [];
-        boxElements.each(function() {
-            let boxWidth = $(this).width();
-            let boxHeight = $(this).height();
-            let x = parseInt($(this).attr('data-x'));
-            let y = parseInt($(this).attr('data-y'));
-            let text = $(this).attr('ref');
+        $boxes.each(function() {
+            let $box = $(this);
+            let boxWidth = $box.width();
+            let boxHeight = $box.height();
+            let x = parseInt($box.data('x'));
+            let y = parseInt($box.data('y'));
+            let text = $box.attr('ref') || '';
 
             // 將 長寬 及 座標 依圖片大小縮放並四捨五入
             let sacledWidth = Math.round(boxWidth * widthRate);
@@ -470,7 +471,8 @@
             let scaledY = Math.round(y * heightRate);
 
             let action;
-            if (text.startsWith('https://') || text.startsWith('http://')) {
+            if (text.startsWith('https://') ||
+                text.startsWith('http://')) {
                 action = {
                     type: 'uri',
                     linkUri: text,

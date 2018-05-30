@@ -1,11 +1,8 @@
 /// <reference path='../../typings/client/index.d.ts' />
 (function() {
-    const socket = io.connect();
     var api = window.restfulAPI;
     var $jqDoc = $(document);
-    var $templateEditModal = $('#edit-modal');
-    var editForm = $('#edit-form');
-    var templateData = {};
+
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
@@ -25,24 +22,26 @@
     } catch (ex) {
         userId = '';
     }
+
     $(document).on('change', '#template-type', switchTemplateType);
     $('.template-view').addClass('d-none');
     $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
     $(document).on('click', '.image-upload', clickImageUpload);
     $(document).on('click', '#image-upload', uploadImageFromButton);
     $(document).on('change', '.image-ghost', uploadImage);
-    $(document).on('click', '#modal-save', saveTemplate);
+    $(document).on('click', '#modal-save', insertTemplate);
     $(document).on('click', '#edit-btn', editTemplate);
-    $(document).on('click', '#delete-btn', dataRemove);
-    $(document).on('click', '#edit-modal-save', dataUpdate);
+    $(document).on('click', '#delete-btn', removeTemplate);
+    $(document).on('click', '#edit-modal-save', updateTemplate);
     $(document).on('click', '#show-template-modal', clearModal);
     $(document).on('focus', 'input[type="text"]', function() {
         $(this).select();
     });
+
     return api.apps.findAll(userId).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        $jqDoc.find('button.inner-add').attr('disabled',true);
+        $jqDoc.find('button.inner-add').attr('disabled', true);
         let nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
@@ -73,7 +72,12 @@
     function loadTemplates(appId, userId) {
         $('#template-tables').empty();
         return api.appsTemplates.findAll(appId, userId).then(function(resJson) {
-            let templates = resJson.data[appId].templates;
+            let appsTemplates = resJson.data;
+            if (!(appsTemplates && appsTemplates[appId])) {
+                return;
+            }
+
+            let templates = appsTemplates[appId].templates;
             for (let templateId in templates) {
                 let template = templates[templateId];
 
@@ -91,6 +95,7 @@
             }
         });
     }
+
     // =====load template start=====
     // function loadChannelInfo(userId, callback) {
     //     socket.emit('request channels', userId, (data) => {
@@ -115,18 +120,17 @@
     // =====view template start=====
 
     function clearModal() {
-        let a = $(this);
         imageFile = {
-            0 : '',
-            1 : '',
-            2 : ''
+            0: '',
+            1: '',
+            2: ''
         };
-        imageUrl=[];
+
         let modal = $('#template-modal');
         $('.template-upload-desc').removeClass('d-none');
+        $('#template-type').val('').trigger('change');
         modal.find('input').val('');
         modal.find('textarea').val('');
-        $('#template-type').val('').trigger('change');
         modal.find('.line-thumbnailImageUrl').val('');
         modal.find('.image-upload').attr('src', 'image/upload.png');
         modal.find('.carousel-inner').find('.carousel-item:first').addClass('active').siblings('.carousel-item').removeClass('active');
@@ -142,11 +146,10 @@
         $('.carousel-inner').carousel(0);
         $('.carousel-inner').carousel('pause');
         imageFile = {
-            0 : '',
-            1 : '',
-            2 : ''
+            0: '',
+            1: '',
+            2: ''
         };
-        imageUrl = [];
         carouselImage = [];
         btnImage = '';
         let modal = $('#template-modal');
@@ -176,11 +179,13 @@
             };
         });
     }
+
     function showConfirm(template) {
         let container = $('.template-view[rel="confirm"] .rounded-border');
         container.find('.line-text').val(template.text);
         showAction(container, template.actions);
     }
+
     function showCarousel(template) {
         $('.template-upload-desc').addClass('d-none');
         let items = $('#carousel-container .carousel-item .rounded-border');
@@ -199,6 +204,7 @@
         container.find('.line-text').val(template.text);
         showAction(container, template.actions);
     }
+
     function showColumn(container, column) {
         container.find('.line-thumbnailImageUrl').val(column.thumbnailImageUrl);
         container.find('.line-thumbnailImageUrl>img').attr('src', column.thumbnailImageUrl);
@@ -206,6 +212,7 @@
         container.find('.line-text').val(column.text);
         showAction(container, column.actions);
     }
+
     function showAction(container, action) {
         let $actions = container.find('.line-action');
         for (let i = 0; i < action.length; i++) {
@@ -219,14 +226,15 @@
             }
         }
     }
-    function dataUpdate() {
+
+    function updateTemplate() {
         $('#edit-modal-save').attr('disabled', true);
         let appId = $('#app-select option:selected').attr('id');
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
         let templateId = $('#template-id').text();
-        let document = 'template';
+
         if (!altText) {
             $('#edit-modal-save').removeAttr('disabled');
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
@@ -237,44 +245,55 @@
             else if ('buttons' === type) template = createButtons();
             else if ('carousel' === type) {
                 template = createCarousel();
-            } 
-            if (!template) return null;
-            else {
+            }
+
+            if (!template) {
+                return null;
+            } else {
                 let putTemplate = {
                     'type': 'template',
                     'keyword': keyword,
                     'altText': altText,
                     'template': template
                 };
+
                 return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
-                    if ('' !== imageFile[imageFileNum]) {
-                        return api.bot.uploadFile(appId, document, templateId, userId, imageFile[imageFileNum]).then((resJson) => {
-                            return resJson.data;
+                    if (imageFile[imageFileNum]) {
+                        return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
+                            return resJson.data.url;
                         });
                     }
-                })).then((imageUrl) => {
+                    return Promise.resolve([]);
+                })).then((imageUrls) => {
                     if ('buttons' === putTemplate.template.type) {
-                        putTemplate.template.thumbnailImageUrl = imageUrl[0] || btnImage || carouselImage[0];
+                        putTemplate.template.thumbnailImageUrl = imageUrls[0] || btnImage || carouselImage[0];
                     }
+
                     if ('carousel' === putTemplate.template.type) {
                         for (let img in putTemplate.template.columns) {
-                            putTemplate.template.columns[img].thumbnailImageUrl = imageUrl[img] || carouselImage[img] || btnImage;
+                            putTemplate.template.columns[img].thumbnailImageUrl = imageUrls[img] || carouselImage[img] || btnImage;
                         }
                     }
                 }).then(() => {
-                    api.appsTemplates.update(appId, templateId, userId, putTemplate);
+                    return api.appsTemplates.update(appId, templateId, userId, putTemplate);
+                }).then(() => {
                     $('#template-modal').modal('hide');
                     $.notify('修改成功！', { type: 'success' });
                     $('#edit-modal-save').removeAttr('disabled');
-                    setTimeout(function() {
-                        $appDropdown.find('#' + appId).click();
-                    }, 1000);
+
+                    return new Promise((resolve) => {
+                        setTimeout(function() {
+                            $appDropdown.find('#' + appId).trigger('click');
+                            resolve();
+                        }, 1000);
+                    });
                 }).catch((resJson) => {
                     if (undefined === resJson.status) {
                         $('#template-modal').modal('hide');
                         $.notify('失敗', { type: 'danger' });
                         $('#edit-modal-save').removeAttr('disabled');
                     }
+
                     if (NO_PERMISSION_CODE === resJson.code) {
                         $('#template-modal').modal('hide');
                         $.notify('無此權限', { type: 'danger' });
@@ -350,7 +369,7 @@
         }
     }
 
-    function saveTemplate() {
+    function insertTemplate() {
         $('#modal-save').attr('disabled', true);
         appId = $('#app-select option:selected').attr('id');
         keyword = $('#template-keyword').val();
@@ -362,29 +381,35 @@
             let template = createTemplate(type);
             if (template) {
                 return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
-                    if ('' !== imageFile[imageFileNum]) {
+                    if (imageFile[imageFileNum]) {
                         return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
                             return resJson.data.url;
                         });
                     }
-                })).then((imageUrl) => {
+                    return Promise.resolve([]);
+                })).then((imageUrls) => {
                     if ('buttons' === template.template.type) {
-                        template.template.thumbnailImageUrl = imageUrl[0];
+                        template.template.thumbnailImageUrl = imageUrls[0];
                     }
+
                     if ('carousel' === template.template.type) {
                         for (let img in template.template.columns) {
-                            template.template.columns[img].thumbnailImageUrl = imageUrl[img];
+                            template.template.columns[img].thumbnailImageUrl = imageUrls[img];
                         }
                     }
                 }).then(() => {
-                    api.appsTemplates.insert(appId, userId, template);
+                    return api.appsTemplates.insert(appId, userId, template);
+                }).then(() => {
                     $('#template-modal').modal('hide');
-                    $.notify('新增成功！', { type: 'success' });
                     $('#modal-save').removeAttr('disabled');
-                    setTimeout(function() {
-                        $appDropdown.find('#' + appId).click();
-                    }, 1000);
-                    $('#template-modal').modal('toggle');
+                    $.notify('新增成功！', { type: 'success' });
+
+                    return new Promise((resolve) => {
+                        setTimeout(function() {
+                            $appDropdown.find('#' + appId).trigger('click');
+                            resolve();
+                        }, 1000);
+                    });
                 });
             }
         }
@@ -521,7 +546,7 @@
 
     // =====edit template end=====
 
-    function dataRemove() {
+    function removeTemplate() {
         let appId = $(this).parent().parent().attr('rel');
         let templateId = $(this).parent().parent().attr('id');
         return showDialog('確定要刪除嗎？').then(function(isOK) {
@@ -567,5 +592,3 @@
         });
     }
 })();
-// mermaid.init({}, ".mermaidd");
-// =====chart end=====

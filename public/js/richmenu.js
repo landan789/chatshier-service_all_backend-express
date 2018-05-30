@@ -68,7 +68,7 @@
             }
             return appsKeywordreplies[appId].keywordreplies;
         }).then((keywordreplies) => {
-            let keywordreplyStr = '<option>請選擇關鍵字</option>';
+            let keywordreplyStr = '<option disabled value="">-- 請選擇關鍵字 --</option>';
             for (let keywordreplyId in keywordreplies) {
                 let keyword = keywordreplies[keywordreplyId].keyword;
                 keywordreplyStr += '<option value="' + keyword + '">' + keyword + '</option>';
@@ -76,7 +76,7 @@
 
             let $keywordsSelectors = $('.form-inputs select#keyword');
             $keywordsSelectors.each((i) => {
-                $($keywordsSelectors[i]).html(keywordreplyStr);
+                $($keywordsSelectors[i]).html(keywordreplyStr).val('');
             });
         });
     });
