@@ -134,7 +134,7 @@ module.exports = (function() {
                     data: users
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
                     msg: ERROR.MSG || '',

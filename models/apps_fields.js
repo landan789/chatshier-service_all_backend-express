@@ -64,7 +64,7 @@ module.exports = (function() {
          * 根據輸入的 appId 陣列清單取得所有的客戶分類條件
          *
          * @param {string|string[]} appIds
-         * @param {string} [fieldId]
+         * @param {string|null} [fieldId]
          * @param {(appsField: any|null) => any} [callback]
          */
         find(appIds, fieldId, callback) {
