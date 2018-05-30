@@ -42,7 +42,7 @@
     return api.apps.findAll(userId).then(function(respJson) {
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
-        $jqDoc.find('button.inner-add').attr('disabled',true);
+        $jqDoc.find('button.inner-add').attr('disabled', true);
         let nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
@@ -62,14 +62,11 @@
             loadTemplates(nowSelectAppId, userId);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
-    }).catch((ERR) => {
-        return $.notify('載入失敗', { type: 'danger' });
     });
 
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadTemplates(nowSelectAppId, userId);
     }
 
     function loadTemplates(appId, userId) {
@@ -91,8 +88,6 @@
                     '</tr>'
                 );
             }
-        }).catch((ERR) => {
-            return $.notify('載入失敗', { type: 'danger' });
         });
     }
     // =====load template start=====
