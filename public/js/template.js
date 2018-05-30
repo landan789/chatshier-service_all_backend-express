@@ -42,7 +42,7 @@
         var appsData = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
         $jqDoc.find('button.inner-add').attr('disabled', true);
-        let nowSelectAppId = '';
+
         for (var appId in appsData) {
             var app = appsData[appId];
             if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
@@ -66,7 +66,6 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadTemplates(nowSelectAppId, userId);
     }
 
     function loadTemplates(appId, userId) {
@@ -177,6 +176,8 @@
             if ('carousel' === type) {
                 showCarousel(template);
             };
+        }).catch((ERR) => {
+            return $.notify('載入失敗', { type: 'danger' });
         });
     }
 
@@ -349,6 +350,8 @@
                 previewImage = imgBase64;
                 $(input).siblings('img').attr('src', imgBase64);
                 $('.template-upload-desc').addClass('d-none');
+            }).catch((ERR) => {
+                return $.notify('載入失敗', { type: 'danger' });
             });
         }
     }
@@ -562,17 +565,17 @@
             if (!isOK) {
                 return;
             }
-            return api.appsTemplates.remove(appId, templateId, userId).then(function(resJson) {
-                $('#' + templateId).remove();
-                $.notify('刪除成功！', { type: 'success' });
-            }).catch((resJson) => {
-                if (undefined === resJson.status) {
-                    $.notify('失敗', { type: 'danger' });
-                }
-                if (NO_PERMISSION_CODE === resJson.code) {
-                    $.notify('無此權限', { type: 'danger' });
-                }
-            });
+            return api.appsTemplates.remove(appId, templateId, userId);
+        }).then(function(resJson) {
+            $('#' + templateId).remove();
+            $.notify('刪除成功！', { type: 'success' });
+        }).catch((resJson) => {
+            if (undefined === resJson.status) {
+                $.notify('失敗', { type: 'danger' });
+            }
+            if (NO_PERMISSION_CODE === resJson.code) {
+                $.notify('無此權限', { type: 'danger' });
+            }
         });
     }
 
