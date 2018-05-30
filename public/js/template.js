@@ -194,6 +194,7 @@
             carouselImage[i] = template.columns[i].thumbnailImageUrl;
         }
     }
+
     function showButtons(template) {
         $('.template-upload-desc').addClass('d-none');
         let container = $('#carousel-container .carousel-item.active .rounded-border');
@@ -241,66 +242,62 @@
             return null;
         } else {
             let template = null;
-            if ('confirm' === type) template = createConfirm();
-            else if ('buttons' === type) template = createButtons();
-            else if ('carousel' === type) {
+            if ('confirm' === type) {
+                template = createConfirm();
+            } else if ('buttons' === type) {
+                template = createButtons();
+            } else if ('carousel' === type) {
                 template = createCarousel();
+            } else {
+                return Promise.resolve([]);
             }
 
-            if (!template) {
-                return null;
-            } else {
-                let putTemplate = {
-                    'type': 'template',
-                    'keyword': keyword,
-                    'altText': altText,
-                    'template': template
-                };
+            let putTemplate = {
+                type: 'template',
+                keyword: keyword,
+                altText: altText,
+                template: template
+            };
 
-                return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
+            return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
+                return Promise.resolve().then(() => {
                     if (imageFile[imageFileNum]) {
                         return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
                             return resJson.data.url;
                         });
                     }
-                    return Promise.resolve([]);
-                })).then((imageUrls) => {
-                    if ('buttons' === putTemplate.template.type) {
-                        putTemplate.template.thumbnailImageUrl = imageUrls[0] || btnImage || carouselImage[0];
-                    }
-
-                    if ('carousel' === putTemplate.template.type) {
-                        for (let img in putTemplate.template.columns) {
-                            putTemplate.template.columns[img].thumbnailImageUrl = imageUrls[img] || carouselImage[img] || btnImage;
-                        }
-                    }
-                }).then(() => {
-                    return api.appsTemplates.update(appId, templateId, userId, putTemplate);
-                }).then(() => {
-                    $('#template-modal').modal('hide');
-                    $.notify('修改成功！', { type: 'success' });
-                    $('#edit-modal-save').removeAttr('disabled');
-
-                    return new Promise((resolve) => {
-                        setTimeout(function() {
-                            $appDropdown.find('#' + appId).trigger('click');
-                            resolve();
-                        }, 1000);
-                    });
-                }).catch((resJson) => {
-                    if (undefined === resJson.status) {
-                        $('#template-modal').modal('hide');
-                        $.notify('失敗', { type: 'danger' });
-                        $('#edit-modal-save').removeAttr('disabled');
-                    }
-
-                    if (NO_PERMISSION_CODE === resJson.code) {
-                        $('#template-modal').modal('hide');
-                        $.notify('無此權限', { type: 'danger' });
-                        $('#edit-modal-save').removeAttr('disabled');
-                    }
+                    return '';
                 });
-            }
+            })).then((imageUrls) => {
+                if ('buttons' === putTemplate.template.type) {
+                    putTemplate.template.thumbnailImageUrl = imageUrls[0] || btnImage || carouselImage[0];
+                }
+
+                if ('carousel' === putTemplate.template.type) {
+                    for (let i in putTemplate.template.columns) {
+                        putTemplate.template.columns[i].thumbnailImageUrl = imageUrls[i] || carouselImage[i] || btnImage;
+                    }
+                }
+            }).then(() => {
+                return api.appsTemplates.update(appId, templateId, userId, putTemplate);
+            }).then(() => {
+                $('#template-modal').modal('hide');
+                $.notify('修改成功！', { type: 'success' });
+                $('#edit-modal-save').removeAttr('disabled');
+                return loadTemplates(appId, userId);
+            }).catch((resJson) => {
+                if (undefined === resJson.status) {
+                    $('#template-modal').modal('hide');
+                    $.notify('失敗', { type: 'danger' });
+                    $('#edit-modal-save').removeAttr('disabled');
+                }
+
+                if (NO_PERMISSION_CODE === resJson.code) {
+                    $('#template-modal').modal('hide');
+                    $.notify('無此權限', { type: 'danger' });
+                    $('#edit-modal-save').removeAttr('disabled');
+                }
+            });
         }
     }
     // =====view template end=====
@@ -327,15 +324,13 @@
     function uploadImage() {
         /** @type {HTMLInputElement} */
         let input = this;
-        let fileName = input.value;
-
         let activeIndex = $(this).parents('.carousel-item.active').index();
 
         if (input.files && input.files[0]) {
             /** @type {File} */
             file = input.files[0];
-            imageFile[activeIndex] = Object.assign(file);
-            var fileReader = new FileReader();
+            imageFile[activeIndex] = file;
+
             var config = window.chatshier.config;
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
                 $('#modal-save').removeAttr('disabled');
@@ -343,7 +338,9 @@
                 $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
                 return;
             }
+
             return new Promise(function(resolve, reject) {
+                var fileReader = new FileReader();
                 fileReader.onload = function() {
                     resolve(fileReader.result);
                 };
@@ -374,44 +371,47 @@
         appId = $('#app-select option:selected').attr('id');
         keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
+
         if (!keyword || !type) {
             $('#modal-save').removeAttr('disabled');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         } else {
             let template = createTemplate(type);
-            if (template) {
-                return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
+            if (!template) {
+                $('#modal-save').removeAttr('disabled');
+                $.notify('模板資料輸入有誤，請完成正確的模板設定', { type: 'warning' });
+                return;
+            }
+
+            return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
+                return Promise.resolve().then(() => {
                     if (imageFile[imageFileNum]) {
                         return api.bot.uploadFile(appId, userId, imageFile[imageFileNum]).then((resJson) => {
                             return resJson.data.url;
                         });
                     }
-                    return Promise.resolve([]);
-                })).then((imageUrls) => {
-                    if ('buttons' === template.template.type) {
-                        template.template.thumbnailImageUrl = imageUrls[0];
-                    }
-
-                    if ('carousel' === template.template.type) {
-                        for (let img in template.template.columns) {
-                            template.template.columns[img].thumbnailImageUrl = imageUrls[img];
-                        }
-                    }
-                }).then(() => {
-                    return api.appsTemplates.insert(appId, userId, template);
-                }).then(() => {
-                    $('#template-modal').modal('hide');
-                    $('#modal-save').removeAttr('disabled');
-                    $.notify('新增成功！', { type: 'success' });
-
-                    return new Promise((resolve) => {
-                        setTimeout(function() {
-                            $appDropdown.find('#' + appId).trigger('click');
-                            resolve();
-                        }, 1000);
-                    });
+                    return '';
                 });
-            }
+            })).then((imageUrls) => {
+                if (!(template && template.template)) {
+                    return;
+                }
+
+                if ('buttons' === template.template.type) {
+                    template.template.thumbnailImageUrl = imageUrls[0];
+                } else if ('carousel' === template.template.type) {
+                    for (let i in template.template.columns) {
+                        template.template.columns[i].thumbnailImageUrl = imageUrls[i];
+                    }
+                }
+            }).then(() => {
+                return api.appsTemplates.insert(appId, userId, template);
+            }).then(() => {
+                $('#template-modal').modal('hide');
+                $('#modal-save').removeAttr('disabled');
+                $.notify('新增成功！', { type: 'success' });
+                return loadTemplates(appId, userId);
+            });
         }
     }
 
@@ -423,20 +423,25 @@
             return null;
         } else {
             let template = null;
-            if ('confirm' === type) template = createConfirm();
-            else if ('buttons' === type) template = createButtons();
-            else if ('carousel' === type) template = createCarousel();
-
-            if (!template) return null;
-            else {
-                let postTemplate = {
-                    'type': 'template',
-                    'keyword': keyword,
-                    'altText': altText,
-                    'template': template
-                };
-                return postTemplate;
+            if ('confirm' === type) {
+                template = createConfirm();
+            } else if ('buttons' === type) {
+                template = createButtons();
+            } else if ('carousel' === type) {
+                template = createCarousel();
             }
+
+            if (!template) {
+                return null;
+            }
+
+            let postTemplate = {
+                'type': 'template',
+                'keyword': keyword,
+                'altText': altText,
+                'template': template
+            };
+            return postTemplate;
         }
     }
 
@@ -448,15 +453,15 @@
             $('#edit-modal-save').removeAttr('disabled');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
-        } else {
-            let actions = getAction(container);
-            let template = {
-                'type': 'confirm',
-                'text': text,
-                'actions': actions
-            };
-            return template;
         }
+
+        let actions = getAction(container);
+        let template = {
+            'type': 'confirm',
+            'text': text,
+            'actions': actions
+        };
+        return template;
     }
 
     function createButtons() {
@@ -465,21 +470,22 @@
         let title = container.find('.line-title').val();
         let text = container.find('.line-text').val();
         let actions = getAction(container);
+
         if (!text) {
             $('#modal-save').removeAttr('disabled');
             $('#edit-modal-save').removeAttr('disabled');
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
-        } else {
-            let template = {
-                'type': 'buttons',
-                'text': text,
-                'title': title,
-                'thumbnailImageUrl': thumbnailImageUrl,
-                'actions': actions
-            };
-            return template;
         }
+
+        let template = {
+            'type': 'buttons',
+            'text': text,
+            'title': title,
+            'thumbnailImageUrl': thumbnailImageUrl,
+            'actions': actions
+        };
+        return template;
     }
 
     function createCarousel() {
@@ -487,33 +493,36 @@
         let columns = [];
         items.each(function() {
             let col = getColumn($(this));
-            if (col) columns.push(col);
+            col && columns.push(col);
         });
+
         if (columns.length > 0) {
             let template = {
-                'type': 'carousel',
-                'thumbnailImageUrl': '',
-                'columns': columns
+                type: 'carousel',
+                columns: columns
             };
             return template;
-        } else return null;
+        } else {
+            return null;
+        }
     }
 
     function getColumn(container) {
         let thumbnailImageUrl = previewImage;
         let title = container.find('.line-title').val();
         let text = container.find('.line-text').val();
-        if (!text) return null;
-        else {
-            let actions = getAction(container);
-            let column = {
-                'text': text,
-                'actions': actions
-            };
-            if (thumbnailImageUrl) column['thumbnailImageUrl'] = thumbnailImageUrl;
-            if (title) column['title'] = title;
-            return column;
+
+        if (!text) {
+            return null;
         }
+
+        let column = {
+            text: text || '',
+            title: title || '',
+            actions: getAction(container),
+            thumbnailImageUrl: thumbnailImageUrl || ''
+        };
+        return column;
     }
 
     function getAction(container) {

@@ -1388,39 +1388,69 @@
             case 'confirm':
                 return (
                     '<div class="template-sm">' +
-                        `<div class="template-sm-title">${template.text}</div>` +
-                        '<div class="template-sm-buttons">' +
-                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
-                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-sm-title">
+                            <span>${template.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
+                            (function() {
+                                return template.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-sm-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
                 );
             case 'buttons':
                 return (
                     '<div class="template">' +
-                        `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
-                        `<div class="template-title">${template.title}</div>` +
-                        `<div class="template-desc">${template.text}</div>` +
-                        '<div class="template-buttons">' +
-                            `<div class="template-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
-                            `<div class="template-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
-                            `<div class="template-button3">${template.actions[2].label} (輸出：${getTemplateOutput(template.actions[2])})</div>` +
+                        '<div class="text-center top-img-container">' +
+                            `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                        '</div>' +
+                        `<div class="d-flex flex-wrap align-items-center template-title">
+                            <span>${template.title}</span>
+                        </div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                            <span>${template.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-column template-buttons">' +
+                            (function() {
+                                return template.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
                 );
             case 'carousel':
                 return template.columns.map((column) => (
                     '<div class="template">' +
-                        `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
-                        `<div class="template-title">${column.title}</div>` +
-                        `<div class="template-desc">${column.text}</div>` +
-                        '<div class="template-buttons">' +
-                            `<div class="template-button1">${column.actions[0].label} (輸出：${getTemplateOutput(column.actions[0])})</div>` +
-                            `<div class="template-button2">${column.actions[1].label} (輸出：${getTemplateOutput(column.actions[1])})</div>` +
-                            `<div class="template-button3">${column.actions[2].label} (輸出：${getTemplateOutput(column.actions[2])})</div>` +
+                        '<div class="text-center top-img-container">' +
+                            `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                        '</div>' +
+                        `<div class="d-flex flex-wrap align-items-center template-title">
+                            <span>${column.title}</span>
+                        </div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                            <span>${column.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-column template-buttons">' +
+                            (function() {
+                                return column.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
-                ));
+                )).join('');
             default:
         }
     }
