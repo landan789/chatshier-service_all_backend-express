@@ -102,8 +102,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -130,8 +131,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -261,8 +263,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -313,8 +316,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -364,8 +368,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -427,8 +432,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
             });
@@ -482,8 +488,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
             });
