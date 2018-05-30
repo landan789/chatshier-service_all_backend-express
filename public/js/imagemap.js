@@ -31,6 +31,7 @@
     $jqDoc.on('click', '#remove-btn', removeImagemap);
     $jqDoc.on('click', '#turnOn-update-btn', turnOnUpdateModal);
     $modal.on('show.bs.modal', function() {
+        $('.form-group').removeClass('d-none');
         $('#update-btn').addClass('d-none');
     });
     $modal.on('hidden.bs.modal', function() {
@@ -325,9 +326,8 @@
             return api.appsImagemaps.insert(appId, userId, postImagemap);
         }).then(() => {
             $('#imagemap-modal').modal('hide');
+            $appDropdown.find('#' + appId).click();
             return $.notify('新增成功', { type: 'success' });
-        }).then(() => {
-            loadImagemaps(appId, userId);
         }).catch(() => {
             $('#imagemap-modal').modal('hide');
             return $.notify('新增失敗', { type: 'danger' });
@@ -335,7 +335,7 @@
     }
 
     function removeImagemap() {
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $(this).parent().parent().attr('rel');
         let imagemapId = $(this).parent().parent().attr('id');
 
         return Promise.resolve().then(() => {
@@ -359,7 +359,7 @@
     }
 
     function turnOnUpdateModal() {
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $(this).parent().parent().attr('rel');
         let imagemapId = $(this).parent().parent().attr('id');
 
         $appSelector.parent().parent().addClass('d-none');
