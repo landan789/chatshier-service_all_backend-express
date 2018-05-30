@@ -3,7 +3,7 @@ module.exports = (function() {
     class DomainHelper {
         /**
          * get doamin via hostname
-         * @param {string} password
+         * @param {string} hostname
          */
         get(hostname) {
             let patt = new RegExp(/(\w+)\.(\w+)\.([\w\.]+)/);
