@@ -124,14 +124,13 @@ module.exports = (function() {
                     });
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -170,14 +169,13 @@ module.exports = (function() {
                     return appsRichemnu;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -209,15 +207,14 @@ module.exports = (function() {
                 richmenu.platformMenuId = '';
                 richmenu.isDeleted = true;
                 return appsRichmenusMdl.update(appId, menuId, richmenu);
-            }).then((appsRichmenu) => {
-                let json = {
-                    status: 1,
+            }).then((appsRichmenus) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: appsRichmenu
+                    data: appsRichmenus
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -253,14 +250,13 @@ module.exports = (function() {
                 }
                 return consumersMdl.replace(platformUid, profile);
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -282,14 +278,13 @@ module.exports = (function() {
                 let url = wwwurl.replace('?dl=0', '');
                 return url;
             }).then((url) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: {url, originalFilePath}
+                    data: {url, originalFilePath} // TO DO ， BAD FORMAT
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -306,14 +301,13 @@ module.exports = (function() {
                 }
                 return Promise.reject(err);
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -326,14 +320,13 @@ module.exports = (function() {
             }).then(() => {
                 return appsChatroomsMdl.remove(appId, chatroomId);
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
     }
