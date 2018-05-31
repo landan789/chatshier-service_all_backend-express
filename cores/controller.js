@@ -97,12 +97,12 @@ module.exports = (function() {
             return res && res.status(200).json(json);
         }
 
-        errorJson(error, data, res) {
+        errorJson(error, res) {
             console.error(error);
             let json = {
                 status: 0,
-                msg: error.MSG,
-                code: error.CODE
+                msg: error.MSG || '',
+                code: error.CODE || ''
             };
             return res && res.status(error && error.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }

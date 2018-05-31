@@ -35,7 +35,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(err, res);
             });
         }
 
@@ -77,7 +77,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(err, res);
             });
         }
     }
