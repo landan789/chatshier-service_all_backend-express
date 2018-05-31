@@ -702,6 +702,10 @@
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
             return loadRichmenus(appId, userId, true);
+        }).catch(() => {
+            $('#modal-save').removeAttr('disabled');
+            $('#modal-update-save').removeAttr('disabled');
+            $.notify('新增失敗', { type: 'danger' });
         });
     }
 

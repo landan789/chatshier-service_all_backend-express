@@ -21,6 +21,7 @@ module.exports = (function() {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
                 },
+                'isDeleted': false,
                 'keywordreplies.isDeleted': false
             };
 

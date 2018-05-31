@@ -17,6 +17,7 @@ module.exports = (function() {
          */
         find(appIds, templateIds, callback) {
             let query = {
+                'isDeleted': false,
                 'templates.isDeleted': false
             };
 
@@ -62,6 +63,59 @@ module.exports = (function() {
                 appsTemplates = results.reduce((output, app) => {
                     output[app._id] = output[app._id] || { templates: {} };
                     Object.assign(output[app._id].templates, this.toObject(app.templates));
+                    return output;
+                }, {});
+                return appsTemplates;
+            }).then((appsTemplates) => {
+                ('function' === typeof callback) && callback(appsTemplates);
+                return appsTemplates;
+            }).catch(() => {
+                ('function' === typeof callback) && callback(null);
+                return null;
+            });
+        }
+
+        /**
+        * 找到 templates未刪除的資料包，不含 apps 結構
+        *
+        * @param {string|string[]} appIds
+        * @param {(appsTemplates: any) => any} [callback]
+        * @return {Promise<any>}
+        */
+        findTemplates(appIds, callback) {
+            if ('string' === typeof appIds) {
+                appIds = [appIds];
+            }
+
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false,
+                'templates.isDeleted': false
+            };
+
+            let aggregations = [
+                {
+                    $unwind: '$templates' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        templates: true
+                    }
+                }
+            ];
+
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsTemplates = {};
+                if (0 === results.length) {
+                    return appsTemplates;
+                }
+
+                appsTemplates = results.reduce((output, app) => {
+                    Object.assign(output, this.toObject(app.templates));
                     return output;
                 }, {});
                 return appsTemplates;
@@ -181,58 +235,6 @@ module.exports = (function() {
                     }, {});
                     return appsTemplates;
                 });
-            }).then((appsTemplates) => {
-                ('function' === typeof callback) && callback(appsTemplates);
-                return appsTemplates;
-            }).catch(() => {
-                ('function' === typeof callback) && callback(null);
-                return null;
-            });
-        }
-
-        /**
-        * 找到 templates未刪除的資料包，不含 apps 結構
-        *
-        * @param {string|string[]} appIds
-        * @param {(appsTemplates: any) => any} [callback]
-        * @return {Promise<any>}
-        */
-        findTemplates(appIds, callback) {
-            if ('string' === typeof appIds) {
-                appIds = [appIds];
-            }
-
-            let query = {
-                '_id': {
-                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                },
-                'templates.isDeleted': false
-            };
-
-            let aggregations = [
-                {
-                    $unwind: '$templates' // 只針對 document 處理
-                }, {
-                    $match: query
-                }, {
-                    $project: {
-                        // 篩選項目
-                        templates: true
-                    }
-                }
-            ];
-
-            return this.AppsModel.aggregate(aggregations).then((results) => {
-                let appsTemplates = {};
-                if (0 === results.length) {
-                    return appsTemplates;
-                }
-
-                appsTemplates = results.reduce((output, app) => {
-                    Object.assign(output, this.toObject(app.templates));
-                    return output;
-                }, {});
-                return appsTemplates;
             }).then((appsTemplates) => {
                 ('function' === typeof callback) && callback(appsTemplates);
                 return appsTemplates;

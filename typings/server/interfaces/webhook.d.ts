@@ -7,6 +7,14 @@ namespace Webhook {
             platformGroupId?: string,
             platformGroupType?: string,
             platformUid: string,
+            replyToken?: string
+        }
+
+        interface Profile {
+            type: 'LINE' | 'FACEBOOK' | 'WECHAT',
+            name: string,
+            photo: string,
+            gender?: string
         }
     }
     
@@ -30,7 +38,7 @@ namespace Webhook {
             },
             message: {
                 id: string,
-                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file',
+                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file' | 'template',
                 text: string,
         
                 /**
@@ -71,8 +79,16 @@ namespace Webhook {
                 /**
                  * type location
                  */
-                longitude: number
+                longitude: number,
+
+                /**
+                 * type template
+                 */
+                template: any
             },
+            /**
+             * type postback
+             */
             postback: {
                 /**
                  * ex: 'storeId=12345'
