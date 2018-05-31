@@ -88,14 +88,23 @@ module.exports = (function() {
             });
         }
 
-        errorJson(err, data, res) {
-            console.error(err);
+        successJson(success, res) {
+            let json = {
+                status: 1,
+                msg: success.MSG,
+                data: success.data
+            };
+            return res && res.status(200).json(json);
+        }
+
+        errorJson(error, data, res) {
+            console.error(error);
             let json = {
                 status: 0,
-                msg: err.MSG,
-                code: err.CODE
+                msg: error.MSG,
+                code: error.CODE
             };
-            return res && res.status(err && err.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            return res && res.status(error && error.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
         }
     }
 
