@@ -159,7 +159,7 @@ module.exports = (function() {
                 }
 
                 // 判斷 richmenus 中是否有目前 richmenuId
-                if (richmenus[richmenuId]) {
+                if (!richmenus[richmenuId]) {
                     return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_RICHMENU);
                 }
 
