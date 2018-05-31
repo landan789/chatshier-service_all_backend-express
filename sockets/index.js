@@ -330,7 +330,6 @@ function init(server) {
                 });
             }).then((user) => {
                 socketBody.user = user;
-                console.log(socketBody);
                 return socketHlp.emitToAll(memberUserId, SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();
