@@ -43,7 +43,11 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenuId = req.params.richmenuid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 }
@@ -91,7 +95,11 @@ module.exports = (function() {
                 platformMenuId: ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                }
+
                 return appsRichmenusMdl.insert(appId, postRichmenu).then((appsRichmenus) => {
                     if (!(appsRichmenus && appsRichmenus[appId])) {
                         return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_INSERT);
@@ -136,7 +144,11 @@ module.exports = (function() {
                 platformMenuId: ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
                 }
@@ -174,10 +186,14 @@ module.exports = (function() {
             let appId = req.params.appid;
             let richmenuId = req.params.richmenuid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.RICHMENU_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!richmenuId) {
                     return Promise.reject(API_ERROR.RICHMENUID_WAS_EMPTY);
-                };
+                }
                 return appsRichmenusMdl.findRichmenus(appId);
             }).then((richmenus) => {
                 if (!richmenus) {

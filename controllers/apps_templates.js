@@ -43,7 +43,10 @@ module.exports = (function() {
             let appId = req.params.appid;
             let templateId = req.params.templateid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
                 if (!appsTemplates) {
@@ -71,7 +74,11 @@ module.exports = (function() {
                 template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
                     if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
@@ -129,7 +136,11 @@ module.exports = (function() {
                 template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 }
@@ -155,7 +166,11 @@ module.exports = (function() {
             let appId = req.params.appid;
             let templateId = req.params.templateid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 }
