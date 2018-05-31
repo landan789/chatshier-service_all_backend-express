@@ -103,7 +103,7 @@ module.exports = (function() {
             });
         }
 
-        errorHandler(err, res) {
+        errorJson(err, res) {
             console.error(err);
             let json = {
                 status: 0,
