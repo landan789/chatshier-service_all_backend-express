@@ -99,13 +99,8 @@ module.exports = (function() {
 
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -127,13 +122,8 @@ module.exports = (function() {
                 };
                 res.cookie('jwt', '', options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -258,13 +248,8 @@ module.exports = (function() {
                 };
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -310,13 +295,8 @@ module.exports = (function() {
                 };
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -361,13 +341,8 @@ module.exports = (function() {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -424,13 +399,8 @@ module.exports = (function() {
                 };
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -479,13 +449,8 @@ module.exports = (function() {
                 };
                 res.cookie('jwt', token, options);
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(ERROR.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }

@@ -34,13 +34,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -70,13 +65,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }
