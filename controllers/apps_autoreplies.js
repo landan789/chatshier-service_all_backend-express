@@ -37,12 +37,11 @@ module.exports = (function() {
                     data: apps
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
+            }).catch((ERR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG || '',
-                    code: ERROR.CODE || '',
-                    error: ERROR
+                    msg: ERR.MSG,
+                    code: ERR.CODE
                 };
                 res.status(500).json(json);
             });
@@ -70,12 +69,11 @@ module.exports = (function() {
                     data: appsAutoreplies
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
+            }).catch((ERR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG || '',
-                    code: ERROR.CODE || '',
-                    error: ERROR
+                    msg: ERR.MSG,
+                    code: ERR.CODE
                 };
                 res.status(500).json(json);
             });
@@ -106,12 +104,11 @@ module.exports = (function() {
                     data: appsAutoreplies
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
+            }).catch((ERR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG || '',
-                    code: ERROR.CODE || '',
-                    error: ERROR
+                    msg: ERR.MSG,
+                    code: ERR.CODE
                 };
                 res.status(500).json(json);
             });
@@ -176,12 +173,11 @@ module.exports = (function() {
                     data: appsAutoreplies
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
+            }).catch((ERR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG || '',
-                    code: ERROR.CODE || '',
-                    error: ERROR
+                    msg: ERR.MSG,
+                    code: ERR.CODE
                 };
                 res.status(500).json(json);
             });
@@ -233,12 +229,11 @@ module.exports = (function() {
                     data: appsAutoreplies
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
+            }).catch((ERR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG || '',
-                    code: ERROR.CODE || '',
-                    error: ERROR
+                    msg: ERR.MSG,
+                    code: ERR.CODE
                 };
                 res.status(500).json(json);
             });
