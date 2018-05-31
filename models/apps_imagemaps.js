@@ -24,7 +24,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'imagemaps.isDeleted': false
             };
             imagemapId && (query['imagemaps._id'] = this.Types.ObjectId(imagemapId));
 
@@ -78,7 +80,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'imagemaps.isDeleted': false
             };
 
             let aggregations = [

@@ -1921,8 +1921,13 @@
 
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
-        if (LINE !== appType) $('.imagemap-container').addClass('d-none');
-        else $('.imagemap-container').removeClass('d-none');
+
+        if (LINE === appType) {
+            $('.imagemap-container').removeClass('d-none');
+        } else {
+            $('.imagemap-container').addClass('d-none');
+        }
+
         if (CHATSHIER !== appType) {
             var messagers = chatroom.messagers;
 
@@ -2044,6 +2049,10 @@
         var appId = $selectedTablinks.attr('app-id');
         var chatroomId = $selectedTablinks.attr('chatroom-id');
         var platformUid = $selectedTablinks.attr('platform-uid');
+
+        if (!(apps[appId] && appsChatrooms[appId])) {
+            return;
+        }
 
         var app = apps[appId];
         var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
@@ -2228,25 +2237,30 @@
     }
 
     function showImagemapArea(ev) {
-        $('.imagemap-area').toggleClass('d-none').siblings().toggleClass('d-none');
-        let appId = $(ev.target).parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+        let $imagemapBtn = $(this);
+        if ($imagemapBtn.attr('disabled')) {
+            return;
+        }
 
+        let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
         return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
             let appsImagemaps = resJson.data;
             if (!appsImagemaps[appId]) {
+                $imagemapBtn.attr('disabled', true);
                 return;
             }
-            let imagemaps = appsImagemaps[appId].imagemaps;
-            let imagemapIds = Object.keys(imagemaps);
-            if (0 >= imagemapIds.length) {
-                return;
-            }
+            $imagemapBtn.removeAttr('disabled');
 
-            $('.imagemap-area').empty();
-            imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
-                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
-                $('.imagemap-area').append(str);
-            });
+            let imagemaps = appsImagemaps[appId].imagemaps;
+            let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+            let $imagemapArea = $('.imagemap-area');
+            $imagemapArea.html(
+                imagemapIds.map((imagemapId) => {
+                    return `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                }).join('')
+            );
+            $imagemapArea.toggleClass('d-none').siblings().toggleClass('d-none');
         }).catch(() => {
             $.notify('載入imagemap失敗', { type: 'danger' });
         });

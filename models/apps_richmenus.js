@@ -24,7 +24,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'richmenus.isDeleted': false
             };
             richmenuId && (query['richmenus._id'] = this.Types.ObjectId(richmenuId));
 
@@ -80,7 +82,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'richmenus.isDeleted': false
             };
 
             let aggregations = [
