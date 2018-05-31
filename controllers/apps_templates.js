@@ -142,7 +142,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then((checkedAppId) => {
                 if (checkedAppId.length >= 2) {
-                    return Promise.reject(API_ERROR.TEMPLATEID_HAS_TWO_OR_MORE_IDS);
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
                 }
                 appId = checkedAppId.pop();
                 if (!templateId) {
@@ -175,8 +175,10 @@ module.exports = (function() {
             let templateId = req.params.templateid;
             let appId;
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 };

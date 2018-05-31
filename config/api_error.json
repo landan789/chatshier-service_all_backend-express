@@ -28,7 +28,9 @@
     "IMAGEMAPID_WAS_EMPTY": {"MSG": "imagemapid was empty", "CODE": "1.21"},
     "ID2_WAS_EMPTY": { "MSG": "id2 was empty", "CODE": "1.22" },
     "TOKEN2_WAS_EMPTY": { "MSG": "token2 was empty", "CODE": "1.23" },
-    "TEMPLATEID_HAS_TWO_OR_MORE_IDS": { "MSG": "template has 2 or more ids", "CODE": "1.24" },
+    "TEMPLATE_HAS_TWO_OR_MORE_IDS": { "MSG": "template has 2 or more ids", "CODE": "1.24" },
+    "IMAGEMAP_HAS_TWO_OR_MORE_IDS": { "MSG": "template has 2 or more ids", "CODE": "1.25" },
+    "RICHMENU_HAS_TWO_OR_MORE_IDS": { "MSG": "template has 2 or more ids", "CODE": "1.26" },
 
     "AUTHENTICATION_USER_FAILED_TO_FIND": { "MSG": "authentication user failed to find", "CODE": "2.1" },
     "PASSWORD_WAS_INCORRECT": { "MSG": "password was incorrect", "CODE": "2.2"},
