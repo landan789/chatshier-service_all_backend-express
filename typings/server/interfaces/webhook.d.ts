@@ -71,8 +71,16 @@ namespace Webhook {
                 /**
                  * type location
                  */
-                longitude: number
+                longitude: number,
+
+                /**
+                 * type template
+                 */
+                template: any
             },
+            /**
+             * type postback
+             */
             postback: {
                 /**
                  * ex: 'storeId=12345'
