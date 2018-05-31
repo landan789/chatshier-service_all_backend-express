@@ -415,6 +415,9 @@
                 $('#modal-save').removeAttr('disabled');
                 $.notify('新增成功！', { type: 'success' });
                 return loadTemplates(appId, userId);
+            }).catch((ERR) => {
+                $('#modal-save').removeAttr('disabled');
+                $.notify('新增失敗', { type: 'danger' });
             });
         }
     }
