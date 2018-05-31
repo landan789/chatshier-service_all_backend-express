@@ -21,7 +21,7 @@ module.exports = (function() {
                 let appIds = checkedAppIds;
                 // 1. 根據 appId 清單去 Fields model 抓取清單
                 return new Promise((resolve, reject) => {
-                    appsFieldsMdl.find(appIds, null, (appsFields) => {
+                    appsFieldsMdl.find(appIds, void 0, (appsFields) => {
                         if (!appsFields) {
                             reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
                             return;
@@ -36,13 +36,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -76,13 +71,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -121,13 +111,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -153,13 +138,8 @@ module.exports = (function() {
                     data: data
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }
