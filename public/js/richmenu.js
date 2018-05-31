@@ -43,8 +43,8 @@
 
     $modal.on('hidden.bs.modal', function() {
         $appSelector.parent().parent().removeClass('d-none');
-        $('#modal-save').removeAttr('disabled');
-        $('#modal-update-save').removeAttr('disabled');
+        $('#modal-save').removeAttr('disabled').empty().text('新增');
+        $('#modal-update-save').removeAttr('disabled').empty().text('修改');
         $(`.form-inputs input`).val('');
         imageFile = '';
     });
@@ -176,7 +176,7 @@
                 size.height = image.height;
                 $('.show-richmenu-form')
                     .css('background', 'url(' + url + ') center no-repeat')
-                    .css('background-size', 'cover')
+                    .css('background-size', '100% 100%')
                     .css('background-color', 'none');
                 imageFile = file;
             };
@@ -392,6 +392,11 @@
             $('.content-input').val('');
         }
 
+        if ('no-action' === contentInputId) {
+            $('.box.checked').attr('ref', '');
+            $(`#${boxInputId} #text`).val('').siblings('#url').val('');
+        }
+
         $('.content-input').addClass('d-none');
         $(`#${boxInputId} #${contentInputId}`).removeClass('d-none');
         $(`#${boxInputId} #${contentInputId}`).change(function() {
@@ -520,7 +525,6 @@
 
         var richmenuRow = (
             '<tr id="' + richmenuId + '" rel="' + appId + '">' +
-                '<th>' + richmenu.name + '</th>' +
                 '<td>' + richmenu.chatBarText + '</td>' +
                 '<td id="photoForm" data-form="' + richmenu.form + '" data-url="' + richmenu.src + '">版型 ' + richmenu.form.slice(-1) + '</td>' +
                 '<td>' + linkText + '</td>' +
@@ -568,9 +572,10 @@
     function appendRichmenu() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
+        let src;
         $('#modal-save').addClass('d-none');
         $('#modal-update-save').removeClass('d-none');
-        $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId));
+        $modal.find('#modal-update-save').off('click').on('click', () => updateRichmenu(appId, richmenuId, src));
 
         return Promise.resolve().then(() => {
             let richemnu = appsRichmenus[appId] ? appsRichmenus[appId].richmenus[richmenuId] : void 0;
@@ -590,6 +595,7 @@
             let areas = richemnu.areas;
             let photoForm = richemnu.form;
             size = richemnu.size;
+            src = richemnu.src;
 
             $appSelector.parents('.form-group').addClass('d-none');
 
@@ -601,7 +607,7 @@
 
             richemnu.src && $('.show-richmenu-form')
                 .css('background', 'url(' + richemnu.src + ') center no-repeat')
-                .css('background-size', 'cover');
+                .css('background-size', '100% 100%');
 
             photoFormShow();
 
@@ -654,29 +660,28 @@
     }
 
     function insertRichmenu() {
-        $(this).attr('disabled', 'disabled');
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $appSelector.find('option:selected').val();
         let selected = $('.richmenu-select').val();
-        let richmenuName = $('input[name="richmenuName"]').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name = richmenu-form]:checked').val();
         let originalFilePath = '';
 
-        if (!appId || !richmenuName || !chatBarText) {
+        if (!appId || !chatBarText) {
             $('#modal-save').removeAttr('disabled');
             $('#modal-update-save').removeAttr('disabled');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
-        return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
             let url = resJson.data.url;
             originalFilePath = resJson.data.originalFilePath;
 
             let areas = composeAreaObject();
             let postRichmenu = {
                 selected: selected,
-                name: richmenuName,
                 chatBarText: chatBarText,
+                name: 'Chatshier Richmenu',
                 form: form,
                 src: url,
                 size: size,
@@ -692,7 +697,7 @@
 
             let richemnu = _appsRichmenus[appId].richmenus;
             let richmenuId = Object.keys(richemnu)[0];
-            return api.bot.moveFile(appId, richmenuId, userId, originalFilePath);
+            return api.image.moveFile(appId, richmenuId, userId, originalFilePath);
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
@@ -704,24 +709,24 @@
         });
     }
 
-    function updateRichmenu(appId, richmenuId) {
+    function updateRichmenu(appId, richmenuId, src) {
         let selected = $('.richmenu-select').val();
-        let richmenuName = $('input[name="richmenuName"]').val();
         let chatBarText = $('input[name="chatbarText"]').val();
         let form = $('input[name="richmenu-form"]:checked').val();
         let areas = composeAreaObject();
 
         let putRichmenu = {
             selected: selected,
-            name: richmenuName,
             chatBarText: chatBarText,
+            name: 'Chatshier Richmenu',
             form: form,
-            src: '',
+            src: src,
             size: size,
             areas: areas
         };
 
-        $('#modal-update-save').attr('disabled', true);
+        $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+
         if (!imageFile) {
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
                 let _appsRichmenus = resJson.data;
@@ -731,10 +736,13 @@
             }).then(() => {
                 $('#modal-update-save').removeAttr('disabled');
                 return $.notify('修改成功', { type: 'success' });
+            }).catch(() => {
+                $('#modal-update-save').removeAttr('disabled').empty().text('修改');
+                $.notify('修改失敗', { type: 'danger' });
             });
         }
 
-        return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+        return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
             putRichmenu.src = resJson.data.url;
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu);
         }).then((resJson) => {

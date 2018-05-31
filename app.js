@@ -12,6 +12,7 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhook = require('./routes/webhook');
+let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
 
@@ -31,6 +32,7 @@ app.use('/api/*/users/:userid', jwtHlp.authenticate);
 app.use('/api/database', apiDatabase);
 app.use('/api/sign', apiSign);
 app.use('/api/bot', apiBot);
+app.use('/api/image', apiImage);
 app.use('/api/*', routerHlp.requestNotExistentApi);
 
 app.use(express.static(path.join(__dirname, 'public')));
