@@ -12,7 +12,7 @@ module.exports = (function() {
          * 輸入全部的 appId 取得該 App 所有加好友回覆的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string} greetingId
+         * @param {any|string} [greetingId]
          * @param {(appsGreetings: any) => any} [callback]
          * @return {Promise<any>}
          */

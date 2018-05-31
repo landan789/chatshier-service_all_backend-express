@@ -20,14 +20,11 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.find(appIds, null, (appsKeywordreplies) => {
-                        if (!appsKeywordreplies) {
-                            reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appsKeywordreplies);
-                    });
+                return appsKeywordrepliesMdl.find(appIds).then((appsKeywordreplies) => {
+                    if (!appsKeywordreplies) {
+                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
+                    }
+                    return appsKeywordreplies;
                 });
             }).then((appsKeywordreplies) => {
                 let json = {
@@ -47,24 +44,21 @@ module.exports = (function() {
         }
 
         getOne(req, res) {
+            let appId = req.params.appid;
             let keywordreplyId = req.params.keywordreplyid;
-            let appId;
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-                return new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.find(appId, keywordreplyId, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+
+            return this.appsRequestVerify(req).then(() => {
+                return appsKeywordrepliesMdl.find(appId, keywordreplyId).then((appsKeywordreplies) => {
+                    if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
+                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_FIND);
+                    }
+                    return appsKeywordreplies;
                 });
-            }).then((data) => {
+            }).then((appsKeywordreplies) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsKeywordreplies
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -78,6 +72,7 @@ module.exports = (function() {
         }
 
         postOne(req, res) {
+            let appId = req.params.appid;
             let postKeywordreply = {
                 keyword: req.body.keyword || '',
                 subKeywords: req.body.subKeywords || '',
@@ -85,18 +80,13 @@ module.exports = (function() {
                 replyCount: req.body.replyCount ? req.body.replyCount : 0,
                 status: !!req.body.status
             };
-            let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds.shift();
-                return new Promise((resolve, reject) => {
-                    appsKeywordrepliesMdl.insert(appId, postKeywordreply, (appsKeywordreplies) => {
-                        if (!appsKeywordreplies) {
-                            reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(appsKeywordreplies);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsKeywordrepliesMdl.insert(appId, postKeywordreply).then((appsKeywordreplies) => {
+                    if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
+                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_INSERT);
+                    }
+                    return appsKeywordreplies;
                 });
             }).then((appsKeywordreplies) => {
                 let json = {
@@ -116,8 +106,8 @@ module.exports = (function() {
         }
 
         putOne(req, res) {
+            let appId = req.params.appid;
             let keywordreplyId = req.params.keywordreplyid;
-            let appId;
             let putKeywordreply = {
                 keyword: req.body.keyword || '',
                 subKeywords: req.body.subKeywords || '',
@@ -126,17 +116,12 @@ module.exports = (function() {
                 status: !!req.body.status
             };
 
-            return this.appsRequestVerify(req).then((appIds) => {
-                appId = appIds.shift();
-                return new Promise((resolve, reject) => {
-                    // 5. 更新指定的 appId 中的 keywordreply 資料
-                    appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply, (appsKeywordreplies) => {
-                        if (!appsKeywordreplies) {
-                            reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
-                            return;
-                        };
-                        resolve(appsKeywordreplies);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsKeywordrepliesMdl.update(appId, keywordreplyId, putKeywordreply).then((appsKeywordreplies) => {
+                    if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
+                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_UPDATE);
+                    }
+                    return appsKeywordreplies;
                 });
             }).then((appsKeywordreplies) => {
                 let json = {
@@ -156,21 +141,15 @@ module.exports = (function() {
         }
 
         deleteOne(req, res) {
+            let appId = req.params.appid;
             let keywordreplyId = req.params.keywordreplyid;
-            let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds.shift();
-
-                return new Promise((resolve, reject) => {
-                    // 4. 刪除指定的 appId 中的 keywordreply 資料
-                    appsKeywordrepliesMdl.remove(appId, keywordreplyId, (appsKeywordreplies) => {
-                        if (!appsKeywordreplies) {
-                            reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(appsKeywordreplies);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsKeywordrepliesMdl.remove(appId, keywordreplyId).then((appsKeywordreplies) => {
+                    if (!(appsKeywordreplies && appsKeywordreplies[appId])) {
+                        return Promise.reject(API_ERROR.APP_KEYWORDREPLY_FAILED_TO_REMOVE);
+                    }
+                    return appsKeywordreplies;
                 });
             }).then((appsKeywordreplies) => {
                 let json = {

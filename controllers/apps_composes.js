@@ -20,20 +20,17 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.find(appIds, null, (data) => {
-                        if (undefined === data || null === data || '' === data) {
-                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsComposesMdl.find(appIds).then((appsComposes) => {
+                    if (!appsComposes) {
+                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    }
+                    return appsComposes;
                 });
-            }).then((data) => {
+            }).then((appsComposes) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsComposes
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -47,26 +44,21 @@ module.exports = (function() {
         }
 
         getOne(req, res) {
+            let appId = req.params.appid;
             let composeId = req.params.composeid;
-            let appIds;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.find(appIds, composeId, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsComposesMdl.find(appId, composeId).then((appsComposes) => {
+                    if (!(appsComposes && appsComposes[appId])) {
+                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    }
+                    return appsComposes;
                 });
-            }).then((compose) => {
-                let result = compose !== undefined ? compose : {};
+            }).then((appsComposes) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsComposes
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {

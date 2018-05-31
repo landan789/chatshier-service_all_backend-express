@@ -21,12 +21,12 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsTemplatesMdl.find(appIds);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
-                }
-                return appsTemplates;
+                return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
                 let json = {
                     status: 1,
@@ -173,25 +173,25 @@ module.exports = (function() {
         }
 
         deleteOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appId;
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
 
+            return this.appsRequestVerify(req).then(() => {
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
-                };
-                return appsTemplatesMdl.remove(appId, templateId);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                 }
-                return Promise.resolve(appsTemplates);
+
+                return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {
+                    if (!(appsTemplates && appsTemplates[appId])) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {

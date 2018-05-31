@@ -20,21 +20,17 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsTicketsMdl.find(appIds, null, (appsTickets) => {
-                        if (!appsTickets) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-
-                        resolve(appsTickets);
-                    });
+                return appsTicketsMdl.find(appIds).then((appsTickets) => {
+                    if (!appsTickets) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return appsTickets;
                 });
-            }).then((data) => {
+            }).then((appsTickets) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsTickets
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -48,23 +44,21 @@ module.exports = (function() {
         }
 
         getOne(req, res, next) {
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                let appId = checkedAppIds;
-                let ticketId = req.params.ticketid;
-                return new Promise((resolve, reject) => {
-                    appsTicketsMdl.find(appId, ticketId, (appsTickets) => {
-                        if (!appsTickets || (appsTickets && 0 === Object.keys(appsTickets).length)) {
-                            reject(API_ERROR.APP_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appsTickets);
-                    });
+            let appId = req.params.appid;
+            let ticketId = req.params.ticketid;
+
+            return this.appsRequestVerify(req).then(() => {
+                return appsTicketsMdl.find(appId, ticketId).then((appsTickets) => {
+                    if (!(appsTickets && appsTickets[appId])) {
+                        return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
+                    }
+                    return appsTickets;
                 });
-            }).then((data) => {
+            }).then((appsTickets) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsTickets
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -90,7 +84,7 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 return appsTicketsMdl.insert(appId, postTikeck).then((appsTickets) => {
-                    if (!appsTickets) {
+                    if (!(appsTickets && appsTickets[appId])) {
                         return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_INSERT);
                     }
                     return appsTickets;
@@ -113,7 +107,7 @@ module.exports = (function() {
         }
 
         putOne(req, res, next) {
-            let appId;
+            let appId = req.params.appid;
             let ticketId = req.params.ticketid;
 
             let putTikcket = {
@@ -124,46 +118,33 @@ module.exports = (function() {
                 assigned_id: req.body.assigned_id || ''
             };
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
-
+            return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
                     return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
-                };
-                return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                    appsTicketsMdl.find(appId, null, (appTickets) => {
-                        if (!appTickets) {
-                            reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appTickets);
-                    });
-                });
-            }).then((appTickets) => { // 判斷appId中是否有目前ticket
-                let ticketIds = Object.keys(appTickets[appId].tickets);
-                return new Promise((resolve, reject) => {
-                    if (false === ticketIds.includes(ticketId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
-                        return;
-                    }
-                    resolve();
-                });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsTicketsMdl.update(appId, ticketId, putTikcket, (appsTickets) => {
-                        if (false === appsTickets || null === appsTickets || undefined === appsTickets) {
-                            reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
-                            return;
-                        }
+                }
+                return appsTicketsMdl.find(appId);
+            }).then((appTickets) => {
+                if (!(appTickets && appTickets[appId])) {
+                    return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
+                }
 
-                        resolve(appsTickets);
-                    });
+                // 判斷 tickets 中是否有目前 ticketId
+                let tickets = appTickets[appId].tickets;
+                if (!tickets[ticketId]) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                }
+
+                return appsTicketsMdl.update(appId, ticketId, putTikcket).then((appsTickets) => {
+                    if (!(appsTickets && appsTickets[appId])) {
+                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_UPDATE);
+                    }
+                    return appsTickets;
                 });
-            }).then((data) => {
+            }).then((appsTickets) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: data
+                    data: appsTickets
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -177,48 +158,37 @@ module.exports = (function() {
         }
 
         deleteOne(req, res, next) {
-            let appId;
+            let appId = req.params.appid;
             let ticketId = req.params.ticketid;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
-
+            return this.appsRequestVerify(req).then(() => {
                 if (!ticketId) {
                     return Promise.reject(API_ERROR.TICKETID_WAS_EMPTY);
-                };
-                return new Promise((resolve, reject) => { // 取得目前appId下所有tickets
-                    appsTicketsMdl.find(appId, null, (appTickets) => {
-                        if (!appTickets) {
-                            reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appTickets);
-                    });
-                });
-            }).then((appTickets) => { // 判斷appId中是否有目前ticket
-                let ticketIds = Object.keys(appTickets[appId].tickets);
-                return new Promise((resolve, reject) => {
-                    if (false === ticketIds.includes(ticketId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
-                        return;
+                }
+                // 取得目前 appId 下所有 tickets
+                return appsTicketsMdl.find(appId);
+            }).then((appTickets) => {
+                if (!(appTickets && appTickets[appId])) {
+                    return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_FIND);
+                }
+
+                // 判斷 tickets 中是否有目前 ticketId
+                let tickets = appTickets[appId].tickets;
+                if (!tickets[ticketId]) {
+                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_TICKET);
+                }
+
+                return appsTicketsMdl.remove(appId, ticketId).then((appsTickets) => {
+                    if (!(appsTickets && appsTickets[appId])) {
+                        return Promise.reject(API_ERROR.APP_TICKET_FAILED_TO_REMOVE);
                     }
-                    resolve();
+                    return appsTickets;
                 });
-            }).then(() => {
-                return new Promise((resolve, reject) => {
-                    appsTicketsMdl.remove(appId, ticketId, (appsTickets) => {
-                        if (!appsTickets) {
-                            reject(API_ERROR.APP_TICKET_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(appsTickets);
-                    });
-                });
-            }).then((data) => {
+            }).then((appsTickets) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: data
+                    data: appsTickets
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {

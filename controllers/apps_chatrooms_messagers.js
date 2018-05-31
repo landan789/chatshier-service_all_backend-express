@@ -27,11 +27,11 @@ module.exports = (function() {
                     }
                     return appsChatroomsMessagers;
                 });
-            }).then((data) => {
+            }).then((appsChatroomsMessagers) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsChatroomsMessagers
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
@@ -45,10 +45,10 @@ module.exports = (function() {
         }
 
         putOne(req, res, next) {
-            let useUid = !!req.query.use_uid;
             let appId = req.params.appid;
             let chatroomId = req.params.chatroomid;
             let messagerId = req.params.messagerid;
+            let useUid = !!req.query.use_uid;
             let platformUid = useUid ? messagerId : '';
 
             // 只允許更新 API 可編輯的屬性，且傳送的型別必須嚴謹

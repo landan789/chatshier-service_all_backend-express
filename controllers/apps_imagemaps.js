@@ -21,12 +21,12 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsImagemapsMdl.find(appIds, null);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                }
-                return Promise.resolve(appsImagemaps);
+                return appsImagemapsMdl.find(appIds).then((appsImagemaps) => {
+                    if (!appsImagemaps) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                    }
+                    return Promise.resolve(appsImagemaps);
+                });
             }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
@@ -45,26 +45,24 @@ module.exports = (function() {
         }
 
         getOne(req, res) {
+            let appId = req.params.appid;
             let imagemapId = req.params.imagemapid;
-            let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
+            return this.appsRequestVerify(req).then(() => {
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
-                return appsImagemapsMdl.findImagemaps(appId);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                }
-                return Promise.resolve(appsImagemaps);
-            }).then((appsImagemaps) => {
-                let imagemap = appsImagemaps[imagemapId];
-                if (!imagemap) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
-                }
-                return Promise.resolve(appsImagemaps);
+
+                return appsImagemapsMdl.findImagemaps(appId).then((appsImagemaps) => {
+                    if (!appsImagemaps) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                    }
+
+                    if (!appsImagemaps[imagemapId]) {
+                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                    }
+                    return appsImagemaps;
+                });
             }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
@@ -104,12 +102,12 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then(() => {
-                return appsImagemapsMdl.insert(appId, postImagemap);
-            }).then((_appsImagemaps) => {
-                if (!_appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
-                }
-                return _appsImagemaps;
+                return appsImagemapsMdl.insert(appId, postImagemap).then((_appsImagemaps) => {
+                    if (!_appsImagemaps) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_INSERT);
+                    }
+                    return _appsImagemaps;
+                });
             }).then((_appsImagemaps) => {
                 appsImagemaps = _appsImagemaps;
                 let imagemaps = appsImagemaps[appId].imagemaps;
@@ -137,9 +135,9 @@ module.exports = (function() {
         }
 
         putOne(req, res) {
+            let appId = req.params.appid;
             let imagemapId = req.params.imagemapid;
 
-            let appId = req.params.appid;
             let type = req.body.type || '';
             let baseUri = req.body.baseUri || '';
             let altText = req.body.altText || '';
@@ -158,35 +156,33 @@ module.exports = (function() {
                 title
             };
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+            return this.appsRequestVerify(req).then(() => {
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
-                return appsImagemapsMdl.findImagemaps(appId);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                }
-                let imagemapIds = Object.keys(appsImagemaps);
-                return Promise.resolve(imagemapIds);
-            }).then((imagemapIds) => {
-                if (false === imagemapIds.includes(imagemapId)) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
-                }
-                return Promise.resolve();
+
+                return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
+                    if (!imagemaps) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                    }
+
+                    if (!imagemaps[imagemapId]) {
+                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                    }
+                    return imagemaps;
+                });
             }).then(() => {
-                return appsImagemapsMdl.update(appId, imagemapId, putImagemap);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_UPDATE);
-                }
-                return Promise.resolve(appsImagemaps);
+                return appsImagemapsMdl.update(appId, imagemapId, putImagemap).then((appsImagemaps) => {
+                    if (!(appsImagemaps && appsImagemaps[appId])) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_UPDATE);
+                    }
+                    return appsImagemaps;
+                });
             }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: appsImagemaps || {}
+                    data: appsImagemaps
                 };
                 res.status(200).json(json);
             }).catch((ERR) => {
@@ -200,32 +196,31 @@ module.exports = (function() {
         }
 
         deleteOne(req, res) {
+            let appId = req.params.appid;
             let imagemapId = req.params.imagemapid;
-            let appId;
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+
+            return this.appsRequestVerify(req).then(() => {
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
-                return appsImagemapsMdl.findImagemaps(appId);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
-                }
-                let imagemapIds = Object.keys(appsImagemaps);
-                return Promise.resolve(imagemapIds);
-            }).then((imagemapIds) => {
-                if (false === imagemapIds.includes(imagemapId)) {
-                    return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
-                }
-                return Promise.resolve();
+                return appsImagemapsMdl.findImagemaps(appId).then((imagemaps) => {
+                    if (!imagemaps) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_FIND);
+                    }
+
+                    if (!imagemaps[imagemapId]) {
+                        return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
+                    }
+
+                    return imagemaps;
+                });
             }).then(() => {
-                return appsImagemapsMdl.remove(appId, imagemapId);
-            }).then((appsImagemaps) => {
-                if (!appsImagemaps) {
-                    return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_REMOVE);
-                }
-                return Promise.resolve(appsImagemaps);
+                return appsImagemapsMdl.remove(appId, imagemapId).then((appsImagemaps) => {
+                    if (!(appsImagemaps && appsImagemaps[appId])) {
+                        return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_REMOVE);
+                    }
+                    return appsImagemaps;
+                });
             }).then((appsImagemaps) => {
                 let json = {
                     status: 1,
