@@ -1206,7 +1206,7 @@
         // 將已指派與未指派的聊天室分門別類
         if (CHATSHIER !== appType) {
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
-            var assignedIds = messagerConsumer.assigned_ids;
+            var assignedIds = messagerConsumer.assigned_ids || [];
             if (assignedIds.indexOf(userId) >= 0) {
                 $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {

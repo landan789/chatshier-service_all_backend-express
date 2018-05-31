@@ -7,6 +7,14 @@ namespace Webhook {
             platformGroupId?: string,
             platformGroupType?: string,
             platformUid: string,
+            replyToken?: string
+        }
+
+        interface Profile {
+            type: 'LINE' | 'FACEBOOK' | 'WECHAT',
+            name: string,
+            photo: string,
+            gender?: string
         }
     }
     

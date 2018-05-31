@@ -159,9 +159,6 @@ module.exports = (function() {
 
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
-                isEcho: false,
-                platformGroupId: '',
-                platformGroupType: '',
                 platformUid: ''
             };
 
@@ -178,6 +175,7 @@ module.exports = (function() {
                         webhookInfo.platformGroupId = webhookInfo.platformGroupId || ev.source.roomId || ev.source.groupId;
                         webhookInfo.platformGroupType = webhookInfo.platformGroupType || ev.source.type;
                         webhookInfo.platformUid = webhookInfo.platformUid || ev.source.userId;
+                        webhookInfo.replyToken = webhookInfo.replyToken || ev.replyToken;
                     });
                     break;
                 case FACEBOOK:
@@ -245,12 +243,10 @@ module.exports = (function() {
                             }
 
                             let _message = {
-                                messager_id: messagerId, // LINE 平台的 sender id
+                                messager_id: messagerId,
                                 from: LINE,
                                 type: event.message ? event.message.type : '', // LINE POST 訊息型別
-                                eventType: event.type, // LINE POST 事件型別
                                 time: Date.now(), // 將要回覆的訊息加上時戳
-                                replyToken: event.replyToken,
                                 message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
                                 fromPath: event.message ? ('file' === event.message.type ? '/' + event.message.fileName : `/${Date.now()}.${media[event.message.type]}`) : ''
                             };
@@ -490,6 +486,7 @@ module.exports = (function() {
          * @param {Webhook.Chatshier.Information} webhookInfo
          * @param {string} appId
          * @param {any} app
+         * @returns {Promise<Webhook.Chatshier.Profile>}
          */
         getProfile(webhookInfo, appId, app) {
             return Promise.resolve().then(() => {
@@ -499,6 +496,7 @@ module.exports = (function() {
                 }
                 return bot;
             }).then((bot) => {
+                /** @type {Webhook.Chatshier.Profile} */
                 let senderProfile = {
                     type: app.type,
                     name: '',
@@ -574,6 +572,45 @@ module.exports = (function() {
                         });
                     default:
                         return senderProfile;
+                }
+            });
+        }
+
+        /**
+         * @param {string} platformGroupId
+         * @param {string} appId
+         * @param {any} app
+         * @returns {Promise<string[]>}
+         */
+        getGroupMemberIds(platformGroupId, appId, app) {
+            if (!platformGroupId) {
+                return Promise.resolve([]);
+            }
+
+            return Promise.resolve().then(() => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, app);
+                }
+                return bot;
+            }).then((bot) => {
+                switch (app.type) {
+                    case LINE:
+                        // 只有 LINE@ Approved accounts 或者 official accounts 才有權限直接抓取群組內所有成員的 LINE ID
+                        // 否則都會得到 403 權限不足的錯誤
+                        return bot.getGroupMemberIds(platformGroupId).catch((err) => {
+                            // 無法抓到使用者 profile 時，回傳空陣列
+                            // 其餘狀況擲出錯誤
+                            if (403 === err.statusCode ||
+                                404 === err.statusCode) {
+                                return Promise.resolve([]);
+                            }
+                            return Promise.reject(err);
+                        });
+                    case FACEBOOK:
+                    case WECHAT:
+                    default:
+                        return [];
                 }
             });
         }
