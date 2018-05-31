@@ -49,8 +49,11 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
             let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
+            return this.appsRequestVerify(req).then((checkedAppId) => {
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
@@ -162,7 +165,10 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
@@ -207,7 +213,10 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
             let appId;
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }

@@ -58,8 +58,8 @@
         }
 
         if (nowSelectAppId) {
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             loadTemplates(nowSelectAppId, userId);
+            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
@@ -67,6 +67,7 @@
     function appSourceChanged(ev) {
         nowSelectAppId = ev.target.id;
         $appDropdown.find('.dropdown-text').text(ev.target.text);
+        loadTemplates(nowSelectAppId, userId);
     }
 
     function loadTemplates(appId, userId) {
@@ -371,23 +372,26 @@
                         });
                     }
                 })).then((imageUrl) => {
-                    if ('buttons' === template.template.type) {
-                        template.template.thumbnailImageUrl = imageUrl[0];
-                    }
-                    if ('carousel' === template.template.type) {
-                        for (let img in template.template.columns) {
-                            template.template.columns[img].thumbnailImageUrl = imageUrl[img];
+                    return new Promise((resolve, reject) => {
+                        if ('buttons' === template.template.type) {
+                            template.template.thumbnailImageUrl = imageUrl[0];
+                            resolve();
                         }
-                    }
+                        if ('carousel' === template.template.type) {
+                            for (let img in template.template.columns) {
+                                template.template.columns[img].thumbnailImageUrl = imageUrl[img];
+                            }
+                            resolve();
+                        }
+                    });
                 }).then(() => {
-                    api.appsTemplates.insert(appId, userId, template);
+                    return api.appsTemplates.insert(appId, userId, template);
+                }).then(() => {
                     $('#template-modal').modal('hide');
-                    $.notify('新增成功！', { type: 'success' });
                     $('#modal-save').removeAttr('disabled');
-                    setTimeout(function() {
-                        $appDropdown.find('#' + appId).click();
-                    }, 1000);
+                    $appDropdown.find('#' + appId).click();
                     $('#template-modal').modal('toggle');
+                    return $.notify('新增成功！', { type: 'success' });
                 }).catch((ERR) => {
                     $('#modal-save').removeAttr('disabled');
                     return $.notify('新增失敗', { type: 'danger' });
