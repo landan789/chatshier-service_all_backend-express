@@ -701,7 +701,7 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            return loadRichmenus(appId, userId, true);
+            loadRichmenus(appId, userId, true);
         }).catch(() => {
             $('#modal-save').removeAttr('disabled').empty().text('新增');
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
