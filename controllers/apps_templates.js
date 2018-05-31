@@ -28,14 +28,13 @@ module.exports = (function() {
                     return appsTemplates;
                 });
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -54,14 +53,13 @@ module.exports = (function() {
                 }
                 return appsTemplates;
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -114,14 +112,13 @@ module.exports = (function() {
                 }
                 return appsTemplates;
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -151,14 +148,13 @@ module.exports = (function() {
                 }
                 return Promise.resolve(appsTemplate);
             }).then((appsTemplate) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
-                    data: appsTemplate || {}
+                    data: appsTemplate
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -182,14 +178,13 @@ module.exports = (function() {
                     return appsTemplates;
                 });
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsTemplates
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
     }

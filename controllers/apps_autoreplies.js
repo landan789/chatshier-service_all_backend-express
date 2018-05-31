@@ -28,14 +28,13 @@ module.exports = (function() {
                 });
             }).then((data) => {
                 let apps = data;
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -51,14 +50,13 @@ module.exports = (function() {
                     return appsAutoreplies;
                 });
             }).then((appsAutoreplies) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsAutoreplies
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -81,14 +79,13 @@ module.exports = (function() {
                     return appsAutoreplies;
                 });
             }).then((appsAutoreplies) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsAutoreplies
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -134,14 +131,13 @@ module.exports = (function() {
                     });
                 });
             }).then((appsAutoreplies) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsAutoreplies
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -170,14 +166,13 @@ module.exports = (function() {
                     return appsAutoreplies;
                 });
             }).then((appsAutoreplies) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsAutoreplies
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         };
     }

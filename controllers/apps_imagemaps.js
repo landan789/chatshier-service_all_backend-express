@@ -28,14 +28,13 @@ module.exports = (function() {
                     return Promise.resolve(appsImagemaps);
                 });
             }).then((appsImagemaps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsImagemaps || {}
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -63,14 +62,13 @@ module.exports = (function() {
                     return appsImagemaps;
                 });
             }).then((appsImagemaps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsImagemaps || {}
+                    data: appsImagemaps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -112,14 +110,13 @@ module.exports = (function() {
                 let toPath = `/apps/${appId}/imagemaps/${imagemapId}/src/${fileName}`;
                 return storageHlp.filesMoveV2(fromPath, toPath);
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsImagemaps || {}
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -172,14 +169,13 @@ module.exports = (function() {
                     return appsImagemaps;
                 });
             }).then((appsImagemaps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsImagemaps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -204,24 +200,23 @@ module.exports = (function() {
                         return Promise.reject(API_ERROR.USER_DID_NOT_HAVE_THIS_IMAGEMAP);
                     }
 
-                    return imagemaps;
+                    return Promise.resolve(imagemaps);
                 });
             }).then(() => {
                 return appsImagemapsMdl.remove(appId, imagemapId).then((appsImagemaps) => {
                     if (!(appsImagemaps && appsImagemaps[appId])) {
                         return Promise.reject(API_ERROR.APP_IMAGEMAP_FAILED_TO_REMOVE);
                     }
-                    return appsImagemaps;
+                    return Promise.resolve(appsImagemaps);
                 });
             }).then((appsImagemaps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsImagemaps || {}
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
     }

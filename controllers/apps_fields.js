@@ -27,14 +27,13 @@ module.exports = (function() {
                     return appsFields;
                 });
             }).then((appsFields) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsFields
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -59,14 +58,13 @@ module.exports = (function() {
                     return appsFields;
                 });
             }).then((appsFields) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsFields
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -96,14 +94,13 @@ module.exports = (function() {
                     return appsFields;
                 });
             }).then((appsFields) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsFields
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -120,14 +117,13 @@ module.exports = (function() {
                     return appsFields;
                 });
             }).then((appsFields) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsFields
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
     }

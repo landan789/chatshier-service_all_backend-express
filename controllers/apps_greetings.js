@@ -27,14 +27,13 @@ module.exports = (function() {
                     return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsGreetings
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -54,15 +53,13 @@ module.exports = (function() {
                     return appsGreetings;
                 });
             }).then((appGreeting) => {
-                let result = appGreeting || {};
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appGreeting
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -83,22 +80,23 @@ module.exports = (function() {
                     return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsGreetings
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
         putOne(req, res) {
+
             let appId = req.params.appid;
             let greetingId = req.params.greetingid;
             let type = req.body.type;
             let text = req.body.text;
+
             let putGreeting = {
                 type,
                 text
@@ -116,14 +114,13 @@ module.exports = (function() {
                     return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsGreetings || {}
+                    data: appsGreetings
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -143,14 +140,13 @@ module.exports = (function() {
                     return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsGreetings
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
-                return this.errorJson(err, null, res);
+                return this.errorJson(req, res, err)
             });
         }
     }
