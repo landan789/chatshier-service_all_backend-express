@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const formData = require('express-form-data');
 
-const botCtl = require('../controllers/bot');
+const imageCtl = require('../controllers/image');
 
 const router = express.Router();
 
@@ -20,8 +20,8 @@ router.use(
 
 // ==========
 // image
-router.post('/upload-file/users/:userid', botCtl.uploadFile);
-router.post('/move-file/users/:userid', botCtl.moveFile);
+router.post('/upload-file/users/:userid', imageCtl.uploadFile);
+router.post('/move-file/users/:userid', imageCtl.moveFile);
 // ==========
 
 module.exports = router;
