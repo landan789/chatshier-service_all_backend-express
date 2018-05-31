@@ -30,7 +30,7 @@ namespace Webhook {
             },
             message: {
                 id: string,
-                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file',
+                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file' | 'template',
                 text: string,
         
                 /**

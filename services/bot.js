@@ -231,10 +231,16 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /** @type {Webhook.Line.Event[]} */
                         let events = body.events;
                         return Promise.all(events.map((event) => {
                             // LINE 系統 webhook 測試不理會
                             if (LINE_WEBHOOK_VERIFY_UID === event.source.userId) {
+                                return;
+                            }
+
+                            // 非 message 的 webhook event 不抓取訊息資料
+                            if (!('message' === event.type && event.message)) {
                                 return;
                             }
 
@@ -249,34 +255,34 @@ module.exports = (function() {
                                 fromPath: event.message ? ('file' === event.message.type ? '/' + event.message.fileName : `/${Date.now()}.${media[event.message.type]}`) : ''
                             };
 
-                            if (event.message && 'template' === event.message.type) {
+                            if ('template' === event.message.type) {
                                 _message.template = event.message.template;
                                 messages.push(_message);
                                 return Promise.resolve();
                             }
 
-                            if (event.message && 'text' === event.message.type) {
+                            if ('text' === event.message.type) {
                                 _message.text = event.message.text;
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && 'sticker' === event.message.type) {
+                            if ('sticker' === event.message.type) {
                                 let stickerId = event.message.stickerId;
                                 _message.src = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && 'location' === event.message.type) {
+                            if ('location' === event.message.type) {
                                 let latitude = event.message.latitude;
                                 let longitude = event.message.longitude;
                                 _message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && ['image', 'audio', 'video', 'file'].includes(event.message.type)) {
+                            if (['image', 'audio', 'video', 'file'].includes(event.message.type)) {
                                 return bot.getMessageContent(event.message.id).then((contentStream) => {
                                     return new Promise((resolve, reject) => {
                                         let bufferArray = [];
@@ -295,12 +301,13 @@ module.exports = (function() {
                                     _message.src = src;
                                     messages.push(_message);
                                 });
-                            };
+                            }
                             messages.push(_message);
                         })).then(() => {
                             return messages;
                         });
                     case FACEBOOK:
+                        /** @type {Webhook.Facebook.Entry[]} */
                         let entries = body.entry;
                         for (let i in entries) {
                             let messaging = entries[i].messaging || [];
@@ -332,34 +339,34 @@ module.exports = (function() {
 
                                 if (attachments) {
                                     messages.concat(attachments.map((attachment) => {
-                                        let src;
+                                        let src = '';
                                         if ('location' === attachment.type) {
                                             let coordinates = attachment.payload.coordinates;
                                             let latitude = coordinates.lat;
                                             let longitude = coordinates.long;
                                             src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                                        };
+                                        }
 
                                         if ('fallback' === attachment.type) {
                                             text = attachment.fallback.title;
                                             src = attachment.fallback.url;
-                                        };
+                                        }
 
                                         if ('image' === attachment.type) {
                                             src = attachment.payload.url;
-                                        };
+                                        }
 
                                         if ('video' === attachment.type) {
                                             src = attachment.payload.url;
-                                        };
+                                        }
 
                                         if ('audio' === attachment.type) {
                                             src = attachment.payload.url;
-                                        };
+                                        }
 
                                         if ('file' === attachment.type) {
                                             src = attachment.payload.url;
-                                        };
+                                        }
 
                                         let _message = {
                                             messager_id: messagerId, // FACEBOOK 平台的 sender id
