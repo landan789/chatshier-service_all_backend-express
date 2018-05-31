@@ -71,17 +71,14 @@ module.exports = (function() {
                     });
                 }).then((group) => {
                     let members = group.members;
-                    let memberIds = Object.keys(members);
+                    let memberIdOfUser = Object.keys(members).filter((memberId) => userId === members[memberId].user_id).shift();
 
-                    let userIds = [];
-                    memberIds.forEach((memberId) => {
-                        !members[memberId].isDeleted && userIds.push(members[memberId].user_id);
-                    });
+                    if (!(memberIdOfUser && members[memberIdOfUser])) {
+                        return Promise.reject(API_ERROR.USER_WAS_NOT_IN_THIS_GROUP);
+                    }
 
-                    let index = userIds.indexOf(userId);
-                    let member = members[memberIds[index]];
-
-                    if (READ === member.type && (POST === method || PUT === method || DELETE === method)) {
+                    let memberOfUser = members[memberIdOfUser];
+                    if (READ === memberOfUser.type && (POST === method || PUT === method || DELETE === method)) {
                         return Promise.reject(API_ERROR.GROUP_MEMBER_DID_NOT_HAVE_PERMSSSION_TO_WRITE_APP);
                     }
                     return Promise.resolve([req.params.appid]);
