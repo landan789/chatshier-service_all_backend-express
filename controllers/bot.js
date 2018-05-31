@@ -65,6 +65,7 @@ module.exports = (function() {
             let menuId = req.params.menuid;
             let appType = '';
             let postMenu = {};
+
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 appId = checkedAppIds[0];
                 return this._createBot(appId);
@@ -77,25 +78,23 @@ module.exports = (function() {
                     appsRichmenusMdl.find(appId, menuId),
                     app
                 ]);
-            }).then((results) => {
-                let appsRichmenu = results[0];
-                let app = results[1];
+            }).then(([appsRichmenu, app]) => {
                 if (!appsRichmenu) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
                 postMenu = appsRichmenu[appId].richmenus[menuId];
-
                 let imageSrc = postMenu.src;
-                let fileName = imageSrc.split('/').pop();
+                if (!imageSrc) {
+                    return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
+                }
 
+                let fileName = imageSrc.split('/').pop();
                 let path = `/apps/${appId}/richmenus/${menuId}/src/${fileName}`;
                 return Promise.all([
                     botSvc.createMenu(postMenu, appId, app),
                     storageHlp.filesDownload(path)
                 ]);
-            }).then((results) => {
-                let response = results[0];
-                let image = results[1];
+            }).then(([response, image]) => {
                 let botMenuId = '';
 
                 if (response instanceof Object) {
@@ -111,6 +110,7 @@ module.exports = (function() {
                     if (!result) {
                         return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
                     }
+
                     return this._findPlatformUids(appId, appType).then((platformUids) => {
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, botMenuId, appId).then((result) => {
@@ -119,11 +119,11 @@ module.exports = (function() {
                                 }
                                 return platformUid;
                             });
-                        })).then(() => {
-                            postMenu.platformMenuId = botMenuId;
-                            return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
-                                return appsRichemnu;
-                            });
+                        }));
+                    }).then(() => {
+                        postMenu.platformMenuId = botMenuId;
+                        return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
+                            return appsRichemnu;
                         });
                     });
                 });

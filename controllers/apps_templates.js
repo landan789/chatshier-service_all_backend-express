@@ -64,41 +64,48 @@ module.exports = (function() {
 
         postOne(req, res) {
             let appId = req.params.appid;
-            let keyword = req.body.keyword || '';
-            let type = req.body.type || '';
-            let altText = req.body.altText || '';
-            let template = req.body.template || '';
             let postTemplate = {
-                keyword: keyword,
-                type: type,
-                altText: altText,
-                template: template
+                keyword: req.body.keyword || '',
+                type: req.body.type || '',
+                altText: req.body.altText || '',
+                template: req.body.template || ''
             };
+
             return this.appsRequestVerify(req).then(() => {
-                return appsTemplatesMdl.insert(appId, postTemplate);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
-                }
-                return appsTemplates;
+                return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
+                    if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
                 let templateId = Object.keys(appsTemplates[appId].templates)[0];
-                if (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl) {
-                    let fromPathArray = (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl).split('/');
+                let template = appsTemplates[appId].templates[templateId];
+
+                if (template.template.thumbnailImageUrl) {
+                    let fromPathArray = template.template.thumbnailImageUrl.split('/');
                     let src = fromPathArray[fromPathArray.length - 1];
                     let fromPath = `/temp/${src}`;
                     let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    storageHlp.filesMoveV2(fromPath, toPath);
-                    return appsTemplates;
+                    return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
+                        return appsTemplates;
+                    });
+                } else if (template.template.columns) {
+                    return Promise.all(template.template.columns.map((column) => {
+                        if (!column.thumbnailImageUrl) {
+                            return Promise.resolve();
+                        }
+
+                        let fromPathArray = column.thumbnailImageUrl.split('/');
+                        let src = fromPathArray[fromPathArray.length - 1];
+                        let fromPath = `/temp/${src}`;
+                        let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
+                        return storageHlp.filesMoveV2(fromPath, toPath);
+                    })).then(() => {
+                        return appsTemplates;
+                    });
                 }
-                return Promise.all(Object.keys(appsTemplates[appId].templates[templateId].template.columns).map((img) => {
-                    let fromPathArray = (appsTemplates[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                    let src = fromPathArray[fromPathArray.length - 1];
-                    let fromPath = `/temp/${src}`;
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    storageHlp.filesMoveV2(fromPath, toPath);
-                    return appsTemplates;
-                }));
+                return appsTemplates;
             }).then((appsTemplates) => {
                 let json = {
                     status: 1,
@@ -112,17 +119,14 @@ module.exports = (function() {
         }
 
         putOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appId;
-            let type = req.body.type || '';
-            let keyword = req.body.keyword || '';
-            let altText = req.body.altText || '';
-            let template = req.body.template || '';
+
             let putTemplateData = {
-                type: type,
-                keyword: keyword,
-                altText: altText,
-                template: template
+                type: req.body.type || '',
+                keyword: req.body.keyword || '',
+                altText: req.body.altText || '',
+                template: req.body.template || ''
             };
 
             return this.appsRequestVerify(req).then((checkedAppId) => {

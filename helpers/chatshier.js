@@ -125,12 +125,8 @@ module.exports = (function() {
                 keywordrepliesPromise,
                 autorepliesPromise,
                 templatesPromise
-            ]).then((results) => {
+            ]).then(([greetings, keywordreplies, autoreplies, templates]) => {
                 let repliedMessages = [];
-                let greetings = results.shift() || {};
-                let keywordreplies = results.shift() || {};
-                let autoreplies = results.shift() || {};
-                let templates = results.shift() || {};
                 let _message = { from: SYSTEM };
 
                 Object.keys(greetings).forEach((grettingId) => {

@@ -119,6 +119,7 @@
             $newPassword.val('');
             $newPasswordCfm.val('');
             $('#changePasswordCollapse').collapse('hide');
+            $('#changePasswordBtn').text('展開');
 
             return $.notify('密碼變更成功', { type: 'success' });
         }).catch(function(err) {
