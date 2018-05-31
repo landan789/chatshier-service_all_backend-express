@@ -12,7 +12,7 @@ module.exports = (function() {
          * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string} imagemapId
+         * @param {any|string} [imagemapId]
          * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */

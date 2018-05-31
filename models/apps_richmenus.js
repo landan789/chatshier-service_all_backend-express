@@ -12,7 +12,7 @@ module.exports = (function() {
          * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string} richmenuId
+         * @param {any|string} [richmenuId]
          * @param {(appsRichmenus: any) => any} [callback]
          * @return {Promise<any>}
          */
@@ -130,6 +130,7 @@ module.exports = (function() {
         insert(appId, postRichmenu, callback) {
             let richmenuId = this.Types.ObjectId();
             postRichmenu._id = richmenuId;
+
             return this.AppsModel.findById(appId).then((app) => {
                 app.richmenus.push(postRichmenu);
                 return app.save();
@@ -158,7 +159,7 @@ module.exports = (function() {
             putRichmenu.updatedTime = Date.now();
 
             let query = {
-                '_id': appId,
+                '_id': this.Types.ObjectId(appId),
                 'richmenus._id': richmenuId
             };
 
@@ -178,7 +179,13 @@ module.exports = (function() {
             });
         }
 
-        remove(appIds, richmenuId, callback) {
+        /**
+         * @param {string} appId
+         * @param {string} richmenuId
+         * @param {(appsRichmenus: any) => any} [callback]
+         * @return {Promise<any>}
+         */
+        remove(appId, richmenuId, callback) {
             let richmenu = {
                 _id: richmenuId,
                 isDeleted: true,
@@ -186,7 +193,7 @@ module.exports = (function() {
             };
 
             let query = {
-                '_id': appIds.map((appId) => this.Types.ObjectId(appId)),
+                '_id': this.Types.ObjectId(appId),
                 'richmenus._id': this.Types.ObjectId(richmenuId)
             };
 

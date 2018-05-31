@@ -21,12 +21,12 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsTemplatesMdl.find(appIds);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
-                }
-                return appsTemplates;
+                return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
                 let json = {
                     status: 1,
@@ -43,7 +43,10 @@ module.exports = (function() {
             let appId = req.params.appid;
             let templateId = req.params.templateid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
                 if (!appsTemplates) {
@@ -71,7 +74,11 @@ module.exports = (function() {
                 template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
                 return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
                     if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
                         return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
@@ -129,11 +136,11 @@ module.exports = (function() {
                 template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                if (checkedAppId.length >= 2) {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
                     return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
                 }
-                appId = checkedAppId.pop();
+
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 }
@@ -156,27 +163,29 @@ module.exports = (function() {
         }
 
         deleteOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appId;
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                if (checkedAppId.length >= 2) {
+
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
                     return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
                 }
-                appId = checkedAppId.pop();
+
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
-                };
-                return appsTemplatesMdl.remove(appId, templateId);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                 }
-                return Promise.resolve(appsTemplates);
+
+                return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {
+                    if (!(appsTemplates && appsTemplates[appId])) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
                 let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
                 res.status(200).json(json);
             }).catch((err) => {

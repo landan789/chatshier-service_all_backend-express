@@ -61,23 +61,19 @@ module.exports = (function() {
         };
 
         activateMenu(req, res) {
-            let appId = '';
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
             let appType = '';
             let postMenu = {};
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
             }).then((app) => {
                 if (!app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
                 appType = app.type;
-                return Promise.all([
-                    appsRichmenusMdl.find(appId, menuId),
-                    app
-                ]);
+                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
             }).then(([appsRichmenu, app]) => {
                 if (!appsRichmenu) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
@@ -140,21 +136,18 @@ module.exports = (function() {
         };
 
         deactivateMenu(req, res) {
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
-            let appId = '';
-            let app;
             let richmenu;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
-            }).then((_app) => {
-                if (!_app) {
+            }).then((app) => {
+                if (!app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                app = _app;
-                return appsRichmenusMdl.find(appId, menuId);
-            }).then((appsRichmenus) => {
+                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
+            }).then(([ appsRichmenus, app ]) => {
                 if (!appsRichmenus) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
@@ -189,13 +182,12 @@ module.exports = (function() {
         };
 
         deleteMenu(req, res) {
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
-            let appId = '';
             let app;
             let richmenu;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
             }).then((_app) => {
                 if (!_app) {

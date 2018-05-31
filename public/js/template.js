@@ -394,30 +394,7 @@
                             return resJson.data.url;
                         });
                     }
-                })).then((imageUrl) => {
-                    return new Promise((resolve, reject) => {
-                        if ('buttons' === template.template.type) {
-                            template.template.thumbnailImageUrl = imageUrl[0];
-                            resolve();
-                        }
-                        if ('carousel' === template.template.type) {
-                            for (let img in template.template.columns) {
-                                template.template.columns[img].thumbnailImageUrl = imageUrl[img];
-                            }
-                            resolve();
-                        }
-                    });
-                }).then(() => {
-                    return api.appsTemplates.insert(appId, userId, template);
-                }).then(() => {
-                    $('#template-modal').modal('hide');
-                    $('#modal-save').removeAttr('disabled');
-                    $appDropdown.find('#' + appId).click();
-                    $('#template-modal').modal('toggle');
-                    return $.notify('新增成功！', { type: 'success' });
-                }).catch((ERR) => {
-                    $('#modal-save').removeAttr('disabled');
-                    return $.notify('新增失敗', { type: 'danger' });
+                    return '';
                 });
             })).then((imageUrls) => {
                 if (!(template && template.template)) {
@@ -438,6 +415,9 @@
                 $('#modal-save').removeAttr('disabled');
                 $.notify('新增成功！', { type: 'success' });
                 return loadTemplates(appId, userId);
+            }).catch((ERR) => {
+                $('#modal-save').removeAttr('disabled');
+                $.notify('新增失敗', { type: 'danger' });
             });
         }
     }

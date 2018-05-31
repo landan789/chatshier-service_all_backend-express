@@ -12,17 +12,19 @@ module.exports = (function() {
          * 輸入全部的 appId 取得該 App 所有自動回覆的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string|string[]} autoreplyIds
+         * @param {any|string|string[]} [autoreplyIds]
          * @param {(appsAutoreplies: any) => any} [callback]
          * @return {Promise<any>}
          */
         find(appIds, autoreplyIds, callback) {
-            if (autoreplyIds && !(autoreplyIds instanceof Array)) {
-                autoreplyIds = [autoreplyIds];
-            }
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
             }
+
+            if (autoreplyIds && !(autoreplyIds instanceof Array)) {
+                autoreplyIds = [autoreplyIds];
+            }
+
             return Promise.resolve().then(() => {
                 if (!autoreplyIds) {
                     let query = {
