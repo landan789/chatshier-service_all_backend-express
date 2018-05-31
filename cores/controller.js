@@ -88,11 +88,12 @@ module.exports = (function() {
             });
         }
 
-        successJson(success, res) {
+        successJson(req, res, suc) {
             let json = {
                 status: 1,
-                msg: success.MSG,
-                data: success.data
+                msg: suc.MSG || '',
+                data: suc.data || {},
+                jwt: suc.jwt || ''
             };
             return res && res.status(200).json(json);
         }

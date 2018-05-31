@@ -56,12 +56,11 @@ module.exports = (function() {
                     });
                 });
             }).then((groups) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -138,12 +137,11 @@ module.exports = (function() {
                     });
                 });
             }).then((groups) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -260,12 +258,11 @@ module.exports = (function() {
                     }
                 }));
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });

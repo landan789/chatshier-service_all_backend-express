@@ -434,7 +434,7 @@ router.post('/:webhookid', (req, res, next) => {
             msg: ERROR.MSG,
             code: ERROR.CODE
         };
-        console.log(ERROR);
+        console.error(ERROR);
         console.log(JSON.stringify(json, null, 4));
         console.trace(json);
         !res.headersSent && res.sendStatus(500);

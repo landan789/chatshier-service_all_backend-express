@@ -27,12 +27,11 @@ module.exports = (function() {
                     return appsTickets;
                 });
             }).then((appsTickets) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -50,12 +49,11 @@ module.exports = (function() {
                     return appsTickets;
                 });
             }).then((appsTickets) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -80,12 +78,11 @@ module.exports = (function() {
                     return appsTickets;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -126,12 +123,11 @@ module.exports = (function() {
                     return appsTickets;
                 });
             }).then((appsTickets) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsTickets
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });

@@ -234,8 +234,7 @@ module.exports = (function() {
                     });
                 });
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
                     jwt: token,
                     data: users
@@ -247,7 +246,7 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -281,8 +280,7 @@ module.exports = (function() {
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNUP.MSG,
                     jwt: token,
                     data: users
@@ -294,7 +292,7 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -336,11 +334,10 @@ module.exports = (function() {
                     return result;
                 });
             }).then(() => {
-                let json = {
-                    status: 1,
-                    msg: API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
+                let suc = {
+                    msg:API_SUCCESS.USER_SUCCEEDED_TO_RESET_PASSWORD.MSG
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -385,8 +382,7 @@ module.exports = (function() {
                     });
                 });
             }).then((users) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
                     jwt: token,
                     data: users
@@ -398,7 +394,7 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });

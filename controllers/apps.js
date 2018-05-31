@@ -61,12 +61,11 @@ module.exports = (function() {
                     return apps;
                 });
             }).then((apps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -119,14 +118,12 @@ module.exports = (function() {
                     }
                     return apps;
                 });
-            }).then((data) => {
-                let app = data;
-                let json = {
-                    status: 1,
+            }).then((apps) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: app
+                    data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -295,12 +292,11 @@ module.exports = (function() {
                     return Promise.resolve();
                 });
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -408,12 +404,11 @@ module.exports = (function() {
                     });
                 });
             }).then((apps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -496,12 +491,11 @@ module.exports = (function() {
             //         return Promise.reject(API_ERROR.FACEBOOK_PAGE_FAILED_TO_UNSUBSCRIBE_APP);
             //     });
             }).then((apps) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: apps
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });

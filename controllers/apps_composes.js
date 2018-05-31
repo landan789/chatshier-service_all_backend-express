@@ -27,12 +27,11 @@ module.exports = (function() {
                     return appsComposes;
                 });
             }).then((appsComposes) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsComposes
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -50,12 +49,11 @@ module.exports = (function() {
                     return appsComposes;
                 });
             }).then((appsComposes) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsComposes
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -87,14 +85,12 @@ module.exports = (function() {
                         return appsComposes;
                     });
                 });
-            }).then((compose) => {
-                let result = compose !== undefined ? compose : {};
-                let json = {
-                    status: 1,
+            }).then((appsComposes) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: result
+                    data: appsComposes
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -128,12 +124,11 @@ module.exports = (function() {
                     return _appsComposes;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
                     data: data
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -166,12 +161,11 @@ module.exports = (function() {
                     return appsCompose;
                 });
             }).then((appsCompose) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsCompose
                 };
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
