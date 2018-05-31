@@ -97,7 +97,6 @@
                 delete apps[appId];
                 continue;
             }
-            socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
             $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
             nowSelectAppId = nowSelectAppId || appId;
@@ -108,6 +107,10 @@
             refreshComposes(nowSelectAppId);
         }
         $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+
+        return new Promise(function(resolve) {
+            socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+        });
     });
 
     const ConditionComponent = (function() {

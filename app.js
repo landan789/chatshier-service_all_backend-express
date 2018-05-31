@@ -1,5 +1,5 @@
 let express = require('express');
-let compression = require('compression')
+let compression = require('compression');
 let path = require('path');
 let logger = require('morgan');
 let cookieParser = require('cookie-parser');

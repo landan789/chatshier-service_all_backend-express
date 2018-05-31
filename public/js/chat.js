@@ -587,47 +587,18 @@
         api.consumers.findAll(userId),
         api.groups.findAll(userId),
         api.users.find(userId)
-    ]).then(function(responses) {
-        apps = responses.shift().data;
-        appsChatrooms = responses.shift().data;
-        appsFields = responses.shift().data;
-        consumers = responses.shift().data;
-        groups = responses.shift().data;
-        users = responses.shift().data;
+    ]).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+        apps = appsRes.data;
+        appsChatrooms = appsChatroomsRes.data;
+        appsFields = appsFieldsRes.data;
+        consumers = consumersRes.data;
+        groups = groupsRes.data;
+        users = usersRes.data;
 
-        var socketRegPromises = [];
-        for (var appId in apps) {
-            if (!appsChatrooms[appId]) {
-                appsChatrooms[appId] = { chatrooms: {} };
-            }
-
-            if (!appsFields[appId]) {
-                appsFields[appId] = { fields: {} };
-            }
-
-            // 準備各個 app 的指派人清單
-            // 由於每個 app 可能隸屬於不同的群組
-            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
-            appsAgents[appId] = { agents: {} };
-            for (var groupId in groups) {
-                var group = groups[groupId];
-                if (0 <= group.app_ids.indexOf(appId)) {
-                    for (var memberId in group.members) {
-                        var memberUserId = group.members[memberId].user_id;
-                        appsAgents[appId].agents[memberUserId] = {
-                            name: users[memberUserId].name,
-                            email: users[memberUserId].email
-                        };
-                    }
-                }
-            }
-
-            // 向 server 登記此 socket 有多少 appId
-            socketRegPromises.push(new Promise(function(resolve) {
-                chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, resolve);
-            }));
-        }
-        return Promise.all(socketRegPromises);
+        // 向 server 登記 socket
+        return new Promise(function(resolve) {
+            chatshierSocket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+        });
     }).then(function() {
         return initChatData(apps);
     });
@@ -654,14 +625,9 @@
                     });
                 });
             }).then(function() {
-                var appIds = Object.keys(apps);
-                return Promise.all(appIds.map(function(appId) {
-                    return new Promise(function(resolve) {
-                        socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, function() {
-                            resolve();
-                        });
-                    });
-                }));
+                return new Promise(function(resolve) {
+                    socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+                });
             }).then(function() {
                 return keepConnection();
             });
@@ -939,9 +905,105 @@
                 $submitMessageInput.attr('placeholder', '對方已取消關注');
             }
         });
+
+        socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
+            var group = data.group;
+            var adderUser = data.user;
+
+            function yesToAddGroup() {
+                $('.alert[data-notify="container"] #yesAddGroupBtn').attr('disabled', true);
+
+                var groupId = data.groupId;
+                var memberId = data.memberId;
+                return api.groupsMembers.update(groupId, memberId, userId, { status: true }).then(function() {
+                    return Promise.all([
+                        api.apps.findAll(userId),
+                        api.appsChatrooms.findAll(userId),
+                        api.appsFields.findAll(userId),
+                        api.consumers.findAll(userId),
+                        api.groups.findAll(userId),
+                        api.users.find(userId)
+                    ]);
+                }).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+                    apps = appsRes.data;
+                    appsChatrooms = appsChatroomsRes.data;
+                    appsFields = appsFieldsRes.data;
+                    consumers = consumersRes.data;
+                    groups = groupsRes.data;
+                    users = usersRes.data;
+                    return initChatData(apps);
+                }).then(function() {
+                    addGroupNotify && addGroupNotify.close();
+                    $.notify('您已加入 "' + (group ? group.name : '') + '" 群組', { type: 'success' });
+                }).catch(function() {
+                    addGroupNotify && addGroupNotify.close();
+                    $.notify('加入群組失敗，可至 設定->內部群組 重新加入', { type: 'success' });
+                });
+            }
+
+            function noToAddGroup() {
+                addGroupNotify && addGroupNotify.close();
+            }
+
+            $(document).on('click', '.alert[data-notify="container"] #yesAddGroupBtn', yesToAddGroup);
+            $(document).on('click', '.alert[data-notify="container"] #noAddGroupBtn', noToAddGroup);
+
+            var addGroupNotify = $.notify({
+                icon: 'fas fa-users fa-fw',
+                title: '群組邀請',
+                message: '"' + (adderUser ? adderUser.name : '') + '" 邀請你加入他的 "' + (group ? group.name : '') + '" 群組'
+            }, {
+                type: 'info',
+                delay: 15000,
+                template: (
+                    '<div data-notify="container" class="col-sm-3 alert alert-{0}" role="alert">' +
+                        '<div class="font-weight-bold">' +
+                            '<i class="mr-2" data-notify="icon"></i>' +
+                            '<span data-notify="title">{1}</span>' +
+                        '</div>' +
+                        '<div class="my-2" data-notify="message">{2}</div>' +
+                        '<div class="text-right">' +
+                            '<button type="button" class="mr-1 btn btn-info" id="yesAddGroupBtn">是</button>' +
+                            '<button type="button" class="ml-1 btn btn-light" id="noAddGroupBtn">否</button>' +
+                        '</div>' +
+                    '</div>'
+                ),
+                onClose: function() {
+                    $(document).off('click', '.alert[data-notify="container"] #yesAddGroupBtn', yesToAddGroup);
+                    $(document).off('click', '.alert[data-notify="container"] #noAddGroupBtn', noToAddGroup);
+                }
+            });
+        });
+
+        socket.on(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_CLIENT, function(data) {
+            var executeUser = users[data.userId];
+            $.notify('您已被' + (executeUser ? ' "' + executeUser.name + '" ' : '') + '踢出了群組', { type: 'info' });
+
+            return Promise.all([
+                api.apps.findAll(userId),
+                api.appsChatrooms.findAll(userId),
+                api.appsFields.findAll(userId),
+                api.consumers.findAll(userId),
+                api.groups.findAll(userId),
+                api.users.find(userId)
+            ]).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+                apps = appsRes.data;
+                appsChatrooms = appsChatroomsRes.data;
+                appsFields = appsFieldsRes.data;
+                consumers = consumersRes.data;
+                groups = groupsRes.data;
+                users = usersRes.data;
+                return initChatData(apps);
+            });
+        });
     }
 
     function initChatData(apps) {
+        chatroomList.length = 0;
+        $chatroomBody.empty();
+        $profileWrapper.empty();
+        $ticketWrapper.empty();
+
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
@@ -988,9 +1050,35 @@
             consumers[platformUid].photo = fixHttpsLink(consumers[platformUid].photo);
         }
 
+        appsAgents = {};
         for (var appId in apps) {
+            if (!appsChatrooms[appId]) {
+                appsChatrooms[appId] = { chatrooms: {} };
+            }
+
+            if (!appsFields[appId]) {
+                appsFields[appId] = { fields: {} };
+            }
+
             var app = apps[appId];
             var chatrooms = appsChatrooms[appId].chatrooms;
+
+            // 準備各個 app 的指派人清單
+            // 由於每個 app 可能隸屬於不同的群組
+            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
+            appsAgents[appId] = { agents: {} };
+            for (var groupId in groups) {
+                var group = groups[groupId];
+                if (0 <= group.app_ids.indexOf(appId)) {
+                    for (var memberId in group.members) {
+                        var memberUserId = group.members[memberId].user_id;
+                        appsAgents[appId].agents[memberUserId] = {
+                            name: users[memberUserId].name,
+                            email: users[memberUserId].email
+                        };
+                    }
+                }
+            }
 
             for (var chatroomId in chatrooms) {
                 var chatroom = chatrooms[chatroomId];

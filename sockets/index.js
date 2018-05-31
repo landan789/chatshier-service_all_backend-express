@@ -10,6 +10,7 @@ const appsChatroomsMdl = require('../models/apps_chatrooms');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const groupsMdl = require('../models/groups');
+const usersMdl = require('../models/users');
 
 const SOCKET_EVENTS = require('../config/socket-events');
 /** @type {any} */
@@ -17,6 +18,7 @@ const API_ERROR = require('../config/api_error.json');
 
 const CHAT_COUNT_INTERVAL_TIME = 900000;
 
+const CHATSHIER = 'CHATSHIER';
 const SYSTEM = 'SYSTEM';
 const media = {
     image: 'png',
@@ -29,8 +31,8 @@ function init(server) {
     let chatshierNsp = socketIOServer.of('/chatshier');
 
     chatshierNsp.on(SOCKET_EVENTS.CONNECTION, (socket) => {
-        socket.on(SOCKET_EVENTS.APP_REGISTRATION, (appId, callback) => {
-            socketHlp.addSocket(appId, socket);
+        socket.on(SOCKET_EVENTS.USER_REGISTRATION, (userId, callback) => {
+            userId && socketHlp.addSocket(userId, socket);
             ('function' === typeof callback) && callback();
         });
 
@@ -49,6 +51,7 @@ function init(server) {
             let senderUid = socketBody.senderUid;
             let senderMsgId;
             let app;
+            let recipientUserIds = [];
 
             return appsMdl.find(appId).then((apps) => {
                 if (!apps) {
@@ -122,10 +125,13 @@ function init(server) {
                 let groupId = app.group_id;
                 return groupsMdl.findUserIds(groupId);
             }).then((memberUserIds) => {
+                memberUserIds = memberUserIds || [];
+                recipientUserIds = memberUserIds.slice();
+
                 // 將聊天室內所有的群組成員的未讀數加上訊息總數
                 // 不需更新發送者的未讀數
-                memberUserIds = memberUserIds ? memberUserIds.filter((memberUserId) => memberUserId !== senderUid) : [];
-                return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, memberUserIds, messages.length);
+                let _memberUserIds = memberUserIds.filter((memberUserId) => memberUserId !== senderUid);
+                return appsChatroomsMessagersMdl.increaseUnReadByPlatformUid(appId, chatroomId, _memberUserIds, messages.length);
             }).then(() => {
                 // 更新發送者的聊天狀態
                 return appsChatroomsMessagersMdl.find(appId, chatroomId, senderMsgId).then((appsChatroomsMessagers) => {
@@ -154,7 +160,7 @@ function init(server) {
 
                 // 將 socket 資料原封不動的廣播到 chatshier chatroom
                 socketBody.chatroom = chatroom;
-                return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
             }).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
@@ -164,10 +170,24 @@ function init(server) {
         });
 
         socket.on(SOCKET_EVENTS.BROADCAST_MESSAGER_TO_SERVER, (data, callback) => {
-            var appId = data.appId;
-            var socketBody = data;
+            let appId = data.appId;
+            let chatroomId = data.chatroomId;
+            let senderUid = data.senderUid;
+            let socketBody = data;
 
-            return socketHlp.emitToAll(appId, SOCKET_EVENTS.BROADCAST_MESSAGER_TO_CLIENT, socketBody).then(() => {
+            return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
+                if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                    return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                }
+
+                let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                let messagers = chatroom.messagers;
+                let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                    return messagers[messagerId].platformUid;
+                }).filter((recipientUserId) => recipientUserId !== senderUid);
+
+                return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.BROADCAST_MESSAGER_TO_CLIENT, socketBody);
+            }).then(() => {
                 ('function' === typeof callback) && callback();
             }).catch((err) => {
                 console.error(err);
@@ -238,8 +258,20 @@ function init(server) {
                                     recipientUid: recipientUids.shift(),
                                     messages: messages
                                 };
-                                // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                                return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+
+                                return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((appsChatroomsMessagers) => {
+                                    if (!(appsChatroomsMessagers && appsChatroomsMessagers[appId])) {
+                                        return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                    }
+
+                                    let chatroom = appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                    let messagers = chatroom.messagers;
+                                    let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                        return messagers[messagerId].platformUid;
+                                    });
+                                    // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                    return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                });
                             });
                         }));
                     });
@@ -271,6 +303,54 @@ function init(server) {
         });
 
         /* ===聊天室end=== */
+
+        socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_SERVER, (data, callback) => {
+            let groupId = data.groupId;
+            let memberId = data.memberId;
+            let memberUserId = data.memberUserId;
+            let userId = data.userId;
+            let socketBody = {
+                groupId: groupId,
+                memberId: memberId
+            };
+
+            return groupsMdl.find(groupId, memberUserId).then((groups) => {
+                if (!(groups && groups[groupId])) {
+                    return Promise.reject(API_ERROR.GROUP_FAILED_TO_FIND);
+                }
+                return groups[groupId];
+            }).then((group) => {
+                socketBody.group = group;
+
+                return usersMdl.find(userId).then((users) => {
+                    if (!(users && users[userId])) {
+                        return Promise.reject(API_ERROR.USER_FAILED_TO_FIND);
+                    }
+                    return users[userId];
+                });
+            }).then((user) => {
+                socketBody.user = user;
+                console.log(socketBody);
+                return socketHlp.emitToAll(memberUserId, SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, socketBody);
+            }).then(() => {
+                ('function' === typeof callback) && callback();
+            }).catch((err) => {
+                console.error(err);
+                ('function' === typeof callback) && callback(err);
+            });
+        });
+
+        socket.on(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_SERVER, (data, callback) => {
+            let memberUserId = data.memberUserId;
+            let socketBody = data;
+
+            return socketHlp.emitToAll(memberUserId, SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_CLIENT, socketBody).then(() => {
+                ('function' === typeof callback) && callback();
+            }).catch((err) => {
+                console.error(err);
+                ('function' === typeof callback) && callback(err);
+            });
+        });
     });
 
     return socketIOServer;
