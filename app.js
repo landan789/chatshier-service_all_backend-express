@@ -1,4 +1,5 @@
 let express = require('express');
+let compression = require('compression')
 let path = require('path');
 let logger = require('morgan');
 let cookieParser = require('cookie-parser');
@@ -15,7 +16,7 @@ let webhook = require('./routes/webhook');
 const CHATSHIER = require('./config/chatshier');
 
 let app = express();
-
+app.use(compression());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
