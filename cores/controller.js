@@ -102,6 +102,16 @@ module.exports = (function() {
                 return Promise.resolve(appIds);
             });
         }
+
+        errorHandler(err, res) {
+            console.error(err);
+            let json = {
+                status: 0,
+                msg: err.MSG,
+                code: err.CODE
+            };
+            return res && res.status(err && err.CODE === API_ERROR.USER_WAS_NOT_AUTHORIZED.CODE ? 401 : 500).json(json);
+        }
     }
 
     return ControllerCore;

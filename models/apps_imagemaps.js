@@ -180,7 +180,7 @@ module.exports = (function() {
          *
          * @param {*} appIds
          * @param {string} imagemapId
-         * @param {*} callback
+         * @param {*} [callback]
          */
         remove(appIds, imagemapId, callback) {
             let query = {

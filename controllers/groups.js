@@ -14,7 +14,6 @@ module.exports = (function() {
 
     let appsMdl = require('../models/apps');
     let appsChatroomsMdl = require('../models/apps_chatrooms');
-    let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let appsFieldsMdl = require('../models/apps_fields');
     let usersMdl = require('../models/users');
     let groupsMdl = require('../models/groups');
@@ -63,13 +62,8 @@ module.exports = (function() {
                     data: groups
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -150,13 +144,8 @@ module.exports = (function() {
                     data: groups
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -277,13 +266,8 @@ module.exports = (function() {
                     data: groups
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }

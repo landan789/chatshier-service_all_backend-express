@@ -37,13 +37,8 @@ module.exports = (function() {
                     data: result
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -75,13 +70,8 @@ module.exports = (function() {
                     data: result
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -113,13 +103,8 @@ module.exports = (function() {
                     data: result
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -149,13 +134,8 @@ module.exports = (function() {
                     data: appsGreetings || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -189,13 +169,8 @@ module.exports = (function() {
                     data: appsGreetings
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }
