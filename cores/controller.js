@@ -88,7 +88,7 @@ module.exports = (function() {
             });
         }
 
-        errorJson(err, res) {
+        errorJson(err, data, res) {
             console.error(err);
             let json = {
                 status: 0,
