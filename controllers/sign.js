@@ -84,8 +84,7 @@ module.exports = (function() {
                 token = jwtHlp.sign(userId);
                 return Promise.resolve(token);
             }).then((token) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNIN.MSG,
                     jwt: token,
                     data: users
@@ -98,7 +97,7 @@ module.exports = (function() {
                 };
 
                 res.cookie('jwt', token, options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -108,11 +107,8 @@ module.exports = (function() {
             let domain = domainHlp.get(req.hostname);
 
             return Promise.resolve().then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_SIGNOUT.MSG,
-                    jwt: '',
-                    data: {}
                 };
                 let options = {
                     domain: domain,
@@ -121,7 +117,7 @@ module.exports = (function() {
                     expires: Date.now()
                 };
                 res.cookie('jwt', '', options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
@@ -431,8 +427,7 @@ module.exports = (function() {
                     });
                 });
             }).then((users) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.USER_SUCCEEDED_TO_CHANGE_PASSWORD.MSG,
                     jwt: token,
                     data: users
@@ -444,7 +439,7 @@ module.exports = (function() {
                     expires: new Date(Date.now() + CHATSHIER.JWT.EXPIRES)
                 };
                 res.cookie('jwt', token, options);
-                res.status(200).json(json);
+                return this.successJson(req, res, suc)
             }).catch((err) => {
                 return this.errorJson(req, res, err)
             });
