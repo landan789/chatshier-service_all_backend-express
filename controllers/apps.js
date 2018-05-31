@@ -70,8 +70,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -135,8 +136,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -314,8 +316,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -432,8 +435,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -525,8 +529,9 @@ module.exports = (function() {
             }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });

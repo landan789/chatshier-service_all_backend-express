@@ -78,17 +78,18 @@ module.exports = (function() {
                     });
                 });
             }).then((data) => {
-                var json = {
+                let json = {
                     status: 1,
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
                 res.status(200).json(json);
             }).catch((ERROR) => {
-                var json = {
+                let json = {
                     status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -133,11 +134,12 @@ module.exports = (function() {
                     data: users
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    mgs: ERR.MSG,
-                    code: ERR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });

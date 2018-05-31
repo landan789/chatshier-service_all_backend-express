@@ -42,11 +42,12 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -114,11 +115,12 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -183,11 +185,12 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
@@ -232,11 +235,12 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
+            }).catch((ERROR) => {
                 let json = {
                     status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
+                    msg: ERROR.MSG || '',
+                    code: ERROR.CODE || '',
+                    error: ERROR
                 };
                 res.status(500).json(json);
             });
