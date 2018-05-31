@@ -34,13 +34,8 @@ module.exports = (function() {
                     data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -48,8 +43,11 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
             let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds;
+            return this.appsRequestVerify(req).then((checkedAppId) => {
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
@@ -72,13 +70,8 @@ module.exports = (function() {
                     data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -126,13 +119,8 @@ module.exports = (function() {
                     data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -159,7 +147,10 @@ module.exports = (function() {
             };
 
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
@@ -189,13 +180,8 @@ module.exports = (function() {
                     data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -203,7 +189,10 @@ module.exports = (function() {
             let imagemapId = req.params.imagemapid;
             let appId;
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.IMAGEMAP_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!imagemapId) {
                     return Promise.reject(API_ERROR.IMAGEMAPID_WAS_EMPTY);
                 }
@@ -233,13 +222,8 @@ module.exports = (function() {
                     data: appsImagemaps || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }

@@ -34,13 +34,8 @@ module.exports = (function() {
                     data: appsTemplates || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -62,13 +57,8 @@ module.exports = (function() {
                     data: appsTemplates || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -123,14 +113,8 @@ module.exports = (function() {
                     data: appsTemplates || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                console.log(ERR);
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -145,7 +129,11 @@ module.exports = (function() {
                 template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppId) => {
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 }
@@ -162,13 +150,8 @@ module.exports = (function() {
                     data: appsTemplate || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
 
@@ -176,8 +159,10 @@ module.exports = (function() {
             let templateId = req.params.templateid;
             let appId;
             return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-
+                if (checkedAppId.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+                appId = checkedAppId.pop();
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 };
@@ -194,13 +179,8 @@ module.exports = (function() {
                     data: appsTemplates || {}
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorHandler(err, res);
             });
         }
     }
