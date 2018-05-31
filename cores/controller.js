@@ -97,7 +97,7 @@ module.exports = (function() {
             return res && res.status(200).json(json);
         }
 
-        errorJson(error, res) {
+        errorJson(req, res, error) {
             console.error(error);
             let json = {
                 status: 0,

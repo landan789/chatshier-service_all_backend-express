@@ -131,7 +131,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -177,7 +177,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -217,7 +217,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -260,7 +260,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -289,7 +289,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         };
 
@@ -313,7 +313,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         }
 
@@ -333,7 +333,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(err, res);
+                return this.errorJson(req, res, err)
             });
         }
     }
