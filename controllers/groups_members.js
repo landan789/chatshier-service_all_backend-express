@@ -70,9 +70,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: groupsMembers
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -175,15 +175,17 @@ module.exports = (function() {
                             return;
                         }
 
-                        memberUser.group_ids.push(groupId);
-                        return new Promise((resolve, reject) => {
-                            usersMdl.update(req.body.userid, memberUser, (users) => {
-                                if (!users || (users && 0 === Object.keys(users).length)) {
-                                    reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
-                                    return;
-                                };
-                                resolve();
-                            });
+                        let groupIds = memberUser.group_ids;
+                        groupIds.push(groupId);
+                        let putMemberUser = {
+                            group_ids: groupIds
+                        };
+
+                        return usersMdl.update(req.body.userid, putMemberUser).then((users) => {
+                            if (!(users && users[req.body.userid])) {
+                                return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                            }
+                            return users;
                         }).then(() => {
                             return groupsMembers;
                         });
@@ -204,9 +206,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: groupsMembers
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -372,9 +374,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -491,9 +493,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: groupsMembers
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
     }
