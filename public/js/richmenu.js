@@ -701,10 +701,10 @@
         }).then(() => {
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
-            return loadRichmenus(appId, userId, true);
+            loadRichmenus(appId, userId, true);
         }).catch(() => {
-            $('#modal-save').removeAttr('disabled');
-            $('#modal-update-save').removeAttr('disabled');
+            $('#modal-save').removeAttr('disabled').empty().text('新增');
+            $('#modal-update-save').removeAttr('disabled').empty().text('修改');
             $.notify('新增失敗', { type: 'danger' });
         });
     }
@@ -753,7 +753,8 @@
             $.notify('修改成功', { type: 'success' });
             return loadRichmenus(appId, userId, true);
         }).catch(() => {
-            $('#richmenu-modal').modal('hide');
+            $('#modal-save').removeAttr('disabled').empty().text('新增');
+            $('#modal-update-save').removeAttr('disabled').empty().text('修改');
             $.notify('修改失敗', { type: 'danger' });
         });
     }
