@@ -123,6 +123,7 @@ router.post('/:webhookid', (req, res, next) => {
                 let receivedMessages = [];
                 let repliedMessages = [];
                 let totalMessages = [];
+                let recipientUserIds = [];
 
                 let fromPath;
                 let toPath;
@@ -169,13 +170,23 @@ router.post('/:webhookid', (req, res, next) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }
+                                        platformMessager = _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid];
+                                        return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER);
+                                    }).then((_appsChatroomsMessagers) => {
+                                        if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        }
+
+                                        let chatroom = _appsChatroomsMessagers[appId].chatrooms[_chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let _recipientUserIds = Object.keys(messagers).map((messagerId) => messagers[messagerId].platformUid);
 
                                         let socketBody = {
                                             appId: appId,
                                             chatroomId: _chatroomId,
-                                            messager: _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid]
+                                            messager: platformMessager
                                         };
-                                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
+                                        return socketHlp.emitToAll(_recipientUserIds, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
                                     });
                                 }));
                             }).then(() => void 0);
@@ -313,7 +324,7 @@ router.post('/:webhookid', (req, res, next) => {
                                             chatroomId: _chatroomId,
                                             messager: _messager
                                         };
-                                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => _messager);
+                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
                                     });
                                 }
                                 platformMessager = messager;
@@ -458,7 +469,9 @@ router.post('/:webhookid', (req, res, next) => {
                     }
                     return messages;
                 }).then(() => {
-                    if (!(webhookChatroomId && _messages && Object.keys(_messages).length > 0)) {
+                    if (!(webhookChatroomId &&
+                        (_messages && Object.keys(_messages).length > 0) &&
+                        recipientUserIds.length > 0)) {
                         return;
                     }
 
@@ -481,7 +494,7 @@ router.post('/:webhookid', (req, res, next) => {
                             consumers: consumers,
                             messages: Object.values(_messages)
                         };
-                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
+                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
                     });
                 });
             }));
