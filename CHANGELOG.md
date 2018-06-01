@@ -1,5 +1,15 @@
+= Release 1.3.1 =
+MASTER release： Not Ready
+RELEASE release：2018-06-01
+== Features ==
+ 
+== Bug Fixes ==
+
+
+
 = Release 1.3.0 =
-Released: Not Ready
+MASTER release： Not Ready
+RELEASE release：2018-05-28 
 == Features ==
  * Created: support LINE group and room chat with LINE
  * Created: custom naming platform group chatroom name
@@ -12,7 +22,7 @@ Released: Not Ready
  * Created: user can reset password now
  * Created: tags feature
  * Created: vendor can send files to the consumors via Dropbox
- * Creared: Alis name of consumors
+ * Creared: T2-7 [聊天室] 更新用戶資料 - 可以更改 LINE 用戶別名
  
 == Bug Fixes ==
  * Fixed: signin form not auto complete email
@@ -26,14 +36,14 @@ Released: Not Ready
  * Fixed: customized compose
 
 = Release 1.2.4 =
-Released: 2018-04-27
+MASTER Released: 2018-04-27
 == Features ==
 
 == Bug Fixes ==
  * Fixed: set cookie value is not ASCII (browser: safari)
  
 = Release 1.2.3 =
-Released: 2018-04-25
+MASTER Released: 2018-04-25
 == Features ==
 
 == Bug Fixes ==
@@ -41,7 +51,7 @@ Released: 2018-04-25
  * refacted: switch the classes of controller to ES6 class syntax
  
  = Release 1.2.2 =
-Released: 2018-04-24
+MASTER Released: 2018-04-24
 == Features ==
  * Created: [MASTER 1.2.2][chat][UI:RWD]
  * Created: [MASTER 1.2.2][calendar][UI:RWD]
