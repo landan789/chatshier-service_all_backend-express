@@ -31,9 +31,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -53,9 +53,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsTickets
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -82,9 +82,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -127,9 +127,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsTickets
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -168,7 +168,7 @@ module.exports = (function() {
                 };
                 res.status(200).json(json);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
     }

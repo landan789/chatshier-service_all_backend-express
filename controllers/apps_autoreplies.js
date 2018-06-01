@@ -32,9 +32,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: apps
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -54,9 +54,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: appsAutoreplies
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -83,9 +83,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: appsAutoreplies
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -135,9 +135,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: appsAutoreplies
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -170,9 +170,9 @@ module.exports = (function() {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: appsAutoreplies
                 };
-                return this.successJson(req, res, suc)
+                return this.successJson(req, res, suc);
             }).catch((err) => {
-                return this.errorJson(req, res, err)
+                return this.errorJson(req, res, err);
             });
         };
     }
