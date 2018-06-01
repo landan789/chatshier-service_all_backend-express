@@ -12,7 +12,7 @@ module.exports = (function() {
          * 輸入 指定 appId 的陣列清單，取得該 App 所有圖文選單的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string} imagemapId
+         * @param {any|string} [imagemapId]
          * @param {(appsImagemaps: any) => any} [callback]
          * @return {Promise<any>}
          */
@@ -24,7 +24,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'imagemaps.isDeleted': false
             };
             imagemapId && (query['imagemaps._id'] = this.Types.ObjectId(imagemapId));
 
@@ -78,7 +80,9 @@ module.exports = (function() {
             let query = {
                 '_id': {
                     $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                }
+                },
+                'isDeleted': false,
+                'imagemaps.isDeleted': false
             };
 
             let aggregations = [
@@ -180,7 +184,7 @@ module.exports = (function() {
          *
          * @param {*} appIds
          * @param {string} imagemapId
-         * @param {*} callback
+         * @param {*} [callback]
          */
         remove(appIds, imagemapId, callback) {
             let query = {

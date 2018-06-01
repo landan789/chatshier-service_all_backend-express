@@ -8,6 +8,7 @@ window.restfulAPI = (function() {
     var apiDatabaseUrl = urlConfig.apiUrl + '/api/database/';
     var apiSignUrl = urlConfig.apiUrl + '/api/sign/';
     var apiBotUrl = urlConfig.apiUrl + '/api/bot/';
+    var apiImageUrl = urlConfig.apiUrl + '/api/image/';
     var apiUrlTable = Object.freeze({
         apps: apiDatabaseUrl + 'apps/',
         appsAutoreplies: apiDatabaseUrl + 'apps-autoreplies/',
@@ -22,6 +23,7 @@ window.restfulAPI = (function() {
         appsFields: apiDatabaseUrl + 'apps-fields/',
         appsTickets: apiDatabaseUrl + 'apps-tickets/',
         bot: apiBotUrl,
+        image: apiImageUrl,
         calendarsEvents: apiDatabaseUrl + 'calendars-events/',
         consumers: apiDatabaseUrl + 'consumers/',
         groupsMembers: apiDatabaseUrl + 'groups-members/',
@@ -1428,7 +1430,7 @@ window.restfulAPI = (function() {
          * @param {File} file
          */
         BotAPI.prototype.uploadFile = function(appId, userId, file) {
-            var destUrl = this.urlPrefix + 'upload-file/users/' + userId + '?appid=' + appId;
+            var destUrl = `${this.urlPrefix}upload-file/users/${userId}?appid=${appId}`;
             var formData = new FormData();
             formData.append('file', file);
             formData.append('fileName', file.name);
@@ -1478,6 +1480,53 @@ window.restfulAPI = (function() {
         return BotAPI;
     })();
 
+    var ImageAPI = (function() {
+        function ImageAPI() {
+            this.urlPrefix = apiUrlTable.image;
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} userId
+         * @param {File} file
+         */
+        ImageAPI.prototype.uploadFile = function(appId, userId, file) {
+            var destUrl = `${this.urlPrefix}upload-file/users/${userId}?appid=${appId}`;
+            var formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+
+            // 由於要使用 formData, Content-type 不同，因此使用新的 Headers
+            var _reqHeaders = new Headers();
+            _reqHeaders.set('Authorization', reqHeaders.get('Authorization'));
+
+            var reqInit = {
+                method: 'POST',
+                headers: _reqHeaders,
+                body: formData
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        /**
+         * @param {string} appId
+         * @param {string} richMenuId
+         * @param {string} userId
+         * @param {string} path
+         */
+        ImageAPI.prototype.moveFile = function(appId, richMenuId, userId, path) {
+            var destUrl = `${this.urlPrefix}move-file/users/${userId}?appid=${appId}&richmenuid=${richMenuId}&path=${path}`;
+
+            var reqInit = {
+                method: 'POST',
+                headers: reqHeaders
+            };
+            return sendRequest(destUrl, reqInit);
+        };
+
+        return ImageAPI;
+    })();
+
     return {
         setJWT: setJWT,
         apps: new AppAPI(),
@@ -1493,6 +1542,7 @@ window.restfulAPI = (function() {
         appsFields: new AppsFieldsAPI(),
         appsTickets: new AppsTicketsAPI(),
         bot: new BotAPI(),
+        image: new ImageAPI(),
         calendarsEvents: new CalendarsEventsAPI(),
         consumers: new ConsumersAPI(),
         groupsMembers: new GroupsMembersAPI(),

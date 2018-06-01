@@ -5,6 +5,11 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var api = window.restfulAPI;
     var nowSelectAppId = '';
     var size = {};
@@ -31,6 +36,7 @@
     $jqDoc.on('click', '#remove-btn', removeImagemap);
     $jqDoc.on('click', '#turnOn-update-btn', turnOnUpdateModal);
     $modal.on('show.bs.modal', function() {
+        $('.form-group').removeClass('d-none');
         $('#update-btn').addClass('d-none');
     });
     $modal.on('hidden.bs.modal', function() {
@@ -276,8 +282,8 @@
 
     function cleanmodal() {
         imageFile = '';
-        $('#insert-btn').removeAttr('disabled').removeClass('d-none');
-        $('#update-btn').removeAttr('disabled').removeClass('d-none');
+        $('#insert-btn').removeAttr('disabled').removeClass('d-none').empty().append('新增');
+        $('#update-btn').removeAttr('disabled').removeClass('d-none').empty().append('修改');
         $('.form-group.col-sm-12').addClass('d-none');
         $('.chsr-form > div').removeClass('d-none');
         $modal.find('input[type = text]').val('');
@@ -293,20 +299,19 @@
     }
 
     function insertImagemap() {
-        $(this).attr('disabled', 'disabled');
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $appSelector.find('option:selected').val();
         let title = $('#title').val();
         let form = $('input[name = imagemap-form]:checked').val();
 
         if (!appId || !title) {
-            $(this).removeAttr('disabled');
+            $(this).removeAttr('disabled').empty().append('新增');
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         }
 
         let actions = composeActions();
-
         Promise.resolve().then(() => {
-            return api.bot.uploadFile(appId, userId, imageFile);
+            return api.image.uploadFile(appId, userId, imageFile);
         }).then((resJson) => {
             let url = resJson.data.url;
 
@@ -325,17 +330,16 @@
             return api.appsImagemaps.insert(appId, userId, postImagemap);
         }).then(() => {
             $('#imagemap-modal').modal('hide');
+            $appDropdown.find('#' + appId).click();
             return $.notify('新增成功', { type: 'success' });
-        }).then(() => {
-            loadImagemaps(appId, userId);
-        }).catch(() => {
+        }).catch((ERR) => {
             $('#imagemap-modal').modal('hide');
             return $.notify('新增失敗', { type: 'danger' });
         });
     }
 
     function removeImagemap() {
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $(this).parent().parent().attr('rel');
         let imagemapId = $(this).parent().parent().attr('id');
 
         return Promise.resolve().then(() => {
@@ -359,7 +363,7 @@
     }
 
     function turnOnUpdateModal() {
-        let appId = $appSelector.find('option:selected').val();
+        let appId = $(this).parent().parent().attr('rel');
         let imagemapId = $(this).parent().parent().attr('id');
 
         $appSelector.parent().parent().addClass('d-none');
@@ -367,12 +371,12 @@
         $('#update-btn').removeClass('d-none');
 
         $('#update-btn').off('click').on('click', () => {
-            $('#update-btn').attr('disabled', 'disabled');
+            $('#update-btn').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
             let title = $('#title').val();
             let form = $('input[name = imagemap-form]:checked').val();
 
             if (!title) {
-                $(this).removeAttr('disabled');
+                $('#update-btn').removeAttr('disabled').empty().append('修改');
                 return $.notify('標題不可為空', { type: 'warning' });
             }
 
@@ -402,7 +406,7 @@
                 });
             }
 
-            return api.bot.uploadFile(appId, userId, imageFile).then((resJson) => {
+            return api.image.uploadFile(appId, userId, imageFile).then((resJson) => {
                 putImagemap.baseUri = resJson.data;
                 return api.appsImagemaps.update(appId, imagemapId, userId, putImagemap);
             }).then((resJson) => {
@@ -426,8 +430,8 @@
                 .css('background', 'url(' + imagemap.baseUri + ') center no-repeat')
                 .css('background-size', 'cover');
             photoFormShow();
-            let boxElements = $('.box');
-            boxElements.each(function(i) {
+            let $boxes = $('.box');
+            $boxes.each(function(i) {
                 let output = !imagemap.actions[i].text ? imagemap.actions[i].linkUri : imagemap.actions[i].text;
                 $(this).css('background-color', 'rgba(158,158,158, 0.7)');
                 $(this).text(output);
@@ -454,14 +458,15 @@
         let widthRate = imgWidth / width;
         let heightRate = imgHeight / height;
 
-        let boxElements = $('.box');
+        let $boxes = $('.box');
         let actions = [];
-        boxElements.each(function() {
-            let boxWidth = $(this).width();
-            let boxHeight = $(this).height();
-            let x = parseInt($(this).attr('data-x'));
-            let y = parseInt($(this).attr('data-y'));
-            let text = $(this).attr('ref');
+        $boxes.each(function() {
+            let $box = $(this);
+            let boxWidth = $box.width();
+            let boxHeight = $box.height();
+            let x = parseInt($box.data('x'));
+            let y = parseInt($box.data('y'));
+            let text = $box.attr('ref') || '';
 
             // 將 長寬 及 座標 依圖片大小縮放並四捨五入
             let sacledWidth = Math.round(boxWidth * widthRate);
@@ -470,7 +475,8 @@
             let scaledY = Math.round(y * heightRate);
 
             let action;
-            if (text.startsWith('https://') || text.startsWith('http://')) {
+            if (text.startsWith('https://') ||
+                text.startsWith('http://')) {
                 action = {
                     type: 'uri',
                     linkUri: text,
@@ -500,9 +506,10 @@
     }
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadImagemaps(nowSelectAppId, userId);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
+        return loadImagemaps(nowSelectAppId, userId);
     }
 
     function loadImagemaps(appId, userId) {
@@ -607,11 +614,20 @@
         nowSelectAppId = '';
         for (var appId in appsData) {
             var app = appsData[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+
+            // 目前只有 LINE 支援此功能
+            if (app.isDeleted ||
+                app.type !== api.apps.enums.type.LINE) {
                 delete appsData[appId];
                 continue;
             }
-            $dropdownMenu.append('<li><a  class="dropdown-item" id="' + appId + '">' + app.name + '</a></li>');
+
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;

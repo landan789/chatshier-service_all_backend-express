@@ -7,6 +7,15 @@ namespace Webhook {
             platformGroupId?: string,
             platformGroupType?: string,
             platformUid: string,
+            replyToken?: string
+        }
+
+        interface Profile {
+            type: 'LINE' | 'FACEBOOK' | 'WECHAT',
+            name: string,
+            photo: string,
+            photoOriginal: string,
+            gender?: string
         }
     }
     
@@ -30,7 +39,7 @@ namespace Webhook {
             },
             message: {
                 id: string,
-                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file',
+                type: 'text' | 'sticker' | 'image' | 'video' | 'audio' | 'location' | 'file' | 'template',
                 text: string,
         
                 /**
@@ -71,8 +80,16 @@ namespace Webhook {
                 /**
                  * type location
                  */
-                longitude: number
+                longitude: number,
+
+                /**
+                 * type template
+                 */
+                template: any
             },
+            /**
+             * type postback
+             */
             postback: {
                 /**
                  * ex: 'storeId=12345'
@@ -170,13 +187,13 @@ namespace Webhook {
         interface Entry {
             id: string,
             time: number,
-            messaging: MessagingObject[],
+            messaging: Messaging[],
         }
         
         /**
          * https://developers.facebook.com/docs/messenger-platform/reference/webhook-events#messaging
          */
-        interface MessagingObject {
+        interface Messaging {
             sender: {
                 id: string
             },

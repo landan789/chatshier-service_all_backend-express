@@ -6,6 +6,11 @@
     let SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     let socket = io(SOCKET_SERVER_URL);
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     let apps = {};
     let appsChatrooms = {};
     let appsFields = {};
@@ -93,13 +98,18 @@
         let $dropdownMenu = $appSelector.find('.dropdown-menu');
         for (let appId in apps) {
             let app = apps[appId];
-            if (app.isDeleted || app.type === CHATSHIER) {
+            if (app.isDeleted ||
+                app.type === CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
-            socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId);
 
-            $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" app-id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             nowSelectAppId = nowSelectAppId || appId;
         }
 
@@ -108,6 +118,10 @@
             refreshComposes(nowSelectAppId);
         }
         $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
+
+        return new Promise(function(resolve) {
+            socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+        });
     });
 
     const ConditionComponent = (function() {
@@ -160,32 +174,39 @@
 
                 let $conditionItem = $(
                     '<div class="my-1 d-flex flex-wrap align-items-center condition-item">' +
-                        '<div class="d-inline-block mr-2 dropdown condition-types">' +
-                            '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
-                                '<span class="condition-value" value="' + type + '" field-id="' + conditionType.field_id + '">' + conditionType.text + '</span>' +
-                            '</button>' +
-                            '<div class="dropdown-menu condition-types-menu">' +
-                                (() => {
-                                    return Object.keys(DEFAULT_CONDITION_TYPES).map((type) => {
-                                        return '<a class="dropdown-item" value="' + type + '">' + DEFAULT_CONDITION_TYPES[type].text + '</a>';
-                                    }).join('');
-                                })() +
-                                (Object.keys(this._conditionTypes).length > 0 ? '<div class="dropdown-divider"></div>' : '') +
-                                (() => {
-                                    return Object.keys(this._conditionTypes).map((fieldId) => {
-                                        return '<a class="dropdown-item" value="CUSTOM_FIELD" field-id="' + fieldId + '">' + this._conditionTypes[fieldId].text + '</a>';
-                                    }).join('');
-                                })() +
+                        '<div class="col-11 pl-0 pr-2 item-wrapper">' +
+                            '<div class="col-12 px-0 dropdown condition-types">' +
+                                '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
+                                    '<span class="condition-value" value="' + type + '" field-id="' + conditionType.field_id + '">' + conditionType.text + '</span>' +
+                                '</button>' +
+                                '<div class="dropdown-menu condition-types-menu">' +
+                                    (() => {
+                                        return Object.keys(DEFAULT_CONDITION_TYPES).map((type) => {
+                                            return '<a class="dropdown-item" value="' + type + '">' + DEFAULT_CONDITION_TYPES[type].text + '</a>';
+                                        }).join('');
+                                    })() +
+                                    (Object.keys(this._conditionTypes).length > 0 ? '<div class="dropdown-divider"></div>' : '') +
+                                    (() => {
+                                        return Object.keys(this._conditionTypes).map((fieldId) => {
+                                            return '<a class="dropdown-item" value="CUSTOM_FIELD" field-id="' + fieldId + '">' + this._conditionTypes[fieldId].text + '</a>';
+                                        }).join('');
+                                    })() +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="col-12 mt-2 px-0 text-center condition-content-wrapper">' +
+                                generateConditionContent(options) +
                             '</div>' +
                         '</div>' +
-                        generateConditionContent(options) +
-                        '<i class="ml-auto p-2 fas fa-times-circle condition-remove-btn"></i>' +
+                        '<i class="col-1 ml-auto p-2 fas fa-times-circle condition-remove-btn"></i>' +
                     '</div>'
                 );
+                if (this.$conditionContainer.children().length > 0) {
+                    this.$conditionContainer.append('<hr />');
+                }
                 this.$conditionContainer.append($conditionItem);
 
                 if ('TAGS' === type) {
-                    this.enableTypeahead($conditionItem.find('.condition-content'));
+                    this.enableTypeahead($conditionItem.find('.condition-content-wrapper'));
                     if (options.values && options.values.length > 0) {
                         let $tagsContainer = $conditionItem.find('.tags-container');
                         $tagsContainer.append(options.values.map((tag) => {
@@ -234,7 +255,7 @@
                                     })() +
                                 '</div>' +
                             '</div>' +
-                            '<span class="mx-1">~</span>' +
+                            '<span class="px-2">~</span>' +
                             '<div class="d-inline-block dropdown condition-content range range-up">' +
                                 '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                                     '<span class="condition-value" value="' + ageUp + '">' + ageUp + ' 歲</span>' +
@@ -258,7 +279,7 @@
                         let gender = values[0] ? values[0] : 'MALE';
                         let genderText = 'MALE' === gender ? '男' : '女';
                         return (
-                            '<div class="d-inline-block dropdown condition-content">' +
+                            '<div class="dropdown condition-content">' +
                                 '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                                     '<span class="condition-value" value="' + gender + '">' + genderText + '</span>' +
                                 '</button>' +
@@ -270,7 +291,7 @@
                         );
                     case 'TAGS':
                         return (
-                            '<div class="d-inline-block condition-content">' +
+                            '<div class="condition-content">' +
                                 '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
                             '</div>'
                         );
@@ -306,7 +327,7 @@
                             '<div class="d-inline-block condition-content range">' +
                                 '<input class="form-control condition-value" type="number" value="0" min="0" />' +
                             '</div>' +
-                            '<span class="mx-1">~</span>' +
+                            '<span class="px-2">~</span>' +
                             '<div class="d-inline-block condition-content range">' +
                                 '<input class="form-control condition-value" type="number" value="1" min="1" />' +
                             '</div>'
@@ -343,7 +364,9 @@
              * @param {MouseEvent} ev
              */
             removeConditionItem(ev) {
-                $(ev.target).parent().remove();
+                let $conditionItem = $(ev.target).parent();
+                $conditionItem.prev('hr').remove();
+                $conditionItem.remove();
                 this.refreshAvailable();
             }
 
@@ -368,9 +391,9 @@
                 let $conditionTypeValue = $conditionTypes.find('.condition-value');
                 $conditionTypeValue.attr('value', typeValue).attr('field-id', typeFieldId).text(typeText);
 
-                $conditionTypes.siblings('.condition-content').remove();
-                $conditionTypes.siblings('span').remove();
-                $conditionTypes.siblings('.tags-container').remove();
+                let $conditionContentWrapper = $conditionTypes.siblings('.condition-content-wrapper');
+                $conditionContentWrapper.empty();
+                $conditionTypes.parents('.item-wrapper').find('.tags-container').remove();
 
                 let type = typeFieldId || typeValue;
                 let conditionType = DEFAULT_CONDITION_TYPES[type] || this._conditionTypes[type];
@@ -379,11 +402,11 @@
                     field: this._allFields[conditionType.field_id]
                 };
                 let $conditionContent = $(generateConditionContent(options));
-                $conditionContent.insertAfter($conditionTypes);
+                $conditionContentWrapper.append($conditionContent);
                 this.refreshAvailable();
 
                 if ('TAGS' === typeValue) {
-                    this.enableTypeahead($conditionContent);
+                    this.enableTypeahead($conditionContentWrapper);
                 }
             }
 
@@ -402,14 +425,14 @@
             }
 
             /**
-             * @param {JQuery<HTMLElement>} $conditionContent
+             * @param {JQuery<HTMLElement>} $conditionContentWrapper
              */
-            enableTypeahead($conditionContent) {
+            enableTypeahead($conditionContentWrapper) {
                 let $tagsContainer = $('<div class="my-2 tags-container"></div>');
-                let $conditionItem = $conditionContent.parents('.condition-item');
+                let $conditionItem = $conditionContentWrapper.parents('.item-wrapper');
                 $conditionItem.append($tagsContainer);
 
-                let $tagsTypeahead = $conditionContent.find('.typeahead');
+                let $tagsTypeahead = $conditionContentWrapper.find('.typeahead');
                 $tagsTypeahead.typeahead({
                     minLength: 1,
                     fitToElement: true,
@@ -437,7 +460,14 @@
             refreshAvailable() {
                 let appIds = this._appIds;
                 let availableCount = 0;
+
                 let conditions = this.retrieveConditions();
+                let conditionsSets = conditions.reduce((output, condition) => {
+                    let type = condition.type;
+                    output[type] = output[type] || [];
+                    output[type].push(condition);
+                    return output;
+                }, {});
 
                 for (let i in appIds) {
                     let appId = appIds[i];
@@ -460,77 +490,81 @@
                             }
 
                             let isAvailable = !conditions.length;
-                            for (let i in conditions) {
-                                let condition = conditions[i];
+                            for (let conditionType in conditionsSets) {
+                                let _conditions = conditionsSets[conditionType];
+                                let isAccept = !_conditions.length;
 
-                                if ('AGE_RANGE' === condition.type) {
-                                    if (!messager.age) {
-                                        isAvailable = false;
-                                    } else {
-                                        let ageDown = condition.values[0];
-                                        let ageUp = condition.values[1];
-                                        isAvailable = ageDown <= messager.age && ageUp >= messager.age;
-                                    }
-                                } else if ('GENDER' === condition.type) {
-                                    if (!messager.gender) {
-                                        isAvailable = false;
-                                    } else {
-                                        let gender = condition.values[0];
-                                        isAvailable = gender === messager.gender;
-                                    }
-                                } else if ('TAGS' === condition.type) {
-                                    if (!messager.tags || (messager.tags && 0 === messager.tags.length)) {
-                                        isAvailable = false;
-                                    } else {
-                                        let tags = condition.values;
-                                        let hasContainTag = false;
-                                        for (let i in tags) {
-                                            if (messager.tags.includes(tags[i])) {
-                                                hasContainTag = true;
-                                                break;
+                                for (let i in _conditions) {
+                                    let condition = _conditions[i];
+
+                                    if ('AGE_RANGE' === conditionType) {
+                                        if (!messager.age) {
+                                            isAccept = isAccept || false;
+                                        } else {
+                                            let ageDown = condition.values[0];
+                                            let ageUp = condition.values[1];
+                                            isAccept = isAccept || (ageDown <= messager.age && ageUp >= messager.age);
+                                        }
+                                    } else if ('GENDER' === conditionType) {
+                                        if (!messager.gender) {
+                                            isAccept = isAccept || false;
+                                        } else {
+                                            let gender = condition.values[0];
+                                            isAccept = isAccept || gender === messager.gender;
+                                        }
+                                    } else if ('TAGS' === conditionType) {
+                                        if (!messager.tags || (messager.tags && 0 === messager.tags.length)) {
+                                            isAccept = isAccept || false;
+                                        } else {
+                                            let tags = condition.values;
+                                            let hasContainTag = false;
+                                            for (let i in tags) {
+                                                if (messager.tags.includes(tags[i])) {
+                                                    hasContainTag = true;
+                                                    break;
+                                                }
+                                            }
+                                            isAccept = isAccept || hasContainTag;
+                                        }
+                                    } else if ('CUSTOM_FIELD' === conditionType) {
+                                        let fieldId = condition.field_id;
+                                        let customField = messager.custom_fields[fieldId];
+
+                                        if (!customField) {
+                                            isAccept = isAccept || false;
+                                        } else {
+                                            let field = this._allFields[fieldId];
+                                            let customFieldValue = customField.value;
+                                            let SETS_TYPES = api.appsFields.enums.setsType;
+
+                                            switch (field.setsType) {
+                                                case SETS_TYPES.SELECT:
+                                                case SETS_TYPES.MULTI_SELECT:
+                                                    isAccept = isAccept || customFieldValue.indexOf(condition.values[0]) >= 0;
+                                                    break;
+                                                case SETS_TYPES.NUMBER:
+                                                    customFieldValue = parseFloat(customFieldValue);
+                                                    let numberDown = parseFloat(condition.values[0]);
+                                                    let numberUp = parseFloat(condition.values[1]);
+                                                    isAccept = isAccept || (
+                                                        !isNaN(customFieldValue) &&
+                                                        customFieldValue >= numberDown &&
+                                                        customFieldValue <= numberUp
+                                                    );
+                                                    break;
+                                                case SETS_TYPES.CHECKBOX:
+                                                    isAccept = isAccept ||
+                                                        ((customFieldValue && 'true' === condition.values[0]) ||
+                                                        (!customFieldValue && 'false' === condition.values[0]));
+                                                    break;
+                                                default:
+                                                    break;
                                             }
                                         }
-                                        isAvailable = hasContainTag;
-                                    }
-                                } else if ('CUSTOM_FIELD' === condition.type) {
-                                    let fieldId = condition.field_id;
-                                    let customField = messager.custom_fields[fieldId];
-
-                                    if (!customField) {
-                                        isAvailable = false;
-                                    } else {
-                                        let field = this._allFields[fieldId];
-                                        let customFieldValue = customField.value;
-                                        let SETS_TYPES = api.appsFields.enums.setsType;
-
-                                        switch (field.setsType) {
-                                            case SETS_TYPES.SELECT:
-                                            case SETS_TYPES.MULTI_SELECT:
-                                                isAvailable = customFieldValue.indexOf(condition.values[0]) >= 0;
-                                                break;
-                                            case SETS_TYPES.NUMBER:
-                                                customFieldValue = parseFloat(customFieldValue);
-                                                let numberDown = parseFloat(condition.values[0]);
-                                                let numberUp = parseFloat(condition.values[1]);
-                                                isAvailable =
-                                                    !isNaN(customFieldValue) &&
-                                                    customFieldValue >= numberDown &&
-                                                    customFieldValue <= numberUp;
-                                                break;
-                                            case SETS_TYPES.CHECKBOX:
-                                                isAvailable = customFieldValue && 'true' === condition.values[0];
-                                                break;
-                                            default:
-                                                break;
-                                        }
                                     }
                                 }
-
-                                if (!isAvailable) {
-                                    break;
-                                }
+                                isAvailable = isAccept;
                             }
-
                             isAvailable && availableCount++;
                         }
                     }
@@ -571,16 +605,14 @@
                         field_id: typeFieldId
                     };
 
-                    let hasContain = false;
                     for (let i in conditions) {
                         if (conditions[i].type === condition.type &&
                             conditions[i].field_id === condition.field_id) {
-                            hasContain = true;
                             conditions[i].values = condition.values;
                             break;
                         }
                     }
-                    !hasContain && conditions.push(condition);
+                    conditions.push(condition);
                 });
                 return conditions;
             }
@@ -591,10 +623,6 @@
 
     // #region Add modal 的處理全部寫在此閉包中
     (function() {
-        const ICONS = {
-            LINE: 'fab fa-line fa-fw line-color',
-            FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
-        };
         let conditionTypes = {};
 
         let allFields = {};
@@ -820,7 +848,6 @@
                 return refreshComposes(nowSelectAppId);
             }).catch((err) => {
                 $composeAddModal.find('#composeAddSubmitBtn').removeAttr('disabled');
-                $composeAddModal.modal('hide');
 
                 if (NO_PERMISSION_CODE === err.code) {
                     $.notify('無此權限', { type: 'danger' });
@@ -999,7 +1026,6 @@
                 return refreshComposes(nowSelectAppId);
             }).catch((err) => {
                 $composeEditModal.find('#editSubmitBtn').removeAttr('disabled');
-                $composeEditModal.modal('hide');
 
                 if (NO_PERMISSION_CODE === err.code) {
                     $.notify('無此權限', { type: 'danger' });
@@ -1133,7 +1159,7 @@
                             })() +
                         '</div>' +
                     '</div>' +
-                    '<span class="mx-1">~</span>' +
+                    '<span class="px-2">~</span>' +
                     '<div class="d-inline-block dropdown condition-content range range-up">' +
                         '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                             '<span class="condition-value" value="' + ageUp + '">' + ageUp + ' 歲</span>' +
@@ -1157,7 +1183,7 @@
                 let gender = conditionValues[0] ? conditionValues[0] : 'MALE';
                 let genderText = 'MALE' === gender ? '男' : '女';
                 return (
-                    '<div class="d-inline-block dropdown condition-content">' +
+                    '<div class="dropdown condition-content">' +
                         '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                             '<span class="condition-value" value="' + gender + '">' + genderText + '</span>' +
                         '</button>' +
@@ -1169,7 +1195,7 @@
                 );
             case 'TAGS':
                 return (
-                    '<div class="d-inline-block condition-content">' +
+                    '<div class="condition-content">' +
                         '<input class="form-control typeahead" data-provide="typeahead" type="text" placeholder="請輸入標籤關鍵字" />' +
                     '</div>'
                 );
@@ -1190,7 +1216,7 @@
         switch (field.setsType) {
             case SETS_TYPES.CHECKBOX:
                 return (
-                    '<div class="d-inline-block dropdown condition-content">' +
+                    '<div class="dropdown condition-content">' +
                         '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                             '<span class="condition-value" value="true">是</span>' +
                         '</button>' +
@@ -1205,7 +1231,7 @@
                     '<div class="d-inline-block condition-content range">' +
                         '<input class="form-control condition-value" type="number" value="0" min="0" />' +
                     '</div>' +
-                    '<span class="mx-1">~</span>' +
+                    '<span class="px-2">~</span>' +
                     '<div class="d-inline-block condition-content range">' +
                         '<input class="form-control condition-value" type="number" value="1" min="1" />' +
                     '</div>'
@@ -1213,7 +1239,7 @@
             case SETS_TYPES.SELECT:
             case SETS_TYPES.MULTI_SELECT:
                 return (
-                    '<div class="d-inline-block dropdown condition-content">' +
+                    '<div class="dropdown condition-content">' +
                         '<button class="btn btn-light btn-block btn-border dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
                             '<span class="condition-value" value="' + (field.sets[0] || '') + '">' + (field.sets[0] || '') + '</span>' +
                         '</button>' +
@@ -1302,11 +1328,6 @@
             }).catch((resJson) => {
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $.notify('無此權限', { type: 'danger' });
-                    return;
-                }
-
-                if (MUST_BE_LATER_THAN_NOW === resJson.code) {
-                    $.notify('群發時間必須大於現在時間', { type: 'danger' });
                     return;
                 }
 

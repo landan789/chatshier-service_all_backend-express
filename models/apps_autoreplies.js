@@ -12,87 +12,58 @@ module.exports = (function() {
          * 輸入全部的 appId 取得該 App 所有自動回覆的資料
          *
          * @param {string|string[]} appIds
-         * @param {any|string|string[]} autoreplyIds
+         * @param {any|string|string[]} [autoreplyIds]
          * @param {(appsAutoreplies: any) => any} [callback]
          * @return {Promise<any>}
          */
         find(appIds, autoreplyIds, callback) {
+            if (!(appIds instanceof Array)) {
+                appIds = [appIds];
+            }
+
             if (autoreplyIds && !(autoreplyIds instanceof Array)) {
                 autoreplyIds = [autoreplyIds];
             }
-            if (appIds && !(appIds instanceof Array)) {
-                appIds = [appIds];
-            }
-            return Promise.resolve().then(() => {
-                if (!autoreplyIds) {
-                    let query = {
-                        '_id': {
-                            $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                        },
-                        'autoreplies.isDeleted': false
-                    };
-                    let aggregations = [
-                        {
-                            $unwind: '$autoreplies' // 只針對 document 處理
-                        }, {
-                            $match: query
-                        }, {
-                            $project: {
-                                // 篩選項目
-                                autoreplies: 1
-                            }
-                        }
-                    ];
-                    return this.AppsModel.aggregate(aggregations).then((results) => {
-                        let appsAutoreplies = {};
-                        if (0 === results.length) {
-                            return appsAutoreplies;
-                        }
 
-                        appsAutoreplies = results.reduce((output, app) => {
-                            output[app._id] = output[app._id] || { autoreplies: {} };
-                            Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
-                            return output;
-                        }, {});
-                        return appsAutoreplies;
-                    });
+            let query = {
+                '_id': {
+                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
+                },
+                'isDeleted': false,
+                'autoreplies.isDeleted': false
+            };
+
+            if (autoreplyIds) {
+                query['autoreplies._id'] = {
+                    $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
                 };
+            }
 
-                let aggregations = [
-                    {
-                        $unwind: '$autoreplies' // 只針對 autoreplies document 處理
-                    }, {
-                        $match: {
-                            // 尋找符合 appId 及 autoreplyIds 的欄位
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
-                            'autoreplies.isDeleted': false,
-                            'autoreplies._id': {
-                                $in: autoreplyIds.map((autoreplyId) => this.Types.ObjectId(autoreplyId))
-                            }
-                        }
-                    }, {
-                        $project: {
-                            // 篩選項目
-                            autoreplies: 1
-                        }
+            let aggregations = [
+                {
+                    $unwind: '$autoreplies' // 只針對 document 處理
+                }, {
+                    $match: query
+                }, {
+                    $project: {
+                        // 篩選項目
+                        autoreplies: 1
                     }
-                ];
+                }
+            ];
 
-                return this.AppsModel.aggregate(aggregations).then((results) => {
-                    let appsAutoreplies = {};
-                    if (0 === results.length) {
-                        return appsAutoreplies;
-                    }
-
-                    appsAutoreplies = results.reduce((output, app) => {
-                        output[app._id] = output[app._id] || { autoreplies: {} };
-                        Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
-                        return output;
-                    }, {});
+            return this.AppsModel.aggregate(aggregations).then((results) => {
+                let appsAutoreplies = {};
+                if (0 === results.length) {
                     return appsAutoreplies;
-                });
+                }
+
+                appsAutoreplies = results.reduce((output, app) => {
+                    output[app._id] = output[app._id] || { autoreplies: {} };
+                    Object.assign(output[app._id].autoreplies, this.toObject(app.autoreplies));
+                    return output;
+                }, {});
+                return appsAutoreplies;
             }).then((appsAutoreplies) => {
                 ('function' === typeof callback) && callback(appsAutoreplies);
                 return appsAutoreplies;
@@ -218,16 +189,14 @@ module.exports = (function() {
         /**
          * 輸入指定的 appId 刪除一筆自動回覆的資料
          *
-         * @param {string|string[]} appIds
+         * @param {string} appId
          * @param {string} autoreplyId
          * @param {(appsAutoreplies: any) => any} [callback]
          * @returns {Promise<any>}
          */
-        remove(appIds, autoreplyId, callback) {
+        remove(appId, autoreplyId, callback) {
             let query = {
-                '_id': {
-                    $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                },
+                '_id': this.Types.ObjectId(appId),
                 'autoreplies._id': this.Types.ObjectId(autoreplyId)
             };
 
@@ -248,9 +217,7 @@ module.exports = (function() {
                         $unwind: '$autoreplies'
                     }, {
                         $match: {
-                            '_id': {
-                                $in: appIds.map((appId) => this.Types.ObjectId(appId))
-                            },
+                            '_id': this.Types.ObjectId(appId),
                             'autoreplies._id': this.Types.ObjectId(autoreplyId)
                         }
                     }, {

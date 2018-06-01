@@ -14,7 +14,6 @@ module.exports = (function() {
 
     let appsMdl = require('../models/apps');
     let appsChatroomsMdl = require('../models/apps_chatrooms');
-    let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let appsFieldsMdl = require('../models/apps_fields');
     let usersMdl = require('../models/users');
     let groupsMdl = require('../models/groups');
@@ -57,19 +56,13 @@ module.exports = (function() {
                     });
                 });
             }).then((groups) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -144,19 +137,13 @@ module.exports = (function() {
                     });
                 });
             }).then((groups) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -271,19 +258,13 @@ module.exports = (function() {
                     }
                 }));
             }).then(() => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: groups
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

@@ -21,26 +21,20 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return appsTemplatesMdl.find(appIds);
+                return appsTemplatesMdl.find(appIds).then((appsTemplates) => {
+                    if (!appsTemplates) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_FIND);
-                }
-                return appsTemplates;
-            }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -48,7 +42,10 @@ module.exports = (function() {
             let appId = req.params.appid;
             let templateId = req.params.templateid;
 
-            return this.appsRequestVerify(req).then(() => {
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
                 return appsTemplatesMdl.find(appId, templateId);
             }).then((appsTemplates) => {
                 if (!appsTemplates) {
@@ -56,92 +53,91 @@ module.exports = (function() {
                 }
                 return appsTemplates;
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         postOne(req, res) {
             let appId = req.params.appid;
-            let keyword = req.body.keyword || '';
-            let type = req.body.type || '';
-            let altText = req.body.altText || '';
-            let template = req.body.template || '';
             let postTemplate = {
-                keyword: keyword,
-                type: type,
-                altText: altText,
-                template: template
+                keyword: req.body.keyword || '',
+                type: req.body.type || '',
+                altText: req.body.altText || '',
+                template: req.body.template || ''
             };
-            return this.appsRequestVerify(req).then(() => {
-                return appsTemplatesMdl.insert(appId, postTemplate);
+
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
+                return appsTemplatesMdl.insert(appId, postTemplate).then((appsTemplates) => {
+                    if (!appsTemplates || (appsTemplates && 0 === Object.keys(appsTemplates).length)) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_INSERT);
+                let templateId = Object.keys(appsTemplates[appId].templates)[0];
+                let template = appsTemplates[appId].templates[templateId];
+
+                if (template.template.thumbnailImageUrl) {
+                    let fromPathArray = template.template.thumbnailImageUrl.split('/');
+                    let src = fromPathArray[fromPathArray.length - 1];
+                    let fromPath = `/temp/${src}`;
+                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
+                    return storageHlp.filesMoveV2(fromPath, toPath).then(() => {
+                        return appsTemplates;
+                    });
+                } else if (template.template.columns) {
+                    return Promise.all(template.template.columns.map((column) => {
+                        if (!column.thumbnailImageUrl) {
+                            return Promise.resolve();
+                        }
+
+                        let fromPathArray = column.thumbnailImageUrl.split('/');
+                        let src = fromPathArray[fromPathArray.length - 1];
+                        let fromPath = `/temp/${src}`;
+                        let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
+                        return storageHlp.filesMoveV2(fromPath, toPath);
+                    })).then(() => {
+                        return appsTemplates;
+                    });
                 }
                 return appsTemplates;
             }).then((appsTemplates) => {
-                let templateId = Object.keys(appsTemplates[appId].templates)[0];
-                if (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl) {
-                    let fromPathArray = (appsTemplates[appId].templates[templateId].template.thumbnailImageUrl).split('/');
-                    let src = fromPathArray[fromPathArray.length - 1];
-                    let fromPath = `/temp/${src}`;
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    storageHlp.filesMoveV2(fromPath, toPath);
-                    return appsTemplates;
-                }
-                return Promise.all(Object.keys(appsTemplates[appId].templates[templateId].template.columns).map((img) => {
-                    let fromPathArray = (appsTemplates[appId].templates[templateId].template.columns[img].thumbnailImageUrl).split('/');
-                    let src = fromPathArray[fromPathArray.length - 1];
-                    let fromPath = `/temp/${src}`;
-                    let toPath = `/apps/${appId}/template/${templateId}/src/${src}`;
-                    storageHlp.filesMoveV2(fromPath, toPath);
-                    return appsTemplates;
-                }));
-            }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         putOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appId;
-            let type = req.body.type || '';
-            let keyword = req.body.keyword || '';
-            let altText = req.body.altText || '';
-            let template = req.body.template || '';
+
             let putTemplateData = {
-                type: type,
-                keyword: keyword,
-                altText: altText,
-                template: template
+                type: req.body.type || '',
+                keyword: req.body.keyword || '',
+                altText: req.body.altText || '',
+                template: req.body.template || ''
             };
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
+
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
                 }
@@ -152,51 +148,43 @@ module.exports = (function() {
                 }
                 return Promise.resolve(appsTemplate);
             }).then((appsTemplate) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
-                    data: appsTemplate || {}
+                    data: appsTemplate
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         deleteOne(req, res) {
+            let appId = req.params.appid;
             let templateId = req.params.templateid;
-            let appId;
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
+
+            return this.appsRequestVerify(req).then((checkedAppIds) => {
+                if (checkedAppIds.length >= 2) {
+                    return Promise.reject(API_ERROR.TEMPLATE_HAS_TWO_OR_MORE_IDS);
+                }
 
                 if (!templateId) {
                     return Promise.reject(API_ERROR.TEMPLATEID_WAS_EMPTY);
-                };
-                return appsTemplatesMdl.remove(appId, templateId);
-            }).then((appsTemplates) => {
-                if (!appsTemplates) {
-                    return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
                 }
-                return Promise.resolve(appsTemplates);
+
+                return appsTemplatesMdl.remove(appId, templateId).then((appsTemplates) => {
+                    if (!(appsTemplates && appsTemplates[appId])) {
+                        return Promise.reject(API_ERROR.APP_TEMPLATE_FAILED_TO_REMOVE);
+                    }
+                    return appsTemplates;
+                });
             }).then((appsTemplates) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
-                    data: appsTemplates || {}
+                    data: appsTemplates
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

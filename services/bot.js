@@ -159,9 +159,6 @@ module.exports = (function() {
 
             /** @type {Webhook.Chatshier.Information} */
             let webhookInfo = {
-                isEcho: false,
-                platformGroupId: '',
-                platformGroupType: '',
                 platformUid: ''
             };
 
@@ -178,6 +175,7 @@ module.exports = (function() {
                         webhookInfo.platformGroupId = webhookInfo.platformGroupId || ev.source.roomId || ev.source.groupId;
                         webhookInfo.platformGroupType = webhookInfo.platformGroupType || ev.source.type;
                         webhookInfo.platformUid = webhookInfo.platformUid || ev.source.userId;
+                        webhookInfo.replyToken = webhookInfo.replyToken || ev.replyToken;
                     });
                     break;
                 case FACEBOOK:
@@ -231,6 +229,7 @@ module.exports = (function() {
 
                 switch (app.type) {
                     case LINE:
+                        /** @type {Webhook.Line.Event[]} */
                         let events = body.events;
                         return Promise.all(events.map((event) => {
                             // LINE 系統 webhook 測試不理會
@@ -238,45 +237,48 @@ module.exports = (function() {
                                 return;
                             }
 
+                            // 非 message 的 webhook event 不抓取訊息資料
+                            if (!('message' === event.type && event.message)) {
+                                return;
+                            }
+
                             let _message = {
-                                messager_id: messagerId, // LINE 平台的 sender id
+                                messager_id: messagerId,
                                 from: LINE,
                                 type: event.message ? event.message.type : '', // LINE POST 訊息型別
-                                eventType: event.type, // LINE POST 事件型別
                                 time: Date.now(), // 將要回覆的訊息加上時戳
-                                replyToken: event.replyToken,
                                 message_id: event.message ? event.message.id : '', // LINE 平台的 訊息 id
                                 fromPath: event.message ? ('file' === event.message.type ? '/' + event.message.fileName : `/${Date.now()}.${media[event.message.type]}`) : ''
                             };
 
-                            if (event.message && 'template' === event.message.type) {
+                            if ('template' === event.message.type) {
                                 _message.template = event.message.template;
                                 messages.push(_message);
                                 return Promise.resolve();
                             }
 
-                            if (event.message && 'text' === event.message.type) {
+                            if ('text' === event.message.type) {
                                 _message.text = event.message.text;
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && 'sticker' === event.message.type) {
+                            if ('sticker' === event.message.type) {
                                 let stickerId = event.message.stickerId;
                                 _message.src = 'https://sdl-stickershop.line.naver.jp/stickershop/v1/sticker/' + stickerId + '/android/sticker.png';
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && 'location' === event.message.type) {
+                            if ('location' === event.message.type) {
                                 let latitude = event.message.latitude;
                                 let longitude = event.message.longitude;
                                 _message.src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
                                 messages.push(_message);
                                 return;
-                            };
+                            }
 
-                            if (event.message && ['image', 'audio', 'video', 'file'].includes(event.message.type)) {
+                            if (['image', 'audio', 'video', 'file'].includes(event.message.type)) {
                                 return bot.getMessageContent(event.message.id).then((contentStream) => {
                                     return new Promise((resolve, reject) => {
                                         let bufferArray = [];
@@ -289,77 +291,68 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(_message.fromPath, contentBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(_message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    _message.src = src;
+                                }).then((url) => {
+                                    _message.src = url;
                                     messages.push(_message);
                                 });
-                            };
+                            }
                             messages.push(_message);
                         })).then(() => {
                             return messages;
                         });
                     case FACEBOOK:
+                        /** @type {Webhook.Facebook.Entry[]} */
                         let entries = body.entry;
                         for (let i in entries) {
                             let messaging = entries[i].messaging || [];
                             for (let j in messaging) {
+                                let msg = messaging[j];
                                 // 如果有 is_echo 的 flag 並且有 fb 的 app_id
                                 // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
-                                if (messaging[j].message.is_echo && messaging[j].message.app_id) {
+                                if (msg.message.is_echo && msg.message.app_id) {
                                     continue;
                                 }
 
-                                let attachments = messaging[j].message.attachments;
-                                let text = messaging[j].message.text || '';
+                                let attachments = msg.message.attachments;
+                                let text = msg.message.text || '';
 
                                 // !attachments 沒有夾帶檔案
                                 if (!attachments && text) {
                                     let _message = {
                                         messager_id: messagerId,
                                         // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
-                                        from: messaging[j].message.is_echo ? VENDOR : FACEBOOK,
+                                        from: msg.message.is_echo ? VENDOR : FACEBOOK,
                                         text: text,
                                         type: 'text',
                                         time: Date.now(), // 將要回覆的訊息加上時戳
                                         src: '',
-                                        message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                        message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                     };
                                     messages.push(_message);
                                     continue;
                                 }
 
                                 if (attachments) {
-                                    messages.concat(attachments.map((attachment) => {
-                                        let src;
+                                    messages = messages.concat(attachments.map((attachment) => {
+                                        let src = '';
                                         if ('location' === attachment.type) {
                                             let coordinates = attachment.payload.coordinates;
                                             let latitude = coordinates.lat;
                                             let longitude = coordinates.long;
                                             src = 'https://www.google.com.tw/maps?q=' + latitude + ',' + longitude;
-                                        };
+                                        }
 
                                         if ('fallback' === attachment.type) {
                                             text = attachment.fallback.title;
                                             src = attachment.fallback.url;
-                                        };
+                                        }
 
-                                        if ('image' === attachment.type) {
+                                        if ('image' === attachment.type ||
+                                            'video' === attachment.type ||
+                                            'audio' === attachment.type ||
+                                            'file' === attachment.type) {
                                             src = attachment.payload.url;
-                                        };
-
-                                        if ('video' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        };
-
-                                        if ('audio' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        };
-
-                                        if ('file' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        };
+                                        }
 
                                         let _message = {
                                             messager_id: messagerId, // FACEBOOK 平台的 sender id
@@ -368,7 +361,7 @@ module.exports = (function() {
                                             type: attachment.type || 'text',
                                             time: Date.now(), // 將要回覆的訊息加上時戳
                                             src: src,
-                                            message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                            message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                         };
                                         return _message;
                                     }));
@@ -450,10 +443,8 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(message.fromPath, outputBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    message.src = src;
+                                }).then((url) => {
+                                    message.src = url;
                                     return message;
                                 });
                             } else if ('location' === message.type) {
@@ -483,6 +474,7 @@ module.exports = (function() {
          * @param {Webhook.Chatshier.Information} webhookInfo
          * @param {string} appId
          * @param {any} app
+         * @returns {Promise<Webhook.Chatshier.Profile>}
          */
         getProfile(webhookInfo, appId, app) {
             return Promise.resolve().then(() => {
@@ -492,10 +484,12 @@ module.exports = (function() {
                 }
                 return bot;
             }).then((bot) => {
+                /** @type {Webhook.Chatshier.Profile} */
                 let senderProfile = {
                     type: app.type,
                     name: '',
-                    photo: ''
+                    photo: '',
+                    photoOriginal: ''
                 };
                 let platformGroupId = webhookInfo.platformGroupId;
                 let platformGroupType = webhookInfo.platformGroupType;
@@ -519,7 +513,7 @@ module.exports = (function() {
                         }).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
-                            senderProfile.photo = lineUserProfile.pictureUrl;
+                            senderProfile.photo = senderProfile.photoOriginal = lineUserProfile.pictureUrl;
                             return senderProfile;
                         }).catch((err) => {
                             // 無法抓到使用者 profile 時，回傳 undefined
@@ -534,7 +528,7 @@ module.exports = (function() {
                         return bot.getProfile(platformUid).then((fbUserProfile) => {
                             fbUserProfile = fbUserProfile || {};
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
-                            senderProfile.photo = fbUserProfile.profile_pic;
+                            senderProfile.photo = senderProfile.photoOriginal = fbUserProfile.profile_pic;
                             return senderProfile;
                         }).catch((ex) => {
                             // 如果此 app 的 page access token 已經無法使用
@@ -562,11 +556,50 @@ module.exports = (function() {
                         }).then((wxUser) => {
                             wxUser = wxUser || {};
                             senderProfile.name = wxUser.nickname;
-                            senderProfile.photo = wxUser.headimgurl;
+                            senderProfile.photo = senderProfile.photoOriginal = wxUser.headimgurl;
                             return senderProfile;
                         });
                     default:
                         return senderProfile;
+                }
+            });
+        }
+
+        /**
+         * @param {string} platformGroupId
+         * @param {string} appId
+         * @param {any} app
+         * @returns {Promise<string[]>}
+         */
+        getGroupMemberIds(platformGroupId, appId, app) {
+            if (!platformGroupId) {
+                return Promise.resolve([]);
+            }
+
+            return Promise.resolve().then(() => {
+                let bot = this.bots[appId];
+                if (!bot) {
+                    return this.create(appId, app);
+                }
+                return bot;
+            }).then((bot) => {
+                switch (app.type) {
+                    case LINE:
+                        // 只有 LINE@ Approved accounts 或者 official accounts 才有權限直接抓取群組內所有成員的 LINE ID
+                        // 否則都會得到 403 權限不足的錯誤
+                        return bot.getGroupMemberIds(platformGroupId).catch((err) => {
+                            // 無法抓到使用者 profile 時，回傳空陣列
+                            // 其餘狀況擲出錯誤
+                            if (403 === err.statusCode ||
+                                404 === err.statusCode) {
+                                return Promise.resolve([]);
+                            }
+                            return Promise.reject(err);
+                        });
+                    case FACEBOOK:
+                    case WECHAT:
+                    default:
+                        return [];
                 }
             });
         }
@@ -598,17 +631,22 @@ module.exports = (function() {
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
-                            if ('text' === message.type) {
+                            if ('text' === message.type && message.text) {
                                 return bot.sendTextMessage(platformUid, message.text);
                             }
-                            if ('image' === message.type) {
-                                return bot.sendImageMessage(platformUid, message.src, true);
+
+                            if (message.src) {
+                                if ('image' === message.type) {
+                                    return bot.sendImageMessage(platformUid, message.src, true);
+                                } else if ('audio' === message.type) {
+                                    return bot.sendAudioMessage(platformUid, message.src, true);
+                                } else if ('video' === message.type) {
+                                    return bot.sendVideoMessage(platformUid, message.src, true);
+                                }
                             }
-                            if ('audio' === message.type) {
-                                return bot.sendAudioMessage(platformUid, message.src, true);
-                            }
-                            if ('video' === message.type) {
-                                return bot.sendVideoMessage(platformUid, message.src, true);
+
+                            if (!message.text) {
+                                return Promise.resolve();
                             }
                             return bot.sendTextMessage(platformUid, message.text);
                         })).then(() => {
@@ -623,6 +661,9 @@ module.exports = (function() {
                     default:
                         break;
                 }
+            }).catch((err) => {
+                // 把錯誤訊息打出，但不要中斷整個 webhook 處理
+                console.error(err);
             });
         }
 

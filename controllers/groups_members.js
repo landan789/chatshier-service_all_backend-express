@@ -12,7 +12,6 @@ module.exports = (function() {
 
     const CHATSHIER = 'CHATSHIER';
 
-    let appsMdl = require('../models/apps');
     let appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
     let usersMdl = require('../models/users');
     let groupsMdl = require('../models/groups');
@@ -67,19 +66,13 @@ module.exports = (function() {
                     });
                 });
             }).then((groupsMembers) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: groupsMembers
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -182,44 +175,37 @@ module.exports = (function() {
                             return;
                         }
 
-                        memberUser.group_ids.push(groupId);
-                        return new Promise((resolve, reject) => {
-                            usersMdl.update(req.body.userid, memberUser, (users) => {
-                                if (!users || (users && 0 === Object.keys(users).length)) {
-                                    reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
-                                    return;
-                                };
-                                resolve();
-                            });
+                        let groupIds = memberUser.group_ids;
+                        groupIds.push(groupId);
+                        let putMemberUser = {
+                            group_ids: groupIds
+                        };
+
+                        return usersMdl.update(req.body.userid, putMemberUser).then((users) => {
+                            if (!(users && users[req.body.userid])) {
+                                return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_UPDATE);
+                            }
+                            return users;
                         }).then(() => {
                             return groupsMembers;
                         });
                     });
                 }
 
-                return new Promise((resolve, reject) => {
-                    groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
-                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
-                            return;
-                        };
-                        resolve(groupsMembers);
-                    });
+                return groupsMembersMdl.insert(groupId, postMember).then((groupsMembers) => {
+                    if (!(groupsMembers && groupsMembers[groupId])) {
+                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                    }
+                    return groupsMembers;
                 });
             }).then((groupsMembers) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: groupsMembers
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -247,19 +233,19 @@ module.exports = (function() {
             proceed.then(() => {
                 if ('' === userId || undefined === userId || null === userId) {
                     return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
-                };
+                }
 
                 if ('' === groupId || undefined === groupId || null === groupId) {
                     return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
-                };
+                }
 
                 if ('' === memberId || undefined === memberId || null === memberId) {
                     return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
-                };
+                }
 
                 if (0 === Object.keys(putMember).length) {
                     return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
-                };
+                }
 
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
@@ -381,19 +367,13 @@ module.exports = (function() {
                     return groupsMembers;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -465,7 +445,7 @@ module.exports = (function() {
                 groupsMembers = result;
                 if (!groupsMembers) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
-                };
+                }
 
                 // 群組成員的 userId 即是內部聊天室的 messagerId
                 deletedMember = groupsMembers[groupId].members[memberId];
@@ -506,19 +486,13 @@ module.exports = (function() {
                     return groupsMembers;
                 });
             }).then((groupsMembers) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: groupsMembers
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

@@ -42,13 +42,8 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -114,13 +109,8 @@ module.exports = (function() {
                     data: calendarsEvents
                 };
                 res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -177,19 +167,13 @@ module.exports = (function() {
                     });
                 });
             }).then((calendarsEvents) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: calendarsEvents
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -226,19 +210,13 @@ module.exports = (function() {
                     });
                 });
             }).then((calendarsEvents) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
                     data: calendarsEvents
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

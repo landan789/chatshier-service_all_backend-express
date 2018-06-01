@@ -1,4 +1,5 @@
 let express = require('express');
+let compression = require('compression');
 let path = require('path');
 let logger = require('morgan');
 let cookieParser = require('cookie-parser');
@@ -11,11 +12,12 @@ let apiDatabase = require('./routes/api_database');
 let apiSign = require('./routes/api_sign');
 let apiBot = require('./routes/api_bot');
 let webhook = require('./routes/webhook');
+let apiImage = require('./routes/api_image');
 
 const CHATSHIER = require('./config/chatshier');
 
 let app = express();
-
+app.use(compression());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(logger('dev'));
@@ -30,6 +32,7 @@ app.use('/api/*/users/:userid', jwtHlp.authenticate);
 app.use('/api/database', apiDatabase);
 app.use('/api/sign', apiSign);
 app.use('/api/bot', apiBot);
+app.use('/api/image', apiImage);
 app.use('/api/*', routerHlp.requestNotExistentApi);
 
 app.use(express.static(path.join(__dirname, 'public')));

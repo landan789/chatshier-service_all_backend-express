@@ -20,29 +20,20 @@ module.exports = (function() {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
                 // 1. 根據 appId 清單去 Fields model 抓取清單
-                return new Promise((resolve, reject) => {
-                    appsFieldsMdl.find(appIds, null, (appsFields) => {
-                        if (!appsFields) {
-                            reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appsFields);
-                    });
+                return appsFieldsMdl.find(appIds).then((appsFields) => {
+                    if (!appsFields) {
+                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_FIND);
+                    }
+                    return appsFields;
                 });
-            }).then((data) => {
-                let json = {
-                    status: 1,
+            }).then((appsFields) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsFields
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -60,29 +51,20 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 // 1. 將 field 資料插入至指定 appId 中
-                return new Promise((resolve, reject) => {
-                    appsFieldsMdl.insert(appId, postTagData, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsFieldsMdl.insert(appId, postTagData).then((appsFields) => {
+                    if (!(appsFields && appsFields[appId])) {
+                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_INSERT);
+                    }
+                    return appsFields;
                 });
-            }).then((data) => {
-                let json = {
-                    status: 1,
+            }).then((appsFields) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: data
+                    data: appsFields
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -105,29 +87,20 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 // 1. 將 field 資料更新至指定 appId 中
-                return new Promise((resolve, reject) => {
-                    appsFieldsMdl.update(appId, fieldId, putTagData, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsFieldsMdl.update(appId, fieldId, putTagData).then((appsFields) => {
+                    if (!(appsFields && appsFields[appId])) {
+                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_UPDATE);
+                    }
+                    return appsFields;
                 });
-            }).then((data) => {
-                let json = {
-                    status: 1,
+            }).then((appsFields) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
-                    data: data
+                    data: appsFields
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -137,29 +110,20 @@ module.exports = (function() {
 
             return this.appsRequestVerify(req).then(() => {
                 // 1. 藉由 Fields model 將指定的 field 資料刪除
-                return new Promise((resolve, reject) => {
-                    appsFieldsMdl.remove(appId, fieldId, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_FIELD_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsFieldsMdl.remove(appId, fieldId).then((appsFields) => {
+                    if (!(appsFields && appsFields[appId])) {
+                        return Promise.reject(API_ERROR.APP_FIELD_FAILED_TO_REMOVE);
+                    }
+                    return appsFields;
                 });
-            }).then((data) => {
-                let json = {
-                    status: 1,
+            }).then((appsFields) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: data
+                    data: appsFields
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

@@ -453,9 +453,11 @@
     window.addEventListener('blur', function() {
         hasUserFocus = false;
     });
+
     window.addEventListener('focus', function() {
         hasUserFocus = true;
         blinkPageTitle();
+        readClientMsg();
     });
 
     // =====start chat event=====
@@ -585,47 +587,18 @@
         api.consumers.findAll(userId),
         api.groups.findAll(userId),
         api.users.find(userId)
-    ]).then(function(responses) {
-        apps = responses.shift().data;
-        appsChatrooms = responses.shift().data;
-        appsFields = responses.shift().data;
-        consumers = responses.shift().data;
-        groups = responses.shift().data;
-        users = responses.shift().data;
+    ]).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+        apps = appsRes.data;
+        appsChatrooms = appsChatroomsRes.data;
+        appsFields = appsFieldsRes.data;
+        consumers = consumersRes.data;
+        groups = groupsRes.data;
+        users = usersRes.data;
 
-        var socketRegPromises = [];
-        for (var appId in apps) {
-            if (!appsChatrooms[appId]) {
-                appsChatrooms[appId] = { chatrooms: {} };
-            }
-
-            if (!appsFields[appId]) {
-                appsFields[appId] = { fields: {} };
-            }
-
-            // 準備各個 app 的指派人清單
-            // 由於每個 app 可能隸屬於不同的群組
-            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
-            appsAgents[appId] = { agents: {} };
-            for (var groupId in groups) {
-                var group = groups[groupId];
-                if (0 <= group.app_ids.indexOf(appId)) {
-                    for (var memberId in group.members) {
-                        var memberUserId = group.members[memberId].user_id;
-                        appsAgents[appId].agents[memberUserId] = {
-                            name: users[memberUserId].name,
-                            email: users[memberUserId].email
-                        };
-                    }
-                }
-            }
-
-            // 向 server 登記此 socket 有多少 appId
-            socketRegPromises.push(new Promise(function(resolve) {
-                chatshierSocket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, resolve);
-            }));
-        }
-        return Promise.all(socketRegPromises);
+        // 向 server 登記 socket
+        return new Promise(function(resolve) {
+            chatshierSocket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+        });
     }).then(function() {
         return initChatData(apps);
     });
@@ -652,14 +625,9 @@
                     });
                 });
             }).then(function() {
-                var appIds = Object.keys(apps);
-                return Promise.all(appIds.map(function(appId) {
-                    return new Promise(function(resolve) {
-                        socket.emit(SOCKET_EVENTS.APP_REGISTRATION, appId, function() {
-                            resolve();
-                        });
-                    });
-                }));
+                return new Promise(function(resolve) {
+                    socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+                });
             }).then(function() {
                 return keepConnection();
             });
@@ -677,14 +645,7 @@
             var recipientUid = socketBody.recipientUid;
             var consumersFromSocket = socketBody.consumers;
             var senderMsger;
-
-            if (consumersFromSocket) {
-                for (let _platformUid in consumersFromSocket) {
-                    let _consumer = consumersFromSocket[_platformUid];
-                    _consumer.photo = fixHttpsLink(_consumer.photo);
-                }
-                Object.assign(consumers, consumersFromSocket);
-            }
+            consumersFromSocket && Object.assign(consumers, consumersFromSocket);
 
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
@@ -938,9 +899,105 @@
                 $submitMessageInput.attr('placeholder', '對方已取消關注');
             }
         });
+
+        socket.on(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_CLIENT, function(data) {
+            var group = data.group;
+            var adderUser = data.user;
+
+            function yesToAddGroup() {
+                $('.alert[data-notify="container"] #yesAddGroupBtn').attr('disabled', true);
+
+                var groupId = data.groupId;
+                var memberId = data.memberId;
+                return api.groupsMembers.update(groupId, memberId, userId, { status: true }).then(function() {
+                    return Promise.all([
+                        api.apps.findAll(userId),
+                        api.appsChatrooms.findAll(userId),
+                        api.appsFields.findAll(userId),
+                        api.consumers.findAll(userId),
+                        api.groups.findAll(userId),
+                        api.users.find(userId)
+                    ]);
+                }).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+                    apps = appsRes.data;
+                    appsChatrooms = appsChatroomsRes.data;
+                    appsFields = appsFieldsRes.data;
+                    consumers = consumersRes.data;
+                    groups = groupsRes.data;
+                    users = usersRes.data;
+                    return initChatData(apps);
+                }).then(function() {
+                    addGroupNotify && addGroupNotify.close();
+                    $.notify('您已加入 "' + (group ? group.name : '') + '" 群組', { type: 'success' });
+                }).catch(function() {
+                    addGroupNotify && addGroupNotify.close();
+                    $.notify('加入群組失敗，可至 設定->內部群組 重新加入', { type: 'success' });
+                });
+            }
+
+            function noToAddGroup() {
+                addGroupNotify && addGroupNotify.close();
+            }
+
+            $(document).on('click', '.alert[data-notify="container"] #yesAddGroupBtn', yesToAddGroup);
+            $(document).on('click', '.alert[data-notify="container"] #noAddGroupBtn', noToAddGroup);
+
+            var addGroupNotify = $.notify({
+                icon: 'fas fa-users fa-fw',
+                title: '群組邀請',
+                message: '"' + (adderUser ? adderUser.name : '') + '" 邀請你加入他的 "' + (group ? group.name : '') + '" 群組'
+            }, {
+                type: 'info',
+                delay: 15000,
+                template: (
+                    '<div data-notify="container" class="col-sm-3 alert alert-{0}" role="alert">' +
+                        '<div class="font-weight-bold">' +
+                            '<i class="mr-2" data-notify="icon"></i>' +
+                            '<span data-notify="title">{1}</span>' +
+                        '</div>' +
+                        '<div class="my-2" data-notify="message">{2}</div>' +
+                        '<div class="text-right">' +
+                            '<button type="button" class="mr-1 btn btn-info" id="yesAddGroupBtn">是</button>' +
+                            '<button type="button" class="ml-1 btn btn-light" id="noAddGroupBtn">否</button>' +
+                        '</div>' +
+                    '</div>'
+                ),
+                onClose: function() {
+                    $(document).off('click', '.alert[data-notify="container"] #yesAddGroupBtn', yesToAddGroup);
+                    $(document).off('click', '.alert[data-notify="container"] #noAddGroupBtn', noToAddGroup);
+                }
+            });
+        });
+
+        socket.on(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_CLIENT, function(data) {
+            var executeUser = users[data.userId];
+            $.notify('您已被' + (executeUser ? ' "' + executeUser.name + '" ' : '') + '踢出了群組', { type: 'info' });
+
+            return Promise.all([
+                api.apps.findAll(userId),
+                api.appsChatrooms.findAll(userId),
+                api.appsFields.findAll(userId),
+                api.consumers.findAll(userId),
+                api.groups.findAll(userId),
+                api.users.find(userId)
+            ]).then(function([appsRes, appsChatroomsRes, appsFieldsRes, consumersRes, groupsRes, usersRes]) {
+                apps = appsRes.data;
+                appsChatrooms = appsChatroomsRes.data;
+                appsFields = appsFieldsRes.data;
+                consumers = consumersRes.data;
+                groups = groupsRes.data;
+                users = usersRes.data;
+                return initChatData(apps);
+            });
+        });
     }
 
     function initChatData(apps) {
+        chatroomList.length = 0;
+        $chatroomBody.empty();
+        $profileWrapper.empty();
+        $ticketWrapper.empty();
+
         // 先根據目前支援的聊天室種類，建立 Apps collapse 分類
         $ctrlPanelChatroomCollapse.html(
             '<li class="text-light nested list-group-item has-collapse unread">' +
@@ -981,16 +1038,35 @@
             '<div class="collapse nested app-types show" app-type="' + CHATSHIER + '"></div>'
         );
 
-        // 架設 https 時，request 必須使用 https
-        // 由於 LINE 的圖像屬於 http 前綴開頭，因此需檢測所有頭像連結
-        for (let platformUid in consumers) {
-            let consumer = consumers[platformUid];
-            consumer.photo = fixHttpsLink(consumer.photo);
-        }
-
+        appsAgents = {};
         for (var appId in apps) {
+            if (!appsChatrooms[appId]) {
+                appsChatrooms[appId] = { chatrooms: {} };
+            }
+
+            if (!appsFields[appId]) {
+                appsFields[appId] = { fields: {} };
+            }
+
             var app = apps[appId];
             var chatrooms = appsChatrooms[appId].chatrooms;
+
+            // 準備各個 app 的指派人清單
+            // 由於每個 app 可能隸屬於不同的群組
+            // 因此指派人清單必須根據 app 所屬的群組分別建立清單
+            appsAgents[appId] = { agents: {} };
+            for (var groupId in groups) {
+                var group = groups[groupId];
+                if (0 <= group.app_ids.indexOf(appId)) {
+                    for (var memberId in group.members) {
+                        var memberUserId = group.members[memberId].user_id;
+                        appsAgents[appId].agents[memberUserId] = {
+                            name: users[memberUserId].name,
+                            email: users[memberUserId].email
+                        };
+                    }
+                }
+            }
 
             for (var chatroomId in chatrooms) {
                 var chatroom = chatrooms[chatroomId];
@@ -1206,7 +1282,7 @@
         // 將已指派與未指派的聊天室分門別類
         if (CHATSHIER !== appType) {
             var messagerConsumer = findChatroomMessager(appId, chatroomId, appType);
-            var assignedIds = messagerConsumer.assigned_ids;
+            var assignedIds = messagerConsumer.assigned_ids || [];
             if (assignedIds.indexOf(userId) >= 0) {
                 $ctrlPanelChatroomCollapse.find('.collapse.assigned').append(chatroomItemHtml);
             } else {
@@ -1233,7 +1309,7 @@
         // }
     }
 
-    function messageToPanelHtml(message) {
+    function messageToPanelHtml(message, appType) {
         switch (message.type) {
             case 'image':
                 return (
@@ -1263,6 +1339,12 @@
                     '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'template':
+                // 目前錢掌櫃的模板訊息尚未支援 FACEBOOK
+                // 因此不顯示模板訊息
+                if (FACEBOOK === appType) {
+                    return '';
+                }
+
                 if (!message.template) {
                     let messageText = linkify(filterWechatEmoji(message.text || ''));
                     return '<span class="text-content">' + messageText + '</span>';
@@ -1281,9 +1363,11 @@
                         `<div class="imagemap-message-content">${'輸出內容：' + (message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
                 );
-            default:
+            case 'text':
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
+            default:
+                return '';
         }
     }
 
@@ -1388,39 +1472,69 @@
             case 'confirm':
                 return (
                     '<div class="template-sm">' +
-                        `<div class="template-sm-title">${template.text}</div>` +
-                        '<div class="template-sm-buttons">' +
-                            `<div class="template-sm-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
-                            `<div class="template-sm-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-sm-title">
+                            <span>${template.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-row justify-content-between template-sm-buttons">' +
+                            (function() {
+                                return template.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-sm-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
                 );
             case 'buttons':
                 return (
                     '<div class="template">' +
-                        `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
-                        `<div class="template-title">${template.title}</div>` +
-                        `<div class="template-desc">${template.text}</div>` +
-                        '<div class="template-buttons">' +
-                            `<div class="template-button1">${template.actions[0].label} (輸出：${getTemplateOutput(template.actions[0])})</div>` +
-                            `<div class="template-button2">${template.actions[1].label} (輸出：${getTemplateOutput(template.actions[1])})</div>` +
-                            `<div class="template-button3">${template.actions[2].label} (輸出：${getTemplateOutput(template.actions[2])})</div>` +
+                        '<div class="text-center top-img-container">' +
+                            `<img src="${template.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                        '</div>' +
+                        `<div class="d-flex flex-wrap align-items-center template-title">
+                            <span>${template.title}</span>
+                        </div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                            <span>${template.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-column template-buttons">' +
+                            (function() {
+                                return template.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
                 );
             case 'carousel':
                 return template.columns.map((column) => (
                     '<div class="template">' +
-                        `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" class="top-img" />` +
-                        `<div class="template-title">${column.title}</div>` +
-                        `<div class="template-desc">${column.text}</div>` +
-                        '<div class="template-buttons">' +
-                            `<div class="template-button1">${column.actions[0].label} (輸出：${getTemplateOutput(column.actions[0])})</div>` +
-                            `<div class="template-button2">${column.actions[1].label} (輸出：${getTemplateOutput(column.actions[1])})</div>` +
-                            `<div class="template-button3">${column.actions[2].label} (輸出：${getTemplateOutput(column.actions[2])})</div>` +
+                        '<div class="text-center top-img-container">' +
+                            `<img src="${column.thumbnailImageUrl}" alt="未顯示圖片" />` +
+                        '</div>' +
+                        `<div class="d-flex flex-wrap align-items-center template-title">
+                            <span>${column.title}</span>
+                        </div>` +
+                        `<div class="d-flex flex-wrap align-items-center template-desc">
+                            <span>${column.text}</span>
+                        </div>` +
+                        '<div class="d-flex flex-column template-buttons">' +
+                            (function() {
+                                return column.actions.map((action, i) => (
+                                    `<div class="d-flex flex-column justify-content-center my-auto text-center template-button${i + 1}">
+                                        <span>${action.label}</span>
+                                        <span>(輸出：${getTemplateOutput(action)})</span>
+                                    </div>`
+                                )).join('');
+                            })() +
                         '</div>' +
                     '</div>'
-                ));
+                )).join('');
             default:
         }
     }
@@ -1464,7 +1578,10 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
-            var srcHtml = messageToPanelHtml(message);
+            var srcHtml = messageToPanelHtml(message, appType);
+            if (!srcHtml) {
+                continue;
+            }
             var messageDate = new Date(message.time);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
@@ -1843,12 +1960,13 @@
                                 if (CHATSHIER === messager.type) {
                                     continue;
                                 }
-                                var consumer = consumers[messager.platformUid];
-                                html +=
+                                var consumer = consumers[messager.platformUid] || {};
+                                html += (
                                     '<div class="person-chip">' +
                                         '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
                                         '<span>' + consumer.name + '</span>' +
-                                    '</div>';
+                                    '</div>'
+                                );
                             }
                         }
                         return html;
@@ -1891,14 +2009,22 @@
 
         var $navTitle = $('#navTitle');
         var chatroomTitle = document.title.replace(' | Chatshier', ' #' + appName);
+
+        if (LINE === appType) {
+            $('.imagemap-container').removeClass('d-none');
+        } else {
+            $('.imagemap-container').addClass('d-none');
+        }
+
         if (CHATSHIER !== appType) {
             var messagers = chatroom.messagers;
 
             var messagerNameList = [];
             for (var messagerId in messagers) {
                 var _messager = messagers[messagerId];
+                var consumer = consumers[_messager.platformUid] || {};
                 if (appType === _messager.type) {
-                    messagerNameList.push(consumers[_messager.platformUid].name);
+                    messagerNameList.push(consumer.name);
                 }
             }
             chatroomTitle += ' (' + messagerNameList.join(',') + ')';
@@ -2012,6 +2138,10 @@
         var appId = $selectedTablinks.attr('app-id');
         var chatroomId = $selectedTablinks.attr('chatroom-id');
         var platformUid = $selectedTablinks.attr('platform-uid');
+
+        if (!(apps[appId] && appsChatrooms[appId])) {
+            return;
+        }
 
         var app = apps[appId];
         var chatroom = appsChatrooms[appId].chatrooms[chatroomId];
@@ -2196,27 +2326,32 @@
     }
 
     function showImagemapArea(ev) {
-        $('.imagemap-area').toggleClass('d-none').siblings().toggleClass('d-none');
-        let appId = $(ev.target).parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
+        let $imagemapBtn = $(this);
+        if ($imagemapBtn.attr('disabled')) {
+            return;
+        }
 
+        let appId = $imagemapBtn.parents('.message-input-container').siblings('.chatroom-body').find('.chat-content.shown').attr('app-id');
         return api.appsImagemaps.findAll(appId, userId).then((resJson) => {
             let appsImagemaps = resJson.data;
             if (!appsImagemaps[appId]) {
+                $imagemapBtn.attr('disabled', true);
                 return;
             }
-            let imagemaps = appsImagemaps[appId].imagemaps;
-            let imagemapIds = Object.keys(imagemaps);
-            if (0 >= imagemapIds.length) {
-                return;
-            }
+            $imagemapBtn.removeAttr('disabled');
 
-            $('.imagemap-area').empty();
-            imagemapIds.filter((imagemapId) => !imagemaps[imagemapId].isDeleted).map((imagemapId) => {
-                let str = `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
-                $('.imagemap-area').append(str);
-            });
+            let imagemaps = appsImagemaps[appId].imagemaps;
+            let imagemapIds = Object.keys(imagemaps).filter((imagemapId) => !imagemaps[imagemapId].isDeleted);
+
+            let $imagemapArea = $('.imagemap-area');
+            $imagemapArea.html(
+                imagemapIds.map((imagemapId) => {
+                    return `<button id="send-imagemap-btn" class="btn btn-secondary btn-sm mb-1 send-imagemap-btn" app-id="${appId}" imagemap-id="${imagemapId}">${imagemaps[imagemapId].title}</button>`;
+                }).join('')
+            );
+            $imagemapArea.toggleClass('d-none').siblings().toggleClass('d-none');
         }).catch(() => {
-            $.notify('載入imagemap失敗', { type: 'danger' });
+            $.notify('載入圖文訊息失敗', { type: 'danger' });
         });
     }
 
@@ -2386,7 +2521,11 @@
         /** @type {ChatshierMessage} */
         var _message = message;
         var appType = apps[appId].type;
-        var srcHtml = messageToPanelHtml(_message);
+        var srcHtml = messageToPanelHtml(_message, appType);
+        if (!srcHtml) {
+            return;
+        }
+
         var messagerSelf = findMessagerSelf(appId, chatroomId);
 
         var chatSelectQuery = '.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';
@@ -3094,16 +3233,6 @@
             }
             return Promise.reject(err);
         });
-    }
-
-    /**
-     * @param {string} resourceLink
-     */
-    function fixHttpsLink(resourceLink) {
-        if ('https:' === window.location.protocol && 0 === resourceLink.indexOf('http://')) {
-            return resourceLink.replace('http:', window.location.protocol);
-        }
-        return resourceLink;
     }
 
     // =====end utility function

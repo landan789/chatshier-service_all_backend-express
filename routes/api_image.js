@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const formData = require('express-form-data');
 
-const botCtl = require('../controllers/bot');
+const imageCtl = require('../controllers/image');
 
 const router = express.Router();
 
@@ -19,12 +19,9 @@ router.use(
 );
 
 // ==========
-// bot
-router.post('/apps/:appid/menus/:menuid/users/:userid', botCtl.activateMenu);
-router.delete('/apps/:appid/menus/:menuid/users/:userid', botCtl.deactivateMenu);
-router.delete('/apps/:appid/menus/:menuid/users/:userid/content/', botCtl.deleteMenu);
-router.get('/apps/:appid/consumers/:platformuid', botCtl.getProfile);
-router.delete('/leave-group-room/apps/:appid/chatrooms/:chatroomid/users/:userid', botCtl.leaveGroupRoom);
+// image
+router.post('/upload-file/users/:userid', imageCtl.uploadFile);
+router.post('/move-file/users/:userid', imageCtl.moveFile);
 // ==========
 
 module.exports = router;

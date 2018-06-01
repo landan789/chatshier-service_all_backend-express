@@ -6,14 +6,26 @@ module.exports = (function() {
     const dbx = new Dropbox({
         accessToken: chatshierCfg.STORAGE.DROPBOX_ACCESS_TOKEN
     });
+    const POLL_INTERVAL = 250; // 每秒詢問 4 次
 
     class StorageHelper {
+        constructor() {
+            this.tempPath = '/temp';
+            this.sharedLinkPrefix = 'dl.dropboxusercontent';
+            this.sharingCreateSharedLink = this.sharingCreateSharedLink.bind(this);
+        }
+
         /**
          * @param {string} path
          * @param {Buffer} contents
          */
         filesUpload(path, contents) {
-            return dbx.filesUpload({ path: path, contents: contents });
+            /** @type {DropboxTypes.files.CommitInfo} */
+            let args = {
+                path: path,
+                contents: contents
+            };
+            return dbx.filesUpload(args);
         }
 
         /**
@@ -21,14 +33,60 @@ module.exports = (function() {
          * @param {string} toPath
          */
         filesMoveV2(fromPath, toPath) {
-            return dbx.filesMoveV2({ from_path: fromPath, to_path: toPath });
+            /** @type {DropboxTypes.files.RelocationArg} */
+            let args = {
+                from_path: fromPath,
+                to_path: toPath
+            };
+            return dbx.filesMoveV2(args);
         }
 
         /**
          * @param {string} path
+         * @param {string} url
+         * @returns {Promise<string>}
+         */
+        filesSaveUrl(path, url) {
+            /** @type {DropboxTypes.files.SaveUrlArg} */
+            let args = {
+                path: path,
+                url: url
+            };
+
+            return new Promise((resolve, reject) => {
+                return dbx.filesSaveUrl(args).then((res) => {
+                    if ('async_job_id' in res) {
+                        let jobId = res.async_job_id;
+                        let pollingJobStatus = () => {
+                            return new Promise((resolve) => {
+                                setTimeout(resolve, POLL_INTERVAL);
+                            }).then(() => {
+                                return dbx.filesSaveUrlCheckJobStatus({ async_job_id: jobId });
+                            }).then((jobRes) => {
+                                if ('complete' === jobRes['.tag'] && 'path_display' in jobRes && jobRes.path_display) {
+                                    return this.sharingCreateSharedLink(jobRes.path_display).then(resolve);
+                                }
+                                return pollingJobStatus();
+                            }).catch(reject);
+                        };
+                        return pollingJobStatus();
+                    }
+                    return this.sharingCreateSharedLink(path).then(resolve);
+                }).catch(reject);
+            });
+        }
+
+        /**
+         * @param {string} path
+         * @returns {Promise<string>}
          */
         sharingCreateSharedLink(path) {
-            return dbx.sharingCreateSharedLink({ path: path });
+            return dbx.sharingCreateSharedLink({ path: path }).then((response) => {
+                if (!response) {
+                    return '';
+                }
+                return response.url.replace('www.dropbox', this.sharedLinkPrefix).replace('?dl=0', '');
+            });
         }
 
         /**

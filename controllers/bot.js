@@ -61,41 +61,36 @@ module.exports = (function() {
         };
 
         activateMenu(req, res) {
-            let appId = '';
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
             let appType = '';
             let postMenu = {};
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
             }).then((app) => {
                 if (!app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
                 appType = app.type;
-                return Promise.all([
-                    appsRichmenusMdl.find(appId, menuId),
-                    app
-                ]);
-            }).then((results) => {
-                let appsRichmenu = results[0];
-                let app = results[1];
+                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
+            }).then(([appsRichmenu, app]) => {
                 if (!appsRichmenu) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
                 postMenu = appsRichmenu[appId].richmenus[menuId];
-
                 let imageSrc = postMenu.src;
-                let fileName = imageSrc.split('/').pop();
+                if (!imageSrc) {
+                    return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
+                }
 
+                let fileName = imageSrc.split('/').pop();
                 let path = `/apps/${appId}/richmenus/${menuId}/src/${fileName}`;
                 return Promise.all([
                     botSvc.createMenu(postMenu, appId, app),
                     storageHlp.filesDownload(path)
                 ]);
-            }).then((results) => {
-                let response = results[0];
-                let image = results[1];
+            }).then(([response, image]) => {
                 let botMenuId = '';
 
                 if (response instanceof Object) {
@@ -111,6 +106,7 @@ module.exports = (function() {
                     if (!result) {
                         return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
                     }
+
                     return this._findPlatformUids(appId, appType).then((platformUids) => {
                         return Promise.all(platformUids.map((platformUid) => {
                             return botSvc.linkRichMenuToUser(platformUid, botMenuId, appId).then((result) => {
@@ -119,47 +115,38 @@ module.exports = (function() {
                                 }
                                 return platformUid;
                             });
-                        })).then(() => {
-                            postMenu.platformMenuId = botMenuId;
-                            return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
-                                return appsRichemnu;
-                            });
+                        }));
+                    }).then(() => {
+                        postMenu.platformMenuId = botMenuId;
+                        return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
+                            return appsRichemnu;
                         });
                     });
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG || ERROR.message,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
 
         deactivateMenu(req, res) {
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
-            let appId = '';
-            let app;
             let richmenu;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
-            }).then((_app) => {
-                if (!_app) {
+            }).then((app) => {
+                if (!app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                app = _app;
-                return appsRichmenusMdl.find(appId, menuId);
-            }).then((appsRichmenus) => {
+                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
+            }).then(([ appsRichmenus, app ]) => {
                 if (!appsRichmenus) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
@@ -182,30 +169,23 @@ module.exports = (function() {
                     return appsRichemnu;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG || ERROR.message,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
 
         deleteMenu(req, res) {
+            let appId = req.params.appid;
             let menuId = req.params.menuid;
-            let appId = '';
             let app;
             let richmenu;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appId = checkedAppIds[0];
+            return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
             }).then((_app) => {
                 if (!_app) {
@@ -227,20 +207,14 @@ module.exports = (function() {
                 richmenu.platformMenuId = '';
                 richmenu.isDeleted = true;
                 return appsRichmenusMdl.update(appId, menuId, richmenu);
-            }).then((appsRichmenu) => {
-                let json = {
-                    status: 1,
+            }).then((appsRichmenus) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE.MSG,
-                    data: appsRichmenu
+                    data: appsRichmenus
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG || ERROR.message,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -271,24 +245,25 @@ module.exports = (function() {
                 };
                 return botSvc.getProfile(platformInfo, appId, app);
             }).then((profile) => {
-                if (!profile) {
-                    return Promise.reject(API_ERROR.CONSUMER_FAILED_TO_UPDATE);
-                }
-                return consumersMdl.replace(platformUid, profile);
+                let fileName = `${platformUid}_${Date.now()}.jpg`;
+                let filePath = `${storageHlp.tempPath}/${fileName}`;
+                let putConsumer = Object.assign({}, profile);
+
+                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
+                    putConsumer.photo = url;
+                    let toPath = `/consumers/${platformUid}/photo/${fileName}`;
+                    return storageHlp.filesMoveV2(filePath, toPath);
+                }).then(() => {
+                    return consumersMdl.replace(platformUid, putConsumer);
+                });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -305,24 +280,14 @@ module.exports = (function() {
                 return storageHlp.filesUpload(originalFilePath, file);
             }).then((response) => {
                 return storageHlp.sharingCreateSharedLink(originalFilePath);
-            }).then((response) => {
-                let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                let url = wwwurl.replace('?dl=0', '');
-                return url;
             }).then((url) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: {url, originalFilePath}
+                    data: {url, originalFilePath} // TO DO ， BAD FORMAT
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -339,19 +304,13 @@ module.exports = (function() {
                 }
                 return Promise.reject(err);
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -364,19 +323,13 @@ module.exports = (function() {
             }).then(() => {
                 return appsChatroomsMdl.remove(appId, chatroomId);
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }

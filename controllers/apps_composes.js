@@ -20,62 +20,42 @@ module.exports = (function() {
         getAll(req, res, next) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.find(appIds, null, (data) => {
-                        if (undefined === data || null === data || '' === data) {
-                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+                return appsComposesMdl.find(appIds).then((appsComposes) => {
+                    if (!appsComposes) {
+                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    }
+                    return appsComposes;
                 });
-            }).then((data) => {
-                let json = {
-                    status: 1,
+            }).then((appsComposes) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsComposes
                 };
-                res.status(200).json(json);
-            }).catch((ERROR) => {
-                let json = {
-                    status: 0,
-                    msg: ERROR.MSG,
-                    code: ERROR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         getOne(req, res) {
+            let appId = req.params.appid;
             let composeId = req.params.composeid;
-            let appIds;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsComposesMdl.find(appIds, composeId, (data) => {
-                        if (!data) {
-                            reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(data);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsComposesMdl.find(appId, composeId).then((appsComposes) => {
+                    if (!(appsComposes && appsComposes[appId])) {
+                        return Promise.reject(API_ERROR.APP_COMPOSE_FAILED_TO_FIND);
+                    }
+                    return appsComposes;
                 });
-            }).then((compose) => {
-                let result = compose !== undefined ? compose : {};
-                let json = {
-                    status: 1,
+            }).then((appsComposes) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsComposes
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -105,21 +85,14 @@ module.exports = (function() {
                         return appsComposes;
                     });
                 });
-            }).then((compose) => {
-                let result = compose !== undefined ? compose : {};
-                let json = {
-                    status: 1,
+            }).then((appsComposes) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: result
+                    data: appsComposes
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -151,19 +124,13 @@ module.exports = (function() {
                     return _appsComposes;
                 });
             }).then((data) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_UPDATE,
                     data: data
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
 
@@ -194,19 +161,13 @@ module.exports = (function() {
                     return appsCompose;
                 });
             }).then((appsCompose) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsCompose
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         };
     }

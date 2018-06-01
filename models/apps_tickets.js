@@ -21,7 +21,7 @@ module.exports = (function() {
 
         /**
          * @param {string|string[]} appIds
-         * @param {any|null} ticketId
+         * @param {any|null} [ticketId]
          * @param {(appTickets: any) => any} [callback]
          */
         find(appIds, ticketId, callback) {

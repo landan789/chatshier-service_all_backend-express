@@ -46,7 +46,6 @@
                             <thead>
                                 <tr>
                                     <th scope="col">標題</th>
-                                    <th scope="col">文字</th>
                                     <th scope="col">版型</th>
                                     <th scope="col">連結</th>
                                     <th scope="col">狀態</th>
@@ -62,7 +61,6 @@
                             <thead>
                                 <tr>
                                     <th scope="col">標題</th>
-                                    <th scope="col">文字</th>
                                     <th scope="col">版型</th>
                                     <th scope="col">連結</th>
                                     <th scope="col">狀態</th>
@@ -88,7 +86,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form class="richmenu-form">
                         <!-- app -->
                         <div class="form-group">
                             <label class="col-form-label"><strong>目標機器人:</strong></label>
@@ -99,19 +97,14 @@
                         <!-- select -->
                         <div class="form-group">
                             <label class="col-form-label"><strong>顯示設定:</strong></label>
-                            <select class="form-control" id="richmenu-selected">
+                            <select class="form-control richmenu-select">
                                 <option value="true">直接顯示</option>
                                 <option value="false">點選後展開</option>
                             </select>
                         </div>
-                        <!-- title -->
                         <div class="form-group">
                             <label class="col-form-label"><strong>標題:</strong></label>
-                            <input class="form-control mb-2" type="text" id="title">
-                        </div>
-                        <div class="form-group">
-                            <label class="col-form-label"><strong>文字:</strong></label>
-                            <input class="form-control" type="text" id="chatbar-text">
+                            <input class="form-control chatbar-text" type="text" name="chatbarText" />
                         </div>
                         <!-- 圖片種類 -->
                         <div class="row col-12 px-0 mx-0">
@@ -203,68 +196,65 @@
                         <!-- 內容 -->
                         <section class="boxes-inputs"></section>
 
-                        <!-- <div class="form-group col-sm-12" id="content-input-box"></div> -->
-
                         <section class="form-inputs">
-                            <div class="form-group col-sm-12 d-none" id="box1-input">
+                            <div class="form-input d-none" id="box1-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box2-input">
+                            <div class="form-input d-none" id="box2-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box3-input">
+                            <div class="form-input d-none" id="box3-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box4-input">
+                            <div class="form-input d-none" id="box4-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box5-input">
+                            <div class="form-input d-none" id="box5-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box6-input">
+                            <div class="form-input d-none" id="box6-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box7-input">
+                            <div class="form-input d-none" id="box7-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box8-input">
+                            <div class="form-input d-none" id="box8-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
-                            <div class="form-group col-sm-12 d-none" id="box9-input">
+                            <div class="form-input d-none" id="box9-input">
                                 <select id="keyword" class="form-control content-input"></select>
-                                <input id="text" type="text" class="form-control content-input" >
+                                <textarea id="text" class="form-control content-input"></textarea>
                                 <input id="url" type="url" class="form-control content-input"  placeholder="http://">
                             </div>
                         </section>
-
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="modal-update-save">確認</button>
-                    <button type="button" class="btn btn-primary" id="modal-save">確認</button>
+                    <button type="button" class="btn btn-primary" id="modal-update-save">修改</button>
+                    <button type="button" class="btn btn-primary" id="modal-save">新增</button>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- end new modal -->
+
     <div id="dialog_modal" class="chsr modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">

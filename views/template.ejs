@@ -65,61 +65,54 @@
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
+
                 <div class="modal-body">
-                    <form>
-                        <!-- 編號 -->
+                    <form class="template-form">
                         <div class="form-group d-none">
-                            <label for="template-id" class=" col-form-label">ID</label>
-                            <input id="template-id"></span>
-                        </div>
-                        <!-- channelId -->
-                        <div class="form-group app-select-bar">
-                            <label class="col-form-label"><strong>目標機器人:</strong></label>
-                            <div>
-                                <select class="form-control" id="app-select">
-                                </select>
-                            </div>
+                            <label class="col-form-label font-weight-bold">ID</label>
+                            <span id="template-id"></span>
                         </div>
 
-                        <!-- Keyword -->
-                        <div class="form-group">
-                            <label class="col-form-label"><strong>觸發關鍵字:</strong><p class="keyword-duplicate d-none">關鍵字重複，請重新輸入</p>
-                            <div >
-                                <input class="form-control" type="text" value="" id="template-keyword">
-                            </div>
-                        </label>
+                        <div class="form-group app-select-bar">
+                            <label class="col-form-label font-weight-bold">目標機器人:</label>
+                            <select class="form-control" id="app-select"></select>
                         </div>
-                        <!-- Type -->
+
                         <div class="form-group">
-                            <label class=" col-form-label"><strong>版型:</strong></label>
-                            <div>
-                                <select class="form-control" id="template-type">
-                                    <option disabled selected value> -- 請選擇 -- </option>
-                                    <option value="buttons">按鈕</option>
-                                    <option value="confirm">是非題</option>
-                                    <option value="carousel">多欄</option>
-                                    <!-- <option value="image_carousel">圖片多欄</option> -->
-                                </select>
-                            </div>
+                            <label class="col-form-label font-weight-bold">觸發關鍵字:</label>
+                            <p class="keyword-duplicate d-none">關鍵字重複，請重新輸入</p>
+                            <input class="form-control" type="text" id="template-keyword">
                         </div>
-                        <!-- AltText -->
+
                         <div class="form-group">
-                            <label class="col-form-label template-view" rel="confirm carousel buttons"><strong>電腦版替代文字:</strong>
-                            <div>
-                                <input class="form-control" type="text" value="" id="template-altText">
-                            </div>
-                        </label>
+                            <label class="col-form-label font-weight-bold">版型:</label>
+                            <select class="form-control" id="template-type">
+                                <option disabled value="">-- 請選擇 --</option>
+                                <option value="buttons">按鈕</option>
+                                <option value="confirm">是非題</option>
+                                <option value="carousel">多欄</option>
+                                <!-- <option value="image_carousel">圖片多欄</option> -->
+                            </select>
                         </div>
+
+                        <div class="form-group template-view" rel="confirm carousel buttons">
+                            <label class="col-form-label font-weight-bold">電腦版替代文字:</label>
+                            <input class="form-control" type="text" id="template-altText">
+                        </div>
+
                         <!-- button, carousel field -->
                         <div id="carousel-container" class="template-view carousel slide" rel="carousel buttons" data-ride="carousel" data-interval="false">
                             <!-- Wrapper for slides -->
-                            <div class="form-label col-sm-12 pl-0 pb-3">
-                                <label class="col-form-label d-inline"><strong>內容設定:</strong></label>
-                                <div class="col-form-label btn btn-light btn-border d-inline" id="image-upload">
-                                    <strong>上傳圖片</strong>
+                            <div class="d-flex mb-3">
+                                <label class="w-auto mr-2 col-form-label font-weight-bold">
+                                    <span>內容設定:</span>
+                                </label>
+                                <div class="col-form-label btn btn-light btn-border" id="image-upload">
+                                    <span class="font-weight-bold">上傳圖片</span>
                                 </div>
                                 <!-- <i class="fa fa-info-circle btn" aria-hidden="true"></i> -->
                             </div>
+
                             <div class="carousel-inner">
                                 <div class="carousel-item active template-view" rel="carousel buttons" data-slide-to="0">
                                     <div class="rounded-border">
@@ -132,24 +125,24 @@
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題1" maxlength="40">
+                                            <input class="line-title form-control" type="text" placeholder="標題1" maxlength="40" />
                                         </div>
                                         <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60" />
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
                                             <div class="line-action" id="row-1">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                             <div class="line-action" id="row-2">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                             <div class="line-action" id="row-3">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                         </div>
                                     </div>
@@ -165,28 +158,29 @@
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
-                                            <input class="line-title form-control" type="text" placeholder="標題2" maxlength="40">
+                                            <input class="line-title form-control" type="text" placeholder="標題2" maxlength="40" />
                                         </div>
                                         <div class="line-content">
-                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60">
+                                            <input class="line-text form-control" type="text" placeholder="說明文字" maxlength="60" />
                                         </div>
                                         <div class="divider-line"></div>
                                         <div class="line-content">
                                             <div class="line-action" id="row-1">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                             <div class="line-action" id="row-2">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                             <div class="line-action" id="row-3">
-                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12">
-                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300">
+                                                <input class="row-label form-control" type="text" placeholder="選項" maxlength="12" />
+                                                <input class="row-text form-control" type="text" placeholder="回傳文字" maxlength="300" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="carousel-item template-view" rel="carousel"data-slide-to="2">
                                     <div class="rounded-border">
                                         <div class="line-content">
@@ -221,18 +215,16 @@
                                     </div>
                                 </div>
                             </div>
+
                             <!-- Left and right controls -->
-                            <div class="template-view" rel="carousel">
-                                <a class="carousel-item-left carousel-control-prev text-info" href="#carousel-container" data-slide="prev" role="button">
-                                    <span class="fas fa-chevron-left"></span>
-                                    <span class="sr-only">Previous</span>
-                                </a>
-                                <a class="carousel-item-right carousel-control-next text-info" href="#carousel-container" data-slide="next" role="button">
-                                    <span class="fas fa-chevron-right"></span>
-                                    <span class="sr-only">Next</span>
-                                </a>
-                            </div>
+                            <a class="carousel-item-left carousel-control-prev carousel-control text-info" href="#carousel-container" data-slide="prev" role="button">
+                                <span class="fas fa-chevron-left"></span>
+                            </a>
+                            <a class="carousel-item-right carousel-control-next carousel-control text-info" href="#carousel-container" data-slide="next" role="button">
+                                <span class="fas fa-chevron-right"></span>
+                            </a>
                         </div>
+
                         <!-- button carousel field end -->
                         <div class="template-view" rel="confirm">
                             <div class="rounded-border">
@@ -252,6 +244,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="modal-footer px-0">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                             <button type="button" class="btn btn-primary" id="modal-save">確認</button>
@@ -279,11 +272,6 @@
     </div>
 
     <% include ../views/partials/require_js.ejs %>
-    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
-    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
-    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-    <script src="https://mermaidjs.github.io/scripts/mermaid.min.js"></script>
     <script src="js/template.js"></script>
 </body>
 

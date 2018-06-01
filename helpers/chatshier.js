@@ -3,6 +3,7 @@ module.exports = (function() {
     const appsGreetingsMdl = require('../models/apps_greetings');
     const appsAutorepliesMdl = require('../models/apps_autoreplies');
     const fuseHlp = require('../helpers/fuse');
+    const botSvc = require('../services/bot');
 
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
@@ -11,27 +12,29 @@ module.exports = (function() {
     class ChatshierHelp {
         /**
          * 根據 HTTP request body 與 app.type 決定要回傳甚麼訊息
-         * @param {*} messages
-         * @param {*} app
+         * @param {any} messages
+         * @param {Webhook.Chatshier.Information} webhookInfo
+         * @param {any} app
          */
-        getRepliedMessages(messages, appId, app) {
-            let greetings = {};
-            let grettingsPromise = Promise.all(messages.map((message) => {
-                let eventType = message.eventType || null;
-                if ('follow' !== eventType) {
-                    return Promise.resolve();
-                };
+        getRepliedMessages(messages, webhookInfo, appId, app) {
+            let eventType = webhookInfo.eventType;
 
-                return appsGreetingsMdl.findGreetings(appId).then((_greetings) => {
-                    Object.assign(greetings, _greetings);
-                    return _greetings;
-                });
-            })).then(() => {
-                return greetings;
+            let grettingsPromise = Promise.resolve().then(() => {
+                if (LINE === app.type &&
+                    (botSvc.LINE_EVENT_TYPES.FOLLOW === eventType ||
+                    botSvc.LINE_EVENT_TYPES.JOIN === eventType)) {
+                    return appsGreetingsMdl.findGreetings(appId);
+                }
+                return Promise.resolve({});
             });
 
             let keywordreplies = {};
             let keywordrepliesPromise = Promise.all(messages.map((message) => {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                    return Promise.resolve();
+                }
+
                 let text = message.text;
                 if (!text) {
                     return Promise.resolve();
@@ -46,15 +49,15 @@ module.exports = (function() {
                 return keywordreplies;
             });
 
-            let autoreplies = {};
-            let autorepliesPromise = Promise.all(messages.map((message) => {
-                let eventType = message.eventType || null;
-                if ('follow' === eventType || 'unfollow' === eventType) {
-                    return Promise.resolve();
+            let autorepliesPromise = Promise.resolve().then(() => {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                    return Promise.resolve({});
                 }
 
                 return appsAutorepliesMdl.findAutoreplies(appId).then((_autoreplies) => {
                     let timeNow = Date.now();
+                    let autoreplies = {};
 
                     for (let autoreplyId in _autoreplies) {
                         let autoreply = _autoreplies[autoreplyId];
@@ -95,23 +98,25 @@ module.exports = (function() {
                                 autoreplies[autoreplyId] = autoreply;
                             }
                         }
-                        delete _autoreplies[autoreplyId];
                     }
+
                     return autoreplies;
                 });
-            })).then(() => {
-                return autoreplies;
             });
 
             let templates = {};
             let templatesPromise = Promise.all(messages.map((message) => {
-                let eventType = message.eventType;
-                let text = message.text;
-                if ('message' !== eventType) {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
                     return Promise.resolve();
                 }
 
-                // templates使用模糊比對，不直接對 DB 查找
+                // templates 使用模糊比對，不直接對 DB 查找
+                let text = message.text;
+                if (!text) {
+                    return Promise.resolve();
+                }
+
                 return fuseHlp.searchTemplates(appId, text).then((_templates) => {
                     templates = Object.assign(templates, _templates);
                     return _templates;
@@ -125,12 +130,8 @@ module.exports = (function() {
                 keywordrepliesPromise,
                 autorepliesPromise,
                 templatesPromise
-            ]).then((results) => {
+            ]).then(([greetings, keywordreplies, autoreplies, templates]) => {
                 let repliedMessages = [];
-                let greetings = results.shift() || {};
-                let keywordreplies = results.shift() || {};
-                let autoreplies = results.shift() || {};
-                let templates = results.shift() || {};
                 let _message = { from: SYSTEM };
 
                 Object.keys(greetings).forEach((grettingId) => {

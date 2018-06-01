@@ -20,106 +20,73 @@ module.exports = (function() {
         getAll(req, res) {
             return this.appsRequestVerify(req).then((checkedAppIds) => {
                 let appIds = checkedAppIds;
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.find(appIds, null, (appGreetings) => {
-                        if (!appGreetings) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appGreetings);
-                    });
+                return appsGreetingsMdl.find(appIds).then((appsGreetings) => {
+                    if (!appsGreetings) {
+                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
+                    }
+                    return appsGreetings;
                 });
-            }).then((greetings) => {
-                let result = greetings !== undefined ? greetings : {};
-                let json = {
-                    status: 1,
+            }).then((appsGreetings) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appsGreetings
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         getOne(req, res) {
-            let appId;
+            let appId = req.params.appid;
             let greetingId = req.params.greetingid;
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-
+            return this.appsRequestVerify(req).then(() => {
                 if (!greetingId) {
                     return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
-                };
+                }
 
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.find(appId, greetingId, (appGreeting) => {
-                        if (!appGreeting) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
-                            return;
-                        }
-                        resolve(appGreeting);
-                    });
+                return appsGreetingsMdl.find(appId, greetingId).then((appsGreetings) => {
+                    if (!(appsGreetings && appsGreetings[appId])) {
+                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_FIND);
+                    }
+                    return appsGreetings;
                 });
             }).then((appGreeting) => {
-                let result = appGreeting || {};
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: result
+                    data: appGreeting
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
         postOne(req, res) {
+            let appId = req.params.appid;
             let type = req.body.type;
             let text = req.body.text;
             let postGreeting = {
                 type: type,
                 text: text
             };
-            let appId;
 
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                appId = checkedAppId;
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.insert(appId, postGreeting, (result) => {
-                        if (!result) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(result);
-                    });
+            return this.appsRequestVerify(req).then(() => {
+                return appsGreetingsMdl.insert(appId, postGreeting).then((appsGreetings) => {
+                    if (!(appsGreetings && appsGreetings[appId])) {
+                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
+                    }
+                    return appsGreetings;
                 });
-            }).then((greeting) => {
-                let result = greeting !== undefined ? greeting : {};
-                let json = {
-                    status: 1,
+            }).then((appsGreetings) => {
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: result
+                    data: appsGreetings
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -128,34 +95,31 @@ module.exports = (function() {
             let greetingId = req.params.greetingid;
             let type = req.body.type;
             let text = req.body.text;
+
             let putGreeting = {
                 type,
                 text
             };
-            return this.appsRequestVerify(req).then((checkedAppId) => {
-                return new Promise((resolve, reject) => {
-                    appsGreetingsMdl.update(appId, greetingId, putGreeting, (appsGreetings) => {
-                        if (!appsGreetings) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
-                            return;
-                        }
-                        resolve(appsGreetings);
-                    });
+
+            return this.appsRequestVerify(req).then(() => {
+                if (!greetingId) {
+                    return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                }
+
+                return appsGreetingsMdl.update(appId, greetingId, putGreeting).then((appsGreetings) => {
+                    if (!(appsGreetings && appsGreetings[appId])) {
+                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_INSERT);
+                    }
+                    return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: appsGreetings || {}
+                    data: appsGreetings
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
 
@@ -163,39 +127,25 @@ module.exports = (function() {
             let appId = req.params.appid;
             let greetingId = req.params.greetingid;
 
-            return this.appsRequestVerify(req).then((checkedAppIds) => {
-                return new Promise((resolve, reject) => { // 取得目前appId下所有greetings
-                    if (!greetingId) {
-                        reject(API_ERROR.GREETINGID_WAS_EMPTY);
-                        return;
-                    } else if (!checkedAppIds.includes(appId)) {
-                        reject(API_ERROR.USER_DID_NOT_HAVE_THIS_APP);
-                        return;
-                    };
+            return this.appsRequestVerify(req).then(() => {
+                if (!greetingId) {
+                    return Promise.reject(API_ERROR.GREETINGID_WAS_EMPTY);
+                }
 
-                    // 刪除指定的 greeting
-                    appsGreetingsMdl.remove(appId, greetingId, (appsGreetings) => {
-                        if (!appsGreetings) {
-                            reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
-                            return;
-                        }
-                        resolve(appsGreetings);
-                    });
+                return appsGreetingsMdl.remove(appId, greetingId).then((appsGreetings) => {
+                    if (!(appsGreetings && appsGreetings[appId])) {
+                        return Promise.reject(API_ERROR.APP_GREETING_FAILED_TO_REMOVE);
+                    }
+                    return appsGreetings;
                 });
             }).then((appsGreetings) => {
-                let json = {
-                    status: 1,
+                let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_REMOVE,
                     data: appsGreetings
                 };
-                res.status(200).json(json);
-            }).catch((ERR) => {
-                let json = {
-                    status: 0,
-                    msg: ERR.MSG,
-                    code: ERR.CODE
-                };
-                res.status(500).json(json);
+                return this.successJson(req, res, suc);
+            }).catch((err) => {
+                return this.errorJson(req, res, err);
             });
         }
     }
