@@ -308,33 +308,34 @@ module.exports = (function() {
                         for (let i in entries) {
                             let messaging = entries[i].messaging || [];
                             for (let j in messaging) {
+                                let msg = messaging[j];
                                 // 如果有 is_echo 的 flag 並且有 fb 的 app_id
                                 // 代表是從 Chatshier 透過 API 發送，此訊息不用再進行處理
-                                if (messaging[j].message.is_echo && messaging[j].message.app_id) {
+                                if (msg.message.is_echo && msg.message.app_id) {
                                     continue;
                                 }
 
-                                let attachments = messaging[j].message.attachments;
-                                let text = messaging[j].message.text || '';
+                                let attachments = msg.message.attachments;
+                                let text = msg.message.text || '';
 
                                 // !attachments 沒有夾帶檔案
                                 if (!attachments && text) {
                                     let _message = {
                                         messager_id: messagerId,
                                         // 有 is_echo 的 flag 代表從粉絲專頁透過 Messenger 來回覆用戶的
-                                        from: messaging[j].message.is_echo ? VENDOR : FACEBOOK,
+                                        from: msg.message.is_echo ? VENDOR : FACEBOOK,
                                         text: text,
                                         type: 'text',
                                         time: Date.now(), // 將要回覆的訊息加上時戳
                                         src: '',
-                                        message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                        message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                     };
                                     messages.push(_message);
                                     continue;
                                 }
 
                                 if (attachments) {
-                                    messages.concat(attachments.map((attachment) => {
+                                    messages = messages.concat(attachments.map((attachment) => {
                                         let src = '';
                                         if ('location' === attachment.type) {
                                             let coordinates = attachment.payload.coordinates;
@@ -371,7 +372,7 @@ module.exports = (function() {
                                             type: attachment.type || 'text',
                                             time: Date.now(), // 將要回覆的訊息加上時戳
                                             src: src,
-                                            message_id: messaging[j].message.mid // FACEBOOK 平台的 訊息 id
+                                            message_id: msg.message.mid // FACEBOOK 平台的 訊息 id
                                         };
                                         return _message;
                                     }));
