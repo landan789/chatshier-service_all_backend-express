@@ -645,13 +645,7 @@
             var recipientUid = socketBody.recipientUid;
             var consumersFromSocket = socketBody.consumers;
             var senderMsger;
-
-            if (consumersFromSocket) {
-                for (let _platformUid in consumersFromSocket) {
-                    consumersFromSocket[_platformUid].photo = fixHttpsLink(consumersFromSocket[_platformUid].photo);
-                }
-                Object.assign(consumers, consumersFromSocket);
-            }
+            consumersFromSocket && Object.assign(consumers, consumersFromSocket);
 
             // 根據發送的時間從早到晚排序
             messages.sort(function(a, b) {
@@ -1043,12 +1037,6 @@
             '</li>' +
             '<div class="collapse nested app-types show" app-type="' + CHATSHIER + '"></div>'
         );
-
-        // 架設 https 時，request 必須使用 https
-        // 由於 LINE 的圖像屬於 http 前綴開頭，因此需檢測所有頭像連結
-        for (let platformUid in consumers) {
-            consumers[platformUid].photo = fixHttpsLink(consumers[platformUid].photo);
-        }
 
         appsAgents = {};
         for (var appId in apps) {
@@ -3228,16 +3216,6 @@
             }
             return Promise.reject(err);
         });
-    }
-
-    /**
-     * @param {string} resourceLink
-     */
-    function fixHttpsLink(resourceLink) {
-        if ('https:' === window.location.protocol && 0 === resourceLink.indexOf('http://')) {
-            return resourceLink.replace('http:', window.location.protocol);
-        }
-        return resourceLink;
     }
 
     // =====end utility function
