@@ -74,14 +74,14 @@ module.exports = (function() {
                 this.noRedis = false;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
-                console.log('[SUCCEEDED] the pub of service.chatshier is connecting to Redis !!');
+                console.log('[SUCCEEDED] the pub of api-chatshier is connecting to Redis !!');
             });
 
             this.publisher.on('error', () => {
                 this.noRedis = true;
                 publisherReadyResolve && publisherReadyResolve();
                 publisherReadyResolve = void 0;
-                console.log('[FAILED] the pub of service.chatshier is not connecting to Redis !!');
+                console.log('[FAILED] the pub of api-chatshier is not connecting to Redis !!');
             });
 
             this.publisher.on('end', () => {
