@@ -75,7 +75,7 @@ function init(server) {
                     let fileName = message.fileName || `${message.time}.${media[message.type]}`;
                     delete message.fileName;
 
-                    let originalFilePath = `/${fileName}`;
+                    let originalFilePath = `/.tmp/${fileName}`;
                     let srcBuffer = message.src;
 
                     return Promise.resolve().then(() => {
@@ -84,9 +84,7 @@ function init(server) {
                         }
                         return storageHlp.filesUpload(originalFilePath, srcBuffer).then((response) => {
                             return storageHlp.sharingCreateSharedLink(originalFilePath);
-                        }).then((response) => {
-                            let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                            let url = wwwurl.replace('?dl=0', '');
+                        }).then((url) => {
                             message.src = url;
                         });
                     }).then(() => {

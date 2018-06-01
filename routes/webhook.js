@@ -238,7 +238,32 @@ router.post('/:webhookid', (req, res, next) => {
                                                 platformGroupType: platformGroupType
                                             };
                                             return botSvc.getProfile(_webhookInfo, appId, app).then((groupMemberProfile) => {
-                                                return consumersMdl.replace(groupMemberId, groupMemberProfile);
+                                                if (!groupMemberProfile.photo) {
+                                                    return consumersMdl.replace(groupMemberId, groupMemberProfile);
+                                                }
+
+                                                return consumersMdl.find(groupMemberId).then((consumers) => {
+                                                    let consumer = consumers[groupMemberId];
+                                                    let shouldUpload = (
+                                                        groupMemberProfile.photo.startsWith('http://') &&
+                                                        (!consumer || !(consumer && groupMemberProfile.photo !== consumer.photoOriginal))
+                                                    );
+
+                                                    if (shouldUpload) {
+                                                        let fileName = `${groupMemberId}_${Date.now()}.jpg`;
+                                                        let filePath = `${storageHlp.tempPath}/${fileName}`;
+                                                        let putConsumer = Object.assign({}, groupMemberProfile);
+
+                                                        return storageHlp.filesSaveUrl(filePath, groupMemberProfile.photo).then((url) => {
+                                                            putConsumer.photo = url;
+                                                            let toPath = `/consumers/${groupMemberId}/photo/${fileName}`;
+                                                            return storageHlp.filesMoveV2(filePath, toPath);
+                                                        }).then(() => {
+                                                            return consumersMdl.replace(groupMemberId, putConsumer);
+                                                        });
+                                                    }
+                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
+                                                });
                                             }).then(() => {
                                                 let _messager = {
                                                     type: app.type,
@@ -269,10 +294,32 @@ router.post('/:webhookid', (req, res, next) => {
                     }
 
                     return botSvc.getProfile(webhookInfo, appId, app).then((profile) => {
-                        if (!(platformUid && profile)) {
+                        if (!platformUid) {
                             return;
                         }
-                        return consumersMdl.replace(platformUid, profile);
+
+                        return consumersMdl.find(platformUid).then((consumers) => {
+                            let consumer = consumers[platformUid];
+                            let shouldUpload = (
+                                profile.photo.startsWith('http://') &&
+                                (!consumer || !(consumer && profile.photo !== consumer.photoOriginal))
+                            );
+
+                            if (shouldUpload) {
+                                let fileName = `${platformUid}_${Date.now()}.jpg`;
+                                let filePath = `${storageHlp.tempPath}/${fileName}`;
+                                let putConsumer = Object.assign({}, profile);
+
+                                return storageHlp.filesSaveUrl(filePath, profile.photo).then((url) => {
+                                    putConsumer.photo = url;
+                                    let toPath = `/consumers/${platformUid}/photo/${fileName}`;
+                                    return storageHlp.filesMoveV2(filePath, toPath);
+                                }).then(() => {
+                                    return consumersMdl.replace(platformUid, putConsumer);
+                                });
+                            }
+                            return consumersMdl.replace(platformUid, profile);
+                        });
                     });
                 }).then((_consumers) => {
                     if (!_consumers) {
@@ -428,6 +475,7 @@ router.post('/:webhookid', (req, res, next) => {
                         return Promise.all(Object.keys(messagers).map((messagerId) => {
                             let recipientMsger = messagers[messagerId];
                             let recipientUserId = recipientMsger.platformUid;
+                            recipientUserIds.push(recipientUserId);
 
                             // 更新最後聊天時間及計算聊天次數
                             let currentTime = Date.now();
@@ -463,7 +511,7 @@ router.post('/:webhookid', (req, res, next) => {
                     }
                     _messages = messages;
                     let messageId = Object.keys(messages).shift() || '';
-                    if (webhookChatroomId && messageId && messages[messageId] && messages[messageId].src.includes('dl.dropboxusercontent')) {
+                    if (webhookChatroomId && messageId && messages[messageId] && messages[messageId].src.includes(storageHlp.sharedLinkPrefix)) {
                         toPath = `/apps/${appId}/chatrooms/${webhookChatroomId}/messages/${messageId}/src${fromPath}`;
                         return storageHlp.filesMoveV2(fromPath, toPath);
                     }

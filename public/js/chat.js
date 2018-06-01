@@ -1961,12 +1961,13 @@
                                 if (CHATSHIER === messager.type) {
                                     continue;
                                 }
-                                var consumer = consumers[messager.platformUid];
-                                html +=
+                                var consumer = consumers[messager.platformUid] || {};
+                                html += (
                                     '<div class="person-chip">' +
                                         '<img src="' + (consumer.photo || 'image/avatar-default.png') + '" class="person-avatar" alt="" onerror="this.src=\'image/user_large.png\'" />' +
                                         '<span>' + consumer.name + '</span>' +
-                                    '</div>';
+                                    '</div>'
+                                );
                             }
                         }
                         return html;
@@ -2022,8 +2023,9 @@
             var messagerNameList = [];
             for (var messagerId in messagers) {
                 var _messager = messagers[messagerId];
+                var consumer = consumers[_messager.platformUid] || {};
                 if (appType === _messager.type) {
-                    messagerNameList.push(consumers[_messager.platformUid].name);
+                    messagerNameList.push(consumer.name);
                 }
             }
             chatroomTitle += ' (' + messagerNameList.join(',') + ')';

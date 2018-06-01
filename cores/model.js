@@ -264,7 +264,8 @@ module.exports = (function() {
         'createdTime': {type: Date, default: Date.now()},
         'isDeleted': {type: Boolean, default: false},
         'name': {type: String, default: ''},
-        'photo': {type: String, default: ''}
+        'photo': {type: String, default: ''},
+        'photoOriginal': {type: String, default: ''}
     });
 
     // endregion

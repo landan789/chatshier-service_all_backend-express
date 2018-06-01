@@ -14,6 +14,7 @@ namespace Webhook {
             type: 'LINE' | 'FACEBOOK' | 'WECHAT',
             name: string,
             photo: string,
+            photoOriginal: string,
             gender?: string
         }
     }

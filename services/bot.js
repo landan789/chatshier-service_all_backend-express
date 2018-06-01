@@ -291,10 +291,8 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(_message.fromPath, contentBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(_message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    _message.src = src;
+                                }).then((url) => {
+                                    _message.src = url;
                                     messages.push(_message);
                                 });
                             }
@@ -445,10 +443,8 @@ module.exports = (function() {
                                     return storageHlp.filesUpload(message.fromPath, outputBuffer);
                                 }).then(() => {
                                     return storageHlp.sharingCreateSharedLink(message.fromPath);
-                                }).then((response) => {
-                                    let wwwurl = response.url.replace('www.dropbox', 'dl.dropboxusercontent');
-                                    let src = wwwurl.replace('?dl=0', '');
-                                    message.src = src;
+                                }).then((url) => {
+                                    message.src = url;
                                     return message;
                                 });
                             } else if ('location' === message.type) {
@@ -492,7 +488,8 @@ module.exports = (function() {
                 let senderProfile = {
                     type: app.type,
                     name: '',
-                    photo: ''
+                    photo: '',
+                    photoOriginal: ''
                 };
                 let platformGroupId = webhookInfo.platformGroupId;
                 let platformGroupType = webhookInfo.platformGroupType;
@@ -516,7 +513,7 @@ module.exports = (function() {
                         }).then((lineUserProfile) => {
                             lineUserProfile = lineUserProfile || {};
                             senderProfile.name = lineUserProfile.displayName;
-                            senderProfile.photo = lineUserProfile.pictureUrl;
+                            senderProfile.photo = senderProfile.photoOriginal = lineUserProfile.pictureUrl;
                             return senderProfile;
                         }).catch((err) => {
                             // 無法抓到使用者 profile 時，回傳 undefined
@@ -531,7 +528,7 @@ module.exports = (function() {
                         return bot.getProfile(platformUid).then((fbUserProfile) => {
                             fbUserProfile = fbUserProfile || {};
                             senderProfile.name = fbUserProfile.first_name + ' ' + fbUserProfile.last_name;
-                            senderProfile.photo = fbUserProfile.profile_pic;
+                            senderProfile.photo = senderProfile.photoOriginal = fbUserProfile.profile_pic;
                             return senderProfile;
                         }).catch((ex) => {
                             // 如果此 app 的 page access token 已經無法使用
@@ -559,7 +556,7 @@ module.exports = (function() {
                         }).then((wxUser) => {
                             wxUser = wxUser || {};
                             senderProfile.name = wxUser.nickname;
-                            senderProfile.photo = wxUser.headimgurl;
+                            senderProfile.photo = senderProfile.photoOriginal = wxUser.headimgurl;
                             return senderProfile;
                         });
                     default:
