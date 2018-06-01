@@ -1,6 +1,10 @@
 /// <reference path='../../typings/client/index.d.ts' />
 
 (function() {
+    const SOCKET_NAMESPACE = '/chatshier';
+    const SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
+    const socket = io(SOCKET_SERVER_URL);
+
     const LINE = 'LINE';
     const FACEBOOK = 'FACEBOOK';
     const WECHAT = 'WECHAT';
@@ -234,11 +238,18 @@
         $settingModal.find('.modal-body').append(str);
     });
 
-    findAllGroups().then(function() {
+    Promise.all([
+        findAllGroups(),
+        findUserProfile()
+    ]).then(function() {
         // 列出所有設定的APPs
         return findAllApps();
+    }).then(function() {
+        return new Promise(function(resolve) {
+            socket.emit(SOCKET_EVENTS.USER_REGISTRATION, userId, resolve);
+        });
     });
-    findUserProfile();
+
     var $appAddModal = $('#appAddModal');
     var $groupAddModal = $('#groupAddModal');
 
@@ -1786,23 +1797,33 @@
                         // 成功更新群組成員後，將新成員的資料合併至本地端的群組資料
                         // 並且清除新增成員的 email 欄位
                         return api.groupsMembers.insert(groupId, userId, postMemberData).then(function(resJson) {
-                            var groupMembersData = resJson.data[groupId].members;
-                            var groupMemberId = Object.keys(groupMembersData).shift();
-                            groups[groupId].members = Object.assign(groups[groupId].members, groupMembersData);
+                            var groupMembers = resJson.data[groupId].members;
+                            var groupMemberId = Object.keys(groupMembers).shift();
+                            groups[groupId].members = Object.assign(groups[groupId].members, groupMembers);
                             return {
                                 groupMemberId: groupMemberId,
-                                groupMembersData: groupMembersData[groupMemberId]
+                                groupMember: groupMembers[groupMemberId]
                             };
                         });
                     }).then(function(insertData) {
                         return api.users.find(userId).then(function(resJson) {
                             users = resJson.data || {};
-                            instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMembersData, memberSelf);
+                            instance.addMemberToList(groupId, insertData.groupMemberId, insertData.groupMember, memberSelf);
 
-                            $groupElems[groupId].$memberEmail.val('');
-                            $groupElems[groupId].$permissionText.text('權限');
-                            $.notify('群組成員新增成功', { type: 'success' });
+                            return new Promise(function(resolve) {
+                                let socketBody = {
+                                    groupId: groupId,
+                                    memberId: insertData.groupMemberId,
+                                    memberUserId: insertData.groupMember.user_id,
+                                    userId: userId
+                                };
+                                socket.emit(SOCKET_EVENTS.USER_ADD_GROUP_MEMBER_TO_SERVER, socketBody, resolve);
+                            });
                         });
+                    }).then(function() {
+                        $groupElems[groupId].$memberEmail.val('');
+                        $groupElems[groupId].$permissionText.text('權限');
+                        $.notify('群組成員新增成功', { type: 'success' });
                     }).catch(function() {
                         $.notify('群組成員新增失敗', { type: 'danger' });
                     }).then(function() {
@@ -1980,6 +2001,16 @@
                             $groupBody.find('.card-collapse#' + groupId).remove();
                             delete groups[groupId];
                         }
+
+                        return new Promise(function(resolve) {
+                            let socketBody = {
+                                groupId: groupId,
+                                memberId: memberId,
+                                memberUserId: memberUserId,
+                                userId: userId
+                            };
+                            socket.emit(SOCKET_EVENTS.USER_REMOVE_GROUP_MEMBER_TO_SERVER, socketBody, resolve);
+                        });
                     });
                 });
             };

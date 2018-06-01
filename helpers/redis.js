@@ -95,7 +95,6 @@ module.exports = (function() {
                     publisherReadyPromise,
                     subscriberReadyPromise
                 ]);
-
             });
 
             this.subscriber.on('connect', () => {
@@ -110,7 +109,6 @@ module.exports = (function() {
                 subscriberReadyResolve && subscriberReadyResolve();
                 subscriberReadyResolve = void 0;
                 console.log('[FAILED] the sub of service.chatshier is not connecting to Redis !!');
-
             });
 
             this.subscriber.on('end', () => {
@@ -124,7 +122,6 @@ module.exports = (function() {
                     publisherReadyPromise,
                     subscriberReadyPromise
                 ]);
-
             });
 
             return redisReady;

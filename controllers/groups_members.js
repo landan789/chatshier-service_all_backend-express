@@ -192,14 +192,11 @@ module.exports = (function() {
                     });
                 }
 
-                return new Promise((resolve, reject) => {
-                    groupsMembersMdl.insert(groupId, postMember, (groupsMembers) => {
-                        if (!groupsMembers || (groupsMembers && 0 === Object.keys(groupsMembers).length)) {
-                            reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
-                            return;
-                        };
-                        resolve(groupsMembers);
-                    });
+                return groupsMembersMdl.insert(groupId, postMember).then((groupsMembers) => {
+                    if (!(groupsMembers && groupsMembers[groupId])) {
+                        return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_INSERT);
+                    }
+                    return groupsMembers;
                 });
             }).then((groupsMembers) => {
                 let suc = {
@@ -236,19 +233,19 @@ module.exports = (function() {
             proceed.then(() => {
                 if ('' === userId || undefined === userId || null === userId) {
                     return Promise.reject(API_ERROR.USERID_WAS_EMPTY);
-                };
+                }
 
                 if ('' === groupId || undefined === groupId || null === groupId) {
                     return Promise.reject(API_ERROR.GROUPID_WAS_EMPTY);
-                };
+                }
 
                 if ('' === memberId || undefined === memberId || null === memberId) {
                     return Promise.reject(API_ERROR.MEMBERID_WAS_EMPTY);
-                };
+                }
 
                 if (0 === Object.keys(putMember).length) {
                     return Promise.reject(API_ERROR.INVALID_REQUEST_BODY_DATA);
-                };
+                }
 
                 return new Promise((resolve, reject) => {
                     let userId = req.params.userid;
@@ -448,7 +445,7 @@ module.exports = (function() {
                 groupsMembers = result;
                 if (!groupsMembers) {
                     return Promise.reject(API_ERROR.GROUP_MEMBER_FAILED_TO_REMOVE);
-                };
+                }
 
                 // 群組成員的 userId 即是內部聊天室的 messagerId
                 deletedMember = groupsMembers[groupId].members[memberId];

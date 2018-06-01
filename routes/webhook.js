@@ -24,6 +24,7 @@ const router = express.Router();
 
 const LINE = 'LINE';
 const FACEBOOK = 'FACEBOOK';
+const CHATSHIER = 'CHATSHIER';
 
 const FACEBOOK_WEBHOOK_VERIFY_TOKEN = 'verify_token';
 const WECHAT_WEBHOOK_VERIFY_TOKEN = 'verify_token';
@@ -123,6 +124,7 @@ router.post('/:webhookid', (req, res, next) => {
                 let receivedMessages = [];
                 let repliedMessages = [];
                 let totalMessages = [];
+                let recipientUserIds = [];
 
                 let fromPath;
                 let toPath;
@@ -168,13 +170,25 @@ router.post('/:webhookid', (req, res, next) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }
+                                        platformMessager = _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid];
+                                        return appsChatroomsMessagersMdl.find(appId, _chatroomId, void 0, CHATSHIER);
+                                    }).then((_appsChatroomsMessagers) => {
+                                        if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        }
+
+                                        let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                            return messagers[messagerId].platformUid;
+                                        });
 
                                         let socketBody = {
                                             appId: appId,
                                             chatroomId: _chatroomId,
-                                            messager: _appsChatroomsMessagers[appId].chatrooms[_chatroomId].messagers[webhookInfo.platformUid]
+                                            messager: platformMessager
                                         };
-                                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
+                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.CONSUMER_UNFOLLOW, socketBody);
                                     });
                                 }));
                             }).then(() => void 0);
@@ -300,16 +314,22 @@ router.post('/:webhookid', (req, res, next) => {
                                         if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
                                             return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_UPDATE);
                                         }
-                                        let _chatrooms = _appsChatroomsMessagers[appId].chatrooms;
-                                        let _messager = _chatrooms[chatroomId].messagers[messageId];
-                                        platformMessager = _messager;
+
+                                        platformMessager = _appsChatroomsMessagers[appId].chatrooms[chatroomId].messagers[messageId];
+                                        return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER);
+                                    }).then((_appsChatroomsMessagers) => {
+                                        let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                            return messagers[messagerId].platformUid;
+                                        });
 
                                         let socketBody = {
                                             appId: appId,
                                             chatroomId: chatroomId,
-                                            messager: _messager
+                                            messager: platformMessager
                                         };
-                                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => _messager);
+                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.CONSUMER_FOLLOW, socketBody).then(() => platformMessager);
                                     });
                                 }
                                 platformMessager = messager;
@@ -404,6 +424,7 @@ router.post('/:webhookid', (req, res, next) => {
                     // 將整個聊天室群組成員的聊天狀態更新
                     return Promise.all(Object.keys(members).map((memberId) => {
                         let recipientUserId = members[memberId].user_id;
+                        recipientUserIds.push(recipientUserId);
 
                         return appsChatroomsMessagersMdl.findByPlatformUid(appId, chatroomId, recipientUserId, true).then((appsChatroomsMessagers) => {
                             let chatrooms = appsChatroomsMessagers[appId].chatrooms;
@@ -473,7 +494,7 @@ router.post('/:webhookid', (req, res, next) => {
                             consumers: consumers,
                             messages: Object.values(_messages)
                         };
-                        return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
+                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, messagesToSend);
                     });
                 });
             }));

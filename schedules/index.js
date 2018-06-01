@@ -5,6 +5,7 @@ const socketHlp = require('../helpers/socket');
 const botSvc = require('../services/bot');
 const appsMdl = require('../models/apps');
 const appsComposesMdl = require('../models/apps_composes');
+const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 
 /** @type {any} */
@@ -109,8 +110,20 @@ let jobProcess = () => {
                                         recipientUid: recipientUids.shift(),
                                         messages: messages
                                     };
-                                    // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
-                                    return socketHlp.emitToAll(appId, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+
+                                    return appsChatroomsMessagersMdl.find(appId, chatroomId, void 0, CHATSHIER).then((_appsChatroomsMessagers) => {
+                                        if (!(_appsChatroomsMessagers && _appsChatroomsMessagers[appId])) {
+                                            return Promise.reject(API_ERROR.APP_CHATROOMS_MESSAGERS_FAILED_TO_FIND);
+                                        }
+
+                                        let chatroom = _appsChatroomsMessagers[appId].chatrooms[chatroomId];
+                                        let messagers = chatroom.messagers;
+                                        let recipientUserIds = Object.keys(messagers).map((messagerId) => {
+                                            return messagers[messagerId].platformUid;
+                                        });
+                                        // 所有訊息發送完畢後，再將所有訊息一次發送至 socket client 端
+                                        return socketHlp.emitToAll(recipientUserIds, SOCKET_EVENTS.EMIT_MESSAGE_TO_CLIENT, socketBody);
+                                    });
                                 });
                             }));
                         });
