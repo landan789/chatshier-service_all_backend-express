@@ -262,7 +262,7 @@ router.post('/:webhookid', (req, res, next) => {
                                                             return consumersMdl.replace(groupMemberId, putConsumer);
                                                         });
                                                     }
-                                                    return consumers;
+                                                    return consumersMdl.replace(platformUid, groupMemberProfile);
                                                 });
                                             }).then(() => {
                                                 let _messager = {
@@ -318,7 +318,7 @@ router.post('/:webhookid', (req, res, next) => {
                                     return consumersMdl.replace(platformUid, putConsumer);
                                 });
                             }
-                            return consumers;
+                            return consumersMdl.replace(platformUid, profile);
                         });
                     });
                 }).then((_consumers) => {
