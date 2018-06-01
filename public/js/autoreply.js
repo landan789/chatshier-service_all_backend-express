@@ -6,6 +6,11 @@
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var api = window.restfulAPI;
     var nowSelectAppId = '';
 
@@ -488,11 +493,17 @@
         nowSelectAppId = '';
         for (var appId in apps) {
             var app = apps[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
+            if (app.isDeleted ||
+                app.type === api.apps.enums.type.CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
-            $dropdownMenu.append('<a class="dropdown-item" id="' + appId + '">' + app.name + '</a>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             $appSelector.append('<option value="' + appId + '">' + app.name + '</option>');
 
@@ -507,8 +518,9 @@
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
         loadAutoreplies(nowSelectAppId, userId);
     }
 

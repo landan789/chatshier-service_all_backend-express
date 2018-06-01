@@ -1309,7 +1309,7 @@
         // }
     }
 
-    function messageToPanelHtml(message) {
+    function messageToPanelHtml(message, appType) {
         switch (message.type) {
             case 'image':
                 return (
@@ -1339,6 +1339,12 @@
                     '<span class="text-content">地理位置: <a href="' + message.src + '" target="_blank">地圖</a></span>'
                 );
             case 'template':
+                // 目前錢掌櫃的模板訊息尚未支援 FACEBOOK
+                // 因此不顯示模板訊息
+                if (FACEBOOK === appType) {
+                    return '';
+                }
+
                 if (!message.template) {
                     let messageText = linkify(filterWechatEmoji(message.text || ''));
                     return '<span class="text-content">' + messageText + '</span>';
@@ -1357,9 +1363,11 @@
                         `<div class="imagemap-message-content">${'輸出內容：' + (message.imagemap ? photoFormShow(message) : '')}</div>` +
                     '</div>'
                 );
-            default:
+            case 'text':
                 var messageText = linkify(filterWechatEmoji(message.text || ''));
                 return '<span class="text-content">' + messageText + '</span>';
+            default:
+                return '';
         }
     }
 
@@ -1570,7 +1578,10 @@
 
         for (var i in messageIds) {
             var message = messages[messageIds[i]];
-            var srcHtml = messageToPanelHtml(message);
+            var srcHtml = messageToPanelHtml(message, appType);
+            if (!srcHtml) {
+                continue;
+            }
             var messageDate = new Date(message.time);
 
             // this loop plus date info into history message, like "----Thu Aug 01 2017----"
@@ -2510,7 +2521,11 @@
         /** @type {ChatshierMessage} */
         var _message = message;
         var appType = apps[appId].type;
-        var srcHtml = messageToPanelHtml(_message);
+        var srcHtml = messageToPanelHtml(_message, appType);
+        if (!srcHtml) {
+            return;
+        }
+
         var messagerSelf = findMessagerSelf(appId, chatroomId);
 
         var chatSelectQuery = '.chat-content[app-id="' + appId + '"][chatroom-id="' + chatroomId + '"]';

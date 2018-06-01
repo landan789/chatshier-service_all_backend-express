@@ -631,17 +631,22 @@ module.exports = (function() {
                         });
                     case FACEBOOK:
                         return Promise.all(messages.map((message) => {
-                            if ('text' === message.type) {
+                            if ('text' === message.type && message.text) {
                                 return bot.sendTextMessage(platformUid, message.text);
                             }
-                            if ('image' === message.type) {
-                                return bot.sendImageMessage(platformUid, message.src, true);
+
+                            if (message.src) {
+                                if ('image' === message.type) {
+                                    return bot.sendImageMessage(platformUid, message.src, true);
+                                } else if ('audio' === message.type) {
+                                    return bot.sendAudioMessage(platformUid, message.src, true);
+                                } else if ('video' === message.type) {
+                                    return bot.sendVideoMessage(platformUid, message.src, true);
+                                }
                             }
-                            if ('audio' === message.type) {
-                                return bot.sendAudioMessage(platformUid, message.src, true);
-                            }
-                            if ('video' === message.type) {
-                                return bot.sendVideoMessage(platformUid, message.src, true);
+
+                            if (!message.text) {
+                                return Promise.resolve();
                             }
                             return bot.sendTextMessage(platformUid, message.text);
                         })).then(() => {
@@ -656,6 +661,9 @@ module.exports = (function() {
                     default:
                         break;
                 }
+            }).catch((err) => {
+                // 把錯誤訊息打出，但不要中斷整個 webhook 處理
+                console.error(err);
             });
         }
 
