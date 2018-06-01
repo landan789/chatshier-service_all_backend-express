@@ -12,10 +12,10 @@ module.exports = (function() {
 
     const db = mongoose.connection;
     db.on('error', () => {
-        console.log('[FAILED] the db client of service.chatshier is not connecting to MongoDB !!');
+        console.log('[FAILED] the db client of api-chatshier is not connecting to MongoDB !!');
     });
     db.once('open', () => {
-        console.log('[SUCCEEDED] the db client of service.chatshier is connecting to MongoDB !!');
+        console.log('[SUCCEEDED] the db client of api-chatshier is connecting to MongoDB !!');
     });
     // endregion
 
