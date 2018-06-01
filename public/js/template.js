@@ -3,6 +3,11 @@
     var api = window.restfulAPI;
     var $jqDoc = $(document);
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     var $appDropdown = $('.app-dropdown');
     var $appSelector = $('#app-select');
     var nowSelectAppId = '';
@@ -39,34 +44,43 @@
     });
 
     return api.apps.findAll(userId).then(function(respJson) {
-        var appsData = respJson.data;
+        var apps = respJson.data;
         var $dropdownMenu = $appDropdown.find('.dropdown-menu');
         $jqDoc.find('button.inner-add').attr('disabled', true);
 
-        for (var appId in appsData) {
-            var app = appsData[appId];
-            if (app.isDeleted || app.type === api.apps.enums.type.CHATSHIER) {
-                delete appsData[appId];
+        for (var appId in apps) {
+            var app = apps[appId];
+
+            // 目前只有 LINE 支援此功能
+            if (app.isDeleted ||
+                app.type !== api.apps.enums.type.LINE) {
+                delete apps[appId];
                 continue;
             }
 
-            $dropdownMenu.append('<li><a class="dropdown-item" id="' + appId + '">' + appsData[appId].name + '</a></li>');
-            $appSelector.append('<option id="' + appId + '">' + appsData[appId].name + '</option>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
+            $appSelector.append('<option id="' + appId + '">' + app.name + '</option>');
             $appDropdown.find('#' + appId).on('click', appSourceChanged);
             nowSelectAppId = nowSelectAppId || appId;
         }
 
         if (nowSelectAppId) {
             loadTemplates(nowSelectAppId, userId);
-            $appDropdown.find('.dropdown-text').text(appsData[nowSelectAppId].name);
+            $appDropdown.find('.dropdown-text').text(apps[nowSelectAppId].name);
             $jqDoc.find('button.inner-add').removeAttr('disabled'); // 資料載入完成，才開放USER按按鈕
         }
     });
 
     function appSourceChanged(ev) {
-        nowSelectAppId = ev.target.id;
-        $appDropdown.find('.dropdown-text').text(ev.target.text);
-        loadTemplates(nowSelectAppId, userId);
+        let $dropdownItem = $(this);
+        nowSelectAppId = $dropdownItem.attr('id');
+        $appDropdown.find('.dropdown-text').text($dropdownItem.text());
+        return loadTemplates(nowSelectAppId, userId);
     }
 
     function loadTemplates(appId, userId) {

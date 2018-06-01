@@ -6,6 +6,11 @@
     let SOCKET_SERVER_URL = window.urlConfig.apiUrl.replace('..', window.location.origin) + SOCKET_NAMESPACE;
     let socket = io(SOCKET_SERVER_URL);
 
+    const ICONS = {
+        LINE: 'fab fa-line fa-fw line-color',
+        FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
+    };
+
     let apps = {};
     let appsChatrooms = {};
     let appsFields = {};
@@ -93,12 +98,18 @@
         let $dropdownMenu = $appSelector.find('.dropdown-menu');
         for (let appId in apps) {
             let app = apps[appId];
-            if (app.isDeleted || app.type === CHATSHIER) {
+            if (app.isDeleted ||
+                app.type === CHATSHIER) {
                 delete apps[appId];
                 continue;
             }
 
-            $dropdownMenu.append('<a class="dropdown-item" app-id="' + appId + '">' + app.name + '</a>');
+            $dropdownMenu.append(
+                '<a class="px-3 dropdown-item" app-id="' + appId + '">' +
+                    '<i class="' + ICONS[app.type] + '"></i>' +
+                    app.name +
+                '</a>'
+            );
             nowSelectAppId = nowSelectAppId || appId;
         }
 
@@ -612,10 +623,6 @@
 
     // #region Add modal 的處理全部寫在此閉包中
     (function() {
-        const ICONS = {
-            LINE: 'fab fa-line fa-fw line-color',
-            FACEBOOK: 'fab fa-facebook-messenger fa-fw fb-messsenger-color'
-        };
         let conditionTypes = {};
 
         let allFields = {};
