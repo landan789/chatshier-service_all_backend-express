@@ -387,10 +387,14 @@ router.post('/:webhookid', (req, res, next) => {
                     }
 
                     let eventType = webhookInfo.eventType;
-                    if (botSvc.LINE_EVENT_TYPES.MESSAGE === eventType) {
-                        totalMessages = receivedMessages.concat(repliedMessages);
+                    if (LINE === app.type) {
+                        if (botSvc.LINE_EVENT_TYPES.MESSAGE === eventType) {
+                            totalMessages = receivedMessages.concat(repliedMessages);
+                        } else {
+                            totalMessages = repliedMessages;
+                        }
                     } else {
-                        totalMessages = repliedMessages;
+                        totalMessages = receivedMessages.concat(repliedMessages);
                     }
 
                     if (0 === totalMessages.length) {

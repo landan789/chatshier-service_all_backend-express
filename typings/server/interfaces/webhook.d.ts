@@ -186,13 +186,13 @@ namespace Webhook {
         interface Entry {
             id: string,
             time: number,
-            messaging: MessagingObject[],
+            messaging: Messaging[],
         }
         
         /**
          * https://developers.facebook.com/docs/messenger-platform/reference/webhook-events#messaging
          */
-        interface MessagingObject {
+        interface Messaging {
             sender: {
                 id: string
             },
