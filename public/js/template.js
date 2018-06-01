@@ -311,7 +311,12 @@
         let typeSelect = '[rel~="' + type + '"]';
         $(viewClass + ':not(' + typeSelect + ')').addClass('d-none');
         $(viewClass + typeSelect).removeClass('d-none');
-        if ('carousel' === type) checkCarouselSide();
+        if ('carousel' === type) {
+            $('.carousel-control.text-info').removeClass('d-none');
+            checkCarouselSide();
+        } else {
+            $('.carousel-control.text-info').addClass('d-none');
+        }
     }
 
     function clickImageUpload() {
