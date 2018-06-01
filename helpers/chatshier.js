@@ -20,8 +20,9 @@ module.exports = (function() {
             let eventType = webhookInfo.eventType;
 
             let grettingsPromise = Promise.resolve().then(() => {
-                if (botSvc.LINE_EVENT_TYPES.FOLLOW === eventType ||
-                    botSvc.LINE_EVENT_TYPES.JOIN === eventType) {
+                if (LINE === app.type &&
+                    (botSvc.LINE_EVENT_TYPES.FOLLOW === eventType ||
+                    botSvc.LINE_EVENT_TYPES.JOIN === eventType)) {
                     return appsGreetingsMdl.findGreetings(appId);
                 }
                 return Promise.resolve({});
@@ -29,7 +30,8 @@ module.exports = (function() {
 
             let keywordreplies = {};
             let keywordrepliesPromise = Promise.all(messages.map((message) => {
-                if (botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
                     return Promise.resolve();
                 }
 
@@ -48,7 +50,8 @@ module.exports = (function() {
             });
 
             let autorepliesPromise = Promise.resolve().then(() => {
-                if (botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
                     return Promise.resolve({});
                 }
 
@@ -103,7 +106,8 @@ module.exports = (function() {
 
             let templates = {};
             let templatesPromise = Promise.all(messages.map((message) => {
-                if (botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
+                if (LINE === app.type &&
+                    botSvc.LINE_EVENT_TYPES.MESSAGE !== eventType) {
                     return Promise.resolve();
                 }
 

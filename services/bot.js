@@ -349,19 +349,10 @@ module.exports = (function() {
                                             src = attachment.fallback.url;
                                         }
 
-                                        if ('image' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('video' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('audio' === attachment.type) {
-                                            src = attachment.payload.url;
-                                        }
-
-                                        if ('file' === attachment.type) {
+                                        if ('image' === attachment.type ||
+                                            'video' === attachment.type ||
+                                            'audio' === attachment.type ||
+                                            'file' === attachment.type) {
                                             src = attachment.payload.url;
                                         }
 
