@@ -248,7 +248,7 @@ router.post('/:webhookid', (req, res, next) => {
                                                         groupMemberProfile.photo.startsWith('http://') &&
                                                         (!consumer || !(consumer && groupMemberProfile.photo !== consumer.photoOriginal))
                                                     );
-                        
+
                                                     if (shouldUpload) {
                                                         let fileName = `${groupMemberId}_${Date.now()}.jpg`;
                                                         let filePath = `${storageHlp.tempPath}/${fileName}`;
