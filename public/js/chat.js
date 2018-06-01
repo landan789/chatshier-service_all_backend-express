@@ -2262,7 +2262,7 @@
             );
             $imagemapArea.toggleClass('d-none').siblings().toggleClass('d-none');
         }).catch(() => {
-            $.notify('載入imagemap失敗', { type: 'danger' });
+            $.notify('載入圖文訊息失敗', { type: 'danger' });
         });
     }
 
