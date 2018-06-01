@@ -267,6 +267,11 @@ module.exports = (function() {
         'photo': {type: String, default: ''}
     });
 
+    const WebhooksSchema = new mongoose.Schema({
+        'url': {type: String, default: ''},
+        'body': {type: Object, default: {}}
+    });
+
     // endregion
 
     class ModelCore {
@@ -279,6 +284,7 @@ module.exports = (function() {
             this.ConsumersSchema = ConsumersSchema;
             this.GroupsSchema = GroupsSchema;
             this.UsersSchema = UsersSchema;
+            this.WebhooksSchema = WebhooksSchema;
         }
 
         model(collection, schema) {

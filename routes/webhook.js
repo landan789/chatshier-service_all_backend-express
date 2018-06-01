@@ -18,6 +18,8 @@ const appsChatroomsMessagersMdl = require('../models/apps_chatrooms_messagers');
 const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 const consumersMdl = require('../models/consumers');
+const groupsMembersMdl = require('../models/groups_members');
+const webhooksMdl = require('../models/webhooks');
 
 const router = express.Router();
 
@@ -59,6 +61,7 @@ router.post('/:webhookid', (req, res, next) => {
     let webhookid = req.params.webhookid;
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
+        let apps;
         return Promise.resolve().then(() => {
             // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
@@ -103,20 +106,28 @@ router.post('/:webhookid', (req, res, next) => {
                 // });
             }
 
-            return appsMdl.find(null, webhookid).then((apps) => {
-                if (!apps || (apps && 0 === Object.keys(apps).length)) {
-                    // 找不到 app 時需回應 200
-                    // 防止 facebook 收到非 200 回應時，會重新嘗試再傳送
-                    !res.headersSent && res.status(200).send('');
-                    return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
-                }
+            return appsMdl.find(null, webhookid);
+        }).then((_apps) => {
+            apps = _apps;
+            if (!apps || (apps && 0 === Object.keys(apps).length)) {
+                // 找不到 app 時需回應 200
+                // 防止 facebook 收到非 200 回應時，會重新嘗試再傳送
+                !res.headersSent && res.status(200).send('');
+                return Promise.reject(API_ERROR.APP_DID_NOT_EXIST);
+            }
 
-                // webhook 傳過來如果具有 webhookid 只會有一個 app 被找出來
-                let appId = Object.keys(apps).shift() || '';
-                let app = apps[appId];
-                return botSvc.parser(req, res, appId, app).then(() => apps);
-            });
-        }).then((apps) => {
+            // webhook 傳過來如果具有 webhookid 只會有一個 app 被找出來
+            let appId = Object.keys(apps).shift() || '';
+            let app = apps[appId];
+            return botSvc.parser(req, res, appId, app);
+        }).then(() => {
+            let webhook = {
+                url: req.hostname + req.originalUrl,
+                body: req.body
+
+            }
+            return webhooksMdl.insert(webhook);
+        }).then(() => {
             return Promise.all(Object.keys(apps).map((appId) => {
                 let app = apps[appId];
 
