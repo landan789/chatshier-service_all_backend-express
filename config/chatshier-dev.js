@@ -1,6 +1,9 @@
 const EXPIRES = (60 * 60 * 1000); // 1 hour -> 60 minutes * 60 seconds * 1000 milliseconds
 
 module.exports = {
+    API: {
+        PORT: 3002
+    },
     REDIS: {
         HOST: '127.0.0.1', // redis
         PORT: 6379,
@@ -15,6 +18,13 @@ module.exports = {
         DATABASE: 'chatshier',
         USERNAME: 'chsr',
         PASSWORD: '0be44b96e3decd6a6b30cdb30c126089'
+    },
+    ELASTICSEARCH: {
+        HOST: '127.0.0.1',
+        PORT: 9200,
+        USERNAME: 'chsr',
+        PASSWORD: '0be44b96e3decd6a6b30cdb30c126089',
+        INDEX: 'log', // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGOD
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'

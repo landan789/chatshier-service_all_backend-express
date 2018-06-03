@@ -19,7 +19,8 @@ const appsChatroomsMessagesMdl = require('../models/apps_chatrooms_messages');
 const appsKeywordrepliesMdl = require('../models/apps_keywordreplies');
 const consumersMdl = require('../models/consumers');
 const groupsMembersMdl = require('../models/groups_members');
-const webhooksMdl = require('../models/webhooks');
+
+const webhooksLog = require('../logs/webhooks');
 
 const router = express.Router();
 
@@ -62,6 +63,7 @@ router.post('/:webhookid', (req, res, next) => {
 
     let webhookPromise = Promise.all(webhookProcQueue).then(() => {
         let apps;
+        let logWebhookId;
         return Promise.resolve().then(() => {
             // 由於 Facebook 使用單一 app 來訂閱所有的粉絲專頁
             // 因此所有的 webhook 入口都會一致是 /webhook/facebook
@@ -123,11 +125,12 @@ router.post('/:webhookid', (req, res, next) => {
         }).then(() => {
             let webhook = {
                 url: req.hostname + req.originalUrl,
-                body: req.body
-
+                body: req.body,
+                status: false
             }
-            return webhooksMdl.insert(webhook);
-        }).then(() => {
+            return webhooksLog.insert(webhook);
+        }).then((webhook) => {
+            logWebhookId = webhook._id;
             return Promise.all(Object.keys(apps).map((appId) => {
                 let app = apps[appId];
 
