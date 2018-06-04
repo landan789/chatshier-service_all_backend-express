@@ -20,6 +20,7 @@
     var $modal = $('#richmenu-modal');
 
     const NO_PERMISSION_CODE = '3.16';
+    const BOT_UPLOAD_IMAGE_TOO_LARGE = '19.2';
 
     var userId;
     try {
@@ -677,7 +678,6 @@
     }
 
     function insertRichmenu() {
-        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         let appId = $appSelector.find('option:selected').val();
         let selected = 'true' === $('.richmenu-select').val();
         let chatBarText = $('input[name="chatbarText"]').val();
@@ -700,6 +700,7 @@
             areas: areas
         };
 
+        $(this).attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
         return api.appsRichmenus.insert(appId, userId, postRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             if (!appsRichmenus[appId]) {
@@ -711,9 +712,12 @@
             $('#richmenu-modal').modal('hide');
             $.notify('新增成功', { type: 'success' });
             return loadRichmenus(appId, userId, true);
-        }).catch(() => {
+        }).catch((err) => {
             $('#modal-save').removeAttr('disabled').empty().text('新增');
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
+            if (BOT_UPLOAD_IMAGE_TOO_LARGE === err.code) {
+                return $.notify('上傳的圖像大小過大 (限制 1 MB)', { type: 'danger' });
+            }
             $.notify('新增失敗', { type: 'danger' });
         });
     }
@@ -735,7 +739,6 @@
         };
 
         $('#modal-update-save').attr('disabled', 'disabled').empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
-
         return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu, imageFile).then((resJson) => {
             let _appsRichmenus = resJson.data;
             let richmenus = _appsRichmenus[appId].richmenus;
@@ -746,8 +749,11 @@
         }).then(() => {
             $('#modal-update-save').removeAttr('disabled');
             return $.notify('修改成功', { type: 'success' });
-        }).catch(() => {
+        }).catch((err) => {
             $('#modal-update-save').removeAttr('disabled').empty().text('修改');
+            if (BOT_UPLOAD_IMAGE_TOO_LARGE === err.code) {
+                return $.notify('上傳的圖像大小過大 (限制 1 MB)', { type: 'danger' });
+            }
             $.notify('修改失敗', { type: 'danger' });
         });
     }
@@ -755,23 +761,19 @@
     function removeRichmenu() {
         let appId = $(this).parent().parent().attr('rel');
         let richmenuId = $(this).parent().parent().attr('id');
-        // let status = JSON.parse($(this).parent().siblings().children().attr('data-status')); // 將string轉成boolean
-        // TODO
-        return Promise.resolve().then(() => {
-            return showDialog('確定要刪除嗎？');
-        }).then(function(isOK) {
+
+        return showDialog('確定要刪除嗎？').then(function(isOK) {
             if (!isOK) {
                 let cancelDelete = '取消刪除';
                 return Promise.reject(cancelDelete);
             }
-            return Promise.resolve();
-        }).then(() => {
             return api.appsRichmenus.remove(appId, richmenuId, userId);
         }).then((resJson) => {
             delete appsRichmenus[appId].richmenus[richmenuId];
             $('#' + richmenuId).remove();
             $.notify('刪除成功！', { type: 'success' });
         }).catch((ERR) => {
+            $('#modal-update-save').removeAttr('disabled').empty().text('修改');
             if (NO_PERMISSION_CODE === ERR.code) {
                 return $.notify('無此權限', { type: 'danger' });
             }

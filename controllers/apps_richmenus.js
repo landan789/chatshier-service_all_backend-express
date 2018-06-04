@@ -139,6 +139,11 @@ module.exports = (function() {
                 });
             }).then((_fileBinary) => {
                 fileBinary = _fileBinary;
+                let fileSize = fileBinary.length / (1024 * 1024);
+                // 限定 richmenu 的圖檔大小在 1 MB 以下
+                if (fileSize > 1) {
+                    return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
+                }
                 return storageHlp.filesUpload(tempFilePath, fileBinary);
             }).then(() => {
                 return storageHlp.sharingCreateSharedLink(tempFilePath);
@@ -223,32 +228,9 @@ module.exports = (function() {
                 putRichmenu.src = richmenu.src;
                 putRichmenu.platformMenuId = richmenu.platformMenuId;
 
-                if (putRichmenu.platformMenuId) {
-                    // 由於 LINE 的限制，無法更新現有的 richmenu
-                    // 因此統一將舊的 richmenu 刪除，在建立新的 richmenu
-                    return botSvc.deleteRichMenu(putRichmenu.platformMenuId, appId).catch((err) => {
-                        if (err && 404 === err.statusCode) {
-                            return Promise.resolve();
-                        }
-                        return Promise.reject(err);
-                    }).then(() => {
-                        return botSvc.createRichMenu(putRichmenu, appId);
-                    }).then((_platformMenuId) => {
-                        putRichmenu.platformMenuId = _platformMenuId;
-                        return putRichmenu;
-                    });
-                }
-                return putRichmenu;
-            }).then(() => {
                 // 如果沒有上傳新的圖像，將之前放在 storge 的圖像重新上傳
                 // 如果有則直接使用圖檔上傳
                 if (richmentImgFile && richmentImgFileName) {
-                    let fileNameSplits = richmentImgFileName.split('.');
-                    let fileNameNoExt = fileNameSplits.shift();
-                    let fileExt = fileNameSplits.pop();
-                    richmentImgFileName = `${fileNameNoExt}_${Date.now()}.${fileExt}`;
-                    let uploadFilePath = `${storageHlp.tempPath}/${richmentImgFileName}`;
-
                     // 將上傳的圖像檔案 stream 讀取成 buffer 後釋放 stream 資源
                     // 將此 binary 設定到 LINE richmenu
                     return new Promise((resolve, reject) => {
@@ -266,6 +248,18 @@ module.exports = (function() {
                         });
                         richmentImgFile.pipe(passThrough, { end: true });
                     }).then((fileBinary) => {
+                        let fileSize = fileBinary.length / (1024 * 1024);
+                        // 限定 richmenu 的圖檔大小在 1 MB 以下
+                        if (fileSize > 1) {
+                            return Promise.reject(API_ERROR.BOT_UPLOAD_IMAGE_TOO_LARGE);
+                        }
+
+                        let fileNameSplits = richmentImgFileName.split('.');
+                        let fileNameNoExt = fileNameSplits.shift();
+                        let fileExt = fileNameSplits.pop();
+                        richmentImgFileName = `${fileNameNoExt}_${Date.now()}.${fileExt}`;
+                        let uploadFilePath = `/apps/${appId}/richmenus/${richmenuId}/src/${richmentImgFileName}`;
+
                         return storageHlp.filesUpload(uploadFilePath, fileBinary).then(() => {
                             return storageHlp.sharingCreateSharedLink(uploadFilePath);
                         }).then((url) => {
@@ -282,6 +276,23 @@ module.exports = (function() {
                     let dropboxFile = res;
                     return dropboxFile.fileBinary;
                 });
+            }).then((fileBinary) => {
+                if (putRichmenu.platformMenuId) {
+                    // 由於 LINE 的限制，無法更新現有的 richmenu
+                    // 因此統一將舊的 richmenu 刪除，在建立新的 richmenu
+                    return botSvc.deleteRichMenu(putRichmenu.platformMenuId, appId).catch((err) => {
+                        if (err && 404 === err.statusCode) {
+                            return Promise.resolve();
+                        }
+                        return Promise.reject(err);
+                    }).then(() => {
+                        return botSvc.createRichMenu(putRichmenu, appId);
+                    }).then((_platformMenuId) => {
+                        putRichmenu.platformMenuId = _platformMenuId;
+                        return fileBinary;
+                    });
+                }
+                return fileBinary;
             }).then((fileBinary) => {
                 return botSvc.setRichMenuImage(putRichmenu.platformMenuId, fileBinary, richmentImgMimeType, appId);
             }).then(() => {
