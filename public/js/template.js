@@ -20,6 +20,12 @@
     var carouselImage = [];
     const NO_PERMISSION_CODE = '3.16';
 
+    const handleMessages = {
+        working: '<i class="fas fa-circle-notch fa-spin"></i>處理中',
+        addFinished: '新增',
+        editFinished: '修改'
+    };
+
     var userId;
     try {
         var payload = window.jwt_decode(window.localStorage.getItem('jwt'));
@@ -29,7 +35,7 @@
     }
 
     $(document).on('change', '#template-type', switchTemplateType);
-    $('.template-view').addClass('d-none');
+    elementHide($('.template-view'));
     $('#carousel-container').on('slide.bs.carousel', checkCarouselSide);
     $(document).on('click', '.image-upload', clickImageUpload);
     $(document).on('click', '#image-upload', uploadImageFromButton);
@@ -141,22 +147,22 @@
         };
 
         let modal = $('#template-modal');
-        $('.template-upload-desc').removeClass('d-none');
+        elementShow($('.template-upload-desc'));
         $('#template-type').val('').trigger('change');
         modal.find('input').val('');
         modal.find('textarea').val('');
         modal.find('.line-thumbnailImageUrl').val('');
         modal.find('.image-upload').attr('src', 'image/upload.png');
         modal.find('.carousel-inner').find('.carousel-item:first').addClass('active').siblings('.carousel-item').removeClass('active');
-        modal.find('.app-select-bar').removeClass('d-none');
-        modal.find('#edit-modal-save').addClass('d-none');
-        modal.find('#modal-save').removeClass('d-none');
+        elementShow(modal.find('.app-select-bar'));
+        elementHide(modal.find('#edit-modal-save'));
+        elementShow(modal.find('#modal-save'));
         checkCarouselSide();
     }
 
     function editTemplate() {
         clearModal();
-        $('#show-template-modal').removeClass('d-none');
+        elementShow($('#show-template-modal'));
         $('.carousel-inner').carousel(0);
         $('.carousel-inner').carousel('pause');
         imageFile = {
@@ -167,9 +173,9 @@
         carouselImage = [];
         btnImage = '';
         let modal = $('#template-modal');
-        modal.find('.app-select-bar').addClass('d-none');
-        modal.find('#modal-save').addClass('d-none');
-        modal.find('#edit-modal-save').removeClass('d-none');
+        elementHide(modal.find('.app-select-bar'));
+        elementHide(modal.find('#modal-save'));
+        elementShow(modal.find('#edit-modal-save'));
         let appId = $(this).parent().parent().attr('rel');
         let templateId = $(this).parent().parent().attr('id');
 
@@ -203,7 +209,7 @@
     }
 
     function showCarousel(template) {
-        $('.template-upload-desc').addClass('d-none');
+        elementHide($('.template-upload-desc'));
         let items = $('#carousel-container .carousel-item .rounded-border');
         for (let i = 0; i < template.columns.length; i++) {
             showColumn(items.eq(i), template.columns[i]);
@@ -212,7 +218,7 @@
     }
 
     function showButtons(template) {
-        $('.template-upload-desc').addClass('d-none');
+        elementHide($('.template-upload-desc'));
         let container = $('#carousel-container .carousel-item.active .rounded-border');
         btnImage = template.thumbnailImageUrl;
         container.find('.line-thumbnailImageUrl').val(template.thumbnailImageUrl);
@@ -245,7 +251,7 @@
     }
 
     function updateTemplate() {
-        $('#edit-modal-save').attr('disabled', true).empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+        elementDisabled($('#edit-modal-save'), handleMessages.working);
         let appId = $('#app-select option:selected').attr('id');
         let altText = $('#template-altText').val();
         let keyword = $('#template-keyword').val();
@@ -253,7 +259,7 @@
         let templateId = $('#template-id').text();
 
         if (!altText) {
-            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+            elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -298,19 +304,19 @@
                 return api.appsTemplates.update(appId, templateId, userId, putTemplate);
             }).then(() => {
                 $('#template-modal').modal('hide');
+                $appDropdown.find('#' + appId).click();
                 $.notify('修改成功！', { type: 'success' });
-                $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
-                return loadTemplates(appId, userId);
+                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
             }).catch((resJson) => {
                 if (undefined === resJson.status) {
                     $('#template-modal').modal('hide');
-                    $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+                    elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
                     return $.notify('失敗', { type: 'danger' });
                 }
 
                 if (NO_PERMISSION_CODE === resJson.code) {
                     $('#template-modal').modal('hide');
-                    $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+                    elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
                     return $.notify('無此權限', { type: 'danger' });
                 }
             });
@@ -323,13 +329,13 @@
         let type = $(this).val();
         let viewClass = '.template-view';
         let typeSelect = '[rel~="' + type + '"]';
-        $(viewClass + ':not(' + typeSelect + ')').addClass('d-none');
-        $(viewClass + typeSelect).removeClass('d-none');
+        elementHide($(viewClass + ':not(' + typeSelect + ')'));
+        elementShow($(viewClass + typeSelect));
         if ('carousel' === type) {
-            $('.carousel-control.text-info').removeClass('d-none');
+            elementShow($('.carousel-control.text-info'));
             checkCarouselSide();
         } else {
-            $('.carousel-control.text-info').addClass('d-none');
+            elementHide($('.carousel-control.text-info'));
         }
     }
 
@@ -354,8 +360,8 @@
 
             var config = window.chatshier.config;
             if (file.type.indexOf('image') >= 0 && file.size > config.imageFileMaxSize) {
-                $('#modal-save').removeAttr('disabled');
-                $('#edit-modal-save').removeAttr('disabled');
+                elementEnabled($('#modal-save'), handleMessages.addFinished);
+                elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
                 $.notify('圖像檔案過大，檔案大小限制為: ' + Math.floor(config.imageFileMaxSize / (1024 * 1000)) + ' MB');
                 return;
             }
@@ -369,7 +375,7 @@
             }).then(function(imgBase64) {
                 previewImage = imgBase64;
                 $(input).siblings('img').attr('src', imgBase64);
-                $('.template-upload-desc').addClass('d-none');
+                elementHide($('.template-upload-desc'));
             }).catch((ERR) => {
                 return $.notify('載入失敗', { type: 'danger' });
             });
@@ -379,31 +385,30 @@
     function checkCarouselSide() {
         let container = $('#carousel-container');
         if ($('.carousel-inner .carousel-item:first').hasClass('.active')) {
-            container.find('.carousel-item-left.carousel-control').addClass('d-none');
-            container.find('.carousel-item-right.carousel-control').removeClass('d-none');
+            elementHide(container.find('.carousel-item-left.carousel-control'));
+            elementShow(container.find('.carousel-item-right.carousel-control'));
         } else if ($('.carousel-inner .carousel-item:last').hasClass('active')) {
-            container.find('.carousel-item-right.carousel-control').addClass('d-none');
-            container.find('.carousel-item-left.carousel-control').removeClass('d-none');
+            elementHide(container.find('.carousel-item-right.carousel-control'));
+            elementShow(container.find('.carousel-item-left.carousel-control'));
         } else {
-            container.find('.carousel-control').removeClass('d-none');
+            elementShow(container.find('.carousel-control'));
         }
     }
 
     function insertTemplate() {
-        $('#modal-save').attr('disabled', true).empty().append('<i class="fas fa-sync fa-spin"></i>處理中');
+        elementDisabled($('#modal-save'), handleMessages.working);
         appId = $('#app-select option:selected').attr('id');
         keyword = $('#template-keyword').val();
         let type = $('#template-type').val();
 
         if (!keyword || !type) {
-            $('#modal-save').removeAttr('disabled').empty().append('新增');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
             return $.notify('發送群組、觸發關鍵字及類型不可為空', { type: 'warning' });
         } else {
             let template = createTemplate(type);
             if (!template) {
-                $('#modal-save').removeAttr('disabled').empty().append('新增');
-                $.notify('模板資料輸入有誤，請完成正確的模板設定', { type: 'warning' });
-                return;
+                elementEnabled($('#modal-save'), handleMessages.addFinished);
+                return $.notify('模板資料輸入有誤，請完成正確的模板設定', { type: 'warning' });
             }
 
             return Promise.all(Object.keys(imageFile).map((imageFileNum) => {
@@ -431,11 +436,12 @@
                 return api.appsTemplates.insert(appId, userId, template);
             }).then(() => {
                 $('#template-modal').modal('hide');
-                $('#modal-save').removeAttr('disabled').empty().append('新增');
+                $appDropdown.find('#' + appId).click();
+                elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增成功！', { type: 'success' });
-                return loadTemplates(appId, userId);
             }).catch((ERR) => {
-                $('#modal-save').removeAttr('disabled').empty().append('新增');
+                debugger;
+                elementEnabled($('#modal-save'), handleMessages.addFinished);
                 $.notify('新增失敗', { type: 'danger' });
             });
         }
@@ -444,8 +450,8 @@
     function createTemplate(type) {
         let altText = $('#template-altText').val();
         if (!altText) {
-            $('#modal-save').removeAttr('disabled').empty().append('新增');
-            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
+            elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
             $.notify('電腦版替代文字不可為空', { type: 'warning' });
             return null;
         } else {
@@ -476,8 +482,8 @@
         let container = $('.template-view[rel="confirm"] .rounded-border');
         let text = container.find('.line-text').val();
         if (!text) {
-            $('#modal-save').removeAttr('disabled').empty().append('新增');
-            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
+            elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         }
@@ -499,8 +505,8 @@
         let actions = getAction(container);
 
         if (!text) {
-            $('#modal-save').removeAttr('disabled').empty().append('新增');
-            $('#edit-modal-save').removeAttr('disabled').empty().append('修改');
+            elementEnabled($('#modal-save'), handleMessages.addFinished);
+            elementEnabled($('#edit-modal-save'), handleMessages.editFinished);
             $.notify('說明文字不可為空', { type: 'warning' });
             return null;
         }
@@ -627,4 +633,18 @@
             });
         });
     }
+
+    function elementDisabled(element, message) {
+        element.attr('disabled', true).empty().append(message);
+    }
+    function elementEnabled(element, message) {
+        element.removeAttr('disabled').empty().text(message);
+    }
+    function elementShow(element) {
+        element.removeClass('d-none');
+    }
+    function elementHide(element) {
+        element.addClass('d-none');
+    }
+
 })();
