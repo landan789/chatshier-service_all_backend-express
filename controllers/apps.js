@@ -58,7 +58,7 @@ module.exports = (function() {
                     if (!apps) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 let suc = {
@@ -116,7 +116,7 @@ module.exports = (function() {
                     if (!apps || (apps && 0 === Object.keys(apps).length)) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 let suc = {
@@ -352,7 +352,7 @@ module.exports = (function() {
                     if (!apps || (apps && 0 === Object.keys(apps).length)) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 let app = Object.values(apps)[0];
@@ -438,7 +438,7 @@ module.exports = (function() {
                     if (!apps || (apps && 0 === Object.keys(apps).length)) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps;
+                    return Promise.resolve(apps);
                 });
             }).then((apps) => {
                 let app = apps[appId];

@@ -5,6 +5,7 @@
     "scripts": {
         "start": "node ./bin/www",
         "eslint": "node_modules/.bin/eslint --config ./.eslintrc bin controllers cores helpers models routes schedules services sockets public/config public/js",
+        "tslint": "node_modules/.bin/tslint -p ./tsconfig.json --type-check --exclude **/*.d.ts",
         "test": "mocha 'test/**/*.spec.js' --exit"
     },
     "engines": {
@@ -70,6 +71,8 @@
         "eslint-plugin-node": "6.0.1",
         "eslint-plugin-promise": "3.7.0",
         "eslint-plugin-standard": "3.0.1",
-        "mocha": "5.0.5"
+        "mocha": "5.0.5",
+        "tslint": "5.10.0",
+        "typescript": "2.9.1"
     }
 }

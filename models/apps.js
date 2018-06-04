@@ -32,13 +32,20 @@ module.exports = (function() {
             };
         }
 
+        /**
+         * @param {string|string[]} [appIds]
+         * @param {string} [webhookId]
+         * @param {any} [query]
+         * @param {(apps: Chatshier.Models.Apps|null) => any} [callback]
+         * @returns {Promise<Chatshier.Models.Apps|null>}
+         */
         find(appIds, webhookId, query, callback) {
             if (appIds && !(appIds instanceof Array)) {
                 appIds = [appIds];
-            };
+            }
 
             let _query = query || { isDeleted: false };
-            appIds && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
+            appIds instanceof Array && (_query._id = { $in: appIds.map((appId) => this.Types.ObjectId(appId)) });
             webhookId && (_query.webhook_id = this.Types.ObjectId(webhookId));
 
             return this.AppsModel.find(_query, this.project).then((results) => {
@@ -62,25 +69,27 @@ module.exports = (function() {
         }
 
         insert(userId, postApp, callback) {
-            let apps = {};
             let _appId = this.Types.ObjectId();
             let webhookId = this.Types.ObjectId().toHexString();
             let groupId = postApp.group_id;
 
-            let _apps = new this.AppsModel();
-            _apps._id = _appId;
-            _apps.id1 = postApp.id1 || '';
-            _apps.id2 = postApp.id2 || '';
-            _apps.name = postApp.name || '';
-            _apps.secret = postApp.secret || '';
-            _apps.token1 = postApp.token1 || '';
-            _apps.token2 = postApp.token2 || '';
-            _apps.type = postApp.type || '';
-            _apps.group_id = postApp.group_id;
-            _apps.webhook_id = CHATSHIER === postApp.type ? '' : webhookId;
-            _apps.isDeleted = false;
-            _apps.updatedTime = Date.now();
-            _apps.createdTime = Date.now();
+            /** @type {Chatshier.Models.App} */
+            let apps = {
+                _id: _appId,
+                id1: postApp.id1 || '',
+                id2: postApp.id2 || '',
+                name: postApp.name || '',
+                secret: postApp.secret || '',
+                token1: postApp.token1 || '',
+                token2: postApp.token2 || '',
+                type: postApp.type || '',
+                group_id: postApp.group_id,
+                webhook_id: CHATSHIER === postApp.type ? '' : webhookId,
+                isDeleted: false,
+                updatedTime: Date.now(),
+                createdTime: Date.now()
+            };
+            let _apps = new this.AppsModel(apps);
 
             return _apps.save().then((__apps) => {
                 let query = {

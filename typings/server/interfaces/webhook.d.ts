@@ -1,4 +1,4 @@
-namespace Webhook {
+declare module Webhook {
     namespace Chatshier {
         interface Information {
             eventType?: string,

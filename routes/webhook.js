@@ -108,7 +108,7 @@ router.post('/:webhookid', (req, res, next) => {
                 // });
             }
 
-            return appsMdl.find(null, webhookid);
+            return appsMdl.find(void 0, webhookid);
         }).then((_apps) => {
             apps = _apps;
             if (!apps || (apps && 0 === Object.keys(apps).length)) {
@@ -127,7 +127,7 @@ router.post('/:webhookid', (req, res, next) => {
                 url: req.hostname + req.originalUrl,
                 body: req.body,
                 status: false
-            }
+            };
             return webhooksLog.insert(webhook);
         }).then((webhook) => {
             logWebhookId = webhook._id;

@@ -60,7 +60,7 @@ module.exports = (function() {
                     if (!(apps && apps[appId])) {
                         return Promise.reject(API_ERROR.APP_FAILED_TO_FIND);
                     }
-                    return apps[appId];
+                    return Promise.resolve(apps[appId]);
                 }).then((app) => {
                     let groupId = app.group_id;
                     return groupsMdl.find(groupId, userId).then((groups) => {
