@@ -24,7 +24,7 @@ module.exports = {
         PORT: 9200,
         USERNAME: 'chsr',
         PASSWORD: '0be44b96e3decd6a6b30cdb30c126089',
-        INDEX: 'log', // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGOD
+        INDEX: 'log', // INDEX of ELASTICSEARCH is simalir to DATABASE of MONGODB
     },
     LINE: {
         PREVIEW_IMAGE_URL: 'https://www.chatshier.com/image/chatshier_logo.png'
