@@ -704,7 +704,6 @@
             size: size,
             areas: areas
         };
-
         if (!imageFile) {
             return api.appsRichmenus.update(appId, richmenuId, userId, putRichmenu).then((resJson) => {
                 let _appsRichmenus = resJson.data;
@@ -763,10 +762,10 @@
             let boxId = $box.attr('id');
             let textType = $boxesInputs.find('#' + boxId + '-input input[name="content"]:checked').val();
             let $textInput = $formInputs.find('#' + boxId + '-input #' + textType);
-            let text = $textInput.val() || $box.attr('ref');
+            let text = $textInput.val();
 
             if ('url' === textType && text) {
-                if (!text.startsWith('http://') || !text.startsWith('https://')) {
+                if (!text.startsWith('http://') && !text.startsWith('https://')) {
                     text = window.location.protocol + '//' + text;
                 }
             }
