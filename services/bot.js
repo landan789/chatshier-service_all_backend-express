@@ -993,7 +993,12 @@ module.exports = (function() {
          */
         linkRichMenuToUser(userId, platformMenuId, appId) {
             let bot = this.bots[appId];
-            return bot.linkRichMenuToUser(userId, platformMenuId);
+            return bot.linkRichMenuToUser(userId, platformMenuId).then((resJson) => {
+                if (resJson && resJson.message && resJson.details) {
+                    return Promise.resolve();
+                }
+                return Promise.resolve(resJson);
+            });
         }
 
         /**

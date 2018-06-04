@@ -61,71 +61,43 @@ module.exports = (function() {
 
         activateMenu(req, res) {
             let appId = req.params.appid;
-            let menuId = req.params.menuid;
-            let appType = '';
-            let postMenu = {};
+            let richmenuId = req.params.menuid;
+            let richmenu = {};
+            /** @type {Chatshier.Models.App} */
+            let app;
 
             return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
-            }).then((app) => {
-                if (!app) {
+            }).then((_app) => {
+                if (!_app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                appType = app.type;
-                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
-            }).then(([appsRichmenu, app]) => {
+                app = _app;
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenu) => {
                 if (!appsRichmenu) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                postMenu = appsRichmenu[appId].richmenus[menuId];
-                let imageSrc = postMenu.src;
-                if (!imageSrc) {
-                    return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
-                }
 
-                let fileName = imageSrc.split('/').pop();
-                let path = `/apps/${appId}/richmenus/${menuId}/src/${fileName}`;
-                return Promise.all([
-                    botSvc.createRichMenu(postMenu, appId, app),
-                    storageHlp.filesDownload(path)
-                ]);
-            }).then(([response, image]) => {
-                let botMenuId = '';
-
-                if (response instanceof Object) {
-                    // wechat create success response {"errcode":0,"errmsg":"ok"}
-                    if (!response.errcode && 'ok' === response.errmsg) {
-                        botMenuId = 'true';
-                    }
-                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_INSERT);
-                }
-                botMenuId = response;
-
-                return botSvc.setRichMenuImage(botMenuId, image, appId).then((result) => {
-                    if (!result) {
-                        return Promise.reject(API_ERROR.BOT_MENU_IMAGE_FAILED_TO_INSERT);
-                    }
-
-                    return this._findPlatformUids(appId, appType).then((platformUids) => {
-                        return Promise.all(platformUids.map((platformUid) => {
-                            return botSvc.linkRichMenuToUser(platformUid, botMenuId, appId).then((result) => {
-                                if (!result) {
-                                    return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
-                                }
-                                return platformUid;
-                            });
-                        }));
-                    }).then(() => {
-                        postMenu.platformMenuId = botMenuId;
-                        return appsRichmenusMdl.update(appId, menuId, postMenu).then((appsRichemnu) => {
-                            return appsRichemnu;
-                        });
+                richmenu = appsRichmenu[appId].richmenus[richmenuId];
+                return this._findPlatformUids(appId, app.type);
+            }).then((platformUids) => {
+                let platformMenuId = richmenu.platformMenuId;
+                return Promise.all(platformUids.map((platformUid) => {
+                    return botSvc.linkRichMenuToUser(platformUid, platformMenuId, appId).then((resJson) => {
+                        if (!resJson) {
+                            return Promise.reject(API_ERROR.BOT_MENU_FAILED_TO_LINK);
+                        }
+                        return platformUid;
                     });
-                });
-            }).then((data) => {
+                }));
+            }).then(() => {
+                richmenu.isActivated = true;
+                return appsRichmenusMdl.update(appId, richmenuId, richmenu);
+            }).then((appsRichemnu) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_INSERT.MSG,
-                    data: data
+                    data: appsRichemnu
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -135,21 +107,25 @@ module.exports = (function() {
 
         deactivateMenu(req, res) {
             let appId = req.params.appid;
-            let menuId = req.params.menuid;
+            let richmenuId = req.params.menuid;
             let richmenu;
+            /** @type {Chatshier.Models.App} */
+            let app;
 
             return this.appsRequestVerify(req).then(() => {
                 return this._createBot(appId);
-            }).then((app) => {
-                if (!app) {
+            }).then((_app) => {
+                if (!_app) {
                     return Promise.reject(API_ERROR.BOT_FAILED_TO_CREATE);
                 }
-                return Promise.all([ appsRichmenusMdl.find(appId, menuId), app ]);
-            }).then(([ appsRichmenus, app ]) => {
+                app = _app;
+                return appsRichmenusMdl.find(appId, richmenuId);
+            }).then((appsRichmenus) => {
                 if (!appsRichmenus) {
                     return Promise.reject(API_ERROR.APP_RICHMENU_FAILED_TO_FIND);
                 }
-                richmenu = appsRichmenus[appId].richmenus[menuId];
+
+                richmenu = appsRichmenus[appId].richmenus[richmenuId];
                 return this._findPlatformUids(appId, app.type);
             }).then((platformUids) => {
                 let platformMenuId = richmenu.platformMenuId;
@@ -162,15 +138,12 @@ module.exports = (function() {
                     });
                 }));
             }).then(() => {
-                richmenu.platformMenuId = '';
-                richmenu.isDeleted = false;
-                return appsRichmenusMdl.update(appId, menuId, richmenu).then((appsRichemnu) => {
-                    return appsRichemnu;
-                });
-            }).then((data) => {
+                richmenu.isActivated = false;
+                return appsRichmenusMdl.update(appId, richmenuId, richmenu);
+            }).then((appsRichmenus) => {
                 let suc = {
                     msg: API_SUCCESS.DATA_SUCCEEDED_TO_FIND.MSG,
-                    data: data
+                    data: appsRichmenus
                 };
                 return this.successJson(req, res, suc);
             }).catch((err) => {
@@ -181,7 +154,8 @@ module.exports = (function() {
         getProfile(req, res) {
             let appId = req.params.appid;
             let platformUid = req.params.platformuid;
-            let app = {};
+            /** @type {Chatshier.Models.App} */
+            let app;
 
             return Promise.resolve().then(() => {
                 if (!appId) {
